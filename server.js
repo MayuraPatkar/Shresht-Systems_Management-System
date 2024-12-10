@@ -36,7 +36,7 @@ app.get('/billing', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'billing.html'));
 });
 
-app.get('/quotaion', (req, res) => {
+app.get('/quotation', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'quotation.html'));
 });
 

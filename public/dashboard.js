@@ -10,7 +10,7 @@ document.getElementById('wayBill').addEventListener('click', () => {
     window.location = '/wayBill';
 })
 
-document.getElementById('postorder').addEventListener('click', () => {
+document.getElementById('postOrder').addEventListener('click', () => {
     window.location = '/postorder';
 })
 
