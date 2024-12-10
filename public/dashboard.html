@@ -21,7 +21,7 @@
         h1 {
             height: 10vh;
             text-align: center;
-            margin: 0;
+            margin: 10px 0;
         }
 
         #container {
@@ -37,9 +37,25 @@
             width: 30%;
             height: 20%;
             border-radius: 20px;
+            padding: 1%;
+            box-sizing: border-box;
             background-color: rgb(105, 94, 255);
             font-size: 1.5rem;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .img {
+            width: 50%;
+            height: 40%;
+        }
+
+        .img img {
+            height: 100%;
         }
     </style>
 </head>
@@ -47,43 +63,44 @@
 <body>
     <h1>Dashboard</h1>
     <div id="container">
-        <div id="" class="csub">
-            <div><img src="" alt="icon"></div>
-            <p>Billing</p>
+        <div id="billing" class="csub">
+            <div class="img"><img src="./assets/transaction.png" alt="icon"></div>
+            <p>Bill / Invoice</p>
         </div>
-        <div id="" class="csub">
-            <div><img src="" alt="icon"></div>
-            <p>Q</p>
+        <div id="quotation" class="csub">
+            <div class="img"><img src="./assets/quotation.png" alt="icon"></div>
+            <p>Quotation</p>
         </div>
-        <div id="" class="csub">
-            <div><img src="" alt="icon"></div>
+        <div id="wayBill" class="csub">
+            <div class="img"><img src="./assets/delivery.png" alt="icon"></div>
             <p>Way Bill</p>
         </div>
-        <div id="" class="csub">
-            <div><img src="" alt="icon"></div>
-            <p>P</p>
+        <div id="postOrder" class="csub">
+            <div class="img"><img src="./assets/economy-forecast.png" alt="icon"></div>
+            <p>Post Order</p>
         </div>
-        <div id="" class="csub">
-            <div><img src="" alt="icon"></div>
-            <p>stock</p>
+        <div id="stock" class="csub">
+            <div class="img"><img src="./assets/in-stock.png" alt="icon"></div>
+            <p>Stock</p>
         </div>
-        <div id="" class="csub">
-            <div><img src="" alt="icon"></div>
+        <div id="employees" class="csub">
+            <div class="img"><img src="./assets/emloyee.png" alt="icon"></div>
             <p>Employees</p>
         </div>
-        <div id="" class="csub">
-            <div><img src="" alt="icon"></div>
-            <p>Records</p>
+        <div id="database" class="csub">
+            <div class="img"><img src="./assets/folder.png" alt="icon"></div>
+            <p>Database</p>
         </div>
-        <div id="" class="csub">
-            <div><img src="" alt="icon"></div>
+        <div id="analitics" class="csub">
+            <div class="img"><img src="./assets/analitics.png" alt="icon"></div>
             <p>analitics</p>
         </div>
-        <div id="" class="csub">
-            <div><img src="" alt="icon"></div>
+        <div id="management" class="csub">
+            <div class="img"><img src="./assets/management.png" alt="icon"></div>
             <p>Management</p>
         </div>
     </div>
+    <script src="./dashboard.js"></script>
 </body>
 
 </html>
