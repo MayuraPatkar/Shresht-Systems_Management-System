@@ -2,6 +2,39 @@ document.getElementById('logo').addEventListener('click', () => {
     window.location = '/dashboard';
 })
 
+let currentStep = 1;
+        const totalSteps = 4;
+
+        document.getElementById("nextBtn").addEventListener("click", () => {
+            if (currentStep < totalSteps) {
+                document.getElementById(`step-${currentStep}`).classList.remove("active");
+                currentStep++;
+                document.getElementById(`step-${currentStep}`).classList.add("active");
+            }
+            updateNavigation();
+        });
+
+        document.getElementById("prevBtn").addEventListener("click", () => {
+            if (currentStep > 1) {
+                document.getElementById(`step-${currentStep}`).classList.remove("active");
+                currentStep--;
+                document.getElementById(`step-${currentStep}`).classList.add("active");
+            }
+            updateNavigation();
+        });
+
+        function updateNavigation() {
+            document.getElementById("prevBtn").disabled = currentStep === 1;
+            document.getElementById("nextBtn").disabled = currentStep === totalSteps;
+        }
+
+document.getElementById('save').addEventListener('click', () => {
+    sendToServer();
+})
+
+document.getElementById('add-item-btn').addEventListener('click', () => {
+    addItem();
+})
 
 // Function to dynamically add items to the invoice
 function addItem() {
@@ -12,7 +45,7 @@ function addItem() {
         <td><input type="text" placeholder="Item Description" required></td>
         <td><input type="number" placeholder="Qty" min="1" required></td>
         <td><input type="number" placeholder="Price (₹)" min="0.01" step="0.01" required></td>
-        <td><button type="button" class="remove-item-btn" onclick="removeItem(this)">Remove</button></td>
+        <td><button type="button" class="remove-item-btn" nonce="ab" onclick="removeItem(this)">Remove</button></td>
     `;
 
     tableBody.appendChild(row);

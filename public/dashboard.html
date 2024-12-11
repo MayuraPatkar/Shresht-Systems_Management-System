@@ -9,59 +9,98 @@
     <title>dashboard</title>
     <style>
         body {
+            width: 100vw;
             height: 100vh;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            width: 100%;
+            padding: 1rem 2rem;
+            box-sizing: border-box;
+            background-color: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .imglogo {
+            height: 7vh;
+        }
+
+        .imglogo img {
+            height: 100%;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        #container {
+            flex-grow: 1;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            align-items: flex-start;
+            padding: 2rem;
+            gap: 1rem;
+            box-sizing: border-box;
+        }
+
+        .csub {
+            flex: 1 1 calc(30% - 2rem);
+            max-width: calc(30% - 2rem);
+            height: 150px;
+            border-radius: 15px;
+            padding: 1rem;
+            box-sizing: border-box;
+            background-color: rgb(105, 94, 255);
+            color: #fff;
+            font-size: 1rem;
+            text-align: center;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-family: Arial, sans-serif;
-            margin: 0;
-        }
-
-        h1 {
-            height: 10vh;
-            text-align: center;
-            margin: 10px 0;
-        }
-
-        #container {
-            height: 90vh;
-            width: 100vw;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-evenly;
-            align-items: center;
-        }
-
-        .csub {
-            width: 30%;
-            height: 20%;
-            border-radius: 20px;
-            padding: 1%;
-            box-sizing: border-box;
-            background-color: rgb(105, 94, 255);
-            font-size: 1.5rem;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-evenly;
-            align-items: center;
             cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .csub:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
         .img {
-            width: 50%;
-            height: 40%;
+            width: 50px;
+            height: 50px;
+            margin-bottom: 0.5rem;
         }
 
         .img img {
+            width: 100%;
             height: 100%;
+        }
+
+        p {
+            margin: 0;
+            font-size: 1rem;
         }
     </style>
 </head>
 
 <body>
-    <h1>Dashboard</h1>
+    <header>
+        <div class="imglogo" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
+        <h1>Dashboard</h1>
+    </header>
     <div id="container">
         <div id="billing" class="csub">
             <div class="img"><img src="./assets/transaction.png" alt="icon"></div>
@@ -91,9 +130,9 @@
             <div class="img"><img src="./assets/folder.png" alt="icon"></div>
             <p>Database</p>
         </div>
-        <div id="analitics" class="csub">
+        <div id="analytics" class="csub">
             <div class="img"><img src="./assets/analitics.png" alt="icon"></div>
-            <p>analitics</p>
+            <p>analytics</p>
         </div>
         <div id="management" class="csub">
             <div class="img"><img src="./assets/management.png" alt="icon"></div>

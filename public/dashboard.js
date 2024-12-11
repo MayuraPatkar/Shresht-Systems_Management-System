@@ -26,6 +26,10 @@ document.getElementById('database').addEventListener('click', () => {
     window.location = '/database';
 })
 
+document.getElementById('analytics').addEventListener('click', () => {
+    window.location = '/analytics';
+})
+
 document.getElementById('management').addEventListener('click', () => {
     window.location = '/management';
 })

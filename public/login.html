@@ -10,43 +10,91 @@
     <style>
         body {
             height: 100vh;
+            margin: 0;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            text-align: center;
         }
 
         div {
             height: 20vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
         }
 
-        img{
+        img {
             height: 100%;
+            max-width: 100%;
+        }
+
+        h1 {
+            margin: 0.5rem 0 2rem;
+            font-size: 2rem;
+            color: #333;
+        }
+
+        label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            max-width: 350px;
+            height: 40px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 1rem;
+            padding: 0 10px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: #4949ff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(73, 73, 255, 0.5);
+        }
+
+        #error {
+            color: red;
+            font-size: 1rem;
+            margin-top: 10px;
+            display: none;
         }
 
         button {
-            width: 10vw;
-            height: 5vh;
-            font-size: 1.3rem;
-            background-color: rgb(73, 73, 255);
+            width: 200px;
+            height: 45px;
+            font-size: 1rem;
+            font-weight: bold;
+            background-color: #4949ff;
+            color: #fff;
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            margin-top: 1rem;
+            transition: background-color 0.3s, transform 0.2s;
         }
-        label{
-            font-size: 1.4rem;
+
+        button:hover {
+            background-color: #3737d6;
+            transform: scale(1.05);
         }
-        input{
-            width: 300px;
-            height: 5vh;
-            border-radius: 5px;
-            margin: 10px 0;
-            font-size: 1.3rem;
-            padding: 1%;
-            box-sizing: border-box;
+
+        button:active {
+            background-color: #2b2bb3;
         }
     </style>
+
 </head>
 
 <body>
@@ -56,6 +104,7 @@
     <input type="text" id="username">
     <label>Password</label>
     <input type="password" id="password">
+    <p id="error"></p>
     <button id="login2">Login</button>
     <script src="./loginScript.js"></script>
 </body>

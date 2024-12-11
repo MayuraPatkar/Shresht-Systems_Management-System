@@ -17,15 +17,13 @@ document.getElementById('login2').addEventListener('click', () => {
     })
         .then(response => {
             if (response.ok) {
-                return response.json(); // Parse the JSON response
+                window.location = '/dashboard';
             } else {
-                throw new Error('Failed to login');
+                document.getElementById('error').style.display = "block";
+                document.getElementById('error').innerText = "Invalid username or password";
             }
         })
-        .then(data => {
-            window.location = '/dashboard'; // Handle success response
-        })
         .catch(error => {
-            console.error('Error:', error); // Handle error
+            console.error('Error:', error);
         });
 });

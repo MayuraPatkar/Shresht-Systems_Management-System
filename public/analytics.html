@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
-    <title>Employee</title>
+    <title>Analytics</title>
     <style>
         body {
             margin: 0;
@@ -45,35 +45,8 @@
             margin: 20px auto;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        canvas {
             margin: 20px 0;
-        }
-
-        table th,
-        table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-
-        table th {
-            background-color: #f4f4f4;
-        }
-
-        .add-btn {
-            margin: 10px 0;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .add-btn:hover {
-            background-color: #0056b3;
         }
     </style>
 </head>
@@ -81,28 +54,20 @@
 <body>
     <header>
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
-        <h1>Employee</h1>
+        <h1>Analytics</h1>
     </header>
     <div class="container">
-        <h2>Employee Details</h2>
-        <button class="add-btn" id="addEmployee">Add Employee</button>
-        <table id="employee-table">
-            <thead>
-                <tr>
-                    <th>Employee ID</th>
-                    <th>Name</th>
-                    <th>Attendance</th>
-                    <th>Salary (₹)</th>
-                    <th>Payment Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Employee data will be dynamically added here -->
-            </tbody>
-        </table>
-    </div>
+        <h2>Weekly Profit/Loss</h2>
+        <canvas id="weeklyChart"></canvas>
 
-    <script src="./employee.js"></script>
+        <h2>Monthly Expenditure</h2>
+        <canvas id="monthlyChart"></canvas>
+
+        <h2>Yearly Trends</h2>
+        <canvas id="yearlyChart"></canvas>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./analytics.js"></script>
 </body>
 
 </html>

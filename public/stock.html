@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
-    <title>Stock</title>
+    <title>Stock Management</title>
     <style>
         body {
             margin: 0;
+            font-family: Arial, sans-serif;
         }
 
         header {
             width: 100vw;
             padding: 2%;
+            box-sizing: border-box;
+            background-color: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .img {
@@ -23,12 +31,80 @@
         .img img {
             height: 100%;
         }
+
+        h1 {
+            width: 65vw;
+        }
+
+        .container {
+            width: 100vw;
+            padding: 2%;
+            box-sizing: border-box;
+        }
+
+        .stock-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2%;
+        }
+
+        .stock-table th,
+        .stock-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stock-table th {
+            background-color: #f0f0f0;
+        }
+
+        .low-stock {
+            background-color: #ffcccc;
+        }
+
+        .btn {
+            width: 150px;
+            height: 50px;
+            padding: 5px 10px;
+            margin: 5px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 
 <body>
     <header>
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
+        <h1>Stock Management System</h1>
     </header>
+
+    <div class="container">
+        <button class="btn" onclick="fetchStockData()">Refresh Stock</button>
+        <table class="stock-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="stock-table-body">
+                <!-- Rows will be populated dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="./stock.js"></script>
 </body>
+
 </html>

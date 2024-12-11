@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
     try {
         // Fetch the single admin document from the collection
         const admin = await Admin.findOne();
-        console.log(admin);
+
         if (!admin || admin.username !== username) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }

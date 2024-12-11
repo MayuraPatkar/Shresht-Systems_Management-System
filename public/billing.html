@@ -5,19 +5,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
     <title>Invoice Form</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
             padding: 0;
             background-color: #f4f4f9;
         }
 
         header {
-            width: 100vw;
-            padding: 2%;
+            width: 100%;
+            padding: 1rem 2rem;
+            box-sizing: border-box;
+            background-color: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .img {
@@ -29,13 +35,15 @@
         }
 
         h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            flex-grow: 1;
             text-align: center;
-            margin-bottom: 20px;
         }
 
         form {
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 80vw;
+            margin: 30px auto;
             background: #ffffff;
             padding: 20px;
             border-radius: 8px;
@@ -53,7 +61,10 @@
             margin-bottom: 5px;
         }
 
-        input, select, textarea, button {
+        input,
+        select,
+        textarea,
+        button {
             padding: 10px;
             font-size: 1rem;
             border: 1px solid #ccc;
@@ -70,16 +81,31 @@
             margin-bottom: 15px;
         }
 
-        table th, table td {
+        table th,
+        table td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
 
-        .add-item-btn, .remove-item-btn {
+        .add-item-btn,
+        .remove-item-btn {
             padding: 5px 10px;
             font-size: 0.9rem;
             margin: 5px 0;
+            cursor: pointer;
+        }
+
+        .add-item-btn {
+            background-color: #3798ff;
+        }
+
+        .remove-item-btn {
+            background-color: rgb(255, 45, 45);
+        }
+
+        .remove-item-btn:hover {
+            background-color: rgb(233, 11, 11);
         }
 
         button[type="submit"] {
@@ -92,64 +118,114 @@
         button[type="submit"]:hover {
             background-color: #0056b3;
         }
+
+        #save {
+            background-color: rgb(93, 255, 93);
+        }
+
+        #print {
+            background-color: #3798ff;
+        }
+
+        .steps {
+            display: none;
+        }
+
+        .steps.active {
+            display: block;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .navigation button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .navigation button[disabled] {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 
 <body>
     <header>
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
+        <h1>Bill / Invoice</h1>
     </header>
-    <h1>Invoice Input Form</h1>
     <form id="invoice-form">
         <!-- Basic Invoice Details -->
-        <div class="form-group">
-            <label for="invoiceNumber">Invoice Number:</label>
-            <input type="text" id="invoiceNumber" placeholder="E.g., INV/001" required>
+        <div class="steps active" id="step-1">
+            <div class="form-group">
+                <label for="invoiceNumber">Invoice Number:</label>
+                <input type="text" id="invoiceNumber" placeholder="E.g., INV/001" required>
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="date" id="date" required>
+            </div>
+
+            <div class="form-group">
+                <label for="buyer">Buyer Name:</label>
+                <input type="text" id="buyer" placeholder="E.g., XYZ Pvt Ltd" required>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="date">Date:</label>
-            <input type="date" id="date" required>
+        <div class="steps" id="step-2">
+            <!-- Item List -->
+            <div class="form-group">
+                <label>Items:</label>
+                <table id="items-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                            <th>Price (₹)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Items will be added here dynamically -->
+                    </tbody>
+                </table>
+                <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="buyer">Buyer Name:</label>
-            <input type="text" id="buyer" placeholder="E.g., XYZ Pvt Ltd" required>
+        <div class="steps" id="step-3">
+            <!-- Total and Tax -->
+            <div class="form-group">
+                <label for="totalAmount">Total Amount (₹):</label>
+                <input type="number" id="totalAmount" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="tax">Tax (₹):</label>
+                <input type="number" id="tax" placeholder="E.g., 900" required>
+            </div>
         </div>
 
-        <!-- Item List -->
-        <div class="form-group">
-            <label>Items:</label>
-            <table id="items-table">
-                <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th>Quantity</th>
-                        <th>Price (₹)</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Items will be added here dynamically -->
-                </tbody>
-            </table>
-            <button type="button" class="add-item-btn" onclick="addItem()">Add Item</button>
+        <div class="steps" id="step-4">
+            <div class="preview">
+                <!-- Preview and Actions -->
+            </div>
+            <button type="button" id="save">Save</button>
+            <button type="button" id="print">Print</button>
         </div>
 
-        <!-- Total and Tax -->
-        <div class="form-group">
-            <label for="totalAmount">Total Amount (₹):</label>
-            <input type="number" id="totalAmount" placeholder="E.g., 5000" required>
+        <div class="navigation">
+            <button type="button" id="prevBtn" disabled>Previous</button>
+            <button type="button" id="nextBtn">Next</button>
         </div>
-
-        <div class="form-group">
-            <label for="tax">Tax (₹):</label>
-            <input type="number" id="tax" placeholder="E.g., 900" required>
-        </div>
-
-        <!-- Submit Button -->
-        <button type="button" onclick="sendToServer()">Save</button>
-        <button type="button" onclick="sendToServer()">Print</button>
     </form>
 
     <script src="./billing.js"></script>
