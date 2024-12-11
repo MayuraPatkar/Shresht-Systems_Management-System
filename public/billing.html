@@ -6,10 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
-    <title>Billing</title>
+    <title>Invoice Form</title>
     <style>
         body {
-            margin: 0;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
         }
 
         header {
@@ -24,6 +27,71 @@
         .img img {
             height: 100%;
         }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea, button {
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .add-item-btn, .remove-item-btn {
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            margin: 5px 0;
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 
@@ -31,9 +99,59 @@
     <header>
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
     </header>
-    <div class="container">
-        <button>print</button>
-    </div>
+    <h1>Invoice Input Form</h1>
+    <form id="invoice-form">
+        <!-- Basic Invoice Details -->
+        <div class="form-group">
+            <label for="invoiceNumber">Invoice Number:</label>
+            <input type="text" id="invoiceNumber" placeholder="E.g., INV/001" required>
+        </div>
+
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" id="date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="buyer">Buyer Name:</label>
+            <input type="text" id="buyer" placeholder="E.g., XYZ Pvt Ltd" required>
+        </div>
+
+        <!-- Item List -->
+        <div class="form-group">
+            <label>Items:</label>
+            <table id="items-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Price (₹)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Items will be added here dynamically -->
+                </tbody>
+            </table>
+            <button type="button" class="add-item-btn" onclick="addItem()">Add Item</button>
+        </div>
+
+        <!-- Total and Tax -->
+        <div class="form-group">
+            <label for="totalAmount">Total Amount (₹):</label>
+            <input type="number" id="totalAmount" placeholder="E.g., 5000" required>
+        </div>
+
+        <div class="form-group">
+            <label for="tax">Tax (₹):</label>
+            <input type="number" id="tax" placeholder="E.g., 900" required>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="button" onclick="sendToServer()">Save</button>
+        <button type="button" onclick="sendToServer()">Print</button>
+    </form>
+
     <script src="./billing.js"></script>
 </body>
 
