@@ -1,8 +1,38 @@
 [
     {
-        "item1": 0
+        "item_id": "101",
+        "name": "pipe",
+        "quantity": 10,
+        "unitPrice": 12000
     },
     {
-        "item2": 0
+        "item_id": "102",
+        "name": "Rack",
+        "quantity": 54,
+        "unitPrice": 3457
+    },
+    {
+        "item_id": "103",
+        "name": "Battary",
+        "quantity": 2,
+        "unitPrice": 8798
+    },
+    {
+        "item_id": "104",
+        "name": "pipe",
+        "quantity": 10,
+        "unitPrice": 12000
+    },
+    {
+        "item_id": "105",
+        "name": "Rack",
+        "quantity": 4,
+        "unitPrice": 3457
+    },
+    {
+        "item_id": "106",
+        "name": "Battary",
+        "quantity": 23,
+        "unitPrice": 8798
     }
 ]

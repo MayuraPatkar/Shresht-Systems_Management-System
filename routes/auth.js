@@ -1,30 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
-
-// Define Admin Schema and Model
-const adminSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    username: { type: String, required: true },
-    password: { type: String, required: true },
-    address: { type: String, required: true },
-    state: { type: String, required: true },
-    phone: {
-        ph1: { type: String, required: true },
-        ph2: { type: String, required: false },
-    },
-    GSTIN: { type: String, required: true },
-    bank_details: {
-        bank_name: { type: String, required: true },
-        name: { type: String, required: true },
-        accountNo: { type: Number, required: true },
-        type: { type: String, required: true },
-        IFSC_code: { type: String, required: true },
-        branch: { type: String, required: true },
-    },
-});
-
-const Admin = mongoose.model('Admin', adminSchema);
+const { Admin } = require('./database');
 
 // Login endpoint
 router.post('/login', async (req, res) => {

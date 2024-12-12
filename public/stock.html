@@ -5,47 +5,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
     <title>Stock Management</title>
     <style>
         body {
             margin: 0;
             font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
         }
 
         header {
-            width: 100vw;
-            padding: 2%;
-            box-sizing: border-box;
+            width: 100%;
+            padding: 15px 20px;
             background-color: #f4f4f4;
             border-bottom: 1px solid #ddd;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
         }
 
         .img {
-            height: 7vh;
+            height: 50px;
         }
 
         .img img {
             height: 100%;
+            object-fit: contain;
         }
 
         h1 {
-            width: 65vw;
+            font-size: 1.8rem;
+            color: #007bff;
+            margin: 0;
+            text-align: center;
+            flex: 1;
         }
 
         .container {
-            width: 100vw;
-            padding: 2%;
+            width: 100%;
+            padding: 20px;
             box-sizing: border-box;
+        }
+
+        .addItem {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: none;
+            text-align: center;
+        }
+
+        .addItem label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        .addItem input {
+            width: 100%;
+            padding: 8px 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .addItem button {
+            width: 100px;
+            padding: 10px;
+            margin: 5px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .addItem button:hover {
+            background-color: #0056b3;
+        }
+
+        .backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
         }
 
         .stock-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 2%;
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .stock-table th,
@@ -53,10 +123,16 @@
             border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
+            font-size: 1rem;
         }
 
         .stock-table th {
-            background-color: #f0f0f0;
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .stock-table tbody tr:hover {
+            background-color: #f1f1f1;
         }
 
         .low-stock {
@@ -64,19 +140,39 @@
         }
 
         .btn {
-            width: 150px;
-            height: 50px;
-            padding: 5px 10px;
-            margin: 5px;
+            width: auto;
+            padding: 10px 20px;
+            margin: 10px 5px;
             background-color: #007bff;
             color: #fff;
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            font-size: 1rem;
         }
 
         .btn:hover {
             background-color: #0056b3;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            .addItem {
+                width: 90%;
+                max-width: 300px;
+            }
+
+            .stock-table {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -86,13 +182,47 @@
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
         <h1>Stock Management System</h1>
     </header>
-
+    <div class="backdrop" id="backdrop"></div>
     <div class="container">
+        <div class="addItem" id="addItem">
+            <label>Item Name</label>
+            <input type="text" id="item_name">
+            <label>Unit Price</label>
+            <input type="number" id="unit_price">
+            <label>Quantity</label>
+            <input type="number" id="item_quantity">
+            <button onclick="addItem()">Add</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+        <div class="addItem" id="addToStock">
+            <label>Quantity</label>
+            <input type="number" id="add_quantity">
+            <button onclick="addToStock()">Add</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+        <div class="addItem" id="removeFromStock">
+            <label>Quantity</label>
+            <input type="number" id="remove_quantity">
+            <button onclick="removeFromStock()">Remove</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+        <div class="addItem" id="editItem">
+            <label>Item Name</label>
+            <input type="text" id="edit_item_name">
+            <label>Unit Price</label>
+            <input type="number" id="edit_unit_price">
+            <label>Quantity</label>
+            <input type="number" id="edit_quantity">
+            <button onclick="editItem()">Save</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
         <button class="btn" onclick="fetchStockData()">Refresh Stock</button>
+        <button class="btn" onclick="addItemDiv()">Add New Item</button>
         <table class="stock-table">
             <thead>
                 <tr>
                     <th>Item</th>
+                    <th>Unit Price</th>
                     <th>Quantity</th>
                     <th>Status</th>
                     <th>Actions</th>
