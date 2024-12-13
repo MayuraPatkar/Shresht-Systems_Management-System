@@ -9,7 +9,7 @@ const adminSchema = new mongoose.Schema({
     state: { type: String, required: true },
     phone: {
         ph1: { type: String, required: true },
-        ph2: { type: String, required: false },
+        ph2: { type: String },
     },
     email: { type: String, required: true },
     website: { type: String, required: true },
@@ -26,27 +26,48 @@ const adminSchema = new mongoose.Schema({
 
 const Admin = mongoose.model('Admin', adminSchema);
 
-// Define Customer Schema and Model
-const customerSchema = new mongoose.Schema({
+// Define Project Schema and Model
+const projectSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
-    c_id: { type: String, required: true },
-    name: { type: String, required: true },
-    address: { type: String, required: true },
-    phone: { type: String, required: true },
-    email: { type: String, required: false },
+    name: { type: String },
+    address: { type: String },
+    phone: { type: String },
+    email: { type: String },
+    invoice_number: { type: String },
+    E_Way_Bill_number: { type: String },
+    date: { type: Date },
+    place_to_supply: { type: String },
+    transportation_mode: { type: String },
+    vehicle_no: { type: String },
+    items: [
+        {
+            description: { type: String },
+            HSN_SAC: { type: Number },
+            quantity: { type: Number },
+            UoM: { type: String },
+            rate: { type: Number },
+            taxable_value: {
+                value: { type: Number },
+                percentage: { type: Number },
+            },
+            CGST: {
+                value: { type: Number },
+                percentage: { type: Number },
+            },
+            SGST: {
+                value: { type: Number },
+                percentage: { type: Number },
+            },
+        },
+    ],
+    total: { type: Number },
+    CGST_total: { type: Number },
+    SGST_total: { type: Number },
+    round_Off: { type: Number },
+    invoice_total: { type: Number },
 });
 
-const Customer = mongoose.model('Customer', customerSchema);
-
-// Define Invoice Schema and Model
-const invoiceSchema = new mongoose.Schema({
-    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
-    invoice_number: { type: String, required: true },
-    date: { type: Date, required: true },
-    total: { type: Number, required: true },
-});
-
-const Invoice = mongoose.model('Invoice', invoiceSchema);
+const Project = mongoose.model('Project', projectSchema);
 
 // Define Stock Schema and Model
 const stockSchema = new mongoose.Schema({
@@ -61,11 +82,11 @@ const Stock = mongoose.model('Stock', stockSchema);
 
 // Define Employee Schema and Model
 const employeeSchema = new mongoose.Schema({
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     emp_id: { type: String, required: true },
     name: { type: String, required: true },
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
 });
 
 const Employee = mongoose.model('Employee', employeeSchema);
 
-module.exports = { Admin, Customer, Invoice, Stock, Employee };
+module.exports = { Admin, Project, Stock, Employee };

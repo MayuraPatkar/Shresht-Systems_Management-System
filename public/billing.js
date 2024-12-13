@@ -3,7 +3,7 @@ document.getElementById('logo').addEventListener('click', () => {
 });
 
 let currentStep = 1;
-const totalSteps = 5;
+const totalSteps = 7;
 
 document.getElementById("nextBtn").addEventListener("click", () => {
     if (currentStep < totalSteps) {
@@ -60,10 +60,68 @@ function removeItem(button) {
     button.parentElement.parentElement.remove();
 }
 
+// Attach event listeners to dynamically calculate totals
+document.querySelector("#items-table").addEventListener("input", updateTotals);
+
+function updateTotals() {
+    let totalCGST = 0;
+    let totalSGST = 0;
+    let totalTaxableValue = 0;
+
+    const rows = document.querySelectorAll("#items-table tbody tr");
+    rows.forEach(row => {
+        const qty = parseFloat(row.querySelector("td:nth-child(3) input").value) || 0;
+        const rate = parseFloat(row.querySelector("td:nth-child(5) input").value) || 0;
+        const cgstPercent = parseFloat(row.querySelector("td:nth-child(7) input").value) || 0;
+        const sgstPercent = parseFloat(row.querySelector("td:nth-child(9) input").value) || 0;
+
+        // Calculate taxable value, CGST, SGST, and total price
+        const taxableValue = qty * rate;
+        const cgstValue = (taxableValue * cgstPercent) / 100;
+        const sgstValue = (taxableValue * sgstPercent) / 100;
+        const totalPrice = taxableValue + cgstValue + sgstValue;
+
+        // Update row values
+        row.querySelector("td:nth-child(6) input").value = taxableValue.toFixed(2);
+        row.querySelector("td:nth-child(8) input").value = cgstValue.toFixed(2);
+        row.querySelector("td:nth-child(10) input").value = sgstValue.toFixed(2);
+        row.querySelector("td:nth-child(11) input").value = totalPrice.toFixed(2);
+
+        // Accumulate totals
+        totalTaxableValue += taxableValue;
+        totalCGST += cgstValue;
+        totalSGST += sgstValue;
+    });
+
+    // Calculate overall totals
+    const invoiceTotal = totalTaxableValue + totalCGST + totalSGST;
+    const roundOff = Math.round(invoiceTotal) - invoiceTotal;
+
+    // Update form fields
+    document.getElementById("totalAmount").value = totalTaxableValue.toFixed(2);
+    document.getElementById("cgstTotal").value = totalCGST.toFixed(2);
+    document.getElementById("sgstTotal").value = totalSGST.toFixed(2);
+    document.getElementById("roundOff").value = roundOff.toFixed(2);
+    document.getElementById("invoiceTotal").value = (invoiceTotal + roundOff).toFixed(2);
+}
+
+// Add event listener for dynamic row addition
+document.getElementById("add-item-btn").addEventListener("click", () => {
+    updateTotals(); // Ensure totals are recalculated when a new row is added
+});
+
+// Add event listener for row removal
+document.querySelector("#items-table").addEventListener("click", (event) => {
+    if (event.target.classList.contains("remove-item-btn")) {
+        updateTotals(); // Recalculate totals when a row is removed
+    }
+});
+
+
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
     try {
-        const response = await fetch("http://localhost:3000/invoice/save-invoice", {
+        const response = await fetch("http://localhost:3000/project/save-invoice", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
@@ -91,7 +149,6 @@ document.getElementById("save").addEventListener("click", () => {
 
 document.getElementById("print").addEventListener("click", () => {
     const invoiceData = collectFormData();
-    console.log(invoiceData)
     sendToServer(invoiceData, true);
 });
 
@@ -99,11 +156,19 @@ function collectFormData() {
     return {
         projectName: document.getElementById("projectName").value,
         invoiceNumber: document.getElementById("invoiceNumber").value,
+        poNumber: document.getElementById("poNumber").value,
+        poDate: document.getElementById("poDate").value,
+        dcNumber: document.getElementById("dcNumber").value,
+        dcDate: document.getElementById("dcDate").value,
+        transportMode: document.getElementById("transportMode").value,
+        vehicleNumber: document.getElementById("vehicleNumber").value,
+        placeSupply: document.getElementById("placeSupply").value,
         ewayBillNumber: document.getElementById("ewayBillNumber").value,
-        date: new Date().toISOString(),
-        buyer: document.getElementById("buyer").value,
-        address: document.getElementById("address").value,
-        phone: document.getElementById("phone").value,
+        buyerName: document.getElementById("buyerName").value,
+        buyerAddress: document.getElementById("buyerAddress").value,
+        buyerPhone: document.getElementById("buyerPhone").value,
+        consigneeName: document.getElementById("consigneeName").value,
+        consigneeAddress: document.getElementById("consigneeAddress").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(1) input").value,
             hsnSac: row.querySelector("td:nth-child(2) input").value,
@@ -111,10 +176,16 @@ function collectFormData() {
             uom: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
             taxableValue: row.querySelector("td:nth-child(6) input").value,
-            cgst: row.querySelector("td:nth-child(7) input").value,
-            sgst: row.querySelector("td:nth-child(8) input").value,
-            totalPrice: row.querySelector("td:nth-child(9) input").value,
+            cgstPercent: row.querySelector("td:nth-child(7) input").value,
+            cgstValue: row.querySelector("td:nth-child(8) input").value,
+            sgstPercent: row.querySelector("td:nth-child(9) input").value,
+            sgstValue: row.querySelector("td:nth-child(10) input").value,
+            totalPrice: row.querySelector("td:nth-child(11) input").value,
         })),
         totalAmount: document.getElementById("totalAmount").value,
+        cgstTotal: document.getElementById("cgstTotal").value,
+        sgstTotal: document.getElementById("sgstTotal").value,
+        roundOff: document.getElementById("roundOff").value,
+        invoiceTotal: document.getElementById("invoiceTotal").value,
     };
 }

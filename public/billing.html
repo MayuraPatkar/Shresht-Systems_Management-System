@@ -130,10 +130,14 @@
 
         #save {
             background-color: rgb(93, 255, 93);
+            cursor: pointer;
+            margin-bottom: 10px;
         }
 
         #print {
             background-color: #3798ff;
+            cursor: pointer;
+            margin-bottom: 10px;
         }
 
         .steps {
@@ -192,6 +196,14 @@
                 font-size: 0.8rem;
             }
         }
+
+        .preview {
+            padding: 20px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 
@@ -203,41 +215,83 @@
     <form id="invoice-form">
         <!-- Basic Invoice Details -->
         <div class="steps active" id="step-1">
-            <h2>Project details</h2>
-
+            <h2>Project Details</h2>
             <div class="form-group">
                 <label for="projectName">Project Name:</label>
                 <input type="text" id="projectName" required>
             </div>
             <div class="form-group">
                 <label for="invoiceNumber">Invoice Number:</label>
-                <input type="text" id="invoiceNumber" placeholder="E.g., INV/001" required>
+                <input type="text" id="invoiceNumber" required>
             </div>
             <div class="form-group">
-                <label for="ewayBillNumber">E Way Bill Number:</label>
-                <input type="text" id="ewayBillNumber" required>
+                <label for="poNumber">P.O Number:</label>
+                <input type="text" id="poNumber" required>
             </div>
-
+            <div class="form-group">
+                <label for="poDate">P.O Date:</label>
+                <input type="date" id="poDate" required>
+            </div>
+            <div class="form-group">
+                <label for="dcNumber">D.C Number:</label>
+                <input type="text" id="dcNumber" required>
+            </div>
+            <div class="form-group">
+                <label for="dcDate">D.C Date:</label>
+                <input type="date" id="dcDate" required>
+            </div>
         </div>
 
         <div class="steps" id="step-2">
-            <h2>Customer details</h2>
+            <h2>Transportation Details</h2>
             <div class="form-group">
-                <label for="buyer">Buyer Name:</label>
-                <input type="text" id="buyer" required>
+                <label for="transportMode">Transportation Mode:</label>
+                <input type="text" id="transportMode" required>
             </div>
             <div class="form-group">
-                <label for="address">Address:</label>
-                <input type="text" id="address" required>
+                <label for="vehicleNumber">Vehicle Number:</label>
+                <input type="text" id="vehicleNumber" required>
             </div>
             <div class="form-group">
-                <label for="phone">Phone Number:</label>
-                <input type="text" id="phone" required>
+                <label for="placeSupply">Place to Supply:</label>
+                <input type="text" id="placeSupply" required>
+            </div>
+            <div class="form-group">
+                <label for="ewayBillNumber">E-Way Bill Number:</label>
+                <input type="text" id="ewayBillNumber" required>
             </div>
         </div>
 
         <div class="steps" id="step-3">
-            <!-- Item List -->
+            <h2>Recipient Details (Sold/Bill to)</h2>
+            <div class="form-group">
+                <label for="buyerName">Buyer Name:</label>
+                <input type="text" id="buyerName" required>
+            </div>
+            <div class="form-group">
+                <label for="buyerAddress">Address:</label>
+                <textarea id="buyerAddress" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="buyerPhone">Phone Number:</label>
+                <input type="tel" id="buyerPhone" required>
+            </div>
+        </div>
+
+        <div class="steps" id="step-4">
+            <h2>Consignee Details (Shipped To)</h2>
+            <div class="form-group">
+                <label for="consigneeName">Name:</label>
+                <input type="text" id="consigneeName" required>
+            </div>
+            <div class="form-group">
+                <label for="consigneeAddress">Address:</label>
+                <textarea id="consigneeAddress" required></textarea>
+            </div>
+        </div>
+
+        <div class="steps" id="step-5">
+            <h2>Item List</h2>
             <div class="form-group">
                 <label>Items:</label>
                 <table id="items-table">
@@ -246,54 +300,55 @@
                             <th>Description</th>
                             <th>HSN/SAC</th>
                             <th>Qty</th>
-                            <th>Uom</th>
+                            <th>UOM</th>
                             <th>Rate</th>
                             <th>Taxable Value</th>
-                            <th>%</th>
-                            <th>CGST</th>
-                            <th>%</th>
-                            <th>SGST</th>
+                            <th>CGST (%)</th>
+                            <th>CGST (₹)</th>
+                            <th>SGST (%)</th>
+                            <th>SGST (₹)</th>
                             <th>Total Price (₹)</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Items will be added here dynamically -->
+                        <!-- Items will be dynamically added here -->
                     </tbody>
                 </table>
                 <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
             </div>
         </div>
 
-        <div class="steps" id="step-4">
-            <!-- Total and Tax -->
+        <div class="steps" id="step-6">
+            <h2>Total and Tax</h2>
             <div class="form-group">
                 <label for="totalAmount">Total Amount (₹):</label>
                 <input type="number" id="totalAmount" readonly>
             </div>
             <div class="form-group">
-                <label for="totalAmount">CGST Total (₹):</label>
-                <input type="number" id="totalAmount" readonly>
-            </div>
-
-            <div class="form-group">
-                <label for="totalAmount">SGST Total (₹):</label>
-                <input type="number" id="totalAmount" readonly>
-            </div>
-
-            <div class="form-group">
-                <label for="totalAmount">Round Off (₹):</label>
-                <input type="number" id="totalAmount" readonly>
+                <label for="cgstTotal">CGST Total (₹):</label>
+                <input type="number" id="cgstTotal" readonly>
             </div>
             <div class="form-group">
-                <label for="totalAmount">Invoice Total Amount (₹):</label>
-                <input type="number" id="totalAmount" readonly>
+                <label for="sgstTotal">SGST Total (₹):</label>
+                <input type="number" id="sgstTotal" readonly>
+            </div>
+            <div class="form-group">
+                <label for="roundOff">Round Off (₹):</label>
+                <input type="number" id="roundOff" readonly>
+            </div>
+            <div class="form-group">
+                <label for="invoiceTotal">Invoice Total Amount (₹):</label>
+                <input type="number" id="invoiceTotal" readonly>
             </div>
         </div>
 
-        <div class="steps" id="step-5">
+        <div class="steps" id="step-7">
             <div class="preview">
-                <!-- Preview and Actions -->
+                <h2>Preview</h2>
+                <div id="preview-content">
+                    <!-- Preview will be dynamically generated -->
+                </div>
             </div>
             <button type="button" id="save">Save</button>
             <button type="button" id="print">Print</button>
@@ -307,5 +362,6 @@
 
     <script src="./billing.js"></script>
 </body>
+
 
 </html>

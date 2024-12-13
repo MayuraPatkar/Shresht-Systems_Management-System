@@ -40,7 +40,7 @@ function handlePrintEvent() {
                 </style>
             </head>
             <body>
-                ${content}
+                ${content.date}
             </body>
             </html>
         `)}`);

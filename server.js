@@ -23,12 +23,12 @@ mongoose.connect('mongodb://localhost:27017/shreshtSystems', {
 const authRoutes = require('./routes/auth');
 const viewRoutes = require('./routes/views');
 const stockRoutes = require('./routes/stock');
-const invoiceRoutes = require('./routes/invoice');
+const projectRoutes = require('./routes/project');
 
 app.use('/', viewRoutes);
 app.use('/login', authRoutes);
 app.use('/stock', stockRoutes);
-app.use('/invoice', invoiceRoutes);
+app.use('/project', projectRoutes);
 
 // Start the server
 app.listen(PORT, () => {
