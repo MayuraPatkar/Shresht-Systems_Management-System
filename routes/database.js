@@ -26,29 +26,46 @@ const adminSchema = new mongoose.Schema({
 
 const Admin = mongoose.model('Admin', adminSchema);
 
+// Define Customer Schema and Model
 const customerSchema = new mongoose.Schema({
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     c_id: { type: String, required: true },
-    c_name: { type: String, required: true },
-})
+    name: { type: String, required: true },
+    address: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: { type: String, required: false },
+});
 
-const customer = mongoose.model('customer', customerSchema);
+const Customer = mongoose.model('Customer', customerSchema);
 
+// Define Invoice Schema and Model
+const invoiceSchema = new mongoose.Schema({
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
+    invoice_number: { type: String, required: true },
+    date: { type: Date, required: true },
+    total: { type: Number, required: true },
+});
+
+const Invoice = mongoose.model('Invoice', invoiceSchema);
+
+// Define Stock Schema and Model
 const stockSchema = new mongoose.Schema({
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     itemId: { type: String, required: true },
     name: { type: String, required: true },
     unitPrice: { type: Number, required: true },
     quantity: { type: Number, required: true },
-})
+});
 
-const stock = mongoose.model('stock', stockSchema);
+const Stock = mongoose.model('Stock', stockSchema);
 
-
+// Define Employee Schema and Model
 const employeeSchema = new mongoose.Schema({
     emp_id: { type: String, required: true },
     name: { type: String, required: true },
-})
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
+});
 
-const employee = mongoose.model('employee', employeeSchema);
+const Employee = mongoose.model('Employee', employeeSchema);
 
-
-module.exports = { Admin, customer, stock, employee }
+module.exports = { Admin, Customer, Invoice, Stock, Employee };

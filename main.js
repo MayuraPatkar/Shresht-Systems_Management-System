@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
+const { handlePrintEvent } = require("./printHandler");
 
 let mainWindow;
 
@@ -22,9 +23,10 @@ app.on('ready', () => {
         y: 0,
         autoHideMenuBar: true,
         frame: true,
-        icon: path.join(__dirname, 'public','assets', 'icon.png'),
+        icon: path.join(__dirname, 'public', 'assets', 'icon.png'),
         webPreferences: {
             nodeIntegration: true,
+            preload: __dirname + "/preload.js",
         },
     });
     mainWindow.setMenu(null);
@@ -33,9 +35,13 @@ app.on('ready', () => {
     // Load the Express server in the Electron window
     mainWindow.loadURL('http://localhost:3000');
 
+    // Initialize the print event handler
+    handlePrintEvent();
+
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
+
 });
 
 app.on('window-all-closed', () => {

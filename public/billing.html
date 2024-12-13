@@ -42,12 +42,13 @@
         }
 
         form {
-            max-width: 80vw;
+            max-width: 90vw;
             margin: 30px auto;
             background: #ffffff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
         }
 
         .form-group {
@@ -86,6 +87,7 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
+            box-sizing: border-box;
         }
 
         .add-item-btn,
@@ -94,10 +96,17 @@
             font-size: 0.9rem;
             margin: 5px 0;
             cursor: pointer;
+            border: none;
+            color: white;
+            border-radius: 5px;
         }
 
         .add-item-btn {
             background-color: #3798ff;
+        }
+
+        .add-item-btn:hover {
+            background-color: #2a7edb;
         }
 
         .remove-item-btn {
@@ -149,9 +158,39 @@
             cursor: pointer;
         }
 
+        .navigation button:hover {
+            background-color: #0056b3;
+        }
+
         .navigation button[disabled] {
             background-color: #ccc;
             cursor: not-allowed;
+        }
+
+        @media (max-width: 600px) {
+            form {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            input,
+            select,
+            textarea,
+            button {
+                font-size: 0.9rem;
+            }
+
+            .add-item-btn,
+            .remove-item-btn {
+                font-size: 0.8rem;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
@@ -164,24 +203,40 @@
     <form id="invoice-form">
         <!-- Basic Invoice Details -->
         <div class="steps active" id="step-1">
-            <h2>Customer details</h2>
+            <h2>Project details</h2>
+
+            <div class="form-group">
+                <label for="projectName">Project Name:</label>
+                <input type="text" id="projectName" required>
+            </div>
             <div class="form-group">
                 <label for="invoiceNumber">Invoice Number:</label>
                 <input type="text" id="invoiceNumber" placeholder="E.g., INV/001" required>
             </div>
-
             <div class="form-group">
-                <label for="date">Date:</label>
-                <input type="date" id="date" required>
+                <label for="ewayBillNumber">E Way Bill Number:</label>
+                <input type="text" id="ewayBillNumber" required>
             </div>
 
-            <div class="form-group">
-                <label for="buyer">Buyer Name:</label>
-                <input type="text" id="buyer" placeholder="E.g., XYZ Pvt Ltd" required>
-            </div>
         </div>
 
         <div class="steps" id="step-2">
+            <h2>Customer details</h2>
+            <div class="form-group">
+                <label for="buyer">Buyer Name:</label>
+                <input type="text" id="buyer" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Address:</label>
+                <input type="text" id="address" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number:</label>
+                <input type="text" id="phone" required>
+            </div>
+        </div>
+
+        <div class="steps" id="step-3">
             <!-- Item List -->
             <div class="form-group">
                 <label>Items:</label>
@@ -189,8 +244,16 @@
                     <thead>
                         <tr>
                             <th>Description</th>
-                            <th>Quantity</th>
-                            <th>Price (₹)</th>
+                            <th>HSN/SAC</th>
+                            <th>Qty</th>
+                            <th>Uom</th>
+                            <th>Rate</th>
+                            <th>Taxable Value</th>
+                            <th>%</th>
+                            <th>CGST</th>
+                            <th>%</th>
+                            <th>SGST</th>
+                            <th>Total Price (₹)</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -202,20 +265,33 @@
             </div>
         </div>
 
-        <div class="steps" id="step-3">
+        <div class="steps" id="step-4">
             <!-- Total and Tax -->
             <div class="form-group">
                 <label for="totalAmount">Total Amount (₹):</label>
                 <input type="number" id="totalAmount" readonly>
             </div>
+            <div class="form-group">
+                <label for="totalAmount">CGST Total (₹):</label>
+                <input type="number" id="totalAmount" readonly>
+            </div>
 
             <div class="form-group">
-                <label for="tax">Tax (₹):</label>
-                <input type="number" id="tax" placeholder="E.g., 900" required>
+                <label for="totalAmount">SGST Total (₹):</label>
+                <input type="number" id="totalAmount" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="totalAmount">Round Off (₹):</label>
+                <input type="number" id="totalAmount" readonly>
+            </div>
+            <div class="form-group">
+                <label for="totalAmount">Invoice Total Amount (₹):</label>
+                <input type="number" id="totalAmount" readonly>
             </div>
         </div>
 
-        <div class="steps" id="step-4">
+        <div class="steps" id="step-5">
             <div class="preview">
                 <!-- Preview and Actions -->
             </div>

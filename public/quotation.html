@@ -12,23 +12,37 @@
         }
 
         header {
-            width: 100vw;
-            padding: 2%;
+            width: 100%;
+            padding: 1rem 2rem;
+            box-sizing: border-box;
+            background-color: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .img {
+        .imglogo {
             height: 7vh;
         }
 
-        .img img {
+        .imglogo img {
             height: 100%;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            flex-grow: 1;
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
     <header>
-        <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
+        <div class="imglogo" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
+        <h1>Dashboard</h1>
     </header>
     
 </body>

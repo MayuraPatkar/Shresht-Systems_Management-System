@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { stock } = require('./database');
+const { Stock } = require('./database'); // Correctly import the Stock model
 
 // Helper function to generate item ID
 function generateItemId() {
@@ -12,7 +12,7 @@ function generateItemId() {
 // Route to Get Stock Data
 router.get('/getStock', async (req, res) => {
     try {
-        const stockData = await stock.find();
+        const stockData = await Stock.find();
         res.status(200).json(stockData);
     } catch (error) {
         console.error('Error fetching stock data:', error);
@@ -22,15 +22,16 @@ router.get('/getStock', async (req, res) => {
 
 // Route to Add Item to Stock
 router.post('/addItem', async (req, res) => {
-    const { itemName, unitPrice, quantity } = req.body;
+    const { name, unitPrice, quantity, adminId } = req.body;
+
     try {
         // Validate input
-        if (!itemName || isNaN(unitPrice) || isNaN(quantity)) {
+        if (!name || isNaN(unitPrice) || isNaN(quantity) || !adminId) {
             return res.status(400).json({ error: 'Invalid input data' });
         }
 
         // Check if item already exists
-        let existingItem = await stock.findOne({ name: itemName });
+        const existingItem = await Stock.findOne({ name, admin: adminId });
 
         if (existingItem) {
             return res.status(400).json({ error: 'Item already exists in stock' });
@@ -40,30 +41,32 @@ router.post('/addItem', async (req, res) => {
         const itemId = generateItemId();
 
         // Add new stock item
-        const newItem = new stock({
-            itemId: itemId,
-            name: itemName,
-            unitPrice: unitPrice,
-            quantity: quantity
+        const newItem = new Stock({
+            itemId,
+            name,
+            unitPrice,
+            quantity,
+            admin: adminId,
         });
 
         await newItem.save();
         res.status(201).json({ message: 'Item added successfully', itemId });
     } catch (error) {
         console.error('Error adding stock item:', error);
-        res.status(500).json({ error: 'Failed to add stock data' });
+        res.status(500).json({ error: 'Failed to add stock item' });
     }
 });
 
 // Route to Add Quantity to Existing Stock
 router.post('/addToStock', async (req, res) => {
     const { itemId, quantity } = req.body;
+
     try {
         if (!itemId || isNaN(quantity)) {
             return res.status(400).json({ error: 'Invalid input data' });
         }
 
-        const item = await stock.findOne({ _id: itemId });
+        const item = await Stock.findOne({ itemId });
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
@@ -81,12 +84,13 @@ router.post('/addToStock', async (req, res) => {
 // Route to Remove Quantity from Stock
 router.post('/removeFromStock', async (req, res) => {
     const { itemId, quantity } = req.body;
+
     try {
         if (!itemId || isNaN(quantity)) {
             return res.status(400).json({ error: 'Invalid input data' });
         }
 
-        const item = await stock.findOne({ _id: itemId });
+        const item = await Stock.findOne({ itemId });
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
@@ -107,19 +111,19 @@ router.post('/removeFromStock', async (req, res) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req, res) => {
-    const { itemId, itemName, unitPrice, quantity } = req.body;
+    const { itemId, name, unitPrice, quantity } = req.body;
 
     try {
-        if (!itemId || !itemName || isNaN(unitPrice) || isNaN(quantity)) {
+        if (!itemId || !name || isNaN(unitPrice) || isNaN(quantity)) {
             return res.status(400).json({ error: 'Invalid input data' });
         }
 
-        const item = await stock.findOne({ _id: itemId });
+        const item = await Stock.findOne({ itemId });
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        item.name = itemName;
+        item.name = name;
         item.unitPrice = unitPrice;
         item.quantity = quantity;
         await item.save();
