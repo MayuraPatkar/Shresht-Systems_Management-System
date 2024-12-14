@@ -12,6 +12,7 @@ document.getElementById("nextBtn").addEventListener("click", () => {
         document.getElementById(`step-${currentStep}`).classList.add("active");
     }
     updateNavigation();
+    if (currentStep == 7) generatePreview();
 });
 
 document.getElementById("prevBtn").addEventListener("click", () => {
@@ -60,6 +61,18 @@ function removeItem(button) {
     button.parentElement.parentElement.remove();
 }
 
+// Add event listener for dynamic row addition
+document.getElementById("add-item-btn").addEventListener("click", () => {
+    updateTotals(); // Ensure totals are recalculated when a new row is added
+});
+
+// Add event listener for row removal
+document.querySelector("#items-table").addEventListener("click", (event) => {
+    if (event.target.classList.contains("remove-item-btn")) {
+        updateTotals(); // Recalculate totals when a row is removed
+    }
+});
+
 // Attach event listeners to dynamically calculate totals
 document.querySelector("#items-table").addEventListener("input", updateTotals);
 
@@ -105,18 +118,148 @@ function updateTotals() {
     document.getElementById("invoiceTotal").value = (invoiceTotal + roundOff).toFixed(2);
 }
 
-// Add event listener for dynamic row addition
-document.getElementById("add-item-btn").addEventListener("click", () => {
-    updateTotals(); // Ensure totals are recalculated when a new row is added
-});
+let previewContent = ``;
 
-// Add event listener for row removal
-document.querySelector("#items-table").addEventListener("click", (event) => {
-    if (event.target.classList.contains("remove-item-btn")) {
-        updateTotals(); // Recalculate totals when a row is removed
+// This script dynamically generates the preview content based on the form input.
+function generatePreview() {
+    const projectName = document.getElementById("projectName").value;
+    const invoiceNumber = document.getElementById("invoiceNumber").value;
+    const poNumber = document.getElementById("poNumber").value;
+    const poDate = document.getElementById("poDate").value;
+    const dcNumber = document.getElementById("dcNumber").value;
+    const dcDate = document.getElementById("dcDate").value;
+    const transportMode = document.getElementById("transportMode").value;
+    const vehicleNumber = document.getElementById("vehicleNumber").value;
+    const placeSupply = document.getElementById("placeSupply").value;
+    const ewayBillNumber = document.getElementById("ewayBillNumber").value;
+    const buyerName = document.getElementById("buyerName").value;
+    const buyerAddress = document.getElementById("buyerAddress").value;
+    const buyerPhone = document.getElementById("buyerPhone").value;
+
+    const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
+    const totalAmount = document.getElementById("totalAmount").value;
+    const cgstTotal = document.getElementById("cgstTotal").value;
+    const sgstTotal = document.getElementById("sgstTotal").value;
+    const roundOff = document.getElementById("roundOff").value;
+    const invoiceTotal = document.getElementById("invoiceTotal").value;
+
+    let itemsHTML = "";
+    for (let i = 0; i < itemsTable.rows.length; i++) {
+        const row = itemsTable.rows[i].cells;
+        itemsHTML += `<tr>
+            <td>${row[0].innerText}</td>
+            <td>${row[1].innerText}</td>
+            <td>${row[2].innerText}</td>
+            <td>${row[3].innerText}</td>
+            <td>${row[4].innerText}</td>
+            <td>${row[5].innerText}</td>
+            <td>${row[6].innerText}</td>
+            <td>${row[7].innerText}</td>
+            <td>${row[8].innerText}</td>
+            <td>${row[9].innerText}</td>
+            <td>${row[10].innerText}</td>
+        </tr>`;
     }
-});
 
+    previewContent = `
+    <div class="invoice-container">
+    <div class="header">
+        <div class="logo">
+            <img src="./assets/Shresht-Logo-Final.png" alt="Shresht Logo">
+        </div>
+        <div class="company-details">
+            <h1>SHRESHT SYSTEMS</h1>
+            <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+            <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+            <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+        </div>
+    </div>
+    <hr>
+    <div class="info-section">
+        <table>
+            <tr>
+                <td>Invoice No: ${invoiceNumber}</td>
+                <td>Project: ${projectName}</td>
+                <td>P.O No: ${poNumber}</td>
+            </tr>
+            <tr>
+                <td>P.O Date: ${poDate}</td>
+                <td>D.C No: ${dcNumber}</td>
+                <td>D.C Date: ${dcDate}</td>
+            </tr>
+        </table>
+    </div>
+    <hr>
+    <div class="buyer-details">
+        <table>
+            <tr>
+                <td>Buyer: ${buyerName}</td>
+                <td>Address: ${buyerAddress}</td>
+                <td>Phone: ${buyerPhone}</td>
+            </tr>
+            <tr>
+                <td>Transportation: ${transportMode}</td>
+                <td>Vehicle No: ${vehicleNumber}</td>
+                <td>Place Supply: ${placeSupply}</td>
+            </tr>
+            <tr>
+                <td colspan="3">E-Way Bill: ${ewayBillNumber}</td>
+            </tr>
+        </table>
+    </div>
+    <hr>
+    <table class="items-table" border="1">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>HSN/SAC</th>
+                <th>Qty</th>
+                <th>UOM</th>
+                <th>Rate</th>
+                <th>Taxable Value</th>
+                <th>CGST (%)</th>
+                <th>CGST (₹)</th>
+                <th>SGST (%)</th>
+                <th>SGST (₹)</th>
+                <th>Total Price (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${itemsHTML}
+        </tbody>
+    </table>
+    <hr>
+    <div class="totals">
+        <p>Total: ₹${totalAmount}</p>
+        <p>CGST Total: ₹${cgstTotal}</p>
+        <p>SGST Total: ₹${sgstTotal}</p>
+        <p>Round Off: ₹${roundOff}</p>
+        <h3>Invoice Total: ₹${invoiceTotal}</h3>
+    </div>
+    <hr>
+    <div class="bank-details">
+        <p><strong>Bank Name:</strong> canara Bank</p>
+        <p><strong>Branch Name:</strong> ShanthiNagar Manipal</p>
+        <p><strong>Account No:</strong> xxxxxxxxxxx</p>
+        <p><strong>IFSC Code:</strong> yyyyyyyy</p>
+    </div>
+    <hr>
+    <div class="declaration">
+        <p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+    </div>
+    <div class="signature">
+        <p>For SHRESHT SYSTEMS</p>
+        <div class="signature-space"></div>
+        <p><strong>Authorized Signatory</strong></p>
+    </div>
+    <footer>
+        <p>This is a computer-generated invoice.</p>
+    </footer>
+</div>
+    `;
+
+    document.getElementById("preview-content").innerHTML = previewContent;
+}
 
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
@@ -124,23 +267,26 @@ async function sendToServer(data, shouldPrint) {
         const response = await fetch("http://localhost:3000/project/save-invoice", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
 
+        const responseData = await response.json();
+
         if (response.ok) {
-            console.log("Invoice saved successfully!");
-            if (shouldPrint) {
-                // Trigger printing via ipcRenderer (or the exposed API)
-                window.electronAPI.printInvoice(data);
+            window.electronAPI.showAlert("Invoice saved successfully!");
+        } else if (responseData.message === "Invoice already exists") {
+            if (!shouldPrint) {
+                window.electronAPI.showAlert("Invoice already exists.");
             }
         } else {
-            console.error("Error saving invoice.");
+            window.electronAPI.showAlert(`Error: ${responseData.message || "Unknown error occurred."}`);
         }
     } catch (error) {
         console.error("Error:", error);
-        alert("Failed to connect to server.");
+        window.electronAPI.showAlert("Failed to connect to server.");
     }
 }
+
 
 document.getElementById("save").addEventListener("click", () => {
     const invoiceData = collectFormData();
@@ -150,6 +296,7 @@ document.getElementById("save").addEventListener("click", () => {
 document.getElementById("print").addEventListener("click", () => {
     const invoiceData = collectFormData();
     sendToServer(invoiceData, true);
+    window.electronAPI.printInvoice(previewContent);
 });
 
 function collectFormData() {

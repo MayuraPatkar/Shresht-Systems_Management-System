@@ -67,7 +67,7 @@ const projectSchema = new mongoose.Schema({
     invoice_total: { type: Number },
 });
 
-const Project = mongoose.model('Project', projectSchema);
+const Projects = mongoose.model('Project', projectSchema);
 
 // Define Stock Schema and Model
 const stockSchema = new mongoose.Schema({
@@ -89,4 +89,4 @@ const employeeSchema = new mongoose.Schema({
 
 const Employee = mongoose.model('Employee', employeeSchema);
 
-module.exports = { Admin, Project, Stock, Employee };
+module.exports = { Admin, Projects, Stock, Employee };

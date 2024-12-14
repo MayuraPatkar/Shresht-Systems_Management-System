@@ -11,38 +11,111 @@ function handlePrintEvent() {
             },
         });
 
+        content.toString();
+
         // Load the HTML content into the print window
         printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
             <html>
-            <head>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        margin: 20px;
-                        padding: 0;
-                        box-sizing: border-box;
-                        width: 210mm; /* A4 width */
-                        height: 297mm; /* A4 height */
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-bottom: 20px;
-                    }
-                    table th, table td {
-                        border: 1px solid #ddd;
-                        padding: 8px;
-                        text-align: left;
-                    }
-                    .form-group label {
-                        font-weight: bold;
-                    }
-                </style>
-            </head>
-            <body>
-                ${content.date}
-            </body>
-            </html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 10mm;
+                padding: 0;
+                box-sizing: border-box;
+                width: 210mm; /* A4 width */
+                height: 297mm; /* A4 height */
+            }
+
+            .header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 15px;
+            }
+
+            .header .logo img {
+                max-width: 100px;
+            }
+
+            .header .company-details h1 {
+                margin: 0;
+                font-size: 18px;
+                color: #007bff;
+            }
+
+            .header .company-details p {
+                margin: 2px 0;
+                font-size: 12px;
+                color: #555;
+            }
+
+            hr {
+                border: 0;
+                height: 1px;
+                background: #ddd;
+                margin: 10px 0;
+            }
+
+            .info-section table,
+            .buyer-details table,
+            .items-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 10px;
+            }
+
+            .info-section td,
+            .buyer-details td,
+            .items-table td,
+            .items-table th {
+                padding: 5px;
+                text-align: left;
+                border: 1px solid #ddd;
+                font-size: 12px;
+            }
+
+            .items-table th {
+                background: #f1f1f1;
+                font-weight: bold;
+            }
+
+            .totals p,
+            .totals h3 {
+                margin: 5px 0;
+                font-size: 12px;
+            }
+
+            .bank-details p {
+                margin: 5px 0;
+                font-size: 12px;
+            }
+
+            .declaration,
+            .signature {
+                margin-top: 15px;
+                text-align: left;
+                font-size: 12px;
+            }
+
+            .signature-space {
+                width: 80px;
+                height: 40px;
+            }
+
+            footer {
+                margin-top: 20px;
+                text-align: center;
+                font-size: 10px;
+                color: #777;
+            }
+        </style>
+    </head>
+    <body>
+        ${content}
+    </body>
+</html>
+
         `)}`);
 
         printWindow.webContents.on("did-finish-load", () => {
