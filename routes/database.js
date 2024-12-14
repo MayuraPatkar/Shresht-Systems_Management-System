@@ -29,35 +29,38 @@ const Admin = mongoose.model('Admin', adminSchema);
 // Define Project Schema and Model
 const projectSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
-    name: { type: String },
-    address: { type: String },
-    phone: { type: String },
-    email: { type: String },
+    project_name: { type: String },
     invoice_number: { type: String },
-    E_Way_Bill_number: { type: String },
-    date: { type: Date },
-    place_to_supply: { type: String },
+    po_number: { type: String },
+    po_date: { type: Date },
+    dc_number: { type: String },
+    dc_date: { type: Date },
     transportation_mode: { type: String },
     vehicle_no: { type: String },
+    place_to_supply: { type: String },
+    E_Way_Bill_number: { type: String },
+    buyer_name: { type: String },
+    buyer_address: { type: String },
+    buyer_phone: { type: String },
+    consignee_name: { type: String },
+    consignee_address: { type: String },
     items: [
         {
             description: { type: String },
-            HSN_SAC: { type: Number },
+            HSN_SAC: { type: String },
             quantity: { type: Number },
             UoM: { type: String },
             rate: { type: Number },
-            taxable_value: {
-                value: { type: Number },
-                percentage: { type: Number },
-            },
+            taxable_value: { type: Number },
             CGST: {
-                value: { type: Number },
                 percentage: { type: Number },
+                value: { type: Number },
             },
             SGST: {
-                value: { type: Number },
                 percentage: { type: Number },
+                value: { type: Number },
             },
+            total_price: { type: Number },
         },
     ],
     total: { type: Number },
@@ -65,6 +68,7 @@ const projectSchema = new mongoose.Schema({
     SGST_total: { type: Number },
     round_Off: { type: Number },
     invoice_total: { type: Number },
+    createdAt: { type: Date, default: Date.now },
 });
 
 const Projects = mongoose.model('Project', projectSchema);

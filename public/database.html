@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,23 @@
         content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
     <title>Records</title>
     <style>
+        /* General Styling */
         body {
+            font-family: Arial, sans-serif;
             margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
         }
 
         header {
-            width: 100vw;
-            padding: 2%;
+            width: 100%;
+            padding: 1rem 2rem;
+            box-sizing: border-box;
+            background-color: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .img {
@@ -23,13 +34,147 @@
         .img img {
             height: 100%;
         }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .container1 {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            gap: 2%;
+            padding: 2rem;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+        }
+
+        .project_list,
+        .project_search {
+            background-color: #ffffff;
+            padding: 2rem;
+            box-sizing: border-box;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .project_list {
+            max-width: 65%;
+        }
+
+        .project_search {
+            max-width: 30%;
+        }
+
+        .project_list h2,
+        .project_search h3 {
+            margin-top: 0;
+            color: #444;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 0.5rem;
+        }
+
+        .project_search input[type="text"] {
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .project_search input[type="text"]:focus {
+            border-color: #007bff;
+        }
+
+        .project_search button {
+            display: block;
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .project_search button:hover {
+            background-color: #0056b3;
+        }
+
+        .project-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        .project-item:hover {
+            background-color: #f0f8ff;
+        }
+
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            header .img {
+                margin-bottom: 1rem;
+            }
+
+            .container1 {
+                flex-direction: column;
+            }
+
+            .project_list,
+            .project_search {
+                max-width: 100%;
+            }
+
+            .project_list {
+                margin-bottom: 2rem;
+            }
+        }
     </style>
 </head>
 
 <body>
     <header>
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
+        <h1>Database</h1>
     </header>
+    <div class="container1">
+        <div class="project_list">
+            <h2>Projects</h2>
+            <div class="projects">
+                <!-- content will loaded dynamically -->
+            </div>
+        </div>
+        <div class="project_search">
+            <h3>Search Projects</h3>
+            <input type="text" placeholder="type here">
+            <button type="submit">search</button>
+        </div>
+    </div>
     <script src="./database.js"></script>
 </body>
+
 </html>
