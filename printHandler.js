@@ -11,20 +11,24 @@ function handlePrintEvent() {
             },
         });
 
-        content.toString();
-
         // Load the HTML content into the print window
         printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
             <html>
     <head>
         <style>
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+
             body {
                 font-family: Arial, sans-serif;
-                margin: 10mm;
+                margin: 0;
                 padding: 0;
                 box-sizing: border-box;
                 width: 210mm; /* A4 width */
                 height: 297mm; /* A4 height */
+                overflow: hidden; /* Prevent overflow to other pages */
             }
 
             .header {
@@ -60,7 +64,7 @@ function handlePrintEvent() {
             .info-section table,
             .buyer-details table,
             .items-table {
-                width: 100%;
+                width: 99%;
                 border-collapse: collapse;
                 margin-bottom: 10px;
             }
@@ -100,7 +104,7 @@ function handlePrintEvent() {
 
             .signature-space {
                 width: 80px;
-                height: 40px;
+                height: 25px;
             }
 
             footer {
@@ -115,7 +119,6 @@ function handlePrintEvent() {
         ${content}
     </body>
 </html>
-
         `)}`);
 
         printWindow.webContents.on("did-finish-load", () => {
