@@ -143,6 +143,24 @@ router.get("/:invoice_number", async (req, res) => {
     }
 });
 
+router.get("/invoice/edit/:invoice_number", async (req, res) => {
+    try {
+        const { invoice_number } = req.params;
+
+        // Fetch the invoice data from the database
+        const invoice = await Projects.findOne({ invoice_number });
+        if (!invoice) {
+            return res.status(404).json({ message: "Invoice not found" });
+        }
+
+        // Render the page with the invoice data
+        res.render("invoice_edit", { invoice });
+    } catch (error) {
+        console.error("Error fetching invoice:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+});
+
 
 
 

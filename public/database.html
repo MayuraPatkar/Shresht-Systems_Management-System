@@ -42,6 +42,7 @@
             text-align: center;
         }
 
+        /* Container styling */
         .container1 {
             width: 100%;
             display: flex;
@@ -63,12 +64,13 @@
             min-width: 280px;
         }
 
+        /* Adjust widths for smaller screens */
         .project_list {
             max-width: 65%;
         }
 
         .project_search {
-            max-width: 30%;
+            max-width: 35%;
         }
 
         .project_list h2,
@@ -81,9 +83,8 @@
         }
 
         .project_search input[type="text"] {
-            width: 100%;
+            width: 70%;
             padding: 0.8rem;
-            margin-top: 1rem;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 1rem;
@@ -91,14 +92,18 @@
             transition: border 0.3s;
         }
 
+        /* Add hover effect on input */
         .project_search input[type="text"]:focus {
             border-color: #007bff;
         }
 
+        .project_search div {
+            display: flex;
+            justify-content: space-evenly;
+        }
+
         .project_search button {
-            display: block;
             width: 100%;
-            margin-top: 1rem;
             padding: 0.8rem;
             background-color: #007bff;
             color: #fff;
@@ -128,30 +133,35 @@
             background-color: #f0f8ff;
         }
 
+        /* Improved search container */
+        .search_container {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            width: 100%;
+        }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                text-align: center;
-            }
+        .search_container input {
+            width: 80%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
 
-            header .img {
-                margin-bottom: 1rem;
-            }
+        .search_container div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 10%;
+            background-color: #007bff;
+            padding: 0.8rem;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-            .container1 {
-                flex-direction: column;
-            }
-
-            .project_list,
-            .project_search {
-                max-width: 100%;
-            }
-
-            .project_list {
-                margin-bottom: 2rem;
-            }
+        .search_container div img {
+            width: 50%;
         }
     </style>
 </head>
@@ -170,8 +180,10 @@
         </div>
         <div class="project_search">
             <h3>Search Projects</h3>
-            <input type="text" placeholder="type here">
-            <button type="submit">search</button>
+            <div class="search_container">
+                <input type="text" placeholder="type here">
+                <div type="submit" id="search"><img src="./assets/search.png"></div>
+            </div>
         </div>
     </div>
     <script src="./database.js"></script>

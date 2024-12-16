@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
     <title>Document</title>
     <style>
         /* General Styling */
@@ -330,8 +330,8 @@
         </footer>
     </div>
 
-    <button class="print">Print</button>
-    <button class="edit">Edit</button>
+    <button class="print" onclick="print()">Print</button>
+    <button class="edit" onclick="edit()">Edit</button>
     <script src="../invoice.js"></script>
 </body>
 
