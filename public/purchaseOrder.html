@@ -276,56 +276,21 @@
 <body>
     <header>
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
-        <h1>Bill / Invoice</h1>
+        <h1>Purchase Order</h1>
     </header>
-    <form id="invoice-form">
+    <form id="Quatation">
         <!-- Basic Invoice Details -->
         <div class="steps active" id="step-1">
             <h2>Project Details</h2>
+
             <div class="form-group">
-                <label for="invoiceNumber">Invoice Number:</label>
+                <label for="invoiceNumber">Project name:</label>
                 <input type="text" id="invoiceNumber" required>
-            </div>
-            <div class="form-group">
-                <label for="poNumber">P.O Number:</label>
-                <input type="text" id="poNumber" required>
-            </div>
-            <div class="form-group">
-                <label for="poDate">P.O Date:</label>
-                <input type="date" id="poDate" required>
-            </div>
-            <div class="form-group">
-                <label for="dcNumber">D.C Number:</label>
-                <input type="text" id="dcNumber" required>
-            </div>
-            <div class="form-group">
-                <label for="dcDate">D.C Date:</label>
-                <input type="date" id="dcDate" required>
             </div>
         </div>
 
         <div class="steps" id="step-2">
-            <h2>Transportation Details</h2>
-            <div class="form-group">
-                <label for="transportMode">Transportation Mode:</label>
-                <input type="text" id="transportMode" required>
-            </div>
-            <div class="form-group">
-                <label for="vehicleNumber">Vehicle Number:</label>
-                <input type="text" id="vehicleNumber" required>
-            </div>
-            <div class="form-group">
-                <label for="placeSupply">Place to Supply:</label>
-                <input type="text" id="placeSupply" required>
-            </div>
-            <div class="form-group">
-                <label for="ewayBillNumber">E-Way Bill Number:</label>
-                <input type="text" id="ewayBillNumber" required>
-            </div>
-        </div>
-
-        <div class="steps" id="step-3">
-            <h2>Recipient Details (Sold/Bill to)</h2>
+            <h2>Recipient Details (to)</h2>
             <div class="form-group">
                 <label for="buyerName">Buyer Name:</label>
                 <input type="text" id="buyerName" required>
@@ -340,19 +305,7 @@
             </div>
         </div>
 
-        <div class="steps" id="step-4">
-            <h2>Consignee Details (Shipped To)</h2>
-            <div class="form-group">
-                <label for="consigneeName">Name:</label>
-                <input type="text" id="consigneeName" required>
-            </div>
-            <div class="form-group">
-                <label for="consigneeAddress">Address:</label>
-                <textarea id="consigneeAddress" required></textarea>
-            </div>
-        </div>
-
-        <div class="steps" id="step-5">
+        <div class="steps" id="step-3">
             <h2>Item List</h2>
             <div class="form-group">
                 <label>Items:</label>
@@ -381,7 +334,7 @@
             </div>
         </div>
 
-        <div class="steps" id="step-6">
+        <div class="steps" id="step-4">
             <h2>Total and Tax</h2>
             <div class="form-group">
                 <label for="totalAmount">Total Amount (₹):</label>
@@ -405,7 +358,7 @@
             </div>
         </div>
 
-        <div class="steps" id="step-7">
+        <div class="steps" id="step-5">
             <div class="preview">
                 <h2>Preview</h2>
                 <div id="preview-content">
@@ -422,7 +375,7 @@
         </div>
     </form>
 
-    <script src="./billing.js"></script>
+    <script src="./quotation.js"></script>
 </body>
 
 
