@@ -76,8 +76,7 @@ const Projects = mongoose.model('Project', projectSchema);
 // Define Stock Schema and Model
 const stockSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
-    itemId: { type: String, required: true },
-    name: { type: String, required: true },
+    itemName: { type: String, required: true },
     unitPrice: { type: Number, required: true },
     quantity: { type: Number, required: true },
 });

@@ -44,7 +44,7 @@ async function addItem() {
         const quantity = parseInt(document.getElementById('item_quantity').value, 10);
 
         if (!itemName || isNaN(unitPrice) || isNaN(quantity)) {
-            alert('Please fill all fields correctly.');
+            window.electronAPI.showAlert('Please fill all fields correctly.');
             return;
         }
 
@@ -59,7 +59,7 @@ async function addItem() {
         closeModal();
     } catch (error) {
         console.error('Error adding item:', error);
-        alert('Failed to add item. Please try again.');
+        window.electronAPI.showAlert('Failed to add item. Please try again.');
     }
 }
 
@@ -69,10 +69,10 @@ async function addToStock() {
         const quantity = parseInt(document.getElementById('add_quantity').value, 10);
 
         if (isNaN(quantity)) {
-            alert('Please enter a valid quantity.');
+            window.electronAPI.showAlert('Please enter a valid quantity.');
             return;
         }
-
+        console.log(itemId)
         const response = await fetch('/stock/addToStock', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -84,7 +84,7 @@ async function addToStock() {
         closeModal();
     } catch (error) {
         console.error('Error adding item:', error);
-        alert('Failed to add item. Please try again.');
+        window.electronAPI.showAlert('Failed to add item. Please try again.');
     }
 }
 
@@ -94,7 +94,7 @@ async function removeFromStock() {
         const quantity = parseInt(document.getElementById('remove_quantity').value, 10);
 
         if (isNaN(quantity)) {
-            alert('Please enter a valid quantity.');
+            window.electronAPI.showAlert('Please enter a valid quantity.');
             return;
         }
 
@@ -109,7 +109,7 @@ async function removeFromStock() {
         closeModal();
     } catch (error) {
         console.error('Error removing item:', error);
-        alert('Failed to remove item. Please try again.');
+        window.electronAPI.showAlert('Failed to remove item. Please try again.');
     }
 }
 
@@ -121,7 +121,7 @@ async function editItem() {
         const quantity = parseInt(document.getElementById('edit_quantity').value, 10);
 
         if (!itemName || isNaN(unitPrice) || isNaN(quantity)) {
-            alert('Please fill all fields correctly.');
+            window.electronAPI.showAlert('Please fill all fields correctly.');
             return;
         }
 
@@ -136,7 +136,7 @@ async function editItem() {
         closeModal();
     } catch (error) {
         console.error('Error editing item:', error);
-        alert('Failed to edit item. Please try again.');
+        window.electronAPI.showAlert('Failed to edit item. Please try again.');
     }
 }
 
@@ -150,7 +150,7 @@ async function fetchStockData() {
         renderStockTable(stockData);
     } catch (error) {
         console.error('Error fetching stock data:', error);
-        alert('Error fetching stock data. Please try again.');
+        window.electronAPI.showAlert('Error fetching stock data. Please try again.');
     }
 }
 
@@ -163,7 +163,7 @@ function renderStockTable(data) {
         row.classList.toggle('low-stock', item.quantity < 5);
 
         row.innerHTML = `
-            <td>${item.name}</td>
+            <td>${item.itemName}</td>
             <td>${item.unitPrice}</td>
             <td>${item.quantity}</td>
             <td>${item.quantity < 5 ? 'Low Stock' : 'In Stock'}</td>

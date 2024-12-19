@@ -1,13 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Stock } = require('./database'); // Correctly import the Stock model
+const { Stock, Admin } = require('./database');
 
-// Helper function to generate item ID
-function generateItemId() {
-    const prefix = 'I';
-    const randomId = Math.floor(100 + Math.random() * 900); // Generates a random 3-digit number
-    return `${prefix}${randomId}`;
-}
 
 // Route to Get Stock Data
 router.get('/getStock', async (req, res) => {
@@ -22,35 +16,29 @@ router.get('/getStock', async (req, res) => {
 
 // Route to Add Item to Stock
 router.post('/addItem', async (req, res) => {
-    const { name, unitPrice, quantity, adminId } = req.body;
+    const { itemName, unitPrice, quantity } = req.body;
 
     try {
-        // Validate input
-        if (!name || isNaN(unitPrice) || isNaN(quantity) || !adminId) {
-            return res.status(400).json({ error: 'Invalid input data' });
-        }
+
+        const adminId = await Admin.findOne();
 
         // Check if item already exists
-        const existingItem = await Stock.findOne({ name, admin: adminId });
+        const existingItem = await Stock.findOne({ itemName });
 
         if (existingItem) {
             return res.status(400).json({ error: 'Item already exists in stock' });
         }
 
-        // Generate unique item ID
-        const itemId = generateItemId();
-
         // Add new stock item
         const newItem = new Stock({
-            itemId,
-            name,
+            admin: adminId,
+            itemName,
             unitPrice,
             quantity,
-            admin: adminId,
         });
 
         await newItem.save();
-        res.status(201).json({ message: 'Item added successfully', itemId });
+        res.status(201).json({ message: 'Item added successfully' });
     } catch (error) {
         console.error('Error adding stock item:', error);
         res.status(500).json({ error: 'Failed to add stock item' });
@@ -62,11 +50,8 @@ router.post('/addToStock', async (req, res) => {
     const { itemId, quantity } = req.body;
 
     try {
-        if (!itemId || isNaN(quantity)) {
-            return res.status(400).json({ error: 'Invalid input data' });
-        }
 
-        const item = await Stock.findOne({ itemId });
+        const item = await Stock.findOne({ _id: itemId });
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
@@ -90,7 +75,7 @@ router.post('/removeFromStock', async (req, res) => {
             return res.status(400).json({ error: 'Invalid input data' });
         }
 
-        const item = await Stock.findOne({ itemId });
+        const item = await Stock.findOne({ _id: itemId });
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
@@ -114,11 +99,8 @@ router.post('/editItem', async (req, res) => {
     const { itemId, name, unitPrice, quantity } = req.body;
 
     try {
-        if (!itemId || !name || isNaN(unitPrice) || isNaN(quantity)) {
-            return res.status(400).json({ error: 'Invalid input data' });
-        }
 
-        const item = await Stock.findOne({ itemId });
+        const item = await Stock.findOne({ _id: itemId });
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
