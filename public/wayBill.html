@@ -290,7 +290,7 @@
         </div>
 
         <div class="steps" id="step-2">
-            <h2>Recipient Details (to)</h2>
+            <h2>Shipped To (to)</h2>
             <div class="form-group">
                 <label for="buyerName">Buyer Name:</label>
                 <input type="text" id="buyerName" required>
@@ -306,6 +306,26 @@
         </div>
 
         <div class="steps" id="step-3">
+            <h2>Transportation Details</h2>
+            <div class="form-group">
+                <label for="transportMode">Transportation Mode:</label>
+                <input type="text" id="transportMode" required>
+            </div>
+            <div class="form-group">
+                <label for="vehicleNumber">Vehicle Number:</label>
+                <input type="text" id="vehicleNumber" required>
+            </div>
+            <div class="form-group">
+                <label for="placeSupply">Place to Supply:</label>
+                <input type="text" id="placeSupply" required>
+            </div>
+            <div class="form-group">
+                <label for="ewayBillNumber">E-Way Bill Number:</label>
+                <input type="text" id="ewayBillNumber" required>
+            </div>
+        </div>
+
+        <div class="steps" id="step-4">
             <h2>Item List</h2>
             <div class="form-group">
                 <label>Items:</label>
@@ -313,16 +333,7 @@
                     <thead>
                         <tr>
                             <th>Description</th>
-                            <th>HSN/SAC</th>
                             <th>Qty</th>
-                            <th>UOM</th>
-                            <th>Rate</th>
-                            <th>Taxable Value</th>
-                            <th>CGST (%)</th>
-                            <th>CGST (₹)</th>
-                            <th>SGST (%)</th>
-                            <th>SGST (₹)</th>
-                            <th>Total Price (₹)</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -334,29 +345,6 @@
             </div>
         </div>
 
-        <div class="steps" id="step-4">
-            <h2>Total and Tax</h2>
-            <div class="form-group">
-                <label for="totalAmount">Total Amount (₹):</label>
-                <input type="number" id="totalAmount" readonly>
-            </div>
-            <div class="form-group">
-                <label for="cgstTotal">CGST Total (₹):</label>
-                <input type="number" id="cgstTotal" readonly>
-            </div>
-            <div class="form-group">
-                <label for="sgstTotal">SGST Total (₹):</label>
-                <input type="number" id="sgstTotal" readonly>
-            </div>
-            <div class="form-group">
-                <label for="roundOff">Round Off (₹):</label>
-                <input type="number" id="roundOff" readonly>
-            </div>
-            <div class="form-group">
-                <label for="invoiceTotal">Invoice Total Amount (₹):</label>
-                <input type="number" id="invoiceTotal" readonly>
-            </div>
-        </div>
 
         <div class="steps" id="step-5">
             <div class="preview">
@@ -365,7 +353,6 @@
                     <!-- Preview will be dynamically generated -->
                 </div>
             </div>
-            <button type="button" id="save">Save</button>
             <button type="button" id="print">Print</button>
         </div>
 
@@ -375,7 +362,7 @@
         </div>
     </form>
 
-    <script src="./quotation.js"></script>
+    <script src="./wayBill.js"></script>
 </body>
 
 

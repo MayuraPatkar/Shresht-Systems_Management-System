@@ -4,8 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
     <title>Invoice Form</title>
     <style>
         body {
@@ -128,12 +126,6 @@
             background-color: #0056b3;
         }
 
-        #save {
-            background-color: rgb(93, 255, 93);
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-
         #print {
             background-color: #3798ff;
             cursor: pointer;
@@ -184,84 +176,35 @@
             box-sizing: border-box;
         }
 
-        .invoice-container {
-            max-width: 800px;
-            margin: 20px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .header,
+        .footer {
+            text-align: center;
+            margin-bottom: 20px;
         }
 
         .header .logo img {
-            max-width: 120px;
+            width: 100px;
         }
 
-        .header .company-details h1 {
-            margin: 0;
+        .company-details h1 {
             font-size: 24px;
-            color: #007bff;
-        }
-
-        .header .company-details p {
             margin: 5px 0;
-            font-size: 14px;
-            color: #555;
         }
 
-        hr {
-            border: 0;
-            height: 1px;
-            background: #ddd;
+        .info-section,
+        .totals,
+        .bank-details {
             margin: 20px 0;
         }
 
-        .info-section table,
-        .buyer-details table,
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-
-        .info-section td,
-        .buyer-details td,
-        .items-table td,
-        .items-table th {
-            padding: 8px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
-
-        .items-table th {
-            background: #f1f1f1;
-            font-weight: bold;
-        }
-
         .totals p,
-        .totals h3 {
-            margin: 5px 0;
-        }
-
         .bank-details p {
             margin: 5px 0;
         }
 
-        .declaration,
-        .signature {
-            margin-top: 20px;
-            text-align: left;
-        }
-
-        .signature-space {
-            width: 100px;
-            height: 50px;
+        .footer {
+            font-size: 12px;
+            color: #555;
         }
 
         footer {
@@ -279,13 +222,13 @@
         <h1>Quotation</h1>
     </header>
     <form id="Quatation">
-        <!-- Basic Invoice Details -->
+        <!-- Basic quotation Details -->
         <div class="steps active" id="step-1">
             <h2>Project Details</h2>
 
             <div class="form-group">
                 <label for="invoiceNumber">Project name:</label>
-                <input type="text" id="invoiceNumber" required>
+                <input type="text" id="projectName" required>
             </div>
         </div>
 
@@ -313,15 +256,8 @@
                     <thead>
                         <tr>
                             <th>Description</th>
-                            <th>HSN/SAC</th>
                             <th>Qty</th>
-                            <th>UOM</th>
-                            <th>Rate</th>
-                            <th>Taxable Value</th>
-                            <th>CGST (%)</th>
-                            <th>CGST (₹)</th>
-                            <th>SGST (%)</th>
-                            <th>SGST (₹)</th>
+                            <th>Unit Price</th>
                             <th>Total Price (₹)</th>
                             <th>Action</th>
                         </tr>
@@ -349,12 +285,8 @@
                 <input type="number" id="sgstTotal" readonly>
             </div>
             <div class="form-group">
-                <label for="roundOff">Round Off (₹):</label>
-                <input type="number" id="roundOff" readonly>
-            </div>
-            <div class="form-group">
-                <label for="invoiceTotal">Invoice Total Amount (₹):</label>
-                <input type="number" id="invoiceTotal" readonly>
+                <label for="grandtTotal">Grand Total (₹):</label>
+                <input type="number" id="grandTotal" readonly>
             </div>
         </div>
 
@@ -365,7 +297,6 @@
                     <!-- Preview will be dynamically generated -->
                 </div>
             </div>
-            <button type="button" id="save">Save</button>
             <button type="button" id="print">Print</button>
         </div>
 

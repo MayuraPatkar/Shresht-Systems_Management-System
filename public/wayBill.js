@@ -38,8 +38,6 @@ function addItem() {
     row.innerHTML = `
         <td><input type="text" placeholder="Item Description" required></td>
         <td><input type="number" placeholder="Qty" min="1" required></td>
-        <td><input type="text" placeholder="Unit Price" required></td>
-        <td><input type="number" placeholder="Total Price" min="0" step="0.01" required readonly></td>
         <td><button type="button" class="remove-item-btn" onclick="removeItem(this)">Remove</button></td>
     `;
 
@@ -118,9 +116,6 @@ function generatePreview() {
         <p><strong>To:</strong> ${buyerName}<br>
         ${buyerAddress}<br>
         Ph: ${buyerPhone}</p>
-        <p><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${projectName}</p>
-        <p>Dear [Sir/Madam],</p>
-        <p>With reference to your inquiry, we are pleased to submit our comprehensive techno-commercial proposal for the supply, installation, and commissioning of ${projectName}. This proposal includes industry-standard, high-quality equipment and services designed to meet your requirements.</p>
     </div>
     <h3>Item Details</h3>
     <table>
@@ -146,39 +141,16 @@ function generatePreview() {
     <hr>
     <div class="totals">
         <p><strong>Total Amount:</strong> ₹[Total Amount]</p>
-        <p><strong>CGST Total:</strong> ₹[CGST Total]</p>
-        <p><strong>SGST Total:</strong> ₹[SGST Total]</p>
         <p><strong>Grand Total:</strong> ₹${totalPrice}</p>
     </div>
     <hr>
-    <div class="bank-details">
-        <h3>Terms & Conditions</h3>
-        <ul>
-            <li><strong>Lead Time:</strong> 1 week for material procurement and installation. Synchronization may take 2-3 weeks depending on MESCOM official availability.</li>
-            <li><strong>Payment Terms:</strong> 
-                <ul>
-                    <li>60% advance with PO (for MESCOM work and material procurement).</li>
-                    <li>30% before dispatch of materials.</li>
-                    <li>10% after installation and synchronization with MESCOM.</li>
-                </ul>
-            </li>
-            <li><strong>Warranty:</strong> 
-                <ul>
-                    <li>Solar Modules: 10 years product warranty, 15 years performance warranty.</li>
-                    <li>String Inverters: 8 years warranty.</li>
-                    <li>Battery Pack: 10 years warranty as per manufacturer terms.</li>
-                </ul>
-            </li>
-            <li><strong>Customer Scope:</strong> Safe storage of materials, support during installation (electricity, water, etc.).</li>
-            <li><strong>Quote Validity:</strong> 15 days.</li>
-            <li><strong>GST:</strong> Included in the quoted price.</li>
-        </ul>
+    <div class="signature">
+        <p>For SHRESHT SYSTEMS</p>
+        <div class="signature-space"></div>
+        <p><strong>Authorized Signatory</strong></p>
     </div>
-    <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
-    <p>Thanking you,</p>
-    <p><strong>For Shresht Systems,</strong><br>Sandeep Nayak<br>Mob: +91 7204657707 / 9901730305</p>
     <div class="footer">
-        <p>This is a computer-generated quotation.</p>
+        <p>This is a computer-generated purchase order</p>
     </div>`;
 }
 
