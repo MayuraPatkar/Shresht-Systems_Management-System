@@ -1,15 +1,17 @@
 document.getElementById('logo').addEventListener('click', () => {
     window.location = '/dashboard';
-})
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     const projectListDiv = document.querySelector(".project_list .projects");
+    const paidButton = document.querySelector(".filter button:nth-child(1)");
+    const unpaidButton = document.querySelector(".filter button:nth-child(2)");
 
     // Function to load recent projects from the server
-    async function loadRecentProjects() {
+    async function loadRecentProjects(filter = "") {
         try {
-            // Fetch the recent 5 projects from the Express server
-            const response = await fetch("/project/recent-projects");
+            // Fetch the recent projects from the Express server with the filter
+            const response = await fetch(`/project/recent-projects?filter=${filter}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch projects");
             }
@@ -43,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 projectDiv.innerHTML = `
                     <h4>${project.project_name}</h4>
                     <p>Invoice #: ${project.invoice_number}</p>
+                    <p>Status: ${project.status}</p>
                 `;
 
                 // Add click event to redirect to the details page
@@ -58,6 +61,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Call the function to load recent projects
+    // Event listeners for the filter buttons
+    paidButton.addEventListener("click", () => {
+        loadRecentProjects("paid");
+    });
+
+    unpaidButton.addEventListener("click", () => {
+        loadRecentProjects("unpaid");
+    });
+
+    // Call the function to load recent projects without any filter initially
     loadRecentProjects();
 });

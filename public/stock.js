@@ -170,7 +170,7 @@ function renderStockTable(data) {
             <td>
                 <button class="btn" onclick="addToStockDiv('${item._id}')">Add</button>
                 <button class="btn" onclick="removeFromStockDiv('${item._id}')">Remove</button>
-                <button class="btn" onclick="editItemDiv('${item._id}', '${item.name}', '${item.unitPrice}', '${item.quantity}')">Edit</button>
+                <button class="btn" onclick="editItemDiv('${item._id}', '${item.itemName}', '${item.unitPrice}', '${item.quantity}')">Edit</button>
             </td>
         `;
         tableBody.appendChild(row);

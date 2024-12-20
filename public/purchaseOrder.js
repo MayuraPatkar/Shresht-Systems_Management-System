@@ -7,12 +7,17 @@ const totalSteps = 5;
 
 document.getElementById("nextBtn").addEventListener("click", () => {
     if (currentStep < totalSteps) {
-        document.getElementById(`step-${currentStep}`).classList.remove("active");
-        currentStep++;
-        document.getElementById(`step-${currentStep}`).classList.add("active");
+        if (validateStep(currentStep)) {
+            document.getElementById(`step-${currentStep}`).classList.remove("active");
+            currentStep++;
+            document.getElementById(`step-${currentStep}`).classList.add("active");
+            updateNavigation();
+            if (currentStep === totalSteps) generatePreview();
+        }
+    } else {
+        // Handle form submission
+        window.electronAPI.showAlert('Form submitted!');
     }
-    updateNavigation();
-    if (currentStep === totalSteps) generatePreview();
 });
 
 document.getElementById("prevBtn").addEventListener("click", () => {
@@ -20,13 +25,25 @@ document.getElementById("prevBtn").addEventListener("click", () => {
         document.getElementById(`step-${currentStep}`).classList.remove("active");
         currentStep--;
         document.getElementById(`step-${currentStep}`).classList.add("active");
+        updateNavigation();
     }
-    updateNavigation();
 });
 
 function updateNavigation() {
     document.getElementById("prevBtn").disabled = currentStep === 1;
-    document.getElementById("nextBtn").disabled = currentStep === totalSteps;
+    document.getElementById("nextBtn").textContent = currentStep === totalSteps ? 'Submit' : 'Next';
+}
+
+function validateStep(step) {
+    const stepElement = document.getElementById(`step-${step}`);
+    const inputs = stepElement.querySelectorAll('input[required], textarea[required]');
+    for (let input of inputs) {
+        if (!input.value.trim()) {
+            window.electronAPI.showAlert('Please fill all required fields.');
+            return false;
+        }
+    }
+    return true;
 }
 
 document.getElementById('add-item-btn').addEventListener('click', addItem);
@@ -40,17 +57,19 @@ function addItem() {
         <td><input type="number" placeholder="Qty" min="1" required></td>
         <td><input type="text" placeholder="Unit Price" required></td>
         <td><input type="number" placeholder="Total Price" min="0" step="0.01" required readonly></td>
-        <td><button type="button" class="remove-item-btn" onclick="removeItem(this)">Remove</button></td>
+        <td><button type="button" class="remove-item-btn">Remove</button></td>
     `;
 
     tableBody.appendChild(row);
     updateTotals();
 }
 
-function removeItem(button) {
-    button.parentElement.parentElement.remove();
-    updateTotals();
-}
+document.querySelector("#items-table").addEventListener("click", (event) => {
+    if (event.target.classList.contains('remove-item-btn')) {
+        event.target.closest('tr').remove();
+        updateTotals();
+    }
+});
 
 document.querySelector("#items-table").addEventListener("input", updateTotals);
 
@@ -67,11 +86,18 @@ function updateTotals() {
         totalPrice += rowTotal;
     });
 
+    const cgstTotal = totalPrice * 0.09;
+    const sgstTotal = totalPrice * 0.09;
+    const grandTotal = totalPrice + cgstTotal + sgstTotal;
+
     document.getElementById("totalAmount").value = totalPrice.toFixed(2);
+    document.getElementById("cgstTotal").value = cgstTotal.toFixed(2);
+    document.getElementById("sgstTotal").value = sgstTotal.toFixed(2);
+    document.getElementById("grandTotal").value = grandTotal.toFixed(2);
 }
 
 function generatePreview() {
-    const projectName = document.getElementById("projectName").value || "";
+    const handledBy = document.getElementById("handledBy").value || "";
     const buyerName = document.getElementById("buyerName").value || "";
     const buyerAddress = document.getElementById("buyerAddress").value || "";
     const buyerPhone = document.getElementById("buyerPhone").value || "";
@@ -142,8 +168,10 @@ function generatePreview() {
     </table>
     <hr>
     <div class="totals">
-        <p><strong>Total Amount:</strong> ₹[Total Amount]</p>
-        <p><strong>Grand Total:</strong> ₹${totalPrice}</p>
+        <p><strong>Total Amount:</strong> ₹${totalPrice.toFixed(2)}</p>
+        <p><strong>CGST Total:</strong> ₹${(totalPrice * 0.09).toFixed(2)}</p>
+        <p><strong>SGST Total:</strong> ₹${(totalPrice * 0.09).toFixed(2)}</p>
+        <p><strong>Grand Total:</strong> ₹${(totalPrice * 1.18).toFixed(2)}</p>
     </div>
     <hr>
     <div class="signature">

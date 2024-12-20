@@ -141,9 +141,22 @@
             width: 100%;
         }
 
-        .filter button{
+        .filter button {
             width: 45%;
             margin-bottom: 10px;
+            padding: 0.8rem;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .filter button:hover {
+            background-color: #0056b3;
         }
 
         .search_container input {
@@ -168,6 +181,22 @@
         .search_container div img {
             width: 50%;
         }
+
+        @media (max-width: 768px) {
+            .project_list,
+            .project_search {
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+
+            .search_container input {
+                width: 70%;
+            }
+
+            .search_container div {
+                width: 20%;
+            }
+        }
     </style>
 </head>
 
@@ -180,15 +209,14 @@
         <div class="project_list">
             <h2>Projects</h2>
             <div class="projects">
-                <!-- content will loaded dynamically -->
+                <!-- content will be loaded dynamically -->
             </div>
         </div>
         <div class="project_search">
             <div class="filter">
-                 <button>Paid</button>
-                 <button>Unpaid</button>
+                <button>Paid</button>
+                <button>Unpaid</button>
             </div>
-     
             <h3>Search Projects</h3>
             <div class="search_container">
                 <input type="text" placeholder="type here">

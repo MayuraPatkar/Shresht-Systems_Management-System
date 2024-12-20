@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
-    <title>Invoice Form</title>
+    <title>Way Bill Form</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -278,14 +276,13 @@
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
         <h1>Way Bill</h1>
     </header>
-    <form id="Quatation">
-        <!-- Basic Invoice Details -->
+    <form id="wayBill">
+        <!-- Basic Way Bill Details -->
         <div class="steps active" id="step-1">
             <h2>Project Details</h2>
-
             <div class="form-group">
-                <label for="invoiceNumber">Project name:</label>
-                <input type="text" id="invoiceNumber" required>
+                <label for="projectName">Project Name:</label>
+                <input type="text" id="projectName" required>
             </div>
         </div>
 
@@ -345,7 +342,6 @@
             </div>
         </div>
 
-
         <div class="steps" id="step-5">
             <div class="preview">
                 <h2>Preview</h2>
@@ -364,6 +360,5 @@
 
     <script src="./wayBill.js"></script>
 </body>
-
 
 </html>

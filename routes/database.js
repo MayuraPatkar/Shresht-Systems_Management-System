@@ -69,6 +69,8 @@ const projectSchema = new mongoose.Schema({
     round_Off: { type: Number },
     invoice_total: { type: Number },
     createdAt: { type: Date, default: Date.now },
+    due_amount: { type: Number },
+    status:{ type: String, default: 'Unpaid' },
 });
 
 const Projects = mongoose.model('Project', projectSchema);

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Form</title>
+    <title>Purchase Order Form</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -221,14 +221,13 @@
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
         <h1>Purchase Order</h1>
     </header>
-    <form id="Quatation">
-        <!-- Basic quotation Details -->
+    <form id="purchaseOrder">
+        <!-- Basic purchase order Details -->
         <div class="steps active" id="step-1">
             <h2>Project Details</h2>
-
             <div class="form-group">
-                <label for="invoiceNumber">Hadled By:</label>
-                <input type="text" id="projectName" required>
+                <label for="handledBy">Handled By:</label>
+                <input type="text" id="handledBy" required>
             </div>
         </div>
 
@@ -247,12 +246,12 @@
                 <input type="tel" id="buyerPhone" required>
             </div>
             <div class="form-group">
-                <label for="buyerPhone">Email:</label>
-                <input type="tel" id="buyerPhone" required>
+                <label for="buyerEmail">Email:</label>
+                <input type="email" id="buyerEmail" required>
             </div>
             <div class="form-group">
-                <label for="buyerPhone">GSTIN:</label>
-                <input type="tel" id="buyerPhone" required>
+                <label for="buyerGSTIN">GSTIN:</label>
+                <input type="text" id="buyerGSTIN" required>
             </div>
         </div>
 
@@ -293,7 +292,7 @@
                 <input type="number" id="sgstTotal" readonly>
             </div>
             <div class="form-group">
-                <label for="grandtTotal">Grand Total (₹):</label>
+                <label for="grandTotal">Grand Total (₹):</label>
                 <input type="number" id="grandTotal" readonly>
             </div>
         </div>
@@ -316,6 +315,5 @@
 
     <script src="./purchaseOrder.js"></script>
 </body>
-
 
 </html>

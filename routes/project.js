@@ -31,14 +31,16 @@ router.post("/save-invoice", async (req, res) => {
             buyerPhone = '',
             consigneeName = '',
             consigneeAddress = '',
+            due_amount = invoiceTotal,
+            status = 'unpaid' // Default status
         } = req.body;
 
         // Validate required fields
-        // if (!buyer || !address || !phone || !invoiceNumber || !items.length || total <= 0) {
-        //     return res.status(400).json({
-        //         message: 'Missing required fields or invalid data: buyer, address, phone, invoiceNumber, items, or total.',
-        //     });
-        // }
+        if (!buyer || !address || !phone || !invoiceNumber || !items.length || total <= 0) {
+            return res.status(400).json({
+                message: 'Missing required fields or invalid data: buyer, address, phone, invoiceNumber, items, or total.',
+            });
+        }
 
         // Fetch admin details
         const admin = await Admin.findOne();
@@ -84,6 +86,7 @@ router.post("/save-invoice", async (req, res) => {
             SGST_total,
             round_Off: roundOff,
             invoice_total: invoiceTotal,
+            status // Save the status
         });
 
         // Save the project
@@ -100,16 +103,23 @@ router.post("/save-invoice", async (req, res) => {
     }
 });
 
-
-
-// Route to get the 5 most recent projects
+// Route to get the 5 most recent projects with optional filter
 router.get("/recent-projects", async (req, res) => {
     try {
+        const { filter } = req.query;
+        let query = {};
+
+        if (filter === 'paid') {
+            query.status = 'paid';
+        } else if (filter === 'unpaid') {
+            query.status = 'unpaid';
+        }
+
         // Fetch the 5 most recent projects, sorted by creation date
-        const recentProjects = await Projects.find()
+        const recentProjects = await Projects.find(query)
             .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
             .limit(5)
-            .select("project_name invoice_number date"); // Select only the required fields
+            .select("project_name invoice_number date status"); // Select only the required fields
 
         // Respond with the fetched projects
         res.status(200).json({
@@ -160,9 +170,5 @@ router.get("/invoice/edit/:invoice_number", async (req, res) => {
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
-
-
-
-
 
 module.exports = router;
