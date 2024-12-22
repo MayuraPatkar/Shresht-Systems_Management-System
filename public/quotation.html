@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Form</title>
+    <title>Quotation Form</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -37,6 +37,147 @@
             font-size: 1.8rem;
             flex-grow: 1;
             text-align: center;
+        }
+
+        .container1 {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            gap: 2%;
+            padding: 2rem;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+        }
+
+        .search_container input {
+            width: 80%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .search_container div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 10%;
+            background-color: #007bff;
+            padding: 0.8rem;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .search_container div img {
+            width: 50%;
+        }
+
+        #new {
+            display: none;
+        }
+
+        .quotation_list,
+        .quotation_search {
+            background-color: #ffffff;
+            padding: 2rem;
+            box-sizing: border-box;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        /* Adjust widths for smaller screens */
+        .quotation_list {
+            max-width: 65%;
+        }
+
+        .quotation_search {
+            max-width: 35%;
+        }
+
+        .quotation_list div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .quotation_list button {
+            padding: 0.8rem;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .quotation_list h2,
+        .quotation_search h3 {
+            color: #444;
+            font-size: 1.5rem;
+        }
+
+        .quotation_search input[type="text"] {
+            width: 70%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        /* Add hover effect on input */
+        .quotation_search input[type="text"]:focus {
+            border-color: #007bff;
+        }
+
+        .quotation_search div {
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+        .quotation_search button {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .quotation_search button:hover {
+            background-color: #0056b3;
+        }
+
+        .quotation-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        .quotation-item:hover {
+            background-color: #f0f8ff;
+        }
+
+        /* Improved search container */
+        .search_container {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            width: 100%;
         }
 
         form {
@@ -126,6 +267,12 @@
             background-color: #0056b3;
         }
 
+        #save {
+            background-color: rgb(93, 255, 93);
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
         #print {
             background-color: #3798ff;
             cursor: pointer;
@@ -163,6 +310,9 @@
             cursor: not-allowed;
         }
 
+
+        /* preview style */
+
         .preview {
             padding: 20px;
             border: 1px solid #ddd;
@@ -176,42 +326,98 @@
             box-sizing: border-box;
         }
 
-        .header,
-        .footer {
-            text-align: center;
-            margin-bottom: 20px;
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
         }
+
+        /* quotation format */
 
         .header .logo img {
-            width: 100px;
+            max-width: 100px;
         }
 
-        .company-details h1 {
-            font-size: 24px;
-            margin: 5px 0;
+        .header .company-details h1 {
+            margin: 0;
+            font-size: 18px;
+            color: #007bff;
         }
 
-        .info-section,
-        .totals,
-        .bank-details {
-            margin: 20px 0;
-        }
-
-        .totals p,
-        .bank-details p {
-            margin: 5px 0;
-        }
-
-        .footer {
+        .header .company-details p {
+            margin: 2px 0;
             font-size: 12px;
             color: #555;
         }
 
-        footer {
-            margin-top: 30px;
-            text-align: center;
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ddd;
+            margin: 10px 0;
+        }
+
+        .info-section table,
+        .buyer-details table,
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .info-section td,
+        .buyer-details td,
+        .items-table td,
+        .items-table th {
+            padding: 5px;
+            text-align: left;
+            border: 1px solid #ddd;
             font-size: 12px;
+        }
+
+        .items-table th {
+            background: #f1f1f1;
+            font-weight: bold;
+        }
+
+        .totals {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .totals p,
+        .totals h3 {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .bank-details p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .declaration,
+        .signature {
+            margin-top: 15px;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .signature-space {
+            width: 80px;
+            height: 25px;
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 10px;
             color: #777;
+        }
+
+        .page-break {
+            page-break-before: always;
         }
     </style>
 </head>
@@ -221,93 +427,126 @@
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
         <h1>Quotation</h1>
     </header>
-    <form id="Quatation">
-        <!-- Basic quotation Details -->
-        <div class="steps active" id="step-1">
-            <h2>Project Details</h2>
-
-            <div class="form-group">
-                <label for="invoiceNumber">Project name:</label>
-                <input type="text" id="projectName" required>
-            </div>
-        </div>
-
-        <div class="steps" id="step-2">
-            <h2>Recipient Details (to)</h2>
-            <div class="form-group">
-                <label for="buyerName">Buyer Name:</label>
-                <input type="text" id="buyerName" required>
-            </div>
-            <div class="form-group">
-                <label for="buyerAddress">Address:</label>
-                <textarea id="buyerAddress" required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="buyerPhone">Phone Number:</label>
-                <input type="tel" id="buyerPhone" required>
-            </div>
-        </div>
-
-        <div class="steps" id="step-3">
-            <h2>Item List</h2>
-            <div class="form-group">
-                <label>Items:</label>
-                <table id="items-table">
-                    <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
-                            <th>Total Price (₹)</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Items will be dynamically added here -->
-                    </tbody>
-                </table>
-                <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
-            </div>
-        </div>
-
-        <div class="steps" id="step-4">
-            <h2>Total and Tax</h2>
-            <div class="form-group">
-                <label for="totalAmount">Total Amount (₹):</label>
-                <input type="number" id="totalAmount" readonly>
-            </div>
-            <div class="form-group">
-                <label for="cgstTotal">CGST Total (₹):</label>
-                <input type="number" id="cgstTotal" readonly>
-            </div>
-            <div class="form-group">
-                <label for="sgstTotal">SGST Total (₹):</label>
-                <input type="number" id="sgstTotal" readonly>
-            </div>
-            <div class="form-group">
-                <label for="grandtTotal">Grand Total (₹):</label>
-                <input type="number" id="grandTotal" readonly>
-            </div>
-        </div>
-
-        <div class="steps" id="step-5">
-            <div class="preview">
-                <h2>Preview</h2>
-                <div id="preview-content">
-                    <!-- Preview will be dynamically generated -->
+    <div id="home">
+        <div class="container1">
+            <div class="quotation_list">
+                <div>
+                    <h2>Quotations</h2>
+                    <button id="newQuotation">New Quotation</button>
+                </div>
+                <div class="quotations">
+                    <!-- content will be loaded dynamically -->
                 </div>
             </div>
-            <button type="button" id="print">Print</button>
+            <div class="quotation_search">
+                <h3>Search Quotations</h3>
+                <div class="search_container">
+                    <input type="text" id="quotationSearchInput" placeholder="type here">
+                    <div type="submit" id="quotationSearchBtn"><img src="./assets/search.png"></div>
+                </div>
+            </div>
         </div>
+    </div>
+    <div id="edit"></div>
+    <div id="new">
+        <form id="Quotation">
+            <!-- Basic quotation Details -->
+            <div class="steps active" id="step-1">
+                <h2>Project Details</h2>
+                <div class="form-group">
+                    <label for="projectName">Project name:</label>
+                    <input type="text" id="projectName" required>
+                </div>
+            </div>
 
-        <div class="navigation">
-            <button type="button" id="prevBtn" disabled>Previous</button>
-            <button type="button" id="nextBtn">Next</button>
-        </div>
-    </form>
+            <div class="steps" id="step-2">
+                <h2>Recipient Details (to)</h2>
+                <div class="form-group">
+                    <label for="buyerName">Buyer Name:</label>
+                    <input type="text" id="buyerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="buyerAddress">Address:</label>
+                    <textarea id="buyerAddress" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="buyerPhone">Phone Number:</label>
+                    <input type="tel" id="buyerPhone" required>
+                </div>
+            </div>
+
+            <div class="steps" id="step-3">
+                <h2>Item List</h2>
+                <div class="form-group">
+                    <label>Items:</label>
+                    <table id="items-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>HSN/SAC</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Rate</th>
+                                <th>Taxable Value</th>
+                                <th>CGST (%)</th>
+                                <th>CGST (₹)</th>
+                                <th>SGST (%)</th>
+                                <th>SGST (₹)</th>
+                                <th>Total Price (₹)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Items will be dynamically added here -->
+                        </tbody>
+                    </table>
+                    <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
+                </div>
+            </div>
+
+            <div class="steps" id="step-4">
+                <h2>Total and Tax</h2>
+                <div class="form-group">
+                    <label for="totalAmount">Total Amount (₹):</label>
+                    <input type="number" id="totalAmount" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="cgstTotal">CGST Total (₹):</label>
+                    <input type="number" id="cgstTotal" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="sgstTotal">SGST Total (₹):</label>
+                    <input type="number" id="sgstTotal" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="roundOff">Round Off (₹):</label>
+                    <input type="number" id="roundOff" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="grandTotal">Grand Total (₹):</label>
+                    <input type="number" id="grandTotal" readonly>
+                </div>
+            </div>
+
+            <div class="steps" id="step-5">
+                <div class="preview">
+                    <h2>Preview</h2>
+                    <div id="preview-content">
+                        <!-- Preview will be dynamically generated -->
+                    </div>
+                </div>
+                <button type="button" id="save">Save</button>
+                <button type="button" id="print">Print</button>
+            </div>
+
+            <div class="navigation">
+                <button type="button" id="prevBtn" disabled>Previous</button>
+                <button type="button" id="nextBtn">Next</button>
+            </div>
+        </form>
+    </div>
 
     <script src="./quotation.js"></script>
 </body>
-
 
 </html>

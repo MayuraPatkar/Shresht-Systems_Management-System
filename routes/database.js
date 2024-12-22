@@ -26,18 +26,108 @@ const adminSchema = new mongoose.Schema({
 
 const Admin = mongoose.model('Admin', adminSchema);
 
+const quotationSchema = new mongoose.Schema({
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
+    quotation_id: { type: String },
+    consignee_name: { type: String },
+    consignee_address: { type: String },
+    confignee_phone: { type: String },
+    items: [
+        {
+            description: { type: String },
+            HSN_SAC: { type: String },
+            quantity: { type: Number },
+            UoM: { type: String },
+            rate: { type: Number },
+            taxable_value: { type: Number },
+            CGST: {
+                percentage: { type: Number },
+                value: { type: Number },
+            },
+            SGST: {
+                percentage: { type: Number },
+                value: { type: Number },
+            },
+            total_price: { type: Number },
+        },
+    ],
+    createdAt: { type: Date, default: Date.now },
+})
+
+const Quotations = mongoose.model('Quotations', quotationSchema);
+
+const purchaseSchema = new mongoose.Schema({
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
+    purchase_id: { type: String },
+    supplier_name: { type: String },
+    supplier_address: { type: String },
+    supplier_phone: { type: String },
+    supplier_email: { type: String },
+    supplier_GSTIN: { type: String },
+    items: [
+        {
+            description: { type: String },
+            HSN_SAC: { type: String },
+            quantity: { type: Number },
+            UoM: { type: String },
+            rate: { type: Number },
+            taxable_value: { type: Number },
+            CGST: {
+                percentage: { type: Number },
+                value: { type: Number },
+            },
+            SGST: {
+                percentage: { type: Number },
+                value: { type: Number },
+            },
+            total_price: { type: Number },
+        },
+    ],
+    createdAt: { type: Date, default: Date.now },
+})
+
+const Purchases = mongoose.model('Purchases', purchaseSchema);
+
+const wayBillSchema = new mongoose.Schema({
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
+    wayBill_id: { type: String },
+    buyer_name: { type: String },
+    buyer_address: { type: String },
+    buyer_phone: { type: String },
+    items: [
+        {
+            description: { type: String },
+            HSN_SAC: { type: String },
+            quantity: { type: Number },
+            UoM: { type: String },
+            rate: { type: Number },
+            taxable_value: { type: Number },
+            CGST: {
+                percentage: { type: Number },
+                value: { type: Number },
+            },
+            SGST: {
+                percentage: { type: Number },
+                value: { type: Number },
+            },
+            total_price: { type: Number },
+        },
+    ],
+    createdAt: { type: Date, default: Date.now },
+})
+
+const wayBills = mongoose.model('wayBills', wayBillSchema);
+
 // Define Project Schema and Model
 const projectSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
+    quotation_id: { type: String },
     project_name: { type: String },
     invoice_number: { type: String },
     po_number: { type: String },
     po_date: { type: Date },
     dc_number: { type: String },
     dc_date: { type: Date },
-    transportation_mode: { type: String },
-    vehicle_no: { type: String },
-    place_to_supply: { type: String },
     E_Way_Bill_number: { type: String },
     buyer_name: { type: String },
     buyer_address: { type: String },
@@ -70,7 +160,7 @@ const projectSchema = new mongoose.Schema({
     invoice_total: { type: Number },
     createdAt: { type: Date, default: Date.now },
     due_amount: { type: Number },
-    status:{ type: String, default: 'Unpaid' },
+    status: { type: String, default: 'Unpaid' },
 });
 
 const Projects = mongoose.model('Project', projectSchema);
@@ -80,6 +170,8 @@ const stockSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     itemName: { type: String, required: true },
     unitPrice: { type: Number, required: true },
+    GST: { type: Number, required: true },
+    margin_value: { type: Number, required: true },
     quantity: { type: Number, required: true },
 });
 
@@ -90,8 +182,9 @@ const employeeSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     emp_id: { type: String, required: true },
     name: { type: String, required: true },
+    salary_status: { type: String, required: true },
 });
 
 const Employee = mongoose.model('Employee', employeeSchema);
 
-module.exports = { Admin, Projects, Stock, Employee };
+module.exports = { Admin, Quotations, Purchases, wayBills, Projects, Stock, Employee };

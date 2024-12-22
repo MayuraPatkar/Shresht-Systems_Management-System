@@ -3,7 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/shreshtSystems';
 
 // Middleware
 app.use(express.json());
@@ -14,7 +15,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'public', 'views'));
 
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/shreshtSystems', {
+mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 }).then(() => {
@@ -28,11 +29,17 @@ const authRoutes = require('./routes/auth');
 const viewRoutes = require('./routes/views');
 const stockRoutes = require('./routes/stock');
 const projectRoutes = require('./routes/project');
+const quotationRoutes = require('./routes/quotation');
+const purchaseRoutes = require('./routes/purchaseOrder');
+const wayBillRoutes = require('./routes/wayBill');
 
 app.use('/', viewRoutes);
 app.use('/login', authRoutes);
 app.use('/stock', stockRoutes);
 app.use('/project', projectRoutes);
+app.use('/quotation', quotationRoutes);
+app.use('/purchaseOrder', purchaseRoutes);
+app.use('/wayBill', wayBillRoutes);
 
 // Start the server
 app.listen(PORT, () => {
