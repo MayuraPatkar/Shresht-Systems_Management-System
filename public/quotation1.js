@@ -26,34 +26,40 @@ document.addEventListener("DOMContentLoaded", () => {
         quotationListDiv.innerHTML = "";
 
         quotations.forEach(quotation => {
-            const quotationDiv = document.createElement("div");
-            quotationDiv.className = "quotation-item";
-            quotationDiv.style.padding = "1rem";
-            quotationDiv.style.marginBottom = "1rem";
-            quotationDiv.style.border = "1px solid #ddd";
-            quotationDiv.style.borderRadius = "10px";
-            quotationDiv.style.cursor = "pointer";
-            quotationDiv.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
-            quotationDiv.style.transition = "background-color 0.3s";
-
-            // Add hover effect
-            quotationDiv.addEventListener("mouseenter", () => {
-                quotationDiv.style.backgroundColor = "#f0f8ff";
-            });
-            quotationDiv.addEventListener("mouseleave", () => {
-                quotationDiv.style.backgroundColor = "#fff";
-            });
-
-            // Quotation content
-            quotationDiv.innerHTML = `
-                <h4>${quotation.project_name}</h4>
-                <p>ID #: ${quotation.quotation_id}</p>
-                <button class="btn btn-primary open-quotation" data-id="${quotation.quotation_id}">Open</button>
-                <button class="btn btn-danger delete-quotation" data-id="${quotation.quotation_id}">Delete</button>
-            `;
-
+            const quotationDiv = createQuotationDiv(quotation);
             quotationListDiv.appendChild(quotationDiv);
         });
+    }
+
+    // Function to create a quotation div
+    function createQuotationDiv(quotation) {
+        const quotationDiv = document.createElement("div");
+        quotationDiv.className = "quotation-item";
+        quotationDiv.style.padding = "1rem";
+        quotationDiv.style.marginBottom = "1rem";
+        quotationDiv.style.border = "1px solid #ddd";
+        quotationDiv.style.borderRadius = "10px";
+        quotationDiv.style.cursor = "pointer";
+        quotationDiv.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
+        quotationDiv.style.transition = "background-color 0.3s";
+
+        // Add hover effect
+        quotationDiv.addEventListener("mouseenter", () => {
+            quotationDiv.style.backgroundColor = "#f0f8ff";
+        });
+        quotationDiv.addEventListener("mouseleave", () => {
+            quotationDiv.style.backgroundColor = "#fff";
+        });
+
+        // Quotation content
+        quotationDiv.innerHTML = `
+            <h4>${quotation.project_name}</h4>
+            <p>ID #: ${quotation.quotation_id}</p>
+            <button class="btn btn-primary open-quotation" data-id="${quotation.quotation_id}">Open</button>
+            <button class="btn btn-danger delete-quotation" data-id="${quotation.quotation_id}">Delete</button>
+        `;
+
+        return quotationDiv;
     }
 
     // Event delegation for open and delete buttons
@@ -83,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('home').style.display = 'none';
             document.getElementById('new').style.display = 'block';
 
+            document.getElementById('quotationId').value = quotation.quotation_id;
             document.getElementById('projectName').value = quotation.project_name;
             document.getElementById('buyerName').value = quotation.buyer_name;
             document.getElementById('buyerAddress').value = quotation.buyer_address;
@@ -98,27 +105,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 row.innerHTML = `
                     <td><input type="text" value="${item.description}" required></td>
-                    <td><input type="text" value="${item.hsnSac}" required></td>
-                    <td><input type="number" value="${item.qty}" min="1" required></td>
-                    <td><input type="text" value="${item.uom}" required></td>
+                    <td><input type="text" value="${item.HSN_SAC}" required></td>
+                    <td><input type="number" value="${item.quantity}" min="1" required></td>
+                    <td><input type="text" value="${item.unitPrice}" required></td>
                     <td><input type="number" value="${item.rate}" min="0.01" step="0.01" required></td>
-                    <td><input type="number" value="${item.taxableValue}" min="0.01" step="0.01" required readonly></td>
-                    <td><input type="number" value="${item.cgstPercent}" min="0" step="0.01" required></td>
-                    <td><input type="number" value="${item.cgstValue}" min="0" step="0.01" required readonly></td>
-                    <td><input type="number" value="${item.sgstPercent}" min="0" step="0.01" required></td>
-                    <td><input type="number" value="${item.sgstValue}" min="0" step="0.01" required readonly></td>
-                    <td><input type="number" value="${item.totalPrice}" min="0" step="0.01" required readonly></td>
+                    <td><input type="number" value="${item.taxable_value}" min="0.01" step="0.01" required readonly></td>
+                    <td><input type="number" value="${item.CGST.percentage}" min="0" step="0.01" required></td>
+                    <td><input type="number" value="${item.CGST.value}" min="0" step="0.01" required readonly></td>
+                    <td><input type="number" value="${item.SGST.percentage}" min="0" step="0.01" required></td>
+                    <td><input type="number" value="${item.SGST.value}" min="0" step="0.01" required readonly></td>
+                    <td><input type="number" value="${item.total_price}" min="0" step="0.01" required readonly></td>
                     <td><button type="button" class="remove-item-btn">Remove</button></td>
                 `;
 
                 itemsTableBody.appendChild(row);
             });
 
-            document.getElementById('total_amount').value = quotation.total_amount;
-            document.getElementById('CGST').value = quotation.CGST;
-            document.getElementById('SGST').value = quotation.SGST;
-            document.getElementById('round_off').value = quotation.round_off;
-            document.getElementById('grand_total').value = quotation.grand_total;
+            document.getElementById('totalAmount').value = quotation.totalAmount;
+            document.getElementById('cgstTotal').value = quotation.CGSTTotal;
+            document.getElementById('sgstTotal').value = quotation.SGSTTotal;
+            document.getElementById('roundOff').value = quotation.round_Off;
+            document.getElementById('grandTotal').value = quotation.grand_total;
 
         } catch (error) {
             console.error("Error fetching quotation:", error);
@@ -150,4 +157,28 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById('newQuotation').addEventListener('click', () => {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
+});
+
+document.getElementById('quotationSearchBtn').addEventListener('click', async () => {
+    const quotationId = document.getElementById('quotationSearchInput').value;
+    if (!quotationId) {
+        window.electronAPI.showAlert("Please enter a quotation ID");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/quotation/${quotationId}`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch quotation");
+        }
+
+        const data = await response.json();
+        const quotation = data.quotation;
+
+        const quotationDiv = createQuotationDiv(quotation);
+        quotationListDiv.appendChild(quotationDiv);
+    } catch (error) {
+        console.error("Error fetching quotation:", error);
+        window.electronAPI.showAlert("Failed to fetch quotation. Please try again later.");
+    }
 });

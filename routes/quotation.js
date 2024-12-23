@@ -11,7 +11,8 @@ function generateUniqueId() {
 
 router.post("/save-quotation", async (req, res) => {
     try {
-        const {
+        let {
+            quotation_id = '',
             projectName,
             buyerName = '',
             buyerAddress = '',
@@ -21,7 +22,7 @@ router.post("/save-quotation", async (req, res) => {
             CGSTTotal = 0,
             SGSTTotal = 0,
             roundOff = 0,
-            grandTotal = 0,
+            grand_total = 0,
         } = req.body;
 
         // Validate required fields
@@ -37,34 +38,43 @@ router.post("/save-quotation", async (req, res) => {
             return res.status(404).json({ message: 'Admin not found' });
         }
 
-        // Generate a unique ID for the quotation
-        const quotationId = generateUniqueId();
-
-        // Check if quotation already exists
-        const existingQuotation = await Quotations.findOne({ quotation_id: quotationId });
-        if (existingQuotation) {
-            return res.status(400).json({
-                message: 'Quotation already exists',
-                quotation: existingQuotation,
-            });
+        // Generate a unique ID for the quotation if not provided
+        if (!quotation_id) {
+            quotation_id = generateUniqueId();
         }
 
-        // Create a new quotation with the provided data
-        const quotation = new Quotations({
-            admin: admin._id,
-            quotation_id: quotationId,
-            project_name: projectName,
-            buyer_name: buyerName,
-            buyer_address: buyerAddress,
-            buyer_phone: buyerPhone,
-            items,
-            totalAmount,
-            CGSTTotal,
-            SGSTTotal,
-            round_Off: roundOff,
-            grand_total: grandTotal,
-            createdAt: new Date(),
-        });
+        // Check if quotation already exists
+        let quotation = await Quotations.findOne({ quotation_id: quotation_id });
+        if (quotation) {
+            // Update existing quotation
+            quotation.project_name = projectName;
+            quotation.buyer_name = buyerName;
+            quotation.buyer_address = buyerAddress;
+            quotation.buyer_phone = buyerPhone;
+            quotation.items = items;
+            quotation.totalAmount = totalAmount;
+            quotation.CGSTTotal = CGSTTotal;
+            quotation.SGSTTotal = SGSTTotal;
+            quotation.round_Off = roundOff;
+            quotation.grand_total = grand_total;
+        } else {
+            // Create a new quotation with the provided data
+            quotation = new Quotations({
+                admin: admin._id,
+                quotation_id: quotation_id,
+                project_name: projectName,
+                buyer_name: buyerName,
+                buyer_address: buyerAddress,
+                buyer_phone: buyerPhone,
+                items,
+                totalAmount,
+                CGSTTotal,
+                SGSTTotal,
+                round_Off: roundOff,
+                grand_total: grand_total,
+                createdAt: new Date(),
+            });
+        }
 
         // Save the quotation
         const savedQuotation = await quotation.save();

@@ -272,7 +272,7 @@ function generatePreview() {
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
     try {
-        const response = await fetch("http://localhost:3000/quotation/save-quotation", {
+        const response = await fetch("/quotation/save-quotation", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
@@ -281,6 +281,7 @@ async function sendToServer(data, shouldPrint) {
         const responseData = await response.json();
 
         if (response.ok) {
+            document.getElementById("quotationId").value = responseData.quotation.quotation_id;
             window.electronAPI.showAlert("Quotation saved successfully!");
         } else if (responseData.message === "Quotation already exists") {
             if (!shouldPrint) {
@@ -296,44 +297,49 @@ async function sendToServer(data, shouldPrint) {
 }
 
 document.getElementById("save").addEventListener("click", () => {
-    const QuotationData = collectFormData();
-    sendToServer(QuotationData, false);
+    const quotationData = collectFormData();
+    sendToServer(quotationData, false);
 });
 
 document.getElementById("print").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.printQuotation) {
-        const QuotationData = collectFormData();
-        sendToServer(QuotationData, true);
+        const quotationData = collectFormData();
+        sendToServer(quotationData, true);
         window.electronAPI.printQuotation(previewContent);
     } else {
-        console.error("Print functionality is not available.");
+        window.electronAPI.showAlert("Print functionality is not available.");
     }
 });
 
 function collectFormData() {
     return {
+        quotation_id: document.getElementById("quotationId").value,
         projectName: document.getElementById("projectName").value,
         buyerName: document.getElementById("buyerName").value,
         buyerAddress: document.getElementById("buyerAddress").value,
         buyerPhone: document.getElementById("buyerPhone").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(1) input").value,
-            hsnSac: row.querySelector("td:nth-child(2) input").value,
-            qty: row.querySelector("td:nth-child(3) input").value,
-            uom: row.querySelector("td:nth-child(4) input").value,
+            HSN_SAC: row.querySelector("td:nth-child(2) input").value,
+            quantity: row.querySelector("td:nth-child(3) input").value,
+            unitPrice: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
-            taxableValue: row.querySelector("td:nth-child(6) input").value,
-            cgstPercent: row.querySelector("td:nth-child(7) input").value,
-            cgstValue: row.querySelector("td:nth-child(8) input").value,
-            sgstPercent: row.querySelector("td:nth-child(9) input").value,
-            sgstValue: row.querySelector("td:nth-child(10) input").value,
-            totalPrice: row.querySelector("td:nth-child(11) input").value,
+            taxable_value: row.querySelector("td:nth-child(6) input").value,
+            CGST: {
+                percentage: row.querySelector("td:nth-child(7) input").value,
+                value: row.querySelector("td:nth-child(8) input").value,
+            },
+            SGST: {
+                percentage: row.querySelector("td:nth-child(9) input").value,
+                value: row.querySelector("td:nth-child(10) input").value,
+            },
+            total_price: row.querySelector("td:nth-child(11) input").value,
         })),
         totalAmount: document.getElementById("totalAmount").value,
         CGSTTotal: document.getElementById("cgstTotal").value,
         SGSTTotal: document.getElementById("sgstTotal").value,
         roundOff: document.getElementById("roundOff").value,
-        grandTotal: document.getElementById("grandTotal").value,
+        grand_total: document.getElementById("grandTotal").value,
     };
 }
