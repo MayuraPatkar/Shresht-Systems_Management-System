@@ -1,12 +1,3 @@
-document.getElementById('logo').addEventListener('click', () => {
-    window.location = '/dashboard';
-});
-
-document.getElementById('newQuotation').addEventListener('click', () => {
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'block';
-});
-
 let currentStep = 1;
 const totalSteps = 5;
 
@@ -290,10 +281,10 @@ async function sendToServer(data, shouldPrint) {
         const responseData = await response.json();
 
         if (response.ok) {
-            window.electronAPI.showAlert("Invoice saved successfully!");
-        } else if (responseData.message === "Invoice already exists") {
+            window.electronAPI.showAlert("Quotation saved successfully!");
+        } else if (responseData.message === "Quotation already exists") {
             if (!shouldPrint) {
-                window.electronAPI.showAlert("Invoice already exists.");
+                window.electronAPI.showAlert("Quotation already exists.");
             }
         } else {
             window.electronAPI.showAlert(`Error: ${responseData.message || "Unknown error occurred."}`);
@@ -305,16 +296,16 @@ async function sendToServer(data, shouldPrint) {
 }
 
 document.getElementById("save").addEventListener("click", () => {
-    const invoiceData = collectFormData();
-    sendToServer(invoiceData, false);
+    const QuotationData = collectFormData();
+    sendToServer(QuotationData, false);
 });
 
 document.getElementById("print").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.printInvoice) {
-        const invoiceData = collectFormData();
-        sendToServer(invoiceData, true);
-        window.electronAPI.printInvoice(previewContent);
+    if (window.electronAPI && window.electronAPI.printQuotation) {
+        const QuotationData = collectFormData();
+        sendToServer(QuotationData, true);
+        window.electronAPI.printQuotation(previewContent);
     } else {
         console.error("Print functionality is not available.");
     }
@@ -340,8 +331,8 @@ function collectFormData() {
             totalPrice: row.querySelector("td:nth-child(11) input").value,
         })),
         totalAmount: document.getElementById("totalAmount").value,
-        cgstTotal: document.getElementById("cgstTotal").value,
-        sgstTotal: document.getElementById("sgstTotal").value,
+        CGSTTotal: document.getElementById("cgstTotal").value,
+        SGSTTotal: document.getElementById("sgstTotal").value,
         roundOff: document.getElementById("roundOff").value,
         grandTotal: document.getElementById("grandTotal").value,
     };

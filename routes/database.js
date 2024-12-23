@@ -29,9 +29,10 @@ const Admin = mongoose.model('Admin', adminSchema);
 const quotationSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     quotation_id: { type: String },
-    consignee_name: { type: String },
-    consignee_address: { type: String },
-    confignee_phone: { type: String },
+    project_name: { type: String },
+    buyer_name: { type: String },
+    buyer_address: { type: String },
+    buyer_phone: { type: String },
     items: [
         {
             description: { type: String },
@@ -51,6 +52,11 @@ const quotationSchema = new mongoose.Schema({
             total_price: { type: Number },
         },
     ],
+    totalAmount: { type: Number },
+    CGSTTotal: { type: Number },
+    SGSTTotal: { type: Number },
+    round_Off: { type: Number },
+    grand_total: { type: Number },
     createdAt: { type: Date, default: Date.now },
 })
 
