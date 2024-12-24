@@ -140,4 +140,29 @@ router.get("/:quotationId", async (req, res) => {
     }
 });
 
+// Route to delete a quotation
+router.delete("/:quotationId", async (req, res) => {
+    try {
+        const { quotationId } = req.params;
+
+        // Fetch the quotation by ID
+        const quotation = await Quotations.findOne({ quotation_id: quotationId });
+        if (!quotation) {
+            return res.status(404).json({ message: 'Quotation not found' });
+        }
+
+        // Delete the quotation
+        await Quotations.deleteOne({ quotation_id: quotationId });
+
+        // Respond with success message
+        res.status(200).json({ message: 'Quotation deleted successfully' });
+    } catch (error) {
+        console.error("Error deleting quotation:", error);
+        res.status(500).json({
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+});
+
 module.exports = router;

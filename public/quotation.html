@@ -427,8 +427,54 @@
             page-break-before: always;
         }
 
-        .modal{
+        .modal {
             display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -439,9 +485,13 @@
         <h1>Quotation</h1>
     </header>
     <div id="confirm_box" class="modal">
-        <h5 id="message"></h5>
-        <button id="yes">yes</button>
-        <button id="no">no</button>
+        <div class="modal-content">
+            <h5 id="message"></h5>
+            <div class="modal-actions">
+                <button id="yes" class="btn btn-primary">Yes</button>
+                <button id="no" class="btn btn-secondary">No</button>
+            </div>
+        </div>
     </div>
     <div id="home">
         <div class="container1">

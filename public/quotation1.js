@@ -70,8 +70,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (target.classList.contains("open-quotation")) {
             await openQuotation(quotationId);
         } else if (target.classList.contains("delete-quotation")) {
-            await deleteQuotation(quotationId);
-            loadRecentQuotations();
+            showConfirmBox('Are you sure you want to delete this quotation?', async () => {
+                await deleteQuotation(quotationId);
+                loadRecentQuotations();
+            });
         }
     });
 
@@ -145,10 +147,32 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             window.electronAPI.showAlert("Quotation deleted successfully");
+            loadRecentQuotations();
         } catch (error) {
             console.error("Error deleting quotation:", error);
             window.electronAPI.showAlert("Failed to delete quotation. Please try again later.");
         }
+    }
+
+    // Function to show confirm box
+    function showConfirmBox(message, onConfirm, onCancel) {
+        const confirmBox = document.getElementById('confirm_box');
+        const messageElement = document.getElementById('message');
+        const yesButton = document.getElementById('yes');
+        const noButton = document.getElementById('no');
+
+        messageElement.textContent = message;
+        confirmBox.style.display = 'block';
+
+        yesButton.onclick = () => {
+            confirmBox.style.display = 'none';
+            if (onConfirm) onConfirm();
+        };
+
+        noButton.onclick = () => {
+            confirmBox.style.display = 'none';
+            if (onCancel) onCancel();
+        };
     }
 
     loadRecentQuotations();
