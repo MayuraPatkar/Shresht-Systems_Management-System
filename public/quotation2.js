@@ -1,5 +1,5 @@
 let currentStep = 1;
-const totalSteps = 5;
+const totalSteps = 4;
 
 document.getElementById("nextBtn").addEventListener("click", () => {
     if (currentStep < totalSteps) {
@@ -52,72 +52,21 @@ function addItem() {
         <td><input type="text" placeholder="Item Description" required></td>
         <td><input type="text" placeholder="HSN/SAC" required></td>
         <td><input type="number" placeholder="Qty" min="1" required></td>
-        <td><input type="text" placeholder="UOM" required></td>
+        <td><input type="text" placeholder="Unit Price" required></td>
         <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
-        <td><input type="number" placeholder="Taxable Value" min="0.01" step="0.01" required readonly></td>
-        <td><input type="number" placeholder="%" min="0" step="0.01" required></td>
-        <td><input type="number" placeholder="CGST" min="0" step="0.01" required readonly></td>
-        <td><input type="number" placeholder="%" min="0" step="0.01" required></td>
-        <td><input type="number" placeholder="SGST" min="0" step="0.01" required readonly></td>
-        <td><input type="number" placeholder="Total Price" min="0" step="0.01" required readonly></td>
         <td><button type="button" class="remove-item-btn">Remove</button></td>
     `;
 
     tableBody.appendChild(row);
-    updateTotals();
 }
 
 document.querySelector("#items-table").addEventListener("click", (event) => {
     if (event.target.classList.contains('remove-item-btn')) {
         event.target.closest('tr').remove();
-        updateTotals();
     }
 });
 
-document.querySelector("#items-table").addEventListener("input", updateTotals);
-
-function updateTotals() {
-    let totalCGST = 0;
-    let totalSGST = 0;
-    let totalTaxableValue = 0;
-
-    const rows = document.querySelectorAll("#items-table tbody tr");
-    rows.forEach(row => {
-        const qty = parseFloat(row.querySelector("td:nth-child(3) input").value) || 0;
-        const rate = parseFloat(row.querySelector("td:nth-child(5) input").value) || 0;
-        const cgstPercent = parseFloat(row.querySelector("td:nth-child(7) input").value) || 0;
-        const sgstPercent = parseFloat(row.querySelector("td:nth-child(9) input").value) || 0;
-
-        // Calculate taxable value, CGST, SGST, and total price
-        const taxableValue = qty * rate;
-        const cgstValue = (taxableValue * cgstPercent) / 100;
-        const sgstValue = (taxableValue * sgstPercent) / 100;
-        const totalPrice = taxableValue + cgstValue + sgstValue;
-
-        // Update row values
-        row.querySelector("td:nth-child(6) input").value = taxableValue.toFixed(2);
-        row.querySelector("td:nth-child(8) input").value = cgstValue.toFixed(2);
-        row.querySelector("td:nth-child(10) input").value = sgstValue.toFixed(2);
-        row.querySelector("td:nth-child(11) input").value = totalPrice.toFixed(2);
-
-        // Accumulate totals
-        totalTaxableValue += taxableValue;
-        totalCGST += cgstValue;
-        totalSGST += sgstValue;
-    });
-
-    // Calculate overall totals
-    const grandTotal = totalTaxableValue + totalCGST + totalSGST;
-    const roundOff = Math.round(grandTotal) - grandTotal;
-
-    // Update form fields
-    document.getElementById("totalAmount").value = totalTaxableValue.toFixed(2);
-    document.getElementById("cgstTotal").value = totalCGST.toFixed(2);
-    document.getElementById("sgstTotal").value = totalSGST.toFixed(2);
-    document.getElementById("roundOff").value = roundOff.toFixed(2);
-    document.getElementById("grandTotal").value = (grandTotal + roundOff).toFixed(2);
-}
-
+// function to generate preview
 function generatePreview() {
     const projectName = document.getElementById("projectName").value || "";
     const buyerName = document.getElementById("buyerName").value || "";
@@ -125,29 +74,48 @@ function generatePreview() {
     const buyerPhone = document.getElementById("buyerPhone").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
     let totalPrice = 0;
+    let totalCGST = 0;
+    let totalSGST = 0;
+    let totalTaxableValue = 0;
+    let grandTotal = 0;
+    let roundOff = 0;
 
     let itemsHTML = "";
     for (let row of itemsTable.rows) {
         const description = row.cells[0].querySelector("input").value || "-";
+        const hsnSac = row.cells[1].querySelector("input").value || "-";
         const qty = row.cells[2].querySelector("input").value || "0";
-        const unitPrice = row.cells[4].querySelector("input").value || "0";
-        const rowTotal = row.cells[10].querySelector("input").value || "0";
+        const unitPrice = row.cells[3].querySelector("input").value || "0";
+        const rate = row.cells[4].querySelector("input").value || "0";
+
+        const taxableValue = qty * unitPrice;
+        const cgstPercent = rate / 2;
+        const sgstPercent = rate / 2;
+        const cgstValue = (taxableValue * cgstPercent) / 100;
+        const sgstValue = (taxableValue * sgstPercent) / 100;
+        const rowTotal = taxableValue + cgstValue + sgstValue;
+
+        totalTaxableValue += taxableValue;
+        totalCGST += cgstValue;
+        totalSGST += sgstValue;
+        totalPrice += rowTotal;
+
+        roundOff = Math.round(grandTotal) - grandTotal;
+        grandTotal = totalTaxableValue + totalCGST + totalSGST;
 
         itemsHTML += `<tr>
             <td>${description}</td>
-            <td>${row.cells[1].querySelector("input").value || "-"}</td>
+            <td>${hsnSac}</td>
             <td>${qty}</td>
-            <td>${row.cells[3].querySelector("input").value || "-"}</td>
             <td>${unitPrice}</td>
-            <td>${row.cells[5].querySelector("input").value || "0"}</td>
-            <td>${row.cells[6].querySelector("input").value || "0"}</td>
-            <td>${row.cells[7].querySelector("input").value || "0"}</td>
-            <td>${row.cells[8].querySelector("input").value || "0"}</td>
-            <td>${row.cells[9].querySelector("input").value || "0"}</td>
-            <td>${rowTotal}</td>
+            <td>${taxableValue}</td>
+            <td>${rate}</td>
+            <td>${cgstPercent}</td>
+            <td>${cgstValue}</td>
+            <td>${sgstPercent}</td>
+            <td>${sgstValue}</td>
+            <td>${(rowTotal).toFixed(2)}</td>
         </tr>`;
-
-        totalPrice += parseFloat(rowTotal) || 0;
     }
 
     function numberToWords(num) {
@@ -188,9 +156,9 @@ function generatePreview() {
         <p><strong>To:</strong> ${buyerName}<br>
             ${buyerAddress}<br>
             Ph: ${buyerPhone}</p>
-        <p><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${projectName}</p>
+        <p contenteditable="true"><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${projectName}</p>
         <p>Dear ${buyerName},</p>
-        <p>With reference to your inquiry, we are pleased to submit our comprehensive techno-commercial proposal for the
+        <p contenteditable="true">With reference to your inquiry, we are pleased to submit our comprehensive techno-commercial proposal for the
             supply, installation, and commissioning of ${projectName}. This proposal includes industry-standard,
             high-quality equipment and services designed to meet your requirements.</p>
     </div>
@@ -203,9 +171,9 @@ function generatePreview() {
                     <th>Description</th>
                     <th>HSN/SAC</th>
                     <th>Qty</th>
-                    <th>UOM</th>
-                    <th>Rate (₹)</th>
+                    <th>Unit Price</th>
                     <th>Taxable Value (₹)</th>
+                    <th>Rate (₹)</th>
                     <th>CGST (%)</th>
                     <th>CGST (₹)</th>
                     <th>SGST (%)</th>
@@ -223,15 +191,15 @@ function generatePreview() {
 
     <div class="totals-section" style="text-align: right;">
         <p><strong>Total Amount:</strong> ₹${totalPrice.toFixed(2)}</p>
-        <p><strong>CGST Total:</strong> ₹${(totalPrice * 0.09).toFixed(2)}</p>
-        <p><strong>SGST Total:</strong> ₹${(totalPrice * 0.09).toFixed(2)}</p>
-        <p><strong>Grand Total:</strong> ₹${(totalPrice * 1.18).toFixed(2)}</p>
+        <p><strong>CGST Total:</strong> ₹${totalCGST.toFixed(2)}</p>
+        <p><strong>SGST Total:</strong> ₹${totalSGST.toFixed(2)}</p>
+        <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
         <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
     </div>
 
     <div class="page-break"></div>
 
-    <div class="terms-section">
+    <div class="terms-section" contenteditable="true">
         <h3>Terms & Conditions</h3>
         <ul>
             <li><strong>Lead Time:</strong> 1 week for material procurement and installation. Synchronization may take
@@ -325,21 +293,6 @@ function collectFormData() {
             quantity: row.querySelector("td:nth-child(3) input").value,
             unitPrice: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
-            taxable_value: row.querySelector("td:nth-child(6) input").value,
-            CGST: {
-                percentage: row.querySelector("td:nth-child(7) input").value,
-                value: row.querySelector("td:nth-child(8) input").value,
-            },
-            SGST: {
-                percentage: row.querySelector("td:nth-child(9) input").value,
-                value: row.querySelector("td:nth-child(10) input").value,
-            },
-            total_price: row.querySelector("td:nth-child(11) input").value,
         })),
-        totalAmount: document.getElementById("totalAmount").value,
-        CGSTTotal: document.getElementById("cgstTotal").value,
-        SGSTTotal: document.getElementById("sgstTotal").value,
-        roundOff: document.getElementById("roundOff").value,
-        grand_total: document.getElementById("grandTotal").value,
     };
 }

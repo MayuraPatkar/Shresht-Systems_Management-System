@@ -40,23 +40,8 @@ const quotationSchema = new mongoose.Schema({
             quantity: { type: Number },
             unitPrice: { type: String },
             rate: { type: Number },
-            taxable_value: { type: Number },
-            CGST: {
-                percentage: { type: Number },
-                value: { type: Number },
-            },
-            SGST: {
-                percentage: { type: Number },
-                value: { type: Number },
-            },
-            total_price: { type: Number },
         },
     ],
-    totalAmount: { type: Number },
-    CGSTTotal: { type: Number },
-    SGSTTotal: { type: Number },
-    round_Off: { type: Number },
-    grand_total: { type: Number },
     createdAt: { type: Date, default: Date.now },
 })
 

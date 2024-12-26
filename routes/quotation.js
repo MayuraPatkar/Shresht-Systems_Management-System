@@ -18,15 +18,10 @@ router.post("/save-quotation", async (req, res) => {
             buyerAddress = '',
             buyerPhone = '',
             items = [],
-            totalAmount = 0,
-            CGSTTotal = 0,
-            SGSTTotal = 0,
-            roundOff = 0,
-            grand_total = 0,
         } = req.body;
 
         // Validate required fields
-        if (!projectName || !buyerName || !buyerAddress || !buyerPhone || !items.length || totalAmount <= 0) {
+        if (!projectName || !buyerName || !buyerAddress || !buyerPhone || !items.length) {
             return res.status(400).json({
                 message: 'Missing required fields or invalid data: projectName, buyerName, buyerAddress, buyerPhone, items, or total.',
             });
@@ -52,11 +47,6 @@ router.post("/save-quotation", async (req, res) => {
             quotation.buyer_address = buyerAddress;
             quotation.buyer_phone = buyerPhone;
             quotation.items = items;
-            quotation.totalAmount = totalAmount;
-            quotation.CGSTTotal = CGSTTotal;
-            quotation.SGSTTotal = SGSTTotal;
-            quotation.round_Off = roundOff;
-            quotation.grand_total = grand_total;
         } else {
             // Create a new quotation with the provided data
             quotation = new Quotations({
@@ -67,11 +57,6 @@ router.post("/save-quotation", async (req, res) => {
                 buyer_address: buyerAddress,
                 buyer_phone: buyerPhone,
                 items,
-                totalAmount,
-                CGSTTotal,
-                SGSTTotal,
-                round_Off: roundOff,
-                grand_total: grand_total,
                 createdAt: new Date(),
             });
         }
@@ -162,6 +147,34 @@ router.delete("/:quotationId", async (req, res) => {
             message: "Internal server error",
             error: error.message,
         });
+    }
+});
+
+// Search quotation by ID, owner name, or phone number
+router.get('/search/:query', async (req, res) => {
+    const { query } = req.params;
+   if (!query) {
+        return res.status(400).send('Query parameter is required.');
+    }
+
+    try {
+        const quotation = await Quotations.find({
+            $or: [
+                { quotation_id: { $regex: query, $options: 'i' } },
+                { project_name: { $regex: query, $options: 'i' } },
+                { buyer_name: { $regex: query, $options: 'i' } },
+                { buyer_phone: { $regex: query, $options: 'i' } }
+            ]
+        });
+
+        if (quotation.length === 0) {
+            return res.status(404).send('No quotation found.');
+        } else {
+            return res.status(200).json({ quotation });
+        }
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send('Failed to fetch quotation.');
     }
 });
 
