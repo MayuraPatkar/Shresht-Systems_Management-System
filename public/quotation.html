@@ -88,7 +88,6 @@
             min-width: 280px;
         }
 
-        /* Adjust widths for smaller screens */
         .quotation_list {
             max-width: 65%;
         }
@@ -137,7 +136,6 @@
             transition: border 0.3s;
         }
 
-        /* Add hover effect on input */
         .quotation_search input[type="text"]:focus {
             border-color: #007bff;
         }
@@ -179,7 +177,6 @@
             background-color: #f0f8ff;
         }
 
-        /* Improved search container */
         .search_container {
             display: flex;
             justify-content: space-evenly;
@@ -317,9 +314,6 @@
             cursor: not-allowed;
         }
 
-
-        /* preview style */
-
         .preview {
             padding: 20px;
             border: 1px solid #ddd;
@@ -339,8 +333,6 @@
             justify-content: space-between;
             margin-bottom: 15px;
         }
-
-        /* quotation format */
 
         .header .logo img {
             max-width: 100px;
@@ -502,7 +494,6 @@
                 </div>
                 <div class="quotations">
                     <h2>No quotations in database</h2>
-                    <!-- content will be loaded dynamically -->
                 </div>
             </div>
             <div class="quotation_search">
@@ -518,7 +509,6 @@
     <div id="new">
         <form id="Quotation">
             <input type="hidden" id="quotationId" value="">
-            <!-- Basic quotation Details -->
             <div class="steps active" id="step-1">
                 <h2>Project Details</h2>
                 <div class="form-group">
@@ -526,7 +516,6 @@
                     <input type="text" id="projectName" required>
                 </div>
             </div>
-
             <div class="steps" id="step-2">
                 <h2>Recipient Details (to)</h2>
                 <div class="form-group">
@@ -542,7 +531,6 @@
                     <input type="tel" id="buyerPhone" required>
                 </div>
             </div>
-
             <div class="steps" id="step-3">
                 <h2>Item List</h2>
                 <div class="form-group">
@@ -559,24 +547,19 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Items will be dynamically added here -->
                         </tbody>
                     </table>
                     <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
                 </div>
             </div>
-
             <div class="steps" id="step-4">
                 <div class="preview">
                     <h2>Preview</h2>
-                    <div id="preview-content">
-                        <!-- Preview will be dynamically generated -->
-                    </div>
+                    <div id="preview-content"></div>
                 </div>
                 <button type="button" id="save">Save</button>
                 <button type="button" id="print">Print</button>
             </div>
-
             <div class="navigation">
                 <button type="button" id="prevBtn" disabled>Previous</button>
                 <button type="button" id="nextBtn">Next</button>

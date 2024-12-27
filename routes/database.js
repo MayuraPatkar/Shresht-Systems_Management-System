@@ -50,6 +50,7 @@ const Quotations = mongoose.model('Quotations', quotationSchema);
 const purchaseSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     purchase_id: { type: String },
+    project_name: { type: String },
     supplier_name: { type: String },
     supplier_address: { type: String },
     supplier_phone: { type: String },
@@ -60,18 +61,8 @@ const purchaseSchema = new mongoose.Schema({
             description: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
-            UoM: { type: String },
+            UnitPrice: { type: String },
             rate: { type: Number },
-            taxable_value: { type: Number },
-            CGST: {
-                percentage: { type: Number },
-                value: { type: Number },
-            },
-            SGST: {
-                percentage: { type: Number },
-                value: { type: Number },
-            },
-            total_price: { type: Number },
         },
     ],
     createdAt: { type: Date, default: Date.now },

@@ -1,3 +1,4 @@
+// Redirect to dashboard when logo is clicked
 document.getElementById('logo').addEventListener('click', () => {
     window.location = '/dashboard';
 });
@@ -12,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('quotationSearchBtn').addEventListener('click', handleSearch);
 });
 
+// Load recent quotations from the server
 async function loadRecentQuotations() {
     try {
         const response = await fetch(`/quotation/recent-quotations`);
@@ -27,6 +29,7 @@ async function loadRecentQuotations() {
     }
 }
 
+// Render quotations in the list
 function renderQuotations(quotations) {
     quotationListDiv.innerHTML = "";
     if (quotations.length === 0) {
@@ -39,6 +42,7 @@ function renderQuotations(quotations) {
     });
 }
 
+// Create a quotation div element
 function createQuotationDiv(quotation) {
     const quotationDiv = document.createElement("div");
     quotationDiv.className = "quotation-item";
@@ -67,6 +71,7 @@ function createQuotationDiv(quotation) {
     return quotationDiv;
 }
 
+// Handle click events on the quotation list
 async function handleQuotationListClick(event) {
     const target = event.target;
     const quotationId = target.getAttribute("data-id");
@@ -81,6 +86,7 @@ async function handleQuotationListClick(event) {
     }
 }
 
+// Open a quotation for editing
 async function openQuotation(quotationId) {
     try {
         const response = await fetch(`/quotation/${quotationId}`);
@@ -124,6 +130,7 @@ async function openQuotation(quotationId) {
     }
 }
 
+// Delete a quotation
 async function deleteQuotation(quotationId) {
     try {
         const response = await fetch(`/quotation/${quotationId}`, {
@@ -142,6 +149,7 @@ async function deleteQuotation(quotationId) {
     }
 }
 
+// Show a confirmation box
 function showConfirmBox(message, onConfirm, onCancel) {
     const confirmBox = document.getElementById('confirm_box');
     const messageElement = document.getElementById('message');
@@ -162,11 +170,13 @@ function showConfirmBox(message, onConfirm, onCancel) {
     };
 }
 
+// Show the new quotation form
 function showNewQuotationForm() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
 }
 
+// Handle search functionality
 async function handleSearch() {
     const query = document.getElementById('quotationSearchInput').value;
     if (!query) {

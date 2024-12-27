@@ -1,7 +1,7 @@
 const { ipcMain, BrowserWindow } = require("electron");
 
 function handlePrintEvent() {
-    ipcMain.on("print-invoice", (event, { content }) => {
+    ipcMain.on("print", (event, { content }) => {
         const printWindow = new BrowserWindow({
             width: 800,
             height: 600,

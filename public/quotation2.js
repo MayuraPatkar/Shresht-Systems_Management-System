@@ -1,13 +1,11 @@
 let currentStep = 1;
 const totalSteps = 4;
 
+// Event listener for the "Next" button
 document.getElementById("nextBtn").addEventListener("click", () => {
     if (currentStep < totalSteps) {
         if (validateStep(currentStep)) {
-            document.getElementById(`step-${currentStep}`).classList.remove("active");
-            currentStep++;
-            document.getElementById(`step-${currentStep}`).classList.add("active");
-            updateNavigation();
+            changeStep(currentStep + 1);
             if (currentStep === totalSteps) generatePreview();
         }
     } else {
@@ -16,24 +14,32 @@ document.getElementById("nextBtn").addEventListener("click", () => {
     }
 });
 
+// Event listener for the "Previous" button
 document.getElementById("prevBtn").addEventListener("click", () => {
     if (currentStep > 1) {
-        document.getElementById(`step-${currentStep}`).classList.remove("active");
-        currentStep--;
-        document.getElementById(`step-${currentStep}`).classList.add("active");
-        updateNavigation();
+        changeStep(currentStep - 1);
     }
 });
 
+// Function to change the current step
+function changeStep(step) {
+    document.getElementById(`step-${currentStep}`).classList.remove("active");
+    currentStep = step;
+    document.getElementById(`step-${currentStep}`).classList.add("active");
+    updateNavigation();
+}
+
+// Function to update the navigation buttons
 function updateNavigation() {
     document.getElementById("prevBtn").disabled = currentStep === 1;
     document.getElementById("nextBtn").textContent = currentStep === totalSteps ? 'Submit' : 'Next';
 }
 
+// Function to validate the current step
 function validateStep(step) {
     const stepElement = document.getElementById(`step-${step}`);
     const inputs = stepElement.querySelectorAll('input[required], textarea[required]');
-    for (let input of inputs) {
+    for (const input of inputs) {
         if (!input.value.trim()) {
             window.electronAPI.showAlert('Please fill all required fields.');
             return false;
@@ -42,8 +48,10 @@ function validateStep(step) {
     return true;
 }
 
+// Event listener for the "Add Item" button
 document.getElementById('add-item-btn').addEventListener('click', addItem);
 
+// Function to add a new item row to the table
 function addItem() {
     const tableBody = document.querySelector("#items-table tbody");
     const row = document.createElement("tr");
@@ -60,13 +68,14 @@ function addItem() {
     tableBody.appendChild(row);
 }
 
+// Event listener for the "Remove Item" button
 document.querySelector("#items-table").addEventListener("click", (event) => {
     if (event.target.classList.contains('remove-item-btn')) {
         event.target.closest('tr').remove();
     }
 });
 
-// function to generate preview
+// Function to generate the preview
 function generatePreview() {
     const projectName = document.getElementById("projectName").value || "";
     const buyerName = document.getElementById("buyerName").value || "";
@@ -81,7 +90,7 @@ function generatePreview() {
     let roundOff = 0;
 
     let itemsHTML = "";
-    for (let row of itemsTable.rows) {
+    for (const row of itemsTable.rows) {
         const description = row.cells[0].querySelector("input").value || "-";
         const hsnSac = row.cells[1].querySelector("input").value || "-";
         const qty = row.cells[2].querySelector("input").value || "0";
@@ -100,8 +109,8 @@ function generatePreview() {
         totalSGST += sgstValue;
         totalPrice += rowTotal;
 
-        roundOff = Math.round(grandTotal) - grandTotal;
         grandTotal = totalTaxableValue + totalCGST + totalSGST;
+        roundOff = Math.round(grandTotal) - grandTotal;
 
         itemsHTML += `<tr>
             <td>${description}</td>
@@ -114,10 +123,11 @@ function generatePreview() {
             <td>${cgstValue}</td>
             <td>${sgstPercent}</td>
             <td>${sgstValue}</td>
-            <td>${(rowTotal).toFixed(2)}</td>
+            <td>${rowTotal.toFixed(2)}</td>
         </tr>`;
     }
 
+    // Function to convert number to words
     function numberToWords(num) {
         const a = [
             '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
@@ -130,8 +140,8 @@ function generatePreview() {
             if (n < 20) return a[n];
             const digit = n % 10;
             if (n < 100) return b[Math.floor(n / 10)] + (digit ? '-' + a[digit] : '');
-            if (n < 1000) return a[Math.floor(n / 100)] + ' hundred' + (n % 100 == 0 ? '' : ' and ' + numToWords(n % 100));
-            return numToWords(Math.floor(n / 1000)) + ' thousand' + (n % 1000 != 0 ? ' ' + numToWords(n % 1000) : '');
+            if (n < 1000) return a[Math.floor(n / 100)] + ' hundred' + (n % 100 === 0 ? '' : ' and ' + numToWords(n % 100));
+            return numToWords(Math.floor(n / 1000)) + ' thousand' + (n % 1000 !== 0 ? ' ' + numToWords(n % 1000) : '');
         };
 
         return numToWords(num);
@@ -264,11 +274,13 @@ async function sendToServer(data, shouldPrint) {
     }
 }
 
+// Event listener for the "Save" button
 document.getElementById("save").addEventListener("click", () => {
     const quotationData = collectFormData();
     sendToServer(quotationData, false);
 });
 
+// Event listener for the "Print" button
 document.getElementById("print").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.printQuotation) {
@@ -280,6 +292,7 @@ document.getElementById("print").addEventListener("click", () => {
     }
 });
 
+// Function to collect form data
 function collectFormData() {
     return {
         quotation_id: document.getElementById("quotationId").value,
