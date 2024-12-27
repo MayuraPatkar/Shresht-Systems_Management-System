@@ -78,7 +78,7 @@
         }
 
         .purchase_list,
-        .purchase_search {
+        .search {
             background-color: #ffffff;
             padding: 2rem;
             box-sizing: border-box;
@@ -179,7 +179,6 @@
             background-color: #f0f8ff;
         }
 
-        /* Improved search container */
         .search_container {
             display: flex;
             justify-content: space-evenly;
@@ -187,6 +186,8 @@
             width: 100%;
         }
 
+
+        /* Form styles */
         form {
             max-width: 90vw;
             margin: 30px auto;
@@ -311,6 +312,7 @@
             cursor: not-allowed;
         }
 
+        /* preview styles */
         .preview {
             padding: 20px;
             border: 1px solid #ddd;
@@ -324,42 +326,96 @@
             box-sizing: border-box;
         }
 
-        .header,
-        .footer {
-            text-align: center;
-            margin-bottom: 20px;
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
         }
 
         .header .logo img {
-            width: 100px;
+            max-width: 100px;
         }
 
-        .company-details h1 {
-            font-size: 24px;
-            margin: 5px 0;
+        .header .company-details h1 {
+            margin: 0;
+            font-size: 18px;
+            color: #007bff;
         }
 
-        .info-section,
-        .totals,
-        .bank-details {
-            margin: 20px 0;
-        }
-
-        .totals p,
-        .bank-details p {
-            margin: 5px 0;
-        }
-
-        .footer {
+        .header .company-details p {
+            margin: 2px 0;
             font-size: 12px;
             color: #555;
         }
 
-        footer {
-            margin-top: 30px;
-            text-align: center;
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ddd;
+            margin: 10px 0;
+        }
+
+        .info-section table,
+        .buyer-details table,
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .info-section td,
+        .buyer-details td,
+        .items-table td,
+        .items-table th {
+            padding: 5px;
+            text-align: left;
+            border: 1px solid #ddd;
             font-size: 12px;
+        }
+
+        .items-table th {
+            background: #f1f1f1;
+            font-weight: bold;
+        }
+
+        .totals {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .totals p,
+        .totals h3 {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .bank-details p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .declaration,
+        .signature {
+            margin-top: 15px;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .signature-space {
+            width: 80px;
+            height: 25px;
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 10px;
             color: #777;
+        }
+
+        .page-break {
+            page-break-before: always;
         }
 
         .modal {
@@ -430,7 +486,7 @@
     </div>
     <div id="home">
         <div class="container1">
-            <div class="purchase">
+            <div class="purchase_list">
                 <div>
                     <h2>Purchase Orders</h2>
                     <button id="newPurchase">New Purchase Order</button>
@@ -451,9 +507,14 @@
     </div>
     <div id="new">
         <form id="purchaseOrder">
+            <input type="hidden" id="purchaseOrderId">
             <!-- Basic purchase order Details -->
             <div class="steps active" id="step-1">
                 <h2>Project Details</h2>
+                <div class="form-group">
+                    <label for="projectName">project Name:</label>
+                    <input type="text" id="projectName" required>
+                </div>
                 <div class="form-group">
                     <label for="handledBy">Handled By:</label>
                     <input type="text" id="handledBy" required>
@@ -463,24 +524,24 @@
             <div class="steps" id="step-2">
                 <h2>Recipient Details (to)</h2>
                 <div class="form-group">
-                    <label for="buyerName">Buyer Name:</label>
-                    <input type="text" id="buyerName" required>
+                    <label for="supplierName">Supplier Name:</label>
+                    <input type="text" id="supplierName" required>
                 </div>
                 <div class="form-group">
-                    <label for="buyerAddress">Address:</label>
-                    <textarea id="buyerAddress" required></textarea>
+                    <label for="supplierAddress">Address:</label>
+                    <textarea id="supplierAddress" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="buyerPhone">Phone Number:</label>
-                    <input type="tel" id="buyerPhone" required>
+                    <label for="supplierPhone">Phone Number:</label>
+                    <input type="tel" id="supplierPhone" required>
                 </div>
                 <div class="form-group">
-                    <label for="buyerEmail">Email:</label>
-                    <input type="email" id="buyerEmail" required>
+                    <label for="supplierEmail">Email:</label>
+                    <input type="email" id="supplierEmail" required>
                 </div>
                 <div class="form-group">
-                    <label for="buyerGSTIN">GSTIN:</label>
-                    <input type="text" id="buyerGSTIN" required>
+                    <label for="supplierGSTIN">GSTIN:</label>
+                    <input type="text" id="supplierGSTIN" required>
                 </div>
             </div>
 
@@ -492,9 +553,10 @@
                         <thead>
                             <tr>
                                 <th>Description</th>
+                                <th>HSN_SAC</th>
                                 <th>Qty</th>
                                 <th>Unit Price</th>
-                                <th>Total Price (₹)</th>
+                                <th>Rate</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -507,32 +569,13 @@
             </div>
 
             <div class="steps" id="step-4">
-                <h2>Total and Tax</h2>
-                <div class="form-group">
-                    <label for="totalAmount">Total Amount (₹):</label>
-                    <input type="number" id="totalAmount" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="cgstTotal">CGST Total (₹):</label>
-                    <input type="number" id="cgstTotal" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="sgstTotal">SGST Total (₹):</label>
-                    <input type="number" id="sgstTotal" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="grandTotal">Grand Total (₹):</label>
-                    <input type="number" id="grandTotal" readonly>
-                </div>
-            </div>
-
-            <div class="steps" id="step-5">
                 <div class="preview">
                     <h2>Preview</h2>
                     <div id="preview-content">
                         <!-- Preview will be dynamically generated -->
                     </div>
                 </div>
+                <button type="button" id="save">Save</button>
                 <button type="button" id="print">Print</button>
             </div>
 
@@ -543,7 +586,7 @@
         </form>
     </div>
     <script src="./purchaseOrder1.js"></script>
-    <script src="./purchaseOrder.js"></script>
+    <script src="./purchaseOrder2.js"></script>
 </body>
 
 </html>

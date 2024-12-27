@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         }
     },
 
-    printInvoice: (content) => {
+    print: (content) => {
         if (content) {
             ipcRenderer.send("print", { content });
         } else {
