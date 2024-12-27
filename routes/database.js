@@ -97,11 +97,11 @@ const wayBillSchema = new mongoose.Schema({
 const wayBills = mongoose.model('wayBills', wayBillSchema);
 
 // Define Project Schema and Model
-const projectSchema = new mongoose.Schema({
+const invoiceSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     quotation_id: { type: String },
     project_name: { type: String },
-    invoice_number: { type: String },
+    invoice_id: { type: String },
     po_number: { type: String },
     po_date: { type: Date },
     dc_number: { type: String },
@@ -117,31 +117,16 @@ const projectSchema = new mongoose.Schema({
             description: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
-            UoM: { type: String },
+            UnitPrice: { type: String },
             rate: { type: Number },
-            taxable_value: { type: Number },
-            CGST: {
-                percentage: { type: Number },
-                value: { type: Number },
-            },
-            SGST: {
-                percentage: { type: Number },
-                value: { type: Number },
-            },
-            total_price: { type: Number },
         },
     ],
-    total: { type: Number },
-    CGST_total: { type: Number },
-    SGST_total: { type: Number },
-    round_Off: { type: Number },
-    invoice_total: { type: Number },
     createdAt: { type: Date, default: Date.now },
     due_amount: { type: Number },
     status: { type: String, default: 'Unpaid' },
 });
 
-const Projects = mongoose.model('Project', projectSchema);
+const Invoices = mongoose.model('invoice', invoiceSchema);
 
 // Define Stock Schema and Model
 const stockSchema = new mongoose.Schema({
@@ -165,4 +150,4 @@ const employeeSchema = new mongoose.Schema({
 
 const Employee = mongoose.model('Employee', employeeSchema);
 
-module.exports = { Admin, Quotations, Purchases, wayBills, Projects, Stock, Employee };
+module.exports = { Admin, Quotations, Purchases, wayBills, Invoices, Stock, Employee };
