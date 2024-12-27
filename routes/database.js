@@ -62,7 +62,7 @@ const purchaseSchema = new mongoose.Schema({
             description: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
-            unitPrice: { type: String },
+            unitPrice: { type: Number },
             rate: { type: Number },
         },
     ],
@@ -74,26 +74,21 @@ const Purchases = mongoose.model('Purchases', purchaseSchema);
 const wayBillSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     wayBill_id: { type: String },
+    project_name: { type: String },
     buyer_name: { type: String },
     buyer_address: { type: String },
     buyer_phone: { type: String },
+    transport_mode: { type: String },
+    vehicle_number: { type: String },
+    place_supply: { type: String },
+    
     items: [
         {
             description: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
-            UoM: { type: String },
+            unitPrice: { type: Number },
             rate: { type: Number },
-            taxable_value: { type: Number },
-            CGST: {
-                percentage: { type: Number },
-                value: { type: Number },
-            },
-            SGST: {
-                percentage: { type: Number },
-                value: { type: Number },
-            },
-            total_price: { type: Number },
         },
     ],
     createdAt: { type: Date, default: Date.now },

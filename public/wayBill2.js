@@ -54,7 +54,9 @@ function addItem() {
 
     row.innerHTML = `
         <td><input type="text" placeholder="Item Description" required></td>
+        <td><input type="text" placeholder="HSN-SAC" required></td>
         <td><input type="number" placeholder="Qty" min="1" required></td>
+        <td><input type="text" placeholder="Unit Price" required></td>
         <td><button type="button" class="remove-item-btn" onclick="removeItem(this)">Remove</button></td>
     `;
 
@@ -67,19 +69,19 @@ function removeItem(button) {
 
 function generatePreview() {
     const projectName = document.getElementById("projectName").value || "";
+    const ewayBillNumber = document.getElementById("wayBillId").value || "";
     const buyerName = document.getElementById("buyerName").value || "";
     const buyerAddress = document.getElementById("buyerAddress").value || "";
     const buyerPhone = document.getElementById("buyerPhone").value || "";
     const transportMode = document.getElementById("transportMode").value || "";
     const vehicleNumber = document.getElementById("vehicleNumber").value || "";
     const placeSupply = document.getElementById("placeSupply").value || "";
-    const ewayBillNumber = document.getElementById("ewayBillNumber").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
 
     let itemsHTML = "";
     for (let row of itemsTable.rows) {
         const description = row.cells[0].querySelector("input").value || "-";
-        const qty = row.cells[1].querySelector("input").value || "0";
+        const qty = row.cells[2].querySelector("input").value || "0";
 
         itemsHTML += `<tr>
             <td>${description}</td>
@@ -132,11 +134,67 @@ function generatePreview() {
     </div>`;
 }
 
+// Function to collect form data and send to server
+async function sendToServer(data, shouldPrint) {
+    try {
+        const response = await fetch("/wayBill/save-way-bill", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+
+        const responseData = await response.json();
+
+        if (response.ok) {
+            document.getElementById("wayBillId").value = responseData.wayBill.wayBill_id;
+            window.electronAPI.showAlert("Way bill saved successfully!");
+        } else if (responseData.message === "Way bill already exists") {
+            if (!shouldPrint) {
+                window.electronAPI.showAlert("Way bill already exists.");
+            }
+        } else {
+            window.electronAPI.showAlert(`Error: ${responseData.message || "Unknown error occurred."}`);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        window.electronAPI.showAlert("Failed to connect to server.");
+    }
+}
+
+// Event listener for the "Save" button
+document.getElementById("save").addEventListener("click", () => {
+    const wayBillData = collectFormData();
+    sendToServer(wayBillData, false);
+});
+
+// Event listener for the "Print" button
 document.getElementById("print").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.printInvoice) {
-        window.electronAPI.printInvoice(previewContent);
+    if (window.electronAPI && window.electronAPI.print) {
+        const wayBillData = collectFormData();
+        sendToServer(wayBillData, true);
+        window.electronAPI.print(previewContent);
     } else {
-        console.error("Print functionality is not available.");
+        window.electronAPI.showAlert("Print functionality is not available.");
     }
 });
+
+// Function to collect form data
+function collectFormData() {
+    return {
+        way_bill_id: document.getElementById("wayBillId").value,
+        projectName: document.getElementById("projectName").value,
+        buyer_name: document.getElementById("buyerName").value,
+        buyer_address: document.getElementById("buyerAddress").value,
+        buyer_phone: document.getElementById("buyerPhone").value,
+        transport_mode: document.getElementById("transportMode").value,
+        vehicle_number: document.getElementById("vehicleNumber").value,
+        place_supply: document.getElementById("placeSupply").value,
+        items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
+            description: row.querySelector("td:nth-child(1) input").value,
+            HSN_SAC: row.querySelector("td:nth-child(2) input").value,
+            quantity: row.querySelector("td:nth-child(3) input").value,
+            unitPrice: row.querySelector("td:nth-child(4) input").value,
+        })),
+    };
+}

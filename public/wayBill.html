@@ -39,6 +39,154 @@
             text-align: center;
         }
 
+        .container1 {
+            width: 100%;
+            height: 85vh;
+            display: flex;
+            justify-content: space-between;
+            gap: 2%;
+            padding: 2rem;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+        }
+
+        .search_container input {
+            width: 80%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .search_container div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 10%;
+            background-color: #007bff;
+            padding: 0.8rem;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .search_container div img {
+            width: 50%;
+        }
+
+        #new {
+            display: none;
+        }
+
+        .wayBill_list,
+        .search {
+            background-color: #ffffff;
+            padding: 2rem;
+            box-sizing: border-box;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        /* Adjust widths for smaller screens */
+        .wayBill_list {
+            max-width: 65%;
+        }
+
+        .search {
+            max-width: 35%;
+        }
+
+        .wayBills {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wayBill_list div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .wayBill_list button {
+            padding: 0.8rem;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .wayBill_list h2,
+        .search h3 {
+            color: #444;
+            font-size: 1.5rem;
+        }
+
+        .search input[type="text"] {
+            width: 70%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        /* Add hover effect on input */
+        .search input[type="text"]:focus {
+            border-color: #007bff;
+        }
+
+        .search div {
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+        .search button {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .search button:hover {
+            background-color: #0056b3;
+        }
+
+        .wayBill-item {
+            padding: 1rem;
+            margin: 1rem 0;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        .wayBill-item:hover {
+            background-color: #f0f8ff;
+        }
+
+        .search_container {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* form styles */
         form {
             max-width: 90vw;
             margin: 30px auto;
@@ -268,6 +416,60 @@
             font-size: 12px;
             color: #777;
         }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 
@@ -276,89 +478,125 @@
         <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
         <h1>Way Bill</h1>
     </header>
-    <form id="wayBill">
-        <!-- Basic Way Bill Details -->
-        <div class="steps active" id="step-1">
-            <h2>Project Details</h2>
-            <div class="form-group">
-                <label for="projectName">Project Name:</label>
-                <input type="text" id="projectName" required>
+    <div id="confirm_box" class="modal">
+        <div class="modal-content">
+            <h5 id="message"></h5>
+            <div class="modal-actions">
+                <button id="yes" class="btn btn-primary">Yes</button>
+                <button id="no" class="btn btn-secondary">No</button>
             </div>
         </div>
-
-        <div class="steps" id="step-2">
-            <h2>Shipped To (to)</h2>
-            <div class="form-group">
-                <label for="buyerName">Buyer Name:</label>
-                <input type="text" id="buyerName" required>
-            </div>
-            <div class="form-group">
-                <label for="buyerAddress">Address:</label>
-                <textarea id="buyerAddress" required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="buyerPhone">Phone Number:</label>
-                <input type="tel" id="buyerPhone" required>
-            </div>
-        </div>
-
-        <div class="steps" id="step-3">
-            <h2>Transportation Details</h2>
-            <div class="form-group">
-                <label for="transportMode">Transportation Mode:</label>
-                <input type="text" id="transportMode" required>
-            </div>
-            <div class="form-group">
-                <label for="vehicleNumber">Vehicle Number:</label>
-                <input type="text" id="vehicleNumber" required>
-            </div>
-            <div class="form-group">
-                <label for="placeSupply">Place to Supply:</label>
-                <input type="text" id="placeSupply" required>
-            </div>
-            <div class="form-group">
-                <label for="ewayBillNumber">E-Way Bill Number:</label>
-                <input type="text" id="ewayBillNumber" required>
-            </div>
-        </div>
-
-        <div class="steps" id="step-4">
-            <h2>Item List</h2>
-            <div class="form-group">
-                <label>Items:</label>
-                <table id="items-table">
-                    <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th>Qty</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Items will be dynamically added here -->
-                    </tbody>
-                </table>
-                <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
-            </div>
-        </div>
-
-        <div class="steps" id="step-5">
-            <div class="preview">
-                <h2>Preview</h2>
-                <div id="preview-content">
-                    <!-- Preview will be dynamically generated -->
+    </div>
+    <div id="home">
+        <div class="container1">
+            <div class="wayBill_list">
+                <div>
+                    <h2>Way Bill</h2>
+                    <button id="newWayBill">New Way Bill</button>
+                </div>
+                <div class="wayBills">
+                    <h2>No way order in database</h2>
+                    <!-- content will be loaded dynamically -->
                 </div>
             </div>
-            <button type="button" id="print">Print</button>
+            <div class="search">
+                <h3>Search </h3>
+                <div class="search_container">
+                    <input type="text" id="searchInput" placeholder="type here">
+                    <div type="submit" id="searchBtn"><img src="./assets/search.png"></div>
+                </div>
+            </div>
         </div>
+    </div>
+    <div id="new">
+        <form id="wayBill">
+            <!-- Basic Way Bill Details -->
+            <div class="steps active" id="step-1">
+                <h2>Project Details:</h2>
+                <div class="form-group">
+                    <label for="projectName">Project Name:</label>
+                    <input type="text" id="projectName" required>
+                </div>
+                <div class="form-group">
+                    <label for="wayBillId">Way Bill ID:</label>
+                    <input type="text" id="wayBillId" required>
+                </div>
+            </div>
 
-        <div class="navigation">
-            <button type="button" id="prevBtn" disabled>Previous</button>
-            <button type="button" id="nextBtn">Next</button>
-        </div>
-    </form>
+            <div class="steps" id="step-2">
+                <h2>Shipped To (to)</h2>
+                <div class="form-group">
+                    <label for="buyerName">Buyer Name:</label>
+                    <input type="text" id="buyerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="buyerAddress">Address:</label>
+                    <textarea id="buyerAddress" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="buyerPhone">Phone Number:</label>
+                    <input type="tel" id="buyerPhone" required>
+                </div>
+            </div>
 
-    <script src="./wayBill.js"></script>
+            <div class="steps" id="step-3">
+                <h2>Transportation Details</h2>
+                <div class="form-group">
+                    <label for="transportMode">Transportation Mode:</label>
+                    <input type="text" id="transportMode" required>
+                </div>
+                <div class="form-group">
+                    <label for="vehicleNumber">Vehicle Number:</label>
+                    <input type="text" id="vehicleNumber" required>
+                </div>
+                <div class="form-group">
+                    <label for="placeSupply">Place to Supply:</label>
+                    <input type="text" id="placeSupply" required>
+                </div>
+            </div>
+
+            <div class="steps" id="step-4">
+                <h2>Item List</h2>
+                <div class="form-group">
+                    <label>Items:</label>
+                    <table id="items-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>HSN Code</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Items will be dynamically added here -->
+                        </tbody>
+                    </table>
+                    <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
+                </div>
+            </div>
+
+            <div class="steps" id="step-5">
+                <div class="preview">
+                    <h2>Preview</h2>
+                    <div id="preview-content">
+                        <!-- Preview will be dynamically generated -->
+                    </div>
+                </div>
+                <button type="button" id="save">Save</button>
+                <button type="button" id="print">Print</button>
+            </div>
+
+            <div class="navigation">
+                <button type="button" id="prevBtn" disabled>Previous</button>
+                <button type="button" id="nextBtn">Next</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="./wayBill1.js"></script>
+    <script src="./wayBill2.js"></script>
 </body>
 
 </html>
