@@ -132,10 +132,12 @@ const Invoices = mongoose.model('invoice', invoiceSchema);
 const stockSchema = new mongoose.Schema({
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     itemName: { type: String, required: true },
+    HSN_SAC: { type: String, required: false },
     unitPrice: { type: Number, required: true },
     GST: { type: Number, required: true },
-    margin_value: { type: Number, required: true },
+    threshold: { type: Number, required: true },
     quantity: { type: Number, required: true },
+    min_quantity: { type: Number, required: false },
 });
 
 const Stock = mongoose.model('Stock', stockSchema);

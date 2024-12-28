@@ -16,7 +16,7 @@ router.get('/getStock', async (req, res) => {
 
 // Route to Add Item to Stock
 router.post('/addItem', async (req, res) => {
-    const { itemName, unitPrice, quantity } = req.body;
+    const { itemName, HSN_SAC, unitPrice, quantity, threshold, GST, min_quantity } = req.body;
 
     try {
 
@@ -33,12 +33,19 @@ router.post('/addItem', async (req, res) => {
         const newItem = new Stock({
             admin: adminId,
             itemName,
+            HSN_SAC,
             unitPrice,
             quantity,
+            GST,
+            threshold,
+            min_quantity
         });
 
         await newItem.save();
-        res.status(201).json({ message: 'Item added successfully' });
+        res.status(201).json({
+            message: 'Item added successfully',
+            item: newItem
+        });
     } catch (error) {
         console.error('Error adding stock item:', error);
         res.status(500).json({ error: 'Failed to add stock item' });
@@ -96,7 +103,7 @@ router.post('/removeFromStock', async (req, res) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req, res) => {
-    const { itemId, name, unitPrice, quantity } = req.body;
+    const { itemId, name, HSN_SAC, unitPrice, quantity, threshold, GST, min_quantity } = req.body;
 
     try {
 
@@ -106,8 +113,12 @@ router.post('/editItem', async (req, res) => {
         }
 
         item.name = name;
+        item.HSN_SAC = HSN_SAC;
         item.unitPrice = unitPrice;
         item.quantity = quantity;
+        item.threshold = threshold;
+        item.GST = GST;
+        item.min_quantity = min_quantity;
         await item.save();
 
         res.status(200).json({ message: 'Item updated successfully' });
