@@ -3,7 +3,7 @@ document.getElementById('logo').addEventListener('click', () => {
     window.location = '/dashboard';
 });
 
-const invoicesListDiv = document.querySelector(".invoice_list .invoices");
+const invoicesListDiv = document.querySelector(".records .record_list");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentInvoices();
@@ -45,7 +45,7 @@ function renderInvoices(invoices) {
 // Create an invoice div element
 function createInvoiceDiv(invoice) {
     const invoiceDiv = document.createElement("div");
-    invoiceDiv.className = "invoice-item";
+    invoiceDiv.className = "record-item";
     invoiceDiv.style.padding = "1rem";
     invoiceDiv.style.marginBottom = "1rem";
     invoiceDiv.style.border = "1px solid #ddd";

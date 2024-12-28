@@ -1,0 +1,104 @@
+.preview {
+    padding: 20px;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+#preview-content {
+    padding: 2%;
+    box-sizing: border-box;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.header .logo img {
+    max-width: 100px;
+}
+
+.header .company-details h1 {
+    margin: 0;
+    font-size: 18px;
+    color: #007bff;
+}
+
+.header .company-details p {
+    margin: 2px 0;
+    font-size: 12px;
+    color: #555;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #ddd;
+    margin: 10px 0;
+}
+
+.info-section table,
+.buyer-details table,
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.info-section td,
+.buyer-details td,
+.items-table td,
+.items-table th {
+    padding: 5px;
+    text-align: left;
+    border: 1px solid #ddd;
+    font-size: 12px;
+}
+
+.items-table th {
+    background: #f1f1f1;
+    font-weight: bold;
+}
+
+.totals {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.totals p,
+.totals h3 {
+    margin: 5px 0;
+    font-size: 12px;
+}
+
+.bank-details p {
+    margin: 5px 0;
+    font-size: 12px;
+}
+
+.declaration,
+.signature {
+    margin-top: 15px;
+    text-align: left;
+    font-size: 12px;
+}
+
+.signature-space {
+    width: 80px;
+    height: 25px;
+}
+
+footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 10px;
+    color: #777;
+}
+
+.page-break {
+    page-break-before: always;
+}

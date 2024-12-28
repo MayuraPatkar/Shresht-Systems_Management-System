@@ -3,7 +3,7 @@ document.getElementById('logo').addEventListener('click', () => {
     window.location = '/dashboard';
 });
 
-const quotationListDiv = document.querySelector(".quotation_list .quotations");
+const quotationListDiv = document.querySelector(".records .record_list");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentQuotations();
@@ -45,7 +45,7 @@ function renderQuotations(quotations) {
 // Create a quotation div element
 function createQuotationDiv(quotation) {
     const quotationDiv = document.createElement("div");
-    quotationDiv.className = "quotation-item";
+    quotationDiv.className = "record-item";
     quotationDiv.style.padding = "1rem";
     quotationDiv.style.marginBottom = "1rem";
     quotationDiv.style.border = "1px solid #ddd";

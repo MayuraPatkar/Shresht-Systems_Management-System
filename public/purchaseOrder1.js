@@ -3,7 +3,7 @@ document.getElementById('logo').addEventListener('click', () => {
     window.location = '/dashboard';
 });
 
-const purchaseOrderListDiv = document.querySelector(".purchase_list .purchases");
+const purchaseOrderListDiv = document.querySelector(".records .record_list");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentPurchaseOrders();
@@ -45,7 +45,7 @@ function renderPurchaseOrders(purchaseOrders) {
 // Create a purchase order div element
 function createPurchaseOrderDiv(purchaseOrder) {
     const purchaseOrderDiv = document.createElement("div");
-    purchaseOrderDiv.className = "purchase-item";
+    purchaseOrderDiv.className = "record-item";
     purchaseOrderDiv.style.padding = "1rem";
     purchaseOrderDiv.style.marginBottom = "1rem";
     purchaseOrderDiv.style.border = "1px solid #ddd";

@@ -3,7 +3,7 @@ document.getElementById('logo').addEventListener('click', () => {
     window.location = '/dashboard';
 });
 
-const wayBillsListDiv = document.querySelector(".wayBill_list .wayBills");
+const wayBillsListDiv = document.querySelector(".records .record_list");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentWayBills();
@@ -45,7 +45,7 @@ function renderWayBills(wayBills) {
 // Create a way bill div element
 function createWayBillDiv(wayBill) {
     const wayBillDiv = document.createElement("div");
-    wayBillDiv.className = "wayBill-item";
+    wayBillDiv.className = "record-item";
     wayBillDiv.style.padding = "1rem";
     wayBillDiv.style.marginBottom = "1rem";
     wayBillDiv.style.border = "1px solid #ddd";
