@@ -11,10 +11,15 @@
 </head>
 
 <body>
+    <!-- Header Section -->
     <header>
-        <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
+        <div class="img" id="logo">
+            <img src="./assets/Shresht-Logo-Final.png" alt="Shresht Logo">
+        </div>
         <h1>Bill / Invoice</h1>
     </header>
+
+    <!-- Confirmation Modal -->
     <div id="confirm_box" class="modal">
         <div class="modal-content">
             <h5 id="message"></h5>
@@ -24,12 +29,14 @@
             </div>
         </div>
     </div>
+
+    <!-- Home Section -->
     <div id="home">
         <div class="container1">
             <div class="records">
                 <div>
                     <h2>Invoices</h2>
-                    <button id="newInvoice">New Invoice </button>
+                    <button id="newInvoice">New Invoice</button>
                 </div>
                 <div class="record_list">
                     <h2>No Invoices in database</h2>
@@ -37,18 +44,23 @@
                 </div>
             </div>
             <div class="search">
-                <h3>Search </h3>
+                <h3>Search</h3>
                 <div class="search_container">
                     <input type="text" id="searchInput" placeholder="type here">
-                    <div type="submit" id="searchBtn"><img src="./assets/search.png"></div>
+                    <div type="submit" id="searchBtn">
+                        <img src="./assets/search.png" alt="Search">
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- New Invoice Form -->
     <div id="new">
         <form id="invoice-form">
             <input type="hidden" id="invoiceId">
-            <!-- Basic Invoice Details -->
+
+            <!-- Step 1: Project Details -->
             <div class="steps active" id="step-1">
                 <h2>Project Details</h2>
                 <div class="form-group">
@@ -73,6 +85,7 @@
                 </div>
             </div>
 
+            <!-- Step 2: Transportation Details -->
             <div class="steps" id="step-2">
                 <h2>Transportation Details</h2>
                 <div class="form-group">
@@ -93,6 +106,7 @@
                 </div>
             </div>
 
+            <!-- Step 3: Recipient Details -->
             <div class="steps" id="step-3">
                 <h2>Recipient Details (Sold/Bill to)</h2>
                 <div class="form-group">
@@ -109,6 +123,7 @@
                 </div>
             </div>
 
+            <!-- Step 4: Consignee Details -->
             <div class="steps" id="step-4">
                 <h2>Consignee Details (Shipped To)</h2>
                 <div class="form-group">
@@ -121,6 +136,7 @@
                 </div>
             </div>
 
+            <!-- Step 5: Item List -->
             <div class="steps" id="step-5">
                 <h2>Item List</h2>
                 <div class="form-group">
@@ -144,6 +160,7 @@
                 </div>
             </div>
 
+            <!-- Step 6: Preview -->
             <div class="steps" id="step-6">
                 <div class="preview">
                     <h2>Preview</h2>
@@ -155,6 +172,7 @@
                 <button type="button" id="print">Print</button>
             </div>
 
+            <!-- Navigation Buttons -->
             <div class="navigation">
                 <button type="button" id="prevBtn" disabled>Previous</button>
                 <button type="button" id="nextBtn">Next</button>
@@ -162,9 +180,9 @@
         </form>
     </div>
 
+    <!-- Scripts -->
     <script src="./billing1.js"></script>
     <script src="./billing2.js"></script>
 </body>
-
 
 </html>

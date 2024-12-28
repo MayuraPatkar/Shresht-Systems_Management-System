@@ -19,6 +19,7 @@ async function loadRecentInvoices() {
         const response = await fetch(`/invoice/recent-invoices`);
         if (!response.ok) {
             invoicesListDiv.innerHTML = "<p>No invoices found.</p>";
+            return;
         }
 
         const data = await response.json();
@@ -46,13 +47,15 @@ function renderInvoices(invoices) {
 function createInvoiceDiv(invoice) {
     const invoiceDiv = document.createElement("div");
     invoiceDiv.className = "record-item";
-    invoiceDiv.style.padding = "1rem";
-    invoiceDiv.style.marginBottom = "1rem";
-    invoiceDiv.style.border = "1px solid #ddd";
-    invoiceDiv.style.borderRadius = "10px";
-    invoiceDiv.style.cursor = "pointer";
-    invoiceDiv.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
-    invoiceDiv.style.transition = "background-color 0.3s";
+    invoiceDiv.style.cssText = `
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s;
+    `;
 
     invoiceDiv.addEventListener("mouseenter", () => {
         invoiceDiv.style.backgroundColor = "#f0f8ff";
@@ -86,6 +89,15 @@ async function handleInvoiceListClick(event) {
     }
 }
 
+// Function to format date to YYYY-MM-DD
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 // Open an invoice for editing
 async function openInvoice(invoiceId) {
     try {
@@ -105,13 +117,15 @@ async function openInvoice(invoiceId) {
         document.getElementById('buyerName').value = invoice.buyer_name;
         document.getElementById('buyerAddress').value = invoice.buyer_address;
         document.getElementById('buyerPhone').value = invoice.buyer_phone;
+        document.getElementById('consigneeName').value = invoice.consignee_name;
+        document.getElementById('consigneeAddress').value = invoice.consignee_address;
         document.getElementById('transportMode').value = invoice.transport_mode;
         document.getElementById('vehicleNumber').value = invoice.vehicle_number;
         document.getElementById('placeSupply').value = invoice.place_supply;
         document.getElementById('poNumber').value = invoice.po_number;
-        document.getElementById('poDate').value = invoice.po_date;
+        document.getElementById('poDate').value = formatDate(invoice.po_date);
         document.getElementById('dcNumber').value = invoice.dc_number;
-        document.getElementById('dcDate').value = invoice.dc_date;
+        document.getElementById('dcDate').value = formatDate(invoice.dc_date);
         document.getElementById('ewayBillNumber').value = invoice.eway_bill_number;
 
         const itemsTableBody = document.querySelector("#items-table tbody");
@@ -124,7 +138,8 @@ async function openInvoice(invoiceId) {
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
-                <td><input type="text" value="${item.unitPrice}" required></td>
+                <td><input type="number" value="${item.unitPrice}" required></td>
+                <td><input type="number" value="${item.rate}" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
 

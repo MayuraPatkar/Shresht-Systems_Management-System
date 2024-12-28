@@ -55,7 +55,7 @@ function addItem() {
         <td><input type="text" placeholder="Item Description" required></td>
         <td><input type="text" placeholder="HSN/SAC" required></td>
         <td><input type="number" placeholder="Qty" min="1" required></td>
-        <td><input type="text" placeholder="Unit Price" required></td>
+        <td><input type="number" placeholder="Unit Price" required></td>
         <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
         <td><button type="button" class="remove-item-btn" onclick="removeItem(this)">Remove</button></td>
     `;
@@ -288,9 +288,9 @@ function collectFormData() {
         placeSupply: document.getElementById("placeSupply").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(1) input").value,
-            hsnSac: row.querySelector("td:nth-child(2) input").value,
-            qty: row.querySelector("td:nth-child(3) input").value,
-            unitPrice: row.querySelector("td:nth-child(4) input").value,
+            HSN_SAC: row.querySelector("td:nth-child(2) input").value,
+            quantity: row.querySelector("td:nth-child(3) input").value,
+            UnitPrice: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
     };

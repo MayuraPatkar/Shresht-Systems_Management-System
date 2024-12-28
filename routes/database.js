@@ -117,7 +117,7 @@ const invoiceSchema = new mongoose.Schema({
             description: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
-            UnitPrice: { type: String },
+            UnitPrice: { type: Number },
             rate: { type: Number },
         },
     ],
