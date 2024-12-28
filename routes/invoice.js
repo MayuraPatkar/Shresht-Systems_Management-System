@@ -4,9 +4,12 @@ const { Admin, Invoices } = require('./database');
 
 // Function to generate a unique ID for each invoice
 function generateUniqueId() {
-    const timestamp = Date.now().toString(); // Current timestamp
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
+    const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month (0-based, so add 1)
+    const day = now.getDate().toString().padStart(2, '0'); // Day of the month
     const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0'); // Random 3-digit number
-    return `PO-${timestamp}-${randomNum}`;
+    return `INV-${year}${month}${day}-${randomNum}`;
 }
 
 router.post("/save-invoice", async (req, res) => {
