@@ -15,7 +15,7 @@ function showAlert(message) {
         frame: false,
         alwaysOnTop: true,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'), // Preload script path
+            preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true, // Prevent context sharing for security
             nodeIntegration: false, // Disable Node.js integration in renderer
         },

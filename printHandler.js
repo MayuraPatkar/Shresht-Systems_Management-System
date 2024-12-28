@@ -14,12 +14,12 @@ function handlePrintEvent() {
         // Load the HTML content into the print window
         printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
             <html>
-    <head>
-        <style>
-        @page {
-            size: A4;
-            margin: 10mm;
-        }
+            <head>
+            <style>
+                @page {
+                    size: A4;
+                    argin: 10mm;
+                }
 
         body {
             font-family: Arial, sans-serif;
@@ -126,7 +126,7 @@ function handlePrintEvent() {
     <body>
         ${content}
     </body>
-</html>
+    </html>
         `)}`);
 
         printWindow.webContents.on("did-finish-load", () => {
