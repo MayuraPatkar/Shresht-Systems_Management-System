@@ -60,8 +60,17 @@
         <form id="invoice-form">
             <input type="hidden" id="invoiceId">
 
-            <!-- Step 1: Project Details -->
-            <div class="steps active" id="step-1">
+             <!-- Step 1: import data from quotattion -->
+             <div class="steps active" id="step-1">
+                <h2>Import Data from Quotation?</h2>
+                <div class="form-group">
+                    <label for="quotationId">Quotation ID:</label>
+                    <input type="text" id="quotationId">
+                </div>
+            </div>
+
+            <!-- Step 2: Project Details -->
+            <div class="steps" id="step-2">
                 <h2>Project Details</h2>
                 <div class="form-group">
                     <label for="projectName">Project Name:</label>
@@ -85,8 +94,8 @@
                 </div>
             </div>
 
-            <!-- Step 2: Transportation Details -->
-            <div class="steps" id="step-2">
+            <!-- Step 3: Transportation Details -->
+            <div class="steps" id="step-3">
                 <h2>Transportation Details</h2>
                 <div class="form-group">
                     <label for="ewayBillNumber">E-Way Bill Number:</label>
@@ -106,8 +115,8 @@
                 </div>
             </div>
 
-            <!-- Step 3: Recipient Details -->
-            <div class="steps" id="step-3">
+            <!-- Step 4: Recipient Details -->
+            <div class="steps" id="step-4">
                 <h2>Recipient Details (Sold/Bill to)</h2>
                 <div class="form-group">
                     <label for="buyerName">Buyer Name:</label>
@@ -123,8 +132,8 @@
                 </div>
             </div>
 
-            <!-- Step 4: Consignee Details -->
-            <div class="steps" id="step-4">
+            <!-- Step 5: Consignee Details -->
+            <div class="steps" id="step-5">
                 <h2>Consignee Details (Shipped To)</h2>
                 <div class="form-group">
                     <label for="consigneeName">Name:</label>
@@ -136,8 +145,8 @@
                 </div>
             </div>
 
-            <!-- Step 5: Item List -->
-            <div class="steps" id="step-5">
+            <!-- Step 6: Item List -->
+            <div class="steps" id="step-6">
                 <h2>Item List</h2>
                 <div class="form-group">
                     <label>Items:</label>
@@ -160,8 +169,8 @@
                 </div>
             </div>
 
-            <!-- Step 6: Preview -->
-            <div class="steps" id="step-6">
+            <!-- Step 7: Preview -->
+            <div class="steps" id="step-7">
                 <div class="preview">
                     <h2>Preview</h2>
                     <div id="preview-content">

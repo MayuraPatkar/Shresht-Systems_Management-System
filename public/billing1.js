@@ -126,7 +126,7 @@ async function openInvoice(invoiceId) {
         document.getElementById('poDate').value = formatDate(invoice.po_date);
         document.getElementById('dcNumber').value = invoice.dc_number;
         document.getElementById('dcDate').value = formatDate(invoice.dc_date);
-        document.getElementById('ewayBillNumber').value = invoice.eway_bill_number;
+        document.getElementById('ewayBillNumber').value = invoice.E_Way_Bill_number;
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
@@ -138,7 +138,7 @@ async function openInvoice(invoiceId) {
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
-                <td><input type="number" value="${item.unitPrice}" required></td>
+                <td><input type="number" value="${item.UnitPrice}" required></td>
                 <td><input type="number" value="${item.rate}" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;

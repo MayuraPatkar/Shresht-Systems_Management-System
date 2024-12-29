@@ -1,9 +1,44 @@
 let currentStep = 1;
-const totalSteps = 6;
+const totalSteps = 7;
 
 // Event listener for the "Next" button
 document.getElementById("nextBtn").addEventListener("click", () => {
     if (validateStep(currentStep)) {
+        if (currentStep === 1) {
+            const quotation_id = document.getElementById("quotationId").value;
+            if (quotation_id) {
+                fetch(`/quotation/${quotation_id}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const quotation = data.quotation;
+                        document.getElementById("projectName").value = quotation.project_name;
+                        document.getElementById("buyerName").value = quotation.buyer_name;
+                        document.getElementById("buyerAddress").value = quotation.buyer_address;
+                        document.getElementById("buyerPhone").value = quotation.buyer_phone;
+                        const itemsTableBody = document.querySelector("#items-table tbody");
+                        itemsTableBody.innerHTML = "";
+
+                        quotation.items.forEach(item => {
+                            const row = document.createElement("tr");
+
+                            row.innerHTML = `
+                                <td><input type="text" value="${item.description}" required></td>
+                                <td><input type="text" value="${item.HSN_SAC}" required></td>
+                                <td><input type="number" value="${item.quantity}" min="1" required></td>
+                                <td><input type="number" value="${item.unitPrice}" required></td>
+                                <td><input type="number" value="${item.rate}" required></td>
+                                <td><button type="button" class="remove-item-btn">Remove</button></td>
+                            `;
+
+                            itemsTableBody.appendChild(row);
+                        })
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        window.electronAPI.showAlert("Failed to fetch quotation.");
+                    });
+            }
+        }
         if (currentStep < totalSteps) {
             document.getElementById(`step-${currentStep}`).classList.remove("active");
             currentStep++;
