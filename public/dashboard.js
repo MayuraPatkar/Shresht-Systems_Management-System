@@ -14,9 +14,7 @@ document.getElementById('billing').addEventListener('click', () => {
     window.location = '/billing';
 })
 
-document.getElementById('database').addEventListener('click', () => {
-    window.location = '/database';
-})
+document.getElementById('database').addEventListener('click', () => {})
 
 document.getElementById('stock').addEventListener('click', () => {
     window.location = '/stock';
