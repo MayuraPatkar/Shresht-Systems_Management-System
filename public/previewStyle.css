@@ -1,104 +1,128 @@
-.preview {
+.container {
+    background: #fff;
+    margin: auto;
     padding: 20px;
-    border: 1px solid #ddd;
-    background: #f9f9f9;
-    border-radius: 5px;
-    margin-bottom: 20px;
-}
-
-#preview-content {
-    padding: 2%;
-    box-sizing: border-box;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
 }
 
 .header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin-bottom: 15px;
+    align-items: center;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .header .logo img {
-    max-width: 100px;
+    max-width: 120px;
+}
+
+.header .company-details {
+    text-align: right;
 }
 
 .header .company-details h1 {
     margin: 0;
-    font-size: 18px;
+    font-size: 24px;
     color: #007bff;
 }
 
 .header .company-details p {
     margin: 2px 0;
-    font-size: 12px;
-    color: #555;
+    font-size: 14px;
 }
 
-hr {
-    border: 0;
-    height: 1px;
-    background: #ddd;
-    margin: 10px 0;
+.invoice-title {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 20px;
+    color: #007bff;
+    font-weight: bold;
 }
 
-.info-section table,
-.buyer-details table,
-.items-table {
+.first-section {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.info-section,
+.buyer-details {
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.info-section p,
+.buyer-details p {
+    margin: 3px 0;
+}
+
+.container table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
+    table-layout: auto; /* Allow columns to adjust size based on content */
 }
 
-.info-section td,
-.buyer-details td,
-.items-table td,
-.items-table th {
-    padding: 5px;
-    text-align: left;
+.container table th,
+.container table td {
     border: 1px solid #ddd;
-    font-size: 12px;
+    padding: 10px;
+    text-align: left;
+    font-size: 10px;
 }
 
-.items-table th {
-    background: #f1f1f1;
+.container table th {
+    background-color: #007bff;
+    color: #fff;
     font-weight: bold;
+}
+
+.second-section {
+    display: flex;
+    justify-content: space-between;
 }
 
 .totals {
     text-align: right;
-    margin-top: 10px;
 }
 
 .totals p,
 .totals h3 {
     margin: 5px 0;
-    font-size: 12px;
+    font-size: 14px;
 }
 
-.bank-details p {
-    margin: 5px 0;
-    font-size: 12px;
+.totals h3 {
+    color: #007bff;
+    font-weight: bold;
 }
 
-.declaration,
+.bank-details {
+    font-size: 14px;
+}
+
+.declaration {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
 .signature {
-    margin-top: 15px;
     text-align: left;
-    font-size: 12px;
 }
 
 .signature-space {
-    width: 80px;
-    height: 25px;
+    margin-top: 20px;
+    border: 1px dashed #333;
+    width: 150px;
+    height: 40px;
 }
 
 footer {
-    margin-top: 20px;
     text-align: center;
-    font-size: 10px;
+    font-size: 12px;
     color: #777;
-}
-
-.page-break {
-    page-break-before: always;
+    margin-top: 20px;
 }

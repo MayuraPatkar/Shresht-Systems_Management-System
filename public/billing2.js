@@ -103,8 +103,29 @@ function removeItem(button) {
     button.parentElement.parentElement.remove();
 }
 
+// Function to convert number to words
+function numberToWords(num) {
+    const a = [
+        '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
+    ];
+    const b = [
+        '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
+    ];
+
+    const numToWords = (n) => {
+        if (n < 20) return a[n];
+        const digit = n % 10;
+        if (n < 100) return b[Math.floor(n / 10)] + (digit ? '-' + a[digit] : '');
+        if (n < 1000) return a[Math.floor(n / 100)] + ' hundred' + (n % 100 === 0 ? '' : ' and ' + numToWords(n % 100));
+        return numToWords(Math.floor(n / 1000)) + ' thousand' + (n % 1000 !== 0 ? ' ' + numToWords(n % 1000) : '');
+    };
+
+    return numToWords(num);
+}
+
 // Function to generate the invoice preview
 function generatePreview() {
+    const invoiceId = document.getElementById("invoiceId").value;
     const projectName = document.getElementById("projectName").value;
     const poNumber = document.getElementById("poNumber").value;
     const poDate = document.getElementById("poDate").value;
@@ -161,9 +182,11 @@ function generatePreview() {
 
     // Generate preview content
     const previewContent = `
+    <div class="container">
         <div class="header">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/Shresht-Logo-Final.png" alt="Shresht Logo">
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/Shresht-Logo-Final.png"
+                    alt="Shresht Logo">
             </div>
             <div class="company-details">
                 <h1>SHRESHT SYSTEMS</h1>
@@ -172,47 +195,36 @@ function generatePreview() {
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
         </div>
-        <hr>
-        <div class="info-section">
-            <table>
-                <tr>
-                    <td>Invoice No: ${document.getElementById("invoiceId").value}</td>
-                    <td>Project: ${projectName}</td>
-                    <td>P.O No: ${poNumber}</td>
-                </tr>
-                <tr>
-                    <td>P.O Date: ${poDate}</td>
-                    <td>D.C No: ${dcNumber}</td>
-                    <td>D.C Date: ${dcDate}</td>
-                </tr>
-            </table>
+
+        <div class="invoice-title">INVOICE #${invoiceId}</div>
+
+        <div class="first-section">
+            <div class="buyer-details">
+                <p><strong>Billed To: </strong></p>
+                <p><strong>&nbsp;&nbsp;&nbsp;Buyer:</strong> ${buyerName}</p>
+                <p><strong>&nbsp;&nbsp;&nbsp;Address:</strong> ${buyerAddress}</p>
+                <p><strong>&nbsp;&nbsp;&nbsp;Phone:</strong> ${buyerPhone}</p>
+            </div>
+            <div class="info-section">
+                <p><strong>Project:</strong> ${projectName}</p>
+                <p><strong>P.O No:</strong> ${poNumber}</p>
+                <!-- <p><strong>P.O Date:</strong> ${poDate}</p> -->
+                <p><strong>D.C No:</strong> ${dcNumber}</p>
+                <!-- <p><strong>D.C Date:</strong> ${dcDate}</p> -->
+                <p><strong>E-Way Bill:</strong> ${ewayBillNumber}</p>
+                <!-- <p><strong>Transportation:</strong> ${transportMode}</p>
+                <p><strong>Vehicle No:</strong> ${vehicleNumber}</p>
+                <p><strong>Place Supply:</strong> ${placeSupply}</p> -->
+            </div>
         </div>
-        <hr>
-        <div class="buyer-details">
-            <table>
-                <tr>
-                    <td>Buyer: ${buyerName}</td>
-                    <td>Address: ${buyerAddress}</td>
-                    <td>Phone: ${buyerPhone}</td>
-                </tr>
-                <tr>
-                    <td>Transportation: ${transportMode}</td>
-                    <td>Vehicle No: ${vehicleNumber}</td>
-                    <td>Place Supply: ${placeSupply}</td>
-                </tr>
-                <tr>
-                    <td colspan="3">E-Way Bill: ${ewayBillNumber}</td>
-                </tr>
-            </table>
-        </div>
-        <hr>
-        <table class="items-table" border="1">
+
+        <table>
             <thead>
                 <tr>
                     <th>Description</th>
                     <th>HSN/SAC</th>
                     <th>Qty</th>
-                    <th>UOM</th>
+                    <th>Unit Price</th>
                     <th>Rate</th>
                     <th>Taxable Value</th>
                     <th>CGST (%)</th>
@@ -226,33 +238,42 @@ function generatePreview() {
                 ${itemsHTML}
             </tbody>
         </table>
-        <hr>
-        <div class="totals">
-            <p>Total: ₹${totalAmount.toFixed(2)}</p>
-            <p>CGST Total: ₹${cgstTotal.toFixed(2)}</p>
-            <p>SGST Total: ₹${sgstTotal.toFixed(2)}</p>
-            <p>Round Off: ₹${roundOff.toFixed(2)}</p>
-            <h3>Invoice Total: ₹${invoiceTotal.toFixed(2)}</h3>
+
+        <div class="second-section">
+            <div class="bank-details">
+                <h4>Payment Details</h4>
+                <p><strong>Bank Name:</strong> Canara Bank</p>
+                <p><strong>Branch Name:</strong> ShanthiNagar Manipal</p>
+                <p><strong>Account No:</strong> 120002152652</p>
+                <p><strong>IFSC Code:</strong> CNRB0010261</p>
+            </div>
+
+            <div class="totals">
+                <p>Total: ₹${totalAmount.toFixed(2)}</p>
+                <p>CGST Total: ₹${cgstTotal.toFixed(2)}</p>
+                <p>SGST Total: ₹${sgstTotal.toFixed(2)}</p>
+                <p>Round Off: ₹${roundOff.toFixed(2)}</p>
+                <h3>Invoice Total: ₹${invoiceTotal.toFixed(2)}</h3>
+                <h3>Rupees in Words: ${numberToWords(invoiceTotal.toFixed(0))}</h3>
+            </div>
         </div>
-        <hr>
-        <div class="bank-details">
-            <p><strong>Bank Name:</strong> Canara Bank</p>
-            <p><strong>Branch Name:</strong> ShanthiNagar Manipal</p>
-            <p><strong>Account No:</strong> xxxxxxxxxxx</p>
-            <p><strong>IFSC Code:</strong> yyyyyyyy</p>
-        </div>
-        <hr>
+
         <div class="declaration">
-            <p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+            <p>We declare that this invoice shows the actual price of the goods described and that all particulars are
+                true
+                and correct.</p>
         </div>
+
         <div class="signature">
             <p>For SHRESHT SYSTEMS</p>
             <div class="signature-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
+
         <footer>
             <p>This is a computer-generated invoice.</p>
         </footer>
+    </div>
     `;
 
     document.getElementById("preview-content").innerHTML = previewContent;
