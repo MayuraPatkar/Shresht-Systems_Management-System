@@ -90,26 +90,35 @@ function generatePreview() {
     }
 
     document.getElementById("preview-content").innerHTML = `<div class="header">
-        <div class="logo">
-            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/Shresht-Logo-Final.png" alt="Shresht Logo">
+        <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/Shresht-Logo-Final.png"
+                    alt="Shresht Logo">
+            </div>
+            <div class="company-details">
+                <h1>SHRESHT SYSTEMS</h1>
+                <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+            </div>
         </div>
-        <div class="company-details">
-            <h1>SHRESHT SYSTEMS</h1>
-            <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
-            <p>Ph: +91 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-            <p>Email: shreshtsystems@gmail.com | Website: <a href="http://www.shreshtsystems.com">www.shreshtsystems.com</a></p>
+
+        <div class="title">Way Bill #${ewayBillNumber}</div>
+
+    <div class="first-section">
+        <div>
+            <p><strong>To:</strong></p> 
+            <p>Buyer: ${buyerName}</p>
+            <p>Address: ${buyerAddress}</p>
+            <p>Ph: ${buyerPhone}</p>
         </div>
-    </div>
-    <hr>
-    <div class="info-section">
-        <p><strong>Project Name:</strong> ${projectName}</p>
-        <p><strong>To:</strong> ${buyerName}<br>
-        ${buyerAddress}<br>
-        Ph: ${buyerPhone}</p>
-        <p><strong>Transportation Mode:</strong> ${transportMode}</p>
-        <p><strong>Vehicle Number:</strong> ${vehicleNumber}</p>
-        <p><strong>Place to Supply:</strong> ${placeSupply}</p>
-        <p><strong>E-Way Bill Number:</strong> ${ewayBillNumber}</p>
+        <div>
+            <p><strong>Project Name:</strong> ${projectName}</p>
+            <p><strong>Transportation Mode:</strong> ${transportMode}</p>
+            <p><strong>Vehicle Number:</strong> ${vehicleNumber}</p>
+            <p><strong>Place to Supply:</strong> ${placeSupply}</p>
+        </div>   
     </div>
     <h3>Item Details</h3>
     <table>
@@ -123,14 +132,14 @@ function generatePreview() {
         ${itemsHTML}
         </tbody>
     </table>
-    <hr>
     <div class="signature">
         <p>For SHRESHT SYSTEMS</p>
         <div class="signature-space"></div>
         <p><strong>Authorized Signatory</strong></p>
     </div>
-    <div class="footer">
+    <footer>
         <p>This is a computer-generated way bill</p>
+    </footer>
     </div>`;
 }
 

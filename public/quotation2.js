@@ -77,6 +77,7 @@ document.querySelector("#items-table").addEventListener("click", (event) => {
 
 // Function to generate the preview
 function generatePreview() {
+    const quotation_id = document.getElementById("quotationId").value || "";
     const projectName = document.getElementById("projectName").value || "";
     const buyerName = document.getElementById("buyerName").value || "";
     const buyerAddress = document.getElementById("buyerAddress").value || "";
@@ -148,20 +149,21 @@ function generatePreview() {
     }
 
     document.getElementById("preview-content").innerHTML = `
-    <div class="header">
-        <div class="logo">
-            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/Shresht-Logo-Final.png" alt="Shresht Logo">
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/Shresht-Logo-Final.png"
+                    alt="Shresht Logo">
+            </div>
+            <div class="company-details">
+                <h1>SHRESHT SYSTEMS</h1>
+                <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+            </div>
         </div>
-        <div class="company-details">
-            <h1>SHRESHT SYSTEMS</h1>
-            <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
-            <p>Ph: +91 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-            <p>Email: shreshtsystems@gmail.com | Website: <a href="http://www.shreshtsystems.com">www.shreshtsystems.com</a></p>
-        </div>
-    </div>
 
-    <hr>
-
+        <div class="title">Quotation #${quotation_id}</div>
     <div class="info-section">
         <p><strong>To:</strong> ${buyerName}<br>
             ${buyerAddress}<br>
@@ -196,8 +198,6 @@ function generatePreview() {
             </tbody>
         </table>
     </div>
-
-    <hr>
 
     <div class="totals-section" style="text-align: right;">
         <p><strong>Total Amount:</strong> ₹${totalPrice.toFixed(2)}</p>
@@ -244,7 +244,8 @@ function generatePreview() {
 
     <footer>
         <p>This is a computer-generated quotation.</p>
-    </footer>`;
+    </footer>
+    </div>`;
 }
 
 // Function to collect form data and send to server

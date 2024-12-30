@@ -34,7 +34,7 @@
     font-size: 14px;
 }
 
-.invoice-title {
+.title {
     text-align: center;
     margin: 20px 0;
     font-size: 20px;
@@ -115,7 +115,7 @@
 
 .signature-space {
     margin-top: 20px;
-    border: 1px dashed #333;
+    /* border: 1px dashed #333; */
     width: 150px;
     height: 40px;
 }

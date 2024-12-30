@@ -196,7 +196,7 @@ function generatePreview() {
             </div>
         </div>
 
-        <div class="invoice-title">INVOICE #${invoiceId}</div>
+        <div class="title">INVOICE #${invoiceId}</div>
 
         <div class="first-section">
             <div class="buyer-details">
