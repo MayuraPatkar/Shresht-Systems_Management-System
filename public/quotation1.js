@@ -46,20 +46,6 @@ function renderQuotations(quotations) {
 function createQuotationDiv(quotation) {
     const quotationDiv = document.createElement("div");
     quotationDiv.className = "record-item";
-    quotationDiv.style.padding = "1rem";
-    quotationDiv.style.marginBottom = "1rem";
-    quotationDiv.style.border = "1px solid #ddd";
-    quotationDiv.style.borderRadius = "10px";
-    quotationDiv.style.cursor = "pointer";
-    quotationDiv.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
-    quotationDiv.style.transition = "background-color 0.3s";
-
-    quotationDiv.addEventListener("mouseenter", () => {
-        quotationDiv.style.backgroundColor = "#f0f8ff";
-    });
-    quotationDiv.addEventListener("mouseleave", () => {
-        quotationDiv.style.backgroundColor = "#fff";
-    });
 
     quotationDiv.innerHTML = `
         <h4>${quotation.project_name}</h4>

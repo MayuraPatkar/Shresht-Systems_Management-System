@@ -4,10 +4,8 @@ const totalSteps = 4;
 // Event listener for the "Next" button
 document.getElementById("nextBtn").addEventListener("click", () => {
     if (currentStep < totalSteps) {
-        if (validateStep(currentStep)) {
-            changeStep(currentStep + 1);
-            if (currentStep === totalSteps) generatePreview();
-        }
+        changeStep(currentStep + 1);
+        if (currentStep === totalSteps) generatePreview();
     } else {
         // Handle form submission
         window.electronAPI.showAlert('Form submitted!');
@@ -33,19 +31,6 @@ function changeStep(step) {
 function updateNavigation() {
     document.getElementById("prevBtn").disabled = currentStep === 1;
     document.getElementById("nextBtn").textContent = currentStep === totalSteps ? 'Submit' : 'Next';
-}
-
-// Function to validate the current step
-function validateStep(step) {
-    const stepElement = document.getElementById(`step-${step}`);
-    const inputs = stepElement.querySelectorAll('input[required], textarea[required]');
-    for (const input of inputs) {
-        if (!input.value.trim()) {
-            window.electronAPI.showAlert('Please fill all required fields.');
-            return false;
-        }
-    }
-    return true;
 }
 
 // Event listener for the "Add Item" button
@@ -75,7 +60,27 @@ document.querySelector("#items-table").addEventListener("click", (event) => {
     }
 });
 
-// Function to generate the preview
+// Function to convert number to words
+function numberToWords(num) {
+    const a = [
+        '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
+    ];
+    const b = [
+        '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
+    ];
+
+    const numToWords = (n) => {
+        if (n < 20) return a[n];
+        const digit = n % 10;
+        if (n < 100) return b[Math.floor(n / 10)] + (digit ? '-' + a[digit] : '');
+        if (n < 1000) return a[Math.floor(n / 100)] + ' hundred' + (n % 100 === 0 ? '' : ' and ' + numToWords(n % 100));
+        return numToWords(Math.floor(n / 1000)) + ' thousand' + (n % 1000 !== 0 ? ' ' + numToWords(n % 1000) : '');
+    };
+
+    return numToWords(num);
+}
+
+// Function to generate the preview for boyh tax rate and without tax rate
 function generatePreview() {
     const quotation_id = document.getElementById("quotationId").value || "";
     const projectName = document.getElementById("projectName").value || "";
@@ -83,6 +88,7 @@ function generatePreview() {
     const buyerAddress = document.getElementById("buyerAddress").value || "";
     const buyerPhone = document.getElementById("buyerPhone").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
+
     let totalPrice = 0;
     let totalCGST = 0;
     let totalSGST = 0;
@@ -91,62 +97,73 @@ function generatePreview() {
     let roundOff = 0;
 
     let itemsHTML = "";
+    let totalsHTML = "";
+
+    // Check if rate column is populated
+    let hasTax = Array.from(itemsTable.rows).some(row => row.cells[4].querySelector("input").value > 0);
+
     for (const row of itemsTable.rows) {
         const description = row.cells[0].querySelector("input").value || "-";
         const hsnSac = row.cells[1].querySelector("input").value || "-";
-        const qty = row.cells[2].querySelector("input").value || "0";
-        const unitPrice = row.cells[3].querySelector("input").value || "0";
-        const rate = row.cells[4].querySelector("input").value || "0";
+        const qty = parseFloat(row.cells[2].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[3].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[4].querySelector("input").value || "0");
 
         const taxableValue = qty * unitPrice;
-        const cgstPercent = rate / 2;
-        const sgstPercent = rate / 2;
-        const cgstValue = (taxableValue * cgstPercent) / 100;
-        const sgstValue = (taxableValue * sgstPercent) / 100;
-        const rowTotal = taxableValue + cgstValue + sgstValue;
-
         totalTaxableValue += taxableValue;
-        totalCGST += cgstValue;
-        totalSGST += sgstValue;
-        totalPrice += rowTotal;
 
-        grandTotal = totalTaxableValue + totalCGST + totalSGST;
-        roundOff = Math.round(grandTotal) - grandTotal;
+        if (hasTax) {
+            const cgstPercent = rate / 2;
+            const sgstPercent = rate / 2;
+            const cgstValue = (taxableValue * cgstPercent) / 100;
+            const sgstValue = (taxableValue * sgstPercent) / 100;
+            const rowTotal = taxableValue + cgstValue + sgstValue;
 
-        itemsHTML += `<tr>
-            <td>${description}</td>
-            <td>${hsnSac}</td>
-            <td>${qty}</td>
-            <td>${unitPrice}</td>
-            <td>${taxableValue}</td>
-            <td>${rate}</td>
-            <td>${cgstPercent}</td>
-            <td>${cgstValue}</td>
-            <td>${sgstPercent}</td>
-            <td>${sgstValue}</td>
-            <td>${rowTotal.toFixed(2)}</td>
-        </tr>`;
+            totalCGST += cgstValue;
+            totalSGST += sgstValue;
+            totalPrice += rowTotal;
+
+            itemsHTML += `
+                <tr>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${unitPrice.toFixed(2)}</td>
+                    <td>${taxableValue.toFixed(2)}</td>
+                    <td>${rate.toFixed(2)}</td>
+                    <td>${cgstPercent.toFixed(2)}</td>
+                    <td>${cgstValue.toFixed(2)}</td>
+                    <td>${sgstPercent.toFixed(2)}</td>
+                    <td>${sgstValue.toFixed(2)}</td>
+                    <td>${rowTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        } else {
+            const rowTotal = taxableValue;
+            totalPrice += rowTotal;
+
+            itemsHTML += `
+                <tr>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${unitPrice.toFixed(2)}</td>
+                    <td>${rowTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        }
     }
 
-    // Function to convert number to words
-    function numberToWords(num) {
-        const a = [
-            '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
-        ];
-        const b = [
-            '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
-        ];
+    grandTotal = totalTaxableValue + totalCGST + totalSGST;
+    roundOff = Math.round(grandTotal) - grandTotal;
 
-        const numToWords = (n) => {
-            if (n < 20) return a[n];
-            const digit = n % 10;
-            if (n < 100) return b[Math.floor(n / 10)] + (digit ? '-' + a[digit] : '');
-            if (n < 1000) return a[Math.floor(n / 100)] + ' hundred' + (n % 100 === 0 ? '' : ' and ' + numToWords(n % 100));
-            return numToWords(Math.floor(n / 1000)) + ' thousand' + (n % 1000 !== 0 ? ' ' + numToWords(n % 1000) : '');
-        };
-
-        return numToWords(num);
-    }
+    totalsHTML = `
+        ${hasTax ? `
+        <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
+        <p><strong>Total CGST:</strong> ₹${totalCGST.toFixed(2)}</p>
+        <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>` : ""}
+        <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
+    `;
 
     document.getElementById("preview-content").innerHTML = `
     <div class="container">
@@ -174,39 +191,35 @@ function generatePreview() {
             supply, installation, and commissioning of ${projectName}. This proposal includes industry-standard,
             high-quality equipment and services designed to meet your requirements.</p>
     </div>
+<div class="items-section">
+            <h3>Item Details</h3>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>HSN/SAC</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        ${hasTax ? `
+                        <th>Taxable Value (₹)</th>
+                        <th>Rate (%)</th>
+                        <th>CGST (%)</th>
+                        <th>CGST (₹)</th>
+                        <th>SGST (%)</th>
+                        <th>SGST (₹)</th>` : ""}
+                        <th>Total Price (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHTML}
+                </tbody>
+            </table>
+        </div>
 
-    <div class="items-section">
-        <h3>Item Details</h3>
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th>HSN/SAC</th>
-                    <th>Qty</th>
-                    <th>Unit Price</th>
-                    <th>Taxable Value (₹)</th>
-                    <th>Rate (₹)</th>
-                    <th>CGST (%)</th>
-                    <th>CGST (₹)</th>
-                    <th>SGST (%)</th>
-                    <th>SGST (₹)</th>
-                    <th>Total Price (₹)</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${itemsHTML}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="totals-section" style="text-align: right;">
-        <p><strong>Total Amount:</strong> ₹${totalPrice.toFixed(2)}</p>
-        <p><strong>CGST Total:</strong> ₹${totalCGST.toFixed(2)}</p>
-        <p><strong>SGST Total:</strong> ₹${totalSGST.toFixed(2)}</p>
-        <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
+        <div class="totals-section" style="text-align: right;">
+            ${totalsHTML}
+        </div>
         <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
-    </div>
-
     <div class="page-break"></div>
 
     <div class="terms-section" contenteditable="true">

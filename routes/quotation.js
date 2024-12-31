@@ -8,8 +8,8 @@ function generateUniqueId() {
     const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
     const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month (0-based, so add 1)
     const day = now.getDate().toString().padStart(2, '0'); // Day of the month
-    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0'); // Random 3-digit number
-    return `QTN-${year}${month}${day}-${randomNum}`;
+    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(1, '0'); // Random 3-digit number
+    return `${year}${month}${day}${randomNum}`;
 }
 
 router.post("/save-quotation", async (req, res) => {
