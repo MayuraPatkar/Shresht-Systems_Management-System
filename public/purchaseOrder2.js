@@ -148,12 +148,10 @@ function generatePreview() {
         ${itemsHTML}
         </tbody>
     </table>
-    <hr>
     <div class="totals-section" style="text-align: right;">
             ${totalsHTML}
         </div>
         <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
-    <hr>
     <div class="signature">
         <p>For SHRESHT SYSTEMS</p>
         <div class="signature-space"></div>
