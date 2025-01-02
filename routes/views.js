@@ -11,6 +11,7 @@ const pages = [
     { route: '/quotation', file: 'quotation.html' },
     { route: '/wayBill', file: 'wayBill.html' },
     { route: '/purchaseorder', file: 'purchaseOrder.html' },
+    { route: '/service', file: 'service.html' },
     { route: '/stock', file: 'stock.html' },
     { route: '/employee', file: 'employee.html' },
     { route: '/database', file: 'database.html' },

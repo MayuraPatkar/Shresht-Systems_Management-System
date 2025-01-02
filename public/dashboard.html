@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
-    <title>dashboard</title>
+    <title>Dashboard</title>
     <style>
         body {
             width: 100vw;
@@ -15,13 +15,14 @@
             margin: 0;
             display: flex;
             flex-direction: column;
+            background-color: #f4f4f4;
         }
 
         header {
             width: 100%;
             padding: 1rem 2rem;
             box-sizing: border-box;
-            background-color: #f4f4f4;
+            background-color: #ffffff;
             border-bottom: 1px solid #ddd;
             display: flex;
             justify-content: space-between;
@@ -41,6 +42,57 @@
             font-size: 1.8rem;
             flex-grow: 1;
             text-align: center;
+        }
+
+        .notification {
+            position: relative;
+            height: 4vh;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .notification img {
+            height: 100%;
+        }
+
+        .notification:hover {
+            transform: scale(1.1);
+        }
+
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.8rem;
+            display: none;
+        }
+
+        #notification_container {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
         }
 
         #container {
@@ -100,7 +152,12 @@
     <header>
         <div class="imglogo" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
         <h1>Dashboard</h1>
+        <div id="notification" class="notification">
+            <img src="./assets/notification.png" alt="icon">
+            <span id="notification-badge" class="badge"></span>
+        </div>
     </header>
+    <div id="notification_container"></div>
     <div id="container">
         <div id="quotation" class="csub">
             <div class="img"><img src="./assets/quotation.png" alt="icon"></div>
@@ -118,6 +175,10 @@
             <div class="img"><img src="./assets/transaction.png" alt="icon"></div>
             <p>Bill / Invoice</p>
         </div>
+        <div id="service" class="csub">
+            <div class="img"><img src="./assets/telemarketing.png" alt="icon"></div>
+            <p>Service</p>
+        </div>
         <div id="stock" class="csub">
             <div class="img"><img src="./assets/in-stock.png" alt="icon"></div>
             <p>Stock</p>
@@ -128,15 +189,11 @@
         </div>
         <div id="analytics" class="csub">
             <div class="img"><img src="./assets/analitics.png" alt="icon"></div>
-            <p>analytics</p>
+            <p>Analytics</p>
         </div>
         <div id="management" class="csub">
             <div class="img"><img src="./assets/management.png" alt="icon"></div>
             <p>Management</p>
-        </div>
-        <div id="database" class="csub">
-            <div class="img"></div>
-            <p></p>
         </div>
     </div>
     <script src="./dashboard.js"></script>

@@ -32,6 +32,7 @@ const invoiceRoutes = require('./routes/invoice');
 const quotationRoutes = require('./routes/quotation');
 const purchaseRoutes = require('./routes/purchaseOrder');
 const wayBillRoutes = require('./routes/wayBill');
+const serviceRoutes = require('./routes/service');
 
 app.use('/', viewRoutes);
 app.use('/login', authRoutes);
@@ -40,6 +41,7 @@ app.use('/invoice', invoiceRoutes);
 app.use('/quotation', quotationRoutes);
 app.use('/purchaseOrder', purchaseRoutes);
 app.use('/wayBill', wayBillRoutes);
+app.use('/service', serviceRoutes);
 
 // Start the server
 app.listen(PORT, () => {

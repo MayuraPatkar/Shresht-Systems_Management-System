@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./globalStyle.css">
+    <link rel="stylesheet" href="./formStyle.css">
+    <link rel="stylesheet" href="./previewStyle.css">
+    <title>Service Form</title>
+</head>
+
+<body>
+    <header>
+        <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
+        <h1 onclick="window.location = '/service'">Service</h1>
+    </header>
+    <div id="confirm_box" class="modal">
+        <div class="modal-content">
+            <h5 id="message"></h5>
+            <div class="modal-actions">
+                <button id="yes" class="btn btn-primary">Yes</button>
+                <button id="no" class="btn btn-secondary">No</button>
+            </div>
+        </div>
+    </div>
+    <div id="home">
+        <div class="container1">
+            <div class="records">
+                <div>
+                    <h2>Services</h2>
+                    <button id="newService">New Service</button>
+                </div>
+                <div class="record_list">
+                    <h2>No services in database</h2>
+                </div>
+            </div>
+            <div class="search">
+                <h3>Search Services</h3>
+                <div class="search_container">
+                    <input type="text" id="seviceSearchInput" placeholder="type here">
+                    <div type="submit" id="seviceSearchBtn"><img src="./assets/search.png"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="new">
+        <form id="Service">
+            <input type="hidden" id="quotationId" value="">
+            <div class="steps active" id="step-1">
+                <h2>Project Details</h2>
+                <div class="form-group">
+                    <label for="projectName">Project name:</label>
+                    <input type="text" id="projectName">
+                </div>
+            </div>
+            <div class="steps" id="step-2">
+                <h2>Recipient Details (to)</h2>
+                <div class="form-group">
+                    <label for="buyerName">Buyer Name:</label>
+                    <input type="text" id="buyerName">
+                </div>
+                <div class="form-group">
+                    <label for="buyerAddress">Address:</label>
+                    <textarea id="buyerAddress"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="buyerPhone">Phone Number:</label>
+                    <input type="tel" id="buyerPhone">
+                </div>
+            </div>
+            <div class="steps" id="step-3">
+                <h2>Item List</h2>
+                <div class="form-group">
+                    <label>Items:</label>
+                    <table id="items-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>HSN/SAC</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Rate</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
+                </div>
+            </div>
+            <div class="steps" id="step-4">
+                <div class="preview">
+                    <h2>Preview</h2>
+                    <div id="preview-content"></div>
+                </div>
+                <button type="button" id="save">Save</button>
+                <button type="button" id="print">Print</button>
+            </div>
+            <div class="navigation">
+                <button type="button" id="prevBtn" disabled>Previous</button>
+                <button type="button" id="nextBtn">Next</button>
+            </div>
+        </form>
+    </div>
+    <script src="./globalScript.js"></script>
+</body>
+
+</html>
