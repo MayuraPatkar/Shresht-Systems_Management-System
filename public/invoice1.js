@@ -1,8 +1,3 @@
-// Redirect to dashboard when logo is clicked
-document.getElementById('logo').addEventListener('click', () => {
-    window.location = '/dashboard';
-});
-
 const invoicesListDiv = document.querySelector(".records .record_list");
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -47,28 +42,14 @@ function renderInvoices(invoices) {
 function createInvoiceDiv(invoice) {
     const invoiceDiv = document.createElement("div");
     invoiceDiv.className = "record-item";
-    invoiceDiv.style.cssText = `
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        transition: background-color 0.3s;
-    `;
-
-    invoiceDiv.addEventListener("mouseenter", () => {
-        invoiceDiv.style.backgroundColor = "#f0f8ff";
-    });
-    invoiceDiv.addEventListener("mouseleave", () => {
-        invoiceDiv.style.backgroundColor = "#fff";
-    });
-
     invoiceDiv.innerHTML = `
-        <h4>${invoice.project_name}</h4>
-        <p>ID #: ${invoice.invoice_id}</p>
+        <div class="details">
+        <h4>${invoice.project_name} #${invoice.invoice_id}</h4>
+        </div>
+        <div class="actions">
         <button class="btn btn-primary open-invoice" data-id="${invoice.invoice_id}">Open</button>
         <button class="btn btn-danger delete-invoice" data-id="${invoice.invoice_id}">Delete</button>
+    </div>
     `;
 
     return invoiceDiv;
@@ -169,27 +150,6 @@ async function deleteInvoice(invoiceId) {
         console.error("Error deleting invoice:", error);
         window.electronAPI.showAlert("Failed to delete invoice. Please try again later.");
     }
-}
-
-// Show a confirmation box
-function showConfirmBox(message, onConfirm, onCancel) {
-    const confirmBox = document.getElementById('confirm_box');
-    const messageElement = document.getElementById('message');
-    const yesButton = document.getElementById('yes');
-    const noButton = document.getElementById('no');
-
-    messageElement.textContent = message;
-    confirmBox.style.display = 'block';
-
-    yesButton.onclick = () => {
-        confirmBox.style.display = 'none';
-        if (onConfirm) onConfirm();
-    };
-
-    noButton.onclick = () => {
-        confirmBox.style.display = 'none';
-        if (onCancel) onCancel();
-    };
 }
 
 // Show the new invoice form

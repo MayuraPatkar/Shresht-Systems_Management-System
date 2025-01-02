@@ -1,119 +1,106 @@
-let currentStep = 1;
 const totalSteps = 4;
+let purchase_order_id = '';
 
-// Event listener for the "Next" button
-document.getElementById("nextBtn").addEventListener("click", () => {
-    if (currentStep < totalSteps) {
-        if (validateStep(currentStep)) {
-            changeStep(currentStep + 1);
-            if (currentStep === totalSteps) generatePreview();
+// fuction to get the quotation id
+async function getId() {
+    try {
+        const response = await fetch("/purchaseOrder/generate-id");
+        if (!response.ok) {
+            throw new Error("Failed to fetch quotation id");
         }
-    } else {
-        // Handle form submission
-        window.electronAPI.showAlert('Form submitted!');
+
+        const data = await response.json();
+        document.getElementById('purchaseOrderId').value = data.purchase_order_id;
+        purchase_order_id = data.purchase_order_id;
+        if (purchase_order_id) generatePreview();
+    } catch (error) {
+        console.error("Error fetching quotation id:", error);
+        window.electronAPI.showAlert("Failed to fetch quotation id. Please try again later.");
     }
-});
-
-// Event listener for the "Previous" button
-document.getElementById("prevBtn").addEventListener("click", () => {
-    if (currentStep > 1) {
-        changeStep(currentStep - 1);
-    }
-});
-
-// Function to change the current step
-function changeStep(step) {
-    document.getElementById(`step-${currentStep}`).classList.remove("active");
-    currentStep = step;
-    document.getElementById(`step-${currentStep}`).classList.add("active");
-    updateNavigation();
 }
-
-// Function to update the navigation buttons
-function updateNavigation() {
-    document.getElementById("prevBtn").disabled = currentStep === 1;
-    document.getElementById("nextBtn").textContent = currentStep === totalSteps ? 'Submit' : 'Next';
-}
-
-// Function to validate the current step
-function validateStep(step) {
-    const stepElement = document.getElementById(`step-${step}`);
-    const inputs = stepElement.querySelectorAll('input[required], textarea[required]');
-    for (const input of inputs) {
-        if (!input.value.trim()) {
-            window.electronAPI.showAlert('Please fill all required fields.');
-            return false;
-        }
-    }
-    return true;
-}
-
-// Event listener for the "Add Item" button
-document.getElementById('add-item-btn').addEventListener('click', addItem);
-
-// Function to add a new item row to the table
-function addItem() {
-    const tableBody = document.querySelector("#items-table tbody");
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-        <td><input type="text" placeholder="Item Description" required></td>
-        <td><input type="text" placeholder="HSN/SAC" required></td>
-        <td><input type="number" placeholder="Qty" min="1" required></td>
-        <td><input type="text" placeholder="Unit Price" required></td>
-        <td><input type="text" placeholder="Rate" required></td>
-        <td><button type="button" class="remove-item-btn">Remove</button></td>
-    `;
-
-    tableBody.appendChild(row);
-}
-
-// Event listener for the "Remove Item" button
-document.querySelector("#items-table").addEventListener("click", (event) => {
-    if (event.target.classList.contains('remove-item-btn')) {
-        event.target.closest('tr').remove();
-    }
-});
 
 // Function to generate the preview
 function generatePreview() {
-    const purchase_order_id = document.getElementById("purchaseOrderId").value;
     const handledBy = document.getElementById("handledBy").value || "";
     const supplierName = document.getElementById("supplierName").value || "";
     const supplierAddress = document.getElementById("supplierAddress").value || "";
     const supplierPhone = document.getElementById("supplierPhone").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
     let totalPrice = 0;
+    let totalCGST = 0;
+    let totalSGST = 0;
+    let totalTaxableValue = 0;
     let grandTotal = 0;
+    let roundOff = 0;
 
     let itemsHTML = "";
+    let totalsHTML = "";
+
+    // Check if rate column is populated
+    let hasTax = Array.from(itemsTable.rows).some(row => row.cells[4].querySelector("input").value > 0);
+
     for (const row of itemsTable.rows) {
         const description = row.cells[0].querySelector("input").value || "-";
-        const qty = row.cells[1].querySelector("input").value || "0";
-        const unitPrice = row.cells[2].querySelector("input").value || "0";
-        const rate = row.cells[3].querySelector("input").value || "0";
+        const hsnSac = row.cells[1].querySelector("input").value || "-";
+        const qty = parseFloat(row.cells[2].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[3].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[4].querySelector("input").value || "0");
 
         const taxableValue = qty * unitPrice;
-        const cgstTotal = ((rate / 2) * taxableValue / 100).toFixed(2);
-        const sgstTotal = ((rate / 2) * taxableValue / 100).toFixed(2);
-        const rowTotal = taxableValue + parseFloat(cgstTotal) + parseFloat(sgstTotal);
+        totalTaxableValue += taxableValue;
 
-        totalPrice += rowTotal;
-        grandTotal += rowTotal;
+        if (hasTax) {
+            const cgstPercent = rate / 2;
+            const sgstPercent = rate / 2;
+            const cgstValue = (taxableValue * cgstPercent) / 100;
+            const sgstValue = (taxableValue * sgstPercent) / 100;
+            const rowTotal = taxableValue + cgstValue + sgstValue;
 
-        itemsHTML += `<tr>
-            <td>${description}</td>
-            <td>${qty}</td>
-            <td>${unitPrice}</td>
-            <td>${rate}</td>
-            <td>${taxableValue.toFixed(2)}</td>
-            <td>${(rate / 2).toFixed(2)}</td>
-            <td>${cgstTotal}</td>
-            <td>${(rate / 2).toFixed(2)}</td>
-            <td>${sgstTotal}</td>
-            <td>${rowTotal.toFixed(2)}</td>
-        </tr>`;
+            totalCGST += cgstValue;
+            totalSGST += sgstValue;
+            totalPrice += rowTotal;
+
+            itemsHTML += `
+                <tr>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${unitPrice.toFixed(2)}</td>
+                    <td>${taxableValue.toFixed(2)}</td>
+                    <td>${rate.toFixed(2)}</td>
+                    <td>${cgstPercent.toFixed(2)}</td>
+                    <td>${cgstValue.toFixed(2)}</td>
+                    <td>${sgstPercent.toFixed(2)}</td>
+                    <td>${sgstValue.toFixed(2)}</td>
+                    <td>${rowTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        } else {
+            const rowTotal = taxableValue;
+            totalPrice += rowTotal;
+
+            itemsHTML += `
+                <tr>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${unitPrice.toFixed(2)}</td>
+                    <td>${rowTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        }
     }
+
+    grandTotal = totalTaxableValue + totalCGST + totalSGST;
+    roundOff = Math.round(grandTotal) - grandTotal;
+
+    totalsHTML = `
+        ${hasTax ? `
+        <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
+        <p><strong>Total CGST:</strong> ₹${totalCGST.toFixed(2)}</p>
+        <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>` : ""}
+        <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
+    `;
 
     document.getElementById("preview-content").innerHTML = `
     <div class="container">
@@ -147,11 +134,13 @@ function generatePreview() {
                 <th>Qty</th>
                 <th>Unit Price</th>
                 <th>Rate (₹)</th>
-                <th>Taxable Value (₹)</th>
-                <th>CGST (%)</th>
-                <th>CGST (₹)</th>
-                <th>SGST (%)</th>
-                <th>SGST (₹)</th>
+                ${hasTax ? `
+                    <th>Taxable Value (₹)</th>
+                    <th>Rate (%)</th>
+                    <th>CGST (%)</th>
+                    <th>CGST (₹)</th>
+                    <th>SGST (%)</th>
+                    <th>SGST (₹)</th>` : ""}
                 <th>Total Price (₹)</th>
             </tr>
         </thead>
@@ -160,12 +149,10 @@ function generatePreview() {
         </tbody>
     </table>
     <hr>
-    <div class="totals">
-        <p><strong>Total Amount:</strong> ₹${totalPrice.toFixed(2)}</p>
-        <p><strong>CGST Total:</strong> ₹${(totalPrice * 0.09).toFixed(2)}</p>
-        <p><strong>SGST Total:</strong> ₹${(totalPrice * 0.09).toFixed(2)}</p>
-        <p><strong>Grand Total:</strong> ₹${grandTotal.toFixed(2)}</p>
-    </div>
+    <div class="totals-section" style="text-align: right;">
+            ${totalsHTML}
+        </div>
+        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
     <hr>
     <div class="signature">
         <p>For SHRESHT SYSTEMS</p>
@@ -190,7 +177,6 @@ async function sendToServer(data, shouldPrint) {
         const responseData = await response.json();
 
         if (response.ok) {
-            document.getElementById("purchaseOrderId").value = responseData.purchaseOrder.purchase_order_id;
             window.electronAPI.showAlert("Purchase order saved successfully!");
         } else if (responseData.message === "Purchase order already exists") {
             if (!shouldPrint) {

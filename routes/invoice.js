@@ -2,15 +2,31 @@ const express = require('express');
 const router = express.Router();
 const { Admin, Invoices } = require('./database');
 
-// Function to generate a unique ID for each invoice
+// Function to generate a unique ID for each Invoice
 function generateUniqueId() {
     const now = new Date();
     const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
     const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month (0-based, so add 1)
     const day = now.getDate().toString().padStart(2, '0'); // Day of the month
-    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0'); // Random 3-digit number
-    return `INV-${year}${month}${day}-${randomNum}`;
+    const randomNum = Math.floor(Math.random() * 10); // Random single-digit number
+    return `${year}${month}${day}${randomNum}`;
 }
+
+// Route to generate a new Invoice ID
+router.get("/generate-id", async (req, res) => {
+    let invoice_id;
+    let isUnique = false;
+
+    while (!isUnique) {
+        invoice_id = generateUniqueId();
+        const existingInvoice = await Invoices.findOne({ invoice_id: invoice_id });
+        if (!existingInvoice) {
+            isUnique = true;
+        }
+    }
+
+    res.status(200).json({ invoice_id: invoice_id });
+});
 
 router.post("/save-invoice", async (req, res) => {
     try {
@@ -37,9 +53,9 @@ router.post("/save-invoice", async (req, res) => {
         } = req.body;
 
         // Validate required fields
-        if (!projectName || !buyerName || !buyerAddress || !buyerPhone || !items.length) {
+        if (!invoiceId || !projectName ) {
             return res.status(400).json({
-                message: 'Missing required fields or invalid data: projectName, buyerName, buyerAddress, buyerPhone, or items.',
+                message: 'Missing required fields or invalid data: invoiceId, projectName.',
             });
         }
 
@@ -49,14 +65,8 @@ router.post("/save-invoice", async (req, res) => {
             return res.status(404).json({ message: 'Admin not found' });
         }
 
-        // Generate a unique ID for the invoice if not provided
-        let generatedInvoiceId = invoiceId;
-        if (!invoiceId) {
-            generatedInvoiceId = generateUniqueId();
-        }
-
         // Check if invoice already exists
-        const existingInvoice = await Invoices.findOne({ invoice_id: generatedInvoiceId });
+        const existingInvoice = await Invoices.findOne({ invoice_id: invoiceId });
         if (existingInvoice) {
             // Update the existing invoice
             existingInvoice.project_name = projectName;
@@ -91,7 +101,7 @@ router.post("/save-invoice", async (req, res) => {
             const invoice = new Invoices({
                 admin: admin._id,
                 project_name: projectName,
-                invoice_id: generatedInvoiceId,
+                invoice_id: invoiceId,
                 po_number: poNumber,
                 po_date: poDate,
                 dc_number: dcNumber,

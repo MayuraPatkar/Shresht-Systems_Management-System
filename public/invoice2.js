@@ -1,27 +1,25 @@
-let currentStep = 1;
 const totalSteps = 7;
 
 // Event listener for the "Next" button
 document.getElementById("nextBtn").addEventListener("click", () => {
-    if (validateStep(currentStep)) {
-        if (currentStep === 1) {
-            const quotation_id = document.getElementById("quotationId").value;
-            if (quotation_id) {
-                fetch(`/quotation/${quotation_id}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const quotation = data.quotation;
-                        document.getElementById("projectName").value = quotation.project_name;
-                        document.getElementById("buyerName").value = quotation.buyer_name;
-                        document.getElementById("buyerAddress").value = quotation.buyer_address;
-                        document.getElementById("buyerPhone").value = quotation.buyer_phone;
-                        const itemsTableBody = document.querySelector("#items-table tbody");
-                        itemsTableBody.innerHTML = "";
+    if (currentStep === 2) {
+        const quotation_id = document.getElementById("quotationId").value;
+        if (quotation_id) {
+            fetch(`/quotation/${quotation_id}`)
+                .then(response => response.json())
+                .then(data => {
+                    const quotation = data.quotation;
+                    document.getElementById("projectName").value = quotation.project_name;
+                    document.getElementById("buyerName").value = quotation.buyer_name;
+                    document.getElementById("buyerAddress").value = quotation.buyer_address;
+                    document.getElementById("buyerPhone").value = quotation.buyer_phone;
+                    const itemsTableBody = document.querySelector("#items-table tbody");
+                    itemsTableBody.innerHTML = "";
 
-                        quotation.items.forEach(item => {
-                            const row = document.createElement("tr");
+                    quotation.items.forEach(item => {
+                        const row = document.createElement("tr");
 
-                            row.innerHTML = `
+                        row.innerHTML = `
                                 <td><input type="text" value="${item.description}" required></td>
                                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                                 <td><input type="number" value="${item.quantity}" min="1" required></td>
@@ -30,102 +28,39 @@ document.getElementById("nextBtn").addEventListener("click", () => {
                                 <td><button type="button" class="remove-item-btn">Remove</button></td>
                             `;
 
-                            itemsTableBody.appendChild(row);
-                        })
+                        itemsTableBody.appendChild(row);
                     })
-                    .catch(error => {
-                        console.error("Error:", error);
-                        window.electronAPI.showAlert("Failed to fetch quotation.");
-                    });
-            }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    window.electronAPI.showAlert("Failed to fetch quotation.");
+                });
         }
-        if (currentStep < totalSteps) {
-            document.getElementById(`step-${currentStep}`).classList.remove("active");
-            currentStep++;
-            document.getElementById(`step-${currentStep}`).classList.add("active");
-        }
-        updateNavigation();
     }
-    if (currentStep === totalSteps) generatePreview();
 });
 
-// Event listener for the "Previous" button
-document.getElementById("prevBtn").addEventListener("click", () => {
-    if (currentStep > 1) {
-        document.getElementById(`step-${currentStep}`).classList.remove("active");
-        currentStep--;
-        document.getElementById(`step-${currentStep}`).classList.add("active");
-    }
-    updateNavigation();
-});
+let purchase_order_id = '';
 
-// Function to update navigation buttons
-function updateNavigation() {
-    document.getElementById("prevBtn").disabled = currentStep === 1;
-    document.getElementById("nextBtn").disabled = currentStep === totalSteps;
-}
-
-// Function to validate the current step
-function validateStep(step) {
-    const stepElement = document.getElementById(`step-${step}`);
-    const inputs = stepElement.querySelectorAll('input[required], textarea[required]');
-    for (const input of inputs) {
-        if (!input.value.trim()) {
-            window.electronAPI.showAlert('Please fill all required fields.');
-            return false;
+// fuction to get the invoice id
+async function getId() {
+    try {
+        const response = await fetch("/invoice/generate-id");
+        if (!response.ok) {
+            throw new Error("Failed to fetch invoice id");
         }
+
+        const data = await response.json();
+        document.getElementById('invoiceId').value = data.invoice_id;
+        invoiceId = data.invoice_id;
+        if (invoiceId) generatePreview();
+    } catch (error) {
+        console.error("Error fetching invoice id:", error);
+        window.electronAPI.showAlert("Failed to fetch invoice id. Please try again later.");
     }
-    return true;
-}
-
-// Event listener for the "Add Item" button
-document.getElementById('add-item-btn').addEventListener('click', addItem);
-
-// Function to add a new item row to the items table
-function addItem() {
-    const tableBody = document.querySelector("#items-table tbody");
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-        <td><input type="text" placeholder="Item Description" required></td>
-        <td><input type="text" placeholder="HSN/SAC" required></td>
-        <td><input type="number" placeholder="Qty" min="1" required></td>
-        <td><input type="number" placeholder="Unit Price" required></td>
-        <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
-        <td><button type="button" class="remove-item-btn" onclick="removeItem(this)">Remove</button></td>
-    `;
-
-    tableBody.appendChild(row);
-}
-
-// Function to remove an item row from the items table
-function removeItem(button) {
-    button.parentElement.parentElement.remove();
-}
-
-// Function to convert number to words
-function numberToWords(num) {
-    const a = [
-        '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
-    ];
-    const b = [
-        '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
-    ];
-
-    const numToWords = (n) => {
-        if (n < 20) return a[n];
-        const digit = n % 10;
-        if (n < 100) return b[Math.floor(n / 10)] + (digit ? '-' + a[digit] : '');
-        if (n < 1000) return a[Math.floor(n / 100)] + ' hundred' + (n % 100 === 0 ? '' : ' and ' + numToWords(n % 100));
-        return numToWords(Math.floor(n / 1000)) + ' thousand' + (n % 1000 !== 0 ? ' ' + numToWords(n % 1000) : '');
-    };
-
-    return numToWords(num);
 }
 
 // Function to generate the invoice preview
 function generatePreview() {
-    const invoiceId = document.getElementById("invoiceId").value;
     const projectName = document.getElementById("projectName").value;
     const poNumber = document.getElementById("poNumber").value;
     const poDate = document.getElementById("poDate").value;
@@ -140,48 +75,84 @@ function generatePreview() {
     const placeSupply = document.getElementById("placeSupply").value;
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
 
-    let totalAmount = 0;
-    let cgstTotal = 0;
-    let sgstTotal = 0;
+    let totalPrice = 0;
+    let totalCGST = 0;
+    let totalSGST = 0;
+    let totalTaxableValue = 0;
+    let grandTotal = 0;
     let roundOff = 0;
-    let invoiceTotal = 0;
-    let itemsHTML = "";
 
-    // Calculate totals and generate items HTML
-    for (let row of itemsTable.rows) {
-        const description = row.cells[0].querySelector("input").value;
-        const hsnSac = row.cells[1].querySelector("input").value;
-        const qty = parseFloat(row.cells[2].querySelector("input").value);
-        const unitPrice = parseFloat(row.cells[3].querySelector("input").value);
-        const rate = parseFloat(row.cells[4].querySelector("input").value);
+    let itemsHTML = "";
+    let totalsHTML = "";
+
+    // Check if rate column is populated
+    let hasTax = Array.from(itemsTable.rows).some(row => row.cells[4].querySelector("input").value > 0);
+
+    for (const row of itemsTable.rows) {
+        const description = row.cells[0].querySelector("input").value || "-";
+        const hsnSac = row.cells[1].querySelector("input").value || "-";
+        const qty = parseFloat(row.cells[2].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[3].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[4].querySelector("input").value || "0");
 
         const taxableValue = qty * unitPrice;
-        const cgst = (rate / 2) * taxableValue / 100;
-        const sgst = (rate / 2) * taxableValue / 100;
-        const totalPrice = taxableValue + cgst + sgst;
+        totalTaxableValue += taxableValue;
 
-        totalAmount += taxableValue;
-        cgstTotal += cgst;
-        sgstTotal += sgst;
-        invoiceTotal += totalPrice;
+        if (hasTax) {
+            const cgstPercent = rate / 2;
+            const sgstPercent = rate / 2;
+            const cgstValue = (taxableValue * cgstPercent) / 100;
+            const sgstValue = (taxableValue * sgstPercent) / 100;
+            const rowTotal = taxableValue + cgstValue + sgstValue;
 
-        itemsHTML += `<tr>
-            <td>${description}</td>
-            <td>${hsnSac}</td>
-            <td>${qty}</td>
-            <td>${unitPrice}</td>
-            <td>${rate}</td>
-            <td>${taxableValue.toFixed(2)}</td>
-            <td>${(rate / 2).toFixed(2)}</td>
-            <td>${cgst.toFixed(2)}</td>
-            <td>${(rate / 2).toFixed(2)}</td>
-            <td>${sgst.toFixed(2)}</td>
-            <td>${totalPrice.toFixed(2)}</td>
-        </tr>`;
+            totalCGST += cgstValue;
+            totalSGST += sgstValue;
+            totalPrice += rowTotal;
+
+            itemsHTML += `
+                <tr>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${unitPrice.toFixed(2)}</td>
+                    <td>${taxableValue.toFixed(2)}</td>
+                    <td>${rate.toFixed(2)}</td>
+                    <td>${cgstPercent.toFixed(2)}</td>
+                    <td>${cgstValue.toFixed(2)}</td>
+                    <td>${sgstPercent.toFixed(2)}</td>
+                    <td>${sgstValue.toFixed(2)}</td>
+                    <td>${rowTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        } else {
+            const rowTotal = taxableValue;
+            totalPrice += rowTotal;
+
+            itemsHTML += `
+                <tr>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${unitPrice.toFixed(2)}</td>
+                    <td>${rowTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        }
     }
 
+    grandTotal = totalTaxableValue + totalCGST + totalSGST;
+    roundOff = Math.round(grandTotal) - grandTotal;
+
+    totalsHTML = `
+        ${hasTax ? `
+        <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
+        <p><strong>Total CGST:</strong> ₹${totalCGST.toFixed(2)}</p>
+        <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>` : ""}
+        <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
+    `;
+
     // Generate preview content
-    const previewContent = `
+    document.getElementById("preview-content").innerHTML = `
     <div class="container">
         <div class="header">
             <div class="logo">
@@ -225,12 +196,13 @@ function generatePreview() {
                     <th>HSN/SAC</th>
                     <th>Qty</th>
                     <th>Unit Price</th>
-                    <th>Rate</th>
-                    <th>Taxable Value</th>
-                    <th>CGST (%)</th>
-                    <th>CGST (₹)</th>
-                    <th>SGST (%)</th>
-                    <th>SGST (₹)</th>
+                    ${hasTax ? `
+                        <th>Taxable Value (₹)</th>
+                        <th>Rate (%)</th>
+                        <th>CGST (%)</th>
+                        <th>CGST (₹)</th>
+                        <th>SGST (%)</th>
+                        <th>SGST (₹)</th>` : ""}
                     <th>Total Price (₹)</th>
                 </tr>
             </thead>
@@ -248,16 +220,11 @@ function generatePreview() {
                 <p><strong>IFSC Code:</strong> CNRB0010261</p>
             </div>
 
-            <div class="totals">
-                <p>Total: ₹${totalAmount.toFixed(2)}</p>
-                <p>CGST Total: ₹${cgstTotal.toFixed(2)}</p>
-                <p>SGST Total: ₹${sgstTotal.toFixed(2)}</p>
-                <p>Round Off: ₹${roundOff.toFixed(2)}</p>
-                <h3>Invoice Total: ₹${invoiceTotal.toFixed(2)}</h3>
-                <h3>Rupees in Words: ${numberToWords(invoiceTotal.toFixed(0))}</h3>
-            </div>
+            <div class="totals-section" style="text-align: right;">
+            ${totalsHTML}
         </div>
-
+        </div>
+        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
         <div class="declaration">
             <p>We declare that this invoice shows the actual price of the goods described and that all particulars are
                 true
@@ -275,8 +242,6 @@ function generatePreview() {
         </footer>
     </div>
     `;
-
-    document.getElementById("preview-content").innerHTML = previewContent;
 }
 
 // Function to collect form data and send to server
@@ -292,7 +257,6 @@ async function sendToServer(data, shouldPrint) {
 
         if (response.ok) {
             window.electronAPI.showAlert("Invoice saved successfully!");
-            document.getElementById("invoiceId").value = responseData.invoice.invoice_id;
         } else if (responseData.message === "Invoice already exists") {
             if (!shouldPrint) {
                 window.electronAPI.showAlert("Invoice already exists.");

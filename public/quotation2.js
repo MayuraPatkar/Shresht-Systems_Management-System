@@ -1,88 +1,26 @@
-let currentStep = 1;
 const totalSteps = 4;
+let quotation_id = '';
 
-// Event listener for the "Next" button
-document.getElementById("nextBtn").addEventListener("click", () => {
-    if (currentStep < totalSteps) {
-        changeStep(currentStep + 1);
-        if (currentStep === totalSteps) generatePreview();
-    } else {
-        // Handle form submission
-        window.electronAPI.showAlert('Form submitted!');
+// fuction to get the quotation id
+async function getId() {
+    try {
+        const response = await fetch("/quotation/generate-id");
+        if (!response.ok) {
+            throw new Error("Failed to fetch quotation id");
+        }
+
+        const data = await response.json();
+        document.getElementById('quotationId').value = data.quotation_id;
+        quotation_id = data.quotation_id;
+        if(quotation_id) generatePreview();
+    } catch (error) {
+        console.error("Error fetching quotation id:", error);
+        window.electronAPI.showAlert("Failed to fetch quotation id. Please try again later.");
     }
-});
-
-// Event listener for the "Previous" button
-document.getElementById("prevBtn").addEventListener("click", () => {
-    if (currentStep > 1) {
-        changeStep(currentStep - 1);
-    }
-});
-
-// Function to change the current step
-function changeStep(step) {
-    document.getElementById(`step-${currentStep}`).classList.remove("active");
-    currentStep = step;
-    document.getElementById(`step-${currentStep}`).classList.add("active");
-    updateNavigation();
-}
-
-// Function to update the navigation buttons
-function updateNavigation() {
-    document.getElementById("prevBtn").disabled = currentStep === 1;
-    document.getElementById("nextBtn").textContent = currentStep === totalSteps ? 'Submit' : 'Next';
-}
-
-// Event listener for the "Add Item" button
-document.getElementById('add-item-btn').addEventListener('click', addItem);
-
-// Function to add a new item row to the table
-function addItem() {
-    const tableBody = document.querySelector("#items-table tbody");
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-        <td><input type="text" placeholder="Item Description" required></td>
-        <td><input type="text" placeholder="HSN/SAC" required></td>
-        <td><input type="number" placeholder="Qty" min="1" required></td>
-        <td><input type="text" placeholder="Unit Price" required></td>
-        <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
-        <td><button type="button" class="remove-item-btn">Remove</button></td>
-    `;
-
-    tableBody.appendChild(row);
-}
-
-// Event listener for the "Remove Item" button
-document.querySelector("#items-table").addEventListener("click", (event) => {
-    if (event.target.classList.contains('remove-item-btn')) {
-        event.target.closest('tr').remove();
-    }
-});
-
-// Function to convert number to words
-function numberToWords(num) {
-    const a = [
-        '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
-    ];
-    const b = [
-        '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
-    ];
-
-    const numToWords = (n) => {
-        if (n < 20) return a[n];
-        const digit = n % 10;
-        if (n < 100) return b[Math.floor(n / 10)] + (digit ? '-' + a[digit] : '');
-        if (n < 1000) return a[Math.floor(n / 100)] + ' hundred' + (n % 100 === 0 ? '' : ' and ' + numToWords(n % 100));
-        return numToWords(Math.floor(n / 1000)) + ' thousand' + (n % 1000 !== 0 ? ' ' + numToWords(n % 1000) : '');
-    };
-
-    return numToWords(num);
 }
 
 // Function to generate the preview for boyh tax rate and without tax rate
 function generatePreview() {
-    const quotation_id = document.getElementById("quotationId").value || "";
     const projectName = document.getElementById("projectName").value || "";
     const buyerName = document.getElementById("buyerName").value || "";
     const buyerAddress = document.getElementById("buyerAddress").value || "";
@@ -180,7 +118,7 @@ function generatePreview() {
             </div>
         </div>
 
-        <div class="title">Quotation #${quotation_id}</div>
+        <div class="title">Quotation - #${quotation_id}</div>
     <div class="info-section">
         <p><strong>To:</strong> ${buyerName}<br>
             ${buyerAddress}<br>
@@ -273,7 +211,6 @@ async function sendToServer(data, shouldPrint) {
         const responseData = await response.json();
 
         if (response.ok) {
-            document.getElementById("quotationId").value = responseData.quotation.quotation_id;
             window.electronAPI.showAlert("Quotation saved successfully!");
         } else if (responseData.message === "Quotation already exists") {
             if (!shouldPrint) {

@@ -2,15 +2,31 @@ const express = require('express');
 const router = express.Router();
 const { Admin, Purchases } = require('./database');
 
-// Function to generate a unique ID for each purchase order
+// Function to generate a unique ID for each purchaseOrder
 function generateUniqueId() {
     const now = new Date();
     const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
     const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month (0-based, so add 1)
     const day = now.getDate().toString().padStart(2, '0'); // Day of the month
-    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0'); // Random 3-digit number
-    return `PO-${year}${month}${day}-${randomNum}`;
+    const randomNum = Math.floor(Math.random() * 10); // Random single-digit number
+    return `${year}${month}${day}${randomNum}`;
 }
+
+// Route to generate a new purchaseOrder ID
+router.get("/generate-id", async (req, res) => {
+    let purchase_order_id;
+    let isUnique = false;
+
+    while (!isUnique) {
+        purchase_order_id = generateUniqueId();
+        const existingpurchaseOrder = await Purchases.findOne({ purchase_order_id: purchase_order_id });
+        if (!existingpurchaseOrder) {
+            isUnique = true;
+        }
+    }
+
+    res.status(200).json({ purchase_order_id: purchase_order_id });
+});
 
 router.post("/save-purchase-order", async (req, res) => {
     try {
@@ -27,9 +43,9 @@ router.post("/save-purchase-order", async (req, res) => {
         } = req.body;
 
         // Validate required fields
-        if (!projectName || !supplier_name || !supplier_address || !supplier_phone || !items.length) {
+        if (!purchase_order_id || !projectName) {
             return res.status(400).json({
-                message: 'Missing required fields or invalid data: projectName, supplier_name, supplier_address, supplier_phone, items, or total.',
+                message: 'Missing required fields or invalid data: purchase order id, projectName.',
             });
         }
 
@@ -37,11 +53,6 @@ router.post("/save-purchase-order", async (req, res) => {
         const admin = await Admin.findOne();
         if (!admin) {
             return res.status(404).json({ message: 'Admin not found' });
-        }
-
-        // Generate a unique ID for the purchase order if not provided
-        if (!purchase_order_id) {
-            purchase_order_id = generateUniqueId();
         }
 
         // Check if purchase order already exists

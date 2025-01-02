@@ -1,19 +1,13 @@
-document.getElementById('logo').addEventListener('click', () => {
-    window.location = '/dashboard';
-});
-
 let currentStep = 1;
 const totalSteps = 5;
 
 document.getElementById("nextBtn").addEventListener("click", () => {
     if (currentStep < totalSteps) {
-        if (validateStep(currentStep)) {
-            document.getElementById(`step-${currentStep}`).classList.remove("active");
-            currentStep++;
-            document.getElementById(`step-${currentStep}`).classList.add("active");
-            updateNavigation();
-            if (currentStep === totalSteps) generatePreview();
-        }
+        document.getElementById(`step-${currentStep}`).classList.remove("active");
+        currentStep++;
+        document.getElementById(`step-${currentStep}`).classList.add("active");
+        updateNavigation();
+        if (currentStep === totalSteps) generatePreview();
     } else {
         // Handle form submission
         window.electronAPI.showAlert('Form submitted!');
@@ -32,18 +26,6 @@ document.getElementById("prevBtn").addEventListener("click", () => {
 function updateNavigation() {
     document.getElementById("prevBtn").disabled = currentStep === 1;
     document.getElementById("nextBtn").textContent = currentStep === totalSteps ? 'Submit' : 'Next';
-}
-
-function validateStep(step) {
-    const stepElement = document.getElementById(`step-${step}`);
-    const inputs = stepElement.querySelectorAll('input[required], textarea[required]');
-    for (let input of inputs) {
-        if (!input.value.trim()) {
-            window.electronAPI.showAlert('Please fill all required fields.');
-            return false;
-        }
-    }
-    return true;
 }
 
 document.getElementById('add-item-btn').addEventListener('click', addItem);

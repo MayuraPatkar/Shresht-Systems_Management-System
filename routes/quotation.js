@@ -8,10 +8,27 @@ function generateUniqueId() {
     const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
     const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month (0-based, so add 1)
     const day = now.getDate().toString().padStart(2, '0'); // Day of the month
-    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(1, '0'); // Random 3-digit number
+    const randomNum = Math.floor(Math.random() * 10); // Random single-digit number
     return `${year}${month}${day}${randomNum}`;
 }
 
+// Route to generate a new quotation ID
+router.get("/generate-id", async (req, res) => {
+    let quotationId;
+    let isUnique = false;
+
+    while (!isUnique) {
+        quotationId = generateUniqueId();
+        const existingQuotation = await Quotations.findOne({ quotation_id: quotationId });
+        if (!existingQuotation) {
+            isUnique = true;
+        }
+    }
+
+    res.status(200).json({ quotation_id: quotationId });
+});
+
+// Route to save a new quotation or update an existing one
 router.post("/save-quotation", async (req, res) => {
     try {
         let {
@@ -24,9 +41,9 @@ router.post("/save-quotation", async (req, res) => {
         } = req.body;
 
         // Validate required fields
-        if (!projectName || !buyerName || !buyerAddress || !buyerPhone || !items.length) {
+        if (!quotation_id || !projectName) {
             return res.status(400).json({
-                message: 'Missing required fields or invalid data: projectName, buyerName, buyerAddress, buyerPhone, items, or total.',
+                message: 'Missing required fields or invalid data: Qotation ID, projectName',
             });
         }
 
@@ -34,11 +51,6 @@ router.post("/save-quotation", async (req, res) => {
         const admin = await Admin.findOne();
         if (!admin) {
             return res.status(404).json({ message: 'Admin not found' });
-        }
-
-        // Generate a unique ID for the quotation if not provided
-        if (!quotation_id) {
-            quotation_id = generateUniqueId();
         }
 
         // Check if quotation already exists

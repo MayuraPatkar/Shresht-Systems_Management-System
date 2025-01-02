@@ -1,8 +1,3 @@
-// Redirect to dashboard when logo is clicked
-document.getElementById('logo').addEventListener('click', () => {
-    window.location = '/dashboard';
-});
-
 const purchaseOrderListDiv = document.querySelector(".records .record_list");
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -46,26 +41,14 @@ function renderPurchaseOrders(purchaseOrders) {
 function createPurchaseOrderDiv(purchaseOrder) {
     const purchaseOrderDiv = document.createElement("div");
     purchaseOrderDiv.className = "record-item";
-    purchaseOrderDiv.style.padding = "1rem";
-    purchaseOrderDiv.style.marginBottom = "1rem";
-    purchaseOrderDiv.style.border = "1px solid #ddd";
-    purchaseOrderDiv.style.borderRadius = "10px";
-    purchaseOrderDiv.style.cursor = "pointer";
-    purchaseOrderDiv.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
-    purchaseOrderDiv.style.transition = "background-color 0.3s";
-
-    purchaseOrderDiv.addEventListener("mouseenter", () => {
-        purchaseOrderDiv.style.backgroundColor = "#f0f8ff";
-    });
-    purchaseOrderDiv.addEventListener("mouseleave", () => {
-        purchaseOrderDiv.style.backgroundColor = "#fff";
-    });
-
     purchaseOrderDiv.innerHTML = `
-        <h4>${purchaseOrder.project_name}</h4>
-        <p>ID #: ${purchaseOrder.purchase_order_id}</p>
-        <button class="btn btn-primary open-purchase-order" data-id="${purchaseOrder.purchase_order_id}">Open</button>
-        <button class="btn btn-danger delete-purchase-order" data-id="${purchaseOrder.purchase_order_id}">Delete</button>
+        <div class="details">
+            <h4>${purchaseOrder.project_name} #${purchaseOrder.purchase_order_id}</h4>
+        </div>
+        <div class="actions">
+            <button class="btn btn-primary open-purchase-order" data-id="${purchaseOrder.purchase_order_id}">Open</button>
+            <button class="btn btn-danger delete-purchase-order" data-id="${purchaseOrder.purchase_order_id}">Delete</button>
+        </div>
     `;
 
     return purchaseOrderDiv;
@@ -150,27 +133,6 @@ async function deletePurchaseOrder(purchaseOrderId) {
         console.error("Error deleting purchase order:", error);
         window.electronAPI.showAlert("Failed to delete purchase order. Please try again later.");
     }
-}
-
-// Show a confirmation box
-function showConfirmBox(message, onConfirm, onCancel) {
-    const confirmBox = document.getElementById('confirm_box');
-    const messageElement = document.getElementById('message');
-    const yesButton = document.getElementById('yes');
-    const noButton = document.getElementById('no');
-
-    messageElement.textContent = message;
-    confirmBox.style.display = 'block';
-
-    yesButton.onclick = () => {
-        confirmBox.style.display = 'none';
-        if (onConfirm) onConfirm();
-    };
-
-    noButton.onclick = () => {
-        confirmBox.style.display = 'none';
-        if (onCancel) onCancel();
-    };
 }
 
 // Show the new purchase order form

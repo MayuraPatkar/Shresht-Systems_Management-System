@@ -10,8 +10,8 @@ document.getElementById('wayBill').addEventListener('click', () => {
     window.location = '/wayBill';
 })
 
-document.getElementById('billing').addEventListener('click', () => {
-    window.location = '/billing';
+document.getElementById('invoice').addEventListener('click', () => {
+    window.location = '/invoice';
 })
 
 document.getElementById('database').addEventListener('click', () => {})

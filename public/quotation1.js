@@ -1,8 +1,3 @@
-// Redirect to dashboard when logo is clicked
-document.getElementById('logo').addEventListener('click', () => {
-    window.location = '/dashboard';
-});
-
 const quotationListDiv = document.querySelector(".records .record_list");
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -46,12 +41,14 @@ function renderQuotations(quotations) {
 function createQuotationDiv(quotation) {
     const quotationDiv = document.createElement("div");
     quotationDiv.className = "record-item";
-
     quotationDiv.innerHTML = `
-        <h4>${quotation.project_name}</h4>
-        <p>ID #: ${quotation.quotation_id}</p>
-        <button class="btn btn-primary open-quotation" data-id="${quotation.quotation_id}">Open</button>
-        <button class="btn btn-danger delete-quotation" data-id="${quotation.quotation_id}">Delete</button>
+        <div class="details">
+            <h3>${quotation.project_name} #${quotation.quotation_id}</h3>
+        </div>
+        <div class="actions">
+            <button class="btn btn-primary open-quotation" data-id="${quotation.quotation_id}">Open</button>
+            <button class="btn btn-danger delete-quotation" data-id="${quotation.quotation_id}">Delete</button>
+        </div>
     `;
 
     return quotationDiv;
@@ -133,27 +130,6 @@ async function deleteQuotation(quotationId) {
         console.error("Error deleting quotation:", error);
         window.electronAPI.showAlert("Failed to delete quotation. Please try again later.");
     }
-}
-
-// Show a confirmation box
-function showConfirmBox(message, onConfirm, onCancel) {
-    const confirmBox = document.getElementById('confirm_box');
-    const messageElement = document.getElementById('message');
-    const yesButton = document.getElementById('yes');
-    const noButton = document.getElementById('no');
-
-    messageElement.textContent = message;
-    confirmBox.style.display = 'block';
-
-    yesButton.onclick = () => {
-        confirmBox.style.display = 'none';
-        if (onConfirm) onConfirm();
-    };
-
-    noButton.onclick = () => {
-        confirmBox.style.display = 'none';
-        if (onCancel) onCancel();
-    };
 }
 
 // Show the new quotation form

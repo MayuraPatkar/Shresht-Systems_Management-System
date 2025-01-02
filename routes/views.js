@@ -7,7 +7,7 @@ const pages = [
     { route: '/', file: 'index.html' },
     { route: '/login', file: 'login.html' },
     { route: '/dashboard', file: 'dashboard.html' },
-    { route: '/billing', file: 'billing.html' },
+    { route: '/invoice', file: 'invoice.html' },
     { route: '/quotation', file: 'quotation.html' },
     { route: '/wayBill', file: 'wayBill.html' },
     { route: '/purchaseorder', file: 'purchaseOrder.html' },

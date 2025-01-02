@@ -46,26 +46,14 @@ function renderWayBills(wayBills) {
 function createWayBillDiv(wayBill) {
     const wayBillDiv = document.createElement("div");
     wayBillDiv.className = "record-item";
-    wayBillDiv.style.padding = "1rem";
-    wayBillDiv.style.marginBottom = "1rem";
-    wayBillDiv.style.border = "1px solid #ddd";
-    wayBillDiv.style.borderRadius = "10px";
-    wayBillDiv.style.cursor = "pointer";
-    wayBillDiv.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
-    wayBillDiv.style.transition = "background-color 0.3s";
-
-    wayBillDiv.addEventListener("mouseenter", () => {
-        wayBillDiv.style.backgroundColor = "#f0f8ff";
-    });
-    wayBillDiv.addEventListener("mouseleave", () => {
-        wayBillDiv.style.backgroundColor = "#fff";
-    });
-
     wayBillDiv.innerHTML = `
-        <h4>${wayBill.project_name}</h4>
-        <p>ID #: ${wayBill.way_bill_id}</p>
+    <div class="details">
+        <h4>${wayBill.project_name} #${wayBill.way_bill_id}</h4>
+    </div>
+    <div class="actions">
         <button class="btn btn-primary open-way-bill" data-id="${wayBill.wayBill_id}">Open</button>
         <button class="btn btn-danger delete-way-bill" data-id="${wayBill.wayBill_id}">Delete</button>
+    </div>
     `;
 
     return wayBillDiv;

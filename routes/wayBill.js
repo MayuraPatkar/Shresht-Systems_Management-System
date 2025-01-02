@@ -18,9 +18,9 @@ router.post("/save-way-bill", async (req, res) => {
         } = req.body;
 
         // Validate required fields
-        if (!projectName || !buyer_name || !buyer_address || !buyer_phone || !items.length) {
+        if (!projectName) {
             return res.status(400).json({
-                message: 'Missing required fields or invalid data: projectName, buyer_name, buyer_address, buyer_phone, items.',
+                message: 'Missing required fields or invalid data: projectName',
             });
         }
 
