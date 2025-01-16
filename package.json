@@ -1,12 +1,12 @@
 {
-  "name": "s.s.software",
+  "name": "Shresht Systems Management System",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [app],
   "author": "Mayura",
   "license": "ISC",
   "description": "software for Shresht systems",
