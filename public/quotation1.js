@@ -83,7 +83,7 @@ async function openQuotation(quotationId) {
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
 
-        document.getElementById('quotationId').value = quotation.quotation_id;
+        document.getElementById('Id').value = quotation.quotation_id;
         document.getElementById('projectName').value = quotation.project_name;
         document.getElementById('buyerName').value = quotation.buyer_name;
         document.getElementById('buyerAddress').value = quotation.buyer_address;

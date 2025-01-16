@@ -39,7 +39,7 @@ document.getElementById("nextBtn").addEventListener("click", () => {
     }
 });
 
-let purchase_order_id = '';
+let invoiceId = '';
 
 // fuction to get the invoice id
 async function getId() {
@@ -61,6 +61,7 @@ async function getId() {
 
 // Function to generate the invoice preview
 function generatePreview() {
+    if (!invoiceId) invoiceId = document.getElementById('Id').value;
     const projectName = document.getElementById("projectName").value;
     const poNumber = document.getElementById("poNumber").value;
     const poDate = document.getElementById("poDate").value;
@@ -292,11 +293,12 @@ document.getElementById("print").addEventListener("click", () => {
 function collectFormData() {
     return {
         projectName: document.getElementById("projectName").value,
-        invoiceId: document.getElementById("invoiceId").value,
+        invoiceId: document.getElementById("Id").value,
         poNumber: document.getElementById("poNumber").value,
         poDate: document.getElementById("poDate").value,
         dcNumber: document.getElementById("dcNumber").value,
         dcDate: document.getElementById("dcDate").value,
+        service_month: document.getElementById('service_month').value,
         ewayBillNumber: document.getElementById("ewayBillNumber").value,
         buyerName: document.getElementById("buyerName").value,
         buyerAddress: document.getElementById("buyerAddress").value,

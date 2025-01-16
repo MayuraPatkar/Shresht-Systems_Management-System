@@ -9,10 +9,8 @@ let currentStep = 1;
 document.getElementById("nextBtn").addEventListener("click", () => {
     if (currentStep < totalSteps) {
         changeStep(currentStep + 1);
-        if (currentStep === totalSteps) getId();
-    } else {
-        // Handle form submission
-        window.electronAPI.showAlert('Form submitted!');
+        if (currentStep === totalSteps && !document.getElementById('Id').value) getId();
+        else generatePreview();
     }
 });
 
@@ -34,7 +32,7 @@ function changeStep(step) {
 // Function to update the navigation buttons
 function updateNavigation() {
     document.getElementById("prevBtn").disabled = currentStep === 1;
-    document.getElementById("nextBtn").textContent = currentStep === totalSteps ? 'Submit' : 'Next';
+    document.getElementById("nextBtn").disabled = currentStep === totalSteps;
 }
 
 // Show a confirmation box

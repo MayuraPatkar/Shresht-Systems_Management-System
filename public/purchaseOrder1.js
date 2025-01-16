@@ -83,7 +83,7 @@ async function openPurchaseOrder(purchaseOrderId) {
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
 
-        document.getElementById('purchaseOrderId').value = purchaseOrder.purchase_order_id;
+        document.getElementById('Id').value = purchaseOrder.purchase_order_id;
         document.getElementById('projectName').value = purchaseOrder.project_name;
         document.getElementById('handledBy').value = purchaseOrder.handledBy;
         document.getElementById('supplierName').value = purchaseOrder.supplier_name;

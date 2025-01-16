@@ -21,6 +21,7 @@ async function getId() {
 
 // Function to generate the preview
 function generatePreview() {
+    if(!purchase_order_id) purchase_order_id = document.getElementById('Id').value;
     const handledBy = document.getElementById("handledBy").value || "";
     const supplierName = document.getElementById("supplierName").value || "";
     const supplierAddress = document.getElementById("supplierAddress").value || "";
@@ -210,7 +211,7 @@ document.getElementById("print").addEventListener("click", () => {
 // Function to collect form data
 function collectFormData() {
     return {
-        purchase_order_id: document.getElementById("purchaseOrderId").value,
+        purchase_order_id: document.getElementById("Id").value,
         projectName: document.getElementById("projectName").value,
         handledBy: document.getElementById("handledBy").value,
         supplier_name: document.getElementById("supplierName").value,

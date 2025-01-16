@@ -14,7 +14,7 @@
     <!-- Header Section -->
     <header>
         <div class="img" id="logo">
-            <img src="./assets/Shresht-Logo-Final.png" alt="Shresht Logo">
+            <img src="./assets/logo.png" alt="Shresht Logo">
         </div>
         <h1 onclick="window.location = '/invoice'">Bill / Invoice</h1>
     </header>
@@ -58,7 +58,7 @@
     <!-- New Invoice Form -->
     <div id="new">
         <form id="invoice-form">
-            <input type="hidden" id="invoiceId">
+            <input type="hidden" id="Id">
 
              <!-- Step 1: import data from quotattion -->
              <div class="steps active" id="step-1">
@@ -91,6 +91,10 @@
                 <div class="form-group">
                     <label for="dcDate">D.C Date:</label>
                     <input type="date" id="dcDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="service_month">Months To Service:</label>
+                    <input type="number" id="service_month" required>
                 </div>
             </div>
 

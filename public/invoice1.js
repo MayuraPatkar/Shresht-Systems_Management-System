@@ -93,7 +93,7 @@ async function openInvoice(invoiceId) {
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
 
-        document.getElementById('invoiceId').value = invoice.invoice_id;
+        document.getElementById('Id').value = invoice.invoice_id;
         document.getElementById('projectName').value = invoice.project_name;
         document.getElementById('buyerName').value = invoice.buyer_name;
         document.getElementById('buyerAddress').value = invoice.buyer_address;
@@ -107,6 +107,7 @@ async function openInvoice(invoiceId) {
         document.getElementById('poDate').value = formatDate(invoice.po_date);
         document.getElementById('dcNumber').value = invoice.dc_number;
         document.getElementById('dcDate').value = formatDate(invoice.dc_date);
+        document.getElementById('service_month').value = invoice.service_month;
         document.getElementById('ewayBillNumber').value = invoice.E_Way_Bill_number;
 
         const itemsTableBody = document.querySelector("#items-table tbody");

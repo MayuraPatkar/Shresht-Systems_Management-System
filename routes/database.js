@@ -81,7 +81,7 @@ const wayBillSchema = new mongoose.Schema({
     transport_mode: { type: String },
     vehicle_number: { type: String },
     place_supply: { type: String },
-    
+
     items: [
         {
             description: { type: String },
@@ -106,6 +106,7 @@ const invoiceSchema = new mongoose.Schema({
     po_date: { type: Date },
     dc_number: { type: String },
     dc_date: { type: Date },
+    service_month: { type: Number },
     E_Way_Bill_number: { type: String },
     transport_mode: { type: String },
     vehicle_number: { type: String },

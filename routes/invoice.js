@@ -37,6 +37,7 @@ router.post("/save-invoice", async (req, res) => {
             poDate,
             dcNumber = '',
             dcDate,
+            service_month,
             ewayBillNumber = '',
             transportMode = '',
             vehicleNumber = '',
@@ -74,6 +75,7 @@ router.post("/save-invoice", async (req, res) => {
             existingInvoice.po_date = poDate;
             existingInvoice.dc_number = dcNumber;
             existingInvoice.dc_date = dcDate;
+            existingInvoice.service_month = service_month;
             existingInvoice.E_Way_Bill_number = ewayBillNumber;
             existingInvoice.transport_mode = transportMode;
             existingInvoice.vehicle_number = vehicleNumber;
@@ -106,6 +108,7 @@ router.post("/save-invoice", async (req, res) => {
                 po_date: poDate,
                 dc_number: dcNumber,
                 dc_date: dcDate,
+                service_month: service_month,
                 E_Way_Bill_number: ewayBillNumber,
                 transport_mode: transportMode,
                 vehicle_number: vehicleNumber,

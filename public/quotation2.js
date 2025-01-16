@@ -21,6 +21,9 @@ async function getId() {
 
 // Function to generate the preview for boyh tax rate and without tax rate
 function generatePreview() {
+    if(!quotation_id){
+        quotation_id = document.getElementById('Id').value;
+    }
     const projectName = document.getElementById("projectName").value || "";
     const buyerName = document.getElementById("buyerName").value || "";
     const buyerAddress = document.getElementById("buyerAddress").value || "";
@@ -234,10 +237,10 @@ document.getElementById("save").addEventListener("click", () => {
 // Event listener for the "Print" button
 document.getElementById("print").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.printQuotation) {
+    if (window.electronAPI && window.electronAPI.print) {
         const quotationData = collectFormData();
         sendToServer(quotationData, true);
-        window.electronAPI.printQuotation(previewContent);
+        window.electronAPI.print(previewContent);
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }
@@ -246,7 +249,7 @@ document.getElementById("print").addEventListener("click", () => {
 // Function to collect form data
 function collectFormData() {
     return {
-        quotation_id: document.getElementById("quotationId").value,
+        quotation_id: document.getElementById("Id").value,
         projectName: document.getElementById("projectName").value,
         buyerName: document.getElementById("buyerName").value,
         buyerAddress: document.getElementById("buyerAddress").value,
