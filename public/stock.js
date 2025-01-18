@@ -151,6 +151,45 @@ async function editItem() {
     }
 }
 
+async function lowStock() {
+    try {
+        const response = await fetch('/stock/getStock');
+        if (!response.ok) {
+            throw new Error('Failed to fetch stock data');
+        }
+        const stockData = await response.json();
+        stockData.forEach(item => {
+            if (item.quantity < item.min_quantity) {
+                const tableBody = document.getElementById('stock-table-body');
+                tableBody.innerHTML = '';
+
+
+                const row = document.createElement('tr');
+                row.classList.toggle('low-stock', item.quantity < item.min_quantity);
+
+                row.innerHTML = `
+                    <td>${item.itemName}</td>
+                    <td>${item.HSN_SAC}</td>
+                    <td>${item.unitPrice}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.threshold}</td>
+                    <td>${item.GST}</td>
+                    <td>${item.quantity < item.min_quantity ? 'Low Stock' : 'In Stock'}</td>
+                    <td>
+                        <button class="btn" onclick="addToStockDiv('${item._id}')">Add</button>
+                        <button class="btn" onclick="removeFromStockDiv('${item._id}')">Remove</button>
+                        <button class="btn" onclick="editItemDiv('${item._id}', '${item.HSN_SAC}', '${item.itemName}', '${item.unitPrice}', '${item.quantity}', '${item.threshold}', '${item.GST}', '${item.min_quantity}')">Edit</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            };
+        });
+    } catch (error) {
+        console.error('Error fetching stock data:', error);
+        window.electronAPI.showAlert('Error fetching stock data. Please try again.');
+    }
+}
+
 async function fetchStockData() {
     try {
         const response = await fetch('/stock/getStock');
