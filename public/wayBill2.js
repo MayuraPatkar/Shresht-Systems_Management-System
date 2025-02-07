@@ -75,7 +75,7 @@ function generatePreview() {
         <div class="container">
         <div class="header">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/Shresht-Logo-Final.png"
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
                     alt="Shresht Logo">
             </div>
             <div class="company-details">

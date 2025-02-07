@@ -3,6 +3,7 @@ document.getElementById('logo').addEventListener('click', () => {
 });
 
 function showModal(modalId) {
+
     document.getElementById(modalId).style.display = 'block';
     document.getElementById('backdrop').style.display = 'block';
 }
@@ -19,11 +20,13 @@ function addItemDiv() {
 }
 
 function addToStockDiv(itemId) {
+    document.getElementById('add_quantity').value = '';
     showModal('addToStock');
     document.getElementById('addToStock').setAttribute('data-item-id', itemId);
 }
 
 function removeFromStockDiv(itemId) {
+    document.getElementById('remove_quantity').value = '';
     showModal('removeFromStock');
     document.getElementById('removeFromStock').setAttribute('data-item-id', itemId);
 }

@@ -10,7 +10,7 @@ async function getId() {
         }
 
         const data = await response.json();
-        document.getElementById('quotationId').value = data.quotation_id;
+        document.getElementById('Id').value = data.quotation_id;
         quotation_id = data.quotation_id;
         if(quotation_id) generatePreview();
     } catch (error) {
@@ -110,7 +110,7 @@ function generatePreview() {
     <div class="container">
         <div class="header">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/Shresht-Logo-Final.png"
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
                     alt="Shresht Logo">
             </div>
             <div class="company-details">
@@ -132,6 +132,11 @@ function generatePreview() {
             supply, installation, and commissioning of ${projectName}. This proposal includes industry-standard,
             high-quality equipment and services designed to meet your requirements.</p>
     </div>
+    <footer>
+        <p>This is a computer-generated quotation.</p>
+    </footer>
+</div>
+<div class="container">
 <div class="items-section">
             <h3>Item Details</h3>
             <table class="items-table">
@@ -162,7 +167,12 @@ function generatePreview() {
         </div>
         <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
     <div class="page-break"></div>
+    <footer>
+        <p>This is a computer-generated quotation.</p>
+    </footer>
+</div>
 
+<div class="container">
     <div class="terms-section" contenteditable="true">
         <h3>Terms & Conditions</h3>
         <ul>

@@ -43,7 +43,7 @@ app.on('ready', () => {
 
     // Initialize event handlers
     handlePrintEvent(); // Ensure this function is implemented in `printHandler.js`
-    showAlert(); // Ensure this function is implemented in `alertHandler.js`
+    // showAlert(); // Ensure this function is implemented in `alertHandler.js`
 
     // Handle window close event
     mainWindow.on('closed', () => {

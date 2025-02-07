@@ -35,6 +35,7 @@ document.getElementById('management').addEventListener('click', () => {
 })
 
 document.addEventListener("DOMContentLoaded", () => {
+    checkForService();
     const notificationIcon = document.getElementById("notification");
     const notificationContainer = document.getElementById("notification_container");
     const notificationBadge = document.getElementById("notification-badge");
@@ -91,3 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initial update of the notification badge
     updateNotificationBadge();
 });
+
+function checkForService(){
+    
+}

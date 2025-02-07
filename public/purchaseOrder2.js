@@ -10,7 +10,7 @@ async function getId() {
         }
 
         const data = await response.json();
-        document.getElementById('purchaseOrderId').value = data.purchase_order_id;
+        document.getElementById('Id').value = data.purchase_order_id;
         purchase_order_id = data.purchase_order_id;
         if (purchase_order_id) generatePreview();
     } catch (error) {
@@ -107,7 +107,7 @@ function generatePreview() {
     <div class="container">
         <div class="header">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/Shresht-Logo-Final.png"
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
                     alt="Shresht Logo">
             </div>
             <div class="company-details">

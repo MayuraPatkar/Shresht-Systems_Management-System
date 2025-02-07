@@ -50,7 +50,7 @@ async function getId() {
         }
 
         const data = await response.json();
-        document.getElementById('invoiceId').value = data.invoice_id;
+        document.getElementById('Id').value = data.invoice_id;
         invoiceId = data.invoice_id;
         if (invoiceId) generatePreview();
     } catch (error) {
@@ -157,7 +157,7 @@ function generatePreview() {
     <div class="container">
         <div class="header">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/Shresht-Logo-Final.png"
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
                     alt="Shresht Logo">
             </div>
             <div class="company-details">
