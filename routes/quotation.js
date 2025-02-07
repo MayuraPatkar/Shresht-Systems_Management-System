@@ -24,7 +24,6 @@ router.get("/generate-id", async (req, res) => {
             isUnique = true;
         }
     }
-    console.log(quotationId);
     res.status(200).json({ quotation_id: quotationId });
 });
 
