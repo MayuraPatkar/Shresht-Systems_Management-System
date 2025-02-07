@@ -18,7 +18,7 @@
             width: 100%;
             padding: 1rem 2rem;
             box-sizing: border-box;
-            background-color: #f4f4f4;
+            background-color: #ffffff;
             border-bottom: 1px solid #ddd;
             display: flex;
             justify-content: space-between;
@@ -39,69 +39,14 @@
             flex-grow: 1;
             text-align: center;
         }
-
-        .container {
-            max-width: 90%;
-            margin: 20px auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        table th,
-        table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-
-        table th {
-            background-color: #f4f4f4;
-        }
-
-        .add-btn {
-            margin: 10px 0;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .add-btn:hover {
-            background-color: #0056b3;
-        }
     </style>
 </head>
 
 <body>
     <header>
-        <div class="img" id="logo"><img src="./assets/Shresht-Logo-Final.png" alt="logo"></div>
-        <h1>Employee</h1>
+        <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
+        <h1>Employees</h1>
     </header>
-    <div class="container">
-        <h2>Employee Details</h2>
-        <button class="add-btn" id="addEmployee">Add Employee</button>
-        <table id="employee-table">
-            <thead>
-                <tr>
-                    <th>Employee ID</th>
-                    <th>Name</th>
-                    <th>Attendance</th>
-                    <th>Salary (₹)</th>
-                    <th>Payment Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Employee data will be dynamically added here -->
-            </tbody>
-        </table>
-    </div>
-
     <script src="./employee.js"></script>
 </body>
 

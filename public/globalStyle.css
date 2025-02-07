@@ -29,7 +29,18 @@ h1 {
     font-size: 1.8rem;
     flex-grow: 1;
     text-align: center;
+}
+
+header button {
+    padding: 0.8rem;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 .container1 {
