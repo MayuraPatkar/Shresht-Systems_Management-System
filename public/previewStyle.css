@@ -57,7 +57,8 @@
 
 .info-section,
 .buyer-details {
-    font-size: 14px;
+    padding: 3%;
+    font-size: 18px;
     margin-bottom: 20px;
     line-height: 1.5;
 }
@@ -71,7 +72,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
-    table-layout: auto; /* Allow columns to adjust size based on content */
+    table-layout: auto;
 }
 
 .container table th,
@@ -110,6 +111,13 @@
 
 .bank-details {
     font-size: 14px;
+}
+
+.terms-section {
+    padding: 3%;
+    font-size: 18px;
+    margin-bottom: 20px;
+    line-height: 1.5;
 }
 
 .declaration {

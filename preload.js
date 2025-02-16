@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         if (content) {
             ipcRenderer.send("print", { content });
         } else {
-            console.error("No content passed to printInvoice.");
+            console.error("No content passed to print.");
         }
     },
 

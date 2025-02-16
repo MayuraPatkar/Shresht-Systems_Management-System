@@ -108,35 +108,68 @@ function generatePreview() {
 
     document.getElementById("preview-content").innerHTML = `
     <div class="container">
-        <div class="header">
-            <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
-                    alt="Shresht Logo">
-            </div>
-            <div class="company-details">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-            </div>
+    <div class="header">
+        <div class="logo">
+            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                alt="Shresht Logo">
         </div>
+        <div class="company-details">
+            <h1>SHRESHT SYSTEMS</h1>
+            <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+            <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+            <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+        </div>
+    </div>
 
-        <div class="title">Quotation - #${quotation_id}</div>
-    <div class="info-section">
+    <div class="title">Quotation - #${quotation_id}</div>
+    <div class="info-section" >
         <p><strong>To:</strong> ${buyerName}<br>
             ${buyerAddress}<br>
             Ph: ${buyerPhone}</p>
+        <br>
         <p contenteditable="true"><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${projectName}</p>
+        <br>
         <p>Dear ${buyerName},</p>
-        <p contenteditable="true">With reference to your inquiry, we are pleased to submit our comprehensive techno-commercial proposal for the
-            supply, installation, and commissioning of ${projectName}. This proposal includes industry-standard,
-            high-quality equipment and services designed to meet your requirements.</p>
+        <p contenteditable="true">We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>Shresht Systems</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.</p>
+        
+        <p>Our proposal includes:</p>
+        <ul contenteditable="true">
+            <li>Cutting-edge technology and premium-grade equipment</li>
+            <li>Expert installation by certified professionals</li>
+            <li>Comprehensive commissioning and quality assurance</li>
+            <li>Reliable after-sales support and service</li>
+        </ul>
+        
+        <p contenteditable="true">We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.</p>
+        
+        <p contenteditable="true">We look forward to your positive response and the opportunity to collaborate with you.</p>
+        
+        <p>Best regards,</p>
+        <p><strong>Sandeep Nayak</strong><br>
+           <strong>Shresht Systems</strong><br>
+           Ph: 7204657707 / 9901730305<br>
+           Email: shreshtsystems@gmail.com<br>
+           Website: www.shreshtsystems.com</p>
     </div>
+    
     <footer>
         <p>This is a computer-generated quotation.</p>
     </footer>
 </div>
+
 <div class="container">
+<div class="header">
+        <div class="logo">
+            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                alt="Shresht Logo">
+        </div>
+        <div class="company-details">
+            <h1>SHRESHT SYSTEMS</h1>
+            <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+            <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+            <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+        </div>
+    </div>
 <div class="items-section">
             <h3>Item Details</h3>
             <table class="items-table">
@@ -173,35 +206,45 @@ function generatePreview() {
 </div>
 
 <div class="container">
+<div class="header">
+        <div class="logo">
+            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                alt="Shresht Logo">
+        </div>
+        <div class="company-details">
+            <h1>SHRESHT SYSTEMS</h1>
+            <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+            <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+            <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+        </div>
+    </div>
     <div class="terms-section" contenteditable="true">
         <h3>Terms & Conditions</h3>
         <ul>
-            <li><strong>Lead Time:</strong> 1 week for material procurement and installation. Synchronization may take
-                2-3 weeks depending on MESCOM official availability.</li>
+            <li><strong>Lead Time:</strong> Delivery and installation will be completed within the stipulated timeline as per mutual agreement.</li>
             <li><strong>Payment Terms:</strong>
                 <ul>
-                    <li>60% advance with PO (for MESCOM work and material procurement).</li>
-                    <li>30% before dispatch of materials.</li>
-                    <li>10% after installation and synchronization with MESCOM.</li>
+                    <li>50% advance upon order confirmation.</li>
+                    <li>40% before dispatch of materials.</li>
+                    <li>10% after successful installation and commissioning.</li>
                 </ul>
             </li>
             <li><strong>Warranty:</strong>
                 <ul>
-                    <li>Solar Modules: 10 years product warranty, 15 years performance warranty.</li>
-                    <li>String Inverters: 8 years warranty.</li>
-                    <li>Battery Pack: 10 years warranty as per manufacturer terms.</li>
+                    <li>All equipment supplied is covered under the manufacturer’s standard warranty.</li>
+                    <li>Any defects arising due to manufacturing faults will be rectified as per warranty terms.</li>
+                    <li>Warranty does not cover damages due to improper handling, unauthorized modifications, or external factors.</li>
                 </ul>
             </li>
-            <li><strong>Customer Scope:</strong> Safe storage of materials, support during installation (electricity,
-                water, etc.).</li>
-            <li><strong>Quote Validity:</strong> 15 days.</li>
-            <li><strong>GST:</strong> Included in the quoted price.</li>
+            <li><strong>Customer Scope:</strong> Provision of necessary infrastructure such as power supply, water, and secure storage for materials.</li>
+            <li><strong>Quote Validity:</strong> 30 days from the date of issue.</li>
+            <li><strong>Taxes & Duties:</strong> All applicable taxes and duties are included unless stated otherwise.</li>
+            <li><strong>Force Majeure:</strong> The company shall not be liable for delays or non-performance due to circumstances beyond its control.</li>
         </ul>
     </div>
 
     <div class="closing-section">
-        <p>We look forward to your order confirmation. Please contact us for any further technical or commercial
-            clarifications.</p>
+        <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
         <p>Thanking you,</p>
         <p><strong>For Shresht Systems,</strong><br>Sandeep Nayak<br>Mob: +91 7204657707 / 9901730305</p>
     </div>
@@ -209,7 +252,8 @@ function generatePreview() {
     <footer>
         <p>This is a computer-generated quotation.</p>
     </footer>
-    </div>`;
+</div>
+`;
 }
 
 // Function to collect form data and send to server
