@@ -2,13 +2,11 @@ const { ipcMain, BrowserWindow } = require("electron");
 
 function handlePrintEvent(mainWindow) {
     ipcMain.on("PrintDoc", (event, { content }) => {
-        console.log("Printing document...");
-        
         const printWindow = new BrowserWindow({
             width: 800,
             height: 600,
             show: false,
-            parent: mainWindow, // Set the parent to the main window
+            parent: mainWindow,
             webPreferences: {
                 offscreen: true,
             },
@@ -21,7 +19,7 @@ function handlePrintEvent(mainWindow) {
             <style>
                 @page {
                     size: A4;
-                    argin: 10mm;
+                    margin: 10mm;
                 }
 
                 body {
@@ -95,8 +93,7 @@ function handlePrintEvent(mainWindow) {
                     line-height: 1.5;
                 }
 
-                .buyer-details p {
-                .info-section p,
+                .buyer-details p .info-section p {
                     margin: 3px 0;
                 }
 
@@ -116,9 +113,11 @@ function handlePrintEvent(mainWindow) {
                 }
             
                 .container table th {
-                    background-color: #007bff;
-                    color: #fff;
+                    background-color: #007bff !important;
+                    color: #fff !important;
                     font-weight: bold;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
                 }
 
                 .second-section {
@@ -173,6 +172,14 @@ function handlePrintEvent(mainWindow) {
                     color: #777;
                     margin-top: 20px;
                 }
+                
+                @media print {
+                    th {
+                        background-color: #007bff !important;
+                        color: #fff !important;
+                    }
+                }
+
             </style>
             </head>
             <body>
@@ -182,12 +189,9 @@ function handlePrintEvent(mainWindow) {
         `)}`);
 
         printWindow.webContents.on("did-finish-load", () => {
-            // Trigger the print dialog
+            // Trigger the print dialog with printBackground option enabled
             printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
                 if (!success) console.error("Print failed:", errorType);
-
-                // Clean up: Close the window after printing
-                // printWindow.close();
             });
         });
     });

@@ -44,7 +44,8 @@ function createInvoiceDiv(invoice) {
     invoiceDiv.className = "record-item";
     invoiceDiv.innerHTML = `
         <div class="details">
-        <h4>${invoice.project_name} #${invoice.invoice_id}</h4>
+        <h3>${invoice.project_name}</h3>
+        <h4>#${invoice.invoice_id}</h4>
         </div>
         <div class="actions">
         <button class="btn btn-primary open-invoice" data-id="${invoice.invoice_id}">Open</button>
