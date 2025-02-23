@@ -136,7 +136,7 @@ router.delete("/:wayBillId", async (req, res) => {
         }
 
         // Delete the way bill
-        await WayBills.deleteOne({ wayBill_id: wayBillId });
+        await wayBills.deleteOne({ wayBill_id: wayBillId });
 
         // Respond with success message
         res.status(200).json({ message: 'Way bill deleted successfully' });

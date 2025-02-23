@@ -48,7 +48,8 @@ function createWayBillDiv(wayBill) {
     wayBillDiv.className = "record-item";
     wayBillDiv.innerHTML = `
     <div class="details">
-        <h4>${wayBill.project_name} #${wayBill.way_bill_id}</h4>
+        <h3>${wayBill.project_name}</h3>
+        <h4>#${wayBill.wayBill_id}</h4>
     </div>
     <div class="actions">
         <button class="btn btn-primary open-way-bill" data-id="${wayBill.wayBill_id}">Open</button>

@@ -1,23 +1,27 @@
-const { app, BrowserWindow, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, screen, dialog } = require('electron');
 const path = require('path');
 const { handlePrintEvent } = require('./printHandler');
 const { showAlert } = require('./alertHandler');
-
-// To support hot-reloading in development
-require('electron-reload')(__dirname, {
-    electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
-});
+const http = require('http');
+require('electron-reloader')(module);
 
 let mainWindow;
 
-app.on('ready', () => {
-    // Start Express server
-    require('./server');
+const checkServerRunning = (callback) => {
+    http.get('http://localhost:3000', (res) => {
+        if (res.statusCode === 200) {
+            callback(true);
+        } else {
+            callback(false);
+        }
+    }).on('error', (err) => {
+        callback(false);
+    });
+};
 
-    // Get primary display dimensions
+const createMainWindow = () => {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
-    // Create the Electron BrowserWindow
     mainWindow = new BrowserWindow({
         width,
         height,
@@ -25,56 +29,68 @@ app.on('ready', () => {
         y: 0,
         autoHideMenuBar: true,
         frame: true,
-        icon: path.join(__dirname, 'public', 'assets', 'icon.png'),
+        icon: path.join(__dirname, 'public', 'assets', 'icon.ico'),
         webPreferences: {
-            nodeIntegration: true, // Enable Node.js integration (optional, ensure security for production)
-            preload: path.join(__dirname, 'preload.js'), // Preload script
-        },
-    });
-
-    // Optionally remove menu bar
-    mainWindow.setMenu(null);
-
-    // Open Developer Tools for debugging (comment out in production)
-    mainWindow.webContents.openDevTools();
-
-    // Load the Express server in the Electron window
-    mainWindow.loadURL('http://localhost:3000');
-
-    // Initialize event handlers
-    handlePrintEvent(); // Ensure this function is implemented in `printHandler.js`
-    // showAlert(); // Ensure this function is implemented in `alertHandler.js`
-
-    // Handle window close event
-    mainWindow.on('closed', () => {
-        mainWindow = null;
-    });
-});
-
-// Quit the app when all windows are closed (except for Mac)
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
-});
-
-// Re-create the window on macOS when the app is activated
-app.on('activate', () => {
-    if (mainWindow === null) {
-        createMainWindow();
-    }
-});
-
-// Helper function to create the main window
-function createMainWindow() {
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-    mainWindow = new BrowserWindow({
-        width,
-        height,
-        webPreferences: {
-            nodeIntegration: true,
+            nodeIntegration: false,
+            contextIsolation: true,
             preload: path.join(__dirname, 'preload.js'),
         },
     });
-    mainWindow.loadURL('http://localhost:3000');
+
+    mainWindow.setMenu(null);
+
+    if (process.env.NODE_ENV === 'development') {
+        mainWindow.webContents.openDevTools();
+    }
+
+    mainWindow.loadURL('http://localhost:3000')
+        .catch(err => {
+            console.error(new Date(), "Failed to load URL in mainWindow:", err);
+            dialog.showErrorBox('Error', `Failed to load application. Please check if the server is running. Error: ${err.message}`);
+            app.quit();
+        });
+
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
+
+    handlePrintEvent();
+    showAlert();
+};
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    app.quit();
+} else {
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+        }
+    });
+
+    app.on('ready', async () => {
+        try {
+            require('./server');
+            checkServerRunning((isRunning) => {
+                if (isRunning) {
+                    createMainWindow();
+                } else {
+                    console.error(new Date(), "Server did not start in time.");
+                    dialog.showErrorBox('Error', 'Failed to start application. The server did not start in time.');
+                    app.quit();
+                }
+            });
+        } catch (error) {
+            console.error(new Date(), "App initialization failed:", error);
+            dialog.showErrorBox('Error', `App initialization failed. Error: ${error.message}`);
+            app.quit();
+        }
+    });
+
+    process.on('uncaughtException', (error) => {
+        console.error(new Date(), "Unhandled exception in main process:", error);
+        dialog.showErrorBox('Error', `Unhandled exception in main process. Error: ${error.message}`);
+    });
 }

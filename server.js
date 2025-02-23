@@ -1,10 +1,8 @@
-// index.js
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/shreshtSystems';
+const config = require('./config');
 
 // Middleware
 app.use(express.json());
@@ -14,15 +12,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'public', 'views'));
 
-// Connect to MongoDB
-mongoose.connect(MONGODB_URI)
-.then(() => {
-    console.log('Connected to MongoDB');
-}).catch((error) => {
-    console.error('MongoDB connection error:', error);
-});
+// MongoDB Connection
+async function connectDB() { // Use async function for cleaner promise handling
+    try {
+        await mongoose.connect(config.mongodbUri);
+        console.log('Successfully connected to MongoDB');
+    } catch (error) {
+        console.error('MongoDB connection failed:', error.message);
+        console.error('Exiting process due to database connection failure');
+        process.exit(1); // Exit the process on critical failure
+    }
+}
 
-// Routes
+connectDB(); // Call the database connection function
+
+// Routes - Importing route modules
 const authRoutes = require('./routes/auth');
 const viewRoutes = require('./routes/views');
 const stockRoutes = require('./routes/stock');
@@ -32,6 +36,7 @@ const purchaseRoutes = require('./routes/purchaseOrder');
 const wayBillRoutes = require('./routes/wayBill');
 const serviceRoutes = require('./routes/service');
 
+// Using routes middleware
 app.use('/', viewRoutes);
 app.use('/login', authRoutes);
 app.use('/stock', stockRoutes);
@@ -41,9 +46,40 @@ app.use('/purchaseOrder', purchaseRoutes);
 app.use('/wayBill', wayBillRoutes);
 app.use('/service', serviceRoutes);
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Express server running at http://localhost:${PORT}`);
+// Centralized Error Handling Middleware (Example - adjust based on your needs)
+app.use((err, req, res, next) => {
+    console.error('Global error handler caught an error:', err);
+    if (res.headersSent) { // Check if headers already sent to prevent error after response sent
+        return next(err); // Delegate to default Express error handler
+    }
+    res.status(500).send({ error: 'Something went wrong!', details: err.message }); // Send generic error response
 });
+
+
+// Start the server
+const server = app.listen(config.port, () => { 
+    console.log(`Express server running at http://localhost:${config.port}`);
+});
+
+// Handle server startup errors
+server.on('error', (error) => {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+    const bind = typeof config.port === 'string' ? 'Pipe ' + config.port : 'Port ' + config.port;
+    switch (error.code) {
+        case 'EACCES':
+            console.error(`${bind} requires elevated privileges`);
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(`${bind} is already in use`);
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+});
+
 
 module.exports = app;

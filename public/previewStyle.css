@@ -8,7 +8,7 @@
     margin: 50px auto;
     padding: 20px;
     box-shadow: 0 0 10px rgb(0, 0, 0);
-    max-width: 800px;
+    width: 210mm;
     height: 297mm;
 }
 
@@ -43,7 +43,7 @@
 
 .title {
     text-align: center;
-    margin: 20px 0;
+    /* margin: 10px 0; */
     font-size: 20px;
     color: #007bff;
     font-weight: bold;
@@ -131,7 +131,6 @@
 
 .signature-space {
     margin-top: 20px;
-    /* border: 1px dashed #333; */
     width: 150px;
     height: 40px;
 }

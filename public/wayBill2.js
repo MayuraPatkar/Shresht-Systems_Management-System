@@ -71,8 +71,8 @@ function generatePreview() {
         </tr>`;
     }
 
-    document.getElementById("preview-content").innerHTML = `<div class="header">
-        <div class="container">
+    document.getElementById("preview-content").innerHTML = `
+    <div class="container">
         <div class="header">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
@@ -88,40 +88,41 @@ function generatePreview() {
 
         <div class="title">Way Bill #${ewayBillNumber}</div>
 
-    <div class="first-section">
-        <div>
-            <p><strong>To:</strong></p> 
-            <p>Buyer: ${buyerName}</p>
-            <p>Address: ${buyerAddress}</p>
-            <p>Ph: ${buyerPhone}</p>
+        <div class="first-section">
+            <div>
+                <p><strong>To:</strong></p> 
+                <p>Buyer: ${buyerName}</p>
+                <p>Address: ${buyerAddress}</p>
+                <p>Ph: ${buyerPhone}</p>
+            </div>
+            <div>
+                <p><strong>Project Name:</strong> ${projectName}</p>
+                <p><strong>Transportation Mode:</strong> ${transportMode}</p>
+                <p><strong>Vehicle Number:</strong> ${vehicleNumber}</p>
+                <p><strong>Place to Supply:</strong> ${placeSupply}</p>
+            </div>  
         </div>
-        <div>
-            <p><strong>Project Name:</strong> ${projectName}</p>
-            <p><strong>Transportation Mode:</strong> ${transportMode}</p>
-            <p><strong>Vehicle Number:</strong> ${vehicleNumber}</p>
-            <p><strong>Place to Supply:</strong> ${placeSupply}</p>
-        </div>   
-    </div>
-    <h3>Item Details</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Description</th>
-                <th>Qty</th>
-            </tr>
-        </thead>
-        <tbody>
-        ${itemsHTML}
-        </tbody>
-    </table>
-    <div class="signature">
-        <p>For SHRESHT SYSTEMS</p>
-        <div class="signature-space"></div>
-        <p><strong>Authorized Signatory</strong></p>
-    </div>
-    <footer>
-        <p>This is a computer-generated way bill</p>
-    </footer>
+         
+        <h3>Item Details</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Qty</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${itemsHTML}
+            </tbody>
+        </table>
+        <div class="signature">
+            <p>For SHRESHT SYSTEMS</p>
+            <div class="signature-space"></div>
+            <p><strong>Authorized Signatory</strong></p>
+        </div>
+        <footer>
+            <p>This is a computer-generated way bill</p>
+        </footer>
     </div>`;
 }
 

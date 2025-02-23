@@ -112,15 +112,19 @@ header button {
 
 .record-item .details {
     flex-grow: 1;
+    gap: 1.5rem;
+    justify-content: space-around;
 }
 
 .record-item .actions {
     display: flex;
     gap: 0.5rem;
+    height: 6vh;
 }
 
 .record-item .actions button {
     padding: 0.5rem 1rem;
+    height: 100%;
     border: none;
     border-radius: 5px;
     background-color: #007bff;

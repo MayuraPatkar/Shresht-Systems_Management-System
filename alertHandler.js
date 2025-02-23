@@ -3,7 +3,6 @@ const path = require('path');
 
 function showAlert(message) {
     if (!message || typeof message !== 'string') {
-        console.error('Invalid message for alert');
         return;
     }
 

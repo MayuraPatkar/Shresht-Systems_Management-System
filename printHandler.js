@@ -1,11 +1,18 @@
 const { ipcMain, BrowserWindow } = require("electron");
 
+let printWindow = null;
+
 function handlePrintEvent() {
-    ipcMain.on("print", (event, { content }) => {
-        const printWindow = new BrowserWindow({
+    ipcMain.on("print", (event, { content, printOptions }) => {
+        if (printWindow) {
+            printWindow.close();
+        }
+
+        printWindow = new BrowserWindow({
             width: 800,
-            height: 600,
+            height: 1123,
             show: false,
+            parent: null,
             webPreferences: {
                 offscreen: true,
             },
@@ -25,12 +32,12 @@ function handlePrintEvent() {
                     margin: 0;
                     padding: 0;
                     box-sizing: border-box;
-                    width: 210mm;
                     overflow: hidden;        
                 }
 
                 .container {
-                    max-width: 208mm;
+                    background: #fff;
+                    width: 210mm;
                     height: 297mm;
                 }
 
@@ -65,6 +72,13 @@ function handlePrintEvent() {
                 .invoice-title {
                     text-align: center;
                     margin: 20px 0;
+                    font-size: 20px;
+                    color: #007bff;
+                    font-weight: bold;
+                }
+
+                .title {
+                    text-align: center;
                     font-size: 20px;
                     color: #007bff;
                     font-weight: bold;
@@ -152,7 +166,6 @@ function handlePrintEvent() {
 
                 .signature-space {
                     margin-top: 20px;
-                    border: 1px dashed #333;
                     width: 150px;
                     height: 40px;
                 }
@@ -169,10 +182,31 @@ function handlePrintEvent() {
                 ${content}
             </body>
         </html>
-        `)}`);
+        `)}`).catch(error => {
+            console.error("Error loading print content:", error);
+            event.sender.send('print-error', error.message);
+            printWindow.close();
+            printWindow = null;
+        });
 
         printWindow.webContents.on("did-finish-load", () => {
-            printWindow.webContents.print({ silent: false, printBackground: true });
+            const options = printOptions || { silent: false, printBackground: true };
+
+            printWindow.webContents.print(options, (success, failureReason) => {
+                if (!success) {
+                    console.error("Print failed:", failureReason);
+                    event.sender.send('print-error', failureReason);
+                } else {
+                    event.sender.send('print-success');
+                }
+
+                printWindow.close();
+                printWindow = null;
+            });
+        });
+
+        printWindow.on('closed', () => {
+            printWindow = null;
         });
     });
 }

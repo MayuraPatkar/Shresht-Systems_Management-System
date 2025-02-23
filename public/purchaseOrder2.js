@@ -119,16 +119,16 @@ function generatePreview() {
         </div>
 
         <div class="title">Purchase Order #${purchase_order_id}</div>
-    <div class="first-section">
-    <div>
-    <p><strong>To:</strong></p>
-    <p>${supplierName}</p>
-    <p>${supplierAddress}</p>
-    <p>Ph: ${supplierPhone}</p>
-    </div>
-    </div>
-    <h3>Item Details</h3>
-    <table>
+        <div class="first-section">
+            <div>
+                <p><strong>To:</strong></p>
+                <p>${supplierName}</p>
+                <p>${supplierAddress}</p>
+                <p>Ph: ${supplierPhone}</p>
+            </div>
+        </div>
+        <h3>Item Details</h3>
+        <table>
         <thead>
             <tr>
                 <th>Description</th>
@@ -146,21 +146,21 @@ function generatePreview() {
             </tr>
         </thead>
         <tbody>
-        ${itemsHTML}
+            ${itemsHTML}
         </tbody>
-    </table>
-    <div class="totals-section" style="text-align: right;">
+        </table>
+        <div class="totals-section" style="text-align: right;">
             ${totalsHTML}
         </div>
         <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
-    <div class="signature">
-        <p>For SHRESHT SYSTEMS</p>
-        <div class="signature-space"></div>
-        <p><strong>Authorized Signatory</strong></p>
-    </div>
-    <footer>
-        <p>This is a computer-generated purchase order</p>
-    </footer>
+        <div class="signature">
+            <p>For SHRESHT SYSTEMS</p>
+            <div class="signature-space"></div>
+            <p><strong>Authorized Signatory</strong></p>
+        </div>
+        <footer>
+            <p>This is a computer-generated purchase order</p>
+        </footer>
     </div>`;
 }
 

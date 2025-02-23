@@ -123,15 +123,19 @@ function generatePreview() {
 
     <div class="title">Quotation - #${quotation_id}</div>
     <div class="info-section" >
-        <p><strong>To:</strong> ${buyerName}<br>
+        <p>
+            <strong>To:</strong>
+            ${buyerName}<br>
             ${buyerAddress}<br>
-            Ph: ${buyerPhone}</p>
-        <br>
+            Ph: ${buyerPhone}
+        </p>
+
         <p contenteditable="true"><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${projectName}</p>
         <br>
+
         <p>Dear ${buyerName},</p>
+
         <p contenteditable="true">We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>Shresht Systems</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.</p>
-        
         <p>Our proposal includes:</p>
         <ul contenteditable="true">
             <li>Cutting-edge technology and premium-grade equipment</li>

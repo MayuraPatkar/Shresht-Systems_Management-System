@@ -43,7 +43,8 @@ function createQuotationDiv(quotation) {
     quotationDiv.className = "record-item";
     quotationDiv.innerHTML = `
         <div class="details">
-            <h3>${quotation.project_name} #${quotation.quotation_id}</h3>
+            <h3>${quotation.project_name}</h3>
+            <h4>#${quotation.quotation_id}</h4>
         </div>
         <div class="actions">
             <button class="btn btn-primary open-quotation" data-id="${quotation.quotation_id}">Open</button>
