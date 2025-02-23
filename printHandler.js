@@ -1,23 +1,20 @@
 const { ipcMain, BrowserWindow } = require("electron");
 
-let printWindow = null;
-
-function handlePrintEvent() {
-    ipcMain.on("print", (event, { content, printOptions }) => {
-        if (printWindow) {
-            printWindow.close();
-        }
-
-        printWindow = new BrowserWindow({
+function handlePrintEvent(mainWindow) {
+    ipcMain.on("PrintDoc", (event, { content }) => {
+        console.log("Printing document...");
+        
+        const printWindow = new BrowserWindow({
             width: 800,
-            height: 1123,
+            height: 600,
             show: false,
-            parent: null,
+            parent: mainWindow, // Set the parent to the main window
             webPreferences: {
                 offscreen: true,
             },
         });
 
+        // Load the HTML content into the print window
         printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
             <html>
             <head>
@@ -182,31 +179,16 @@ function handlePrintEvent() {
                 ${content}
             </body>
         </html>
-        `)}`).catch(error => {
-            console.error("Error loading print content:", error);
-            event.sender.send('print-error', error.message);
-            printWindow.close();
-            printWindow = null;
-        });
+        `)}`);
 
         printWindow.webContents.on("did-finish-load", () => {
-            const options = printOptions || { silent: false, printBackground: true };
+            // Trigger the print dialog
+            printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
+                if (!success) console.error("Print failed:", errorType);
 
-            printWindow.webContents.print(options, (success, failureReason) => {
-                if (!success) {
-                    console.error("Print failed:", failureReason);
-                    event.sender.send('print-error', failureReason);
-                } else {
-                    event.sender.send('print-success');
-                }
-
-                printWindow.close();
-                printWindow = null;
+                // Clean up: Close the window after printing
+                // printWindow.close();
             });
-        });
-
-        printWindow.on('closed', () => {
-            printWindow = null;
         });
     });
 }

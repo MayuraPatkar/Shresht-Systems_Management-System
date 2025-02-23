@@ -295,10 +295,10 @@ document.getElementById("save").addEventListener("click", () => {
 // Event listener for the "Print" button
 document.getElementById("print").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.print) {
+    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const quotationData = collectFormData();
         sendToServer(quotationData, true);
-        window.electronAPI.print(previewContent);
+        window.electronAPI.handlePrintEvent(previewContent);
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }
