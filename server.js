@@ -13,14 +13,13 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'public', 'views'));
 
 // MongoDB Connection
-async function connectDB() { // Use async function for cleaner promise handling
+async function connectDB() {
     try {
         await mongoose.connect(config.mongodbUri);
-        console.log('Successfully connected to MongoDB');
     } catch (error) {
         console.error('MongoDB connection failed:', error.message);
         console.error('Exiting process due to database connection failure');
-        process.exit(1); // Exit the process on critical failure
+        process.exit(1);
     }
 }
 
@@ -46,7 +45,7 @@ app.use('/purchaseOrder', purchaseRoutes);
 app.use('/wayBill', wayBillRoutes);
 app.use('/service', serviceRoutes);
 
-// Centralized Error Handling Middleware (Example - adjust based on your needs)
+// Centralized Error Handling Middleware
 app.use((err, req, res, next) => {
     console.error('Global error handler caught an error:', err);
     if (res.headersSent) { // Check if headers already sent to prevent error after response sent
@@ -57,9 +56,7 @@ app.use((err, req, res, next) => {
 
 
 // Start the server
-const server = app.listen(config.port, () => { 
-    console.log(`Express server running at http://localhost:${config.port}`);
-});
+const server = app.listen(config.port);
 
 // Handle server startup errors
 server.on('error', (error) => {

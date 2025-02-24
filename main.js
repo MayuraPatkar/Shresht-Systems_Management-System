@@ -5,12 +5,6 @@ const { showAlert } = require('./alertHandler');
 
 let mainWindow;
 
-const electronReload = require('electron-reload');
-
-electronReload(__dirname, {
-    electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
-});
-
 app.on('ready', () => {
     // Start Express server
     require('./server');
@@ -31,7 +25,7 @@ app.on('ready', () => {
         },
     });
     mainWindow.setMenu(null);
-    mainWindow.webContents.openDevTools();
+    mainWindow.maximize();
 
     // Load the Express server in the Electron window
     mainWindow.loadURL('http://localhost:3000');
