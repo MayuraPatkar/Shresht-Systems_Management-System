@@ -19,7 +19,6 @@ function handlePrintEvent(mainWindow) {
             <style>
                 @page {
                     size: A4;
-                    margin: 10mm;
                 }
 
                 body {
@@ -27,13 +26,19 @@ function handlePrintEvent(mainWindow) {
                     margin: 0;
                     padding: 0;
                     box-sizing: border-box;
-                    overflow: hidden;        
+                    overflow: hidden;      
                 }
 
                 .container {
-                    background: #fff;
-                    width: 210mm;
-                    height: 297mm;
+                    background: #fff !important;
+                    // width: 210mm;
+                    // height: 297mm;
+                    width: 250mm;
+                    height: 337mm;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                    margin: 0;
+                    padding: 0;
                 }
 
                 .header {
@@ -81,6 +86,7 @@ function handlePrintEvent(mainWindow) {
 
                 .first-section {
                     display: flex;
+                    flex-direction: Column;
                     justify-content: space-between;
                     margin-bottom: 20px;
                 }

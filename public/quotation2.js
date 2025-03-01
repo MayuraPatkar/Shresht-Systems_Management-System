@@ -125,11 +125,11 @@ function generatePreview() {
     <div class="info-section" >
         <p>
             <strong>To:</strong>
-            ${buyerName}<br>
-            ${buyerAddress}<br>
-            Ph: ${buyerPhone}
+            &nbsp;&nbsp;${buyerName}<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${buyerAddress}<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ph: ${buyerPhone}
         </p>
-
+<br>
         <p contenteditable="true"><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${projectName}</p>
         <br>
 
@@ -147,7 +147,7 @@ function generatePreview() {
         <p contenteditable="true">We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.</p>
         
         <p contenteditable="true">We look forward to your positive response and the opportunity to collaborate with you.</p>
-        
+        <br>
         <p>Best regards,</p>
         <p><strong>Sandeep Nayak</strong><br>
            <strong>Shresht Systems</strong><br>

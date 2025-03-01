@@ -30,6 +30,7 @@ function generatePreview() {
     let totalPrice = 0;
     let totalCGST = 0;
     let totalSGST = 0;
+    let totalTax = 0;
     let totalTaxableValue = 0;
     let grandTotal = 0;
     let roundOff = 0;
@@ -59,6 +60,7 @@ function generatePreview() {
 
             totalCGST += cgstValue;
             totalSGST += sgstValue;
+            totalTax = totalCGST + totalSGST;
             totalPrice += rowTotal;
 
             itemsHTML += `
@@ -69,10 +71,6 @@ function generatePreview() {
                     <td>${unitPrice.toFixed(2)}</td>
                     <td>${taxableValue.toFixed(2)}</td>
                     <td>${rate.toFixed(2)}</td>
-                    <td>${cgstPercent.toFixed(2)}</td>
-                    <td>${cgstValue.toFixed(2)}</td>
-                    <td>${sgstPercent.toFixed(2)}</td>
-                    <td>${sgstValue.toFixed(2)}</td>
                     <td>${rowTotal.toFixed(2)}</td>
                 </tr>
             `;
@@ -98,8 +96,7 @@ function generatePreview() {
     totalsHTML = `
         ${hasTax ? `
         <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
-        <p><strong>Total CGST:</strong> ₹${totalCGST.toFixed(2)}</p>
-        <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>` : ""}
+        <p><strong>Total Tax:</strong> ₹${totalTax.toFixed(2)}</p>` : ""}
         <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
     `;
 
@@ -121,10 +118,17 @@ function generatePreview() {
         <div class="title">Purchase Order #${purchase_order_id}</div>
         <div class="first-section">
             <div>
-                <p><strong>To:</strong></p>
-                <p>${supplierName}</p>
-                <p>${supplierAddress}</p>
-                <p>Ph: ${supplierPhone}</p>
+                <p><strong>Project Name:</strong> ${document.getElementById("projectName").value}</p>
+                <p><strong>Handled By:</strong> ${handledBy}</p>
+                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+            </div>
+            <br>
+            <div>
+                <p><strong>To:</strong>
+                &nbsp;&nbsp;${supplierName}<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${supplierAddress}</br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ph: ${supplierPhone}
+                </p>
             </div>
         </div>
         <h3>Item Details</h3>
@@ -137,11 +141,7 @@ function generatePreview() {
                 <th>Rate (₹)</th>
                 ${hasTax ? `
                     <th>Taxable Value (₹)</th>
-                    <th>Rate (%)</th>
-                    <th>CGST (%)</th>
-                    <th>CGST (₹)</th>
-                    <th>SGST (%)</th>
-                    <th>SGST (₹)</th>` : ""}
+                    <th>Rate (%)</th>` : ""}
                 <th>Total Price (₹)</th>
             </tr>
         </thead>
