@@ -37,11 +37,8 @@ router.post("/save-invoice", async (req, res) => {
             poDate,
             dcNumber = '',
             dcDate,
-            service_month,
+            service_month = 0,
             ewayBillNumber = '',
-            transportMode = '',
-            vehicleNumber = '',
-            placeSupply = '',
             buyerName = '',
             buyerAddress = '',
             buyerPhone = '',
@@ -77,9 +74,6 @@ router.post("/save-invoice", async (req, res) => {
             existingInvoice.dc_date = dcDate;
             existingInvoice.service_month = service_month;
             existingInvoice.E_Way_Bill_number = ewayBillNumber;
-            existingInvoice.transport_mode = transportMode;
-            existingInvoice.vehicle_number = vehicleNumber;
-            existingInvoice.place_supply = placeSupply;
             existingInvoice.date = date;
             existingInvoice.buyer_name = buyerName;
             existingInvoice.buyer_address = buyerAddress;
@@ -110,9 +104,6 @@ router.post("/save-invoice", async (req, res) => {
                 dc_date: dcDate,
                 service_month: service_month,
                 E_Way_Bill_number: ewayBillNumber,
-                transport_mode: transportMode,
-                vehicle_number: vehicleNumber,
-                place_supply: placeSupply,
                 date,
                 buyer_name: buyerName,
                 buyer_address: buyerAddress,
@@ -139,14 +130,14 @@ router.post("/save-invoice", async (req, res) => {
     }
 });
 
-// Route to get the 5 most recent invoices with optional filter
+// Route to get the 5 most recent invoices
 router.get("/recent-invoices", async (req, res) => {
     try {
         // Fetch the 5 most recent invoices, sorted by creation date
         const recentInvoices = await Invoices.find()
-            .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
+            .sort({ createdAt: -1 }) 
             .limit(5)
-            .select("project_name invoice_id date status"); // Select only the required fields
+            .select("project_name invoice_id date status");
 
         // Respond with the fetched invoices
         res.status(200).json({

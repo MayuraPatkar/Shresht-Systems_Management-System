@@ -8,10 +8,17 @@ document.getElementById("nextBtn").addEventListener("click", () => {
         document.getElementById(`step-${currentStep}`).classList.add("active");
         updateNavigation();
         if (currentStep === totalSteps) generatePreview();
-    } else {
-        // Handle form submission
-        window.electronAPI.showAlert('Form submitted!');
     }
+});
+
+function moveNext() {
+    document.getElementById('nextBtn').click();
+}
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+      moveNext();
+  }
 });
 
 document.getElementById("prevBtn").addEventListener("click", () => {
@@ -25,7 +32,7 @@ document.getElementById("prevBtn").addEventListener("click", () => {
 
 function updateNavigation() {
     document.getElementById("prevBtn").disabled = currentStep === 1;
-    document.getElementById("nextBtn").textContent = currentStep === totalSteps ? 'Submit' : 'Next';
+    document.getElementById("nextBtn").disabled = currentStep === totalSteps;;
 }
 
 document.getElementById('add-item-btn').addEventListener('click', addItem);

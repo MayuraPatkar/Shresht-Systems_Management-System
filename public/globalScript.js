@@ -5,6 +5,16 @@ document.getElementById('logo').addEventListener('click', () => {
 
 let currentStep = 1;
 
+function moveNext() {
+    document.getElementById('nextBtn').click();
+}
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+      moveNext();
+  }
+});
+
 // Event listener for the "Next" button
 document.getElementById("nextBtn").addEventListener("click", () => {
     if (currentStep < totalSteps) {

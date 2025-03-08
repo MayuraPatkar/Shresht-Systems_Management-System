@@ -27,3 +27,15 @@ document.getElementById('login2').addEventListener('click', () => {
             console.error('Error:', error);
         });
 });
+
+
+function login() {
+    document.getElementById('login2').click();
+}
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+      login();
+  }
+});
+

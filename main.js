@@ -3,6 +3,11 @@ const path = require('path');
 const { handlePrintEvent } = require('./printHandler');
 const { showAlert } = require('./alertHandler');
 
+require('electron-reload')(path.join(__dirname), {
+    electron: require(`${__dirname}/node_modules/electron`)
+});
+
+
 let mainWindow;
 
 app.on('ready', () => {
@@ -29,6 +34,7 @@ app.on('ready', () => {
 
     // Load the Express server in the Electron window
     mainWindow.loadURL('http://localhost:3000');
+    mainWindow.webContents.openDevTools();
     handlePrintEvent(mainWindow);
     showAlert();
     mainWindow.on('closed', () => {

@@ -1,3 +1,3 @@
 document.getElementById('login1').addEventListener('click', () => {
-    window.location = '/dashboard';
+    window.location = '/login';
 })

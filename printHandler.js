@@ -94,7 +94,7 @@ function handlePrintEvent(mainWindow) {
                 .info-section,
                 .buyer-details {
                     padding:3%;
-                    font-size: 18px;
+                    font-size: 20px;
                     margin-bottom: 20px;
                     line-height: 1.5;
                 }
@@ -152,7 +152,7 @@ function handlePrintEvent(mainWindow) {
 
                 .terms-section {
                     padding: 3%;
-                    font-size: 18px;
+                    font-size: 20px;
                     margin-bottom: 20px;
                     line-height: 1.5;
                 }

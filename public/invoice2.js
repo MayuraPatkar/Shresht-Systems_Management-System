@@ -71,9 +71,6 @@ function generatePreview() {
     const buyerName = document.getElementById("buyerName").value;
     const buyerAddress = document.getElementById("buyerAddress").value;
     const buyerPhone = document.getElementById("buyerPhone").value;
-    const transportMode = document.getElementById("transportMode").value;
-    const vehicleNumber = document.getElementById("vehicleNumber").value;
-    const placeSupply = document.getElementById("placeSupply").value;
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
 
     let totalPrice = 0;
@@ -184,9 +181,6 @@ function generatePreview() {
                 <p><strong>D.C No:</strong> ${dcNumber}</p>
                 <!-- <p><strong>D.C Date:</strong> ${dcDate}</p> -->
                 <p><strong>E-Way Bill:</strong> ${ewayBillNumber}</p>
-                <!-- <p><strong>Transportation:</strong> ${transportMode}</p>
-                <p><strong>Vehicle No:</strong> ${vehicleNumber}</p>
-                <p><strong>Place Supply:</strong> ${placeSupply}</p> -->
             </div>
         </div>
 
@@ -305,9 +299,6 @@ function collectFormData() {
         buyerPhone: document.getElementById("buyerPhone").value,
         consigneeName: document.getElementById("consigneeName").value,
         consigneeAddress: document.getElementById("consigneeAddress").value,
-        transportMode: document.getElementById("transportMode").value,
-        vehicleNumber: document.getElementById("vehicleNumber").value,
-        placeSupply: document.getElementById("placeSupply").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(1) input").value,
             HSN_SAC: row.querySelector("td:nth-child(2) input").value,
