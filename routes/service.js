@@ -1,22 +1,54 @@
 const express = require('express');
 const router = express.Router();
 const { Invoices } = require('./database');
+const moment = require('moment');
 
 // Get service notifications
 router.get('/get-service', async (req, res) => {
     try {
-        const services = [];
-        const projects = await Invoices.find();
+        const currentDate = moment(); // Get current date
 
-        projects.forEach(project => {
-            if (project.service_month === 0) {
-                services.push(project);
-            }
+        // Fetch invoices where service_month is not zero
+        const projects = await Invoices.find({ service_month: { $ne: 0 } });
+
+        // Filter invoices based on service_month and createdAt
+        const filteredProjects = projects.filter(project => {
+            if (!project.createdAt || !project.service_month) return false; // Ensure values exist
+
+            const createdDate = moment(project.createdAt);
+            const targetDate = createdDate.add(project.service_month, 'days');
+
+            return currentDate.isSameOrAfter(targetDate, 'day');
         });
 
-        res.json({ services });
+        res.json({ projects: filteredProjects });
     } catch (error) {
         console.error("Error fetching services:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+router.post('/update-nextService', async (req, res) => {
+    try {
+        const { invoice_id, next_service } = req.body;
+        console.log(invoice_id, next_service);
+
+        // Check if project exists
+        const project = await Invoices.findOne({ invoice_id: invoice_id });
+        if (!project) return res.status(404).json({ error: "Project not found" });
+
+        // Update project with service_month
+        if (next_service === "yes") {
+            project.service_month = project.service_month * 2;
+            await project.save();
+        } else {
+            project.service_month = 0;
+            await project.save();
+        }
+
+        res.json({ message: "Service added successfully" });
+    } catch (error) {
+        console.error("Error adding service:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });

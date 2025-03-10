@@ -12,7 +12,8 @@
 
 <body>
     <header>
-        <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
+        <div class="img" id="logo"><img src="./assets/icon.png" alt="logo" onclick="window.location = '/dashboard'">
+        </div>
         <h1>Service</h1>
         <button onclick="window.location = '/service'">Home</button>
     </header>
@@ -46,56 +47,33 @@
     </div>
     <div id="new">
         <form id="Service">
-            <input type="hidden" id="quotationId" value="">
+            <input type="hidden" id="Id" value="">
+            <input type="hidden" id="projectName" value="">
+            <input type="hidden" id="name" value="">
+            <input type="hidden" id="phone" value="">
+            <input type="hidden" id="address" value="">
             <div class="steps active" id="step-1">
-                <h2>Project Details</h2>
+                <h2>Service Details</h2>
                 <div class="form-group">
-                    <label for="projectName">Project name:</label>
-                    <input type="text" id="projectName">
+                    <label for="payment">Payment:</label>
+                    <input type="text" id="payment">
                 </div>
+                <div class="form-group">
+                    <label for="question-yes">Is There Next Service? :</label>
+                    <input type="radio" name="question" id="question-yes" value="yes">
+                    <label for="question-yes">Yes</label>
+
+                    <input type="radio" name="question" id="question-no" value="no">
+                    <label for="question-no">No</label>
+                </div>
+
             </div>
             <div class="steps" id="step-2">
-                <h2>Recipient Details (to)</h2>
-                <div class="form-group">
-                    <label for="buyerName">Buyer Name:</label>
-                    <input type="text" id="buyerName">
-                </div>
-                <div class="form-group">
-                    <label for="buyerAddress">Address:</label>
-                    <textarea id="buyerAddress"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="buyerPhone">Phone Number:</label>
-                    <input type="tel" id="buyerPhone">
-                </div>
-            </div>
-            <div class="steps" id="step-3">
-                <h2>Item List</h2>
-                <div class="form-group">
-                    <label>Items:</label>
-                    <table id="items-table">
-                        <thead>
-                            <tr>
-                                <th>Description</th>
-                                <th>HSN/SAC</th>
-                                <th>Qty</th>
-                                <th>Unit Price</th>
-                                <th>Rate</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                    <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
-                </div>
-            </div>
-            <div class="steps" id="step-4">
                 <div class="preview">
                     <h2>Preview</h2>
                     <div id="preview-content"></div>
                 </div>
-                <button type="button" id="save">Save</button>
+                <!-- <button type="button" id="save">Save</button> -->
                 <button type="button" id="print">Print</button>
             </div>
             <div class="navigation">
@@ -104,7 +82,7 @@
             </div>
         </form>
     </div>
-    <script src="./globalScript.js"></script>
+    <!-- <script src="./globalScript.js"></script> -->
     <script src="./service.js"></script>
 </body>
 
