@@ -72,10 +72,6 @@ function generatePreview() {
                     <td>${unitPrice.toFixed(2)}</td>
                     <td>${taxableValue.toFixed(2)}</td>
                     <td>${rate.toFixed(2)}</td>
-                    <td>${cgstPercent.toFixed(2)}</td>
-                    <td>${cgstValue.toFixed(2)}</td>
-                    <td>${sgstPercent.toFixed(2)}</td>
-                    <td>${sgstValue.toFixed(2)}</td>
                     <td>${rowTotal.toFixed(2)}</td>
                 </tr>
             `;
@@ -175,7 +171,7 @@ function generatePreview() {
         </div>
     </div>
 <div class="items-section">
-            <h3>Item Details</h3>
+            <h2>Item Details</h2>
             <table class="items-table">
                 <thead>
                     <tr>
@@ -185,11 +181,7 @@ function generatePreview() {
                         <th>Unit Price</th>
                         ${hasTax ? `
                         <th>Taxable Value (₹)</th>
-                        <th>Rate (%)</th>
-                        <th>CGST (%)</th>
-                        <th>CGST (₹)</th>
-                        <th>SGST (%)</th>
-                        <th>SGST (₹)</th>` : ""}
+                        <th>Rate (%)</th>` : ""}
                         <th>Total Price (₹)</th>
                     </tr>
                 </thead>

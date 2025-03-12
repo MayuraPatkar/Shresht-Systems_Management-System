@@ -16,6 +16,13 @@ function hideModal() {
 }
 
 function addItemDiv() {
+    document.getElementById('item_name').value = "";
+    document.getElementById('HSN_SAC').value = "";
+    document.getElementById('unit_price').value = "";
+    document.getElementById('item_quantity').value = "";
+    document.getElementById('threshold').value = "";
+    document.getElementById('GST').value = "";
+    document.getElementById('min_quantity').value = "";
     showModal('addItem');
 }
 
@@ -161,12 +168,10 @@ async function lowStock() {
             throw new Error('Failed to fetch stock data');
         }
         const stockData = await response.json();
+        const tableBody = document.getElementById('stock-table-body');
+        tableBody.innerHTML = '';
         stockData.forEach(item => {
             if (item.quantity < item.min_quantity) {
-                const tableBody = document.getElementById('stock-table-body');
-                tableBody.innerHTML = '';
-
-
                 const row = document.createElement('tr');
                 row.classList.toggle('low-stock', item.quantity < item.min_quantity);
 

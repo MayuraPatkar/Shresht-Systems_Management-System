@@ -23,7 +23,7 @@ app.on('ready', () => {
         y: 0,
         autoHideMenuBar: true,
         frame: true,
-        icon: path.join(__dirname, 'public', 'assets', 'icon.png'),
+        icon: path.join(__dirname, 'public', 'assets', 'icon.ico'),
         webPreferences: {
             nodeIntegration: true,
             preload: path.join(__dirname, 'preload.js'),

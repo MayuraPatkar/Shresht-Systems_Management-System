@@ -56,6 +56,13 @@ function removeItem(button) {
     button.parentElement.parentElement.remove();
 }
 
+// Event listener for the "Remove Item" button
+document.querySelector("#items-table").addEventListener("click", (event) => {
+    if (event.target.classList.contains('remove-item-btn')) {
+      event.target.closest('tr').remove();
+    }
+  });
+
 function generatePreview() {
     const projectName = document.getElementById("projectName").value || "";
     const ewayBillNumber = document.getElementById("wayBillId").value || "";
@@ -71,10 +78,14 @@ function generatePreview() {
     for (let row of itemsTable.rows) {
         const description = row.cells[0].querySelector("input").value || "-";
         const qty = row.cells[2].querySelector("input").value || "0";
+        const unitPrice = row.cells[3].querySelector("input").value || "0";
+        const total = (qty * unitPrice).toFixed(2);
 
         itemsHTML += `<tr>
             <td>${description}</td>
             <td>${qty}</td>
+            <td>${unitPrice}</td>
+            <td>${total}</td>
         </tr>`;
     }
 
@@ -97,7 +108,6 @@ function generatePreview() {
 
         <div class="first-section">
             <div>
-                <p><strong>To:</strong></p> 
                 <p>Buyer: ${buyerName}</p>
                 <p>Address: ${buyerAddress}</p>
                 <p>Ph: ${buyerPhone}</p>
@@ -116,6 +126,8 @@ function generatePreview() {
                 <tr>
                     <th>Description</th>
                     <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
                 </tr>
             </thead>
             <tbody>

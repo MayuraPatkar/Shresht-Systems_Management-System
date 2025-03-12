@@ -44,14 +44,14 @@
 .title {
     text-align: center;
     /* margin: 10px 0; */
-    font-size: 20px;
+    font-size: 28px;
     color: #007bff;
     font-weight: bold;
 }
 
 .first-section {
     display: flex;
-    flex-direction: column;
+    /* flex-direction: column; */
     justify-content: space-between;
     margin-bottom: 20px;
 }
@@ -78,10 +78,10 @@
 
 .container table th,
 .container table td {
-    border: 1px solid #ddd;
+    border: 1px solid #000000;
     padding: 10px;
     text-align: left;
-    font-size: 10px;
+    font-size: 15px;
 }
 
 .container table th {

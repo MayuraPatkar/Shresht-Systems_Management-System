@@ -69,21 +69,21 @@ function showConfirmBox(message, onConfirm, onCancel) {
 // Function to convert number to words
 function numberToWords(num) {
   const a = [
-    '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
+    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
   ];
   const b = [
-    '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
+    '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'
   ];
 
   const numToWords = (n) => {
     if (n < 20) return a[n];
     const digit = n % 10;
     if (n < 100) return b[Math.floor(n / 10)] + (digit ? '-' + a[digit] : '');
-    if (n < 1000) return a[Math.floor(n / 100)] + ' hundred' + (n % 100 === 0 ? '' : ' and ' + numToWords(n % 100));
-    return numToWords(Math.floor(n / 1000)) + ' thousand' + (n % 1000 !== 0 ? ' ' + numToWords(n % 1000) : '');
+    if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 === 0 ? '' : ' and ' + numToWords(n % 100));
+    return numToWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 !== 0 ? ' ' + numToWords(n % 1000) : '');
   };
 
-  if (num === 0) return 'zero';
+  if (num === 0) return 'Zero';
 
   const crore = Math.floor(num / 10000000);
   const lakh = Math.floor((num % 10000000) / 100000);
@@ -93,15 +93,15 @@ function numberToWords(num) {
   let result = '';
 
   if (crore) {
-    result += numToWords(crore) + ' crore';
+    result += numToWords(crore) + ' Crore';
   }
 
   if (lakh) {
-    result += (result ? ' ' : '') + numToWords(lakh) + ' lakh';
+    result += (result ? ' ' : '') + numToWords(lakh) + ' Lakh';
   }
 
   if (thousand) {
-    result += (result ? ' ' : '') + numToWords(thousand) + ' thousand';
+    result += (result ? ' ' : '') + numToWords(thousand) + ' Thousand';
   }
 
   if (remainder) {

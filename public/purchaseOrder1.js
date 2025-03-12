@@ -136,7 +136,11 @@ async function deletePurchaseOrder(purchaseOrderId) {
     }
 }
 
-
+// Show the new purchase order form
+function showNewPurchaseForm() {
+    document.getElementById('home').style.display = 'none';
+    document.getElementById('new').style.display = 'block';
+}
 
 // Handle search functionality
 async function handleSearch() {
