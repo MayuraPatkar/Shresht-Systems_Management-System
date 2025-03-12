@@ -128,4 +128,25 @@ router.post('/editItem', async (req, res) => {
     }
 });
 
+router.get("/get-stock-item", async (req, res) => {
+    try {
+        const itemName = req.query.item;
+        if (!itemName) return res.status(400).json({ message: "Item name required" });
+
+        const stockItem = await Stock.findOne({ itemName });
+        if (!stockItem) return res.status(404).json({ message: "Stock item not found" });
+
+        res.json({
+            itemName: stockItem.itemName,
+            HSN_SAC: stockItem.HSN_SAC,
+            unitPrice: stockItem.unitPrice,
+            GST: stockItem.GST
+        });
+    } catch (error) {
+        console.error("Error fetching stock item:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+
 module.exports = router;

@@ -137,3 +137,33 @@ document.querySelector("#items-table").addEventListener("click", (event) => {
     event.target.closest('tr').remove();
   }
 });
+
+// Fetch stock data from the backend
+async function fetchStockData(itemName) {
+  try {
+      const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
+      if (!response.ok) throw new Error('Stock not found');
+      return await response.json();
+  } catch (error) {
+      console.error("Error fetching stock data:", error);
+      return null;
+  }
+}
+
+// Event listener for item description or item code input
+document.querySelector("#items-table").addEventListener("input", async (event) => {
+  const row = event.target.closest("tr");
+
+  if (event.target.placeholder === "Item Description" || event.target.placeholder === "HSN/SAC") {
+      const itemName = row.querySelector("input[placeholder='Item Description']").value.trim();
+      
+      if (itemName.length > 2) { // Avoid unnecessary API calls for short inputs
+          const stockData = await fetchStockData(itemName);
+          if (stockData) {
+              row.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
+              row.querySelector("input[placeholder='Unit Price']").value = stockData.unitPrice || 0;
+              row.querySelector("input[placeholder='Rate']").value = stockData.GST || 0;
+          }
+      }
+  }
+});
