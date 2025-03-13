@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Admin, Invoices } = require('./database');
+const { Admin, Invoices, Stock } = require('./database');
 
 // Function to generate a unique ID for each Invoice
 function generateUniqueId() {
@@ -50,79 +50,75 @@ router.post("/save-invoice", async (req, res) => {
             status = 'unpaid'
         } = req.body;
 
-        // Validate required fields
-        if (!invoiceId || !projectName ) {
-            return res.status(400).json({
-                message: 'Missing required fields or invalid data: invoiceId, projectName.',
-            });
+        if (!invoiceId || !projectName) {
+            return res.status(400).json({ message: 'Missing required fields: invoiceId, projectName.' });
         }
 
-        // Fetch admin details
         const admin = await Admin.findOne();
         if (!admin) {
             return res.status(404).json({ message: 'Admin not found' });
         }
 
-        // Check if invoice already exists
         const existingInvoice = await Invoices.findOne({ invoice_id: invoiceId });
+
         if (existingInvoice) {
-            // Update the existing invoice
-            existingInvoice.project_name = projectName;
-            existingInvoice.po_number = poNumber;
-            existingInvoice.po_date = poDate;
-            existingInvoice.dc_number = dcNumber;
-            existingInvoice.dc_date = dcDate;
-            existingInvoice.service_month = service_month;
-            existingInvoice.E_Way_Bill_number = ewayBillNumber;
-            existingInvoice.date = date;
-            existingInvoice.buyer_name = buyerName;
-            existingInvoice.buyer_address = buyerAddress;
-            existingInvoice.buyer_phone = buyerPhone;
-            existingInvoice.consignee_name = consigneeName;
-            existingInvoice.consignee_address = consigneeAddress;
-            existingInvoice.items = items;
-            existingInvoice.due_amount = due_amount;
-            existingInvoice.status = status;
+            // Calculate stock difference
+            const prevItems = existingInvoice.items;
+            const stockChanges = {};
 
-            // Save the updated invoice
+            for (let prevItem of prevItems) {
+                stockChanges[prevItem.description] = (stockChanges[prevItem.description] || 0) + prevItem.quantity;
+            }
+            for (let newItem of items) {
+                stockChanges[newItem.description] = (stockChanges[newItem.description] || 0) - newItem.quantity;
+            }
+
+            for (let [itemName, change] of Object.entries(stockChanges)) {
+                if (change !== 0) {
+                    const stockItem = await Stock.findOne({ itemName });
+                    if (stockItem) {
+                        stockItem.quantity += change;
+                        if (stockItem.quantity < 0) {
+                            return res.status(400).json({ message: `Not enough stock for ${itemName}` });
+                        }
+                        await stockItem.save();
+                    }
+                }
+            }
+
+            // Update the invoice
+            Object.assign(existingInvoice, {
+                project_name: projectName, po_number: poNumber, po_date: poDate,
+                dc_number: dcNumber, dc_date: dcDate, service_month, E_Way_Bill_number: ewayBillNumber,
+                date, buyer_name: buyerName, buyer_address: buyerAddress, buyer_phone: buyerPhone,
+                consignee_name: consigneeName, consignee_address: consigneeAddress, items,
+                due_amount, status
+            });
+
             const updatedInvoice = await existingInvoice.save();
-
-            // Respond with success message and data
-            return res.status(200).json({
-                message: 'Invoice updated successfully',
-                invoice: updatedInvoice,
-            });
+            return res.status(200).json({ message: 'Invoice updated successfully', invoice: updatedInvoice });
         } else {
-            // Create a new invoice with the provided data
+            // Deduct stock for new invoice
+            for (let item of items) {
+                const stockItem = await Stock.findOne({ itemName: item.description });
+                if (!stockItem || stockItem.quantity < item.quantity) {
+                    return res.status(400).json({ message: `Not enough stock for ${item.description}` });
+                }
+                stockItem.quantity -= item.quantity;
+                await stockItem.save();
+            }
+
+            // Create a new invoice
             const invoice = new Invoices({
-                admin: admin._id,
-                project_name: projectName,
-                invoice_id: invoiceId,
-                po_number: poNumber,
-                po_date: poDate,
-                dc_number: dcNumber,
-                dc_date: dcDate,
-                service_month: service_month,
-                E_Way_Bill_number: ewayBillNumber,
-                date,
-                buyer_name: buyerName,
-                buyer_address: buyerAddress,
-                buyer_phone: buyerPhone,
-                consignee_name: consigneeName,
-                consignee_address: consigneeAddress,
-                items,
-                due_amount,
-                status
+                admin: admin._id, project_name: projectName, invoice_id: invoiceId, po_number: poNumber,
+                po_date: poDate, dc_number: dcNumber, dc_date: dcDate, service_month,
+                E_Way_Bill_number: ewayBillNumber, date, buyer_name: buyerName, buyer_address: buyerAddress,
+                buyer_phone: buyerPhone, consignee_name: consigneeName, consignee_address: consigneeAddress,
+                items, due_amount, status
             });
 
-            // Save the new invoice
             const savedInvoice = await invoice.save();
-
-            // Respond with success message and data
-            return res.status(201).json({
-                message: 'Invoice saved successfully',
-                invoice: savedInvoice,
-            });
+            return res.status(201).json({ message: 'Invoice saved successfully', invoice: savedInvoice });
         }
     } catch (error) {
         console.error('Error saving data:', error);
@@ -130,12 +126,13 @@ router.post("/save-invoice", async (req, res) => {
     }
 });
 
+
 // Route to get the 5 most recent invoices
 router.get("/recent-invoices", async (req, res) => {
     try {
         // Fetch the 5 most recent invoices, sorted by creation date
         const recentInvoices = await Invoices.find()
-            .sort({ createdAt: -1 }) 
+            .sort({ createdAt: -1 })
             .limit(5)
             .select("project_name invoice_id date status");
 
