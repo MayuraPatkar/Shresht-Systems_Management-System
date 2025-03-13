@@ -107,19 +107,19 @@ function generatePreview() {
         <div class="title">Way Bill #${ewayBillNumber}</div>
 
         <div class="first-section">
-            <div>
-                <p>Buyer: ${buyerName}</p>
-                <p>Address: ${buyerAddress}</p>
-                <p>Ph: ${buyerPhone}</p>
+            <div class="buyer-details">
+                <p>${buyerName}</p>
+                <p>${buyerAddress}</p>
+                <p>${buyerPhone}</p>
             </div>
-            <div>
+            <div class="info-section">
                 <p><strong>Project Name:</strong> ${projectName}</p>
                 <p><strong>Transportation Mode:</strong> ${transportMode}</p>
                 <p><strong>Vehicle Number:</strong> ${vehicleNumber}</p>
                 <p><strong>Place to Supply:</strong> ${placeSupply}</p>
             </div>  
         </div>
-         
+         <div class="second-section">
         <h3>Item Details</h3>
         <table>
             <thead>
@@ -134,10 +134,13 @@ function generatePreview() {
                 ${itemsHTML}
             </tbody>
         </table>
+        </div>
+        <div class="fifth-section">
         <div class="signature">
             <p>For SHRESHT SYSTEMS</p>
             <div class="signature-space"></div>
             <p><strong>Authorized Signatory</strong></p>
+        </div>
         </div>
         <footer>
             <p>This is a computer-generated way bill</p>

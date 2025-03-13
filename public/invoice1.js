@@ -102,7 +102,6 @@ async function openInvoice(invoiceId) {
         document.getElementById('consigneeName').value = invoice.consignee_name;
         document.getElementById('consigneeAddress').value = invoice.consignee_address;
         document.getElementById('poNumber').value = invoice.po_number;
-        document.getElementById('poDate').value = formatDate(invoice.po_date);
         document.getElementById('dcNumber').value = invoice.dc_number;
         document.getElementById('dcDate').value = formatDate(invoice.dc_date);
         document.getElementById('service_month').value = invoice.service_month;

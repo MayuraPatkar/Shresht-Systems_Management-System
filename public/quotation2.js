@@ -12,7 +12,7 @@ async function getId() {
         const data = await response.json();
         document.getElementById('Id').value = data.quotation_id;
         quotation_id = data.quotation_id;
-        if(quotation_id) generatePreview();
+        if (quotation_id) generatePreview();
     } catch (error) {
         console.error("Error fetching quotation id:", error);
         window.electronAPI.showAlert("Failed to fetch quotation id. Please try again later.");
@@ -21,7 +21,7 @@ async function getId() {
 
 // Function to generate the preview for boyh tax rate and without tax rate
 function generatePreview() {
-    if(!quotation_id){
+    if (!quotation_id) {
         quotation_id = document.getElementById('Id').value;
     }
     const projectName = document.getElementById("projectName").value || "";
@@ -119,13 +119,11 @@ function generatePreview() {
 
     <div class="title">Quotation - #${quotation_id}</div>
     <div class="info-section" >
-        <p>
-            <strong>To:</strong>
-            &nbsp;&nbsp;${buyerName}<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${buyerAddress}<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ph: ${buyerPhone}
-        </p>
-<br>
+        <p><strong>To:</strong></p>
+          <p>${buyerName}</p>
+          <p>${buyerAddress}</p>
+          <p>${buyerPhone}</p>
+        <br>
         <p contenteditable="true"><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${projectName}</p>
         <br>
 

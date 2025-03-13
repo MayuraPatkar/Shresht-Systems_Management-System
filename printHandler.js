@@ -41,143 +41,177 @@ function handlePrintEvent(mainWindow) {
                     padding: 0;
                 }
 
-                .header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    border-bottom: 2px solid #007bff;
-                    padding-bottom: 15px;
-                    margin-bottom: 20px;
-                }
+                /* 
+        header section starts here
+        */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 2px;
+            margin-bottom: 2px;
+        }
 
-                .header .logo img {
-                    max-width: 250px;
-                }
+        .header .logo img {
+            max-width: 250px;
+        }
 
-                .header .company-details {
-                    text-align: right;
-                }
+        .header .company-details {
+            text-align: right;
+        }
 
-                .header .company-details h1 {
-                    margin: 0;
-                    font-size: 24px;
-                    color: #007bff;
-                }
+        .header .company-details h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #007bff;
+        }
 
-                .header .company-details p {
-                    margin: 2px 0;
-                    font-size: 14px;
-                }
+        .header .company-details p {
+            margin: 2px 0;
+            font-size: 14px;
+        }
 
-                .invoice-title {
-                    text-align: center;
-                    margin: 20px 0;
-                    font-size: 20px;
-                    color: #007bff;
-                    font-weight: bold;
-                }
+        /* 
+        title section starts here
+        */
+        .title {
+            text-align: center;
+            font-size: 20px;
+            color: #007bff;
+            font-weight: bold;
+        }
 
-                .title {
-                    text-align: center;
-                    font-size: 20px;
-                    color: #007bff;
-                    font-weight: bold;
-                }
+        /* 
+        first-section starts here
+        */
+        .first-section {
+            display: flex;
+            justify-content: space-evenly;
+        }
 
-                .first-section {
-                    display: flex;
-                    flex-direction: Column;
-                    justify-content: space-between;
-                    margin-bottom: 20px;
-                }
+        .info-section{
+            text-align: right;
+        }
 
-                .info-section,
-                .buyer-details {
-                    padding:3%;
-                    font-size: 20px;
-                    margin-bottom: 20px;
-                    line-height: 1.5;
-                }
+        .info-section,
+        .buyer-details {
+            padding: 0.2%;
+            font-size: 12px;
+            line-height: 1.0;
+            width: 50%;
+        }
 
-                .buyer-details p .info-section p {
-                    margin: 3px 0;
-                }
+        .buyer-details p .info-section p {
+            margin: 3px 0;
+        }
 
-                .container table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 20px;
-                    table-layout: auto;
-                }
+        /* 
+        second-section starts here
+        */
+        .second-section {
+            display: flex;
+            justify-content: space-between;
+        }
 
-                .container table th,
-                .container table td {
-                    border: 1px solid #ddd;
-                    padding: 10px;
-                    text-align: left;
-                    font-size: 10px;
-                }
-            
-                .container table th {
-                    background-color: #007bff !important;
-                    color: #fff !important;
-                    font-weight: bold;
-                    -webkit-print-color-adjust: exact;
-                    print-color-adjust: exact;
-                }
+        .container table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
 
-                .second-section {
-                    display: flex;
-                    justify-content: space-between;
-                }
+        .container table th,
+        .container table td {
+            border: 1px solid #000000;
+            padding: 7px;
+            text-align: left;
+            font-size: 12px;
+        }
 
-                .totals {
-                    text-align: right;
-                }
+        .container table th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+        }
 
-                .totals p,
-                .totals h3 {
-                    margin: 5px 0;
-                    font-size: 14px;
-                }
+        /* 
+        third-section starts here
+        */
 
-                .totals h3 {
-                    color: #007bff;
-                    font-weight: bold;
-                }
+        .third-section {
+            display: flex;
+            justify-content: space-evenly;
+        }
 
-                .bank-details {
-                    font-size: 14px;
-                }
+        .totals-section {
+            width: 50%;
+            text-align: right;
+            font-size: 12px;
+        }
 
-                .terms-section {
-                    padding: 3%;
-                    font-size: 20px;
-                    margin-bottom: 20px;
-                    line-height: 1.5;
-                }
+        .bank-details {
+            width: 50%;
+            text-align: left;
+            font-size: 14px;
+        }
 
-                .declaration {
-                    font-size: 14px;
-                    line-height: 1.5;
-                }
+        /* 
+        forth-section starts here
+        */
 
-                .signature {
-                    text-align: left;
-                }
+        .forth-section {
+            margin: 0;
+            margin-bottom: 2px;
+        }
 
-                .signature-space {
-                    margin-top: 20px;
-                    width: 150px;
-                    height: 40px;
-                }
+        .forth-section p {
+            margin-top: 0;
+        }
 
-                footer {
-                    text-align: center;
-                    font-size: 12px;
-                    color: #777;
-                    margin-top: 20px;
-                }
+        .declaration {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .forth-section .declaration p {
+            margin-bottom: 0;
+        }
+
+        /* 
+        fifth-section starts here
+        */
+
+        .fifth-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terms-section {
+            padding: 1%;
+            font-size: 12px;
+            line-height: 1.0;
+        }
+
+        .signature {
+            text-align: left;
+        }
+
+        .signature p {
+            margin-top: 0;
+        }
+
+        .signature-space {
+            width: 150px;
+            height: 20px;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            margin-top: 10px;
+        }
                 
                 @media print {
                     th {

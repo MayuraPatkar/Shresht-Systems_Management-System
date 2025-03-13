@@ -21,7 +21,7 @@ async function getId() {
 
 // Function to generate the preview
 function generatePreview() {
-    if(!purchase_order_id) purchase_order_id = document.getElementById('Id').value;
+    if (!purchase_order_id) purchase_order_id = document.getElementById('Id').value;
     const handledBy = document.getElementById("handledBy").value || "";
     const supplierName = document.getElementById("supplierName").value || "";
     const supplierAddress = document.getElementById("supplierAddress").value || "";
@@ -117,20 +117,19 @@ function generatePreview() {
 
         <div class="title">Purchase Order #${purchase_order_id}</div>
         <div class="first-section">
-            <div>
+            <div class="buyer-details">
+                <p><strong>To:</strong></p>
+                <p>${supplierName}</p>
+                <p>${supplierAddress}</p>
+                <p>Ph: ${supplierPhone}</p>
+            </div>
+            <div class="info-section">
                 <p><strong>Project Name:</strong> ${document.getElementById("projectName").value}</p>
                 <p><strong>Handled By:</strong> ${handledBy}</p>
                 <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
             </div>
-            <br>
-            <div>
-                <p><strong>To:</strong>
-                &nbsp;&nbsp;${supplierName}<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${supplierAddress}</br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ph: ${supplierPhone}
-                </p>
-            </div>
         </div>
+        <div class="second-section">
         <h3>Item Details</h3>
         <table>
         <thead>
@@ -149,8 +148,12 @@ function generatePreview() {
             ${itemsHTML}
         </tbody>
         </table>
+        </div>
+        <div class="third-section">
+        <div class="bank-details"></div>
         <div class="totals-section" style="text-align: right;">
             ${totalsHTML}
+        </div>
         </div>
         <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
         <div class="signature">

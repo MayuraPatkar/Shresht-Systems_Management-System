@@ -64,7 +64,6 @@ function generatePreview() {
     if (!invoiceId) invoiceId = document.getElementById('Id').value;
     const projectName = document.getElementById("projectName").value;
     const poNumber = document.getElementById("poNumber").value;
-    const poDate = document.getElementById("poDate").value;
     const dcNumber = document.getElementById("dcNumber").value;
     const dcDate = document.getElementById("dcDate").value;
     const ewayBillNumber = document.getElementById("ewayBillNumber").value;
@@ -165,21 +164,18 @@ function generatePreview() {
 
         <div class="first-section">
             <div class="buyer-details">
-                <p><strong>Billed To: </strong></p>
-                <p><strong>&nbsp;&nbsp;&nbsp;Buyer:</strong> ${buyerName}</p>
-                <p><strong>&nbsp;&nbsp;&nbsp;Address:</strong> ${buyerAddress}</p>
-                <p><strong>&nbsp;&nbsp;&nbsp;Phone:</strong> ${buyerPhone}</p>
+                <p><strong>Bill To: </strong></p>
+                <p>${buyerName}</p>
+                <p>${buyerAddress}</p>
+                <p>${buyerPhone}</p>
             </div>
             <div class="info-section">
                 <p><strong>Project:</strong> ${projectName}</p>
                 <p><strong>P.O No:</strong> ${poNumber}</p>
-                <!-- <p><strong>P.O Date:</strong> ${poDate}</p> -->
-                <p><strong>D.C No:</strong> ${dcNumber}</p>
-                <!-- <p><strong>D.C Date:</strong> ${dcDate}</p> -->
                 <p><strong>E-Way Bill:</strong> ${ewayBillNumber}</p>
             </div>
         </div>
-
+        <div class="second-section">
         <table>
             <thead>
                 <tr>
@@ -197,8 +193,8 @@ function generatePreview() {
                 ${itemsHTML}
             </tbody>
         </table>
-
-        <div class="second-section">
+        </div>
+        <div class="third-section">
             <div class="bank-details">
                 <h4>Payment Details</h4>
                 <p><strong>Bank Name:</strong> Canara Bank</p>
@@ -209,21 +205,29 @@ function generatePreview() {
 
             <div class="totals-section" style="text-align: right;">
             ${totalsHTML}
+</div>
         </div>
-        </div>
+        <div class="forth-section">
         <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
         <div class="declaration">
             <p>We declare that this invoice shows the actual price of the goods described and that all particulars are
                 true
                 and correct.</p>
         </div>
-
+        </div>
+        <div class="fifth-section">
+        <div class="terms-section">
+                <p><strong>Terms & Conditions:</strong></p>
+                <p>1. Payment should be made within 15 days from the date of invoice.</p>
+                <p>2. Interest @ 18% per annum will be charged for the delayed payment.</p>
+                <p>3. Goods once sold will not be taken back.</p>
+            </div>
         <div class="signature">
             <p>For SHRESHT SYSTEMS</p>
             <div class="signature-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
-
+</div>
         <footer>
             <p>This is a computer-generated invoice.</p>
         </footer>
@@ -281,7 +285,6 @@ function collectFormData() {
         projectName: document.getElementById("projectName").value,
         invoiceId: document.getElementById("Id").value,
         poNumber: document.getElementById("poNumber").value,
-        poDate: document.getElementById("poDate").value,
         dcNumber: document.getElementById("dcNumber").value,
         dcDate: document.getElementById("dcDate").value,
         service_month: document.getElementById('service_month').value,
