@@ -66,7 +66,7 @@ function showConfirmBox(message, onConfirm, onCancel) {
   };
 }
 
-// Function to convert number to words
+// Function to convert number to words (Indian numbering system)
 function numberToWords(num) {
   const a = [
     '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
@@ -77,10 +77,9 @@ function numberToWords(num) {
 
   const numToWords = (n) => {
     if (n < 20) return a[n];
-    const digit = n % 10;
-    if (n < 100) return b[Math.floor(n / 10)] + (digit ? '-' + a[digit] : '');
-    if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 === 0 ? '' : ' and ' + numToWords(n % 100));
-    return numToWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 !== 0 ? ' ' + numToWords(n % 1000) : '');
+    if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
+    if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' and ' + numToWords(n % 100) : '');
+    return '';
   };
 
   if (num === 0) return 'Zero';
@@ -90,25 +89,14 @@ function numberToWords(num) {
   const thousand = Math.floor((num % 100000) / 1000);
   const remainder = num % 1000;
 
-  let result = '';
+  let result = [];
 
-  if (crore) {
-    result += numToWords(crore) + ' Crore';
-  }
+  if (crore) result.push(numToWords(crore) + ' Crore');
+  if (lakh) result.push(numToWords(lakh) + ' Lakh');
+  if (thousand) result.push(numToWords(thousand) + ' Thousand');
+  if (remainder) result.push(numToWords(remainder));
 
-  if (lakh) {
-    result += (result ? ' ' : '') + numToWords(lakh) + ' Lakh';
-  }
-
-  if (thousand) {
-    result += (result ? ' ' : '') + numToWords(thousand) + ' Thousand';
-  }
-
-  if (remainder) {
-    result += (result ? ' ' : '') + numToWords(remainder);
-  }
-
-  return result;
+  return result.join(' ').trim();
 }
 
 // Event listener for the "Add Item" button

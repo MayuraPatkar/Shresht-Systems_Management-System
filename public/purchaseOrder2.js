@@ -26,6 +26,7 @@ function generatePreview() {
     const supplierName = document.getElementById("supplierName").value || "";
     const supplierAddress = document.getElementById("supplierAddress").value || "";
     const supplierPhone = document.getElementById("supplierPhone").value || "";
+    const GSTIN = document.getElementById("supplierGSTIN").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
     let totalPrice = 0;
     let totalCGST = 0;
@@ -99,7 +100,7 @@ function generatePreview() {
         <p><strong>Total Tax:</strong> ₹${totalTax.toFixed(2)}</p>` : ""}
         <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
     `;
-
+            console.log(totalPrice);
     document.getElementById("preview-content").innerHTML = `
     <div class="container">
         <div class="header">
@@ -122,6 +123,7 @@ function generatePreview() {
                 <p>${supplierName}</p>
                 <p>${supplierAddress}</p>
                 <p>Ph: ${supplierPhone}</p>
+                <p>GSTIN: ${GSTIN}</p>
             </div>
             <div class="info-section">
                 <p><strong>Project Name:</strong> ${document.getElementById("projectName").value}</p>
@@ -140,7 +142,7 @@ function generatePreview() {
                 <th>Rate (₹)</th>
                 ${hasTax ? `
                     <th>Taxable Value (₹)</th>
-                    <th>Rate (%)</th>` : ""}
+                    <th>Tax Rate (%)</th>` : ""}
                 <th>Total Price (₹)</th>
             </tr>
         </thead>

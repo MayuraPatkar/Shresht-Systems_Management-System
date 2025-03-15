@@ -108,6 +108,7 @@ function generatePreview() {
 
         <div class="first-section">
             <div class="buyer-details">
+                <h3>Buyer Details</h3>
                 <p>${buyerName}</p>
                 <p>${buyerAddress}</p>
                 <p>${buyerPhone}</p>
@@ -135,6 +136,7 @@ function generatePreview() {
             </tbody>
         </table>
         </div>
+        <br>
         <div class="fifth-section">
         <div class="signature">
             <p>For SHRESHT SYSTEMS</p>

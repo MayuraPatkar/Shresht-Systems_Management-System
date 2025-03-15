@@ -120,12 +120,10 @@ function generatePreview() {
     <div class="title">Quotation - #${quotation_id}</div>
     <div class="info-section" >
         <p><strong>To:</strong></p>
-          <p>${buyerName}</p>
-          <p>${buyerAddress}</p>
-          <p>${buyerPhone}</p>
-        <br>
+          ${buyerName}<br>
+          ${buyerAddress}<br>
+          ${buyerPhone}<br>
         <p contenteditable="true"><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${projectName}</p>
-        <br>
 
         <p>Dear ${buyerName},</p>
 
@@ -141,7 +139,7 @@ function generatePreview() {
         <p contenteditable="true">We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.</p>
         
         <p contenteditable="true">We look forward to your positive response and the opportunity to collaborate with you.</p>
-        <br>
+      
         <p>Best regards,</p>
         <p><strong>Sandeep Nayak</strong><br>
            <strong>Shresht Systems</strong><br>
@@ -285,10 +283,10 @@ document.getElementById("save").addEventListener("click", () => {
 // Event listener for the "Print" button
 document.getElementById("print").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+    if (window.electronAPI && window.electronAPI.handlePrintEventQuatation) {
         const quotationData = collectFormData();
         sendToServer(quotationData, true);
-        window.electronAPI.handlePrintEvent(previewContent);
+        window.electronAPI.handlePrintEventQuatation(previewContent);
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }

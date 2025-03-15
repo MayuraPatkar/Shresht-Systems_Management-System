@@ -11,6 +11,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
         }
     },
 
+    // Trigger print event
+    handlePrintEventQuatation: (content) => {
+        if (content) {
+            ipcRenderer.send("PrintQuatation", { content });
+        } else {
+            console.error("No content passed to print.");
+        }
+    },
+
     // Trigger custom alert event
     showAlert: (message) => {
         if (typeof message === "string") {

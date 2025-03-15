@@ -185,7 +185,7 @@ function generatePreview() {
                     <th>Unit Price</th>
                     ${hasTax ? `
                         <th>Taxable Value (₹)</th>
-                        <th>Rate (%)</th>` : ""}
+                        <th>Tax Rate (%)</th>` : ""}
                     <th>Total Price (₹)</th>
                 </tr>
             </thead>

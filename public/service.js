@@ -294,21 +294,22 @@ function generatePreview() {
 
         <div class="title">Service #${service_id}</div>
         <div class="first-section">
-            <div>
+            <div class="buyer-details">
+                <p><strong>To:</strong>
+                ${name}<br>
+                ${address}</br>
+                ${phone}
+                </p>
+            </div>
+            <div class="info-section">
                 <p><strong>Project Name:</strong> ${document.getElementById("projectName").value}</p>
                 <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
             </div>
-            <br>
-            <div>
-                <p><strong>To:</strong>
-                &nbsp;&nbsp;${name}<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${address}</br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ph: ${phone}
-                </p>
-            </div>
         </div>
+        <div class="third-section">
         <div class="totals-section" style="text-align: right;">
             Total: ${payment}
+        </div>
         </div>
         <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(payment)} only</span></p>
         <div class="signature">

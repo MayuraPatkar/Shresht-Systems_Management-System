@@ -31,10 +31,10 @@ app.on('ready', () => {
     });
     mainWindow.setMenu(null);
     mainWindow.maximize();
+    mainWindow.webContents.openDevTools();
 
     // Load the Express server in the Electron window
     mainWindow.loadURL('http://localhost:3000');
-    mainWindow.webContents.openDevTools();
     handlePrintEvent(mainWindow);
     showAlert();
     mainWindow.on('closed', () => {

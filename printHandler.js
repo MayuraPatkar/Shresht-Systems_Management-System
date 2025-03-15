@@ -54,7 +54,7 @@ function handlePrintEvent(mainWindow) {
         }
 
         .header .logo img {
-            max-width: 250px;
+            max-width: 300px;
         }
 
         .header .company-details {
@@ -63,13 +63,13 @@ function handlePrintEvent(mainWindow) {
 
         .header .company-details h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 30px;
             color: #007bff;
         }
 
         .header .company-details p {
             margin: 2px 0;
-            font-size: 14px;
+            font-size: 20px;
         }
 
         /* 
@@ -77,7 +77,7 @@ function handlePrintEvent(mainWindow) {
         */
         .title {
             text-align: center;
-            font-size: 20px;
+            font-size: 25px;
             color: #007bff;
             font-weight: bold;
         }
@@ -88,6 +88,7 @@ function handlePrintEvent(mainWindow) {
         .first-section {
             display: flex;
             justify-content: space-evenly;
+             font-size: 20px;
         }
 
         .info-section{
@@ -97,7 +98,7 @@ function handlePrintEvent(mainWindow) {
         .info-section,
         .buyer-details {
             padding: 0.2%;
-            font-size: 12px;
+            font-size: 20px;
             line-height: 1.0;
             width: 50%;
         }
@@ -111,11 +112,13 @@ function handlePrintEvent(mainWindow) {
         */
         .second-section {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-evenly;
+            align-items: center;
+            flex-direction: column;
         }
 
         .container table {
-            width: 100%;
+            width: 99%;
             border-collapse: collapse;
             table-layout: auto;
         }
@@ -146,7 +149,7 @@ function handlePrintEvent(mainWindow) {
         .totals-section {
             width: 50%;
             text-align: right;
-            font-size: 12px;
+            font-size: 20px;
         }
 
         .bank-details {
@@ -212,6 +215,202 @@ function handlePrintEvent(mainWindow) {
             color: #777;
             margin-top: 10px;
         }
+                
+                @media print {
+                    th {
+                        background-color: #007bff !important;
+                        color: #fff !important;
+                    }
+                }
+
+            </style>
+            </head>
+            <body>
+                ${content}
+            </body>
+        </html>
+        `)}`);
+
+        printWindow.webContents.on("did-finish-load", () => {
+            // Trigger the print dialog with printBackground option enabled
+            printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
+                if (!success) console.error("Print failed:", errorType);
+            });
+        });
+    });
+
+    ipcMain.on("PrintQuatation", (event, { content }) => {
+        const printWindow = new BrowserWindow({
+            width: 800,
+            height: 600,
+            show: false,
+            parent: mainWindow,
+            webPreferences: {
+                offscreen: true,
+            },
+        });
+
+        // Load the HTML content into the print window
+        printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
+            <html>
+            <head>
+            <style>
+                @page {
+                    size: A4;
+                }
+
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                    overflow: hidden;      
+                }
+
+                .container {
+                    background: #fff !important;
+                    // width: 210mm;
+                    // height: 297mm;
+                    width: 250mm;
+                    height: 337mm;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                /* 
+                    header section starts here
+                */
+
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-bottom: 2px solid #007bff;
+                    padding-bottom: 15px;
+                    margin-bottom: 20px;
+                }
+
+                .header .logo img {
+                    max-width: 300px;
+                }
+
+                .header .company-details {
+                    text-align: right;
+                }
+
+                .header .company-details h1 {
+                    margin: 0;
+                    font-size: 30px;
+                    color: #007bff;
+                }
+
+                .header .company-details p {
+                    margin: 2px 0;
+                    font-size: 20px;
+                }
+
+                .title {
+                    text-align: center;
+                    font-size: 25px;
+                    color: #007bff;
+                    font-weight: bold;
+                }
+
+                .first-section {
+                    display: flex;
+                    flex-direction: Column;
+                    justify-content: space-between;
+                    margin-bottom: 20px;
+                }
+
+                .info-section,
+                .buyer-details {
+                    padding:3%;
+                    font-size: 20px;
+                    margin-bottom: 20px;
+                    line-height: 1.5;
+                }
+
+                .buyer-details p .info-section p {
+                    margin: 0;
+                }
+
+                .container table {
+                    width: 99%;
+                    border-collapse: collapse;
+                    table-layout: auto;
+                }
+
+                .container table th,
+                .container table td {
+                    border: 1px solid #000000;
+                    padding: 10px;
+                    text-align: left;
+                    font-size: 12px;
+                }
+            
+                .container table th {
+                    background-color: #007bff !important;
+                    color: #fff !important;
+                    font-weight: bold;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+
+                .second-section {
+                    display: flex;
+                    justify-content: space-between;
+                }
+
+                .totals {
+                    text-align: right;
+                }
+
+                .totals p,
+                .totals h3 {
+                    margin: 5px 0;
+                    font-size: 14px;
+                }
+
+                .totals h3 {
+                    color: #007bff;
+                    font-weight: bold;
+                }
+
+                .bank-details {
+                    font-size: 14px;
+                }
+
+                .terms-section {
+                    padding: 3%;
+                    font-size: 20px;
+                    margin-bottom: 20px;
+                    line-height: 1.5;
+                }
+
+                .declaration {
+                    font-size: 14px;
+                    line-height: 1.5;
+                }
+
+                .signature {
+                    text-align: left;
+                }
+
+                .signature-space {
+                    margin-top: 20px;
+                    width: 150px;
+                    height: 40px;
+                }
+
+                footer {
+                    text-align: center;
+                    font-size: 12px;
+                    color: #777;
+                    margin-top: 20px;
+                }
                 
                 @media print {
                     th {
