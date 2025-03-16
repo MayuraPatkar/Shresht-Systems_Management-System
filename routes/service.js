@@ -13,10 +13,10 @@ router.get('/get-service', async (req, res) => {
 
         // Filter invoices based on service_month and createdAt
         const filteredProjects = projects.filter(project => {
-            if (!project.createdAt || !project.service_month) return false; // Ensure values exist
+            if (!project.createdAt || !project.service_month) return false;
 
             const createdDate = moment(project.createdAt);
-            const targetDate = createdDate.add(project.service_month, 'days');
+            const targetDate = createdDate.add(project.service_month, 'months');
 
             return currentDate.isSameOrAfter(targetDate, 'day');
         });

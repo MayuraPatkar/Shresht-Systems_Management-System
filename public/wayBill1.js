@@ -108,7 +108,7 @@ async function openWayBill(wayBillId) {
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
-                <td><input type="text" value="${item.unitPrice}" required></td>
+                <td><input type="number" value="${item.unitPrice}" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
 

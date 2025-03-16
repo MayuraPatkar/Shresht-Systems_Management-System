@@ -34,7 +34,8 @@ textarea {
 }
 
 table {
-    width: 100%;
+    align-self: center;
+    width: 98%;
     border-collapse: collapse;
     margin-bottom: 15px;
 }
@@ -54,12 +55,14 @@ table td {
     margin: 5px 0;
     cursor: pointer;
     border: none;
-    color: white;
+    color: rgb(0, 0, 0);
     border-radius: 5px;
 }
 
 .add-item-btn {
     background-color: #3798ff;
+    height: 40px;
+    font-size: 20px;
 }
 
 .add-item-btn:hover {
