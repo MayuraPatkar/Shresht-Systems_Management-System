@@ -32,13 +32,13 @@
 
 .header .company-details h1 {
     margin: 0;
-    font-size: 24px;
-    color: #007bff;
+    font-size: 30px;
+    color: #001d9d;
 }
 
 .header .company-details p {
     margin: 2px 0;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .title {

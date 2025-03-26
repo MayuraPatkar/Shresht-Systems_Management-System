@@ -190,7 +190,7 @@ function generatePreview() {
         <div class="totals-section" style="text-align: right;">
             ${totalsHTML}
         </div>
-        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
+        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
     <div class="page-break"></div>
     <footer>
         <p>This is a computer-generated quotation.</p>
@@ -286,7 +286,19 @@ document.getElementById("print").addEventListener("click", () => {
     if (window.electronAPI && window.electronAPI.handlePrintEventQuatation) {
         const quotationData = collectFormData();
         sendToServer(quotationData, true);
-        window.electronAPI.handlePrintEventQuatation(previewContent);
+        window.electronAPI.handlePrintEventQuatation(previewContent, "print");
+    } else {
+        window.electronAPI.showAlert("Print functionality is not available.");
+    }
+});
+
+// Event listener for the "savePDF" button
+document.getElementById("savePDF").addEventListener("click", () => {
+    const previewContent = document.getElementById("preview-content").innerHTML;
+    if (window.electronAPI && window.electronAPI.handlePrintEventQuatation) {
+        const quotationData = collectFormData();
+        sendToServer(quotationData, true);
+        window.electronAPI.handlePrintEventQuatation(previewContent, "savePDF");
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }

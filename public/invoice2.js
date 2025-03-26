@@ -208,7 +208,7 @@ function generatePreview() {
 </div>
         </div>
         <div class="forth-section">
-        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} only</span></p>
+        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
         <div class="declaration">
             <p>We declare that this invoice shows the actual price of the goods described and that all particulars are
                 true
@@ -271,9 +271,21 @@ document.getElementById("save").addEventListener("click", () => {
 document.getElementById("print").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const purchaseOrderData = collectFormData();
-        sendToServer(purchaseOrderData, true);
-        window.electronAPI.handlePrintEvent(previewContent);
+        const invoiceData = collectFormData();
+        sendToServer(invoiceData, true);
+        window.electronAPI.handlePrintEvent(previewContent, "print");
+    } else {
+        window.electronAPI.showAlert("Print functionality is not available.");
+    }
+});
+
+// Event listener for the "savePDF" button
+document.getElementById("savePDF").addEventListener("click", () => {
+    const previewContent = document.getElementById("preview-content").innerHTML;
+    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+        const invoiceData = collectFormData();
+        sendToServer(invoiceData, true);
+        window.electronAPI.handlePrintEvent(previewContent, "savePDF");
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }

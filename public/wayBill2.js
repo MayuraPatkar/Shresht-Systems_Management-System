@@ -189,7 +189,19 @@ document.getElementById("print").addEventListener("click", () => {
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const wayBillData = collectFormData();
         sendToServer(wayBillData, true);
-        window.electronAPI.handlePrintEvent(previewContent);
+        window.electronAPI.handlePrintEvent(previewContent, "print");
+    } else {
+        window.electronAPI.showAlert("Print functionality is not available.");
+    }
+});
+
+// Event listener for the "savePDF" button
+document.getElementById("savePDF").addEventListener("click", () => {
+    const previewContent = document.getElementById("preview-content").innerHTML;
+    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+        const wayBillData = collectFormData();
+        sendToServer(wayBillData, true);
+        window.electronAPI.handlePrintEvent(previewContent, "savePDF");
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }

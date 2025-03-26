@@ -1,7 +1,8 @@
-const { ipcMain, BrowserWindow } = require("electron");
+const { ipcMain, BrowserWindow, dialog } = require("electron");
+const fs = require("fs");
 
 function handlePrintEvent(mainWindow) {
-    ipcMain.on("PrintDoc", (event, { content }) => {
+    ipcMain.on("PrintDoc", (event, { content, mode }) => {
         const printWindow = new BrowserWindow({
             width: 800,
             height: 600,
@@ -63,13 +64,13 @@ function handlePrintEvent(mainWindow) {
 
         .header .company-details h1 {
             margin: 0;
-            font-size: 30px;
-            color: #007bff;
+            font-size: 36px;
+            color: rgb(0, 33, 141);
         }
 
         .header .company-details p {
             margin: 2px 0;
-            font-size: 20px;
+            font-size: 14px;
         }
 
         /* 
@@ -98,7 +99,7 @@ function handlePrintEvent(mainWindow) {
         .info-section,
         .buyer-details {
             padding: 0.2%;
-            font-size: 20px;
+            font-size: 14px;
             line-height: 1.0;
             width: 50%;
         }
@@ -149,7 +150,7 @@ function handlePrintEvent(mainWindow) {
         .totals-section {
             width: 50%;
             text-align: right;
-            font-size: 20px;
+            font-size: 14px;
         }
 
         .bank-details {
@@ -172,7 +173,7 @@ function handlePrintEvent(mainWindow) {
         }
 
         .declaration {
-            font-size: 12px;
+            font-size: 14px;
             line-height: 1.5;
         }
 
@@ -192,7 +193,7 @@ function handlePrintEvent(mainWindow) {
 
         .terms-section {
             padding: 1%;
-            font-size: 12px;
+            font-size: 14px;
             line-height: 1.0;
         }
 
@@ -231,15 +232,39 @@ function handlePrintEvent(mainWindow) {
         </html>
         `)}`);
 
-        printWindow.webContents.on("did-finish-load", () => {
-            // Trigger the print dialog with printBackground option enabled
-            printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
-                if (!success) console.error("Print failed:", errorType);
-            });
+        printWindow.webContents.once("did-finish-load", async () => {
+            if (mode === "print") {
+                // Print the document
+                printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
+                    if (!success) console.error("Print failed:", errorType);
+                });
+            } else if (mode === "savePDF") {
+                // Show save dialog to user
+                const { filePath } = await dialog.showSaveDialog(mainWindow, {
+                    title: "Save PDF",
+                    defaultPath: "document.pdf",
+                    filters: [{ name: "PDF Files", extensions: ["pdf"] }],
+                });
+
+                if (filePath) {
+                    try {
+                        const data = await printWindow.webContents.printToPDF({ printBackground: true });
+                        fs.writeFileSync(filePath, data);
+                        console.log("PDF saved at:", filePath);
+                        event.sender.send("PDFSaved", { success: true, path: filePath });
+                    } catch (error) {
+                        console.error("Error saving PDF:", error);
+                        event.sender.send("PDFSaved", { success: false, error });
+                    }
+                }
+            }
+
+            printWindow.close();
         });
     });
 
-    ipcMain.on("PrintQuatation", (event, { content }) => {
+
+    ipcMain.on("PrintQuatation", (event, { content, mode }) => {
         const printWindow = new BrowserWindow({
             width: 800,
             height: 600,
@@ -302,13 +327,13 @@ function handlePrintEvent(mainWindow) {
 
                 .header .company-details h1 {
                     margin: 0;
-                    font-size: 30px;
-                    color: #007bff;
+                    font-size: 36px;
+                    color:rgb(0, 33, 141);
                 }
 
                 .header .company-details p {
                     margin: 2px 0;
-                    font-size: 20px;
+                    font-size: 14px;
                 }
 
                 .title {
@@ -379,10 +404,6 @@ function handlePrintEvent(mainWindow) {
                     font-weight: bold;
                 }
 
-                .bank-details {
-                    font-size: 14px;
-                }
-
                 .terms-section {
                     padding: 3%;
                     font-size: 20px;
@@ -390,19 +411,9 @@ function handlePrintEvent(mainWindow) {
                     line-height: 1.5;
                 }
 
-                .declaration {
-                    font-size: 14px;
+                .closing-section {
+                    font-size: 20px;
                     line-height: 1.5;
-                }
-
-                .signature {
-                    text-align: left;
-                }
-
-                .signature-space {
-                    margin-top: 20px;
-                    width: 150px;
-                    height: 40px;
                 }
 
                 footer {
@@ -427,11 +438,34 @@ function handlePrintEvent(mainWindow) {
         </html>
         `)}`);
 
-        printWindow.webContents.on("did-finish-load", () => {
-            // Trigger the print dialog with printBackground option enabled
-            printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
-                if (!success) console.error("Print failed:", errorType);
-            });
+        printWindow.webContents.once("did-finish-load", async () => {
+            if (mode === "print") {
+                // Print the document
+                printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
+                    if (!success) console.error("Print failed:", errorType);
+                });
+            } else if (mode === "savePDF") {
+                // Show save dialog to user
+                const { filePath } = await dialog.showSaveDialog(mainWindow, {
+                    title: "Save PDF",
+                    defaultPath: "document.pdf",
+                    filters: [{ name: "PDF Files", extensions: ["pdf"] }],
+                });
+
+                if (filePath) {
+                    try {
+                        const data = await printWindow.webContents.printToPDF({ printBackground: true });
+                        fs.writeFileSync(filePath, data);
+                        console.log("PDF saved at:", filePath);
+                        event.sender.send("PDFSaved", { success: true, path: filePath });
+                    } catch (error) {
+                        console.error("Error saving PDF:", error);
+                        event.sender.send("PDFSaved", { success: false, error });
+                    }
+                }
+            }
+
+            printWindow.close();
         });
     });
 }

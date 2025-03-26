@@ -311,7 +311,7 @@ function generatePreview() {
             Total: ${payment}
         </div>
         </div>
-        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(payment)} only</span></p>
+        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(payment)} Only</span></p>
         <div class="signature">
             <p>For SHRESHT SYSTEMS</p>
             <div class="signature-space"></div>
@@ -329,7 +329,19 @@ document.getElementById("print").addEventListener("click", () => {
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const serviceData = collectFormData();
         sendToServer(serviceData, true);
-        window.electronAPI.handlePrintEvent(previewContent);
+        window.electronAPI.handlePrintEvent(previewContent, "print");
+    } else {
+        window.electronAPI.showAlert("Print functionality is not available.");
+    }
+});
+
+// Event listener for the "savePDF" button
+document.getElementById("savePDF").addEventListener("click", () => {
+    const previewContent = document.getElementById("preview-content").innerHTML;
+    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+        const serviceData = collectFormData();
+        sendToServer(serviceData, true);
+        window.electronAPI.handlePrintEvent(previewContent, "savePDF");
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }
