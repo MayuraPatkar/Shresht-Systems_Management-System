@@ -27,7 +27,6 @@ const adminSchema = new mongoose.Schema({
 const Admin = mongoose.model('Admin', adminSchema);
 
 const quotationSchema = new mongoose.Schema({
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     quotation_id: { type: String },
     project_name: { type: String },
     buyer_name: { type: String },
@@ -48,7 +47,6 @@ const quotationSchema = new mongoose.Schema({
 const Quotations = mongoose.model('Quotations', quotationSchema);
 
 const purchaseSchema = new mongoose.Schema({
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     purchase_order_id: { type: String },
     project_name: { type: String },
     handledBy: { type: String },
@@ -72,7 +70,6 @@ const purchaseSchema = new mongoose.Schema({
 const Purchases = mongoose.model('Purchases', purchaseSchema);
 
 const wayBillSchema = new mongoose.Schema({
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     wayBill_id: { type: String },
     project_name: { type: String },
     buyer_name: { type: String },
@@ -98,7 +95,6 @@ const wayBills = mongoose.model('wayBills', wayBillSchema);
 
 // Define Project Schema and Model
 const invoiceSchema = new mongoose.Schema({
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     quotation_id: { type: String },
     project_name: { type: String },
     invoice_id: { type: String },
@@ -131,7 +127,6 @@ const Invoices = mongoose.model('invoice', invoiceSchema);
 
 // Define Stock Schema and Model
 const stockSchema = new mongoose.Schema({
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     itemName: { type: String, required: true },
     HSN_SAC: { type: String, required: false },
     unitPrice: { type: Number, required: true },
@@ -145,7 +140,6 @@ const Stock = mongoose.model('Stock', stockSchema);
 
 // Define Employee Schema and Model
 const employeeSchema = new mongoose.Schema({
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     emp_id: { type: String, required: true },
     name: { type: String, required: true },
     salary_status: { type: String, required: true },

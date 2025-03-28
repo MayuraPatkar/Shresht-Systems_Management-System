@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Admin, wayBills } = require('./database');
+const { wayBills } = require('./database');
 
 router.post("/save-way-bill", async (req, res) => {
     try {
@@ -24,12 +24,6 @@ router.post("/save-way-bill", async (req, res) => {
             });
         }
 
-        // Fetch admin details
-        const admin = await Admin.findOne();
-        if (!admin) {
-            return res.status(404).json({ message: 'Admin not found' });
-        }
-
         // Check if way bill already exists
         let wayBill = await wayBills.findOne({ wayBill_id: way_bill_id });
         if (wayBill) {
@@ -46,7 +40,6 @@ router.post("/save-way-bill", async (req, res) => {
         } else {
             // Create a new way bill with the provided data
             wayBill = new wayBills({
-                admin: admin._id,
                 wayBill_id: way_bill_id,
                 project_name: projectName,
                 handledBy: handledBy,

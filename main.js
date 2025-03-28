@@ -3,6 +3,12 @@ const path = require('path');
 const { handlePrintEvent } = require('./printHandler');
 const { showAlert } = require('./alertHandler');
 
+
+require('electron-reload')(path.join(__dirname), {
+    electron: require(`${__dirname}/node_modules/electron`)
+});
+
+
 let mainWindow;
 
 app.on('ready', () => {
@@ -21,16 +27,22 @@ app.on('ready', () => {
         icon: path.join(__dirname, 'public', 'assets', 'icon.ico'),
         webPreferences: {
             nodeIntegration: true,
+            devTools: true,
             preload: path.join(__dirname, 'preload.js'),
         },
     });
     mainWindow.setMenu(null);
     mainWindow.maximize();
+    setTimeout(() => {
+        mainWindow.webContents.openDevTools();
+    }, 1000);
+    
 
     // Load the Express server in the Electron window
     mainWindow.loadURL('http://localhost:3000');
     handlePrintEvent(mainWindow);
     showAlert();
+
     mainWindow.on('closed', () => {
         mainWindow = null;
     });

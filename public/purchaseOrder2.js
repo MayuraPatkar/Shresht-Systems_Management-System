@@ -219,7 +219,8 @@ document.getElementById("savePDF").addEventListener("click", () => {
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const purchaseOrderData = collectFormData();
         sendToServer(purchaseOrderData, true);
-        window.electronAPI.handlePrintEvent(previewContent, "savePDF");
+        let name = `PurchaseOrder-${purchase_order_id}`;
+        window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }

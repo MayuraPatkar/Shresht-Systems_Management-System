@@ -3,18 +3,18 @@ const { contextBridge, ipcRenderer } = require("electron");
 // Expose a subset of ipcRenderer methods to the renderer process
 contextBridge.exposeInMainWorld("electronAPI", {
     // Trigger print event
-    handlePrintEvent: (content, mode) => {
+    handlePrintEvent: (content, mode, name) => {
         if (content) {
-            ipcRenderer.send("PrintDoc", { content, mode });
+            ipcRenderer.send("PrintDoc", { content, mode, name });
         } else {
             console.error("No content passed to print.");
         }
     },
 
     // Trigger print event
-    handlePrintEventQuatation: (content, mode) => {
+    handlePrintEventQuatation: (content, mode, name) => {
         if (content) {
-            ipcRenderer.send("PrintQuatation", { content, mode });
+            ipcRenderer.send("PrintQuatation", { content, mode, name });
         } else {
             console.error("No content passed to print.");
         }

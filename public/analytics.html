@@ -4,40 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./analytics_style.css">
     <title>Analytics</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-        }
-
-        header {
-            width: 100%;
-            padding: 1rem 2rem;
-            box-sizing: border-box;
-            background-color: #ffffff;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .img {
-            height: 7vh;
-        }
-
-        .img img {
-            height: 100%;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 1.8rem;
-            flex-grow: 1;
-            text-align: center;
-        }
-    </style>
 </head>
 
 <body>
@@ -45,6 +13,22 @@
         <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
         <h1>Analytics</h1>
     </header>
+    <section id="projects">
+        <fieldset>
+            <legend>Projects</legend>
+            <button id="week">week</button>
+            <button id="month">Month</button>
+            <button id="Year">Year</button>
+            <div id="projectsPlot"></div>
+        </fieldset>
+    </section>
+    <!-- <section id="profit_loss">
+        <fieldset>
+            <legend>Profit/Loss</legend>
+            <div id="profit_loss_Plot"></div>
+        </fieldset>
+    </section> -->
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="./analytics.js"></script>
 </body>
 

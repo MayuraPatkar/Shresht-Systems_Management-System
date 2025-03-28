@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Admin, Purchases } = require('./database');
+const { Purchases } = require('./database');
 
 // Function to generate a unique ID for each purchaseOrder
 function generateUniqueId() {
@@ -49,12 +49,6 @@ router.post("/save-purchase-order", async (req, res) => {
             });
         }
 
-        // Fetch admin details
-        const admin = await Admin.findOne();
-        if (!admin) {
-            return res.status(404).json({ message: 'Admin not found' });
-        }
-
         // Check if purchase order already exists
         let purchaseOrder = await Purchases.findOne({ purchase_order_id: purchase_order_id });
         if (purchaseOrder) {
@@ -70,7 +64,6 @@ router.post("/save-purchase-order", async (req, res) => {
         } else {
             // Create a new purchase order with the provided data
             purchaseOrder = new Purchases({
-                admin: admin._id,
                 purchase_order_id: purchase_order_id,
                 project_name: projectName,
                 handledBy: handledBy,

@@ -285,7 +285,8 @@ document.getElementById("savePDF").addEventListener("click", () => {
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const invoiceData = collectFormData();
         sendToServer(invoiceData, true);
-        window.electronAPI.handlePrintEvent(previewContent, "savePDF");
+        let name = `Invoice-${invoiceId}`;
+        window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }

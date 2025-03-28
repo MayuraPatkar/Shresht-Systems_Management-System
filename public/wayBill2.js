@@ -201,6 +201,7 @@ document.getElementById("savePDF").addEventListener("click", () => {
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const wayBillData = collectFormData();
         sendToServer(wayBillData, true);
+        let name = `WayBill-${wayBillData.way_bill_id}`;
         window.electronAPI.handlePrintEvent(previewContent, "savePDF");
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");

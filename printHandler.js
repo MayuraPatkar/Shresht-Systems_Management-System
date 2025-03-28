@@ -2,7 +2,7 @@ const { ipcMain, BrowserWindow, dialog } = require("electron");
 const fs = require("fs");
 
 function handlePrintEvent(mainWindow) {
-    ipcMain.on("PrintDoc", (event, { content, mode }) => {
+    ipcMain.on("PrintDoc", (event, { content, mode, name }) => {
         const printWindow = new BrowserWindow({
             width: 800,
             height: 600,
@@ -242,7 +242,7 @@ function handlePrintEvent(mainWindow) {
                 // Show save dialog to user
                 const { filePath } = await dialog.showSaveDialog(mainWindow, {
                     title: "Save PDF",
-                    defaultPath: "document.pdf",
+                    defaultPath: `${name}.pdf`,
                     filters: [{ name: "PDF Files", extensions: ["pdf"] }],
                 });
 
@@ -264,7 +264,7 @@ function handlePrintEvent(mainWindow) {
     });
 
 
-    ipcMain.on("PrintQuatation", (event, { content, mode }) => {
+    ipcMain.on("PrintQuatation", (event, { content, mode, name }) => {
         const printWindow = new BrowserWindow({
             width: 800,
             height: 600,
@@ -448,7 +448,7 @@ function handlePrintEvent(mainWindow) {
                 // Show save dialog to user
                 const { filePath } = await dialog.showSaveDialog(mainWindow, {
                     title: "Save PDF",
-                    defaultPath: "document.pdf",
+                    defaultPath: `${name}.pdf`,
                     filters: [{ name: "PDF Files", extensions: ["pdf"] }],
                 });
 

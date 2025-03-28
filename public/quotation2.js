@@ -298,7 +298,8 @@ document.getElementById("savePDF").addEventListener("click", () => {
     if (window.electronAPI && window.electronAPI.handlePrintEventQuatation) {
         const quotationData = collectFormData();
         sendToServer(quotationData, true);
-        window.electronAPI.handlePrintEventQuatation(previewContent, "savePDF");
+        let name = `Quotation-${quotation_id}`;
+        window.electronAPI.handlePrintEventQuatation(previewContent, "savePDF", name);
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Stock, Admin } = require('./database');
+const { Stock } = require('./database');
 
 
 // Route to Get Stock Data
@@ -20,8 +20,6 @@ router.post('/addItem', async (req, res) => {
 
     try {
 
-        const adminId = await Admin.findOne();
-
         // Check if item already exists
         const existingItem = await Stock.findOne({ itemName });
 
@@ -31,7 +29,6 @@ router.post('/addItem', async (req, res) => {
 
         // Add new stock item
         const newItem = new Stock({
-            admin: adminId,
             itemName,
             HSN_SAC,
             unitPrice,

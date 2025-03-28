@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Admin, Invoices, Stock } = require('./database');
+const { Invoices, Stock } = require('./database');
 
 // Function to generate a unique ID for each Invoice
 function generateUniqueId() {
@@ -28,6 +28,17 @@ router.get("/generate-id", async (req, res) => {
     res.status(200).json({ invoice_id: invoice_id });
 });
 
+router.get("/get-all", async (req, res) => {
+    try {
+        const invoices = await Invoices.find();
+        return res.status(200).json({ invoices });
+    } catch (error) {
+        console.error("Error fetching invoices:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
 router.post("/save-invoice", async (req, res) => {
     try {
         const {
@@ -52,11 +63,6 @@ router.post("/save-invoice", async (req, res) => {
 
         if (!invoiceId || !projectName) {
             return res.status(400).json({ message: 'Missing required fields: invoiceId, projectName.' });
-        }
-
-        const admin = await Admin.findOne();
-        if (!admin) {
-            return res.status(404).json({ message: 'Admin not found' });
         }
 
         const existingInvoice = await Invoices.findOne({ invoice_id: invoiceId });
@@ -101,16 +107,14 @@ router.post("/save-invoice", async (req, res) => {
             // Deduct stock for new invoice
             for (let item of items) {
                 const stockItem = await Stock.findOne({ itemName: item.description });
-                if (!stockItem || stockItem.quantity < item.quantity) {
-                    return res.status(400).json({ message: `Not enough stock for ${item.description}` });
+                if (stockItem && stockItem.quantity > item.quantity) {
+                    stockItem.quantity -= item.quantity;
+                    await stockItem.save();
                 }
-                stockItem.quantity -= item.quantity;
-                await stockItem.save();
             }
 
             // Create a new invoice
             const invoice = new Invoices({
-                admin: admin._id, project_name: projectName, invoice_id: invoiceId, po_number: poNumber,
                 po_date: poDate, dc_number: dcNumber, dc_date: dcDate, service_month,
                 E_Way_Bill_number: ewayBillNumber, date, buyer_name: buyerName, buyer_address: buyerAddress,
                 buyer_phone: buyerPhone, consignee_name: consigneeName, consignee_address: consigneeAddress,

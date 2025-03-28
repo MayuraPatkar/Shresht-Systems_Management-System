@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Admin, Quotations } = require('./database');
+const { Quotations } = require('./database');
 
 // Function to generate a unique ID for each quotation
 function generateUniqueId() {
@@ -46,12 +46,6 @@ router.post("/save-quotation", async (req, res) => {
             });
         }
 
-        // Fetch admin details
-        const admin = await Admin.findOne();
-        if (!admin) {
-            return res.status(404).json({ message: 'Admin not found' });
-        }
-
         // Check if quotation already exists
         let quotation = await Quotations.findOne({ quotation_id: quotation_id });
         if (quotation) {
@@ -64,7 +58,6 @@ router.post("/save-quotation", async (req, res) => {
         } else {
             // Create a new quotation with the provided data
             quotation = new Quotations({
-                admin: admin._id,
                 quotation_id: quotation_id,
                 project_name: projectName,
                 buyer_name: buyerName,
