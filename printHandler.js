@@ -65,7 +65,7 @@ function handlePrintEvent(mainWindow) {
         .header .company-details h1 {
             margin: 0;
             font-size: 36px;
-            color: rgb(0, 33, 141);
+            color: rgb(0, 8, 116);
         }
 
         .header .company-details p {
@@ -250,7 +250,6 @@ function handlePrintEvent(mainWindow) {
                     try {
                         const data = await printWindow.webContents.printToPDF({ printBackground: true });
                         fs.writeFileSync(filePath, data);
-                        console.log("PDF saved at:", filePath);
                         event.sender.send("PDFSaved", { success: true, path: filePath });
                     } catch (error) {
                         console.error("Error saving PDF:", error);
@@ -328,7 +327,7 @@ function handlePrintEvent(mainWindow) {
                 .header .company-details h1 {
                     margin: 0;
                     font-size: 36px;
-                    color:rgb(0, 33, 141);
+                    color:rgb(0, 8, 116);
                 }
 
                 .header .company-details p {
@@ -456,7 +455,6 @@ function handlePrintEvent(mainWindow) {
                     try {
                         const data = await printWindow.webContents.printToPDF({ printBackground: true });
                         fs.writeFileSync(filePath, data);
-                        console.log("PDF saved at:", filePath);
                         event.sender.send("PDFSaved", { success: true, path: filePath });
                     } catch (error) {
                         console.error("Error saving PDF:", error);
