@@ -1,4 +1,4 @@
-const serviceDiv = document.querySelector(".records .record_list");
+const serviceDiv = document.querySelector(".records");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadService();

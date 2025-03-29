@@ -173,8 +173,7 @@ async function handleSearch() {
     try {
         const response = await fetch(`/invoice/search/${query}`);
         if (!response.ok) {
-            const errorText = await response.text();
-            invoicesListDiv.innerHTML = `<p>No Invoice Found</p>`;
+            invoicesListDiv.innerHTML = `<h2>No Invoice Found</h2>`;
             return;
         }
 
@@ -190,3 +189,10 @@ async function handleSearch() {
         window.electronAPI.showAlert("Failed to fetch invoices. Please try again later.");
     }
 }
+
+document.getElementById("SearchInput").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        handleSearch();
+    }
+})

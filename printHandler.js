@@ -2,7 +2,7 @@ const { ipcMain, BrowserWindow, dialog } = require("electron");
 const fs = require("fs");
 
 function handlePrintEvent(mainWindow) {
-    ipcMain.on("PrintDoc", (event, { content, mode, name }) => {
+    ipcMain.on("PrintDoc", async (event, { content, mode, name }) => {
         const printWindow = new BrowserWindow({
             width: 800,
             height: 600,
@@ -12,9 +12,10 @@ function handlePrintEvent(mainWindow) {
                 offscreen: true,
             },
         });
-
-        // Load the HTML content into the print window
-        printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
+        try {
+            await
+                // Load the HTML content into the print window
+                printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
             <html>
             <head>
             <style>
@@ -232,14 +233,15 @@ function handlePrintEvent(mainWindow) {
         </html>
         `)}`);
 
-        printWindow.webContents.once("did-finish-load", async () => {
             if (mode === "print") {
-                // Print the document
                 printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
-                    if (!success) console.error("Print failed:", errorType);
+                    if (!success) {
+                        console.error("Print failed:", errorType);
+                        event.sender.send("printFailed", { error: errorType }); // Send error to renderer
+                    }
+                    printWindow.close();
                 });
             } else if (mode === "savePDF") {
-                // Show save dialog to user
                 const { filePath } = await dialog.showSaveDialog(mainWindow, {
                     title: "Save PDF",
                     defaultPath: `${name}.pdf`,
@@ -249,21 +251,26 @@ function handlePrintEvent(mainWindow) {
                 if (filePath) {
                     try {
                         const data = await printWindow.webContents.printToPDF({ printBackground: true });
-                        fs.writeFileSync(filePath, data);
+                        await fs.promises.writeFile(filePath, data);
                         event.sender.send("PDFSaved", { success: true, path: filePath });
                     } catch (error) {
                         console.error("Error saving PDF:", error);
                         event.sender.send("PDFSaved", { success: false, error });
                     }
                 }
+                printWindow.close();
             }
-
-            printWindow.close();
-        });
+        } catch (err) {
+            console.error("Error in print process:", err);
+            event.sender.send("printProcessError", { error: err.message }); // Send error to renderer
+            if (!printWindow.isDestroyed()) {
+                printWindow.close();
+            }
+        }
     });
 
 
-    ipcMain.on("PrintQuatation", (event, { content, mode, name }) => {
+    ipcMain.on("PrintQuatation", async (event, { content, mode, name }) => {
         const printWindow = new BrowserWindow({
             width: 800,
             height: 600,
@@ -273,9 +280,10 @@ function handlePrintEvent(mainWindow) {
                 offscreen: true,
             },
         });
-
-        // Load the HTML content into the print window
-        printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
+        try {
+            await
+                // Load the HTML content into the print window
+                printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
             <html>
             <head>
             <style>
@@ -437,14 +445,15 @@ function handlePrintEvent(mainWindow) {
         </html>
         `)}`);
 
-        printWindow.webContents.once("did-finish-load", async () => {
             if (mode === "print") {
-                // Print the document
                 printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
-                    if (!success) console.error("Print failed:", errorType);
+                    if (!success) {
+                        console.error("Print failed:", errorType);
+                        event.sender.send("printFailed", { error: errorType }); // Send error to renderer
+                    }
+                    printWindow.close();
                 });
             } else if (mode === "savePDF") {
-                // Show save dialog to user
                 const { filePath } = await dialog.showSaveDialog(mainWindow, {
                     title: "Save PDF",
                     defaultPath: `${name}.pdf`,
@@ -454,17 +463,22 @@ function handlePrintEvent(mainWindow) {
                 if (filePath) {
                     try {
                         const data = await printWindow.webContents.printToPDF({ printBackground: true });
-                        fs.writeFileSync(filePath, data);
+                        await fs.promises.writeFile(filePath, data);
                         event.sender.send("PDFSaved", { success: true, path: filePath });
                     } catch (error) {
                         console.error("Error saving PDF:", error);
                         event.sender.send("PDFSaved", { success: false, error });
                     }
                 }
+                printWindow.close();
             }
-
-            printWindow.close();
-        });
+        } catch (err) {
+            console.error("Error in print process:", err);
+            event.sender.send("printProcessError", { error: err.message }); // Send error to renderer
+            if (!printWindow.isDestroyed()) {
+                printWindow.close();
+            }
+        }
     });
 }
 

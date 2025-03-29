@@ -115,6 +115,7 @@ router.post("/save-invoice", async (req, res) => {
 
             // Create a new invoice
             const invoice = new Invoices({
+                invoice_id: invoiceId, project_name: projectName, po_number: poNumber,
                 po_date: poDate, dc_number: dcNumber, dc_date: dcDate, service_month,
                 E_Way_Bill_number: ewayBillNumber, date, buyer_name: buyerName, buyer_address: buyerAddress,
                 buyer_phone: buyerPhone, consignee_name: consigneeName, consignee_address: consigneeAddress,

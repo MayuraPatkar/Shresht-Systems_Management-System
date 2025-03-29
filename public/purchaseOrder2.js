@@ -100,7 +100,6 @@ function generatePreview() {
         <p><strong>Total Tax:</strong> ₹${totalTax.toFixed(2)}</p>` : ""}
         <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
     `;
-            console.log(totalPrice);
     document.getElementById("preview-content").innerHTML = `
     <div class="container">
         <div class="header">

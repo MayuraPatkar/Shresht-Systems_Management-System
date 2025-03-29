@@ -173,3 +173,10 @@ async function handleSearch() {
         window.electronAPI.showAlert("Failed to fetch quotation. Please try again later.");
     }
 }
+
+document.getElementById("quotationSearchInput").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        handleSearch();
+    }
+});

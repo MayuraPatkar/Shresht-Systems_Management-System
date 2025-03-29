@@ -201,3 +201,10 @@ async function handleSearch() {
         window.electronAPI.showAlert("Failed to fetch way bills. Please try again later.");
     }
 }
+
+document.getElementById("SearchInput").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        handleSearch();
+    }
+})
