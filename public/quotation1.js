@@ -1,4 +1,4 @@
-const quotationListDiv = document.querySelector(".records .record_list");
+const quotationListDiv = document.querySelector(".records");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentQuotations();
@@ -43,8 +43,14 @@ function createQuotationDiv(quotation) {
     quotationDiv.className = "record-item";
     quotationDiv.innerHTML = `
         <div class="details">
-            <h3>${quotation.project_name}</h3>
-            <h4>#${quotation.quotation_id}</h4>
+            <div class="info1">
+                <h1>${quotation.project_name}</h1>
+                <h4>#${quotation.quotation_id}</h4>
+            </div>
+            <div class="info2">
+                <p>${quotation.buyer_name}</p>
+                <p>${quotation.buyer_address}</p>
+            </div>    
         </div>
         <div class="actions">
             <button class="btn btn-primary open-quotation" data-id="${quotation.quotation_id}">Open</button>

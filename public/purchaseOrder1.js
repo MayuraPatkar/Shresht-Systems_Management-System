@@ -1,4 +1,4 @@
-const purchaseOrderListDiv = document.querySelector(".records .record_list");
+const purchaseOrderListDiv = document.querySelector(".records");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentPurchaseOrders();
@@ -43,8 +43,14 @@ function createPurchaseOrderDiv(purchaseOrder) {
     purchaseOrderDiv.className = "record-item";
     purchaseOrderDiv.innerHTML = `
         <div class="details">
-            <h3>${purchaseOrder.project_name}</h3>
-            <h4>#${purchaseOrder.purchase_order_id}</h4>
+            <div class="info1">
+                <h1>${purchaseOrder.project_name}</h1>
+                <h4>#${purchaseOrder.purchase_order_id}</h4>
+            </div>
+            <div class="info2">
+                <p>${purchaseOrder.supplier_name}</p>
+                <p>${purchaseOrder.supplier_address}</p>
+            </div>
         </div>
         <div class="actions">
             <button class="btn btn-primary open-purchase-order" data-id="${purchaseOrder.purchase_order_id}">Open</button>

@@ -17,7 +17,16 @@
             <img src="./assets/icon.png" alt="Shresht Logo">
         </div>
         <h1>Bill / Invoice</h1>
-        <button onclick="window.location = '/invoice'">Home</button>
+        <div class="search">
+            <div type="submit" id="searchBtn">
+                <img src="./assets/search.png" alt="Search">
+            </div>
+            <input type="text" id="searchInput" placeholder="Search here...">
+        </div>
+        <div class="header-buttons">
+            <button id="newInvoice">New Invoice</button>
+            <button onclick="window.location = '/invoice'">Home</button>
+        </div>
     </header>
 
     <!-- Confirmation Modal -->
@@ -33,26 +42,9 @@
 
     <!-- Home Section -->
     <div id="home">
-        <div class="container1">
-            <div class="records">
-                <div>
-                    <h2>Invoices</h2>
-                    <button id="newInvoice">New Invoice</button>
-                </div>
-                <div class="record_list">
-                    <h2>No Invoices in database</h2>
-                    <!-- content will be loaded dynamically -->
-                </div>
-            </div>
-            <div class="search">
-                <h3>Search</h3>
-                <div class="search_container">
-                    <input type="text" id="searchInput" placeholder="type here">
-                    <div type="submit" id="searchBtn">
-                        <img src="./assets/search.png" alt="Search">
-                    </div>
-                </div>
-            </div>
+        <div class="records">
+            <h2>No Invoices in database</h2>
+            <!-- content will be loaded dynamically -->
         </div>
     </div>
 

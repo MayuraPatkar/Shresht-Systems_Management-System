@@ -1,16 +1,16 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
-const app = express();
+const exServer = express();
 const config = require('./config');
 
 // Middleware
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+exServer.use(express.json());
+exServer.use(express.static(path.join(__dirname, 'public')));
 
 // Set the view engine to EJS
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'public', 'views'));
+exServer.set('view engine', 'ejs');
+exServer.set('views', path.join(__dirname, 'public', 'views'));
 
 // MongoDB Connection
 async function connectDB() {
@@ -36,17 +36,17 @@ const wayBillRoutes = require('./routes/wayBill');
 const serviceRoutes = require('./routes/service');
 
 // Using routes middleware
-app.use('/', viewRoutes);
-app.use('/login', authRoutes);
-app.use('/stock', stockRoutes);
-app.use('/invoice', invoiceRoutes);
-app.use('/quotation', quotationRoutes);
-app.use('/purchaseOrder', purchaseRoutes);
-app.use('/wayBill', wayBillRoutes);
-app.use('/service', serviceRoutes);
+exServer.use('/', viewRoutes);
+exServer.use('/login', authRoutes);
+exServer.use('/stock', stockRoutes);
+exServer.use('/invoice', invoiceRoutes);
+exServer.use('/quotation', quotationRoutes);
+exServer.use('/purchaseOrder', purchaseRoutes);
+exServer.use('/wayBill', wayBillRoutes);
+exServer.use('/service', serviceRoutes);
 
 // Centralized Error Handling Middleware
-app.use((err, req, res, next) => {
+exServer.use((err, req, res, next) => {
     console.error('Global error handler caught an error:', err);
     if (res.headersSent) { // Check if headers already sent to prevent error after response sent
         return next(err); // Delegate to default Express error handler
@@ -56,7 +56,7 @@ app.use((err, req, res, next) => {
 
 
 // Start the server
-const server = app.listen(config.port);
+const server = exServer.listen(config.port);
 
 // Handle server startup errors
 server.on('error', (error) => {
@@ -79,4 +79,4 @@ server.on('error', (error) => {
 });
 
 
-module.exports = app;
+module.exports = exServer;

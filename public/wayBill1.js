@@ -3,7 +3,7 @@ document.getElementById('logo').addEventListener('click', () => {
     window.location = '/dashboard';
 });
 
-const wayBillsListDiv = document.querySelector(".records .record_list");
+const wayBillsListDiv = document.querySelector(".records");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentWayBills();
@@ -48,8 +48,14 @@ function createWayBillDiv(wayBill) {
     wayBillDiv.className = "record-item";
     wayBillDiv.innerHTML = `
     <div class="details">
-        <h3>${wayBill.project_name}</h3>
+    <div class="info1">
+        <h1>${wayBill.project_name}</h1>
         <h4>#${wayBill.wayBill_id}</h4>
+        </div>
+        <div class="info2">
+        <p>${wayBill.buyer_name}</p>
+        <p>${wayBill.buyer_address}</p>
+        </div>
     </div>
     <div class="actions">
         <button class="btn btn-primary open-way-bill" data-id="${wayBill.wayBill_id}">Open</button>

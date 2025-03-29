@@ -102,13 +102,31 @@ function numberToWords(num) {
 // Event listener for the "Add Item" button
 document.getElementById('add-item-btn').addEventListener('click', addItem);
 
+let selectedIndex = -1;
+let data = [];
+
+// Fetch data from the server when the page loads
+async function fetchData() {
+  try {
+    let response = await fetch('/stock/get-names');
+    data = await response.json();
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+}
+
+fetchData(); // Load data at startup
+
 // Function to add a new item row to the table
 function addItem() {
   const tableBody = document.querySelector("#items-table tbody");
   const row = document.createElement("tr");
 
   row.innerHTML = `
-        <td><input type="text" placeholder="Item Description" required></td>
+        <td>
+            <input type="text" placeholder="Item Description" class="item_name" required>
+            <ul class="suggestions"></ul> <!-- Changed from id to class -->
+        </td>
         <td><input type="text" placeholder="HSN/SAC" required></td>
         <td><input type="number" placeholder="Qty" min="1" required></td>
         <td><input type="text" placeholder="Unit Price" required></td>
@@ -117,6 +135,80 @@ function addItem() {
     `;
 
   tableBody.appendChild(row);
+
+  const input = row.querySelector(".item_name");
+  const suggestionsList = row.querySelector(".suggestions");
+
+  input.addEventListener("input", function () {
+    showSuggestions(input, suggestionsList);
+  });
+
+  input.addEventListener("keydown", function (event) {
+    handleKeyboardNavigation(event, input, suggestionsList);
+  });
+
+  document.addEventListener("click", function (event) {
+    if (!input.contains(event.target) && !suggestionsList.contains(event.target)) {
+      suggestionsList.style.display = "none";
+    }
+  });
+}
+
+// Function to show suggestions
+function showSuggestions(input, suggestionsList) {
+  const query = input.value.toLowerCase();
+  suggestionsList.innerHTML = ""; // Clear old suggestions
+  selectedIndex = -1; // Reset index
+
+  if (query.length === 0) {
+    suggestionsList.style.display = "none";
+    return;
+  }
+
+  const filtered = data.filter(item => item.toLowerCase().includes(query));
+
+  if (filtered.length === 0) {
+    suggestionsList.style.display = "none";
+    return;
+  }
+
+  suggestionsList.style.display = "block";
+
+  filtered.forEach((item, index) => {
+    let li = document.createElement("li");
+    li.textContent = item;
+    li.onclick = function () {
+      input.value = item;
+      fill(item, input.closest("tr"));
+      suggestionsList.style.display = "none";
+    };
+    suggestionsList.appendChild(li);
+  });
+}
+
+// Function to handle arrow key navigation
+function handleKeyboardNavigation(event, input, suggestionsList) {
+  const items = suggestionsList.querySelectorAll("li");
+  if (items.length === 0) return;
+
+  if (event.key === "ArrowDown") {
+    selectedIndex = (selectedIndex + 1) % items.length;
+    input.value = items[selectedIndex].textContent;
+    fill(items[selectedIndex].textContent, input.closest("tr"));
+  } else if (event.key === "ArrowUp") {
+    selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+    input.value = items[selectedIndex].textContent;
+    fill(items[selectedIndex].textContent, input.closest("tr"));
+  } else if (event.key === "Enter") {
+    if (selectedIndex >= 0) {
+      suggestionsList.style.display = "none";
+    }
+    return;
+  }
+
+  items.forEach((item, index) => {
+    item.classList.toggle("selected", index === selectedIndex);
+  });
 }
 
 // Event listener for the "Remove Item" button
@@ -129,29 +221,33 @@ document.querySelector("#items-table").addEventListener("click", (event) => {
 // Fetch stock data from the backend
 async function fetchStockData(itemName) {
   try {
-      const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
-      if (!response.ok) throw new Error('Stock not found');
-      return await response.json();
+    const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
+    if (!response.ok) throw new Error('Stock not found');
+    return await response.json();
   } catch (error) {
-      console.error("Error fetching stock data:", error);
-      return null;
+    console.error("Error fetching stock data:", error);
+    return null;
   }
 }
 
-// Event listener for item description or item code input
+// Function to autofill row data
+async function fill(itemName, row) {
+  const stockData = await fetchStockData(itemName);
+  if (stockData) {
+    row.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
+    row.querySelector("input[placeholder='Unit Price']").value = stockData.unitPrice || 0;
+    row.querySelector("input[placeholder='Rate']").value = stockData.GST || 0;
+  }
+}
+
+// Event listener for item description input
 document.querySelector("#items-table").addEventListener("input", async (event) => {
   const row = event.target.closest("tr");
 
   if (event.target.placeholder === "Item Description" || event.target.placeholder === "HSN/SAC") {
-      const itemName = row.querySelector("input[placeholder='Item Description']").value.trim();
-      
-      if (itemName.length > 2) { // Avoid unnecessary API calls for short inputs
-          const stockData = await fetchStockData(itemName);
-          if (stockData) {
-              row.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
-              row.querySelector("input[placeholder='Unit Price']").value = stockData.unitPrice || 0;
-              row.querySelector("input[placeholder='Rate']").value = stockData.GST || 0;
-          }
-      }
+    const itemName = row.querySelector("input[placeholder='Item Description']").value.trim();
+    if (itemName.length > 2) { // Avoid unnecessary API calls for short inputs
+      fill(itemName, row);
+    }
   }
 });

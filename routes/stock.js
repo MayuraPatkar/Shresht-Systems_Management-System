@@ -145,5 +145,15 @@ router.get("/get-stock-item", async (req, res) => {
     }
 });
 
+router.get("/get-names", async (req, res) => {
+    try {
+        const stockItems = await Stock.find({}, { itemName: 1 });
+        res.json(stockItems.map(item => item.itemName));
+    } catch (error) {
+        console.error("Error fetching stock item names:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 
 module.exports = router;

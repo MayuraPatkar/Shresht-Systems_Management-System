@@ -1,4 +1,4 @@
-const invoicesListDiv = document.querySelector(".records .record_list");
+const invoicesListDiv = document.querySelector(".records");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentInvoices();
@@ -44,13 +44,19 @@ function createInvoiceDiv(invoice) {
     invoiceDiv.className = "record-item";
     invoiceDiv.innerHTML = `
         <div class="details">
-        <h3>${invoice.project_name}</h3>
-        <h4>#${invoice.invoice_id}</h4>
+        <div class="info1">
+            <h1>${invoice.project_name}</h1>
+            <h4>#${invoice.invoice_id}</h4>
+        </div>
+        <div class="info2">
+            <h4>${invoice.buyer_name}</h4>
+            <p>${invoice.buyer_address}</p>
+        </div>
         </div>
         <div class="actions">
-        <button class="btn btn-primary open-invoice" data-id="${invoice.invoice_id}">Open</button>
-        <button class="btn btn-danger delete-invoice" data-id="${invoice.invoice_id}">Delete</button>
-    </div>
+            <button class="btn btn-primary open-invoice" data-id="${invoice.invoice_id}">Open</button>
+            <button class="btn btn-danger delete-invoice" data-id="${invoice.invoice_id}">Delete</button>
+        </div>
     `;
 
     return invoiceDiv;
@@ -168,7 +174,7 @@ async function handleSearch() {
         const response = await fetch(`/invoice/search/${query}`);
         if (!response.ok) {
             const errorText = await response.text();
-            invoicesListDiv.innerHTML = `<p>${errorText}</p>`;
+            invoicesListDiv.innerHTML = `<p>No Invoice Found</p>`;
             return;
         }
 

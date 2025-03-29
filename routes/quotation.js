@@ -90,7 +90,7 @@ router.get("/recent-quotations", async (req, res) => {
         const recentquotation = await Quotations.find()
             .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
             .limit(5)
-            .select("project_name quotation_id");
+            .select("project_name quotation_id buyer_name buyer_address");
 
         // Respond with the fetched quotation
         res.status(200).json({

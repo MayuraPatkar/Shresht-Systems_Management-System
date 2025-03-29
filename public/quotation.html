@@ -14,7 +14,14 @@
     <header>
         <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
         <h1>Quotation</h1>
-        <button onclick="window.location = '/quotation'">Home</button>
+        <div class="search">
+            <div type="submit" id="quotationSearchBtn"><img src="./assets/search.png"></div>
+            <input type="text" id="quotationSearchInput" placeholder="Search here..." onkeyup="showSuggestions()">
+        </div>
+        <div class="header-buttons">
+            <button id="newQuotation">New Quotation</button>
+            <button onclick="window.location = '/quotation'">Home</button>
+        </div>
     </header>
     <div id="confirm_box" class="modal">
         <div class="modal-content">
@@ -26,23 +33,8 @@
         </div>
     </div>
     <div id="home">
-        <div class="container1">
-            <div class="records">
-                <div>
-                    <h2>Quotations</h2>
-                    <button id="newQuotation">New Quotation</button>
-                </div>
-                <div class="record_list">
-                    <h2>No quotations in database</h2>
-                </div>
-            </div>
-            <div class="search">
-                <h3>Search Quotations</h3>
-                <div class="search_container">
-                    <input type="text" id="quotationSearchInput" placeholder="type here">
-                    <div type="submit" id="quotationSearchBtn"><img src="./assets/search.png"></div>
-                </div>
-            </div>
+        <div class="records">
+            <h2>No quotations in database</h2>
         </div>
     </div>
     <div id="new">

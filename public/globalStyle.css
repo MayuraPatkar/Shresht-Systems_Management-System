@@ -1,12 +1,19 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f9;
+    background-color: #dddddd;
 }
 
 header {
     width: 100%;
+    height: 10vh;
     padding: 1rem 2rem;
     box-sizing: border-box;
     background-color: #ffffff;
@@ -14,6 +21,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 2%;
 }
 
 .img {
@@ -27,81 +35,89 @@ header {
 h1 {
     margin: 0;
     font-size: 1.8rem;
-    flex-grow: 1;
-    text-align: center;
+    color: #267746;
+}
+
+.header-buttons {
+    width: 300px;
+    display: flex;
+    justify-content: space-evenly;
 }
 
 header button {
+    width: fit-content;
     padding: 0.8rem;
-    background-color: #007bff;
+    background-color: rgb(10, 0, 154);
     color: #fff;
     font-size: 1rem;
     font-weight: bold;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
-.container1 {
-    width: 100%;
-    height: 85vh;
-    display: flex;
-    justify-content: space-between;
-    gap: 2%;
-    padding: 2rem;
+.search {
+    max-width: 35%;
     box-sizing: border-box;
-    flex-wrap: wrap;
+    border-radius: 10px;
+    min-width: 280px;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #ddd;
 }
+
+.search input[type="text"] {
+    width: 70%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    outline: none;
+    transition: border 0.3s;
+}
+
+.search input[type="text"]:focus {
+    border-color: rgb(10, 0, 154);
+}
+
+.search div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 10%;
+    padding: 0.8rem;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search div img {
+    width: 100%;
+}
+
+/* Records div starts here */
 
 .records {
-    background-color: #ffffff;
-    padding: 2rem;
-    box-sizing: border-box;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 15px;
-    flex: 1;
-    max-width: 65%;
-}
-
-.records div {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.records h2 {
-    color: #444;
-    font-size: 1.5rem;
-}
-
-.records button {
-    padding: 0.8rem;
-    background-color: #007bff;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.record_list {
+    width: 100%;
+    height: 90vh;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 1%;
+    border-radius: 10px;
+    overflow-y: scroll;
 }
 
 .record-item {
-    background-color: rgb(127, 228, 63);
+    height: 150px;
+    width: 50%;
+    background-color: rgb(255, 255, 255);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
-    margin: 1rem 0;
-    width: 95%;
-    font-size: 1.5rem;
+    margin: 10px 0;
     border: 1px solid #ddd;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -109,23 +125,54 @@ header button {
 }
 
 .record-item:hover {
-    background-color: rgb(108, 207, 72);
+    background-color: rgb(141, 188, 255);
 }
 
-.record-item h3, h4{
+.record-item h1,
+h4 {
+    color: black;
     margin: 0;
 }
 
 .record-item .details {
-    /* flex-grow: 1; */
-    gap: 1.5rem;
+    width: 30%;
+    height: 80%;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
     justify-content: space-around;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.info1{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap:5%;
+}
+
+.info2 {
+    height: 60%;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: column;
+    font-size: 1rem;
+    text-align: left;
+}
+
+.info2 p {
+    margin: 0;
 }
 
 .record-item .actions {
+    width: 30%;
     display: flex;
-    gap: 0.5rem;
+    justify-content: space-evenly;
+    gap: 5%;
     height: 6vh;
+    /* flex: 1; */
 }
 
 .record-item .actions button {
@@ -133,10 +180,11 @@ header button {
     height: 100%;
     border: none;
     border-radius: 5px;
-    background-color: #007bff;
+    background-color: rgb(10, 0, 154);
     color: white;
     cursor: pointer;
     transition: background-color 0.3s;
+    box-sizing: border-box;
 }
 
 .record-item .actions button:hover {
@@ -149,54 +197,6 @@ header button {
 
 .record-item .actions .btn-danger:hover {
     background-color: #c82333;
-}
-
-.search {
-    max-width: 35%;
-    background-color: #ffffff;
-    padding: 2rem;
-    box-sizing: border-box;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 15px;
-    flex: 1;
-    min-width: 280px;
-}
-
-.search_container {
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    width: 100%;
-}
-
-.search_container input[type="text"] {
-    width: 70%;
-    padding: 0.8rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
-    outline: none;
-    transition: border 0.3s;
-}
-
-.search_container input[type="text"]:focus {
-    border-color: #007bff;
-}
-
-.search_container div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 10%;
-    background-color: #007bff;
-    padding: 0.8rem;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.search_container div img {
-    width: 50%;
 }
 
 #new {
@@ -240,12 +240,12 @@ header button {
 }
 
 .btn-primary {
-    background-color: #007bff;
+    background-color: #ff0000;
     color: white;
 }
 
 .btn-secondary {
-    background-color: #6c757d;
+    background-color: #23c929;
     color: white;
 }
 
