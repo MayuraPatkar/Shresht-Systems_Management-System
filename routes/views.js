@@ -5,7 +5,6 @@ const router = express.Router();
 // Serve HTML files
 const pages = [
     { route: '/', file: 'index.html' },
-    { route: '/login', file: 'login.html' },
     { route: '/dashboard', file: 'dashboard.html' },
     { route: '/invoice', file: 'invoice.html' },
     { route: '/quotation', file: 'quotation.html' },
