@@ -45,32 +45,38 @@
             <div class="steps active" id="step-1">
                 <h2>Service Details</h2>
                 <div class="form-group">
-                    <label for="payment">Payment:</label>
+                    <label for="payment">Payment</label>
                     <input type="text" id="payment">
                 </div>
                 <div class="form-group">
-                    <label for="question-yes">Is There Next Service? :</label>
-                    <input type="radio" name="question" id="question-yes" value="yes">
-                    <label for="question-yes">Yes</label>
-
-                    <input type="radio" name="question" id="question-no" value="no">
-                    <label for="question-no">No</label>
+                    <label for="question-yes">Is There Next Service?</label>
+                    <div class="radio-group">
+                        <div>
+                            <input type="radio" name="question" id="question-yes" value="yes">
+                            <label for="question-yes">Yes</label>
+                        </div>
+                        <div>
+                            <input type="radio" name="question" id="question-no" value="no">
+                            <label for="question-no">No</label>
+                        </div>
+                    </div>
                 </div>
-
-            </div>
-            <div class="steps" id="step-2">
-                <div class="preview">
-                    <h2>Preview</h2>
-                    <div id="preview-content"></div>
+                <div class="steps" id="step-2">
+                    <div class="preview">
+                        <h2>Preview</h2>
+                        <div id="preview-content"></div>
+                    </div>
+                    <!-- <button type="button" id="save">Save</button> -->
+                    <button type="button" id="print">Print</button>
+                    <button type="button" id="savePDF">Save as PDF</button>
                 </div>
-                <!-- <button type="button" id="save">Save</button> -->
-                <button type="button" id="print">Print</button>
-                <button type="button" id="savePDF">Save as PDF</button>
-            </div>
-            <div class="navigation">
-                <button type="button" id="prevBtn" disabled>Previous</button>
-                <button type="button" id="nextBtn">Next</button>
-            </div>
+                <div class="navigation">
+                    <button type="button" id="prevBtn" disabled>Previous</button>
+                    <div class="step-indicators">
+                        <span id="step-indicator"></span>
+                    </div>
+                    <button type="button" id="nextBtn">Next</button>
+                </div>
         </form>
     </div>
     <!-- <script src="./globalScript.js"></script> -->

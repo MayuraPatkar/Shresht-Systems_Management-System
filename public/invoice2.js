@@ -1,8 +1,13 @@
 const totalSteps = 7;
 
+document.getElementById("viewPreview").addEventListener("click", () => {
+    changeStep(totalSteps);
+    generatePreview();
+});
+
 // Event listener for the "Next" button
 document.getElementById("nextBtn").addEventListener("click", () => {
-    if (currentStep === 2) {
+    if (currentStep === 2 && !document.getElementById("Id").value) {
         const quotation_id = document.getElementById("quotationId").value;
         if (quotation_id) {
             fetch(`/quotation/${quotation_id}`)
@@ -59,6 +64,10 @@ async function getId() {
     }
 }
 
+let totalPrice = 0;
+let roundOff = 0;
+let grandTotal = 0;
+
 // Function to generate the invoice preview
 function generatePreview() {
     if (!invoiceId) invoiceId = document.getElementById('Id').value;
@@ -66,18 +75,15 @@ function generatePreview() {
     const poNumber = document.getElementById("poNumber").value;
     const dcNumber = document.getElementById("dcNumber").value;
     const dcDate = document.getElementById("dcDate").value;
-    const ewayBillNumber = document.getElementById("ewayBillNumber").value;
+    const wayBillNumber = document.getElementById("wayBillNumber").value;
     const buyerName = document.getElementById("buyerName").value;
     const buyerAddress = document.getElementById("buyerAddress").value;
     const buyerPhone = document.getElementById("buyerPhone").value;
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
 
-    let totalPrice = 0;
     let totalCGST = 0;
     let totalSGST = 0;
     let totalTaxableValue = 0;
-    let grandTotal = 0;
-    let roundOff = 0;
 
     let itemsHTML = "";
     let totalsHTML = "";
@@ -172,7 +178,7 @@ function generatePreview() {
             <div class="info-section">
                 <p><strong>Project:</strong> ${projectName}</p>
                 <p><strong>P.O No:</strong> ${poNumber}</p>
-                <p><strong>E-Way Bill:</strong> ${ewayBillNumber}</p>
+                <p><strong>E-Way Bill:</strong> ${wayBillNumber}</p>
             </div>
         </div>
         <div class="second-section">
@@ -246,14 +252,10 @@ async function sendToServer(data, shouldPrint) {
 
         const responseData = await response.json();
 
-        if (response.ok) {
-            window.electronAPI.showAlert("Invoice saved successfully!");
-        } else if (responseData.message === "Invoice already exists") {
-            if (!shouldPrint) {
-                window.electronAPI.showAlert("Invoice already exists.");
-            }
-        } else {
+        if (!response.ok) {
             window.electronAPI.showAlert(`Error: ${responseData.message || "Unknown error occurred."}`);
+        } else {
+            return true;
         }
     } catch (error) {
         console.error("Error:", error);
@@ -264,7 +266,7 @@ async function sendToServer(data, shouldPrint) {
 // Event listener for the "Save" button
 document.getElementById("save").addEventListener("click", () => {
     const invoiceData = collectFormData();
-    sendToServer(invoiceData, false);
+    if (sendToServer(invoiceData, false)) window.electronAPI.showAlert("Invoice saved successfully!");
 });
 
 // Event listener for the "Print" button
@@ -272,8 +274,7 @@ document.getElementById("print").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const invoiceData = collectFormData();
-        sendToServer(invoiceData, true);
-        window.electronAPI.handlePrintEvent(previewContent, "print");
+        if (sendToServer(invoiceData, true)) window.electronAPI.handlePrintEvent(previewContent, "print");
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }
@@ -284,9 +285,10 @@ document.getElementById("savePDF").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const invoiceData = collectFormData();
-        sendToServer(invoiceData, true);
-        let name = `Invoice-${invoiceId}`;
-        window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+        if (sendToServer(invoiceData, true)) {
+            let name = `Invoice-${invoiceId}`;
+            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+        }
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }
@@ -294,19 +296,30 @@ document.getElementById("savePDF").addEventListener("click", () => {
 
 // Function to collect form data
 function collectFormData() {
+    const totalAmount = (totalPrice + roundOff).toFixed(2);
+    const tolerance = 0.001;
+    let paymentStatus = document.querySelector('input[name="question"]:checked')?.value || null;
+    if (Math.abs(parseFloat(totalAmount) - document.getElementById("paidAmount").value) < tolerance) {
+        paymentStatus = 'Paid';
+        paidAmount = parseFloat(totalAmount);
+    }
     return {
         projectName: document.getElementById("projectName").value,
         invoiceId: document.getElementById("Id").value,
         poNumber: document.getElementById("poNumber").value,
         dcNumber: document.getElementById("dcNumber").value,
         dcDate: document.getElementById("dcDate").value,
-        service_month: document.getElementById('service_month').value,
-        ewayBillNumber: document.getElementById("ewayBillNumber").value,
+        service_month: document.getElementById("service_month").value,
+        wayBillNumber: document.getElementById("wayBillNumber").value,
         buyerName: document.getElementById("buyerName").value,
         buyerAddress: document.getElementById("buyerAddress").value,
         buyerPhone: document.getElementById("buyerPhone").value,
         consigneeName: document.getElementById("consigneeName").value,
         consigneeAddress: document.getElementById("consigneeAddress").value,
+        paymentStatus: paymentStatus,
+        paidAmount: paymentStatus === 'Paid' ? (totalPrice + roundOff).toFixed(2) : document.getElementById("paidAmount").value,
+        paymentDate: document.getElementById("paymentDate").value,
+        paymentMode: document.getElementById("paymentMode").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(1) input").value,
             HSN_SAC: row.querySelector("td:nth-child(2) input").value,
@@ -314,5 +327,6 @@ function collectFormData() {
             UnitPrice: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
+        totalAmount: totalAmount,
     };
 }

@@ -103,7 +103,7 @@ const invoiceSchema = new mongoose.Schema({
     dc_number: { type: String },
     dc_date: { type: Date },
     service_month: { type: Number, default: 0 },
-    E_Way_Bill_number: { type: String },
+    Way_Bill_number: { type: String },
     buyer_name: { type: String },
     buyer_address: { type: String },
     buyer_phone: { type: String },
@@ -118,9 +118,12 @@ const invoiceSchema = new mongoose.Schema({
             rate: { type: Number },
         },
     ],
+    totalAmount: { type: Number },
+    paidAmount: { type: Number },
+    paymentMode: { type: String },
+    paymentDate: { type: Date },
+    paymentStatus: { type: String, default: 'Unpaid' },
     createdAt: { type: Date, default: Date.now },
-    due_amount: { type: Number },
-    status: { type: String, default: 'Unpaid' },
 });
 
 const Invoices = mongoose.model('invoice', invoiceSchema);

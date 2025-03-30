@@ -25,6 +25,7 @@
         </div>
         <div class="header-buttons">
             <button id="newInvoice">New Invoice</button>
+            <button id="viewPreview">View Preview</button>
             <button onclick="window.location = '/invoice'">Home</button>
         </div>
     </header>
@@ -57,7 +58,7 @@
             <div class="steps active" id="step-1">
                 <h2>Import Data from Quotation?</h2>
                 <div class="form-group">
-                    <label for="quotationId">Quotation ID:</label>
+                    <label for="quotationId">Quotation ID</label>
                     <input type="text" id="quotationId">
                 </div>
             </div>
@@ -66,33 +67,65 @@
             <div class="steps" id="step-2">
                 <h2>Project Details</h2>
                 <div class="form-group">
-                    <label for="projectName">Project Name:</label>
+                    <label for="projectName">Project Name</label>
                     <input type="text" id="projectName" required>
                 </div>
                 <div class="form-group">
-                    <label for="poNumber">P.O Number:</label>
-                    <input type="text" id="poNumber" required>
+                    <label for="poNumber">P.O Number</label>
+                    <input type="text" id="poNumber">
                 </div>
                 <div class="form-group">
-                    <label for="dcNumber">D.C Number:</label>
-                    <input type="text" id="dcNumber" required>
+                    <label for="dcNumber">D.C Number</label>
+                    <input type="text" id="dcNumber">
                 </div>
                 <div class="form-group">
-                    <label for="dcDate">D.C Date:</label>
-                    <input type="date" id="dcDate" required>
+                    <label for="dcDate">D.C Date</label>
+                    <input type="date" id="dcDate">
                 </div>
                 <div class="form-group">
-                    <label for="service_month">Enter Months For Service: (0 for no service)</label>
+                    <div class="form-group">
+                        <label for="wayBillNumber">E-Way Bill Number:</label>
+                        <input type="text" id="wayBillNumber" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="service_month">Enter Months For Service (0 for no service)</label>
                     <input type="number" id="service_month" value=0 required>
                 </div>
             </div>
 
             <!-- Step 3: Transportation Details -->
             <div class="steps" id="step-3">
-                <h2>Transportation Details</h2>
+                <h2>Payment Details</h2>
                 <div class="form-group">
-                    <label for="ewayBillNumber">E-Way Bill Number:</label>
-                    <input type="text" id="ewayBillNumber" required>
+                    <label for="payment">Payment Status</label>
+                    <div class="radio-group">
+                        <div>
+                            <input type="radio" name="question" id="invoice-Paid" value="Paid">
+                            <label for="invoice-Paid">Paid</label>
+                        </div>
+                        <div>
+                            <input type="radio" name="question" id="invoice-unpaid" value="Unpaid" checked>
+                            <label for="invoice-unpaid">Unpaid</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="paidAmount">Paid Amount (if unpaid)</label>
+                    <input type="number" id="paidAmount" value=0 >
+                </div>
+                <div class="form-group">
+                    <label for="paymentMode">Payment Method</label>
+                    <select id="paymentMode" required>
+                        <option value="Cash">Cash</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="UPI">UPI</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="paymentDate">Payment Date</label>
+                    <input type="date" id="paymentDate" required>
                 </div>
             </div>
 
@@ -165,6 +198,9 @@
             <!-- Navigation Buttons -->
             <div class="navigation">
                 <button type="button" id="prevBtn" disabled>Previous</button>
+                <div class="step-indicators">
+                    <span id="step-indicator"></span>
+                </div>
                 <button type="button" id="nextBtn">Next</button>
             </div>
         </form>

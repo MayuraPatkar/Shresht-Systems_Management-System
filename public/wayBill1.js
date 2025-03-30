@@ -13,6 +13,58 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('searchBtn').addEventListener('click', handleSearch);
 });
 
+let currentStep = 1;
+const totalSteps = 6;
+
+document.getElementById("nextBtn").addEventListener("click", () => {
+    if (currentStep < totalSteps) {
+        document.getElementById(`step-${currentStep}`).classList.remove("active");
+        currentStep++;
+        document.getElementById(`step-${currentStep}`).classList.add("active");
+        updateNavigation();
+        if (currentStep === totalSteps) generatePreview();
+        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+    }
+});
+
+function moveNext() {
+    document.getElementById('nextBtn').click();
+}
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+      moveNext();
+  }
+});
+
+// Function to change the current step
+function changeStep(step) {
+    document.getElementById(`step-${currentStep}`).classList.remove("active");
+    currentStep = step;
+    document.getElementById(`step-${currentStep}`).classList.add("active");
+    updateNavigation();
+    document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+  }
+
+document.getElementById("prevBtn").addEventListener("click", () => {
+    if (currentStep > 1) {
+        document.getElementById(`step-${currentStep}`).classList.remove("active");
+        currentStep--;
+        document.getElementById(`step-${currentStep}`).classList.add("active");
+        updateNavigation();
+    }
+});
+
+function updateNavigation() {
+    document.getElementById("prevBtn").disabled = currentStep === 1;
+    document.getElementById("nextBtn").disabled = currentStep === totalSteps;;
+}
+
+document.getElementById("viewPreview").addEventListener("click", () => {
+    changeStep(totalSteps);
+    generatePreview();
+});
+
 // Load recent way bills from the server
 async function loadRecentWayBills() {
     try {
@@ -47,6 +99,9 @@ function createWayBillDiv(wayBill) {
     const wayBillDiv = document.createElement("div");
     wayBillDiv.className = "record-item";
     wayBillDiv.innerHTML = `
+    <div class="paid-icon">
+        <img src="./assets/delivery.png" alt="Icon">
+    </div>
     <div class="details">
     <div class="info1">
         <h1>${wayBill.project_name}</h1>
@@ -94,6 +149,12 @@ async function openWayBill(wayBillId) {
 
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
+        document.getElementById('newWayBill').style.display = 'none';
+        document.getElementById('viewPreview').style.display = 'block';
+
+        if (currentStep === 1) {
+            changeStep(2)
+        }
 
         document.getElementById('wayBillId').value = wayBill.wayBill_id;
         document.getElementById('projectName').value = wayBill.project_name;
@@ -115,6 +176,7 @@ async function openWayBill(wayBillId) {
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
                 <td><input type="number" value="${item.unitPrice}" required></td>
+                <td><input type="number" value="${item.rate}" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
 
@@ -171,6 +233,8 @@ function showConfirmBox(message, onConfirm, onCancel) {
 function showNewWayBillForm() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
+    document.getElementById('newWayBill').style.display = 'none';
+    document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 }
 
 // Handle search functionality
@@ -202,7 +266,7 @@ async function handleSearch() {
     }
 }
 
-document.getElementById("SearchInput").addEventListener("keydown", function(event) {
+document.getElementById("searchInput").addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
         event.preventDefault();
         handleSearch();

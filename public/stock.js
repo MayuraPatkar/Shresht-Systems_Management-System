@@ -180,8 +180,8 @@ async function lowStock() {
                     <td>${item.HSN_SAC}</td>
                     <td>${item.unitPrice}</td>
                     <td>${item.quantity}</td>
-                    <td>${item.threshold}</td>
-                    <td>${item.GST}</td>
+                    <td>${item.threshold}%</td>
+                    <td>${item.GST}%</td>
                     <td>${item.quantity < item.min_quantity ? 'Low Stock' : 'In Stock'}</td>
                     <td>
                         <button class="btn" onclick="addToStockDiv('${item._id}')">Add</button>
@@ -225,8 +225,8 @@ function renderStockTable(data) {
             <td>${item.HSN_SAC}</td>
             <td>${item.unitPrice}</td>
             <td>${item.quantity}</td>
-            <td>${item.threshold}</td>
-            <td>${item.GST}</td>
+            <td>${item.threshold}%</td>
+            <td>${item.GST}%</td>
             <td>${item.quantity < item.min_quantity ? 'Low Stock' : 'In Stock'}</td>
             <td>
                 <button class="btn" onclick="addToStockDiv('${item._id}')">Add</button>

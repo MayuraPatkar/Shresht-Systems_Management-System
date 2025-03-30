@@ -1,6 +1,11 @@
 const totalSteps = 4;
 let quotation_id = '';
 
+document.getElementById("viewPreview").addEventListener("click", () => {
+    changeStep(totalSteps);
+    generatePreview();
+});
+
 // fuction to get the quotation id
 async function getId() {
     try {
@@ -259,13 +264,7 @@ async function sendToServer(data, shouldPrint) {
 
         const responseData = await response.json();
 
-        if (response.ok) {
-            window.electronAPI.showAlert("Quotation saved successfully!");
-        } else if (responseData.message === "Quotation already exists") {
-            if (!shouldPrint) {
-                window.electronAPI.showAlert("Quotation already exists.");
-            }
-        } else {
+        if (!response.ok) {
             window.electronAPI.showAlert(`Error: ${responseData.message || "Unknown error occurred."}`);
         }
     } catch (error) {
@@ -278,6 +277,7 @@ async function sendToServer(data, shouldPrint) {
 document.getElementById("save").addEventListener("click", () => {
     const quotationData = collectFormData();
     sendToServer(quotationData, false);
+    window.electronAPI.showAlert("Quotation saved successfully!");
 });
 
 // Event listener for the "Print" button

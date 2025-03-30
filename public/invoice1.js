@@ -43,6 +43,9 @@ function createInvoiceDiv(invoice) {
     const invoiceDiv = document.createElement("div");
     invoiceDiv.className = "record-item";
     invoiceDiv.innerHTML = `
+    <div class="paid-icon">
+        <img src="./assets/${invoice.paymentStatus === 'Paid' ? 'paid.png' : 'unpaid.png'}" alt="Paid Icon">
+    </div>
         <div class="details">
         <div class="info1">
             <h1>${invoice.project_name}</h1>
@@ -99,6 +102,12 @@ async function openInvoice(invoiceId) {
 
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
+        document.getElementById('newInvoice').style.display = 'none';
+        document.getElementById('viewPreview').style.display = 'block';
+
+        if (currentStep === 1) {
+            changeStep(2)
+        }
 
         document.getElementById('Id').value = invoice.invoice_id;
         document.getElementById('projectName').value = invoice.project_name;
@@ -111,7 +120,14 @@ async function openInvoice(invoiceId) {
         document.getElementById('dcNumber').value = invoice.dc_number;
         document.getElementById('dcDate').value = formatDate(invoice.dc_date);
         document.getElementById('service_month').value = invoice.service_month;
-        document.getElementById('ewayBillNumber').value = invoice.E_Way_Bill_number;
+        document.getElementById('wayBillNumber').value = invoice.Way_Bill_number;
+        if(invoice.paymentStatus === 'Paid') {
+            document.getElementById('paidAmount').value = invoice.totalAmount;
+        }
+        document.getElementById('paidAmount').value = invoice.paidAmount;
+        document.querySelector(`input[name="question"][value="${invoice.paymentStatus}"]`).checked = true;
+        document.getElementById('paymentMode').value = invoice.paymentMode;
+        document.getElementById('paymentDate').value = formatDate(invoice.paymentDate);
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
@@ -160,6 +176,7 @@ async function deleteInvoice(invoiceId) {
 function showNewInvoiceForm() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
+    document.getElementById('newInvoice').style.display = 'none';
 }
 
 // Handle search functionality
@@ -190,7 +207,7 @@ async function handleSearch() {
     }
 }
 
-document.getElementById("SearchInput").addEventListener("keydown", function(event) {
+document.getElementById("searchInput").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
         event.preventDefault();
         handleSearch();

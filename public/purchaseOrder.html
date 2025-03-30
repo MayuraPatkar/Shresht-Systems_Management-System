@@ -16,10 +16,11 @@
         <h1>Purchase Order</h1>
         <div class="search">
             <div type="submit" id="searchBtn"><img src="./assets/search.png"></div>
-            <input type="text" id="searchInput" placeholder="search here...">
+            <input type="text" id="searchInput" placeholder="Search here...">
         </div>
         <div class="header-buttons">
             <button id="newPurchase">New Purchase Order</button>
+            <button id="viewPreview">View Preview</button>
             <button onclick="window.location = '/purchaseOrder'">Home</button>
         </div>
     </header>
@@ -46,11 +47,11 @@
             <div class="steps active" id="step-1">
                 <h2>Project Details</h2>
                 <div class="form-group">
-                    <label for="projectName">project Name:</label>
+                    <label for="projectName">project Name</label>
                     <input type="text" id="projectName" required>
                 </div>
                 <div class="form-group">
-                    <label for="handledBy">Handled By:</label>
+                    <label for="handledBy">Handled By</label>
                     <input type="text" id="handledBy" required>
                 </div>
             </div>
@@ -58,23 +59,23 @@
             <div class="steps" id="step-2">
                 <h2>Recipient Details (to)</h2>
                 <div class="form-group">
-                    <label for="supplierName">Supplier Name:</label>
+                    <label for="supplierName">Supplier Name</label>
                     <input type="text" id="supplierName" required>
                 </div>
                 <div class="form-group">
-                    <label for="supplierAddress">Address:</label>
+                    <label for="supplierAddress">Address</label>
                     <textarea id="supplierAddress" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="supplierPhone">Phone Number:</label>
+                    <label for="supplierPhone">Phone Number</label>
                     <input type="tel" id="supplierPhone" required>
                 </div>
                 <div class="form-group">
-                    <label for="supplierEmail">Email:</label>
+                    <label for="supplierEmail">Email</label>
                     <input type="email" id="supplierEmail" required>
                 </div>
                 <div class="form-group">
-                    <label for="supplierGSTIN">GSTIN:</label>
+                    <label for="supplierGSTIN">GSTIN</label>
                     <input type="text" id="supplierGSTIN" required>
                 </div>
             </div>
@@ -115,6 +116,9 @@
 
             <div class="navigation">
                 <button type="button" id="prevBtn" disabled>Previous</button>
+                <div class="step-indicators">
+                    <span id="step-indicator"></span>
+                </div>
                 <button type="button" id="nextBtn">Next</button>
             </div>
         </form>

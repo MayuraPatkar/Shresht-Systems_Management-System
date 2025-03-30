@@ -1,6 +1,11 @@
 const totalSteps = 4;
 let purchase_order_id = '';
 
+document.getElementById("viewPreview").addEventListener("click", () => {
+    changeStep(totalSteps);
+    generatePreview();
+});
+
 // fuction to get the quotation id
 async function getId() {
     try {
@@ -179,14 +184,10 @@ async function sendToServer(data, shouldPrint) {
 
         const responseData = await response.json();
 
-        if (response.ok) {
-            window.electronAPI.showAlert("Purchase order saved successfully!");
-        } else if (responseData.message === "Purchase order already exists") {
-            if (!shouldPrint) {
-                window.electronAPI.showAlert("Purchase order already exists.");
-            }
-        } else {
+        if (!response.ok) {
             window.electronAPI.showAlert(`Error: ${responseData.message || "Unknown error occurred."}`);
+        } else {
+            return true;
         }
     } catch (error) {
         console.error("Error:", error);
@@ -197,7 +198,7 @@ async function sendToServer(data, shouldPrint) {
 // Event listener for the "Save" button
 document.getElementById("save").addEventListener("click", () => {
     const purchaseOrderData = collectFormData();
-    sendToServer(purchaseOrderData, false);
+    if (sendToServer(purchaseOrderData, false)) window.electronAPI.showAlert("Purchase Oder saved successfully!");
 });
 
 // Event listener for the "Print" button
@@ -205,8 +206,7 @@ document.getElementById("print").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const purchaseOrderData = collectFormData();
-        sendToServer(purchaseOrderData, true);
-        window.electronAPI.handlePrintEvent(previewContent, "print");
+        if (sendToServer(purchaseOrderData, true)) window.electronAPI.handlePrintEvent(previewContent, "print");
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }
@@ -217,9 +217,10 @@ document.getElementById("savePDF").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const purchaseOrderData = collectFormData();
-        sendToServer(purchaseOrderData, true);
-        let name = `PurchaseOrder-${purchase_order_id}`;
-        window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+        if (sendToServer(purchaseOrderData, true)) {
+            let name = `PurchaseOrder-${purchase_order_id}`;
+            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+        }
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }

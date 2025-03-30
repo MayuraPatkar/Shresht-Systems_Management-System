@@ -20,6 +20,7 @@
         </div>
         <div class="header-buttons">
             <button id="newQuotation">New Quotation</button>
+            <button id="viewPreview">View Preview</button>
             <button onclick="window.location = '/quotation'">Home</button>
         </div>
     </header>
@@ -43,22 +44,22 @@
             <div class="steps active" id="step-1">
                 <h2>Project Details</h2>
                 <div class="form-group">
-                    <label for="projectName">Project name:</label>
+                    <label for="projectName">Project name</label>
                     <input type="text" id="projectName">
                 </div>
             </div>
             <div class="steps" id="step-2">
                 <h2>Recipient Details (to)</h2>
                 <div class="form-group">
-                    <label for="buyerName">Buyer Name:</label>
+                    <label for="buyerName">Buyer Name</label>
                     <input type="text" id="buyerName">
                 </div>
                 <div class="form-group">
-                    <label for="buyerAddress">Address:</label>
+                    <label for="buyerAddress">Address</label>
                     <textarea id="buyerAddress"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="buyerPhone">Phone Number:</label>
+                    <label for="buyerPhone">Phone Number</label>
                     <input type="tel" id="buyerPhone">
                 </div>
             </div>
@@ -93,6 +94,9 @@
             </div>
             <div class="navigation">
                 <button type="button" id="prevBtn" disabled>Previous</button>
+                <div class="step-indicators">
+                    <span id="step-indicator"></span>
+                </div>
                 <button type="button" id="nextBtn">Next</button>
             </div>
         </form>

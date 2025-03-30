@@ -42,6 +42,9 @@ function createPurchaseOrderDiv(purchaseOrder) {
     const purchaseOrderDiv = document.createElement("div");
     purchaseOrderDiv.className = "record-item";
     purchaseOrderDiv.innerHTML = `
+    <div class="paid-icon">
+        <img src="./assets/economy-forecast.png" alt="Icon">
+    </div>
         <div class="details">
             <div class="info1">
                 <h1>${purchaseOrder.project_name}</h1>
@@ -89,6 +92,9 @@ async function openPurchaseOrder(purchaseOrderId) {
 
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
+        document.getElementById('newPurchase').style.display = 'none';
+        document.getElementById('viewPreview').style.display = 'block';
+        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 
         document.getElementById('Id').value = purchaseOrder.purchase_order_id;
         document.getElementById('projectName').value = purchaseOrder.project_name;
@@ -146,6 +152,7 @@ async function deletePurchaseOrder(purchaseOrderId) {
 function showNewPurchaseForm() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
+    document.getElementById('newPurchase').style.display = 'none';
 }
 
 // Handle search functionality
@@ -177,7 +184,7 @@ async function handleSearch() {
     }
 }
 
-document.getElementById("SearchInput").addEventListener("keydown", function(event) {
+document.getElementById("searchInput").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
         event.preventDefault();
         handleSearch();

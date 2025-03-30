@@ -37,6 +37,7 @@ function changeStep(step) {
   currentStep = step;
   document.getElementById(`step-${currentStep}`).classList.add("active");
   updateNavigation();
+  document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 }
 
 // Function to update the navigation buttons

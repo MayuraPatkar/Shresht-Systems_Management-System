@@ -16,10 +16,11 @@
         <h1>Way Bill</h1>
         <div class="search">
             <div type="submit" id="searchBtn"><img src="./assets/search.png"></div>
-            <input type="text" id="searchInput" placeholder="search here...">
+            <input type="text" id="searchInput" placeholder="Search here...">
         </div>
         <div class="header-buttons">
             <button id="newWayBill">New Way Bill</button>
+            <button id="viewPreview">View Preview</button>
             <button onclick="window.location = '/wayBill'">Home</button>
         </div>
     </header>
@@ -40,8 +41,17 @@
     </div>
     <div id="new">
         <form id="wayBill">
-            <!-- Basic Way Bill Details -->
+            <!-- Step 1: import data from quotattion -->
             <div class="steps active" id="step-1">
+                <h2>Import Data from Quotation?</h2>
+                <div class="form-group">
+                    <label for="quotationId">Quotation ID:</label>
+                    <input type="text" id="quotationId">
+                </div>
+            </div>
+
+            <!-- Basic Way Bill Details -->
+            <div class="steps" id="step-2">
                 <h2>Project Details:</h2>
                 <div class="form-group">
                     <label for="projectName">Project Name:</label>
@@ -53,7 +63,7 @@
                 </div>
             </div>
 
-            <div class="steps" id="step-2">
+            <div class="steps" id="step-3">
                 <h2>Shipped To (to)</h2>
                 <div class="form-group">
                     <label for="buyerName">Buyer Name:</label>
@@ -69,7 +79,7 @@
                 </div>
             </div>
 
-            <div class="steps" id="step-3">
+            <div class="steps" id="step-4">
                 <h2>Transportation Details</h2>
                 <div class="form-group">
                     <label for="transportMode">Transportation Mode:</label>
@@ -85,7 +95,7 @@
                 </div>
             </div>
 
-            <div class="steps" id="step-4">
+            <div class="steps" id="step-5">
                 <h2>Item List</h2>
                 <div class="form-group">
                     <table id="items-table">
@@ -95,6 +105,7 @@
                                 <th>HSN Code</th>
                                 <th>Qty</th>
                                 <th>Unit Price</th>
+                                <th>Tax Rate</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -106,7 +117,7 @@
                 </div>
             </div>
 
-            <div class="steps" id="step-5">
+            <div class="steps" id="step-6">
                 <div class="preview">
                     <h2>Preview</h2>
                     <div id="preview-content">
@@ -120,6 +131,9 @@
 
             <div class="navigation">
                 <button type="button" id="prevBtn" disabled>Previous</button>
+                <div class="step-indicators">
+                    <span id="step-indicator"></span>
+                </div>
                 <button type="button" id="nextBtn">Next</button>
             </div>
         </form>

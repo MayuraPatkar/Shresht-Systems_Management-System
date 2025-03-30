@@ -1,39 +1,41 @@
-let currentStep = 1;
-const totalSteps = 5;
-
+// Event listener for the "Next" button
 document.getElementById("nextBtn").addEventListener("click", () => {
-    if (currentStep < totalSteps) {
-        document.getElementById(`step-${currentStep}`).classList.remove("active");
-        currentStep++;
-        document.getElementById(`step-${currentStep}`).classList.add("active");
-        updateNavigation();
-        if (currentStep === totalSteps) generatePreview();
+    if (currentStep === 2 && !document.getElementById("wayBillId").value) {
+        const quotation_id = document.getElementById("quotationId").value;
+        if (quotation_id) {
+            fetch(`/quotation/${quotation_id}`)
+                .then(response => response.json())
+                .then(data => {
+                    const quotation = data.quotation;
+                    document.getElementById("projectName").value = quotation.project_name;
+                    document.getElementById("buyerName").value = quotation.buyer_name;
+                    document.getElementById("buyerAddress").value = quotation.buyer_address;
+                    document.getElementById("buyerPhone").value = quotation.buyer_phone;
+                    const itemsTableBody = document.querySelector("#items-table tbody");
+                    itemsTableBody.innerHTML = "";
+
+                    quotation.items.forEach(item => {
+                        const row = document.createElement("tr");
+
+                        row.innerHTML = `
+                                <td><input type="text" value="${item.description}" required></td>
+                                <td><input type="text" value="${item.HSN_SAC}" required></td>
+                                <td><input type="number" value="${item.quantity}" min="1" required></td>
+                                <td><input type="number" value="${item.unitPrice}" required></td>
+                                <td><input type="number" value="${item.rate}" required></td>
+                                <td><button type="button" class="remove-item-btn">Remove</button></td>
+                            `;
+
+                        itemsTableBody.appendChild(row);
+                    })
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    window.electronAPI.showAlert("Failed to fetch quotation.");
+                });
+        }
     }
 });
-
-function moveNext() {
-    document.getElementById('nextBtn').click();
-}
-
-document.addEventListener("keydown", function (event) {
-  if (event.key === "Enter") {
-      moveNext();
-  }
-});
-
-document.getElementById("prevBtn").addEventListener("click", () => {
-    if (currentStep > 1) {
-        document.getElementById(`step-${currentStep}`).classList.remove("active");
-        currentStep--;
-        document.getElementById(`step-${currentStep}`).classList.add("active");
-        updateNavigation();
-    }
-});
-
-function updateNavigation() {
-    document.getElementById("prevBtn").disabled = currentStep === 1;
-    document.getElementById("nextBtn").disabled = currentStep === totalSteps;;
-}
 
 document.getElementById('add-item-btn').addEventListener('click', addItem);
 
@@ -46,6 +48,7 @@ function addItem() {
         <td><input type="text" placeholder="HSN-SAC" required></td>
         <td><input type="number" placeholder="Qty" min="1" required></td>
         <td><input type="text" placeholder="Unit Price" required></td>
+        <td><input type="text" placeholder="Rate" required></td>
         <td><button type="button" class="remove-item-btn" onclick="removeItem(this)">Remove</button></td>
     `;
 
@@ -77,14 +80,18 @@ function generatePreview() {
     let itemsHTML = "";
     for (let row of itemsTable.rows) {
         const description = row.cells[0].querySelector("input").value || "-";
+        const hsnSac = row.cells[1].querySelector("input").value || "-";
         const qty = row.cells[2].querySelector("input").value || "0";
         const unitPrice = row.cells[3].querySelector("input").value || "0";
+        const rate = row.cells[4].querySelector("input").value || "0";
         const total = (qty * unitPrice).toFixed(2);
 
         itemsHTML += `<tr>
             <td>${description}</td>
+            <td>${hsnSac}</td>
             <td>${qty}</td>
             <td>${unitPrice}</td>
+            <td>${rate}</td>
             <td>${total}</td>
         </tr>`;
     }
@@ -126,8 +133,10 @@ function generatePreview() {
             <thead>
                 <tr>
                     <th>Description</th>
+                    <th>HSN/SAC</th>
                     <th>Qty</th>
                     <th>Unit Price</th>
+                    <th>Rate</th>
                     <th>Total</th>
                 </tr>
             </thead>
@@ -161,14 +170,7 @@ async function sendToServer(data, shouldPrint) {
 
         const responseData = await response.json();
 
-        if (response.ok) {
-            document.getElementById("wayBillId").value = responseData.wayBill.wayBill_id;
-            window.electronAPI.showAlert("Way bill saved successfully!");
-        } else if (responseData.message === "Way bill already exists") {
-            if (!shouldPrint) {
-                window.electronAPI.showAlert("Way bill already exists.");
-            }
-        } else {
+        if (!response.ok) {
             window.electronAPI.showAlert(`Error: ${responseData.message || "Unknown error occurred."}`);
         }
     } catch (error) {
@@ -181,6 +183,7 @@ async function sendToServer(data, shouldPrint) {
 document.getElementById("save").addEventListener("click", () => {
     const wayBillData = collectFormData();
     sendToServer(wayBillData, false);
+    window.electronAPI.showAlert("Way Bill saved successfully!");
 });
 
 // Event listener for the "Print" button
@@ -202,7 +205,7 @@ document.getElementById("savePDF").addEventListener("click", () => {
         const wayBillData = collectFormData();
         sendToServer(wayBillData, true);
         let name = `WayBill-${wayBillData.way_bill_id}`;
-        window.electronAPI.handlePrintEvent(previewContent, "savePDF");
+        window.electronAPI.handlePrintEvent(previewContent, "savePDF" , name);
     } else {
         window.electronAPI.showAlert("Print functionality is not available.");
     }
@@ -224,6 +227,7 @@ function collectFormData() {
             HSN_SAC: row.querySelector("td:nth-child(2) input").value,
             quantity: row.querySelector("td:nth-child(3) input").value,
             unitPrice: row.querySelector("td:nth-child(4) input").value,
+            rate: row.querySelector("td:nth-child(5) input").value,
         })),
     };
 }

@@ -42,6 +42,9 @@ function createQuotationDiv(quotation) {
     const quotationDiv = document.createElement("div");
     quotationDiv.className = "record-item";
     quotationDiv.innerHTML = `
+    <div class="paid-icon">
+        <img src="./assets/quotation.png" alt="Icon">
+    </div>
         <div class="details">
             <div class="info1">
                 <h1>${quotation.project_name}</h1>
@@ -89,6 +92,10 @@ async function openQuotation(quotationId) {
 
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
+        document.getElementById('newQuotation').style.display = 'none';
+        document.getElementById('viewPreview').style.display = 'block';
+        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+
 
         document.getElementById('Id').value = quotation.quotation_id;
         document.getElementById('projectName').value = quotation.project_name;
@@ -143,6 +150,8 @@ async function deleteQuotation(quotationId) {
 function showNewQuotationForm() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
+    document.getElementById('newQuotation').style.display = 'none';
+    document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 }
 
 // Handle search functionality
