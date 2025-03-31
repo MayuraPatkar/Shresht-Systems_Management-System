@@ -21,13 +21,23 @@ contextBridge.exposeInMainWorld("electronAPI", {
     },
 
     // Trigger custom alert event
-    showAlert: (message) => {
+    showAlert1: (message) => {
         if (typeof message === "string") {
-            ipcRenderer.send("show-alert", message);
+            ipcRenderer.send("show-alert1", message);
         } else {
             console.error("Invalid message passed to showAlert. Expected a string.");
         }
     },
+
+    showAlert2: (message) => {
+        if (typeof message === "string") {
+            ipcRenderer.send("show-alert2", message);
+        } else {
+            console.error("Invalid message passed to showAlert. Expected a string.");
+        }
+    },
+
+    sendMessage: (message) => ipcRenderer.send("send-response", message),
 
     // Listen for messages from the main process
     receiveMessage: (callback) => {
@@ -36,5 +46,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
         } else {
             console.error("Invalid callback passed to receiveMessage. Expected a function.");
         }
+    },
+
+    // Listen for messages from the frontend
+    receiveAlertResponse: (callback) => {
+        ipcRenderer.once("receive-response", (_, message) => {
+            callback(message);
+        });
     },
 });

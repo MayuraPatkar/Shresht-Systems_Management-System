@@ -32,9 +32,9 @@ function moveNext() {
 }
 
 document.addEventListener("keydown", function (event) {
-  if (event.key === "Enter") {
-      moveNext();
-  }
+    if (event.key === "Enter") {
+        moveNext();
+    }
 });
 
 // Function to change the current step
@@ -44,7 +44,7 @@ function changeStep(step) {
     document.getElementById(`step-${currentStep}`).classList.add("active");
     updateNavigation();
     document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-  }
+}
 
 document.getElementById("prevBtn").addEventListener("click", () => {
     if (currentStep > 1) {
@@ -129,12 +129,17 @@ async function handleWayBillListClick(event) {
     if (target.classList.contains("open-way-bill")) {
         await openWayBill(wayBillId);
     } else if (target.classList.contains("delete-way-bill")) {
-        showConfirmBox('Are you sure you want to delete this way bill?', async () => {
-            await deleteWayBill(wayBillId);
-            loadRecentWayBills();
-        });
-    }
+        window.electronAPI.showAlert2('Are you sure you want to delete this way bill?');
+        if (window.electronAPI) {
+            window.electronAPI.receiveAlertResponse((response) => {
+                if (response === "Yes") {
+                    deleteWayBill(wayBillId);
+                }
+            });
+        }
+    };
 }
+
 
 // Open a way bill for editing
 async function openWayBill(wayBillId) {

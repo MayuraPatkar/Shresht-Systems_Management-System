@@ -183,19 +183,27 @@ router.get("/:invoice_id", async (req, res) => {
 // Search invoice by ID, owner name, or phone number
 router.get('/search/:query', async (req, res) => {
     const { query } = req.params;
-   if (!query) {
+    if (!query) {
         return res.status(400).send('Query parameter is required.');
     }
-
+    let invoices = [];
     try {
-        const invoices = await Invoices.find({
-            $or: [
-                { invoice_id: { $regex: query, $options: 'i' } },
-                { project_name: { $regex: query, $options: 'i' } },
-                { buyer_name: { $regex: query, $options: 'i' } },
-                { buyer_phone: { $regex: query, $options: 'i' } }
-            ]
-        });
+        if (query === 'unpaid') {
+            invoices = await Invoices.find({
+                $or: [
+                    { paymentStatus: { $regex: query, $options: 'i' } }
+                ]
+            });
+        } else {
+             invoices = await Invoices.find({
+                $or: [
+                    { invoice_id: { $regex: query, $options: 'i' } },
+                    { project_name: { $regex: query, $options: 'i' } },
+                    { buyer_name: { $regex: query, $options: 'i' } },
+                    { buyer_phone: { $regex: query, $options: 'i' } }
+                ]
+            });
+        }
 
         if (invoices.length === 0) {
             return res.status(404).send('No invoice found.');

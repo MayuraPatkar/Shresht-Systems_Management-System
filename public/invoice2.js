@@ -253,20 +253,20 @@ async function sendToServer(data, shouldPrint) {
         const responseData = await response.json();
 
         if (!response.ok) {
-            window.electronAPI.showAlert(`Error: ${responseData.message || "Unknown error occurred."}`);
+            window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
         } else {
             return true;
         }
     } catch (error) {
         console.error("Error:", error);
-        window.electronAPI.showAlert("Failed to connect to server.");
+        window.electronAPI.showAlert1("Failed to connect to server.");
     }
 }
 
 // Event listener for the "Save" button
 document.getElementById("save").addEventListener("click", () => {
     const invoiceData = collectFormData();
-    if (sendToServer(invoiceData, false)) window.electronAPI.showAlert("Invoice saved successfully!");
+    if (sendToServer(invoiceData, false)) window.electronAPI.showAlert1("Invoice saved successfully!");
 });
 
 // Event listener for the "Print" button
@@ -276,7 +276,7 @@ document.getElementById("print").addEventListener("click", () => {
         const invoiceData = collectFormData();
         if (sendToServer(invoiceData, true)) window.electronAPI.handlePrintEvent(previewContent, "print");
     } else {
-        window.electronAPI.showAlert("Print functionality is not available.");
+        window.electronAPI.showAlert1("Print functionality is not available.");
     }
 });
 
@@ -290,7 +290,7 @@ document.getElementById("savePDF").addEventListener("click", () => {
             window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
         }
     } else {
-        window.electronAPI.showAlert("Print functionality is not available.");
+        window.electronAPI.showAlert1("Print functionality is not available.");
     }
 });
 

@@ -72,10 +72,14 @@ async function handlePurchaseOrderListClick(event) {
     if (target.classList.contains("open-purchase-order")) {
         await openPurchaseOrder(purchaseOrderId);
     } else if (target.classList.contains("delete-purchase-order")) {
-        showConfirmBox('Are you sure you want to delete this purchase order?', async () => {
-            await deletePurchaseOrder(purchaseOrderId);
-            loadRecentPurchaseOrders();
-        });
+        window.electronAPI.showAlert2('Are you sure you want to delete this purchase order?');
+        if (window.electronAPI) {
+            window.electronAPI.receiveAlertResponse((response) => {
+                if (response === "Yes") {
+                    deletePurchaseOrder(purchaseOrderId);
+                }
+            });
+        }
     }
 }
 
@@ -184,7 +188,7 @@ async function handleSearch() {
     }
 }
 
-document.getElementById("searchInput").addEventListener("keydown", function(event) {
+document.getElementById("searchInput").addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
         event.preventDefault();
         handleSearch();

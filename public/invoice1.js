@@ -73,10 +73,15 @@ async function handleInvoiceListClick(event) {
     if (target.classList.contains("open-invoice")) {
         await openInvoice(invoiceId);
     } else if (target.classList.contains("delete-invoice")) {
-        showConfirmBox('Are you sure you want to delete this invoice?', async () => {
-            await deleteInvoice(invoiceId);
-            loadRecentInvoices();
-        });
+        window.electronAPI.showAlert2("Are you sure you want to delete this invoice?");
+        if (window.electronAPI) {
+            window.electronAPI.receiveAlertResponse((response) => {
+                if (response === "Yes") {
+                    deleteInvoice(invoiceId);
+                    
+                }
+            });
+        }
     }
 }
 
@@ -121,7 +126,7 @@ async function openInvoice(invoiceId) {
         document.getElementById('dcDate').value = formatDate(invoice.dc_date);
         document.getElementById('service_month').value = invoice.service_month;
         document.getElementById('wayBillNumber').value = invoice.Way_Bill_number;
-        if(invoice.paymentStatus === 'Paid') {
+        if (invoice.paymentStatus === 'Paid') {
             document.getElementById('paidAmount').value = invoice.totalAmount;
         }
         document.getElementById('paidAmount').value = invoice.paidAmount;
@@ -164,11 +169,11 @@ async function deleteInvoice(invoiceId) {
             throw new Error("Failed to delete invoice");
         }
 
-        window.electronAPI.showAlert("Invoice deleted successfully");
+        window.electronAPI.showAlert1("Invoice deleted successfully");
         loadRecentInvoices();
     } catch (error) {
         console.error("Error deleting invoice:", error);
-        window.electronAPI.showAlert("Failed to delete invoice. Please try again later.");
+        window.electronAPI.showAlert1("Failed to delete invoice. Please try again later.");
     }
 }
 
@@ -183,7 +188,7 @@ function showNewInvoiceForm() {
 async function handleSearch() {
     const query = document.getElementById('searchInput').value;
     if (!query) {
-        window.electronAPI.showAlert("Please enter a search query");
+        window.electronAPI.showAlert1("Please enter a search query");
         return;
     }
 
@@ -203,11 +208,11 @@ async function handleSearch() {
         });
     } catch (error) {
         console.error("Error fetching invoices:", error);
-        window.electronAPI.showAlert("Failed to fetch invoices. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch invoices. Please try again later.");
     }
 }
 
-document.getElementById("searchInput").addEventListener("keydown", function(event) {
+document.getElementById("searchInput").addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
         event.preventDefault();
         handleSearch();

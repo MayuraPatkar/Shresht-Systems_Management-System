@@ -72,12 +72,16 @@ async function handleQuotationListClick(event) {
     if (target.classList.contains("open-quotation")) {
         await openQuotation(quotationId);
     } else if (target.classList.contains("delete-quotation")) {
-        showConfirmBox('Are you sure you want to delete this quotation?', async () => {
-            await deleteQuotation(quotationId);
-            loadRecentQuotations();
-        });
+        window.electronAPI.showAlert2('Are you sure you want to delete this quotation?');
+        if (window.electronAPI) {
+            window.electronAPI.receiveAlertResponse((response) => {
+                if (response === "Yes") {
+                    deleteQuotation(quotationId);
+                }
+            });
+        }
     }
-}
+};
 
 // Open a quotation for editing
 async function openQuotation(quotationId) {
@@ -183,7 +187,7 @@ async function handleSearch() {
     }
 }
 
-document.getElementById("quotationSearchInput").addEventListener("keydown", function(event) {
+document.getElementById("quotationSearchInput").addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
         event.preventDefault();
         handleSearch();

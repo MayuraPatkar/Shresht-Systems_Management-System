@@ -1,9 +1,9 @@
 const { ipcMain, BrowserWindow } = require("electron");
 const path = require('path');
 
-function showAlert(message) {
+function createAlertWindow(message, htmlFile, responseHandler) {
     if (!message || typeof message !== 'string') {
-        return;
+        return null;
     }
 
     const alertWindow = new BrowserWindow({
@@ -15,30 +15,53 @@ function showAlert(message) {
         alwaysOnTop: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
-            contextIsolation: true, // Prevent context sharing for security
-            nodeIntegration: false, // Disable Node.js integration in renderer
+            contextIsolation: true,
+            nodeIntegration: false,
         },
     });
 
-    // Load the alert HTML file
-    alertWindow.loadFile(path.join(__dirname, 'public', 'alert.html')).catch((err) => {
-        console.error('Failed to load alert.html:', err);
+    alertWindow.loadFile(path.join(__dirname, 'public', htmlFile)).catch((err) => {
+        console.error(`Failed to load ${htmlFile}:`, err);
     });
 
-    // Pass the message to the alert window once it is ready
     alertWindow.once('ready-to-show', () => {
         alertWindow.webContents.send('set-message', message);
+        if (responseHandler) {
+            responseHandler(alertWindow);
+        }
     });
 
-    // Clean up the window when closed
     alertWindow.on('closed', () => {
         alertWindow.destroy();
     });
+
+    return alertWindow;
 }
 
-// Listen for a custom alert trigger
-ipcMain.on('show-alert', (_, message) => {
-    showAlert(message);
+function showAlert1(message) {
+    createAlertWindow(message, 'alert1.html', null);
+}
+
+function showAlert2(mainWindow, message) {
+    const alertWindow = createAlertWindow(message, "alert2.html", (alertWindow) => {
+        ipcMain.once("send-response", (_, response) => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send("receive-response", response);
+            }
+            // Close alert window
+            if (alertWindow && !alertWindow.isDestroyed()) {
+                alertWindow.destroy();
+            }
+        });
+    });
+}
+
+ipcMain.on('show-alert1', (_, message) => {
+    showAlert1(message);
 });
 
-module.exports = { showAlert };
+ipcMain.on('show-alert2', (_, message) => {
+    showAlert2(message);
+});
+
+module.exports = { showAlert1, showAlert2 };
