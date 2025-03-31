@@ -12,7 +12,7 @@ document.getElementById('login-btn').addEventListener('click', () => {
     const data = { username, password };
 
     // Send POST request to the server
-    fetch('http://localhost:3000/login/login', {
+    fetch('http://localhost:3000/admin/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

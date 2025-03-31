@@ -46,27 +46,6 @@ function updateNavigation() {
   document.getElementById("nextBtn").disabled = currentStep === totalSteps;
 }
 
-// Show a confirmation box
-function showConfirmBox(message, onConfirm, onCancel) {
-  const confirmBox = document.getElementById('confirm_box');
-  const messageElement = document.getElementById('message');
-  const yesButton = document.getElementById('yes');
-  const noButton = document.getElementById('no');
-
-  messageElement.textContent = message;
-  confirmBox.style.display = 'block';
-
-  yesButton.onclick = () => {
-    confirmBox.style.display = 'none';
-    if (onConfirm) onConfirm();
-  };
-
-  noButton.onclick = () => {
-    confirmBox.style.display = 'none';
-    if (onCancel) onCancel();
-  };
-}
-
 // Function to convert number to words (Indian numbering system)
 function numberToWords(num) {
   const a = [

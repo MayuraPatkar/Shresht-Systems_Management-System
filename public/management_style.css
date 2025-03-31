@@ -1,0 +1,82 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+}
+
+header {
+    width: 100%;
+    padding: 1rem 2rem;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.imglogo {
+    height: 7vh;
+}
+
+.imglogo img {
+    height: 100%;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    flex-grow: 1;
+    text-align: center;
+}
+
+section {
+    width: 90vw;
+    margin: auto;
+}
+
+fieldset {
+    margin: 20px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    padding: 20px;
+    background-color: white;
+}
+
+legend {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+#change-username-password fieldset {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#change-username-password fieldset div {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#change-username-password fieldset input {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    width: 200px;
+}
+
+ button{
+    padding: 0.5rem 1rem;
+    height: 100%;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(10, 0, 154);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    box-sizing: border-box;
+}

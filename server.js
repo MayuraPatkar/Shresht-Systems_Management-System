@@ -37,7 +37,7 @@ const serviceRoutes = require('./routes/service');
 
 // Using routes middleware
 exServer.use('/', viewRoutes);
-exServer.use('/login', authRoutes);
+exServer.use('/admin', authRoutes);
 exServer.use('/stock', stockRoutes);
 exServer.use('/invoice', invoiceRoutes);
 exServer.use('/quotation', quotationRoutes);

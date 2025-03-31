@@ -52,27 +52,6 @@ function updateNavigation() {
     document.getElementById("nextBtn").disabled = currentStep === totalSteps;
 }
 
-// Show a confirmation box
-function showConfirmBox(message, onConfirm, onCancel) {
-    const confirmBox = document.getElementById('confirm_box');
-    const messageElement = document.getElementById('message');
-    const yesButton = document.getElementById('yes');
-    const noButton = document.getElementById('no');
-
-    messageElement.textContent = message;
-    confirmBox.style.display = 'block';
-
-    yesButton.onclick = () => {
-        confirmBox.style.display = 'none';
-        if (onConfirm) onConfirm();
-    };
-
-    noButton.onclick = () => {
-        confirmBox.style.display = 'none';
-        if (onCancel) onCancel();
-    };
-}
-
 // Function to convert number to words
 function numberToWords(num) {
     const a = [
@@ -222,12 +201,17 @@ async function handleServiceListClick(event) {
     if (target.classList.contains("open-service")) {
         await openService(serviceId);
     } else if (target.classList.contains("delete-service")) {
-        showConfirmBox('Are you sure you want to delete this service?', async () => {
-            await deleteService(serviceId);
-            loadService();
-        });
-    }
+        window.electronAPI.showAlert2('Are you sure you want to delete this service?');
+        if (window.electronAPI) {
+            window.electronAPI.receiveAlertResponse((response) => {
+                if (response === "Yes") {
+                    deleteService(serviceId);
+                }
+            });
+        }
+    };
 }
+
 
 // Function to open a service form
 async function openService(serviceId) {

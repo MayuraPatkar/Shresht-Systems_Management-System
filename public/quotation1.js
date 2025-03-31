@@ -142,11 +142,11 @@ async function deleteQuotation(quotationId) {
             throw new Error("Failed to delete quotation");
         }
 
-        window.electronAPI.showAlert("Quotation deleted successfully");
+        window.electronAPI.showAlert1("Quotation deleted successfully");
         loadRecentQuotations();
     } catch (error) {
         console.error("Error deleting quotation:", error);
-        window.electronAPI.showAlert("Failed to delete quotation. Please try again later.");
+        window.electronAPI.showAlert1("Failed to delete quotation. Please try again later.");
     }
 }
 
