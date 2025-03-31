@@ -190,7 +190,7 @@ async function openWayBill(wayBillId) {
 
     } catch (error) {
         console.error("Error fetching way bill:", error);
-        window.electronAPI.showAlert("Failed to fetch way bill. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch way bill. Please try again later.");
     }
 }
 
@@ -205,11 +205,11 @@ async function deleteWayBill(wayBillId) {
             throw new Error("Failed to delete way bill");
         }
 
-        window.electronAPI.showAlert("Way bill deleted successfully");
+        window.electronAPI.showAlert1("Way bill deleted successfully");
         loadRecentWayBills();
     } catch (error) {
         console.error("Error deleting way bill:", error);
-        window.electronAPI.showAlert("Failed to delete way bill. Please try again later.");
+        window.electronAPI.showAlert1("Failed to delete way bill. Please try again later.");
     }
 }
 
@@ -246,7 +246,7 @@ function showNewWayBillForm() {
 async function handleSearch() {
     const query = document.getElementById('searchInput').value;
     if (!query) {
-        window.electronAPI.showAlert("Please enter a search query");
+        window.electronAPI.showAlert1("Please enter a search query");
         return;
     }
 
@@ -267,7 +267,7 @@ async function handleSearch() {
         });
     } catch (error) {
         console.error("Error fetching way bills:", error);
-        window.electronAPI.showAlert("Failed to fetch way bills. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch way bills. Please try again later.");
     }
 }
 

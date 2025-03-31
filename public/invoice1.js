@@ -154,7 +154,7 @@ async function openInvoice(invoiceId) {
 
     } catch (error) {
         console.error("Error fetching invoice:", error);
-        window.electronAPI.showAlert("Failed to fetch invoice. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch invoice. Please try again later.");
     }
 }
 

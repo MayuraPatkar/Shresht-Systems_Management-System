@@ -20,7 +20,7 @@ async function getId() {
         if (quotation_id) generatePreview();
     } catch (error) {
         console.error("Error fetching quotation id:", error);
-        window.electronAPI.showAlert("Failed to fetch quotation id. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch quotation id. Please try again later.");
     }
 }
 
@@ -265,11 +265,11 @@ async function sendToServer(data, shouldPrint) {
         const responseData = await response.json();
 
         if (!response.ok) {
-            window.electronAPI.showAlert(`Error: ${responseData.message || "Unknown error occurred."}`);
+            window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
         }
     } catch (error) {
         console.error("Error:", error);
-        window.electronAPI.showAlert("Failed to connect to server.");
+        window.electronAPI.showAlert1("Failed to connect to server.");
     }
 }
 
@@ -277,7 +277,7 @@ async function sendToServer(data, shouldPrint) {
 document.getElementById("save").addEventListener("click", () => {
     const quotationData = collectFormData();
     sendToServer(quotationData, false);
-    window.electronAPI.showAlert("Quotation saved successfully!");
+    window.electronAPI.showAlert1("Quotation saved successfully!");
 });
 
 // Event listener for the "Print" button
@@ -289,7 +289,7 @@ document.getElementById("print").addEventListener("click", () => {
         let name = `Quotation-${quotation_id}`;
         window.electronAPI.handlePrintEventQuatation(previewContent, "print", name);
     } else {
-        window.electronAPI.showAlert("Print functionality is not available.");
+        window.electronAPI.showAlert1("Print functionality is not available.");
     }
 });
 
@@ -302,7 +302,7 @@ document.getElementById("savePDF").addEventListener("click", () => {
         let name = `Quotation-${quotation_id}`;
         window.electronAPI.handlePrintEventQuatation(previewContent, "savePDF", name);
     } else {
-        window.electronAPI.showAlert("Print functionality is not available.");
+        window.electronAPI.showAlert1("Print functionality is not available.");
     }
 });
 

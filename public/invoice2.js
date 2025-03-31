@@ -38,7 +38,7 @@ document.getElementById("nextBtn").addEventListener("click", () => {
                 })
                 .catch(error => {
                     console.error("Error:", error);
-                    window.electronAPI.showAlert("Failed to fetch quotation.");
+                    window.electronAPI.showAlert1("Failed to fetch quotation.");
                 });
         }
     }
@@ -60,7 +60,7 @@ async function getId() {
         if (invoiceId) generatePreview();
     } catch (error) {
         console.error("Error fetching invoice id:", error);
-        window.electronAPI.showAlert("Failed to fetch invoice id. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch invoice id. Please try again later.");
     }
 }
 

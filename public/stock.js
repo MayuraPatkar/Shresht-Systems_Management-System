@@ -61,7 +61,7 @@ async function addItem() {
         const min_quantity = parseInt(document.getElementById('min_quantity').value, 10);
 
         if (!itemName || isNaN(unitPrice) || isNaN(quantity) || isNaN(threshold) || isNaN(GST) || isNaN(min_quantity)) {
-            window.electronAPI.showAlert('Please fill all fields correctly.');
+            window.electronAPI.showAlert1('Please fill all fields correctly.');
             return;
         }
 
@@ -76,7 +76,7 @@ async function addItem() {
         hideModal();
     } catch (error) {
         console.error('Error adding item:', error);
-        window.electronAPI.showAlert('Failed to add item. Please try again.');
+        window.electronAPI.showAlert1('Failed to add item. Please try again.');
     }
 }
 
@@ -86,7 +86,7 @@ async function addToStock() {
         const quantity = parseInt(document.getElementById('add_quantity').value, 10);
 
         if (isNaN(quantity)) {
-            window.electronAPI.showAlert('Please enter a valid quantity.');
+            window.electronAPI.showAlert1('Please enter a valid quantity.');
             return;
         }
 
@@ -101,7 +101,7 @@ async function addToStock() {
         hideModal();
     } catch (error) {
         console.error('Error adding item:', error);
-        window.electronAPI.showAlert('Failed to add item. Please try again.');
+        window.electronAPI.showAlert1('Failed to add item. Please try again.');
     }
 }
 
@@ -111,7 +111,7 @@ async function removeFromStock() {
         const quantity = parseInt(document.getElementById('remove_quantity').value, 10);
 
         if (isNaN(quantity)) {
-            window.electronAPI.showAlert('Please enter a valid quantity.');
+            window.electronAPI.showAlert1('Please enter a valid quantity.');
             return;
         }
 
@@ -126,7 +126,7 @@ async function removeFromStock() {
         hideModal();
     } catch (error) {
         console.error('Error removing item:', error);
-        window.electronAPI.showAlert('Failed to remove item. Please try again.');
+        window.electronAPI.showAlert1('Failed to remove item. Please try again.');
     }
 }
 
@@ -157,7 +157,7 @@ async function editItem() {
         hideModal();
     } catch (error) {
         console.error('Error editing item:', error);
-        window.electronAPI.showAlert('Failed to edit item. Please try again.');
+        window.electronAPI.showAlert1('Failed to edit item. Please try again.');
     }
 }
 
@@ -194,7 +194,7 @@ async function lowStock() {
         });
     } catch (error) {
         console.error('Error fetching stock data:', error);
-        window.electronAPI.showAlert('Error fetching stock data. Please try again.');
+        window.electronAPI.showAlert1('Error fetching stock data. Please try again.');
     }
 }
 
@@ -208,7 +208,7 @@ async function fetchStockData() {
         renderStockTable(stockData);
     } catch (error) {
         console.error('Error fetching stock data:', error);
-        window.electronAPI.showAlert('Error fetching stock data. Please try again.');
+        window.electronAPI.showAlert1('Error fetching stock data. Please try again.');
     }
 }
 

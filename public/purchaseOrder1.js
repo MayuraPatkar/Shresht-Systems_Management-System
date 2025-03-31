@@ -129,7 +129,7 @@ async function openPurchaseOrder(purchaseOrderId) {
 
     } catch (error) {
         console.error("Error fetching purchase order:", error);
-        window.electronAPI.showAlert("Failed to fetch purchase order. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch purchase order. Please try again later.");
     }
 }
 
@@ -144,11 +144,11 @@ async function deletePurchaseOrder(purchaseOrderId) {
             throw new Error("Failed to delete purchase order");
         }
 
-        window.electronAPI.showAlert("Purchase order deleted successfully");
+        window.electronAPI.showAlert1("Purchase order deleted successfully");
         loadRecentPurchaseOrders();
     } catch (error) {
         console.error("Error deleting purchase order:", error);
-        window.electronAPI.showAlert("Failed to delete purchase order. Please try again later.");
+        window.electronAPI.showAlert1("Failed to delete purchase order. Please try again later.");
     }
 }
 
@@ -163,7 +163,7 @@ function showNewPurchaseForm() {
 async function handleSearch() {
     const query = document.getElementById('searchInput').value;
     if (!query) {
-        window.electronAPI.showAlert("Please enter a search query");
+        window.electronAPI.showAlert1("Please enter a search query");
         return;
     }
 
@@ -184,7 +184,7 @@ async function handleSearch() {
         });
     } catch (error) {
         console.error("Error fetching purchase order:", error);
-        window.electronAPI.showAlert("Failed to fetch purchase order. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch purchase order. Please try again later.");
     }
 }
 

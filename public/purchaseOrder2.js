@@ -20,7 +20,7 @@ async function getId() {
         if (purchase_order_id) generatePreview();
     } catch (error) {
         console.error("Error fetching quotation id:", error);
-        window.electronAPI.showAlert("Failed to fetch quotation id. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch quotation id. Please try again later.");
     }
 }
 
@@ -185,13 +185,13 @@ async function sendToServer(data, shouldPrint) {
         const responseData = await response.json();
 
         if (!response.ok) {
-            window.electronAPI.showAlert(`Error: ${responseData.message || "Unknown error occurred."}`);
+            window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
         } else {
             return true;
         }
     } catch (error) {
         console.error("Error:", error);
-        window.electronAPI.showAlert("Failed to connect to server.");
+        window.electronAPI.showAlert1("Failed to connect to server.");
     }
 }
 
@@ -208,7 +208,7 @@ document.getElementById("print").addEventListener("click", () => {
         const purchaseOrderData = collectFormData();
         if (sendToServer(purchaseOrderData, true)) window.electronAPI.handlePrintEvent(previewContent, "print");
     } else {
-        window.electronAPI.showAlert("Print functionality is not available.");
+        window.electronAPI.showAlert1("Print functionality is not available.");
     }
 });
 
@@ -222,7 +222,7 @@ document.getElementById("savePDF").addEventListener("click", () => {
             window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
         }
     } else {
-        window.electronAPI.showAlert("Print functionality is not available.");
+        window.electronAPI.showAlert1("Print functionality is not available.");
     }
 });
 

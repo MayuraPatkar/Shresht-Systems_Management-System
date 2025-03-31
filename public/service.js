@@ -143,7 +143,7 @@ async function loadService() {
         services.projects.forEach(service => serviceListDiv.appendChild(createServiceDiv(service)));
     } catch (error) {
         console.error("Error loading services:", error);
-        window.electronAPI?.showAlert("Failed to connect to server.");
+        window.electronAPI?.showAlert1("Failed to connect to server.");
     }
 }
 
@@ -159,7 +159,7 @@ async function handleSearch() {
 
     const query = queryInput.value.trim();
     if (!query) {
-        window.electronAPI?.showAlert("Please enter a search query");
+        window.electronAPI?.showAlert1("Please enter a search query");
         return;
     }
 
@@ -180,7 +180,7 @@ async function handleSearch() {
         services.forEach(service => serviceListDiv.appendChild(createServiceDiv(service)));
     } catch (error) {
         console.error("Error fetching service:", error);
-        window.electronAPI?.showAlert("Failed to fetch service. Please try again later.");
+        window.electronAPI?.showAlert1("Failed to fetch service. Please try again later.");
     }
 }
 
@@ -229,7 +229,7 @@ async function openService(serviceId) {
 
     } catch (error) {
         console.error("Error fetching service:", error);
-        window.electronAPI?.showAlert("Failed to fetch service. Please try again later.");
+        window.electronAPI?.showAlert1("Failed to fetch service. Please try again later.");
     }
 }
 
@@ -244,10 +244,10 @@ async function deleteService(serviceId) {
             throw new Error("Failed to delete service");
         }
 
-        window.electronAPI?.showAlert("Service deleted successfully.");
+        window.electronAPI?.showAlert1("Service deleted successfully.");
     } catch (error) {
         console.error("Error deleting service:", error);
-        window.electronAPI?.showAlert("Failed to delete service. Please try again later.");
+        window.electronAPI?.showAlert1("Failed to delete service. Please try again later.");
     }
 }
 
@@ -315,7 +315,7 @@ document.getElementById("print").addEventListener("click", () => {
         sendToServer(serviceData, true);
         window.electronAPI.handlePrintEvent(previewContent, "print");
     } else {
-        window.electronAPI.showAlert("Print functionality is not available.");
+        window.electronAPI.showAlert1("Print functionality is not available.");
     }
 });
 
@@ -328,7 +328,7 @@ document.getElementById("savePDF").addEventListener("click", () => {
         let name = `Service`;
         window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
     } else {
-        window.electronAPI.showAlert("Print functionality is not available.");
+        window.electronAPI.showAlert1("Print functionality is not available.");
     }
 });
 
@@ -343,7 +343,7 @@ async function sendToServer(data) {
 
     } catch (error) {
         console.error("Error:", error);
-        window.electronAPI.showAlert("Failed to connect to server.");
+        window.electronAPI.showAlert1("Failed to connect to server.");
     }
 }
 

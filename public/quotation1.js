@@ -162,7 +162,7 @@ function showNewQuotationForm() {
 async function handleSearch() {
     const query = document.getElementById('quotationSearchInput').value;
     if (!query) {
-        window.electronAPI.showAlert("Please enter a search query");
+        window.electronAPI.showAlert1("Please enter a search query");
         return;
     }
 
@@ -183,7 +183,7 @@ async function handleSearch() {
         });
     } catch (error) {
         console.error("Error fetching quotation:", error);
-        window.electronAPI.showAlert("Failed to fetch quotation. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch quotation. Please try again later.");
     }
 }
 
