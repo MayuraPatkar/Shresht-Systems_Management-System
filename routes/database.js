@@ -145,9 +145,26 @@ const Stock = mongoose.model('Stock', stockSchema);
 const employeeSchema = new mongoose.Schema({
     emp_id: { type: String, required: true },
     name: { type: String, required: true },
-    salary_status: { type: String, required: true },
+    address: { type: String },
+    phone: { type: String },
+    email: { type: String },
+    salary: { type: Number },
+    join_date: { type: Date },
+    left_date: { type: Date },
+    salary_status: { type: String },
 });
 
 const Employee = mongoose.model('Employee', employeeSchema);
 
-module.exports = { Admin, Quotations, Purchases, wayBills, Invoices, Stock, Employee };
+// Define Employee Schema and Model
+const attendencsBookSchema = new mongoose.Schema({
+    date: { type: Date },
+    emp_id: { type: String, required: true },
+    present: { type: String },
+    start_time: { type: Date },
+    end_time: { type: Date },
+});
+
+const AttendenceBook = mongoose.model('AttendenceBook', attendencsBookSchema);
+
+module.exports = { Admin, Quotations, Purchases, wayBills, Invoices, Stock, Employee, AttendenceBook };

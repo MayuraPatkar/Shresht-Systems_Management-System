@@ -43,7 +43,6 @@
 
 .title {
     text-align: center;
-    /* margin: 10px 0; */
     font-size: 28px;
     color: #007bff;
     font-weight: bold;
@@ -51,7 +50,6 @@
 
 .first-section {
     display: flex;
-    /* flex-direction: column; */
     justify-content: space-between;
     margin-bottom: 20px;
 }

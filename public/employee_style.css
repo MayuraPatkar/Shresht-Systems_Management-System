@@ -1,0 +1,152 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+}
+
+header {
+    width: 100%;
+    padding: 1rem 2rem;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.img {
+    height: 7vh;
+}
+
+.img img {
+    height: 100%;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.btn {
+    width: auto;
+    padding: 10px 20px;
+    margin: 10px 5px;
+    background-color: rgb(10, 0, 154);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+.container {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.addEmp {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    display: none;
+    text-align: center;
+}
+
+.addEmp label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+}
+
+.addEmp input {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.addEmp button {
+    width: 100px;
+    padding: 10px;
+    margin: 5px;
+    background-color: rgb(10, 0, 154);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.addEmp button:hover {
+    background-color: #0056b3;
+}
+
+.backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+}
+
+.emp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.emp-table th,
+.emp-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.emp-table th {
+    background-color: rgb(10, 0, 154);
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.emp-table td {
+    font-size: 1.1rem;
+}
+
+section {
+    margin: 10px 0;
+    width: 100%;
+    padding: 2%;
+}
+
+.profile-list {
+    width: 25%;
+    height: 400px;
+}

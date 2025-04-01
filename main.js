@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, screen } = require("electron");
 const path = require("path");
 const { handlePrintEvent } = require("./printHandler");
-const { showAlert1, showAlert2 } = require("./alertHandler");
+const { showAlert2 } = require("./alertHandler");
 
 require("electron-reload")(path.join(__dirname), {
   electron: require(path.join(__dirname, "node_modules", "electron")),

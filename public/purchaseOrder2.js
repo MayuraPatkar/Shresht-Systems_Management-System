@@ -198,7 +198,7 @@ async function sendToServer(data, shouldPrint) {
 // Event listener for the "Save" button
 document.getElementById("save").addEventListener("click", () => {
     const purchaseOrderData = collectFormData();
-    if (sendToServer(purchaseOrderData, false)) window.electronAPI.showAlert("Purchase Oder saved successfully!");
+    if (sendToServer(purchaseOrderData, false)) window.electronAPI.showAlert1("Purchase Oder saved successfully!");
 });
 
 // Event listener for the "Print" button

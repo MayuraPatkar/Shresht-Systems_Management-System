@@ -4,42 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
+    <link rel="stylesheet" href="./employee_style.css">
     <title>Employee Management</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-        }
-
-        header {
-            width: 100%;
-            padding: 1rem 2rem;
-            box-sizing: border-box;
-            background-color: #ffffff;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .img {
-            height: 7vh;
-        }
-
-        .img img {
-            height: 100%;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 1.8rem;
-            flex-grow: 1;
-            text-align: center;
-        }
-    </style>
 </head>
 
 <body>
@@ -47,7 +13,47 @@
         <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
         <h1>Employee Management</h1>
     </header>
-    <script src="./employee.js"></script>
+    <div class="backdrop" id="backdrop"></div>
+    <div class="container">
+        <div class="addEmp" id="addEmp">
+            <label>Employee Name</label>
+            <input type="text" id="Emp_name">
+            <label>Address</label>
+            <input type="text" id="address">
+            <label>Phone Number</label>
+            <input type="tel" id="phone">
+            <label>Email</label>
+            <input type="email" id="email">
+            <label>Basic Salary</label>
+            <input type="number" id="salary">
+            <button onclick="addEmployee()">Add</button>
+            <button onclick="hideModal()">Cancel</button>
+        </div>
+        <button class="btn" onclick="fetchEmployeeData()">Refresh</button>
+        <button class="btn" onclick="openAddEmployeeModal()">Add New Employee</button>
+        <h1>Attendence Book</h1>
+        <table class="emp-table">
+            <thead>
+                <tr>
+                    <th>Emp Id</th>
+                    <th>Name</th>
+                    <th>Present</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="emp-table-body">
+                <!-- Rows will be populated dynamically -->
+            </tbody>
+        </table>
+        <section>
+            <h1>Employee Profiles</h1>
+            <div id="profiles">
+                <!-- populated dynamically -->
+            </div>
+        </section>
+        <script src="./employee.js"></script>
 </body>
 
 </html>
