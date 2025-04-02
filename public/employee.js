@@ -133,10 +133,18 @@ function renderProfiles(data) {
         const profile = document.createElement('div');
 
         profile.innerHTML = `
+        <div class="info1">
+        <div class="icon"><img src="./assets/employee.png" alt="icon"></div>
             <h2>${employee.name}</h2>
             <h3>${employee.emp_id}</t3>
+        </div>
+        <div class="info2">
+        <h3>${employee.phone}</h3>
+        <h3>${employee.payment_status}</h3>
+        </div>
         `;
-        profileBody.classList = 'profile-list'
+        profile.classList = 'profile';
+        profileBody.classList = 'profile-list';
         profileBody.appendChild(profile);
     });
 }

@@ -127,7 +127,7 @@ async function loadService() {
 
         const services = await response.json();
 
-        const serviceListDiv = document.querySelector(".record_list");
+        const serviceListDiv = document.querySelector(".records");
         if (!serviceListDiv) {
             console.error("Service list container not found.");
             return;
@@ -150,7 +150,7 @@ async function loadService() {
 // Function to handle search functionality
 async function handleSearch() {
     const queryInput = document.getElementById("serviceSearchInput");
-    const serviceListDiv = document.querySelector(".record_list");
+    const serviceListDiv = document.querySelector(".records");
 
     if (!queryInput || !serviceListDiv) {
         console.error("Search input or service list container not found.");
