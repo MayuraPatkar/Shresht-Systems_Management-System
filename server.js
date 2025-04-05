@@ -35,6 +35,7 @@ const purchaseRoutes = require('./routes/purchaseOrder');
 const wayBillRoutes = require('./routes/wayBill');
 const serviceRoutes = require('./routes/service');
 const employeeRoute = require('./routes/employee');
+const analyticsRoutes = require('./routes/analytics');
 
 // Using routes middleware
 exServer.use('/', viewRoutes);
@@ -46,6 +47,7 @@ exServer.use('/purchaseOrder', purchaseRoutes);
 exServer.use('/wayBill', wayBillRoutes);
 exServer.use('/service', serviceRoutes);
 exServer.use('/employee', employeeRoute);
+exServer.use('/analytics', analyticsRoutes);
 
 // Centralized Error Handling Middleware
 exServer.use((err, req, res, next) => {

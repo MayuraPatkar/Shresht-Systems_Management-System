@@ -9,25 +9,48 @@
 </head>
 
 <body>
+    <!-- header -->
     <header>
         <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
         <h1>Analytics</h1>
     </header>
-    <section id="projects">
-        <fieldset>
-            <legend>Projects</legend>
-            <button id="week">week</button>
-            <button id="month">Month</button>
-            <button id="Year">Year</button>
-            <div id="projectsPlot"></div>
-        </fieldset>
+
+    <!-- vertical nav -->
+    <nav>
+        <ul>
+            <li><a id="overview-btn">Overview</a></li>
+            <li><a id="projects">Projects</a></li>
+            <li><a id="profit-loss">Profit / Loss</a></li>
+            <li><a id="Quotation">Quotation</a></li>
+        </ul>
+    </nav>
+
+    <!-- sections -->
+    <section id="overview" class="active">
+        <div>
+            <h1 id="project-count">0</h1>
+            <p>Total Projects</p>
+        </div>
+        <div>
+            <h1 id="quotation-count">0</h1>
+            <p>Total Quotation Given</p>
+        </div>
+        <div>
+            <h1 id="earned-count">0</h1>
+            <p>Total Earned This Month</p>
+        </div>
+        <div>
+            <h1 id="unpaid-count">0</h1>
+            <p>Total Unpaid Projects</p>
+        </div>
     </section>
-    <!-- <section id="profit_loss">
-        <fieldset>
-            <legend>Profit/Loss</legend>
-            <div id="profit_loss_Plot"></div>
-        </fieldset>
-    </section> -->
+
+    <section id="projects">
+        <div id="projectsPlot"></div>
+    </section>
+    <section id="profit_loss">
+        <div id="profit_loss_Plot"></div>
+    </section>
     <script src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="./analytics.js"></script>
 </body>

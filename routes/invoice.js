@@ -58,7 +58,7 @@ router.post("/save-invoice", async (req, res) => {
             paidAmount = 0,
             paymentStatus = '',
             paymentMode = '',
-            paymentDate,
+            paymentDate = null,
             items = [],
             totalAmount = 0,
         } = req.body;
