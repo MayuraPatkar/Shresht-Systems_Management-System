@@ -142,8 +142,10 @@ h1 {
 }
 
 section {
+    margin-top: 100px;
     width: 100%;
     padding: 2%;
+    box-sizing: border-box;
 }
 
 .profile-list {
@@ -160,6 +162,7 @@ section {
     height: 100%;
     border: 1px solid gray;
     border-radius: 10px;
+    padding: 2%;
 }
 
 .profile-list .info1 {

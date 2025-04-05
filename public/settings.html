@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./settings_style.css">
+    <title>Settings</title>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <header>
+        <div class="logo-container" id="logo">
+            <img src="./assets/icon.png" alt="SSMS Logo">
+            <h2>SSMS</h2>
+        </div>
+        <nav class="navigation-buttons">
+            <button id="admin-info-button" aria-label="View Admin Information">Admin Info</button>
+            <button id="change-password-button1" aria-label="Change Password">Change Password</button>
+            <button id="data-control-button" aria-label="Data Control">Data Control</button>
+        </nav>
+    </header>
+
+    <!-- Admin Information Section -->
+    <section id="admin-info-section">
+        <article class="admin-details">
+            <h1>Admin - Shresht Systems</h1>
+            <p id="admin-address"></p>
+            <p id="admin-contact1"></p>
+            <p id="admin-contact2"></p>
+            <p id="admin-email"></p>
+            <p id="admin-website"></p>
+            <p id="admin-gstin"></p>
+        </article>
+        <article class="bank-details">
+            <h1>Bank Details</h1>
+            <p id="bank-name"></p>
+            <p id="account-holder"></p>
+            <p id="account-number"></p>
+            <p id="ifsc-code"></p>
+            <p id="branch-name"></p>
+        </article>
+    </section>
+
+    <!-- Change Username and Password Section -->
+    <section id="change-credentials-section">
+            <div class="change-username">
+                <h1>Change Username</h1>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <button type="button" id="change-username-button">Change Username</button>
+            </div>
+            <div class="change-password">
+                <h1>Change Password</h1>
+                <label for="old-password">Old Password:</label>
+                <input type="password" id="old-password" name="old-password" required>
+                <label for="new-password">New Password:</label>
+                <input type="password" id="new-password" name="new-password" required>
+                <label for="confirm-password">Confirm Password:</label>
+                <input type="password" id="confirm-password" name="confirm-password" required>
+                <button type="submit" id="change-password-button">Change Password</button>
+            </div>
+    </section>
+
+    <!-- Export Data Section -->
+    <section id="export-data-section">
+            <div class="export-options">
+                <p>Select the data you want to export</p>
+
+                <label>
+                    <input type="radio" name="export-data" value="quotaion" checked> Quotation
+                </label>
+                <label>
+                    <input type="radio" name="export-data" value="purchase"> Purchase Order
+                </label>
+                <label>
+                    <input type="radio" name="export-data" value="waybill"> Waybill
+                </label>
+                <label>
+                    <input type="radio" name="export-data" value="invoice"> Invoice
+                </label>
+                <label>
+                    <input type="radio" name="export-data" value="stock"> Stock
+                </label>
+                <button type="button" id="export-data-button">Export</button>
+
+            </div>
+    </section>
+
+    <script src="./settings.js"></script>
+</body>
+
+</html>

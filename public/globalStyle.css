@@ -116,6 +116,11 @@ header button {
     overflow-y: auto;
 }
 
+.records h1{
+    margin: auto;
+    
+}
+
 .record-item {
     min-height: 150px;
     width: 50%;

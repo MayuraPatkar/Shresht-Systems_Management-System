@@ -28,7 +28,7 @@ async function loadRecentPurchaseOrders() {
 function renderPurchaseOrders(purchaseOrders) {
     purchaseOrderListDiv.innerHTML = "";
     if (purchaseOrders.length === 0) {
-        purchaseOrderListDiv.innerHTML = "<h3>No purchase orders found</h3>";
+        purchaseOrderListDiv.innerHTML = "<h1>No purchase orders found</h1>";
         return;
     }
     purchaseOrders.forEach(purchaseOrder => {
@@ -171,7 +171,7 @@ async function handleSearch() {
         const response = await fetch(`/purchaseOrder/search/${query}`);
         if (!response.ok) {
             const errorText = await response.text();
-            purchaseOrderListDiv.innerHTML = `<p>${errorText}</p>`;
+            purchaseOrderListDiv.innerHTML = `<h1>${errorText}</h1>`;
             return;
         }
 

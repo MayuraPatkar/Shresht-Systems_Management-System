@@ -28,7 +28,7 @@ async function loadRecentQuotations() {
 function renderQuotations(quotations) {
     quotationListDiv.innerHTML = "";
     if (quotations.length === 0) {
-        quotationListDiv.innerHTML = "<h3>No quotations found</h3>";
+        quotationListDiv.innerHTML = "<h1>No quotations found</h1>";
         return;
     }
     quotations.forEach(quotation => {
@@ -170,7 +170,7 @@ async function handleSearch() {
         const response = await fetch(`/quotation/search/${query}`);
         if (!response.ok) {
             const errorText = await response.text();
-            quotationListDiv.innerHTML = `<p>${errorText}</p>`;
+            quotationListDiv.innerHTML = `<h1>${errorText}</h1>`;
             return;
         }
 

@@ -136,7 +136,7 @@ async function loadService() {
         serviceListDiv.innerHTML = ""; // Clear existing services
 
         if (!services.projects || services.projects.length === 0) {
-            serviceListDiv.innerHTML = `<p>No services available.</p>`;
+            serviceListDiv.innerHTML = `<h1>No services available</h1>`;
             return;
         }
 

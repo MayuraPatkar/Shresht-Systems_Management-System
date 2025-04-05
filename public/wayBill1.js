@@ -70,7 +70,7 @@ async function loadRecentWayBills() {
     try {
         const response = await fetch(`/wayBill/recent-way-bills`);
         if (!response.ok) {
-            wayBillsListDiv.innerHTML = "<p>No way bills found.</p>";
+            wayBillsListDiv.innerHTML = "<h1>No way bills found</h1>";
         }
 
         const data = await response.json();
@@ -85,7 +85,7 @@ async function loadRecentWayBills() {
 function renderWayBills(wayBills) {
     wayBillsListDiv.innerHTML = "";
     if (wayBills.length === 0) {
-        wayBillsListDiv.innerHTML = "<h3>No way bills found</h3>";
+        wayBillsListDiv.innerHTML = "<h1>No way bills found</h1>";
         return;
     }
     wayBills.forEach(wayBill => {
@@ -254,7 +254,7 @@ async function handleSearch() {
         const response = await fetch(`/wayBill/search/${query}`);
         if (!response.ok) {
             const errorText = await response.text();
-            wayBillsListDiv.innerHTML = `<p>${errorText}</p>`;
+            wayBillsListDiv.innerHTML = `<h1>${errorText}</h1>`;
             return;
         }
 

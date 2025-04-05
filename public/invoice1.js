@@ -13,7 +13,7 @@ async function loadRecentInvoices() {
     try {
         const response = await fetch(`/invoice/recent-invoices`);
         if (!response.ok) {
-            invoicesListDiv.innerHTML = "<p>No invoices found.</p>";
+            invoicesListDiv.innerHTML = "<h1>No Invoices found.</h1>";
             return;
         }
 
@@ -29,7 +29,7 @@ async function loadRecentInvoices() {
 function renderInvoices(invoices) {
     invoicesListDiv.innerHTML = "";
     if (invoices.length === 0) {
-        invoicesListDiv.innerHTML = "<h3>No invoices found</h3>";
+        invoicesListDiv.innerHTML = "<h1>No Invoices found</h1>";
         return;
     }
     invoices.forEach(invoice => {
@@ -195,7 +195,7 @@ async function handleSearch() {
     try {
         const response = await fetch(`/invoice/search/${query}`);
         if (!response.ok) {
-            invoicesListDiv.innerHTML = `<h2>No Invoice Found</h2>`;
+            invoicesListDiv.innerHTML = `<h1>No Invoice Found</h1>`;
             return;
         }
 

@@ -30,6 +30,6 @@ document.getElementById('analytics').addEventListener('click', () => {
     window.location = '/analytics';
 })
 
-document.getElementById('management').addEventListener('click', () => {
-    window.location = '/management';
+document.getElementById('settings').addEventListener('click', () => {
+    window.location = '/settings';
 })

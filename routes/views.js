@@ -15,7 +15,7 @@ const pages = [
     { route: '/employee', file: 'employee.html' },
     { route: '/database', file: 'database.html' },
     { route: '/analytics', file: 'analytics.html' },
-    { route: '/management', file: 'management.html' },
+    { route: '/settings', file: 'settings.html' },
 ];
 
 pages.forEach(({ route, file }) => {

@@ -1,0 +1,179 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+header {
+    width: 20%;
+    height: 100vh;
+    background-color: rgb(242, 240, 255);
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 2rem;
+}
+
+.logo-container img {
+    height: 50px;
+}
+
+.logo-container h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #267746;
+}
+
+.navigation-buttons {
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.navigation-buttons button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(10, 0, 154);
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.navigation-buttons button:hover {
+    background-color: rgb(8, 0, 120);
+}
+
+section {
+    height: 100vh;
+    width: 80%;
+    padding: 2rem;
+    box-sizing: border-box;
+    background-color: rgb(229, 226, 255);
+}
+
+#admin-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.admin-details,
+.bank-details {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-details h1,
+.bank-details h1 {
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.admin-details p,
+.bank-details p {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+    color: #555;
+}
+
+#change-credentials-section {
+    display: none;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+#change-credentials-section div {
+    width: 80%;
+    height: 45%;
+    background-color: white;
+    padding: 1rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#change-credentials-section label {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+#change-credentials-section input {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#change-credentials-section button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(10, 0, 154);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#change-credentials-section button:hover {
+    background-color: rgb(8, 0, 120);
+}
+
+#export-data-section {
+    display: none;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+#export-data-section div {
+    width: 80%;
+    height: 45%;
+    background-color: white;
+    padding: 1rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-options label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #555;
+}
+
+#export-data-button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(10, 0, 154);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#export-data-button:hover {
+    background-color: rgb(8, 0, 120);
+}
