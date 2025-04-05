@@ -32,9 +32,13 @@ function handlePrintEvent(mainWindow) {
                 }
 
                 .container {
-                    background: #fff !important;
+                    //background: #fff !important;
                     // width: 210mm;
                     // height: 297mm;
+                    /* background: #fff; */
+                    background-image: url("https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/icon2.png");
+                    background-repeat: no-repeat;
+                    background-position: center;
                     width: 250mm;
                     height: 337mm;
                     -webkit-print-color-adjust: exact;
@@ -303,6 +307,9 @@ function handlePrintEvent(mainWindow) {
                     background: #fff !important;
                     // width: 210mm;
                     // height: 297mm;
+                    background-image: url("https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/icon2.png");
+                    background-repeat: no-repeat;
+                    background-position: center;
                     width: 250mm;
                     height: 337mm;
                     -webkit-print-color-adjust: exact;

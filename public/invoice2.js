@@ -64,29 +64,12 @@ async function getId() {
     }
 }
 
-let totalPrice = 0;
-let roundOff = 0;
-let grandTotal = 0;
-
-// Function to generate the invoice preview
-function generatePreview() {
-    if (!invoiceId) invoiceId = document.getElementById('Id').value;
-    const projectName = document.getElementById("projectName").value;
-    const poNumber = document.getElementById("poNumber").value;
-    const dcNumber = document.getElementById("dcNumber").value;
-    const dcDate = document.getElementById("dcDate").value;
-    const wayBillNumber = document.getElementById("wayBillNumber").value;
-    const buyerName = document.getElementById("buyerName").value;
-    const buyerAddress = document.getElementById("buyerAddress").value;
-    const buyerPhone = document.getElementById("buyerPhone").value;
-    const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
-
+function calculateInvoice(itemsTable) {
+    let totalPrice = 0;
     let totalCGST = 0;
     let totalSGST = 0;
     let totalTaxableValue = 0;
-
     let itemsHTML = "";
-    let totalsHTML = "";
 
     // Check if rate column is populated
     let hasTax = Array.from(itemsTable.rows).some(row => row.cells[4].querySelector("input").value > 0);
@@ -139,16 +122,50 @@ function generatePreview() {
         }
     }
 
-    grandTotal = totalTaxableValue + totalCGST + totalSGST;
-    roundOff = Math.round(grandTotal) - grandTotal;
+    const grandTotal = totalTaxableValue + totalCGST + totalSGST;
+    const roundOff = Math.round(grandTotal) - grandTotal;
+    const finalTotal = totalPrice + roundOff;
 
-    totalsHTML = `
+    const totalsHTML = `
         ${hasTax ? `
         <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
         <p><strong>Total CGST:</strong> ₹${totalCGST.toFixed(2)}</p>
         <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>` : ""}
-        <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
+        <p><strong>Grand Total:</strong> ₹${finalTotal.toFixed(2)}</p>
     `;
+
+    return {
+        totalPrice,
+        totalCGST,
+        totalSGST,
+        totalTaxableValue,
+        roundOff,
+        grandTotal,
+        finalTotal,
+        itemsHTML,
+        totalsHTML,
+        hasTax
+    };
+}
+
+
+// Function to generate the invoice preview
+function generatePreview() {
+    if (!invoiceId) invoiceId = document.getElementById('Id').value;
+    const projectName = document.getElementById("projectName").value;
+    const poNumber = document.getElementById("poNumber").value;
+    const wayBillNumber = document.getElementById("wayBillNumber").value;
+    const buyerName = document.getElementById("buyerName").value;
+    const buyerAddress = document.getElementById("buyerAddress").value;
+    const buyerPhone = document.getElementById("buyerPhone").value;
+    const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
+
+    const {
+        itemsHTML,
+        totalsHTML,
+        finalTotal,
+        hasTax
+    } = calculateInvoice(itemsTable);
 
     // Generate preview content
     document.getElementById("preview-content").innerHTML = `
@@ -214,7 +231,7 @@ function generatePreview() {
 </div>
         </div>
         <div class="forth-section">
-        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(finalTotal)} Only</span></p>
         <div class="declaration">
             <p>We declare that this invoice shows the actual price of the goods described and that all particulars are
                 true
@@ -296,12 +313,13 @@ document.getElementById("savePDF").addEventListener("click", () => {
 
 // Function to collect form data
 function collectFormData() {
-    const totalAmount = (totalPrice + roundOff).toFixed(2);
+    const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
+    const { finalTotal } = calculateInvoice(itemsTable);
     const tolerance = 0.001;
     let paymentStatus = document.querySelector('input[name="question"]:checked')?.value || null;
-    if (Math.abs(parseFloat(totalAmount) - document.getElementById("paidAmount").value) < tolerance) {
+    if (Math.abs(parseFloat(finalTotal) - document.getElementById("paidAmount").value) < tolerance) {
         paymentStatus = 'Paid';
-        paidAmount = parseFloat(totalAmount);
+        paidAmount = parseFloat(finalTotal);
     }
     return {
         projectName: document.getElementById("projectName").value,
@@ -317,7 +335,7 @@ function collectFormData() {
         consigneeName: document.getElementById("consigneeName").value,
         consigneeAddress: document.getElementById("consigneeAddress").value,
         paymentStatus: paymentStatus,
-        paidAmount: paymentStatus === 'Paid' ? (totalPrice + roundOff).toFixed(2) : document.getElementById("paidAmount").value,
+        paidAmount: paymentStatus === 'Paid' ? finalTotal : document.getElementById("paidAmount").value,
         paymentDate: document.getElementById("paymentDate").value,
         paymentMode: document.getElementById("paymentMode").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
@@ -327,6 +345,6 @@ function collectFormData() {
             UnitPrice: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
-        totalAmount: totalAmount,
+        totalAmount: finalTotal,
     };
 }

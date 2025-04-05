@@ -136,7 +136,6 @@ function generatePreview() {
             </div>
         </div>
         <div class="second-section">
-        <h3>Item Details</h3>
         <table>
         <thead>
             <tr>
