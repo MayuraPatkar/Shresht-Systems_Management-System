@@ -180,6 +180,7 @@ function handleKeyboardNavigation(event, input, suggestionsList) {
     input.value = items[selectedIndex].textContent;
     fill(items[selectedIndex].textContent, input.closest("tr"));
   } else if (event.key === "Enter") {
+    event.stopPropagation();
     if (selectedIndex >= 0) {
       suggestionsList.style.display = "none";
     }
