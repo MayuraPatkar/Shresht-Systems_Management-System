@@ -1,5 +1,5 @@
 form {
-    max-width: 90vw;
+    max-width: 97vw;
     margin: 30px auto;
     background: #ffffff;
     padding: 20px;
@@ -39,7 +39,6 @@ textarea {
 
 table {
     align-self: center;
-    width: 98%;
     border-collapse: collapse;
     margin-bottom: 15px;
 }
@@ -51,6 +50,12 @@ table td {
     text-align: left;
     box-sizing: border-box;
     position: relative;
+}
+
+table td input {
+    width: 98%;
+    box-sizing: border-box;
+
 }
 
 .suggestions {

@@ -119,7 +119,7 @@ const invoiceSchema = new mongoose.Schema({
         },
     ],
     totalAmount: { type: Number },
-    paidAmount: { type: Number },
+    paidAmount: [{ type: Number }],
     paymentMode: { type: String },
     paymentDate: { type: Date },
     paymentStatus: { type: String, default: 'Unpaid' },

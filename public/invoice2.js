@@ -319,7 +319,6 @@ function collectFormData() {
     let paymentStatus = document.querySelector('input[name="question"]:checked')?.value || null;
     if (Math.abs(parseFloat(finalTotal) - document.getElementById("paidAmount").value) < tolerance) {
         paymentStatus = 'Paid';
-        paidAmount = parseFloat(finalTotal);
     }
     return {
         projectName: document.getElementById("projectName").value,
@@ -335,7 +334,7 @@ function collectFormData() {
         consigneeName: document.getElementById("consigneeName").value,
         consigneeAddress: document.getElementById("consigneeAddress").value,
         paymentStatus: paymentStatus,
-        paidAmount: paymentStatus === 'Paid' ? finalTotal : document.getElementById("paidAmount").value,
+        paidAmount: document.getElementById("paidAmount").value,
         paymentDate: document.getElementById("paymentDate").value,
         paymentMode: document.getElementById("paymentMode").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({

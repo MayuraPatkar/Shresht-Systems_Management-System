@@ -96,13 +96,17 @@ router.post("/save-invoice", async (req, res) => {
                 }
             }
 
+            if (paidAmount && paidAmount !== 0) {
+                existingInvoice.paidAmount.push(paidAmount);
+            }
+
             // Update the invoice
             Object.assign(existingInvoice, {
                 project_name: projectName, po_number: poNumber, po_date: poDate,
                 dc_number: dcNumber, dc_date: dcDate, service_month, Way_Bill_number: wayBillNumber,
                 date, buyer_name: buyerName, buyer_address: buyerAddress, buyer_phone: buyerPhone,
                 consignee_name: consigneeName, consignee_address: consigneeAddress, items,
-                totalAmount: totalAmount, paidAmount: paidAmount, paymentStatus: paymentStatus,
+                totalAmount: totalAmount, paymentStatus: paymentStatus,
                 paymentMode: paymentMode, paymentDate: paymentDate
             });
 
@@ -124,9 +128,14 @@ router.post("/save-invoice", async (req, res) => {
                 po_date: poDate, dc_number: dcNumber, dc_date: dcDate, service_month,
                 Way_Bill_number: wayBillNumber, date, buyer_name: buyerName, buyer_address: buyerAddress,
                 buyer_phone: buyerPhone, consignee_name: consigneeName, consignee_address: consigneeAddress,
-                items, totalAmount: totalAmount, paidAmount: paidAmount, paymentStatus: paymentStatus,
+                items, totalAmount: totalAmount, paymentStatus: paymentStatus,
                 paymentMode: paymentMode, paymentDate: paymentDate
             });
+
+            // Push the initial payment if provided
+            if (paidAmount && paidAmount !== '0') {
+                invoice.paidAmount.push(paidAmount);
+            }
 
             const savedInvoice = await invoice.save();
             return res.status(201).json({ message: 'Invoice saved successfully', invoice: savedInvoice });
@@ -195,7 +204,7 @@ router.get('/search/:query', async (req, res) => {
                 ]
             });
         } else {
-             invoices = await Invoices.find({
+            invoices = await Invoices.find({
                 $or: [
                     { invoice_id: { $regex: query, $options: 'i' } },
                     { project_name: { $regex: query, $options: 'i' } },

@@ -78,7 +78,7 @@ async function handleInvoiceListClick(event) {
             window.electronAPI.receiveAlertResponse((response) => {
                 if (response === "Yes") {
                     deleteInvoice(invoiceId);
-                    
+
                 }
             });
         }
@@ -126,10 +126,7 @@ async function openInvoice(invoiceId) {
         document.getElementById('dcDate').value = formatDate(invoice.dc_date);
         document.getElementById('service_month').value = invoice.service_month;
         document.getElementById('wayBillNumber').value = invoice.Way_Bill_number;
-        if (invoice.paymentStatus === 'Paid') {
-            document.getElementById('paidAmount').value = invoice.totalAmount;
-        }
-        document.getElementById('paidAmount').value = invoice.paidAmount;
+        document.getElementById('advancedPay').value = Array.isArray(invoice?.paidAmount) ? invoice.paidAmount.join(', ') : '';
         document.querySelector(`input[name="question"][value="${invoice.paymentStatus}"]`).checked = true;
         document.getElementById('paymentMode').value = invoice.paymentMode;
         document.getElementById('paymentDate').value = formatDate(invoice.paymentDate);

@@ -86,6 +86,7 @@ function handlePrintEvent(mainWindow) {
             font-size: 25px;
             color: #007bff;
             font-weight: bold;
+            margin-bottom: 10px;
         }
 
         /* 
@@ -104,8 +105,8 @@ function handlePrintEvent(mainWindow) {
         .info-section,
         .buyer-details {
             padding: 0.2%;
-            font-size: 14px;
-            line-height: 1.0;
+            font-size: 20px;
+            line-height: 1;
             width: 50%;
         }
 
@@ -134,7 +135,11 @@ function handlePrintEvent(mainWindow) {
             border: 1px solid #000000;
             padding: 7px;
             text-align: left;
-            font-size: 12px;
+            font-size: 20px;
+        }
+        
+        .container table th{
+            font-size: 22px;
         }
 
         .container table th {
@@ -148,20 +153,27 @@ function handlePrintEvent(mainWindow) {
         */
 
         .third-section {
+            line-height: 1;
             display: flex;
             justify-content: space-evenly;
         }
 
         .totals-section {
+            line-height: 0.2;
             width: 50%;
             text-align: right;
-            font-size: 14px;
+            font-size: 20px;
         }
 
         .bank-details {
+            line-height: 0.2;
             width: 50%;
             text-align: left;
-            font-size: 14px;
+            font-size: 20px;
+        }
+
+        #totalInWords, p { 
+        font-size: 20px;
         }
 
         /* 
@@ -178,8 +190,8 @@ function handlePrintEvent(mainWindow) {
         }
 
         .declaration {
-            font-size: 14px;
-            line-height: 1.5;
+            line-height: 1;
+            font-size: 18px;
         }
 
         .forth-section .declaration p {
@@ -197,9 +209,9 @@ function handlePrintEvent(mainWindow) {
         }
 
         .terms-section {
+            line-height: 0.2;
             padding: 1%;
-            font-size: 14px;
-            line-height: 1.0;
+            font-size: 20px;
         }
 
         .signature {
@@ -207,12 +219,13 @@ function handlePrintEvent(mainWindow) {
         }
 
         .signature p {
+        font-size: 20px;
             margin-top: 0;
         }
 
         .signature-space {
             width: 150px;
-            height: 20px;
+            height: 30px;
         }
 
         footer {
@@ -304,7 +317,7 @@ function handlePrintEvent(mainWindow) {
                 }
 
                 .container {
-                    background: #fff !important;
+                    //background: #fff !important;
                     // width: 210mm;
                     // height: 297mm;
                     background-image: url("https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/icon2.png");
@@ -387,7 +400,11 @@ function handlePrintEvent(mainWindow) {
                     border: 1px solid #000000;
                     padding: 10px;
                     text-align: left;
-                    font-size: 12px;
+                    font-size: 18px;
+                }
+                
+                .container table th {
+                    font-size: 20px;
                 }
             
                 .container table th {
@@ -403,20 +420,27 @@ function handlePrintEvent(mainWindow) {
                     justify-content: space-between;
                 }
 
-                .totals {
+                .totals-section {
+                    margin: 20px 0;
                     text-align: right;
+                    font-size: 20px;
                 }
 
-                .totals p,
-                .totals h3 {
+                .totals-section p,
+                .totals-section h3 {
                     margin: 5px 0;
-                    font-size: 14px;
+                    font-size: 20px;
                 }
 
-                .totals h3 {
+                .totals-section h3 {
                     color: #007bff;
                     font-weight: bold;
                 }
+
+                #totalInWords, p {
+                    font-size: 20px;
+                }
+
 
                 .terms-section {
                     padding: 3%;
@@ -435,6 +459,10 @@ function handlePrintEvent(mainWindow) {
                     font-size: 12px;
                     color: #777;
                     margin-top: 20px;
+                }
+
+                footer p{
+                    font-size: 12px;
                 }
                 
                 @media print {

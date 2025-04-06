@@ -8,6 +8,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: #dddddd;
+    overflow: hidden;
 }
 
 header {
@@ -15,7 +16,7 @@ header {
     height: 10vh;
     padding: 1rem 2rem;
     box-sizing: border-box;
-    background-color: #ffffff;
+    background-color: #dfe7ff;
     border-bottom: 1px solid #ddd;
     display: flex;
     justify-content: space-between;
@@ -225,4 +226,6 @@ h4 {
 
 #new {
     display: none;
+    height: 90vh;
+    overflow-y: auto;
 }

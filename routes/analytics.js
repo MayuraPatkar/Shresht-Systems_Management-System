@@ -10,20 +10,21 @@ router.get('/overview', async (req, res) => {
         // Sum of earnings for current month
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-        
+
         const monthlyEarnings = await Invoices.aggregate([
             {
                 $match: {
                     createdAt: {
                         $gte: new Date(currentYear, currentMonth, 1),
                         $lt: new Date(currentYear, currentMonth + 1, 1)
-                    }
+                    },
+                    paymentStatus: "Paid"
                 }
             },
             {
                 $group: {
                     _id: null,
-                    total: { $sum: "$paidAmount" }
+                    total: { $sum: "$totalAmount" },
                 }
             }
         ]);

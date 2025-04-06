@@ -3,10 +3,6 @@ const path = require("path");
 const { handlePrintEvent } = require("./printHandler");
 const { showAlert2 } = require("./alertHandler");
 
-require("electron-reload")(path.join(__dirname), {
-  electron: require(path.join(__dirname, "node_modules", "electron")),
-});
-
 let mainWindow;
 
 function createWindow() {
@@ -31,13 +27,6 @@ function createWindow() {
 
   mainWindow.setMenu(null);
   mainWindow.maximize();
-
-  // Open DevTools only in development mode
-  if (process.env.NODE_ENV === "development") {
-    setTimeout(() => {
-      mainWindow.webContents.openDevTools();
-    }, 1000);
-  }
 
   mainWindow.loadURL("http://localhost:3000").catch((err) => {
     console.error("Failed to load frontend:", err);
