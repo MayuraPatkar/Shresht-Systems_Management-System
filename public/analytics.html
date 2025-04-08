@@ -18,7 +18,7 @@
     <!-- vertical nav -->
     <nav>
         <ul>
-            <li><a id="overview-btn">Overview</a></li>
+            <li><a id="overview-btn" class="active">Overview</a></li>
             <li><a id="projects-btn">Projects</a></li>
             <li><a id="profit-loss-btn">Profit / Loss</a></li>
             <!-- <li><a id="Quotation-btn">Quotation</a></li> -->
@@ -28,12 +28,12 @@
     <!-- sections -->
     <section id="overview" class="active">
         <div>
-            <h1 id="project-count">0</h1>
-            <p>Total Projects</p>
-        </div>
-        <div>
             <h1 id="quotation-count">0</h1>
             <p>Total Quotation Given</p>
+        </div>
+        <div>
+            <h1 id="project-count">0</h1>
+            <p>Total Projects</p>
         </div>
         <div>
             <h1 id="earned-count">0</h1>
@@ -43,15 +43,24 @@
             <h1 id="unpaid-count">0</h1>
             <p>Total Unpaid Projects</p>
         </div>
+        <div>
+            <h1 id="expenditure">0</h1>
+            <p>Total Expenditure This Month</p>
+        </div>
     </section>
 
     <section id="projects">
-        <div id="projectsPlot"></div>
+        <div id="filterButtons" class="filter-buttons">
+            <button data-filter="month" class="filter-btn active">Month</button>
+            <button data-filter="week" class="filter-btn">Week</button>
+            <button data-filter="year" class="filter-btn">Year</button>
+        </div>        
+        <canvas id="projectsPlot"></canvas>
     </section>
     <section id="profit_loss">
         <div id="profit_loss_Plot"></div>
     </section>
-    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="./analytics.js"></script>
 </body>
 

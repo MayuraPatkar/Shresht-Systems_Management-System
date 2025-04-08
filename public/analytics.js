@@ -9,25 +9,29 @@ document.addEventListener("DOMContentLoaded", () => {
         overview: document.getElementById("overview"),
         projects: document.getElementById("projects"),
         profit_loss: document.getElementById("profit_loss"),
-        // quotation: document.getElementById("Quotation")
     };
 
     const navItems = {
         overview: document.getElementById("overview-btn"),
         projects: document.getElementById("projects-btn"),
         profit_loss: document.getElementById("profit-loss-btn"),
-        // quotation: document.getElementById("quotation-btn")
     };
 
     Object.keys(navItems).forEach(key => {
         navItems[key].addEventListener("click", () => {
+            // Hide all sections
             Object.values(sections).forEach(sec => {
                 if (sec) sec.style.display = "none";
             });
 
+            // Show the selected section
             if (sections[key]) {
                 sections[key].style.display = "flex";
             }
+
+            // Toggle active class
+            Object.values(navItems).forEach(btn => btn.classList.remove("active"));
+            navItems[key].classList.add("active");
         });
     });
 
@@ -44,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Error fetching analytics:", err);
         });
 });
+
 
 // ---------------------- Animated Counter Function ----------------------
 function animateCounter(id, end, isCurrency = false, duration = 3000, delay = 500) {
@@ -80,37 +85,82 @@ async function drawChart() {
         }
     }
 
-    const projects = await loadProjects();
-    if (projects.length === 0) return;
+    function groupByTime(projects, filter) {
+        const grouped = {};
+        projects.forEach((project) => {
+            const date = new Date(project.createdAt || project.date);
+            let key;
+            if (filter === "week") {
+                const year = date.getFullYear();
+                const week = Math.ceil(
+                    ((date - new Date(year, 0, 1)) / 86400000 + new Date(year, 0, 1).getDay() + 1) / 7
+                );
+                key = `${year}-W${week}`;
+            } else if (filter === "year") {
+                key = date.getFullYear();
+            } else {
+                key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+            }
+            grouped[key] = (grouped[key] || 0) + 1;
+        });
+        return grouped;
+    }
 
-    const monthCounts = {};
-    projects.forEach(project => {
-        const date = new Date(project.createdAt);
-        const month = date.toLocaleString("default", { year: "numeric", month: "short" });
-        monthCounts[month] = (monthCounts[month] || 0) + 1;
+    const ctx = document.getElementById("projectsPlot").getContext("2d");
+    let chartInstance;
+
+    async function renderChart(filter) {
+        const projects = await loadProjects();
+        if (projects.length === 0) return;
+
+        const dataMap = groupByTime(projects, filter);
+        const labels = Object.keys(dataMap).sort();
+        const values = labels.map((label) => dataMap[label]);
+
+        const barColors = labels.map(() =>
+            `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`
+        );
+
+        if (chartInstance) chartInstance.destroy(); // Destroy old chart if exists
+
+        chartInstance = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: `Projects per ${filter}`,
+                    data: values,
+                    backgroundColor: barColors,
+                    borderColor: barColors.map(color => color.replace("hsl", "rgba").replace(")", ", 0.5)")),
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: `Projects per ${filter}` }
+                },
+                scales: {
+                    x: { title: { display: true, text: filter.charAt(0).toUpperCase() + filter.slice(1) } },
+                    y: { beginAtZero: true, title: { display: true, text: "Number of Projects" } }
+                }
+            }
+        });
+    }
+    
+    let currentFilter = "month";
+    await renderChart(currentFilter);
+    
+    document.querySelectorAll(".filter-btn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+    
+            currentFilter = btn.getAttribute("data-filter");
+            await renderChart(currentFilter);
+        });
     });
-
-    const dataTable = new google.visualization.DataTable();
-    dataTable.addColumn("string", "Month");
-    dataTable.addColumn("number", "Projects");
-
-    const sortedMonths = Object.keys(monthCounts).sort((a, b) => new Date(`1 ${a}`) - new Date(`1 ${b}`));
-    sortedMonths.forEach(month => {
-        dataTable.addRow([month, monthCounts[month]]);
-    });
-
-    const options = {
-        title: "Projects Per Month",
-        curveType: "function",
-        legend: { position: "bottom" },
-        hAxis: { title: "Month" },
-        vAxis: { title: "Number of Projects", minValue: 0 }
-    };
-
-    const chart = new google.visualization.LineChart(document.getElementById("projectsPlot"));
-    chart.draw(dataTable, options);
+    
 }
-
-// ---------------------- Google Charts Loader ----------------------
-google.charts.load("current", { packages: ["corechart"] });
-google.charts.setOnLoadCallback(drawChart);
+drawChart();
