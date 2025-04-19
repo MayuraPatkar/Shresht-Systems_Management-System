@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Admin } = require('./database');
+const log = require("electron-log"); // Import electron-log in the preload process
 
 // Login endpoint
 router.post('/login', async (req, res) => {
@@ -16,12 +17,14 @@ router.post('/login', async (req, res) => {
 
         // Compare provided password with the stored hashed password
         if (password != admin.password) {
+            log.warn('authentication failed due to invalid password');
             return res.status(401).json({ message: 'Invalid credentials' });
         }
-
+        
+        log.info('Login successful for admin');
         res.status(200).json({ message: 'Login successful' });
     } catch (error) {
-        console.error('Error during login:', error);
+        log.error('Error during login:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
@@ -34,7 +37,7 @@ router.get("/admin-info", async (req, res) => {
         }
         res.json(admin);
     } catch (error) {
-        console.error("Error fetching admin info:", error);
+        log.error("Error fetching admin info:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -51,7 +54,7 @@ router.post("/change-username", async (req, res) => {
         await admin.save();
         res.json({ message: "Username updated successfully" });
     } catch (error) {
-        console.error("Error changing username:", error);
+        log.error("Error changing username:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -68,7 +71,7 @@ router.post("/change-password", async (req, res) => {
         await admin.save();
         res.json({ message: "Password updated successfully" });
     } catch (error) {
-        console.error("Error changing password:", error);
+        log.error("Error changing password:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -97,7 +100,7 @@ router.get("/export-data", async (req, res) => {
         res.setHeader("Content-Disposition", `attachment; filename=admin_data.${format}`);
         res.send(data);
     } catch (error) {
-        console.error("Error exporting data:", error);
+        log.error("Error exporting data:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });

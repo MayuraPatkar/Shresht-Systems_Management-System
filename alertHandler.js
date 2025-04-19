@@ -1,5 +1,6 @@
 const { ipcMain, BrowserWindow } = require("electron");
 const path = require('path');
+const log = require("electron-log");
 
 function createAlertWindow(message, htmlFile, responseHandler) {
     if (!message || typeof message !== 'string') {
@@ -20,9 +21,12 @@ function createAlertWindow(message, htmlFile, responseHandler) {
         },
     });
 
-    alertWindow.loadFile(path.join(__dirname, 'public', htmlFile)).catch((err) => {
-        console.error(`Failed to load ${htmlFile}:`, err);
-    });
+    log.info(`Loading alert window with file: ${htmlFile}`);
+    if (!alertWindow.isDestroyed()) {
+        alertWindow.loadFile(path.join(__dirname, 'public', htmlFile)).catch((err) => {
+            log.error(`Failed to load ${htmlFile}:`, err);
+        });
+    }
 
     alertWindow.once('ready-to-show', () => {
         alertWindow.webContents.send('set-message', message);

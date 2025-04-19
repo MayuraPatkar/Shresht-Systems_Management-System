@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,7 +35,8 @@
             height: 35vh;
         }
 
-        .auth-container, .login-container {
+        .auth-container,
+        .login-container {
             width: 40%;
             display: flex;
             flex-direction: column;
@@ -87,15 +89,9 @@
             outline: none;
             box-shadow: 0 0 5px rgba(73, 73, 255, 0.5);
         }
-
-        #error-msg {
-            color: red;
-            font-size: 1rem;
-            margin-top: 10px;
-            display: none;
-        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="logo-container">
@@ -112,10 +108,10 @@
             <input type="text" id="username">
             <label for="password">Password</label>
             <input type="password" id="password">
-            <p id="error-msg"></p>
             <button id="login-btn" class="btn">Login</button>
         </div>
     </div>
     <script src="./indexScript.js"></script>
 </body>
+
 </html>

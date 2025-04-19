@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 const exServer = express();
 const config = require('./config');
+const log = require("electron-log"); // Import electron-log in the preload process
 
 // Middleware
 exServer.use(express.json());
@@ -17,8 +18,8 @@ async function connectDB() {
     try {
         await mongoose.connect(config.mongodbUri);
     } catch (error) {
-        console.error('MongoDB connection failed:', error.message);
-        console.error('Exiting process due to database connection failure');
+        log.error('MongoDB connection failed:', error.message);
+        log.error('Exiting process due to database connection failure');
         process.exit(1);
     }
 }
@@ -51,16 +52,17 @@ exServer.use('/analytics', analyticsRoutes);
 
 // Centralized Error Handling Middleware
 exServer.use((err, req, res, next) => {
-    console.error('Global error handler caught an error:', err);
+    log.error('Global error handler caught an error:', err);
     if (res.headersSent) { // Check if headers already sent to prevent error after response sent
         return next(err); // Delegate to default Express error handler
     }
     res.status(500).send({ error: 'Something went wrong!', details: err.message }); // Send generic error response
 });
 
-
 // Start the server
-const server = exServer.listen(config.port);
+const server = exServer.listen(config.port, () => {
+    log.info(`Express server listening on port ${config.port}`);
+  });
 
 // Handle server startup errors
 server.on('error', (error) => {
@@ -70,11 +72,11 @@ server.on('error', (error) => {
     const bind = typeof config.port === 'string' ? 'Pipe ' + config.port : 'Port ' + config.port;
     switch (error.code) {
         case 'EACCES':
-            console.error(`${bind} requires elevated privileges`);
+            log.error(`${bind} requires elevated privileges`);
             process.exit(1);
             break;
         case 'EADDRINUSE':
-            console.error(`${bind} is already in use`);
+            log.error(`${bind} is already in use`);
             process.exit(1);
             break;
         default:

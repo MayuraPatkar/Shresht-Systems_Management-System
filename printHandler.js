@@ -1,5 +1,6 @@
 const { ipcMain, BrowserWindow, dialog } = require("electron");
 const fs = require("fs");
+const log = require("electron-log"); // Import electron-log in the preload process
 
 function handlePrintEvent(mainWindow) {
     ipcMain.on("PrintDoc", async (event, { content, mode, name }) => {
@@ -253,7 +254,7 @@ function handlePrintEvent(mainWindow) {
             if (mode === "print") {
                 printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
                     if (!success) {
-                        console.error("Print failed:", errorType);
+                        log.error("Print failed:", errorType);
                         event.sender.send("printFailed", { error: errorType }); // Send error to renderer
                     }
                     printWindow.close();
@@ -271,14 +272,14 @@ function handlePrintEvent(mainWindow) {
                         await fs.promises.writeFile(filePath, data);
                         event.sender.send("PDFSaved", { success: true, path: filePath });
                     } catch (error) {
-                        console.error("Error saving PDF:", error);
+                        log.error("Error saving PDF:", error);
                         event.sender.send("PDFSaved", { success: false, error });
                     }
                 }
                 printWindow.close();
             }
         } catch (err) {
-            console.error("Error in print process:", err);
+            log.error("Error in print process:", err);
             event.sender.send("printProcessError", { error: err.message }); // Send error to renderer
             if (!printWindow.isDestroyed()) {
                 printWindow.close();
@@ -483,7 +484,7 @@ function handlePrintEvent(mainWindow) {
             if (mode === "print") {
                 printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
                     if (!success) {
-                        console.error("Print failed:", errorType);
+                        log.error("Print failed:", errorType);
                         event.sender.send("printFailed", { error: errorType }); // Send error to renderer
                     }
                     printWindow.close();
@@ -501,14 +502,14 @@ function handlePrintEvent(mainWindow) {
                         await fs.promises.writeFile(filePath, data);
                         event.sender.send("PDFSaved", { success: true, path: filePath });
                     } catch (error) {
-                        console.error("Error saving PDF:", error);
+                        log.error("Error saving PDF:", error);
                         event.sender.send("PDFSaved", { success: false, error });
                     }
                 }
                 printWindow.close();
             }
         } catch (err) {
-            console.error("Error in print process:", err);
+            log.error("Error in print process:", err);
             event.sender.send("printProcessError", { error: err.message }); // Send error to renderer
             if (!printWindow.isDestroyed()) {
                 printWindow.close();

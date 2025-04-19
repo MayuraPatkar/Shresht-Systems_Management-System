@@ -23,8 +23,7 @@ document.getElementById('login-btn').addEventListener('click', () => {
             if (response.ok) {
                 window.location = '/dashboard';
             } else {
-                document.getElementById('error-msg').style.display = "block";
-                document.getElementById('error-msg').innerText = "Invalid username or password";
+                window.electronAPI.showAlert1("Invalid username or password");
             }
         })
         .catch(error => {

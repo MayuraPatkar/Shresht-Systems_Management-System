@@ -1,7 +1,57 @@
 const { app, BrowserWindow, ipcMain, screen } = require("electron");
 const path = require("path");
+const log = require("electron-log");
+const fs = require("fs");
 const { handlePrintEvent } = require("./printHandler");
 const { showAlert2 } = require("./alertHandler");
+
+const logDir = path.join(__dirname, "logs");
+const maxLogDays = 7;
+
+// Ensure the log directory exists
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir);
+}
+
+function cleanOldLogs() {
+  fs.readdir(logDir, (err, files) => {
+    if (err) {
+      log.error("Error reading log directory:", err);
+      return;
+    }
+
+    const logFiles = files.filter((file) => file.startsWith("main-") && file.endsWith(".log"));
+
+    if (logFiles.length > maxLogDays) {
+      logFiles.sort(); // Sort by name (which includes date)
+      const filesToDelete = logFiles.slice(0, logFiles.length - maxLogDays);
+
+      filesToDelete.forEach((fileToDelete) => {
+        const filePathToDelete = path.join(logDir, fileToDelete);
+        fs.unlink(filePathToDelete, (unlinkErr) => {
+          if (unlinkErr) {
+            log.error(`Error deleting old log file ${fileToDelete}:`, unlinkErr);
+          } else {
+            log.info(`Deleted old log file: ${fileToDelete}`);
+          }
+        });
+      });
+    }
+  });
+}
+
+// Configure electron-log to use date-based file names
+log.transports.file.resolvePathFn = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  return path.join(logDir, `main-${year}-${month}-${day}.log`);
+};
+
+// Call cleanOldLogs before writing a new log entry (or at app start)
+cleanOldLogs();
+log.info("---------------------------***App started***---------------------------");
 
 require("electron-reload")(path.join(__dirname), {
   electron: require(path.join(__dirname, "node_modules", "electron")),
@@ -39,9 +89,8 @@ function createWindow() {
     }, 1000);
   }
 
-
   mainWindow.loadURL("http://localhost:3000").catch((err) => {
-    console.error("Failed to load frontend:", err);
+    log.error("Failed to load frontend:", err);
   });
 
   mainWindow.on("closed", () => {
@@ -62,7 +111,7 @@ app.whenReady().then(() => {
   try {
     require("./server");
   } catch (err) {
-    console.error("Failed to start Express server:", err);
+    log.error("Failed to start Express server:", err);
   }
 
   createWindow();
@@ -70,6 +119,7 @@ app.whenReady().then(() => {
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
+    log.info("-------------***All windows closed. Exiting application***-------------");
     app.quit();
   }
 });
