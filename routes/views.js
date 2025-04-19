@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require('path');
 const router = express.Router();
+const log = require("electron-log"); // Import electron-log in the preload process
+
 
 // Serve HTML files
 const pages = [

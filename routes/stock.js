@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Stock } = require('./database');
+const log = require("electron-log"); // Import electron-log in the preload process
+
 
 
 // Route to Get Stock Data
@@ -9,7 +11,7 @@ router.get('/getStock', async (req, res) => {
         const stockData = await Stock.find();
         res.status(200).json(stockData);
     } catch (error) {
-        console.error('Error fetching stock data:', error);
+        log.error('Error fetching stock data:', error);
         res.status(500).json({ error: 'Failed to fetch stock data' });
     }
 });
@@ -44,7 +46,7 @@ router.post('/addItem', async (req, res) => {
             item: newItem
         });
     } catch (error) {
-        console.error('Error adding stock item:', error);
+        log.error('Error adding stock item:', error);
         res.status(500).json({ error: 'Failed to add stock item' });
     }
 });
@@ -65,7 +67,7 @@ router.post('/addToStock', async (req, res) => {
 
         res.status(200).json({ message: 'Stock updated successfully' });
     } catch (error) {
-        console.error('Error updating stock:', error);
+        log.error('Error updating stock:', error);
         res.status(500).json({ error: 'Failed to update stock' });
     }
 });
@@ -93,7 +95,7 @@ router.post('/removeFromStock', async (req, res) => {
 
         res.status(200).json({ message: 'Stock updated successfully' });
     } catch (error) {
-        console.error('Error updating stock:', error);
+        log.error('Error updating stock:', error);
         res.status(500).json({ error: 'Failed to update stock' });
     }
 });
@@ -120,7 +122,7 @@ router.post('/editItem', async (req, res) => {
 
         res.status(200).json({ message: 'Item updated successfully' });
     } catch (error) {
-        console.error('Error editing item:', error);
+        log.error('Error editing item:', error);
         res.status(500).json({ error: 'Failed to edit item' });
     }
 });
@@ -140,7 +142,7 @@ router.get("/get-stock-item", async (req, res) => {
             GST: stockItem.GST
         });
     } catch (error) {
-        console.error("Error fetching stock item:", error);
+        log.error("Error fetching stock item:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -150,7 +152,7 @@ router.get("/get-names", async (req, res) => {
         const stockItems = await Stock.find({}, { itemName: 1 });
         res.json(stockItems.map(item => item.itemName));
     } catch (error) {
-        console.error("Error fetching stock item names:", error);
+        log.error("Error fetching stock item names:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });

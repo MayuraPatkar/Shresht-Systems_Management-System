@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { wayBills } = require('./database');
+const log = require("electron-log"); // Import electron-log in the preload process
+
 
 router.post("/save-way-bill", async (req, res) => {
     try {
@@ -63,7 +65,7 @@ router.post("/save-way-bill", async (req, res) => {
             wayBill: savedWayBill,
         });
     } catch (error) {
-        console.error('Error saving data:', error);
+        log.error('Error saving data:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -83,7 +85,7 @@ router.get("/recent-way-bills", async (req, res) => {
             wayBill: recentWayBills,
         });
     } catch (error) {
-        console.error("Error retrieving recent way bills:", error);
+        log.error("Error retrieving recent way bills:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -109,7 +111,7 @@ router.get("/:wayBillId", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error retrieving way bill:", error);
+        log.error("Error retrieving way bill:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -134,7 +136,7 @@ router.delete("/:wayBillId", async (req, res) => {
         // Respond with success message
         res.status(200).json({ message: 'Way bill deleted successfully' });
     } catch (error) {
-        console.error("Error deleting way bill:", error);
+        log.error("Error deleting way bill:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -165,7 +167,7 @@ router.get('/search/:query', async (req, res) => {
             return res.status(200).json({ wayBills: way_bills });
         }
     } catch (err) {
-        console.log(err);
+        log.log(err);
         return res.status(500).send('Failed to fetch way bills.');
     }
 });

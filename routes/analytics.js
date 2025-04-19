@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Invoices, Quotations } = require('./database');
+const log = require("electron-log"); // Import electron-log in the preload process
 
 router.get('/overview', async (req, res) => {
     try {
@@ -41,7 +42,7 @@ router.get('/overview', async (req, res) => {
             totalUnpaid
         });
     } catch (err) {
-        console.error("Error fetching analytics:", err);
+        log.error("Error fetching analytics:", err);
         res.status(500).json({ error: "Server error" });
     }
 });

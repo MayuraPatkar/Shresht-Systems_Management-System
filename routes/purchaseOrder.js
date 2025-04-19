@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Purchases } = require('./database');
+const log = require("electron-log"); // Import electron-log in the preload process
+
 
 // Function to generate a unique ID for each purchaseOrder
 function generateUniqueId() {
@@ -86,7 +88,7 @@ router.post("/save-purchase-order", async (req, res) => {
             purchaseOrder: savedPurchaseOrder,
         });
     } catch (error) {
-        console.error('Error saving data:', error);
+        log.error('Error saving data:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -106,7 +108,7 @@ router.get("/recent-purchase-orders", async (req, res) => {
             purchaseOrder: recentPurchaseOrders,
         });
     } catch (error) {
-        console.error("Error retrieving recent purchase orders:", error);
+        log.error("Error retrieving recent purchase orders:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -132,7 +134,7 @@ router.get("/:purchaseOrderId", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error retrieving purchase order:", error);
+        log.error("Error retrieving purchase order:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -157,7 +159,7 @@ router.delete("/:purchaseOrderId", async (req, res) => {
         // Respond with success message
         res.status(200).json({ message: 'Purchase order deleted successfully' });
     } catch (error) {
-        console.error("Error deleting purchase order:", error);
+        log.error("Error deleting purchase order:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -188,7 +190,7 @@ router.get('/search/:query', async (req, res) => {
             return res.status(200).json({ purchaseOrder: purchaseOrders });
         }
     } catch (err) {
-        console.log(err);
+        log.log(err);
         return res.status(500).send('Failed to fetch purchase orders.');
     }
 });

@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { Invoices } = require('./database');
 const moment = require('moment');
+const log = require("electron-log"); // Import electron-log in the preload process
+
 
 // Get service notifications
 router.get('/get-service', async (req, res) => {
@@ -23,7 +25,7 @@ router.get('/get-service', async (req, res) => {
 
         res.json({ projects: filteredProjects });
     } catch (error) {
-        console.error("Error fetching services:", error);
+        log.error("Error fetching services:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -31,7 +33,7 @@ router.get('/get-service', async (req, res) => {
 router.post('/update-nextService', async (req, res) => {
     try {
         const { invoice_id, next_service } = req.body;
-        console.log(invoice_id, next_service);
+        log.log(invoice_id, next_service);
 
         // Check if project exists
         const project = await Invoices.findOne({ invoice_id: invoice_id });
@@ -48,7 +50,7 @@ router.post('/update-nextService', async (req, res) => {
 
         res.json({ message: "Service added successfully" });
     } catch (error) {
-        console.error("Error adding service:", error);
+        log.error("Error adding service:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });

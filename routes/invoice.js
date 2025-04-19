@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Invoices, Stock } = require('./database');
+const log = require("electron-log"); // Import electron-log in the preload process
+
 
 // Function to generate a unique ID for each Invoice
 function generateUniqueId() {
@@ -33,7 +35,7 @@ router.get("/get-all", async (req, res) => {
         const invoices = await Invoices.find();
         return res.status(200).json({ invoices });
     } catch (error) {
-        console.error("Error fetching invoices:", error);
+        log.error("Error fetching invoices:", error);
         return res.status(500).json({ error: "Internal Server Error" });
     }
 });
@@ -141,7 +143,7 @@ router.post("/save-invoice", async (req, res) => {
             return res.status(201).json({ message: 'Invoice saved successfully', invoice: savedInvoice });
         }
     } catch (error) {
-        console.error('Error saving data:', error);
+        log.error('Error saving data:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -162,7 +164,7 @@ router.get("/recent-invoices", async (req, res) => {
             invoices: recentInvoices,
         });
     } catch (error) {
-        console.error("Error retrieving recent invoices:", error);
+        log.error("Error retrieving recent invoices:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -184,7 +186,7 @@ router.get("/:invoice_id", async (req, res) => {
         // Respond with the invoice data
         res.status(200).json({ invoice });
     } catch (error) {
-        console.error("Error fetching invoice:", error);
+        log.error("Error fetching invoice:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -220,7 +222,7 @@ router.get('/search/:query', async (req, res) => {
             return res.status(200).json({ invoices });
         }
     } catch (err) {
-        console.log(err);
+        log.log(err);
         return res.status(500).send('Failed to fetch invoice.');
     }
 });
@@ -242,7 +244,7 @@ router.delete("/:invoiceId", async (req, res) => {
         // Respond with success message
         res.status(200).json({ message: 'invoice deleted successfully' });
     } catch (error) {
-        console.error("Error deleting invoice:", error);
+        log.error("Error deleting invoice:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,

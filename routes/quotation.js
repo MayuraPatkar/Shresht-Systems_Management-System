@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Quotations } = require('./database');
+const log = require("electron-log"); // Import electron-log in the preload process
+
 
 // Function to generate a unique ID for each quotation
 function generateUniqueId() {
@@ -77,7 +79,7 @@ router.post("/save-quotation", async (req, res) => {
             quotation: savedQuotation,
         });
     } catch (error) {
-        console.error('Error saving data:', error);
+        log.error('Error saving data:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -98,7 +100,7 @@ router.get("/recent-quotations", async (req, res) => {
             quotation: recentquotation,
         });
     } catch (error) {
-        console.error("Error retrieving recent quotation:", error);
+        log.error("Error retrieving recent quotation:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -124,7 +126,7 @@ router.get("/:quotationId", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error retrieving recent quotation:", error);
+        log.error("Error retrieving recent quotation:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -149,7 +151,7 @@ router.delete("/:quotationId", async (req, res) => {
         // Respond with success message
         res.status(200).json({ message: 'Quotation deleted successfully' });
     } catch (error) {
-        console.error("Error deleting quotation:", error);
+        log.error("Error deleting quotation:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -180,7 +182,7 @@ router.get('/search/:query', async (req, res) => {
             return res.status(200).json({ quotation });
         }
     } catch (err) {
-        console.log(err);
+        log.log(err);
         return res.status(500).send('Failed to fetch quotation.');
     }
 });
