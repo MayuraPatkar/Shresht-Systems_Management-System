@@ -63,7 +63,6 @@ function createInvoiceDiv(invoice) {
         <option class="delete-invoice" data-id="${invoice.invoice_id}">View Original</option>
         <option class="delete-invoice" data-id="${invoice.invoice_id}">Delete</option>
         </select>
-        
     `;
 
     // <div class="actions">
