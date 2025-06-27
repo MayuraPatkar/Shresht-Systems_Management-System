@@ -1,191 +1,232 @@
-form {
-    max-width: 97vw;
-    margin: 30px auto;
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
-}
-
-form h2 {
-    margin-bottom: 20px;
-}
-
-label {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-input,
-select,
-textarea,
-button {
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-textarea {
-    resize: none;
-}
-
-table {
-    align-self: center;
-    border-collapse: collapse;
-    margin-bottom: 15px;
-}
-
-table th,
-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-    box-sizing: border-box;
-    position: relative;
-}
-
-table td input {
-    width: 98%;
-    box-sizing: border-box;
-
-}
-
-.suggestions {
-    position: absolute;
-    width: 100%;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    max-height: 150px;
-    overflow-y: auto;
-    display: none;
-    top: 50px;
-    z-index: 10;
-}
-
-.suggestions li {
-    padding: 8px;
-    cursor: pointer;
-}
-
-.suggestions li:hover {
-    background-color: #f0f0f0;
-}
-
-.suggestions li.selected {
-    background-color: rgb(202, 198, 255);
-    color: rgb(0, 0, 0);
-}
-
-.add-item-btn,
-.remove-item-btn {
-    padding: 5px 10px;
-    font-size: 0.9rem;
-    margin: 5px 0;
-    cursor: pointer;
-    border: none;
-    color: rgb(0, 0, 0);
-    border-radius: 5px;
-}
-
-.add-item-btn {
-    background-color: rgb(10, 0, 154);
-    color: white;
-    height: 40px;
-    font-size: 20px;
-}
-
-.add-item-btn:hover {
-    background-color: #2a7edb;
-}
-
-.remove-item-btn {
-    background-color: rgb(255, 45, 45);
-}
-
-.remove-item-btn:hover {
-    background-color: rgb(233, 11, 11);
-}
-
-button[type="submit"] {
-    background-color: rgb(10, 0, 154);
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-button[type="submit"]:hover {
-    background-color: #0056b3;
-}
-
-#save {
-    background-color: rgb(93, 255, 93);
-    cursor: pointer;
-    margin-bottom: 10px;
-}
-
-#print {
-    background-color: rgb(10, 0, 154);
-    color: white;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
-
-#savePDF {
-    background-color: #b237ff;
-    color: white;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
-
 .steps {
-    display: none;
-}
+            display: none;
+            background: var(--card-bg);
+            /* border-radius: 12px; */
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
 
-.steps.active {
-    display: block;
-}
+        }
 
-.navigation {
-    display: flex;
-    justify-content: space-between;
-}
+        .steps.active {
+            display: block;
+        }
 
-.navigation button {
-    background-color: rgb(10, 0, 154);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-}
+        .form-group {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
 
-.navigation button:hover {
-    background-color: #0056b3;
-}
+        .form-group label {
+            font-weight: 500;
+            color: var(--primary);
+        }
 
-.navigation button[disabled] {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            background: #f9fbfd;
+            transition: border 0.2s;
+        }
 
-.radio-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
-}
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
 
-.progress-step {
-    background-color: #b3000000;
-}
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .add-item-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1.2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-item-btn:hover {
+            background: var(--primary);
+        }
+
+        #items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(55, 101, 188, 0.05);
+        }
+
+        #items-table th,
+        #items-table td {
+            border: 1px solid var(--border);
+            padding: 0.7rem;
+            text-align: left;
+            font-size: 1rem;
+        }
+
+        #items-table th {
+            background: #f1f3f6;
+            color: var(--primary);
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        #items-table td {
+            background: #fff;
+            vertical-align: middle;
+        }
+
+        #items-table td input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 1rem;
+            padding: 0.2rem 0;
+            color: #222;
+        }
+
+        #items-table .remove-item-btn {
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.4rem 1rem;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 4px rgba(220, 53, 69, 0.08);
+        }
+
+        #items-table .remove-item-btn:hover,
+        #items-table .remove-item-btn:active {
+            background: #b91c1c;
+        }
+
+        .preview {
+            background: #f9fbfd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(55, 101, 188, 0.08);
+        }
+
+        .navigation {
+            min-width: calc(100vw - 251px);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            justify-content: center;
+            margin: 2rem 0 2rem 0;
+            background: transparent;
+            bottom: 0;
+        }
+
+        .navigation button {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(55, 101, 188, 0.06);
+            min-width: 110px;
+        }
+
+        .navigation button:disabled {
+            background: #b0b8c9;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .navigation button:hover:not(:disabled) {
+            background: var(--accent);
+        }
+
+        .step-indicators {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .step-indicators span.active {
+            background: var(--primary);
+            border-color: var(--accent);
+        }
+
+        /* Style for Save, Print, Save as PDF buttons in the preview step */
+        #step-7>button {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(55, 101, 188, 0.06);
+            min-width: 110px;
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #step-7>button:last-child {
+            margin-right: 0;
+        }
+
+        #step-7>button:disabled {
+            background: #b0b8c9;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #step-7>button:hover:not(:disabled) {
+            background: var(--accent);
+        }
+
+        #step-7>button,
+        .navigation button,
+        .add-item-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #step-7>button:active,
+        .navigation button:active,
+        .add-item-btn:active {
+            background: var(--accent);
+            box-shadow: 0 0 0 2px var(--primary) inset;
+            filter: brightness(0.96);
+        }

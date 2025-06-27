@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./root.css">
     <link rel="stylesheet" href="./globalStyle.css">
     <link rel="stylesheet" href="./formStyle.css">
     <link rel="stylesheet" href="./previewStyle.css">
@@ -12,15 +13,13 @@
 
 <body>
     <!-- Header Section -->
-    <header>
+    <header class="no-select">
         <div class="img" id="logo">
             <img src="./assets/icon.png" alt="Shresht Logo">
         </div>
-        <h1>Bill / Invoice</h1>
+        <h1 class="no-select">Bill / Invoice</h1>
         <div class="search">
-            <div type="submit" id="searchBtn">
-                <img src="./assets/search.png" alt="Search">
-            </div>
+            <img src="./assets/search.png" alt="Search">
             <input type="text" id="searchInput" placeholder="Search here...">
         </div>
         <div class="header-buttons">
@@ -29,178 +28,230 @@
             <button onclick="window.location = '/invoice'">Home</button>
         </div>
     </header>
-
-    <!-- Home Section -->
-    <div id="home">
-        <div class="records">
-            <!-- content will be loaded dynamically -->
-        </div>
-    </div>
-
-    <!-- New Invoice Form -->
-    <div id="new">
-        <form id="invoice-form">
-            <input type="hidden" id="Id">
-
-            <!-- Step 1: import data from quotattion -->
-            <div class="steps active" id="step-1">
-                <h2>Import Data from Quotation?</h2>
-                <div class="form-group">
-                    <label for="quotationId">Quotation ID</label>
-                    <input type="text" id="quotationId">
-                </div>
+    <div class="container">
+        <!-- Add this button in your header for toggling sidebar (mobile only) -->
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" style="display:none;">
+            &#9776;
+        </button>
+        <!-- Add this overlay just after <body> or before .container -->
+        <div id="sidebar-overlay"></div>
+        <aside class="no-select">
+            <div class="nav-link" id="dashboard">
+                <img src="./assets/dashboard-interface.png" alt="dashboard">
+                Dashboard
             </div>
+            <div class="nav-link" id="quotation">
+                <img src="./assets/quotation.png" alt="Quotation">
+                Quotation
+            </div>
+            <div class="nav-link active" id="invoice">
+                <img src="./assets/transaction.png" alt="Invoice">
+                Bill / Invoice
+            </div>
+            <div class="nav-link" id="wayBill">
+                <img src="./assets/delivery.png" alt="Way Bill">
+                Way Bill
+            </div>
+            <div class="nav-link" id="service">
+                <img src="./assets/telemarketing.png" alt="Service">
+                Service
+            </div>
+            <div class="nav-link" id="postOrder">
+                <img src="./assets/economy-forecast.png" alt="Purchase Bill">
+                Purchase Bill
+            </div>
+            <div class="nav-link" id="stock">
+                <img src="./assets/in-stock.png" alt="Stock">
+                Stock
+            </div>
+            <div class="nav-link" id="inventory">
+                <img src="./assets/inventory.png" alt="inventory">
+                Inventory
+            </div>
+            <div class="nav-link" id="employees">
+                <img src="./assets/worker.png" alt="Employees">
+                Employees
+            </div>
+            <div class="nav-link" id="analytics">
+                <img src="./assets/analitics.png" alt="Analytics">
+                Analytics
+            </div>
+            <div class="nav-link" id="settings">
+                <img src="./assets/settings.png" alt="Settings">
+                Settings
+            </div>
+        </aside>
+        <!-- Home Section -->
+        <div id="home">
+            <div class="records">
+                <!-- content will be loaded dynamically -->
+            </div>
+        </div>
 
-            <!-- Step 2: Project Details -->
-            <div class="steps" id="step-2">
-                <h2>Project Details</h2>
-                <div class="form-group">
-                    <label for="projectName">Project Name</label>
-                    <input type="text" id="projectName" required>
+        <!-- New Invoice Form -->
+        <div id="new">
+            <form id="invoice-form" class="no-select">
+                <input type="hidden" id="Id">
+
+                <!-- Step 1: import data from quotattion -->
+                <div class="steps active" id="step-1">
+                    <h2>Import Data from Quotation?</h2>
+                    <div class="form-group">
+                        <label for="quotationId">Quotation ID</label>
+                        <input type="text" id="quotationId">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="poNumber">P.O Number</label>
-                    <input type="text" id="poNumber">
-                </div>
-                <div class="form-group">
-                    <label for="dcNumber">D.C Number</label>
-                    <input type="text" id="dcNumber">
-                </div>
-                <div class="form-group">
-                    <label for="dcDate">D.C Date</label>
-                    <input type="date" id="dcDate">
-                </div>
-                <div class="form-group">
+
+                <!-- Step 2: Project Details -->
+                <div class="steps" id="step-2">
+                    <h2>Project Details</h2>
+                    <div class="form-group">
+                        <label for="projectName">Project Name</label>
+                        <input type="text" id="projectName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="poNumber">P.O Number</label>
+                        <input type="text" id="poNumber">
+                    </div>
+                    <div class="form-group">
+                        <label for="dcNumber">D.C Number</label>
+                        <input type="text" id="dcNumber">
+                    </div>
+                    <div class="form-group">
+                        <label for="dcDate">D.C Date</label>
+                        <input type="date" id="dcDate">
+                    </div>
                     <div class="form-group">
                         <label for="wayBillNumber">E-Way Bill Number:</label>
                         <input type="text" id="wayBillNumber" required>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="service_month">Enter Months For Service (0 for no service)</label>
-                    <input type="number" id="service_month" value=0 required>
-                </div>
-            </div>
-
-            <!-- Step 3: Transportation Details -->
-            <div class="steps" id="step-3">
-                <h2>Payment Details</h2>
-                <div class="form-group">
-                    <label for="payment">Payment Status</label>
-                    <div class="radio-group">
-                        <div>
-                            <input type="radio" name="question" id="invoice-Paid" value="Paid">
-                            <label for="invoice-Paid">Paid</label>
-                        </div>
-                        <div>
-                            <input type="radio" name="question" id="invoice-unpaid" value="Unpaid" checked>
-                            <label for="invoice-unpaid">Unpaid</label>
-                        </div>
+                    <div class="form-group">
+                        <label for="service_month">Enter Months For Service (0 for no service)</label>
+                        <input type="number" id="service_month" value=0 required>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="balanceDue">Balance due</label>
-                    <input type="text" id="balanceDue" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="advancedPay">Advanced Payments</label>
-                    <input type="text" id="advancedPay" value=0 readonly>
-                </div>
-                <div class="form-group">
-                    <label for="paidAmount">Paid Amount (if unpaid or Advanced Payment)</label>
-                    <input type="number" id="paidAmount">
-                </div>
-                <div class="form-group">
-                    <label for="paymentMode">Payment Method</label>
-                    <select id="paymentMode" required>
-                        <option value="Cash">Cash</option>
-                        <option value="Cheque">Cheque</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="UPI">UPI</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="paymentDate">Payment Date</label>
-                    <input type="date" id="paymentDate" required>
-                </div>
-            </div>
 
-            <!-- Step 4: Recipient Details -->
-            <div class="steps" id="step-4">
-                <h2>Recipient Details (Sold/Bill to)</h2>
-                <div class="form-group">
-                    <label for="buyerName">Buyer Name:</label>
-                    <input type="text" id="buyerName" required>
-                </div>
-                <div class="form-group">
-                    <label for="buyerAddress">Address:</label>
-                    <textarea id="buyerAddress" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="buyerPhone">Phone Number:</label>
-                    <input type="tel" id="buyerPhone" required>
-                </div>
-            </div>
-
-            <!-- Step 5: Consignee Details -->
-            <div class="steps" id="step-5">
-                <h2>Consignee Details (Shipped To)</h2>
-                <div class="form-group">
-                    <label for="consigneeName">Name:</label>
-                    <input type="text" id="consigneeName" required>
-                </div>
-                <div class="form-group">
-                    <label for="consigneeAddress">Address:</label>
-                    <textarea id="consigneeAddress" required></textarea>
-                </div>
-            </div>
-
-            <!-- Step 6: Item List -->
-            <div class="steps" id="step-6">
-                <h2>Item List</h2>
-                <div class="form-group">
-                    <table id="items-table">
-                        <thead>
-                            <tr>
-                                <th>Description</th>
-                                <th>HSN/SAC</th>
-                                <th>Qty</th>
-                                <th>Unit Price</th>
-                                <th>Rate</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Items will be dynamically added here -->
-                        </tbody>
-                    </table>
-                    <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
-                </div>
-            </div>
-
-            <!-- Step 7: Preview -->
-            <div class="steps" id="step-7">
-                <div class="preview">
-                    <h2>Preview</h2>
-                    <div id="preview-content">
-                        <!-- Preview will be dynamically generated -->
+                <!-- Step 3: Transportation Details -->
+                <div class="steps" id="step-3">
+                    <h2>Payment Details</h2>
+                    <div class="form-group">
+                        <label for="payment">Payment Status</label>
+                        <div class="radio-group">
+                            <div>
+                                <input type="radio" name="question" id="invoice-Paid" value="Paid">
+                                <label for="invoice-Paid">Paid</label>
+                            </div>
+                            <div>
+                                <input type="radio" name="question" id="invoice-unpaid" value="Unpaid" checked>
+                                <label for="invoice-unpaid">Unpaid</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="balanceDue">Balance due</label>
+                        <input type="text" id="balanceDue" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="advancedPay">Advanced Payments</label>
+                        <input type="text" id="advancedPay" value=0 readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="paidAmount">Paid Amount (if unpaid or Advanced Payment)</label>
+                        <input type="number" id="paidAmount">
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentMode">Payment Method</label>
+                        <select id="paymentMode" required>
+                            <option value="Cash">Cash</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="UPI">UPI</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentDate">Payment Date</label>
+                        <input type="date" id="paymentDate" required>
                     </div>
                 </div>
-                <button type="button" id="save">Save</button>
-                <button type="button" id="print">Print</button>
-                <button type="button" id="savePDF">Save as PDF</button>
-            </div>
 
-            <!-- Navigation Buttons -->
-            <div class="navigation">
-                <button type="button" id="prevBtn" disabled>Previous</button>
-                <div class="step-indicators">
-                    <span id="step-indicator"></span>
+                <!-- Step 4: Recipient Details -->
+                <div class="steps" id="step-4">
+                    <h2>Recipient Details (Sold/Bill to)</h2>
+                    <div class="form-group">
+                        <label for="buyerName">Buyer Name:</label>
+                        <input type="text" id="buyerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="buyerAddress">Address:</label>
+                        <textarea id="buyerAddress" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="buyerPhone">Phone Number:</label>
+                        <input type="tel" id="buyerPhone" required>
+                    </div>
                 </div>
-                <button type="button" id="nextBtn">Next</button>
-            </div>
-        </form>
+
+                <!-- Step 5: Consignee Details -->
+                <div class="steps" id="step-5">
+                    <h2>Consignee Details (Shipped To)</h2>
+                    <div class="form-group">
+                        <label for="consigneeName">Name:</label>
+                        <input type="text" id="consigneeName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="consigneeAddress">Address:</label>
+                        <textarea id="consigneeAddress" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Step 6: Item List -->
+                <div class="steps" id="step-6">
+                    <h2>Item List</h2>
+                    <div class="form-group">
+                        <table id="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>HSN/SAC</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Rate</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Items will be dynamically added here -->
+                            </tbody>
+                        </table>
+                        <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
+                    </div>
+                </div>
+
+                <!-- Step 7: Preview -->
+                <div class="steps" id="step-7">
+                    <div class="preview">
+                        <h2>Preview</h2>
+                        <div id="preview-content">
+                            <!-- Preview will be dynamically generated -->
+                        </div>
+                    </div>
+                    <button type="button" id="save">Save</button>
+                    <button type="button" id="print">Print</button>
+                    <button type="button" id="savePDF">Save as PDF</button>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="navigation">
+                    <button type="button" id="prevBtn" disabled>Previous</button>
+                    <div class="step-indicators">
+                        <span id="step-indicator"></span>
+                    </div>
+                    <button type="button" id="nextBtn">Next</button>
+                </div>
+            </form>
+        </div>
     </div>
+
 
     <!-- Scripts -->
     <script src="./globalScript.js"></script>

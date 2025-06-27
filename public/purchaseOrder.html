@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./root.css">
     <link rel="stylesheet" href="./globalStyle.css">
     <link rel="stylesheet" href="./formStyle.css">
     <link rel="stylesheet" href="./previewStyle.css">
@@ -15,7 +16,7 @@
         <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
         <h1>Purchase Bill</h1>
         <div class="search">
-            <div type="submit" id="searchBtn"><img src="./assets/search.png"></div>
+            <img src="./assets/search.png" alt="Search">
             <input type="text" id="searchInput" placeholder="Search here...">
         </div>
         <div class="header-buttons">
@@ -24,95 +25,148 @@
             <button onclick="window.location = '/purchaseOrder'">Home</button>
         </div>
     </header>
-
-    <div id="home">
-        <div class="records">
-            <!-- content will be loaded dynamically -->
+    <div class="container">
+        <!-- Add this button in your header for toggling sidebar (mobile only) -->
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" style="display:none;">
+            &#9776;
+        </button>
+        <!-- Add this overlay just after <body> or before .container -->
+        <div id="sidebar-overlay"></div>
+        <aside class="no-select">
+            <div class="nav-link" id="dashboard">
+                <img src="./assets/dashboard-interface.png" alt="dashboard">
+                Dashboard
+            </div>
+            <div class="nav-link" id="quotation">
+                <img src="./assets/quotation.png" alt="Quotation">
+                Quotation
+            </div>
+            <div class="nav-link" id="invoice">
+                <img src="./assets/transaction.png" alt="Invoice">
+                Bill / Invoice
+            </div>
+            <div class="nav-link" id="wayBill">
+                <img src="./assets/delivery.png" alt="Way Bill">
+                Way Bill
+            </div>
+            <div class="nav-link" id="service">
+                <img src="./assets/telemarketing.png" alt="Service">
+                Service
+            </div>
+            <div class="nav-link active" id="postOrder">
+                <img src="./assets/economy-forecast.png" alt="Purchase Bill">
+                Purchase Bill
+            </div>
+            <div class="nav-link" id="stock">
+                <img src="./assets/in-stock.png" alt="Stock">
+                Stock
+            </div>
+            <div class="nav-link" id="inventory">
+                <img src="./assets/inventory.png" alt="inventory">
+                Inventory
+            </div>
+            <div class="nav-link" id="employees">
+                <img src="./assets/worker.png" alt="Employees">
+                Employees
+            </div>
+            <div class="nav-link" id="analytics">
+                <img src="./assets/analitics.png" alt="Analytics">
+                Analytics
+            </div>
+            <div class="nav-link" id="settings">
+                <img src="./assets/settings.png" alt="Settings">
+                Settings
+            </div>
+        </aside>
+        <div id="home">
+            <div class="records">
+                <!-- content will be loaded dynamically -->
+            </div>
         </div>
-    </div>
-    </div>
-    <div id="new">
-        <form id="purchaseOrder">
-            <input type="hidden" id="Id">
-            <!-- Basic purchase order Details -->
-            <div class="steps active" id="step-1">
-                <h2>Project Details</h2>
-                <div class="form-group">
-                    <label for="projectName">project Name</label>
-                    <input type="text" id="projectName" required>
-                </div>
-                <div class="form-group">
-                    <label for="handledBy">Handled By</label>
-                    <input type="text" id="handledBy" required>
-                </div>
-            </div>
 
-            <div class="steps" id="step-2">
-                <h2>Recipient Details (to)</h2>
-                <div class="form-group">
-                    <label for="supplierName">Supplier Name</label>
-                    <input type="text" id="supplierName" required>
-                </div>
-                <div class="form-group">
-                    <label for="supplierAddress">Address</label>
-                    <textarea id="supplierAddress" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="supplierPhone">Phone Number</label>
-                    <input type="tel" id="supplierPhone" required>
-                </div>
-                <div class="form-group">
-                    <label for="supplierEmail">Email</label>
-                    <input type="email" id="supplierEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="supplierGSTIN">GSTIN</label>
-                    <input type="text" id="supplierGSTIN" required>
-                </div>
-            </div>
-
-            <div class="steps" id="step-3">
-                <h2>Item List</h2>
-                <div class="form-group">
-                    <table id="items-table">
-                        <thead>
-                            <tr>
-                                <th>Description</th>
-                                <th>HSN_SAC</th>
-                                <th>Qty</th>
-                                <th>Unit Price</th>
-                                <th>Rate</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Items will be dynamically added here -->
-                        </tbody>
-                    </table>
-                    <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
-                </div>
-            </div>
-
-            <div class="steps" id="step-4">
-                <div class="preview">
-                    <h2>Preview</h2>
-                    <div id="preview-content">
-                        <!-- Preview will be dynamically generated -->
+        <div id="new">
+            <form id="purchaseOrder">
+                <input type="hidden" id="Id">
+                <!-- Basic purchase order Details -->
+                <div class="steps active" id="step-1">
+                    <h2>Project Details</h2>
+                    <div class="form-group">
+                        <label for="projectName">project Name</label>
+                        <input type="text" id="projectName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="handledBy">Handled By</label>
+                        <input type="text" id="handledBy" required>
                     </div>
                 </div>
-                <button type="button" id="save">Save</button>
-                <button type="button" id="print">Print</button>
-                <button type="button" id="savePDF">Save as PDF</button>
-            </div>
 
-            <div class="navigation">
-                <button type="button" id="prevBtn" disabled>Previous</button>
-                <div class="step-indicators">
-                    <span id="step-indicator"></span>
+                <div class="steps" id="step-2">
+                    <h2>Recipient Details (to)</h2>
+                    <div class="form-group">
+                        <label for="supplierName">Supplier Name</label>
+                        <input type="text" id="supplierName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="supplierAddress">Address</label>
+                        <textarea id="supplierAddress" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="supplierPhone">Phone Number</label>
+                        <input type="tel" id="supplierPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="supplierEmail">Email</label>
+                        <input type="email" id="supplierEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="supplierGSTIN">GSTIN</label>
+                        <input type="text" id="supplierGSTIN" required>
+                    </div>
                 </div>
-                <button type="button" id="nextBtn">Next</button>
-            </div>
-        </form>
+
+                <div class="steps" id="step-3">
+                    <h2>Item List</h2>
+                    <div class="form-group">
+                        <table id="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>HSN_SAC</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Rate</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Items will be dynamically added here -->
+                            </tbody>
+                        </table>
+                        <button type="button" class="add-item-btn" id="add-item-btn">Add Item</button>
+                    </div>
+                </div>
+
+                <div class="steps" id="step-4">
+                    <div class="preview">
+                        <h2>Preview</h2>
+                        <div id="preview-content">
+                            <!-- Preview will be dynamically generated -->
+                        </div>
+                    </div>
+                    <button type="button" id="save">Save</button>
+                    <button type="button" id="print">Print</button>
+                    <button type="button" id="savePDF">Save as PDF</button>
+                </div>
+
+                <div class="navigation">
+                    <button type="button" id="prevBtn" disabled>Previous</button>
+                    <div class="step-indicators">
+                        <span id="step-indicator"></span>
+                    </div>
+                    <button type="button" id="nextBtn">Next</button>
+                </div>
+            </form>
+        </div>
     </div>
     <script src="./globalScript.js"></script>
     <script src="./purchaseOrder1.js"></script>

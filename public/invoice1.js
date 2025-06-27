@@ -56,11 +56,20 @@ function createInvoiceDiv(invoice) {
             <p>${invoice.buyer_address}</p>
         </div>
         </div>
-        <div class="actions">
-            <button class="btn btn-primary open-invoice" data-id="${invoice.invoice_id}">Open</button>
-            <button class="btn btn-danger delete-invoice" data-id="${invoice.invoice_id}">Delete</button>
-        </div>
+        <select class="actions">
+        <option value="" disabled selected>Actions</option>
+        <option class="open-invoice" data-id="${invoice.invoice_id}">View</option>
+        <option class="delete-invoice" data-id="${invoice.invoice_id}">Update</option>
+        <option class="delete-invoice" data-id="${invoice.invoice_id}">View Original</option>
+        <option class="delete-invoice" data-id="${invoice.invoice_id}">Delete</option>
+        </select>
+        
     `;
+
+    // <div class="actions">
+    //         <button class="btn btn-primary open-invoice" data-id="${invoice.invoice_id}">Open</button>
+    //         <button class="btn btn-danger delete-invoice" data-id="${invoice.invoice_id}">Delete</button>
+    //     </div>
 
     return invoiceDiv;
 }

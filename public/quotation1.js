@@ -73,13 +73,13 @@ async function handleQuotationListClick(event) {
         await openQuotation(quotationId);
     } else if (target.classList.contains("delete-quotation")) {
         window.electronAPI.showAlert2('Are you sure you want to delete this quotation?');
-        if (window.electronAPI) {
-            window.electronAPI.receiveAlertResponse((response) => {
-                if (response === "Yes") {
-                    deleteQuotation(quotationId);
-                }
-            });
-        }
+        // if (window.electronAPI) {
+        //     window.electronAPI.receiveAlertResponse((response) => {
+        //         if (response === "Yes") {
+        //             deleteQuotation(quotationId);
+        //         }
+        //     });
+        // }
     }
 };
 
@@ -127,7 +127,7 @@ async function openQuotation(quotationId) {
 
     } catch (error) {
         console.error("Error fetching quotation:", error);
-        window.electronAPI.showAlert("Failed to fetch quotation. Please try again later.");
+        window.electronAPI.showAlert1("Failed to fetch quotation. Please try again later.");
     }
 }
 

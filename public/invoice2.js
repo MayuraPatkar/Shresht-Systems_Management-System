@@ -169,7 +169,7 @@ function generatePreview() {
 
     // Generate preview content
     document.getElementById("preview-content").innerHTML = `
-    <div class="container">
+    <div class="preview-container">
         <div class="header">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
