@@ -91,11 +91,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// Redirect to dashboard when logo is clicked
-document.getElementById('logo').addEventListener('click', () => {
-  window.location = '/dashboard';
-});
-
 let currentStep = 1;
 
 function moveNext() {

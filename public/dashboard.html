@@ -10,107 +10,6 @@
     <link rel="stylesheet" href="./root.css">
     <title>Dashboard</title>
     <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: var(--bg);
-            color: #222;
-            max-height: 100vh;
-        }
-
-        header {
-            max-height: 72px;
-            background: var(--sidebar-bg);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .imglogo-title {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .imglogo img {
-            height: 48px;
-            width: 48px;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 2rem;
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .search {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #f1f3f6;
-            border-radius: 8px;
-            padding: 0.25rem 0.75rem;
-        }
-
-        .search img {
-            width: 20px;
-            height: 20px;
-            opacity: 0.7;
-        }
-
-        #searchInput {
-            border: none;
-            background: transparent;
-            outline: none;
-            font-size: 1rem;
-            padding: 0.5rem;
-        }
-
-        .container {
-            display: flex;
-            max-height: calc(100vh - 72px);
-        }
-
-        aside {
-            width: 240px;
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 2rem 1rem 1rem 1rem;
-            gap: 1rem;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s;
-            font-size: 1.1rem;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .nav-link img {
-            width: 28px;
-            height: 28px;
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            background: var(--primary);
-            color: #fff;
-        }
-
         main {
             flex: 1;
             padding: 2rem;
@@ -154,43 +53,6 @@
             font-size: 1.1rem;
             color: #555;
             font-weight: 500;
-        }
-
-        @media (max-width: 900px) {
-            .container {
-                flex-direction: column;
-            }
-
-            aside {
-                width: 100%;
-                flex-direction: row;
-                overflow-x: auto;
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-                padding: 1rem 0.5rem;
-                gap: 0.5rem;
-            }
-
-            .nav-link {
-                flex-direction: column;
-                font-size: 0.95rem;
-                padding: 0.5rem 0.5rem;
-            }
-
-            main {
-                padding: 1rem;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .overview-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            main {
-                padding: 0.5rem;
-            }
         }
     </style>
 </head>
@@ -236,10 +98,11 @@
                 <img src="./assets/in-stock.png" alt="Stock">
                 Stock
             </div>
-            <div class="nav-link" id="inventory">
-                <img src="./assets/inventory.png" alt="inventory">
-                Inventory
+            <div class="nav-link" id="comms">
+                <img src="./assets/customer-service.png" alt="comms">
+                Comms
             </div>
+            
             <div class="nav-link" id="employees">
                 <img src="./assets/worker.png" alt="Employees">
                 Employees
@@ -247,6 +110,10 @@
             <div class="nav-link" id="analytics">
                 <img src="./assets/analitics.png" alt="Analytics">
                 Analytics
+            </div>
+            <div class="nav-link" id="inventory">
+                <img src="./assets/inventory.png" alt="inventory">
+                Inventory
             </div>
             <div class="nav-link" id="settings">
                 <img src="./assets/settings.png" alt="Settings">

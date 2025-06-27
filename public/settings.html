@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./globalStyle.css">
+    <link rel="stylesheet" href="./root.css">
     <link rel="stylesheet" href="./settings_style.css">
     <title>Settings</title>
 </head>
@@ -11,9 +13,9 @@
 <body>
     <!-- Navigation Bar -->
     <header>
-        <div class="logo-container" id="logo">
-            <img src="./assets/icon.png" alt="SSMS Logo">
-            <h2>SSMS</h2>
+        <div class="imglogo-title">
+            <div class="imglogo"><img src="./assets/icon.png" alt="logo"></div>
+            <h1>SSMS</h1>
         </div>
         <nav class="navigation-buttons">
             <button id="admin-info-button" aria-label="View Admin Information">Admin Info</button>
@@ -21,30 +23,81 @@
             <button id="data-control-button" aria-label="Data Control">Data Control</button>
         </nav>
     </header>
+    <div class="container">
+        <aside>
+            <div class="nav-link" id="dashboard">
+                <img src="./assets/dashboard-interface.png" alt="dashboard">
+                Dashboard
+            </div>
+            <div class="nav-link" id="quotation">
+                <img src="./assets/quotation.png" alt="Quotation">
+                Quotation
+            </div>
+            <div class="nav-link" id="invoice">
+                <img src="./assets/transaction.png" alt="Invoice">
+                Bill / Invoice
+            </div>
+            <div class="nav-link" id="wayBill">
+                <img src="./assets/delivery.png" alt="Way Bill">
+                Way Bill
+            </div>
+            <div class="nav-link" id="service">
+                <img src="./assets/telemarketing.png" alt="Service">
+                Service
+            </div>
+            <div class="nav-link" id="postOrder">
+                <img src="./assets/economy-forecast.png" alt="Purchase Bill">
+                Purchase Bill
+            </div>
+            <div class="nav-link" id="stock">
+                <img src="./assets/in-stock.png" alt="Stock">
+                Stock
+            </div>
+            <div class="nav-link" id="comms">
+                <img src="./assets/customer-service.png" alt="comms">
+                Comms
+            </div>
 
-    <!-- Admin Information Section -->
-    <section id="admin-info-section">
-        <article class="admin-details">
-            <h1>Admin - Shresht Systems</h1>
-            <p id="admin-address"></p>
-            <p id="admin-contact1"></p>
-            <p id="admin-contact2"></p>
-            <p id="admin-email"></p>
-            <p id="admin-website"></p>
-            <p id="admin-gstin"></p>
-        </article>
-        <article class="bank-details">
-            <h1>Bank Details</h1>
-            <p id="bank-name"></p>
-            <p id="account-holder"></p>
-            <p id="account-number"></p>
-            <p id="ifsc-code"></p>
-            <p id="branch-name"></p>
-        </article>
-    </section>
+            <div class="nav-link" id="employees">
+                <img src="./assets/worker.png" alt="Employees">
+                Employees
+            </div>
+            <div class="nav-link" id="analytics">
+                <img src="./assets/analitics.png" alt="Analytics">
+                Analytics
+            </div>
+            <div class="nav-link" id="inventory">
+                <img src="./assets/inventory.png" alt="inventory">
+                Inventory
+            </div>
+            <div class="nav-link active" id="settings">
+                <img src="./assets/settings.png" alt="Settings">
+                Settings
+            </div>
+        </aside>
+        <!-- Admin Information Section -->
+        <section id="admin-info-section">
+            <article class="admin-details">
+                <h1>Admin - Shresht Systems</h1>
+                <p id="admin-address"></p>
+                <p id="admin-contact1"></p>
+                <p id="admin-contact2"></p>
+                <p id="admin-email"></p>
+                <p id="admin-website"></p>
+                <p id="admin-gstin"></p>
+            </article>
+            <article class="bank-details">
+                <h1>Bank Details</h1>
+                <p id="bank-name"></p>
+                <p id="account-holder"></p>
+                <p id="account-number"></p>
+                <p id="ifsc-code"></p>
+                <p id="branch-name"></p>
+            </article>
+        </section>
 
-    <!-- Change Username and Password Section -->
-    <section id="change-credentials-section">
+        <!-- Change Username and Password Section -->
+        <section id="change-credentials-section">
             <div class="change-username">
                 <h1>Change Username</h1>
                 <label for="username">Username:</label>
@@ -61,10 +114,10 @@
                 <input type="password" id="confirm-password" name="confirm-password" required>
                 <button type="submit" id="change-password-button">Change Password</button>
             </div>
-    </section>
+        </section>
 
-    <!-- Export Data Section -->
-    <section id="export-data-section">
+        <!-- Export Data Section -->
+        <section id="export-data-section">
             <div class="export-options">
                 <p>Select the data you want to export</p>
 
@@ -86,9 +139,10 @@
                 <button type="button" id="export-data-button">Export</button>
 
             </div>
-    </section>
-
+        </section>
+    </div>
     <script src="./settings.js"></script>
+    <script src="./globalScript.js"></script>
 </body>
 
 </html>

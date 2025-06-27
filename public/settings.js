@@ -1,8 +1,3 @@
-// Navigate to the dashboard when the logo is clicked
-document.getElementById("logo").addEventListener("click", () => {
-    window.location = "/dashboard";
-});
-
 // Fetch and populate admin information
 document.addEventListener("DOMContentLoaded", () => {
     fetchAdminInfo();

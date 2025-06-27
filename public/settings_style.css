@@ -1,179 +1,317 @@
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-header {
-    width: 20%;
-    height: 100vh;
-    background-color: rgb(242, 240, 255);
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem;
-    box-sizing: border-box;
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding-top: 2rem;
-}
-
-.logo-container img {
-    height: 50px;
-}
-
-.logo-container h2 {
-    margin: 0;
-    font-size: 1.8rem;
-    color: #267746;
-}
-
 .navigation-buttons {
-    margin-top: 50px;
     display: flex;
-    flex-direction: column;
     gap: 1rem;
 }
 
 .navigation-buttons button {
-    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: #fff;
     border: none;
-    border-radius: 5px;
-    background-color: rgb(10, 0, 154);
-    color: white;
-    cursor: pointer;
+    border-radius: 8px;
+    padding: 0.7rem 1.5rem;
     font-size: 1rem;
-    transition: background-color 0.3s;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(55,101,188,0.06);
 }
 
-.navigation-buttons button:hover {
-    background-color: rgb(8, 0, 120);
+.navigation-buttons button:hover,
+.navigation-buttons button:focus {
+    background: var(--accent);
+    outline: none;
 }
 
+.navigation-buttons button:active {
+    background: var(--accent);
+    filter: brightness(0.96);
+    box-shadow: 0 0 0 2px var(--primary) inset;
+    transition: none;
+}
+
+/* Sidebar */
+aside {
+    width: 220px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1rem 1rem 1rem;
+    gap: 1rem;
+    min-height: 80vh;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 500;
+    background: transparent;
+}
+
+.nav-link img {
+    width: 28px;
+    height: 28px;
+}
+
+.nav-link.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.nav-link:not(.active):hover {
+    background: #eaf1ff;
+    color: var(--primary);
+}
+
+/* Section Layout */
 section {
-    height: 100vh;
-    width: 80%;
-    padding: 2rem;
-    box-sizing: border-box;
-    background-color: rgb(229, 226, 255);
+    margin: 0 auto 2rem auto;
+    max-width: 900px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    justify-content: space-between;
 }
 
-#admin-info-section {
+section:not(:first-of-type) {
+    margin-top: 1.5rem;
+}
+
+/* Admin & Bank Details */
+.admin-details, .bank-details {
+    flex: 1 1 350px;
+    min-width: 300px;
+    background: #f6f9ff;
+    border-radius: 12px;
+    padding: 1.5rem 1.2rem;
+    box-shadow: 0 2px 8px rgba(55,101,188,0.04);
+    margin-bottom: 1rem;
+}
+
+.admin-details h1, .bank-details h1 {
+    font-size: 1.3rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.admin-details p, .bank-details p {
+    margin: 0.3rem 0;
+    color: #444;
+    font-size: 1rem;
+    word-break: break-word;
+}
+
+/* Change Credentials Section */
+#change-credentials-section {
+    display: none;
+    flex-direction: column;
+    gap: 2rem;
+    background: var(--card-bg);
+    box-shadow: var(--shadow);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    margin-top: 1.5rem;
+}
+
+.change-username, .change-password {
+    flex: 1 1 320px;
+    min-width: 280px;
+    background: #f9fbfd;
+    border-radius: 12px;
+    padding: 1.5rem 1.2rem;
+    box-shadow: 0 2px 8px rgba(55,101,188,0.04);
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.admin-details,
-.bank-details {
-    background-color: white;
-    padding: 1rem;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.admin-details h1,
-.bank-details h1 {
-    margin: 0 0 1rem 0;
-    font-size: 1.5rem;
-    color: #333;
-}
-
-.admin-details p,
-.bank-details p {
-    margin: 0.5rem 0;
-    font-size: 1rem;
-    color: #555;
-}
-
-#change-credentials-section {
-    display: none;
-    flex-direction: column;
-    justify-content: space-evenly;
-    align-items: center;
-}
-
-#change-credentials-section div {
-    width: 80%;
-    height: 45%;
-    background-color: white;
-    padding: 1rem;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-#change-credentials-section label {
-    font-size: 1rem;
-    color: #555;
+.change-username h1, .change-password h1 {
+    font-size: 1.15rem;
+    color: var(--primary);
     margin-bottom: 0.5rem;
+    font-weight: 700;
 }
 
-#change-credentials-section input {
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    width: 100%;
-    box-sizing: border-box;
+label {
+    font-weight: 500;
+    color: var(--primary);
+    margin-bottom: 0.2rem;
 }
 
-#change-credentials-section button {
-    padding: 0.5rem 1rem;
+input[type="text"], input[type="password"] {
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #f9fbfd;
+    transition: border 0.2s;
+    margin-bottom: 0.7rem;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+.change-username button,
+.change-password button {
+    background: var(--primary);
+    color: #fff;
     border: none;
-    border-radius: 5px;
-    background-color: rgb(10, 0, 154);
-    color: white;
+    border-radius: 8px;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(55,101,188,0.06);
+    margin-top: 0.5rem;
 }
 
-#change-credentials-section button:hover {
-    background-color: rgb(8, 0, 120);
+.change-username button:hover,
+.change-password button:hover {
+    background: var(--accent);
 }
 
+.change-username button:active,
+.change-password button:active {
+    background: var(--accent);
+    filter: brightness(0.96);
+    box-shadow: 0 0 0 2px var(--primary) inset;
+    transition: none;
+}
+
+/* Export Data Section */
 #export-data-section {
     display: none;
     flex-direction: column;
-    justify-content: space-evenly;
-    align-items: center;
+    align-items: flex-start;
+    background: var(--card-bg);
+    box-shadow: var(--shadow);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    margin-top: 1.5rem;
 }
 
-#export-data-section div {
-    width: 80%;
-    height: 45%;
-    background-color: white;
-    padding: 1rem;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.export-options {
+    background: #f6f9ff;
+    border-radius: 12px;
+    padding: 1.5rem 1.2rem;
+    box-shadow: 0 2px 8px rgba(55,101,188,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 250px;
+}
+
+.export-options p {
+    font-size: 1.1rem;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
 }
 
 .export-options label {
-    display: block;
-    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
     font-size: 1rem;
-    color: #555;
-}
-
-#export-data-button {
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 5px;
-    background-color: rgb(10, 0, 154);
-    color: white;
+    color: #444;
     cursor: pointer;
-    transition: background-color 0.3s;
 }
 
-#export-data-button:hover {
-    background-color: rgb(8, 0, 120);
+.export-options input[type="radio"] {
+    accent-color: var(--primary);
+}
+
+.export-options button {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(55,101,188,0.06);
+    margin-top: 1rem;
+}
+
+.export-options button:hover {
+    background: var(--accent);
+}
+
+.export-options button:active {
+    background: var(--accent);
+    filter: brightness(0.96);
+    box-shadow: 0 0 0 2px var(--primary) inset;
+    transition: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1100px) {
+    .container {
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 1rem 0;
+    }
+    aside {
+        flex-direction: row;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 0.5rem;
+        gap: 0.5rem;
+        min-height: unset;
+    }
+    .nav-link {
+        flex-direction: column;
+        font-size: 0.95rem;
+        padding: 0.5rem 0.5rem;
+    }
+    section {
+        padding: 2rem 1rem;
+    }
+    .admin-details, .bank-details, .change-username, .change-password {
+        min-width: 220px;
+        padding: 1rem 0.7rem;
+    }
+}
+
+@media (max-width: 700px) {
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem 0.5rem;
+    }
+    .container {
+        padding: 0.5rem 0;
+        gap: 0.5rem;
+    }
+    section {
+        padding: 1rem 0.5rem;
+        margin: 1rem 0;
+    }
+    .admin-details, .bank-details, .change-username, .change-password, .export-options {
+        padding: 1rem 0.5rem;
+    }
+    .navigation-buttons {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 0.5rem;
+    }
 }
