@@ -1,7 +1,3 @@
-document.getElementById('logo').addEventListener('click', () => {
-    window.location = '/dashboard';
-});
-
 function showModal(modalId) {
 
     document.getElementById(modalId).style.display = 'block';
@@ -239,6 +235,18 @@ function renderStockTable(data) {
         `;
         tableBody.appendChild(row);
     });
+}
+
+function handleStockAction(select, id, HSN_SAC, name, unitPrice, quantity, threshold, GST, min_quantity) {
+    const action = select.value;
+    if (action === "add") {
+        addToStockDiv(id);
+    } else if (action === "remove") {
+        removeFromStockDiv(id);
+    } else if (action === "edit") {
+        editItemDiv(id, HSN_SAC, name, unitPrice, quantity, threshold, GST, min_quantity);
+    }
+    select.selectedIndex = 0; // Reset to default
 }
 
 // Initial fetch
