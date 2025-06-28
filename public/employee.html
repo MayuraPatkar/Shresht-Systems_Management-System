@@ -4,56 +4,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./root.css">
+    <link rel="stylesheet" href="./globalStyle.css">
     <link rel="stylesheet" href="./employee_style.css">
     <title>Employee Management</title>
 </head>
 
 <body>
-    <header>
-        <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
-        <h1>Employee Management</h1>
-    </header>
-    <div class="backdrop" id="backdrop"></div>
-    <div class="container">
-        <div class="addEmp" id="addEmp">
-            <label>Employee Name</label>
-            <input type="text" id="Emp_name">
-            <label>Address</label>
-            <input type="text" id="address">
-            <label>Phone Number</label>
-            <input type="tel" id="phone">
-            <label>Email</label>
-            <input type="email" id="email">
-            <label>Basic Salary</label>
-            <input type="number" id="salary">
-            <button onclick="addEmployee()">Add</button>
-            <button onclick="hideModal()">Cancel</button>
-        </div>
-        <button class="btn" onclick="fetchEmployeeData()">Refresh</button>
-        <button class="btn" onclick="openAddEmployeeModal()">Add New Employee</button>
-        <h1>Attendence Book</h1>
-        <table class="emp-table">
-            <thead>
-                <tr>
-                    <th>Emp Id</th>
-                    <th>Name</th>
-                    <th>Present</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="emp-table-body">
-                <!-- Rows will be populated dynamically -->
-            </tbody>
-        </table>
-        <section>
-            <h1>Employee Profiles</h1>
-            <div id="profiles">
-                <!-- populated dynamically -->
+    <header class="no-select">
+        <div class="imglogo-title">
+            <div class="img" id="logo">
+                <img src="./assets/icon.png" alt="logo">
             </div>
-        </section>
+            <h1>Employee Management</h1>
+        </div>
+        <div class="header-buttons">
+            <button class="btn" onclick="fetchEmployeeData()">Refresh</button>
+            <button class="btn" onclick="openAddEmployeeModal()">New Employee</button>
+        </div>
+    </header>
+    <div class="container">
+        <!-- Add this button in your header for toggling sidebar (mobile only) -->
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" style="display:none;">
+            &#9776;
+        </button>
+        <!-- Add this overlay just after <body> or before .container -->
+        <div id="sidebar-overlay"></div>
+        <aside class="no-select">
+            <div class="nav-link" id="dashboard">
+                <img src="./assets/dashboard-interface.png" alt="dashboard">
+                Dashboard
+            </div>
+            <div class="nav-link" id="quotation">
+                <img src="./assets/quotation.png" alt="Quotation">
+                Quotation
+            </div>
+            <div class="nav-link" id="invoice">
+                <img src="./assets/transaction.png" alt="Invoice">
+                Bill / Invoice
+            </div>
+            <div class="nav-link" id="wayBill">
+                <img src="./assets/delivery.png" alt="Way Bill">
+                Way Bill
+            </div>
+            <div class="nav-link" id="service">
+                <img src="./assets/telemarketing.png" alt="Service">
+                Service
+            </div>
+            <div class="nav-link" id="postOrder">
+                <img src="./assets/economy-forecast.png" alt="Purchase Bill">
+                Purchase Bill
+            </div>
+            <div class="nav-link" id="stock">
+                <img src="./assets/in-stock.png" alt="Stock">
+                Stock
+            </div>
+            <div class="nav-link" id="comms">
+                <img src="./assets/customer-service.png" alt="comms">
+                Comms
+            </div>
+            <div class="nav-link active" id="employees">
+                <img src="./assets/worker.png" alt="Employees">
+                Employees
+            </div>
+            <div class="nav-link" id="analytics">
+                <img src="./assets/analitics.png" alt="Analytics">
+                Analytics
+            </div>
+            <div class="nav-link" id="inventory">
+                <img src="./assets/inventory.png" alt="inventory">
+                Inventory
+            </div>
+            <div class="nav-link" id="settings">
+                <img src="./assets/settings.png" alt="Settings">
+                Settings
+            </div>
+        </aside>
+        <div class="backdrop" id="backdrop"></div>
+        <main>
+            <div class="addEmp" id="addEmp">
+                <label>Employee Name</label>
+                <input type="text" id="Emp_name">
+                <label>Address</label>
+                <input type="text" id="address">
+                <label>Phone Number</label>
+                <input type="tel" id="phone">
+                <label>Email</label>
+                <input type="email" id="email">
+                <label>Basic Salary</label>
+                <input type="number" id="salary">
+                <button onclick="addEmployee()">Add</button>
+                <button onclick="hideModal()">Cancel</button>
+            </div>
+            <h1>Attendence Book</h1>
+            <table class="emp-table">
+                <thead>
+                    <tr>
+                        <th>Emp Id</th>
+                        <th>Name</th>
+                        <th>Present</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="emp-table-body">
+                    <!-- Rows will be populated dynamically -->
+                </tbody>
+            </table>
+            <section>
+                <h1>Employee Profiles</h1>
+                <div id="profiles">
+                    <!-- populated dynamically -->
+                </div>
+            </section>
+        </main>
     </div>
+    <script src="./globalScript.js"></script>
     <script src="./employee.js"></script>
 </body>
 

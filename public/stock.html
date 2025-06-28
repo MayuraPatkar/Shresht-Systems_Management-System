@@ -6,45 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
+    <link rel="stylesheet" href="./root.css">
+    <link rel="stylesheet" href="./globalStyle.css">
     <title>Stock Management</title>
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            color: #333;
-        }
-
-        header {
-            width: 100%;
-            padding: 15px 20px;
-            background-color: #f4f4f4;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-sizing: border-box;
-        }
-
-        .img {
-            height: 50px;
-        }
-
-        .img img {
-            height: 100%;
-            object-fit: contain;
-        }
-
-        h1 {
-            font-size: 1.8rem;
-            color: #267746;
-            margin: 0;
-            text-align: center;
-            flex: 1;
-        }
-
-        .container {
-            width: 100%;
+        .stock-container {
+            min-width: calc(100vw - 241px);
             padding: 20px;
             box-sizing: border-box;
         }
@@ -161,81 +128,147 @@
 
 <body>
     <header>
-        <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
-        <h1>Stock Management System</h1>
+        <div class="imglogo-title">
+            <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
+            <h1>Stock</h1>
+        </div>
+        <div class="search">
+            <img src="./assets/search.png" alt="Search">
+            <input type="text" id="searchInput" placeholder="Search here...">
+        </div>
+        <div class="header-buttons">
+            <button class="btn" onclick="fetchStockData()">Refresh</button>
+            <button class="btn" onclick="addItemDiv()">New Item</button>
+            <button class="btn" onclick="lowStock()">Low</button>
+        </div>
     </header>
-    <div class="backdrop" id="backdrop"></div>
-    <div class="container">
-        <div class="addItem" id="addItem">
-            <label>Item Name</label>
-            <input type="text" id="item_name">
-            <label>HSN/SAC</label>
-            <input type="text" id="HSN_SAC">
-            <label>Unit Price</label>
-            <input type="number" id="unit_price">
-            <label>Quantity</label>
-            <input type="number" id="item_quantity">
-            <label>Threshold</label>
-            <input type="number" id="threshold">
-            <label>GST</label>
-            <input type="number" id="GST">
-            <label>Minimum Quantity</label>
-            <input type="number" id="min_quantity">
-            <button onclick="addItem()">Add</button>
-            <button onclick="hideModal()">Cancel</button>
+    <div class="container" class="no-select">
+        <!-- Add this button in your header for toggling sidebar (mobile only) -->
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" style="display:none;">
+            &#9776;
+        </button>
+        <!-- Add this overlay just after <body> or before .container -->
+        <div id="sidebar-overlay"></div>
+        <aside class="no-select">
+            <div class="nav-link" id="dashboard">
+                <img src="./assets/dashboard-interface.png" alt="dashboard">
+                Dashboard
+            </div>
+            <div class="nav-link" id="quotation">
+                <img src="./assets/quotation.png" alt="Quotation">
+                Quotation
+            </div>
+            <div class="nav-link" id="invoice">
+                <img src="./assets/transaction.png" alt="Invoice">
+                Bill / Invoice
+            </div>
+            <div class="nav-link" id="wayBill">
+                <img src="./assets/delivery.png" alt="Way Bill">
+                Way Bill
+            </div>
+            <div class="nav-link" id="service">
+                <img src="./assets/telemarketing.png" alt="Service">
+                Service
+            </div>
+            <div class="nav-link" id="postOrder">
+                <img src="./assets/economy-forecast.png" alt="Purchase Bill">
+                Purchase Bill
+            </div>
+            <div class="nav-link active" id="stock">
+                <img src="./assets/in-stock.png" alt="Stock">
+                Stock
+            </div>
+            <div class="nav-link" id="comms">
+                <img src="./assets/customer-service.png" alt="comms">
+                Comms
+            </div>
+            <div class="nav-link" id="employees">
+                <img src="./assets/worker.png" alt="Employees">
+                Employees
+            </div>
+            <div class="nav-link" id="analytics">
+                <img src="./assets/analitics.png" alt="Analytics">
+                Analytics
+            </div>
+            <div class="nav-link" id="inventory">
+                <img src="./assets/inventory.png" alt="inventory">
+                Inventory
+            </div>
+            <div class="nav-link" id="settings">
+                <img src="./assets/settings.png" alt="Settings">
+                Settings
+            </div>
+        </aside>
+        <div class="backdrop" id="backdrop"></div>
+        <div class="stock-container">
+            <div class="addItem" id="addItem">
+                <label>Item Name</label>
+                <input type="text" id="item_name">
+                <label>HSN/SAC</label>
+                <input type="text" id="HSN_SAC">
+                <label>Unit Price</label>
+                <input type="number" id="unit_price">
+                <label>Quantity</label>
+                <input type="number" id="item_quantity">
+                <label>Threshold</label>
+                <input type="number" id="threshold">
+                <label>GST</label>
+                <input type="number" id="GST">
+                <label>Minimum Quantity</label>
+                <input type="number" id="min_quantity">
+                <button onclick="addItem()">Add</button>
+                <button onclick="hideModal()">Cancel</button>
+            </div>
+            <div class="addItem" id="addToStock">
+                <label>Quantity</label>
+                <input type="number" id="add_quantity">
+                <button onclick="addToStock()">Add</button>
+                <button onclick="hideModal()">Cancel</button>
+            </div>
+            <div class="addItem" id="removeFromStock">
+                <label>Quantity</label>
+                <input type="number" id="remove_quantity">
+                <button onclick="removeFromStock()">Remove</button>
+                <button onclick="hideModal()">Cancel</button>
+            </div>
+            <div class="addItem" id="editItem">
+                <label>Item Name</label>
+                <input type="text" id="edit_item_name">
+                <label>HSN/SAC</label>
+                <input type="text" id="edit_HSN_SAC">
+                <label>Unit Price</label>
+                <input type="number" id="edit_unit_price">
+                <label>Quantity</label>
+                <input type="number" id="edit_quantity">
+                <label>Threshold</label>
+                <input type="number" id="edit_threshold">
+                <label>GST</label>
+                <input type="number" id="edit_GST">
+                <label>Minimum Quantity</label>
+                <input type="number" id="edit_min_quantity">
+                <button onclick="editItem()">Save</button>
+                <button onclick="hideModal()">Cancel</button>
+            </div>
+            <table class="stock-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>HSN/SAC</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+                        <th>Margin</th>
+                        <th>GST</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="stock-table-body">
+                    <!-- Rows will be populated dynamically -->
+                </tbody>
+            </table>
         </div>
-        <div class="addItem" id="addToStock">
-            <label>Quantity</label>
-            <input type="number" id="add_quantity">
-            <button onclick="addToStock()">Add</button>
-            <button onclick="hideModal()">Cancel</button>
-        </div>
-        <div class="addItem" id="removeFromStock">
-            <label>Quantity</label>
-            <input type="number" id="remove_quantity">
-            <button onclick="removeFromStock()">Remove</button>
-            <button onclick="hideModal()">Cancel</button>
-        </div>
-        <div class="addItem" id="editItem">
-            <label>Item Name</label>
-            <input type="text" id="edit_item_name">
-            <label>HSN/SAC</label>
-            <input type="text" id="edit_HSN_SAC">
-            <label>Unit Price</label>
-            <input type="number" id="edit_unit_price">
-            <label>Quantity</label>
-            <input type="number" id="edit_quantity">
-            <label>Threshold</label>
-            <input type="number" id="edit_threshold">
-            <label>GST</label>
-            <input type="number" id="edit_GST">
-            <label>Minimum Quantity</label>
-            <input type="number" id="edit_min_quantity">
-            <button onclick="editItem()">Save</button>
-            <button onclick="hideModal()">Cancel</button>
-        </div>
-        <button class="btn" onclick="fetchStockData()">Refresh Stock</button>
-        <button class="btn" onclick="addItemDiv()">Add New Item</button>
-        <button class="btn" onclick="lowStock()">Low Stock</button>
-        <table class="stock-table">
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>HSN/SAC</th>
-                    <th>Unit Price</th>
-                    <th>Quantity</th>
-                    <th>Threshold</th>
-                    <th>GST</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="stock-table-body">
-                <!-- Rows will be populated dynamically -->
-            </tbody>
-        </table>
     </div>
-
+    <script src="./globalScript.js"></script>
     <script src="./stock.js"></script>
 </body>
 

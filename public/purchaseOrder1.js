@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     purchaseOrderListDiv.addEventListener("click", handlePurchaseOrderListClick);
     document.getElementById('newPurchase').addEventListener('click', showNewPurchaseForm);
-    document.getElementById('searchBtn').addEventListener('click', handleSearch);
+    document.getElementById('searchInput').addEventListener('click', handleSearch);
 });
 
 // Load recent purchase orders from the server

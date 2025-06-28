@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('seviceSearchBtn')?.addEventListener('click', handleSearch);
 });
 
-let currentStep = 1;
 const totalSteps = 2;
 
 function moveNext() {

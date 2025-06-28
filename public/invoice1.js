@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     invoicesListDiv.addEventListener("click", handleInvoiceListClick);
     document.getElementById('newInvoice').addEventListener('click', showNewInvoiceForm);
-    document.getElementById('searchBtn').addEventListener('click', handleSearch);
+    document.getElementById('searchInput').addEventListener('click', handleSearch);
 });
 
 // Load recent invoices from the server

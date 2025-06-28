@@ -12,6 +12,10 @@
     display: block;
 }
 
+form h2{
+    margin-bottom: 1rem;
+}
+
 .form-group {
     margin-bottom: 1.5rem;
     display: flex;
@@ -195,8 +199,6 @@ button {
     transition: background 0.2s, box-shadow 0.2s;
     box-shadow: 0 2px 8px rgba(55, 101, 188, 0.06);
     min-width: 110px;
-    margin-right: 1rem;
-    margin-bottom: 1rem;
     display: inline-block;
     position: relative;
     overflow: hidden;

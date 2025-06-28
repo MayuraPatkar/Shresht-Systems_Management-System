@@ -38,6 +38,10 @@ document.getElementById('employees').addEventListener('click', () => {
   window.location = '/employee';
 })
 
+document.getElementById('comms').addEventListener('click', () => {
+  window.location = '/comms';
+})
+
 document.getElementById('analytics').addEventListener('click', () => {
   window.location = '/analytics';
 })
@@ -45,51 +49,6 @@ document.getElementById('analytics').addEventListener('click', () => {
 document.getElementById('settings').addEventListener('click', () => {
   window.location = '/settings';
 })
-
-// Add this JS at the end of your invoice.html or in a JS file
-document.addEventListener("DOMContentLoaded", function () {
-  const aside = document.querySelector("aside");
-  const sidebarToggle = document.getElementById("sidebarToggle");
-  const sidebarOverlay = document.getElementById("sidebar-overlay");
-  const newInvoiceBtn = document.getElementById("newInvoice");
-  const homeSection = document.getElementById("home");
-  const newSection = document.getElementById("new");
-
-  // Show hamburger only on mobile
-  function handleResize() {
-    if (window.innerWidth <= 900) {
-      sidebarToggle.style.display = "block";
-    } else {
-      sidebarToggle.style.display = "none";
-      aside.classList.remove("show-sidebar", "hide-sidebar");
-      sidebarOverlay.classList.remove("active");
-    }
-  }
-  window.addEventListener("resize", handleResize);
-  handleResize();
-
-  // Toggle sidebar
-  sidebarToggle.addEventListener("click", function () {
-    aside.classList.add("show-sidebar");
-    sidebarOverlay.classList.add("active");
-  });
-
-  // Hide sidebar on overlay click
-  sidebarOverlay.addEventListener("click", function () {
-    aside.classList.remove("show-sidebar");
-    sidebarOverlay.classList.remove("active");
-  });
-
-  // Hide sidebar when creating new invoice (slide out)
-  newInvoiceBtn.addEventListener("click", function () {
-    if (window.innerWidth <= 900) {
-      aside.classList.remove("show-sidebar");
-      sidebarOverlay.classList.remove("active");
-    }
-    if (homeSection) homeSection.style.display = "none";
-    if (newSection) newSection.style.display = "block";
-  });
-});
 
 let currentStep = 1;
 

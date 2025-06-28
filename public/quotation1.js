@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     quotationListDiv.addEventListener("click", handleQuotationListClick);
     document.getElementById('newQuotation').addEventListener('click', showNewQuotationForm);
-    document.getElementById('quotationSearchBtn').addEventListener('click', handleSearch);
+    document.getElementById('searchInput').addEventListener('click', handleSearch);
 });
 
 // Load recent quotations from the server
@@ -75,13 +75,13 @@ async function handleQuotationListClick(event) {
         await openQuotation(quotationId);
     } else if (target.classList.contains("delete-quotation")) {
         window.electronAPI.showAlert2('Are you sure you want to delete this quotation?');
-        // if (window.electronAPI) {
-        //     window.electronAPI.receiveAlertResponse((response) => {
-        //         if (response === "Yes") {
-        //             deleteQuotation(quotationId);
-        //         }
-        //     });
-        // }
+        if (window.electronAPI) {
+            window.electronAPI.receiveAlertResponse((response) => {
+                if (response === "Yes") {
+                    deleteQuotation(quotationId);
+                }
+            });
+        }
     }
 };
 
@@ -157,6 +157,7 @@ function showNewQuotationForm() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
     document.getElementById('newQuotation').style.display = 'none';
+    document.getElementById('viewPreview').style.display = 'block';
     document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 }
 
@@ -189,7 +190,7 @@ async function handleSearch() {
     }
 }
 
-document.getElementById("quotationSearchInput").addEventListener("keydown", function (event) {
+document.getElementById("searchInput").addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
         event.preventDefault();
         handleSearch();

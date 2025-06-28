@@ -28,8 +28,8 @@
 
         .imglogo img,
         .img img {
-            height: 48px;
-            width: 48px;
+            height: 40px;
+            width: 40px;
         }
 
         h1 {
@@ -41,6 +41,7 @@
 
         /* Search bar */
         .search {
+            width: 30%;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -91,17 +92,22 @@
 
         /* Header buttons */
         .header-buttons {
+            width: 30%;
             display: flex;
+            justify-content: center;
+            align-items: center;
             gap: 0.5rem;
         }
 
         .header-buttons button,
         header button {
+            width: 45%;
             background: var(--primary);
             color: #fff;
             border: none;
             border-radius: 10px;
             padding: 0.8rem 1.2rem;
+            margin: 0;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
@@ -111,6 +117,10 @@
         .header-buttons button:hover,
         header button:hover {
             background: var(--accent);
+        }
+
+        .header-buttons #viewPreview {
+            display: none;
         }
 
         /* Layout container */
@@ -197,11 +207,15 @@
 
         /* Main content */
         main {
+            max-height: calc(100vh - 72px);
+            overflow-y: auto;
             flex: 1;
             padding: 2rem;
             display: flex;
             flex-direction: column;
             gap: 2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
         }
 
         /* Records section */

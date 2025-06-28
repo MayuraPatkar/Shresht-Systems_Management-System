@@ -229,9 +229,12 @@ function renderStockTable(data) {
             <td>${item.GST}%</td>
             <td>${item.quantity < item.min_quantity ? 'Low Stock' : 'In Stock'}</td>
             <td>
-                <button class="btn" onclick="addToStockDiv('${item._id}')">Add</button>
-                <button class="btn" onclick="removeFromStockDiv('${item._id}')">Remove</button>
-                <button class="btn" onclick="editItemDiv('${item._id}', '${item.HSN_SAC}', '${item.itemName}', '${item.unitPrice}', '${item.quantity}', '${item.threshold}', '${item.GST}', '${item.min_quantity}')">Edit</button>
+                <select class="btn" onchange="handleStockAction(this, '${item._id}', '${item.HSN_SAC}', '${item.itemName}', '${item.unitPrice}', '${item.quantity}', '${item.threshold}', '${item.GST}', '${item.min_quantity}')">
+                    <option value="" disabled selected>Actions</option>
+                    <option value="add">Add</option>
+                    <option value="remove">Remove</option>
+                    <option value="edit">Edit</option>
+                </select>
             </td>
         `;
         tableBody.appendChild(row);
