@@ -5,8 +5,6 @@ const router = express.Router();
 const axios = require('axios');
 
 
-
-
 const registerWhatsAppNumber = async () => {
   const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/register`;
   const data = {
