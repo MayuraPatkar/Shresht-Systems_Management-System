@@ -1,16 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { Quotations } = require('./database');
-const log = require("electron-log"); // Import electron-log in the preload process
-
+const log = require("electron-log");
 
 // Function to generate a unique ID for each quotation
 function generateUniqueId() {
     const now = new Date();
-    const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
-    const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month (0-based, so add 1)
-    const day = now.getDate().toString().padStart(2, '0'); // Day of the month
-    const randomNum = Math.floor(Math.random() * 10); // Random single-digit number
+    const year = now.getFullYear().toString().slice(-2);
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    const randomNum = Math.floor(Math.random() * 10);
     return `${year}${month}${day}${randomNum}`;
 }
 
@@ -29,6 +28,19 @@ router.get("/generate-id", async (req, res) => {
     res.status(200).json({ quotation_id: quotationId });
 });
 
+// Helper: Validate item structure
+function isValidItem(item) {
+    return (
+        typeof item === 'object' &&
+        typeof item.description === 'string' &&
+        item.description.trim() !== '' &&
+        typeof item.quantity !== 'undefined' &&
+        !isNaN(Number(item.quantity)) &&
+        typeof item.unitPrice !== 'undefined' &&
+        !isNaN(Number(item.unitPrice))
+    );
+}
+
 // Route to save a new quotation or update an existing one
 router.post("/save-quotation", async (req, res) => {
     try {
@@ -38,14 +50,25 @@ router.post("/save-quotation", async (req, res) => {
             buyerName = '',
             buyerAddress = '',
             buyerPhone = '',
+            buyerEmail = '',
             items = [],
         } = req.body;
 
         // Validate required fields
         if (!quotation_id || !projectName) {
             return res.status(400).json({
-                message: 'Missing required fields or invalid data: Qotation ID, projectName',
+                message: 'Missing required fields: Quotation ID, projectName',
             });
+        }
+
+        // Validate items array
+        if (!Array.isArray(items)) {
+            return res.status(400).json({ message: 'Items must be an array.' });
+        }
+        for (const item of items) {
+            if (!isValidItem(item)) {
+                return res.status(400).json({ message: 'Invalid item structure or missing fields.' });
+            }
         }
 
         // Check if quotation already exists
@@ -56,6 +79,7 @@ router.post("/save-quotation", async (req, res) => {
             quotation.buyer_name = buyerName;
             quotation.buyer_address = buyerAddress;
             quotation.buyer_phone = buyerPhone;
+            quotation.buyer_email = buyerEmail;
             quotation.items = items;
         } else {
             // Create a new quotation with the provided data
@@ -65,6 +89,7 @@ router.post("/save-quotation", async (req, res) => {
                 buyer_name: buyerName,
                 buyer_address: buyerAddress,
                 buyer_phone: buyerPhone,
+                buyer_email: buyerEmail,
                 items,
                 createdAt: new Date(),
             });
@@ -73,7 +98,6 @@ router.post("/save-quotation", async (req, res) => {
         // Save the quotation
         const savedQuotation = await quotation.save();
 
-        // Respond with success message and data
         res.status(201).json({
             message: 'Quotation saved successfully',
             quotation: savedQuotation,
@@ -84,23 +108,20 @@ router.post("/save-quotation", async (req, res) => {
     }
 });
 
-// Route to get the 5 most recent quotation
+// Route to get the 5 most recent quotations
 router.get("/recent-quotations", async (req, res) => {
     try {
-
-        // Fetch the 5 most recent quotation, sorted by creation date
-        const recentquotation = await Quotations.find()
-            .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
+        const recentQuotations = await Quotations.find()
+            .sort({ createdAt: -1 })
             .limit(5)
             .select("project_name quotation_id buyer_name buyer_address");
 
-        // Respond with the fetched quotation
         res.status(200).json({
-            message: "Recent quotation retrieved successfully",
-            quotation: recentquotation,
+            message: "Recent quotations retrieved successfully",
+            quotation: recentQuotations,
         });
     } catch (error) {
-        log.error("Error retrieving recent quotation:", error);
+        log.error("Error retrieving recent quotations:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -108,25 +129,27 @@ router.get("/recent-quotations", async (req, res) => {
     }
 });
 
-// Route to get the 5 most recent quotation
+// Route to get a quotation by ID
 router.get("/:quotationId", async (req, res) => {
     try {
         const { quotationId } = req.params;
 
-        // Fetch the quotation by ID
+        if (!quotationId) {
+            return res.status(400).json({ message: 'Quotation ID is required.' });
+        }
+
         const quotation = await Quotations.findOne({ quotation_id: quotationId });
         if (!quotation) {
             return res.status(404).json({ message: 'Quotation not found' });
         }
 
-        // Respond with the fetched quotation
         res.status(200).json({
             message: "Quotation retrieved successfully",
             quotation,
         });
 
     } catch (error) {
-        log.error("Error retrieving recent quotation:", error);
+        log.error("Error retrieving quotation:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -139,16 +162,17 @@ router.delete("/:quotationId", async (req, res) => {
     try {
         const { quotationId } = req.params;
 
-        // Fetch the quotation by ID
+        if (!quotationId) {
+            return res.status(400).json({ message: 'Quotation ID is required.' });
+        }
+
         const quotation = await Quotations.findOne({ quotation_id: quotationId });
         if (!quotation) {
             return res.status(404).json({ message: 'Quotation not found' });
         }
 
-        // Delete the quotation
         await Quotations.deleteOne({ quotation_id: quotationId });
 
-        // Respond with success message
         res.status(200).json({ message: 'Quotation deleted successfully' });
     } catch (error) {
         log.error("Error deleting quotation:", error);
@@ -159,31 +183,32 @@ router.delete("/:quotationId", async (req, res) => {
     }
 });
 
-// Search quotation by ID, owner name, or phone number
+// Search quotations by ID, project name, buyer name, phone, or email
 router.get('/search/:query', async (req, res) => {
     const { query } = req.params;
-   if (!query) {
+    if (!query) {
         return res.status(400).send('Query parameter is required.');
     }
 
     try {
-        const quotation = await Quotations.find({
+        const quotations = await Quotations.find({
             $or: [
                 { quotation_id: { $regex: query, $options: 'i' } },
                 { project_name: { $regex: query, $options: 'i' } },
                 { buyer_name: { $regex: query, $options: 'i' } },
-                { buyer_phone: { $regex: query, $options: 'i' } }
+                { buyer_phone: { $regex: query, $options: 'i' } },
+                { buyer_email: { $regex: query, $options: 'i' } }
             ]
         });
 
-        if (quotation.length === 0) {
-            return res.status(404).send('No quotation found.');
+        if (quotations.length === 0) {
+            return res.status(404).send('No quotations found.');
         } else {
-            return res.status(200).json({ quotation });
+            return res.status(200).json({ quotation: quotations });
         }
     } catch (err) {
-        log.log(err);
-        return res.status(500).send('Failed to fetch quotation.');
+        log.error(err);
+        return res.status(500).send('Failed to fetch quotations.');
     }
 });
 

@@ -32,6 +32,7 @@ const quotationSchema = new mongoose.Schema({
     buyer_name: { type: String },
     buyer_address: { type: String },
     buyer_phone: { type: String },
+    buyer_email: { type: String },
     items: [
         {
             description: { type: String },

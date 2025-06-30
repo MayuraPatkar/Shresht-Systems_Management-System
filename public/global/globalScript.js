@@ -69,6 +69,19 @@ document.addEventListener("keydown", function (event) {
 });
 
 document.addEventListener("keydown", function (event) {
+  // Prevent step change if focus is in an input, textarea, or contenteditable element
+  const active = document.activeElement;
+  if (
+    active &&
+    (
+      active.tagName === "INPUT" ||
+      active.tagName === "TEXTAREA" ||
+      active.isContentEditable
+    )
+  ) {
+    return;
+  }
+
   if (event.key === "Backspace") {
     if (currentStep > 1) {
       changeStep(currentStep - 1);

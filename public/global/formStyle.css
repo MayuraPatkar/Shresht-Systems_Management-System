@@ -1,18 +1,16 @@
 .steps {
     display: none;
     background: var(--card-bg);
-    /* border-radius: 12px; */
     box-shadow: var(--shadow);
     padding: 2rem;
     margin-bottom: 2rem;
-
 }
 
 .steps.active {
     display: block;
 }
 
-form h2{
+form h2 {
     margin-bottom: 1rem;
 }
 
@@ -81,7 +79,7 @@ form h2{
     margin-bottom: 1rem;
     background: #fff;
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 1px 4px rgba(55, 101, 188, 0.05);
 }
 
@@ -103,6 +101,7 @@ form h2{
 #items-table td {
     background: #fff;
     vertical-align: middle;
+    position: relative;
 }
 
 #items-table td input {
@@ -231,4 +230,46 @@ button:active,
     background: var(--accent);
     box-shadow: 0 0 0 2px var(--primary) inset;
     filter: brightness(0.96);
+}
+
+/* Suggestions dropdown styling */
+.suggestions {
+    position: absolute;
+    z-index: 10000;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-top: 2px;
+    padding: 0;
+    list-style: none;
+    max-height: 180px;
+    max-width: 100%;
+    overflow-y: auto;
+    font-size: 15px;
+    color: #222;
+    left: 0;
+    right: 0;
+}
+
+.suggestions li {
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestions li:last-child {
+    border-bottom: none;
+}
+
+.suggestions li.selected,
+.suggestions li:hover {
+    background: #f0f6ff;
+    color: #1976d2;
+    font-weight: 500;
+}
+
+.suggestions[style*="display: none"] {
+    display: none !important;
 }

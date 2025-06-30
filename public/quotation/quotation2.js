@@ -266,26 +266,29 @@ async function sendToServer(data, shouldPrint) {
 
         if (!response.ok) {
             window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
+            return false;
         }
     } catch (error) {
         console.error("Error:", error);
         window.electronAPI.showAlert1("Failed to connect to server.");
     }
+
+    return true
 }
 
 // Event listener for the "Save" button
-document.getElementById("save").addEventListener("click", () => {
+document.getElementById("save").addEventListener("click", async () => {
     const quotationData = collectFormData();
-    sendToServer(quotationData, false);
-    window.electronAPI.showAlert1("Quotation saved successfully!");
+    const ok = await sendToServer(quotationData, false);
+    if (ok) window.electronAPI.showAlert1("Quotation saved successfully!");
 });
 
 // Event listener for the "Print" button
-document.getElementById("print").addEventListener("click", () => {
+document.getElementById("print").addEventListener("click", async () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEventQuatation) {
         const quotationData = collectFormData();
-        sendToServer(quotationData, true);
+        await sendToServer(quotationData, true);
         let name = `Quotation-${quotation_id}`;
         window.electronAPI.handlePrintEventQuatation(previewContent, "print", name);
     } else {
@@ -294,11 +297,11 @@ document.getElementById("print").addEventListener("click", () => {
 });
 
 // Event listener for the "savePDF" button
-document.getElementById("savePDF").addEventListener("click", () => {
+document.getElementById("savePDF").addEventListener("click", async () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEventQuatation) {
         const quotationData = collectFormData();
-        sendToServer(quotationData, true);
+        await sendToServer(quotationData, true);
         let name = `Quotation-${quotation_id}`;
         window.electronAPI.handlePrintEventQuatation(previewContent, "savePDF", name);
     } else {
@@ -314,6 +317,7 @@ function collectFormData() {
         buyerName: document.getElementById("buyerName").value,
         buyerAddress: document.getElementById("buyerAddress").value,
         buyerPhone: document.getElementById("buyerPhone").value,
+        buyerEmail: document.getElementById("buyerEmail").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(1) input").value,
             HSN_SAC: row.querySelector("td:nth-child(2) input").value,
