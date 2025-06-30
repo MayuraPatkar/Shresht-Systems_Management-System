@@ -4,8 +4,7 @@ const router = express.Router();
 
 const axios = require('axios');
 
-const WHATSAPP_TOKEN = 'EAAItO3odv5EBO5awgKvGcMcRILVtc9ZCA4gAaDrWJNzykRZCpQ0WjDijXwycgxA3O5UhBc99XMX1AWRs5wA9k2IhJZA2nLBbV0OkuwwJqKqtVNGvtSZBy38RrjZBqAx8ZACod4CELJ09bjkUAjKryDsjZCYd6A4dxJPKQMVes0BSFXZAMxIxFgwSnSBoEPaGPjjgyVZCagVyj2fBuP6SGVcNMe4sCrDb5Rb6EaNMZCZBCgW';
-const PHONE_NUMBER_ID = '618683841339282';
+
 
 
 const registerWhatsAppNumber = async () => {
