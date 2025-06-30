@@ -140,14 +140,12 @@
 
         /* Preview Content */
         #detail-preview-content {
-            background: #f8fafc;
             border-radius: 10px;
             padding: 1.7rem;
             min-height: 120px;
             margin-bottom: 1rem;
             color: #333;
             font-size: 1.08rem;
-            box-shadow: 0 1px 4px #0001;
         }
 
         /* Buttons */
@@ -260,14 +258,16 @@
         <!-- New Invoice Form -->
         <div id="new">
             <form id="invoice-form" class="no-select">
-                <input type="hidden" id="Id">
-
                 <!-- Step 1: import data from quotattion -->
                 <div class="steps active" id="step-1">
                     <h2>Import Data from Quotation?</h2>
                     <div class="form-group">
                         <label for="quotationId">Quotation ID</label>
                         <input type="text" id="quotationId">
+                    </div>
+                    <div class="form-group">
+                        <label for="Id">Invoice ID (if available)</label>
+                        <input type="text" id="Id">
                     </div>
                 </div>
 
@@ -298,6 +298,10 @@
                         <label for="service_month">Enter Months For Service (0 for no service)</label>
                         <input type="number" id="service_month" value=0 required>
                     </div>
+                    <div class="form-group">
+                        <label for="margin">Margin</label>
+                        <input type="number" id="margin" value="0">
+                    </div>
                 </div>
 
                 <!-- Step 3: Transportation Details -->
@@ -316,13 +320,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="paidAmount">Paid Amount (if unpaid or Advanced Payment)</label>
-                        <input type="number" id="paidAmount">
-                    </div>
-                    <div class="form-group">
-                        <label for="paymentDate">Payment Date</label>
-                        <input type="date" id="paymentDate">
+                    <div>
+                        <div class="form-group">
+                            <label for="paidAmount">Paid Amount (if unpaid or Advanced Payment)</label>
+                            <input type="number" id="paidAmount">
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentDate">Payment Date (Advanced Payment)</label>
+                            <input type="date" id="paymentDate">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="paymentMode">Payment Method</label>
@@ -419,7 +425,7 @@
                 </div>
             </form>
         </div>
-        <div id="view">
+        <div id="view" class="no-select">
             <!-- Project Details & Preview Section -->
             <div id="project-details-view">
                 <!-- Project Details -->
@@ -486,7 +492,6 @@
 
                 <!-- Preview & Actions -->
                 <div class="card">
-                    <h2>Preview</h2>
                     <div id="detail-preview-content">
                         <!-- Preview will be dynamically generated -->
                     </div>

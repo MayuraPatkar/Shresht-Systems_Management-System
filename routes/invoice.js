@@ -51,10 +51,12 @@ router.post("/save-invoice", async (req, res) => {
             dcNumber = '',
             dcDate,
             service_month = 0,
+            margin = 0,
             wayBillNumber = '',
             buyerName = '',
             buyerAddress = '',
             buyerPhone = '',
+            buyerEmail = '',
             consigneeName = '',
             consigneeAddress = '',
             paidAmount = 0,
@@ -105,8 +107,8 @@ router.post("/save-invoice", async (req, res) => {
             // Update the invoice
             Object.assign(existingInvoice, {
                 project_name: projectName, po_number: poNumber, po_date: poDate,
-                dc_number: dcNumber, dc_date: dcDate, service_month, Way_Bill_number: wayBillNumber,
-                date, buyer_name: buyerName, buyer_address: buyerAddress, buyer_phone: buyerPhone,
+                dc_number: dcNumber, dc_date: dcDate, service_month, margin: margin, Way_Bill_number: wayBillNumber,
+                date, buyer_name: buyerName, buyer_address: buyerAddress, buyer_phone: buyerPhone, buyer_email: buyerEmail, 
                 consignee_name: consigneeName, consignee_address: consigneeAddress, items,
                 totalAmount: totalAmount, paymentStatus: paymentStatus,
                 paymentMode: paymentMode, paymentDate: paymentDate
@@ -127,9 +129,9 @@ router.post("/save-invoice", async (req, res) => {
             // Create a new invoice
             const invoice = new Invoices({
                 invoice_id: invoiceId, project_name: projectName, po_number: poNumber,
-                po_date: poDate, dc_number: dcNumber, dc_date: dcDate, service_month,
+                po_date: poDate, dc_number: dcNumber, dc_date: dcDate, service_month, margin: margin,
                 Way_Bill_number: wayBillNumber, date, buyer_name: buyerName, buyer_address: buyerAddress,
-                buyer_phone: buyerPhone, consignee_name: consigneeName, consignee_address: consigneeAddress,
+                buyer_phone: buyerPhone, buyer_email: buyerEmail, consignee_name: consigneeName, consignee_address: consigneeAddress,
                 items, totalAmount: totalAmount, paymentStatus: paymentStatus,
                 paymentMode: paymentMode, paymentDate: paymentDate
             });
@@ -211,7 +213,8 @@ router.get('/search/:query', async (req, res) => {
                     { invoice_id: { $regex: query, $options: 'i' } },
                     { project_name: { $regex: query, $options: 'i' } },
                     { buyer_name: { $regex: query, $options: 'i' } },
-                    { buyer_phone: { $regex: query, $options: 'i' } }
+                    { buyer_phone: { $regex: query, $options: 'i' } },
+                    { buyer_email: { $regex: query, $options: 'i' } },
                 ]
             });
         }

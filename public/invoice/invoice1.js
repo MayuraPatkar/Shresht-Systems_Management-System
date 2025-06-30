@@ -43,7 +43,7 @@ function createInvoiceDiv(invoice) {
     invoiceDiv.className = "record-item";
     invoiceDiv.innerHTML = `
     <div class="paid-icon">
-        <img src="./assets/${invoice.paymentStatus === 'Paid' ? 'paid.png' : 'unpaid.png'}" alt="Paid Icon">
+        <img src="../assets/${invoice.paymentStatus === 'Paid' ? 'paid.png' : 'unpaid.png'}" alt="Paid Icon">
     </div>
         <div class="details">
         <div class="info1">
@@ -152,13 +152,210 @@ async function openInvoice(invoiceId) {
 
             itemsTableBody.appendChild(row);
         });
-                generatePreview()
-
-
     } catch (error) {
         console.error("Error fetching invoice:", error);
         window.electronAPI.showAlert1("Failed to fetch invoice. Please try again later.");
     }
+}
+
+function calculateInvoice(itemsTable) {
+    let totalPrice = 0;
+    let totalCGST = 0;
+    let totalSGST = 0;
+    let totalTaxableValue = 0;
+    let itemsHTML = "";
+
+    // Check if rate column is populated
+    let hasTax = Array.from(itemsTable.rows).some(row => row.cells[4].querySelector("input").value > 0);
+
+    for (const row of itemsTable.rows) {
+        const description = row.cells[0].querySelector("input").value || "-";
+        const hsnSac = row.cells[1].querySelector("input").value || "-";
+        const qty = parseFloat(row.cells[2].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[3].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[4].querySelector("input").value || "0");
+
+        const taxableValue = qty * unitPrice;
+        totalTaxableValue += taxableValue;
+
+        if (hasTax) {
+            const cgstPercent = rate / 2;
+            const sgstPercent = rate / 2;
+            const cgstValue = (taxableValue * cgstPercent) / 100;
+            const sgstValue = (taxableValue * sgstPercent) / 100;
+            const rowTotal = taxableValue + cgstValue + sgstValue;
+
+            totalCGST += cgstValue;
+            totalSGST += sgstValue;
+            totalPrice += rowTotal;
+
+            itemsHTML += `
+                <tr>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${unitPrice.toFixed(2)}</td>
+                    <td>${taxableValue.toFixed(2)}</td>
+                    <td>${rate.toFixed(2)}</td>
+                    <td>${rowTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        } else {
+            const rowTotal = taxableValue;
+            totalPrice += rowTotal;
+
+            itemsHTML += `
+                <tr>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${unitPrice.toFixed(2)}</td>
+                    <td>${rowTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        }
+    }
+
+    const grandTotal = totalTaxableValue + totalCGST + totalSGST;
+    const roundOff = Math.round(grandTotal) - grandTotal;
+    const finalTotal = totalPrice + roundOff;
+
+    const totalsHTML = `
+        ${hasTax ? `
+        <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
+        <p><strong>Total CGST:</strong> ₹${totalCGST.toFixed(2)}</p>
+        <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>` : ""}
+        <p><strong>Grand Total:</strong> ₹${finalTotal.toFixed(2)}</p>
+    `;
+
+    return {
+        totalPrice,
+        totalCGST,
+        totalSGST,
+        totalTaxableValue,
+        roundOff,
+        grandTotal,
+        finalTotal,
+        itemsHTML,
+        totalsHTML,
+        hasTax
+    };
+}
+
+
+// Function to generate the invoice preview
+function generatePreview2(invoice = {}) {
+    // Get the items table from the DOM
+    const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
+    if (!itemsTable) {
+        document.getElementById("preview-content").innerHTML = "<p>No items to preview.</p>";
+        return;
+    }
+
+    // Use invoice data from argument or from form fields
+    const invoiceId = invoice.invoice_id;
+    const projectName = invoice.project_name;
+    const buyerName = invoice.buyer_name;
+    const buyerAddress = invoice.buyer_address;
+    const buyerPhone = invoice.buyer_phone;
+    const poNumber = invoice.po_number;
+    const wayBillNumber = invoice.Way_Bill_number;
+
+    const {
+        itemsHTML,
+        totalsHTML,
+        finalTotal,
+        hasTax
+    } = calculateInvoice(itemsTable);
+
+    document.getElementById("detail-preview-content").innerHTML = `
+    <div class="preview-container">
+        <div class="header">
+            <div class="logo">
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                    alt="Shresht Logo">
+            </div>
+            <div class="company-details">
+                <h1>SHRESHT SYSTEMS</h1>
+                <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+            </div>
+        </div>
+
+        <div class="title">INVOICE #${invoiceId}</div>
+
+        <div class="first-section">
+            <div class="buyer-details">
+                <p><strong>Bill To: </strong></p>
+                <p>${buyerName}</p>
+                <p>${buyerAddress}</p>
+                <p>${buyerPhone}</p>
+            </div>
+            <div class="info-section">
+                <p><strong>Project:</strong> ${projectName}</p>
+                <p><strong>P.O No:</strong> ${poNumber}</p>
+                <p><strong>E-Way Bill:</strong> ${wayBillNumber}</p>
+            </div>
+        </div>
+        <div class="second-section">
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>HSN/SAC</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    ${hasTax ? `
+                        <th>Taxable Value (₹)</th>
+                        <th>Tax Rate (%)</th>` : ""}
+                    <th>Total Price (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${itemsHTML}
+            </tbody>
+        </table>
+        </div>
+        <div class="third-section">
+            <div class="bank-details">
+                <h4>Payment Details</h4>
+                <p><strong>Bank Name:</strong> Canara Bank</p>
+                <p><strong>Branch Name:</strong> ShanthiNagar Manipal</p>
+                <p><strong>Account No:</strong> 120002152652</p>
+                <p><strong>IFSC Code:</strong> CNRB0010261</p>
+            </div>
+
+            <div class="totals-section" style="text-align: right;">
+            ${totalsHTML}
+            </div>
+        </div>
+        <div class="forth-section">
+        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${typeof numberToWords === "function" ? numberToWords(finalTotal) : finalTotal} Only</span></p>
+        <div class="declaration">
+            <p>We declare that this invoice shows the actual price of the goods described and that all particulars are
+                true
+                and correct.</p>
+        </div>
+        </div>
+        <div class="fifth-section">
+        <div class="terms-section">
+                <p><strong>Terms & Conditions:</strong></p>
+                <p>1. Payment should be made within 15 days from the date of invoice.</p>
+                <p>2. Interest @ 18% per annum will be charged for the delayed payment.</p>
+                <p>3. Goods once sold will not be taken back.</p>
+            </div>
+        <div class="signature">
+            <p>For SHRESHT SYSTEMS</p>
+            <div class="signature-space"></div>
+            <p><strong>Authorized Signatory</strong></p>
+        </div>
+        </div>
+        <footer>
+            <p>This is a computer-generated invoice.</p>
+        </footer>
+    </div>
+    `;
 }
 
 async function viewInvoice(invoiceId) {
@@ -216,13 +413,7 @@ async function viewInvoice(invoiceId) {
             detailItemsTableBody.appendChild(row);
         });
 
-        // Preview Content (you can customize this as needed)
-        document.getElementById('detail-preview-content').innerHTML = `
-            <strong>Invoice Preview:</strong><br>
-            Project: ${invoice.project_name || ''} <br>
-            Buyer: ${invoice.buyer_name || ''} <br>
-            Total Items: ${(invoice.items || []).length}
-        `;
+        generatePreview2(invoice)
 
         // Print and Save as PDF handlers
         document.getElementById('printProject').onclick = () => {

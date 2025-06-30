@@ -104,10 +104,12 @@ const invoiceSchema = new mongoose.Schema({
     dc_number: { type: String },
     dc_date: { type: Date },
     service_month: { type: Number, default: 0 },
+    margin: { type: Number, default: 0 },
     Way_Bill_number: { type: String },
     buyer_name: { type: String },
     buyer_address: { type: String },
     buyer_phone: { type: String },
+    buyer_email: { type: String },
     consignee_name: { type: String },
     consignee_address: { type: String },
     items: [
