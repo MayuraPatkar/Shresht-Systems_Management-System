@@ -218,6 +218,7 @@ function collectFormData() {
         buyer_name: document.getElementById("buyerName").value,
         buyer_address: document.getElementById("buyerAddress").value,
         buyer_phone: document.getElementById("buyerPhone").value,
+        buyer_email: document.getElementById("buyerEmail").value,
         transport_mode: document.getElementById("transportMode").value,
         vehicle_number: document.getElementById("vehicleNumber").value,
         place_supply: document.getElementById("placeSupply").value,

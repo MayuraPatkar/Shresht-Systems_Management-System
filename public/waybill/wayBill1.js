@@ -1,57 +1,55 @@
 // Example: Switch active class on sidebar navigation
 document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', function () {
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    this.classList.add('active');
-  });
+    link.addEventListener('click', function () {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+    });
 });
 
 document.getElementById('dashboard').addEventListener('click', () => {
-  window.location = '/dashboard';
+    window.location = '/dashboard';
 })
 
 document.getElementById('quotation').addEventListener('click', () => {
-  window.location = '/quotation';
+    window.location = '/quotation';
 })
 
 document.getElementById('postOrder').addEventListener('click', () => {
-  window.location = '/purchaseorder';
+    window.location = '/purchaseorder';
 })
 
 document.getElementById('wayBill').addEventListener('click', () => {
-  window.location = '/wayBill';
+    window.location = '/wayBill';
 })
 
 document.getElementById('invoice').addEventListener('click', () => {
-  window.location = '/invoice';
+    window.location = '/invoice';
 })
 
 document.getElementById('service').addEventListener('click', () => {
-  window.location = '/service';
+    window.location = '/service';
 })
 
 document.getElementById('stock').addEventListener('click', () => {
-  window.location = '/stock';
+    window.location = '/stock';
 })
 
 document.getElementById('employees').addEventListener('click', () => {
-  window.location = '/employee';
+    window.location = '/employee';
 })
 
 document.getElementById('analytics').addEventListener('click', () => {
-  window.location = '/analytics';
+    window.location = '/analytics';
 })
 
 document.getElementById('settings').addEventListener('click', () => {
-  window.location = '/settings';
+    window.location = '/settings';
 })
 
 const wayBillsListDiv = document.querySelector(".records");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentWayBills();
-
-    wayBillsListDiv.addEventListener("click", handleWayBillListClick);
     document.getElementById('newWayBill').addEventListener('click', showNewWayBillForm);
     document.getElementById('searchInput').addEventListener('click', handleSearch);
 });
@@ -77,6 +75,27 @@ function moveNext() {
 document.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
         moveNext();
+    }
+});
+
+document.addEventListener("keydown", function (event) {
+    // Prevent step change if focus is in an input, textarea, or contenteditable element
+    const active = document.activeElement;
+    if (
+        active &&
+        (
+            active.tagName === "INPUT" ||
+            active.tagName === "TEXTAREA" ||
+            active.isContentEditable
+        )
+    ) {
+        return;
+    }
+
+    if (event.key === "Backspace") {
+        if (currentStep > 1) {
+            changeStep(currentStep - 1);
+        }
     }
 });
 
@@ -143,7 +162,7 @@ function createWayBillDiv(wayBill) {
     wayBillDiv.className = "record-item";
     wayBillDiv.innerHTML = `
     <div class="paid-icon">
-        <img src="./assets/delivery.png" alt="Icon">
+        <img src="../assets/delivery.png" alt="Icon">
     </div>
     <div class="details">
     <div class="info1">
@@ -155,23 +174,25 @@ function createWayBillDiv(wayBill) {
         <p>${wayBill.buyer_address}</p>
         </div>
     </div>
-    <div class="actions">
-        <button class="btn btn-primary open-way-bill" data-id="${wayBill.wayBill_id}">Open</button>
-        <button class="btn btn-danger delete-way-bill" data-id="${wayBill.wayBill_id}">Delete</button>
-    </div>
+    <select class="actions" onchange="handleAction(this, '${wayBill.wayBill_id}')">
+        <option value="" disabled selected>Actions</option>
+        <option class="open-wayBill" data-id="${wayBill.wayBill_id}" value="view">View</option>
+        <option class="delete-wayBill" data-id="${wayBill.wayBill_id}" value="update">Update</option>
+        <option class="delete-wayBill" data-id="${wayBill.wayBill_id}" value="delete">Delete</option>
+        </select>
     `;
 
     return wayBillDiv;
 }
 
-// Handle click events on the way bill list
-async function handleWayBillListClick(event) {
-    const target = event.target;
-    const wayBillId = target.getAttribute("data-id");
-
-    if (target.classList.contains("open-way-bill")) {
-        await openWayBill(wayBillId);
-    } else if (target.classList.contains("delete-way-bill")) {
+function handleAction(select, id) {
+    const action = select.value;
+    if (action === "view") {
+        // viewWayBill(id);
+    } else if (action === "update") {
+        openWayBill(id);
+    }
+    else if (action === "delete") {
         window.electronAPI.showAlert2('Are you sure you want to delete this way bill?');
         if (window.electronAPI) {
             window.electronAPI.receiveAlertResponse((response) => {
@@ -180,9 +201,9 @@ async function handleWayBillListClick(event) {
                 }
             });
         }
-    };
+    }
+    select.selectedIndex = 0; // Reset to default
 }
-
 
 // Open a way bill for editing
 async function openWayBill(wayBillId) {
@@ -209,6 +230,7 @@ async function openWayBill(wayBillId) {
         document.getElementById('buyerName').value = wayBill.buyer_name;
         document.getElementById('buyerAddress').value = wayBill.buyer_address;
         document.getElementById('buyerPhone').value = wayBill.buyer_phone;
+        document.getElementById('buyerEmail').value = wayBill.buyer_email || "";
         document.getElementById('transportMode').value = wayBill.transport_mode;
         document.getElementById('vehicleNumber').value = wayBill.vehicle_number;
         document.getElementById('placeSupply').value = wayBill.place_supply;
