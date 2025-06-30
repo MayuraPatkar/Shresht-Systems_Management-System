@@ -3,7 +3,6 @@ const invoicesListDiv = document.querySelector(".records");
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentInvoices();
 
-    invoicesListDiv.addEventListener("click", handleInvoiceListClick);
     document.getElementById('newInvoice').addEventListener('click', showNewInvoiceForm);
     document.getElementById('searchInput').addEventListener('click', handleSearch);
 });
@@ -56,41 +55,38 @@ function createInvoiceDiv(invoice) {
             <p>${invoice.buyer_address}</p>
         </div>
         </div>
-        <select class="actions">
+        <select class="actions" onchange="handleAction(this, '${invoice.invoice_id}')">
         <option value="" disabled selected>Actions</option>
-        <option class="open-invoice" data-id="${invoice.invoice_id}">View</option>
-        <option class="delete-invoice" data-id="${invoice.invoice_id}">Update</option>
-        <option class="delete-invoice" data-id="${invoice.invoice_id}">View Original</option>
-        <option class="delete-invoice" data-id="${invoice.invoice_id}">Delete</option>
+        <option class="open-invoice" data-id="${invoice.invoice_id}" value="view">View</option>
+        <option class="delete-invoice" data-id="${invoice.invoice_id}" value="view-original">View Original</option>
+        <option class="delete-invoice" data-id="${invoice.invoice_id}" value="update">Update</option>
+        <option class="delete-invoice" data-id="${invoice.invoice_id}" value="delete">Delete</option>
         </select>
     `;
-
-    // <div class="actions">
-    //         <button class="btn btn-primary open-invoice" data-id="${invoice.invoice_id}">Open</button>
-    //         <button class="btn btn-danger delete-invoice" data-id="${invoice.invoice_id}">Delete</button>
-    //     </div>
 
     return invoiceDiv;
 }
 
-// Handle click events on the invoice list
-async function handleInvoiceListClick(event) {
-    const target = event.target;
-    const invoiceId = target.getAttribute("data-id");
-
-    if (target.classList.contains("open-invoice")) {
-        await openInvoice(invoiceId);
-    } else if (target.classList.contains("delete-invoice")) {
+function handleAction(select, id) {
+    const action = select.value;
+    if (action === "view") {
+        viewInvoice(id);
+    } else if (action === "update") {
+        openInvoice(id);
+    } else if (action === "view-original") {
+        // openQuotation(id);
+    } else if (action === "delete") {
         window.electronAPI.showAlert2("Are you sure you want to delete this invoice?");
         if (window.electronAPI) {
             window.electronAPI.receiveAlertResponse((response) => {
                 if (response === "Yes") {
-                    deleteInvoice(invoiceId);
+                    deleteInvoice(id);
 
                 }
             });
         }
     }
+    select.selectedIndex = 0; // Reset to default
 }
 
 // Function to format date to YYYY-MM-DD
@@ -156,10 +152,90 @@ async function openInvoice(invoiceId) {
 
             itemsTableBody.appendChild(row);
         });
+                generatePreview()
+
 
     } catch (error) {
         console.error("Error fetching invoice:", error);
         window.electronAPI.showAlert1("Failed to fetch invoice. Please try again later.");
+    }
+}
+
+async function viewInvoice(invoiceId) {
+    try {
+        const response = await fetch(`/invoice/${invoiceId}`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch invoice");
+        }
+
+        const data = await response.json();
+        const invoice = data.invoice;
+
+        // Hide other sections, show view section
+        document.getElementById('viewPreview').style.display = 'none';
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('new').style.display = 'none';
+        document.getElementById('view').style.display = 'flex';
+
+        // Fill Project Details
+        document.getElementById('detail-projectName').textContent = invoice.project_name || '';
+        document.getElementById('detail-projectId').textContent = invoice.invoice_id || '';
+        document.getElementById('detail-poNumber').textContent = invoice.po_number || '';
+        document.getElementById('detail-dcNumber').textContent = invoice.dc_number || '';
+        document.getElementById('detail-dcDate').textContent = invoice.dc_date ? formatDate(invoice.dc_date) : '';
+        document.getElementById('detail-wayBillNumber').textContent = invoice.Way_Bill_number || '';
+        document.getElementById('detail-serviceMonth').textContent = invoice.service_month || '';
+
+        document.getElementById('detail-paymentStatus').textContent = invoice.paymentStatus || '';
+        document.getElementById('detail-balanceDue').textContent = invoice.balanceDue || '';
+        document.getElementById('detail-advancedPay').textContent = Array.isArray(invoice?.paidAmount) ? invoice.paidAmount.join(', ') : (invoice.advancedPay || '');
+        document.getElementById('detail-paidAmount').textContent = invoice.paidAmount || '';
+        document.getElementById('detail-paymentMode').textContent = invoice.paymentMode || '';
+        document.getElementById('detail-paymentDate').textContent = invoice.paymentDate ? formatDate(invoice.paymentDate) : '';
+
+        // Buyer & Consignee
+        document.getElementById('detail-buyerName').textContent = invoice.buyer_name || '';
+        document.getElementById('detail-buyerAddress').textContent = invoice.buyer_address || '';
+        document.getElementById('detail-buyerPhone').textContent = invoice.buyer_phone || '';
+        document.getElementById('detail-buyerEmail').textContent = invoice.buyer_email || '';
+        document.getElementById('detail-consigneeName').textContent = invoice.consignee_name || '';
+        document.getElementById('detail-consigneeAddress').textContent = invoice.consignee_address || '';
+
+        // Item List
+        const detailItemsTableBody = document.querySelector("#detail-items-table tbody");
+        detailItemsTableBody.innerHTML = "";
+        (invoice.items || []).forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${item.description || ''}</td>
+                <td>${item.HSN_SAC || ''}</td>
+                <td>${item.quantity || ''}</td>
+                <td>${item.UnitPrice || ''}</td>
+                <td>${item.rate || ''}</td>
+            `;
+            detailItemsTableBody.appendChild(row);
+        });
+
+        // Preview Content (you can customize this as needed)
+        document.getElementById('detail-preview-content').innerHTML = `
+            <strong>Invoice Preview:</strong><br>
+            Project: ${invoice.project_name || ''} <br>
+            Buyer: ${invoice.buyer_name || ''} <br>
+            Total Items: ${(invoice.items || []).length}
+        `;
+
+        // Print and Save as PDF handlers
+        document.getElementById('printProject').onclick = () => {
+            window.print();
+        };
+        document.getElementById('saveProjectPDF').onclick = () => {
+            // For best results, use a library like html2pdf.js or print to PDF from browser
+            window.print();
+        };
+
+    } catch (error) {
+        console.error("Error fetching invoice:", error);
+        window.electronAPI?.showAlert1("Failed to fetch invoice. Please try again later.");
     }
 }
 
@@ -187,6 +263,7 @@ function showNewInvoiceForm() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
     document.getElementById('newInvoice').style.display = 'none';
+    document.getElementById('view').style.display = 'none';
 }
 
 // Handle search functionality

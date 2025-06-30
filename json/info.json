@@ -1,22 +1,47 @@
-{
-    "name": "Shresht Systems",
-    "username": "admin",
-    "password": "admin",
-    "address": "3-125-13, Harshitha, Udupi Onthibetthu, Hiriyadka - 576113",
-    "state": "Karnataka",
-    "phone": {
-        "ph1": 7204657707,
-        "ph2": 9901730305
+[
+    {
+        "roll": "admin",
+        "company_name": "Shresht Systems",
+        "username": "admin",
+        "password": "admin",
+        "address": "3-125-13, Harshitha, Udupi Onthibetthu, Hiriyadka - 576113",
+        "state": "Karnataka",
+        "phone": {
+            "ph1": 7204657707,
+            "ph2": 9901730305
+        },
+        "email": "shreshtsystems@gmail.com",
+        "website": "www.shreshtsystems.com",
+        "GSTIN": "29AGCPN4093N1ZS",
+        "bank_details": {
+            "bank_name": "Canara Bank",
+            "name": "Shresht Systems",
+            "accountNo": 120002152652,
+            "type": "current account",
+            "IFSC_code": "CNRB0010261",
+            "branch": "SIBM, Manipal"
+        }
     },
-    "email":"shreshtsystems@gmail.com",
-    "website":"www.shreshtsystems.com",
-    "GSTIN": "29AGCPN4093N1ZS",
-    "bank_details": {
-        "bank_name": "Canara Bank",
-        "name": "Shresht Systems",
-        "accountNo": 120002152652,
-        "type": "current account",
-        "IFSC_code": "CNRB0010261",
-        "branch": "SIBM, Manipal"
+    {
+        "roll": "manager",
+        "username": "mgr",
+        "password": "mrg",
+        "address": "3-125-13, Harshitha, Udupi Onthibetthu, Hiriyadka - 576113",
+        "state": "Karnataka",
+        "phone": {
+            "ph1": 7204657707,
+            "ph2": 9901730305
+        },
+        "email": "shreshtsystems@gmail.com",
+        "website": "www.shreshtsystems.com",
+        "GSTIN": "29AGCPN4093N1ZS",
+        "bank_details": {
+            "bank_name": "Canara Bank",
+            "name": "Shresht Systems",
+            "accountNo": 120002152652,
+            "type": "current account",
+            "IFSC_code": "CNRB0010261",
+            "branch": "SIBM, Manipal"
+        }
     }
-}
+]

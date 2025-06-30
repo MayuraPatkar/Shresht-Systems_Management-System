@@ -4,25 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./root.css">
-    <link rel="stylesheet" href="./globalStyle.css">
-    <link rel="stylesheet" href="./formStyle.css">
-    <link rel="stylesheet" href="./previewStyle.css">
-    <title>Way Bill</title>
+    <link rel="stylesheet" href="../global/root.css">
+    <link rel="stylesheet" href="../global/globalStyle.css">
+    <link rel="stylesheet" href="../global/formStyle.css">
+    <link rel="stylesheet" href="../global/previewStyle.css">
+    <title>Purchase Order</title>
 </head>
 
 <body>
     <header>
-        <div class="img" id="logo"><img src="./assets/icon.png" alt="logo"></div>
-        <h1>Way Bill</h1>
+        <div class="img" id="logo"><img src="../assets/icon.png" alt="logo"></div>
+        <h1>Purchase Bill</h1>
         <div class="search">
-            <img src="./assets/search.png" alt="Search">
+            <img src="../assets/search.png" alt="Search">
             <input type="text" id="searchInput" placeholder="Search here...">
         </div>
         <div class="header-buttons">
-            <button id="newWayBill">New Way Bill</button>
+            <button id="newPurchase">New</button>
             <button id="viewPreview">View Preview</button>
-            <button onclick="window.location = '/wayBill'">Home</button>
+            <button onclick="window.location = '/purchaseOrder'">Home</button>
         </div>
     </header>
     <div class="container">
@@ -34,51 +34,51 @@
         <div id="sidebar-overlay"></div>
         <aside class="no-select">
             <div class="nav-link" id="dashboard">
-                <img src="./assets/dashboard-interface.png" alt="dashboard">
+                <img src="../assets/dashboard-interface.png" alt="dashboard">
                 Dashboard
             </div>
             <div class="nav-link" id="quotation">
-                <img src="./assets/quotation.png" alt="Quotation">
+                <img src="../assets/quotation.png" alt="Quotation">
                 Quotation
             </div>
             <div class="nav-link" id="invoice">
-                <img src="./assets/transaction.png" alt="Invoice">
+                <img src="../assets/transaction.png" alt="Invoice">
                 Bill / Invoice
             </div>
-            <div class="nav-link active" id="wayBill">
-                <img src="./assets/delivery.png" alt="Way Bill">
+            <div class="nav-link" id="wayBill">
+                <img src="../assets/delivery.png" alt="Way Bill">
                 Way Bill
             </div>
             <div class="nav-link" id="service">
-                <img src="./assets/telemarketing.png" alt="Service">
+                <img src="../assets/telemarketing.png" alt="Service">
                 Service
             </div>
-            <div class="nav-link" id="postOrder">
-                <img src="./assets/economy-forecast.png" alt="Purchase Bill">
+            <div class="nav-link active" id="postOrder">
+                <img src="../assets/economy-forecast.png" alt="Purchase Bill">
                 Purchase Bill
             </div>
             <div class="nav-link" id="stock">
-                <img src="./assets/in-stock.png" alt="Stock">
+                <img src="../assets/in-stock.png" alt="Stock">
                 Stock
             </div>
             <div class="nav-link" id="comms">
-                <img src="./assets/customer-service.png" alt="comms">
+                <img src="../assets/customer-service.png" alt="comms">
                 Comms
             </div>
             <div class="nav-link" id="employees">
-                <img src="./assets/worker.png" alt="Employees">
+                <img src="../assets/worker.png" alt="Employees">
                 Employees
             </div>
             <div class="nav-link" id="analytics">
-                <img src="./assets/analitics.png" alt="Analytics">
+                <img src="../assets/analitics.png" alt="Analytics">
                 Analytics
             </div>
             <div class="nav-link" id="inventory">
-                <img src="./assets/inventory.png" alt="inventory">
+                <img src="../assets/inventory.png" alt="inventory">
                 Inventory
             </div>
             <div class="nav-link" id="settings">
-                <img src="./assets/settings.png" alt="Settings">
+                <img src="../assets/settings.png" alt="Settings">
                 Settings
             </div>
         </aside>
@@ -87,77 +87,58 @@
                 <!-- content will be loaded dynamically -->
             </div>
         </div>
-        <div id="new">
-            <form id="wayBill">
-                <!-- Step 1: import data from quotattion -->
-                <div class="steps active" id="step-1">
-                    <h2>Import Data from Quotation?</h2>
-                    <div class="form-group">
-                        <label for="quotationId">Quotation ID</label>
-                        <input type="text" id="quotationId">
-                    </div>
-                </div>
 
-                <!-- Basic Way Bill Details -->
-                <div class="steps" id="step-2">
+        <div id="new">
+            <form id="purchaseOrder">
+                <input type="hidden" id="Id">
+                <!-- Basic purchase order Details -->
+                <div class="steps active" id="step-1">
                     <h2>Project Details</h2>
                     <div class="form-group">
-                        <label for="projectName">Project Name</label>
+                        <label for="projectName">project Name</label>
                         <input type="text" id="projectName" required>
                     </div>
                     <div class="form-group">
-                        <label for="wayBillId">Way Bill ID</label>
-                        <input type="text" id="wayBillId" required>
+                        <label for="handledBy">Handled By</label>
+                        <input type="text" id="handledBy" required>
+                    </div>
+                </div>
+
+                <div class="steps" id="step-2">
+                    <h2>Recipient Details (to)</h2>
+                    <div class="form-group">
+                        <label for="supplierName">Supplier Name</label>
+                        <input type="text" id="supplierName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="supplierAddress">Address</label>
+                        <textarea id="supplierAddress" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="supplierPhone">Phone Number</label>
+                        <input type="tel" id="supplierPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="supplierEmail">Email</label>
+                        <input type="email" id="supplierEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="supplierGSTIN">GSTIN</label>
+                        <input type="text" id="supplierGSTIN" required>
                     </div>
                 </div>
 
                 <div class="steps" id="step-3">
-                    <h2>Shipped To (to)</h2>
-                    <div class="form-group">
-                        <label for="buyerName">Buyer Name</label>
-                        <input type="text" id="buyerName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="buyerAddress">Address</label>
-                        <textarea id="buyerAddress" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="buyerPhone">Phone Number</label>
-                        <input type="tel" id="buyerPhone" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="buyerEmail">Email</label>
-                        <input type="tel" id="buyerEmail">
-                    </div>
-                </div>
-
-                <div class="steps" id="step-4">
-                    <h2>Transportation Details</h2>
-                    <div class="form-group">
-                        <label for="transportMode">Transportation Mode</label>
-                        <input type="text" id="transportMode" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="vehicleNumber">Vehicle Number</label>
-                        <input type="text" id="vehicleNumber" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="placeSupply">Place to Supply</label>
-                        <input type="text" id="placeSupply" required>
-                    </div>
-                </div>
-
-                <div class="steps" id="step-5">
                     <h2>Item List</h2>
                     <div class="form-group">
                         <table id="items-table">
                             <thead>
                                 <tr>
                                     <th>Description</th>
-                                    <th>HSN Code</th>
+                                    <th>HSN_SAC</th>
                                     <th>Qty</th>
                                     <th>Unit Price</th>
-                                    <th>Tax Rate</th>
+                                    <th>Rate</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -169,16 +150,16 @@
                     </div>
                 </div>
 
-                <div class="steps" id="step-6">
+                <div class="steps" id="step-4">
                     <div class="preview">
                         <h2>Preview</h2>
                         <div id="preview-content">
                             <!-- Preview will be dynamically generated -->
                         </div>
                     </div>
-                    <button type="button" id="save" class="button">Save</button>
-                    <button type="button" id="print" class="button">Print</button>
-                    <button type="button" id="savePDF" class="button">Save as PDF</button>
+                    <button type="button" id="save">Save</button>
+                    <button type="button" id="print">Print</button>
+                    <button type="button" id="savePDF">Save as PDF</button>
                 </div>
 
                 <div class="navigation">
@@ -191,9 +172,9 @@
             </form>
         </div>
     </div>
-    <!-- <script src="./globalScript.js"></script> -->
-    <script src="./wayBill1.js"></script>
-    <script src="./wayBill2.js"></script>
+    <script src="../global/globalScript.js"></script>
+    <script src="./purchaseOrder1.js"></script>
+    <script src="./purchaseOrder2.js"></script>
 </body>
 
 </html>

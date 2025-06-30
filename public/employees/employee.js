@@ -134,7 +134,7 @@ function renderProfiles(data) {
 
         profile.innerHTML = `
         <div class="info1">
-        <div class="icon"><img src="./assets/employee.png" alt="icon"></div>
+        <div class="icon"><img src="../assets/employee.png" alt="icon"></div>
             <h2>${employee.name}</h2>
             <h3>${employee.emp_id}</t3>
         </div>

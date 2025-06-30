@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-// Fetch and populate overview data
+    // Fetch and populate overview data
     fetch('/analytics/overview')
         .then(res => res.json())
         .then(data => {
@@ -32,3 +32,13 @@ function animateCounter(id, end, isCurrency = false, duration = 3000, delay = 50
         }, 16);
     }, delay);
 }
+
+// Add this to dashboard.js
+function updateDateTime() {
+    const now = new Date();
+    const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('current-date').textContent = now.toLocaleDateString(undefined, dateOptions);
+    document.getElementById('current-time').textContent = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+setInterval(updateDateTime, 1000);
+updateDateTime();

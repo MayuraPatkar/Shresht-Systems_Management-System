@@ -1,18 +1,44 @@
+/**
+ * main.js
+ * 
+ * Main process entry point for the Electron application.
+ * 
+ * Responsibilities:
+ *   - Creates and manages the main application window.
+ *   - Sets up logging with daily log rotation and cleanup.
+ *   - Integrates with Express backend server.
+ *   - Handles IPC events for printing and alert dialogs.
+ *   - Configures Electron security and development tools.
+ * 
+ * Modules Used:
+ *   - electron: Core Electron APIs for app, window, and IPC management.
+ *   - path: File path utilities.
+ *   - electron-log: Logging utility for Electron.
+ *   - fs: File system utilities for log management.
+ *   - printHandler: Custom module for print event handling.
+ *   - alertHandler: Custom module for alert dialogs.
+ */
+
 const { app, BrowserWindow, ipcMain, screen } = require("electron");
 const path = require("path");
 const log = require("electron-log");
 const fs = require("fs");
 const { handlePrintEvent } = require("./printHandler");
-const { showAlert2 } = require("./alertHandler");
+require('./alertHandler');
+
 
 const logDir = path.join(__dirname, "logs");
-const maxLogDays = 7;
+const maxLogDays = 7; // Maximum number of log files to keep
 
 // Ensure the log directory exists
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
 
+/**
+ * Deletes log files older than the allowed number of days.
+ * Keeps only the most recent `maxLogDays` log files.
+ */
 function cleanOldLogs() {
   fs.readdir(logDir, (err, files) => {
     if (err) {
@@ -49,16 +75,20 @@ log.transports.file.resolvePathFn = () => {
   return path.join(logDir, `main-${year}-${month}-${day}.log`);
 };
 
-// Call cleanOldLogs before writing a new log entry (or at app start)
+// Clean up old logs at startup
 cleanOldLogs();
 log.info("---------------------------***App started***---------------------------");
 
+// Enable hot-reload for development
 require("electron-reload")(path.join(__dirname), {
   electron: require(path.join(__dirname, "node_modules", "electron")),
 });
 
-let mainWindow;
+let mainWindow; // Reference to the main application window
 
+/**
+ * Creates the main application window and sets up event handlers.
+ */
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
@@ -89,23 +119,26 @@ function createWindow() {
     }, 1000);
   }
 
+  // Load the frontend (React/HTML app)
   mainWindow.loadURL("http://localhost:3000").catch((err) => {
     log.error("Failed to load frontend:", err);
   });
+
+  // Open DevTools only in development mode
+  setTimeout(() => {
+    mainWindow.webContents.openDevTools();
+  }, 1000);
+
 
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
 
-  // Setup handlers with mainWindow as parameter
+  // Setup custom event handlers with mainWindow as parameter
   handlePrintEvent(mainWindow);
-  // Pass mainWindow to showAlert2
-  ipcMain.on("show-alert2", (_, message) => {
-    showAlert2(mainWindow, message);
-  });
 }
 
-// Start the application
+// Start the application when Electron is ready
 app.whenReady().then(() => {
   // Start Express server (ensure `server.js` exists and runs properly)
   try {
@@ -117,6 +150,7 @@ app.whenReady().then(() => {
   createWindow();
 });
 
+// Quit the app when all windows are closed (except on macOS)
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     log.info("-------------***All windows closed. Exiting application***-------------");
@@ -124,6 +158,7 @@ app.on("window-all-closed", () => {
   }
 });
 
+// Re-create a window in the app when the dock icon is clicked (macOS)
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();

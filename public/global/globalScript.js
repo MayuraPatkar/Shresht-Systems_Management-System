@@ -6,6 +6,12 @@ document.querySelectorAll('.nav-link').forEach(link => {
   });
 });
 
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape") {
+    window.location = '/dashboard';
+  }
+});
+
 document.getElementById('dashboard').addEventListener('click', () => {
   window.location = '/dashboard';
 })
@@ -59,6 +65,14 @@ function moveNext() {
 document.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
     moveNext();
+  }
+});
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Backspace") {
+    if (currentStep > 1) {
+      changeStep(currentStep - 1);
+    }
   }
 });
 
