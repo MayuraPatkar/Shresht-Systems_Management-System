@@ -323,6 +323,7 @@ function collectFormData() {
     return {
         projectName: document.getElementById("projectName").value,
         invoiceId: document.getElementById("Id").value,
+        invoiceDate: document.getElementById("invoiceDate").value,
         poNumber: document.getElementById("poNumber").value,
         dcNumber: document.getElementById("dcNumber").value,
         dcDate: document.getElementById("dcDate").value,

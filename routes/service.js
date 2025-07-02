@@ -1,9 +1,34 @@
 const express = require('express');
 const router = express.Router();
-const { Invoices } = require('./database');
+const { Invoices, service } = require('./database');
 const moment = require('moment');
 const log = require("electron-log"); // Import electron-log in the preload process
 
+// Function to generate a unique ID for each Invoice
+function generateUniqueId() {
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
+    const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month (0-based, so add 1)
+    const day = now.getDate().toString().padStart(2, '0'); // Day of the month
+    const randomNum = Math.floor(Math.random() * 10); // Random single-digit number
+    return `${year}${month}${day}${randomNum}`;
+}
+
+// Route to generate a new service ID
+router.get("/generate-id", async (req, res) => {
+    let service_id;
+    let isUnique = false;
+
+    while (!isUnique) {
+        service_id = generateUniqueId();
+        const existingService = await service.findOne({ service_id: service_id });
+        if (!existingService) {
+            isUnique = true;
+        }
+    }
+
+    res.status(200).json({ service_id: service_id });
+});
 
 // Get service notifications
 router.get('/get-service', async (req, res) => {
@@ -17,7 +42,7 @@ router.get('/get-service', async (req, res) => {
         const filteredProjects = projects.filter(project => {
             if (!project.createdAt || !project.service_month) return false;
 
-            const createdDate = moment(project.createdAt);
+            const createdDate = moment(project.invoice_date || project.createdAt); // Use invoice_date or createdAt if invoice_date is not available
             const targetDate = createdDate.add(project.service_month, 'months');
 
             return currentDate.isSameOrAfter(targetDate, 'day');
@@ -32,7 +57,7 @@ router.get('/get-service', async (req, res) => {
 
 router.post('/update-nextService', async (req, res) => {
     try {
-        const { invoice_id, next_service } = req.body;
+        const { invoice_id, next_service, fee_anount } = req.body;
         log.log(invoice_id, next_service);
 
         // Check if project exists

@@ -19,8 +19,12 @@ document.getElementById('login-btn').addEventListener('click', () => {
         },
         body: JSON.stringify(data),
     })
-        .then(response => {
-            if (response.ok) {
+        .then(response => response.json())
+        .then(result => {
+            if (result && result.success) {
+                // Save user role and username in sessionStorage
+                sessionStorage.setItem('userRole', result.role);
+                sessionStorage.setItem('username', result.username);
                 window.location = '/dashboard';
             } else {
                 window.electronAPI.showAlert1("Invalid username or password");
@@ -41,4 +45,3 @@ document.addEventListener("keydown", function (event) {
         login();
     }
 });
-

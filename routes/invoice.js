@@ -45,6 +45,7 @@ router.post("/save-invoice", async (req, res) => {
     try {
         const {
             invoiceId = '',
+            invoiceDate,
             projectName,
             poNumber = '',
             poDate,
@@ -62,10 +63,12 @@ router.post("/save-invoice", async (req, res) => {
             paidAmount = 0,
             paymentStatus = '',
             paymentMode = '',
-            paymentDate = null,
+            paymentDate,
             items = [],
             totalAmount = 0,
         } = req.body;
+
+        console.log("jkj", invoiceDate);
 
         const date = new Date();
 
@@ -106,7 +109,7 @@ router.post("/save-invoice", async (req, res) => {
 
             // Update the invoice
             Object.assign(existingInvoice, {
-                project_name: projectName, po_number: poNumber, po_date: poDate,
+                project_name: projectName, invoice_date: invoiceDate, po_number: poNumber, po_date: poDate,
                 dc_number: dcNumber, dc_date: dcDate, service_month, margin: margin, Way_Bill_number: wayBillNumber,
                 date, buyer_name: buyerName, buyer_address: buyerAddress, buyer_phone: buyerPhone, buyer_email: buyerEmail, 
                 consignee_name: consigneeName, consignee_address: consigneeAddress, items,
@@ -128,7 +131,7 @@ router.post("/save-invoice", async (req, res) => {
 
             // Create a new invoice
             const invoice = new Invoices({
-                invoice_id: invoiceId, project_name: projectName, po_number: poNumber,
+                invoice_id: invoiceId, invoice_date: invoiceDate, project_name: projectName, po_number: poNumber,
                 po_date: poDate, dc_number: dcNumber, dc_date: dcDate, service_month, margin: margin,
                 Way_Bill_number: wayBillNumber, date, buyer_name: buyerName, buyer_address: buyerAddress,
                 buyer_phone: buyerPhone, buyer_email: buyerEmail, consignee_name: consigneeName, consignee_address: consigneeAddress,

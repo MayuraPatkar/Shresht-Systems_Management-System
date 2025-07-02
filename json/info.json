@@ -1,7 +1,7 @@
 [
     {
-        "roll": "admin",
-        "company_name": "Shresht Systems",
+        "role": "admin",
+        "company": "Shresht Systems",
         "username": "admin",
         "password": "admin",
         "address": "3-125-13, Harshitha, Udupi Onthibetthu, Hiriyadka - 576113",
@@ -23,9 +23,10 @@
         }
     },
     {
-        "roll": "manager",
-        "username": "mgr",
-        "password": "mrg",
+        "role": "manager",
+        "company": "Shresht Systems",
+        "username": "manager",
+        "password": "manager",
         "address": "3-125-13, Harshitha, Udupi Onthibetthu, Hiriyadka - 576113",
         "state": "Karnataka",
         "phone": {

@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 // Define Admin Schema and Model
 const adminSchema = new mongoose.Schema({
-    name: { type: String, required: true },
+    role: { type: String },
+    company: { type: String, required: true },
     username: { type: String, required: true },
     password: { type: String, required: true },
     address: { type: String, required: true },
@@ -99,6 +100,7 @@ const invoiceSchema = new mongoose.Schema({
     quotation_id: { type: String },
     project_name: { type: String },
     invoice_id: { type: String },
+    invoice_date: { type: Date, default: Date.now },
     po_number: { type: String },
     po_date: { type: Date },
     dc_number: { type: String },
@@ -159,6 +161,17 @@ const employeeSchema = new mongoose.Schema({
 
 const Employee = mongoose.model('Employee', employeeSchema);
 
+// Define Employserviceee Schema and Model
+const serviceSchema = new mongoose.Schema({
+    service_id: { type: String, required: true },
+    invoice_id: { type: String, required: true },
+    fee_amount: { type: Number },
+    service_date: { type: Date, default: Date.now },
+    service_stage: { type: Number, default: '0' },
+});
+
+const service = mongoose.model('service', serviceSchema);
+
 // Define Employee Schema and Model
 const attendencsBookSchema = new mongoose.Schema({
     date: { type: Date },
@@ -170,4 +183,4 @@ const attendencsBookSchema = new mongoose.Schema({
 
 const AttendenceBook = mongoose.model('AttendenceBook', attendencsBookSchema);
 
-module.exports = { Admin, Quotations, Purchases, wayBills, Invoices, Stock, Employee, AttendenceBook };
+module.exports = { Admin, Quotations, Purchases, wayBills, Invoices, service, Stock, Employee, AttendenceBook };

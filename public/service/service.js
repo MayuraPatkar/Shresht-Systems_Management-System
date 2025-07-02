@@ -107,7 +107,6 @@ function createServiceDiv(service) {
         </div>
         <div class="actions">
             <button class="btn btn-primary open-service" data-id="${service.invoice_id}">Open</button>
-            <button class="btn btn-danger delete-service" data-id="${service.invoice_id}">Delete</button>
         </div>
     `;
     document.getElementById('Id').value = service.invoice_id;
@@ -261,7 +260,7 @@ function generatePreview() {
 
 
     document.getElementById("preview-content").innerHTML = `
-    <div class="container">
+    <div class="preview-container">
         <div class="header">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"

@@ -39,6 +39,7 @@ function renderInvoices(invoices) {
 
 // Create an invoice div element
 function createInvoiceDiv(invoice) {
+    const userRole = sessionStorage.getItem('userRole');
     const invoiceDiv = document.createElement("div");
     invoiceDiv.className = "record-item";
     invoiceDiv.innerHTML = `
@@ -58,7 +59,7 @@ function createInvoiceDiv(invoice) {
         <select class="actions" onchange="handleAction(this, '${invoice.invoice_id}')">
         <option value="" disabled selected>Actions</option>
         <option class="open-invoice" data-id="${invoice.invoice_id}" value="view">View</option>
-        <option class="delete-invoice" data-id="${invoice.invoice_id}" value="view-original">View Original</option>
+        ${userRole === 'admin' ? `<option class="open-invoice" data-id="${invoice.invoice_id}" value="view-original">View Original</option>` : ""}
         <option class="delete-invoice" data-id="${invoice.invoice_id}" value="update">Update</option>
         <option class="delete-invoice" data-id="${invoice.invoice_id}" value="delete">Delete</option>
         </select>
@@ -68,13 +69,14 @@ function createInvoiceDiv(invoice) {
 }
 
 function handleAction(select, id) {
+    const userRole = sessionStorage.getItem('userRole');
     const action = select.value;
     if (action === "view") {
-        viewInvoice(id);
+        viewInvoice(id, userRole, original = false);
     } else if (action === "update") {
         openInvoice(id);
     } else if (action === "view-original") {
-        // openQuotation(id);
+        viewInvoice(id, userRole, original = true);
     } else if (action === "delete") {
         window.electronAPI.showAlert2("Are you sure you want to delete this invoice?");
         if (window.electronAPI) {
@@ -91,7 +93,9 @@ function handleAction(select, id) {
 
 // Function to format date to YYYY-MM-DD
 function formatDate(dateString) {
+    if (!dateString) return "";
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -119,21 +123,25 @@ async function openInvoice(invoiceId) {
         }
 
         document.getElementById('Id').value = invoice.invoice_id;
+        document.getElementById('invoiceDate').value = formatDate(invoice.invoice_date);
         document.getElementById('projectName').value = invoice.project_name;
         document.getElementById('buyerName').value = invoice.buyer_name;
         document.getElementById('buyerAddress').value = invoice.buyer_address;
         document.getElementById('buyerPhone').value = invoice.buyer_phone;
+        document.getElementById('buyerEmail').value = invoice.buyer_email;
         document.getElementById('consigneeName').value = invoice.consignee_name;
         document.getElementById('consigneeAddress').value = invoice.consignee_address;
         document.getElementById('poNumber').value = invoice.po_number;
         document.getElementById('dcNumber').value = invoice.dc_number;
         document.getElementById('dcDate').value = formatDate(invoice.dc_date);
         document.getElementById('service_month').value = invoice.service_month;
+        document.getElementById('margin').value = invoice.margin || '';
         document.getElementById('wayBillNumber').value = invoice.Way_Bill_number;
-        document.getElementById('advancedPay').value = Array.isArray(invoice?.paidAmount) ? invoice.paidAmount.join(', ') : '';
         document.querySelector(`input[name="question"][value="${invoice.paymentStatus}"]`).checked = true;
         document.getElementById('paymentMode').value = invoice.paymentMode;
         document.getElementById('paymentDate').value = formatDate(invoice.paymentDate);
+        document.getElementById('advancedPaymentDate').value = formatDate(invoice.paymentDate);
+
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
@@ -166,14 +174,18 @@ function calculateInvoice(itemsTable) {
     let itemsHTML = "";
 
     // Check if rate column is populated
-    let hasTax = Array.from(itemsTable.rows).some(row => row.cells[4].querySelector("input").value > 0);
+    let hasTax = Array.from(itemsTable.rows).some(row => {
+        // Fix: Check if input exists before accessing value
+        const input = row.cells[4]?.querySelector("input");
+        return input && parseFloat(input.value) > 0;
+    });
 
     for (const row of itemsTable.rows) {
-        const description = row.cells[0].querySelector("input").value || "-";
-        const hsnSac = row.cells[1].querySelector("input").value || "-";
-        const qty = parseFloat(row.cells[2].querySelector("input").value || "0");
-        const unitPrice = parseFloat(row.cells[3].querySelector("input").value || "0");
-        const rate = parseFloat(row.cells[4].querySelector("input").value || "0");
+        const description = row.cells[0].querySelector("input")?.value || "-";
+        const hsnSac = row.cells[1].querySelector("input")?.value || "-";
+        const qty = parseFloat(row.cells[2].querySelector("input")?.value || "0");
+        const unitPrice = parseFloat(row.cells[3].querySelector("input")?.value || "0");
+        const rate = parseFloat(row.cells[4].querySelector("input")?.value || "0");
 
         const taxableValue = qty * unitPrice;
         totalTaxableValue += taxableValue;
@@ -244,9 +256,9 @@ function calculateInvoice(itemsTable) {
 
 
 // Function to generate the invoice preview
-function generatePreview2(invoice = {}) {
+function generatePreview2(invoice = {}, userRoll, original = false) {
     // Get the items table from the DOM
-    const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
+    const itemsTable = document.getElementById("detail-items-table")?.getElementsByTagName("tbody")[0];
     if (!itemsTable) {
         document.getElementById("preview-content").innerHTML = "<p>No items to preview.</p>";
         return;
@@ -358,7 +370,7 @@ function generatePreview2(invoice = {}) {
     `;
 }
 
-async function viewInvoice(invoiceId) {
+async function viewInvoice(invoiceId, userRoll, original) {
     try {
         const response = await fetch(`/invoice/${invoiceId}`);
         if (!response.ok) {
@@ -413,7 +425,7 @@ async function viewInvoice(invoiceId) {
             detailItemsTableBody.appendChild(row);
         });
 
-        generatePreview2(invoice)
+        generatePreview2(invoice, userRoll, original)
 
         // Print and Save as PDF handlers
         document.getElementById('printProject').onclick = () => {

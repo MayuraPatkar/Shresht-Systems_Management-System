@@ -12,7 +12,7 @@
 </head>
 
 <body>
-    <header>
+    <header class="no-select">
         <div class="img" id="logo"><img src="../assets/icon.png" alt="logo" onclick="window.location = '/dashboard'">
         </div>.
         <h1>Service</h1>
@@ -24,7 +24,7 @@
             <button onclick="window.location = '/service'">Home</button>
         </div>
     </header>
-    <div class="container">
+    <div class="container" class="no-select">
         <aside>
             <div class="nav-link" id="dashboard">
                 <img src="../assets/dashboard-interface.png" alt="dashboard">
@@ -80,7 +80,7 @@
                 <!-- content will be loaded dynamically -->
             </div>
         </div>
-        <div id="new">
+        <div class="no-select" id="new">
             <form id="Service">
                 <input type="hidden" id="Id" value="">
                 <input type="hidden" id="projectName" value="">
@@ -92,6 +92,14 @@
                     <div class="form-group">
                         <label for="payment">Payment</label>
                         <input type="text" id="payment">
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date">
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceStage">Service Stage</label>
+                        <input type="number" id="serviceStage">
                     </div>
                     <div class="form-group">
                         <label for="question-yes">Is There Next Service?</label>
@@ -106,22 +114,23 @@
                             </div>
                         </div>
                     </div>
-                    <div class="steps" id="step-2">
-                        <div class="preview">
-                            <h2>Preview</h2>
-                            <div id="preview-content"></div>
-                        </div>
-                        <!-- <button type="button" id="save">Save</button> -->
-                        <button type="button" id="print">Print</button>
-                        <button type="button" id="savePDF">Save as PDF</button>
+                </div>
+                <div class="steps" id="step-2">
+                    <div class="preview">
+                        <h2>Preview</h2>
+                        <div id="preview-content"></div>
                     </div>
-                    <div class="navigation">
-                        <button type="button" id="prevBtn" disabled>Previous</button>
-                        <div class="step-indicators">
-                            <span id="step-indicator"></span>
-                        </div>
-                        <button type="button" id="nextBtn">Next</button>
+                    <button type="button" id="save">Save</button>
+                    <button type="button" id="print">Print</button>
+                    <button type="button" id="savePDF">Save as PDF</button>
+                </div>
+                <div class="navigation">
+                    <button type="button" id="prevBtn" disabled>Previous</button>
+                    <div class="step-indicators">
+                        <span id="step-indicator"></span>
                     </div>
+                    <button type="button" id="nextBtn">Next</button>
+                </div>
             </form>
         </div>
     </div>

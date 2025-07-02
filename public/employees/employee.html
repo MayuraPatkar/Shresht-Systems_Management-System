@@ -6,8 +6,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../global/root.css">
     <link rel="stylesheet" href="../global/globalStyle.css">
-    <link rel="stylesheet" href="./employee_style.css">
     <title>Employee Management</title>
+    <style>
+        .addEmp {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: none;
+            text-align: center;
+        }
+
+        .addEmp label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        .addEmp input {
+            width: 100%;
+            padding: 8px 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .addEmp button {
+            width: 100px;
+            padding: 10px;
+            margin: 5px;
+            background-color: var(--primary);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .addEmp button:hover {
+            background-color: #0056b3;
+        }
+
+        .backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .emp-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .emp-table th,
+        .emp-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .emp-table th {
+            background-color: var(--primary);
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .emp-table td {
+            font-size: 1.1rem;
+        }
+
+        section {
+            margin-top: 100px;
+            width: 100%;
+            padding: 2%;
+            box-sizing: border-box;
+        }
+
+        .profile-list {
+            margin: 50px 0;
+            width: 100%;
+            height: 250px;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+        }
+
+        .profile {
+            width: 25%;
+            height: 100%;
+            border: 1px solid gray;
+            border-radius: 10px;
+            padding: 2%;
+        }
+
+        .profile-list .info1 {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+        }
+
+        .profile-list .info1 .icon {
+            width: 25%;
+            height: 20%;
+        }
+
+        .profile-list .info1 .icon img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .info2 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
 </head>
 
 <body>
@@ -121,7 +256,7 @@
         </main>
     </div>
     <script src="../global/globalScript.js"></script>
-    <script src="./employee.js"></script>
+    <!-- <script src="./employee.js"></script> -->
 </body>
 
 </html>
