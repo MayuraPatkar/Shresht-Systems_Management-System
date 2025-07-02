@@ -101,9 +101,18 @@ function createServiceDiv(service) {
     const serviceDiv = document.createElement("div");
     serviceDiv.className = "record-item";
     serviceDiv.innerHTML = `
+    <div class="paid-icon">
+        <img src="../assets/telemarketing.png" alt="Icon">
+    </div>
         <div class="details">
-            <h3>${service.project_name}</h3>
-            <h4>#${service.invoice_id}</h4>
+            <div class="info1">
+                <h1>${service.project_name}</h1>
+                <h4>#${service.invoice_id}</h4>
+            </div>
+            <div class="info2">
+                <p>${service.buyer_name}</p>
+                <p>${service.buyer_address}</p>
+            </div>    
         </div>
         <div class="actions">
             <button class="btn btn-primary open-service" data-id="${service.invoice_id}">Open</button>

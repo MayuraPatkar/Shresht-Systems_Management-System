@@ -5,50 +5,111 @@ const router = express.Router();
 const axios = require('axios');
 
 
-const registerWhatsAppNumber = async () => {
-  const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/register`;
-  const data = {
-    messaging_product: "whatsapp",
-    pin: "111111", // use the PIN shown during registration
-  };
-
-  await axios.post(url, data, {
-    headers: {
-      'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-      'Content-Type': 'application/json',
-    }
-  });
-
-  console.log("Number registered successfully.");
-};
-
-
-const sendWhatsAppMessage = async (phone, message) => {
-    // registerWhatsAppNumber();    // Remove any leading '+' from the phone number
-    const cleanPhone = phone.replace(/^\+/, '');
-    const url = `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`;
-    const data = {
-        messaging_product: "whatsapp",
-        to: cleanPhone,
-        type: "text",
-        text: { body: message }
-    };
-    console.log('Sending message to:', cleanPhone, 'Message:', message);
-    await axios.post(url, data, {
+async function sendWhatsAppMessage() {
+    const response = await axios({
+        url: 'https://graph.facebook.com/v22.0/phone_number_id/messages',
+        method: 'post',
         headers: {
-            'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-            'Content-Type': 'application/json',
-            'pin': "111111"
-        }
-    });
-    return true;
-};
+            'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`,
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: 'phone_number',
+            type: 'template',
+            template:{
+                name: 'discount',
+                language: {
+                    code: 'en_US'
+                },
+                components: [
+                    {
+                        type: 'header',
+                        parameters: [
+                            {
+                                type: 'text',
+                                text: 'John Doe'
+                            }
+                        ]
+                    },
+                    {
+                        type: 'body',
+                        parameters: [
+                            {
+                                type: 'text',
+                                text: '50'
+                            }
+                        ]
+                    }
+                ]
+            }
+        })
+    })
 
-// Mock database functions
-const getUnpaidProjects = async () => {
-    // Replace with your DB logic
-    return 5; // Example: 5 unpaid projects
-};
+    console.log(response.data)
+}
+
+async function sendTextMessage() {
+    const response = await axios({
+        url: 'https://graph.facebook.com/v20.0/phone_number_id/messages',
+        method: 'post',
+        headers: {
+            'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`,
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: 'phone_number',
+            type: 'text',
+            text:{
+                body: 'This is a text message'
+            }
+        })
+    })
+
+    console.log(response.data) 
+}
+
+async function sendMediaMessage() {
+    const response = await axios({
+        url: 'https://graph.facebook.com/v20.0/phone_number_id/messages',
+        method: 'post',
+        headers: {
+            'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`,
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: 'phone_number',
+            type: 'image',
+            image:{
+                //link: 'https://dummyimage.com/600x400/000/fff.png&text=manfra.io',
+                id: '512126264622813',
+                caption: 'This is a media message'
+            }
+        })
+    })
+
+    console.log(response.data)    
+}
+
+async function uploadImage() {
+    const data = new FormData()
+    data.append('messaging_product', 'whatsapp')
+    data.append('file', fs.createReadStream(process.cwd() + '/logo.png'), { contentType: 'image/png' })
+    data.append('type', 'image/png')
+
+    const response = await axios({
+        url: 'https://graph.facebook.com/v20.0/phone_number_id/media',
+        method: 'post',
+        headers: {
+            'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`
+        },
+        data: data
+    })
+
+    console.log(response.data)     
+}
 
 // --- ROUTES ---
 

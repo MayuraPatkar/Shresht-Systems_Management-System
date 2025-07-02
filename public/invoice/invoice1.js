@@ -255,30 +255,94 @@ function calculateInvoice(itemsTable) {
 }
 
 
-// Function to generate the invoice preview
-function generatePreview2(invoice = {}, userRoll, original = false) {
-    // Get the items table from the DOM
-    const itemsTable = document.getElementById("detail-items-table")?.getElementsByTagName("tbody")[0];
-    if (!itemsTable) {
-        document.getElementById("preview-content").innerHTML = "<p>No items to preview.</p>";
-        return;
+function generatePreview2(invoice = {}, userRole, original = false) {
+    let itemsHTML = "";
+    let totalPrice = 0;
+    let totalCGST = 0;
+    let totalSGST = 0;
+    let totalTaxableValue = 0;
+    let totalTax = 0;
+    let hasTax = false;
+
+    // Use invoice items from argument or from DOM table
+    const items = invoice.items || [];
+    if (items.length > 0) {
+        // Calculate items and totals from invoice object (for view mode)
+        hasTax = items.some(item => parseFloat(item.rate || 0) > 0);
+        items.forEach(item => {
+            const description = item.description || "-";
+            const hsnSac = item.HSN_SAC || "-";
+            const qty = parseFloat(item.quantity || 0);
+            const unitPrice = parseFloat(item.UnitPrice || item.unitPrice || 0);
+            const rate = parseFloat(item.rate || 0);
+
+            const taxableValue = qty * unitPrice;
+            totalTaxableValue += taxableValue;
+
+            if (hasTax) {
+                const cgstPercent = rate / 2;
+                const sgstPercent = rate / 2;
+                const cgstValue = (taxableValue * cgstPercent) / 100;
+                const sgstValue = (taxableValue * sgstPercent) / 100;
+                const rowTotal = taxableValue + cgstValue + sgstValue;
+
+                totalCGST += cgstValue;
+                totalSGST += sgstValue;
+                totalPrice += rowTotal;
+                totalTax += cgstValue + sgstValue;
+
+                itemsHTML += `
+                    <tr>
+                        <td>${description}</td>
+                        <td>${hsnSac}</td>
+                        <td>${qty}</td>
+                        <td>${unitPrice.toFixed(2)}</td>
+                        <td>${taxableValue.toFixed(2)}</td>
+                        <td>${rate.toFixed(2)}</td>
+                        <td>${rowTotal.toFixed(2)}</td>
+                    </tr>
+                `;
+            } else {
+                const rowTotal = taxableValue;
+                totalPrice += rowTotal;
+
+                itemsHTML += `
+                    <tr>
+                        <td>${description}</td>
+                        <td>${hsnSac}</td>
+                        <td>${qty}</td>
+                        <td>${unitPrice.toFixed(2)}</td>
+                        <td>${rowTotal.toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+        });
+    } else {
+        // Fallback to DOM table (edit mode)
+        const itemsTable = document.getElementById("detail-items-table")?.getElementsByTagName("tbody")[0];
+        if (!itemsTable) {
+            document.getElementById("preview-content").innerHTML = "<p>No items to preview.</p>";
+            return;
+        }
+        const calc = calculateInvoice(itemsTable);
+        itemsHTML = calc.itemsHTML;
+        totalPrice = calc.totalPrice;
+        totalCGST = calc.totalCGST;
+        totalSGST = calc.totalSGST;
+        totalTaxableValue = calc.totalTaxableValue;
+        hasTax = calc.hasTax;
     }
 
-    // Use invoice data from argument or from form fields
-    const invoiceId = invoice.invoice_id;
-    const projectName = invoice.project_name;
-    const buyerName = invoice.buyer_name;
-    const buyerAddress = invoice.buyer_address;
-    const buyerPhone = invoice.buyer_phone;
-    const poNumber = invoice.po_number;
-    const wayBillNumber = invoice.Way_Bill_number;
+    const grandTotal = totalTaxableValue + totalCGST + totalSGST;
+    const roundOff = Math.round(grandTotal) - grandTotal;
+    const finalTotal = totalPrice + roundOff;
 
-    const {
-        itemsHTML,
-        totalsHTML,
-        finalTotal,
-        hasTax
-    } = calculateInvoice(itemsTable);
+    let totalsHTML = hasTax
+        ? `<p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
+           <p><strong>Total CGST:</strong> ₹${totalCGST.toFixed(2)}</p>
+           <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>
+           <p><strong>Grand Total:</strong> ₹${finalTotal.toFixed(2)}</p>`
+        : `<p><strong>Grand Total:</strong> ₹${finalTotal.toFixed(2)}</p>`;
 
     document.getElementById("detail-preview-content").innerHTML = `
     <div class="preview-container">
@@ -295,19 +359,19 @@ function generatePreview2(invoice = {}, userRoll, original = false) {
             </div>
         </div>
 
-        <div class="title">INVOICE #${invoiceId}</div>
+        <div class="title">INVOICE #${invoice.invoice_id || ""}</div>
 
         <div class="first-section">
             <div class="buyer-details">
                 <p><strong>Bill To: </strong></p>
-                <p>${buyerName}</p>
-                <p>${buyerAddress}</p>
-                <p>${buyerPhone}</p>
+                <p>${invoice.buyer_name || ""}</p>
+                <p>${invoice.buyer_address || ""}</p>
+                <p>${invoice.buyer_phone || ""}</p>
             </div>
             <div class="info-section">
-                <p><strong>Project:</strong> ${projectName}</p>
-                <p><strong>P.O No:</strong> ${poNumber}</p>
-                <p><strong>E-Way Bill:</strong> ${wayBillNumber}</p>
+                <p><strong>Project:</strong> ${invoice.project_name || ""}</p>
+                <p><strong>P.O No:</strong> ${invoice.po_number || ""}</p>
+                <p><strong>E-Way Bill:</strong> ${invoice.Way_Bill_number || ""}</p>
             </div>
         </div>
         <div class="second-section">
@@ -415,13 +479,22 @@ async function viewInvoice(invoiceId, userRoll, original) {
         detailItemsTableBody.innerHTML = "";
         (invoice.items || []).forEach(item => {
             const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${item.description || ''}</td>
-                <td>${item.HSN_SAC || ''}</td>
-                <td>${item.quantity || ''}</td>
-                <td>${item.UnitPrice || ''}</td>
-                <td>${item.rate || ''}</td>
-            `;
+            if (original) {
+                row.innerHTML = `
+                    <td>${item.description || ''}</td>
+                    <td>${item.HSN_SAC || ''}</td>
+                    <td>${item.quantity || ''}</td>
+                    <td>${item.UnitPrice || item.unitPrice || ''}</td>
+                    <td>${item.rate ? item.rate + '%' : ''}</td>
+                `;
+            } else {
+                row.innerHTML = `
+                    <td>${item.description || ''}</td>
+                    <td>${item.HSN_SAC || ''}</td>
+                    <td>${item.quantity || ''}</td>
+                    <td>${item.UnitPrice || item.unitPrice || ''}</td>
+                `;
+            }
             detailItemsTableBody.appendChild(row);
         });
 
@@ -429,11 +502,22 @@ async function viewInvoice(invoiceId, userRoll, original) {
 
         // Print and Save as PDF handlers
         document.getElementById('printProject').onclick = () => {
-            window.print();
+            const previewContent = document.getElementById("detail-preview-content").innerHTML;
+            if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+                window.electronAPI.handlePrintEvent(previewContent, "print");
+            } else {
+                window.electronAPI.showAlert1("Print functionality is not available.");
+            }
         };
         document.getElementById('saveProjectPDF').onclick = () => {
-            // For best results, use a library like html2pdf.js or print to PDF from browser
-            window.print();
+            const previewContent = document.getElementById("detail-preview-content").innerHTML;
+            if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+                let name = `Invoice-${invoiceId}`;
+                window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+
+            } else {
+                window.electronAPI.showAlert1("Print functionality is not available.");
+            }
         };
 
     } catch (error) {
