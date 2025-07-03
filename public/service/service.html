@@ -83,10 +83,14 @@
         <div class="no-select" id="new">
             <form id="Service">
                 <input type="hidden" id="Id" value="">
+                <input type="hidden" id="serviceId" value="">
+                <input type="hidden" id="invoiceId" value="">
                 <input type="hidden" id="projectName" value="">
                 <input type="hidden" id="name" value="">
                 <input type="hidden" id="phone" value="">
                 <input type="hidden" id="address" value="">
+                <input type="hidden" id="email" value="">
+                <input type="hidden" id="serviceStage" value="">
                 <div class="steps active" id="step-1">
                     <h2>Service Details</h2>
                     <div class="form-group">
@@ -97,15 +101,15 @@
                         <label for="date">Date</label>
                         <input type="date" id="date">
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="serviceStage">Service Stage</label>
                         <input type="number" id="serviceStage">
-                    </div>
+                    </div> -->
                     <div class="form-group">
                         <label for="question-yes">Is There Next Service?</label>
                         <div class="radio-group">
                             <div>
-                                <input type="radio" name="question" id="question-yes" value="yes">
+                                <input type="radio" name="question" id="question-yes" value="yes" checked>
                                 <label for="question-yes">Yes</label>
                             </div>
                             <div>

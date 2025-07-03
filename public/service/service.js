@@ -7,7 +7,14 @@ document.addEventListener("DOMContentLoaded", () => {
         serviceDiv.addEventListener("click", handleServiceListClick);
     }
 
-    document.getElementById('seviceSearchBtn')?.addEventListener('click', handleSearch);
+    document.getElementById('serviceSearchBtn')?.addEventListener('click', handleSearch);
+
+    // Fix: Attach search to correct input
+    document.getElementById("searchInput")?.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            handleSearch();
+        }
+    });
 });
 
 const totalSteps = 2;
@@ -98,16 +105,16 @@ function numberToWords(num) {
 
 // Function to create service item element
 function createServiceDiv(service) {
-    const serviceDiv = document.createElement("div");
-    serviceDiv.className = "record-item";
-    serviceDiv.innerHTML = `
+    const div = document.createElement("div");
+    div.className = "record-item";
+    div.innerHTML = `
     <div class="paid-icon">
         <img src="../assets/telemarketing.png" alt="Icon">
     </div>
         <div class="details">
             <div class="info1">
                 <h1>${service.project_name}</h1>
-                <h4>#${service.invoice_id}</h4>
+                <h4>#${service.invoice_id}${service.service_stage+1}</h4>
             </div>
             <div class="info2">
                 <p>${service.buyer_name}</p>
@@ -118,12 +125,7 @@ function createServiceDiv(service) {
             <button class="btn btn-primary open-service" data-id="${service.invoice_id}">Open</button>
         </div>
     `;
-    document.getElementById('Id').value = service.invoice_id;
-    document.getElementById('projectName').value = service.project_name;
-    document.getElementById('name').value = service.buyer_name;
-    document.getElementById('address').value = service.buyer_address;
-    document.getElementById('phone').value = service.buyer_phone;
-    return serviceDiv;
+    return div;
 }
 
 // Function to load service data
@@ -156,7 +158,7 @@ async function loadService() {
 
 // Function to handle search functionality
 async function handleSearch() {
-    const queryInput = document.getElementById("serviceSearchInput");
+    const queryInput = document.getElementById("searchInput");
     const serviceListDiv = document.querySelector(".records");
 
     if (!queryInput || !serviceListDiv) {
@@ -191,13 +193,6 @@ async function handleSearch() {
     }
 }
 
-// Attach search event listener
-document.getElementById("serviceSearchInput")?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        handleSearch();
-    }
-});
-
 // Handle click events on the service list
 async function handleServiceListClick(event) {
     const target = event.target;
@@ -216,9 +211,8 @@ async function handleServiceListClick(event) {
                 }
             });
         }
-    };
+    }
 }
-
 
 // Function to open a service form
 async function openService(serviceId) {
@@ -230,6 +224,15 @@ async function openService(serviceId) {
 
         const data = await response.json();
         const service = data.invoice;
+
+        // Fill form fields
+        document.getElementById('Id').value = service.invoice_id || '';
+        document.getElementById('serviceId').value = service.invoice_id+(service.service_stage+1) || '';
+        document.getElementById('invoiceId').value = service.invoice_id || '';
+        document.getElementById('projectName').value = service.project_name || '';
+        document.getElementById('name').value = service.buyer_name || '';
+        document.getElementById('address').value = service.buyer_address || '';
+        document.getElementById('phone').value = service.buyer_phone || '';
 
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
@@ -258,15 +261,13 @@ async function deleteService(serviceId) {
     }
 }
 
-
 // Function to generate the preview
 function generatePreview() {
-    const service_id = document.getElementById('Id').value;
+    const service_id = document.getElementById('serviceId').value;
     const name = document.getElementById("name").value || "";
     const address = document.getElementById("address").value || "";
     const phone = document.getElementById("phone").value || "";
     const payment = document.getElementById("payment").value || "";
-
 
     document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
@@ -342,23 +343,44 @@ document.getElementById("savePDF").addEventListener("click", () => {
 // Function to collect form data and send to server
 async function sendToServer(data) {
     try {
-        const response = await fetch("/service/update-nextService", {
+        const response = await fetch("/service/save-service", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
-
+        const result = await response.json();
+        // Show alert only if save was successful
+        if (response.ok) {
+            return true;
+        } else {
+            window.electronAPI?.showAlert1("Failed to save service.");
+            return false;
+        }
     } catch (error) {
         console.error("Error:", error);
         window.electronAPI.showAlert1("Failed to connect to server.");
+        return false;
     }
 }
-
 
 // Function to collect form data
 function collectFormData() {
     return {
-        invoice_id: document.getElementById("Id").value,
-        next_service: document.querySelector('input[name="question"]:checked')?.value || null,
+        service_id: document.getElementById("serviceId").value,
+        invoice_id: document.getElementById("invoiceId").value,
+        fee_amount: document.getElementById("payment")?.value || null,
+        service_date: document.getElementById("date")?.value || new Date().toISOString().slice(0, 10),
+        service_stage: Number(document.getElementById("serviceStage")?.value) || 1 // Default to 1 if not set
     };
 }
+
+// Event listener for the "Save" button
+document.getElementById("save").addEventListener("click", async () => {
+    const serviceData = collectFormData();
+    const ok = await sendToServer(serviceData);
+    if (ok) {
+        window.electronAPI?.showAlert1("Service saved successfully.");
+    } else {
+        window.electronAPI?.showAlert1("Failed to save service.");
+    }
+});
