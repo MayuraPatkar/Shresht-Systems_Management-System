@@ -50,13 +50,13 @@ const Quotations = mongoose.model('Quotations', quotationSchema);
 
 const purchaseSchema = new mongoose.Schema({
     purchase_order_id: { type: String },
-    project_name: { type: String },
-    handledBy: { type: String },
+    purchase_invoice_id: { type: String },
     supplier_name: { type: String },
     supplier_address: { type: String },
     supplier_phone: { type: String },
     supplier_email: { type: String },
     supplier_GSTIN: { type: String },
+    purchase_date: { type: Date, default: Date.now },
     items: [
         {
             description: { type: String },
@@ -77,6 +77,7 @@ const wayBillSchema = new mongoose.Schema({
     buyer_name: { type: String },
     buyer_address: { type: String },
     buyer_phone: { type: String },
+    buyer_email: { type: String },
     transport_mode: { type: String },
     vehicle_number: { type: String },
     place_supply: { type: String },
@@ -142,7 +143,10 @@ const stockSchema = new mongoose.Schema({
     GST: { type: Number, required: true },
     threshold: { type: Number, required: true },
     quantity: { type: Number, required: true },
-    min_quantity: { type: Number, required: false },
+    min_quantity: { type: Number, required: false, default: 5 },
+    type: { type: String, required: true, default: 'material' },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
 });
 
 const Stock = mongoose.model('Stock', stockSchema);

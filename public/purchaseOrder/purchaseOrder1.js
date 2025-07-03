@@ -45,11 +45,11 @@ function createPurchaseOrderDiv(purchaseOrder) {
     </div>
         <div class="details">
             <div class="info1">
-                <h1>${purchaseOrder.project_name}</h1>
+                <h1>${purchaseOrder.supplier_name}</h1>
                 <h4>#${purchaseOrder.purchase_order_id}</h4>
             </div>
             <div class="info2">
-                <p>${purchaseOrder.supplier_name}</p>
+                <p>${purchaseOrder.purchase_date}</p>
                 <p>${purchaseOrder.supplier_address}</p>
             </div>
         </div>
@@ -177,8 +177,6 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
                 <p>GSTIN: ${purchaseOrder.supplier_GSTIN || ""}</p>
             </div>
             <div class="info-section">
-                <p><strong>Project Name:</strong> ${purchaseOrder.project_name || ""}</p>
-                <p><strong>Handled By:</strong> ${purchaseOrder.handledBy || ""}</p>
                 <p><strong>Date:</strong> ${purchaseOrder.date || new Date().toLocaleDateString()}</p>
             </div>
         </div>
@@ -254,9 +252,9 @@ async function viewPurchaceOrder(purchaseOrderId) {
         document.getElementById('new').style.display = 'none';
         document.getElementById('view').style.display = 'flex';
 
-        // Fill Project Details
-        document.getElementById('detail-projectName').textContent = purchaseOrder.project_name || '';
         document.getElementById('detail-projectId').textContent = purchaseOrder.purchase_order_id || '';
+        document.getElementById('detail-invoiceId').textContent = purchaseOrder.purchase_invoice_id || '';
+        document.getElementById('detail-purchaseDate').textContent = purchaseOrder.date || new Date().toLocaleDateString();
 
         // Supplier Details
         document.getElementById('detail-buyerName').textContent = purchaseOrder.supplier_name || '';
@@ -316,8 +314,6 @@ async function openPurchaseOrder(purchaseOrderId) {
         document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 
         document.getElementById('Id').value = purchaseOrder.purchase_order_id;
-        document.getElementById('projectName').value = purchaseOrder.project_name;
-        document.getElementById('handledBy').value = purchaseOrder.handledBy;
         document.getElementById('supplierName').value = purchaseOrder.supplier_name;
         document.getElementById('supplierAddress').value = purchaseOrder.supplier_address;
         document.getElementById('supplierPhone').value = purchaseOrder.supplier_phone;

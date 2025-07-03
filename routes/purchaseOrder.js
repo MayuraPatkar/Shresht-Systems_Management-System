@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Purchases } = require('./database');
+const { Purchases, Stock } = require('./database');
 const log = require("electron-log"); // Import electron-log in the preload process
 
 
@@ -34,8 +34,8 @@ router.post("/save-purchase-order", async (req, res) => {
     try {
         let {
             purchase_order_id = '',
-            projectName,
-            handledBy,
+            purchase_invoice_id = '',
+            purchaseDate = new Date(),
             supplier_name = '',
             supplier_address = '',
             supplier_phone = '',
@@ -45,9 +45,9 @@ router.post("/save-purchase-order", async (req, res) => {
         } = req.body;
 
         // Validate required fields
-        if (!purchase_order_id || !projectName) {
+        if (!purchase_order_id) {
             return res.status(400).json({
-                message: 'Missing required fields or invalid data: purchase order id, projectName.',
+                message: 'Missing required fields or invalid data: purchase order id',
             });
         }
 
@@ -55,8 +55,8 @@ router.post("/save-purchase-order", async (req, res) => {
         let purchaseOrder = await Purchases.findOne({ purchase_order_id: purchase_order_id });
         if (purchaseOrder) {
             // Update existing purchase order
-            purchaseOrder.project_name = projectName;
-            purchaseOrder.handledBy = handledBy;
+            purchaseOrder.purchase_invoice_id = purchase_invoice_id;
+            purchaseOrder.purchaseDate = purchaseDate;
             purchaseOrder.supplier_name = supplier_name;
             purchaseOrder.supplier_address = supplier_address;
             purchaseOrder.supplier_phone = supplier_phone;
@@ -67,8 +67,8 @@ router.post("/save-purchase-order", async (req, res) => {
             // Create a new purchase order with the provided data
             purchaseOrder = new Purchases({
                 purchase_order_id: purchase_order_id,
-                project_name: projectName,
-                handledBy: handledBy,
+                purchase_invoice_id: purchase_invoice_id,
+                purchaseDate: purchaseDate,
                 supplier_name: supplier_name,
                 supplier_address: supplier_address,
                 supplier_phone: supplier_phone,
@@ -78,6 +78,36 @@ router.post("/save-purchase-order", async (req, res) => {
                 createdAt: new Date(),
             });
         }
+
+        // --- STOCK MANAGEMENT LOGIC START ---
+        for (const item of items) {
+            if (!item.description) continue; // skip if no description
+
+            // Try to find the stock item by description (you can use another unique field if needed)
+            let stockItem = await Stock.findOne({ description: item.description });
+
+            if (stockItem) {
+                // Update quantity and rate
+                const newQty = Number(stockItem.quantity || 0) + Number(item.quantity || 0);
+                // Optionally, you can average the rate or just update to the latest
+                stockItem.quantity = newQty;
+                stockItem.rate = item.rate || stockItem.rate;
+                stockItem.unitPrice = item.unitPrice || stockItem.unitPrice;
+                stockItem.updatedAt = new Date(); // Update the timestamp
+                await stockItem.save();
+            } else {
+                // Add new stock item
+                await Stock.create({
+                    description: item.description,
+                    HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
+                    quantity: item.quantity || 0,
+                    unitPrice: item.unitPrice || item.UnitPrice || 0,
+                    rate: item.rate || 0,
+                    createdAt: new Date()
+                });
+            }
+        }
+        // --- STOCK MANAGEMENT LOGIC END ---
 
         // Save the purchase order
         const savedPurchaseOrder = await purchaseOrder.save();

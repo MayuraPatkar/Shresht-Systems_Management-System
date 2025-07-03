@@ -1,4 +1,4 @@
-const totalSteps = 4;
+const totalSteps = 3;
 let purchase_order_id = '';
 
 document.getElementById("viewPreview").addEventListener("click", () => {
@@ -24,10 +24,47 @@ async function getId() {
     }
 }
 
+// Improved: Async/await for save/print, better feedback, and bug fixes
+document.getElementById("save").addEventListener("click", async () => {
+    const purchaseOrderData = collectFormData();
+    const ok = await sendToServer(purchaseOrderData);
+    if (ok) window.electronAPI.showAlert1("Purchase Order saved successfully!");
+});
+
+document.getElementById("print").addEventListener("click", async () => {
+    // Always generate the latest preview before printing
+    generatePreview();
+
+    // Wait a tick to ensure DOM updates (optional but safer)
+    setTimeout(async () => {
+        const previewContent = document.getElementById("preview-content").innerHTML;
+        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+            const purchaseOrderData = collectFormData();
+            const ok = await sendToServer(purchaseOrderData);
+            if (ok) window.electronAPI.handlePrintEvent(previewContent, "print", "print");
+        } else {
+            window.electronAPI.showAlert1("Print functionality is not available.");
+        }
+    }, 0);
+});
+
+document.getElementById("savePDF").addEventListener("click", async () => {
+    const previewContent = document.getElementById("preview-content").innerHTML;
+    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+        const purchaseOrderData = collectFormData();
+        const ok = await sendToServer(purchaseOrderData);
+        if (ok) {
+            let name = `PurchaseOrder-${purchase_order_id}`;
+            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+        }
+    } else {
+        window.electronAPI.showAlert1("Print functionality is not available.");
+    }
+});
+
 // Function to generate the preview
 function generatePreview() {
     if (!purchase_order_id) purchase_order_id = document.getElementById('Id').value;
-    const handledBy = document.getElementById("handledBy").value || "";
     const supplierName = document.getElementById("supplierName").value || "";
     const supplierAddress = document.getElementById("supplierAddress").value || "";
     const supplierPhone = document.getElementById("supplierPhone").value || "";
@@ -38,14 +75,10 @@ function generatePreview() {
     let totalSGST = 0;
     let totalTax = 0;
     let totalTaxableValue = 0;
-    let grandTotal = 0;
     let roundOff = 0;
 
     let itemsHTML = "";
-    let totalsHTML = "";
-
-    // Check if rate column is populated
-    let hasTax = Array.from(itemsTable.rows).some(row => row.cells[4].querySelector("input").value > 0);
+    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[4].querySelector("input").value) > 0);
 
     for (const row of itemsTable.rows) {
         const description = row.cells[0].querySelector("input").value || "-";
@@ -96,15 +129,16 @@ function generatePreview() {
         }
     }
 
-    grandTotal = totalTaxableValue + totalCGST + totalSGST;
+    const grandTotal = totalPrice;
     roundOff = Math.round(grandTotal) - grandTotal;
 
-    totalsHTML = `
+    let totalsHTML = `
         ${hasTax ? `
         <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
         <p><strong>Total Tax:</strong> ₹${totalTax.toFixed(2)}</p>` : ""}
-        <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
+        <p><strong>Grand Total:</strong> ₹${(grandTotal + roundOff).toFixed(2)}</p>
     `;
+
     document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
         <div class="header">
@@ -123,15 +157,14 @@ function generatePreview() {
         <div class="title">Purchase Order #${purchase_order_id}</div>
         <div class="first-section">
             <div class="buyer-details">
-                <p><strong>To:</strong></p>
+                <p><strong>Purchase From:</strong></p>
                 <p>${supplierName}</p>
                 <p>${supplierAddress}</p>
                 <p>Ph: ${supplierPhone}</p>
                 <p>GSTIN: ${GSTIN}</p>
             </div>
             <div class="info-section">
-                <p><strong>Project Name:</strong> ${document.getElementById("projectName").value}</p>
-                <p><strong>Handled By:</strong> ${handledBy}</p>
+                <p><strong>Purchase Invoice ID:</strong> ${document.getElementById("purchaseInvoiceId").value || "-"}</p>
                 <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
             </div>
         </div>
@@ -140,9 +173,9 @@ function generatePreview() {
         <thead>
             <tr>
                 <th>Description</th>
+                <th>HSN/SAC</th>
                 <th>Qty</th>
                 <th>Unit Price</th>
-                <th>Rate (₹)</th>
                 ${hasTax ? `
                     <th>Taxable Value (₹)</th>
                     <th>Tax Rate (%)</th>` : ""}
@@ -160,7 +193,7 @@ function generatePreview() {
             ${totalsHTML}
         </div>
         </div>
-        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(grandTotal + roundOff)} Only</span></p>
         <div class="signature">
             <p>For SHRESHT SYSTEMS</p>
             <div class="signature-space"></div>
@@ -173,7 +206,7 @@ function generatePreview() {
 }
 
 // Function to collect form data and send to server
-async function sendToServer(data, shouldPrint) {
+async function sendToServer(data) {
     try {
         const response = await fetch("/purchaseOrder/save-purchase-order", {
             method: "POST",
@@ -194,43 +227,11 @@ async function sendToServer(data, shouldPrint) {
     }
 }
 
-// Event listener for the "Save" button
-document.getElementById("save").addEventListener("click", () => {
-    const purchaseOrderData = collectFormData();
-    if (sendToServer(purchaseOrderData, false)) window.electronAPI.showAlert1("Purchase Oder saved successfully!");
-});
-
-// Event listener for the "Print" button
-document.getElementById("print").addEventListener("click", () => {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const purchaseOrderData = collectFormData();
-        if (sendToServer(purchaseOrderData, true)) window.electronAPI.handlePrintEvent(previewContent, "print");
-    } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
-    }
-});
-
-// Event listener for the "savePDF" button
-document.getElementById("savePDF").addEventListener("click", () => {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const purchaseOrderData = collectFormData();
-        if (sendToServer(purchaseOrderData, true)) {
-            let name = `PurchaseOrder-${purchase_order_id}`;
-            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
-        }
-    } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
-    }
-});
-
 // Function to collect form data
 function collectFormData() {
     return {
         purchase_order_id: document.getElementById("Id").value,
-        projectName: document.getElementById("projectName").value,
-        handledBy: document.getElementById("handledBy").value,
+        purchase_invoice_id: document.getElementById("purchaseInvoiceId").value,
         supplier_name: document.getElementById("supplierName").value,
         supplier_address: document.getElementById("supplierAddress").value,
         supplier_phone: document.getElementById("supplierPhone").value,

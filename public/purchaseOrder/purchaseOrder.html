@@ -257,19 +257,11 @@
                 <input type="hidden" id="Id">
                 <!-- Basic purchase order Details -->
                 <div class="steps active" id="step-1">
-                    <h2>Project Details</h2>
+                    <h2>Supplier Details</h2>
                     <div class="form-group">
-                        <label for="projectName">project Name</label>
-                        <input type="text" id="projectName" required>
+                        <label for="purchaseInvoiceId">Purchase Invoice ID</label>
+                        <input type="text" id="purchaseInvoiceId" required>
                     </div>
-                    <div class="form-group">
-                        <label for="handledBy">Handled By</label>
-                        <input type="text" id="handledBy" required>
-                    </div>
-                </div>
-
-                <div class="steps" id="step-2">
-                    <h2>Recipient Details (to)</h2>
                     <div class="form-group">
                         <label for="supplierName">Supplier Name</label>
                         <input type="text" id="supplierName" required>
@@ -290,9 +282,13 @@
                         <label for="supplierGSTIN">GSTIN</label>
                         <input type="text" id="supplierGSTIN" required>
                     </div>
+                    <div class="form-group">
+                        <label for="purchaseDate">Purchase Date</label>
+                        <input type="date" id="purchaseDate" required>
+                    </div>
                 </div>
 
-                <div class="steps" id="step-3">
+                <div class="steps" id="step-2">
                     <h2>Item List</h2>
                     <div class="form-group">
                         <table id="items-table">
@@ -314,7 +310,7 @@
                     </div>
                 </div>
 
-                <div class="steps" id="step-4">
+                <div class="steps" id="step-3">
                     <div class="preview">
                         <h2>Preview</h2>
                         <div id="preview-content">
