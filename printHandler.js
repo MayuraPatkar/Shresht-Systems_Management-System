@@ -32,7 +32,7 @@ function handlePrintEvent(mainWindow) {
                     overflow: hidden;      
                 }
 
-                .container {
+                .preview-container {
                     //background: #fff !important;
                     // width: 210mm;
                     // height: 297mm;
@@ -125,25 +125,25 @@ function handlePrintEvent(mainWindow) {
             flex-direction: column;
         }
 
-        .container table {
+        .preview-container table {
             width: 99%;
             border-collapse: collapse;
             table-layout: auto;
         }
 
-        .container table th,
-        .container table td {
+        .preview-container table th,
+        .preview-container table td {
             border: 1px solid #000000;
             padding: 7px;
             text-align: left;
             font-size: 20px;
         }
         
-        .container table th{
+        .preview-container table th{
             font-size: 22px;
         }
 
-        .container table th {
+        .preview-container table th {
             background-color: #007bff;
             color: #fff;
             font-weight: bold;
@@ -317,7 +317,7 @@ function handlePrintEvent(mainWindow) {
                     overflow: hidden;      
                 }
 
-                .container {
+                .preview-container {
                     //background: #fff !important;
                     // width: 210mm;
                     // height: 297mm;
@@ -390,25 +390,25 @@ function handlePrintEvent(mainWindow) {
                     margin: 0;
                 }
 
-                .container table {
+                .preview-container table {
                     width: 99%;
                     border-collapse: collapse;
                     table-layout: auto;
                 }
 
-                .container table th,
-                .container table td {
+                .preview-container table th,
+                .preview-container table td {
                     border: 1px solid #000000;
                     padding: 10px;
                     text-align: left;
                     font-size: 18px;
                 }
                 
-                .container table th {
+                .preview-container table th {
                     font-size: 20px;
                 }
             
-                .container table th {
+                .preview-container table th {
                     background-color: #007bff !important;
                     color: #fff !important;
                     font-weight: bold;
@@ -440,6 +440,13 @@ function handlePrintEvent(mainWindow) {
 
                 #totalInWords, p {
                     font-size: 20px;
+                }
+
+                .notes-section {
+                    padding: 3%;
+                    font-size: 14px;
+                    margin-top: 20px;
+                    line-height: 1.5;
                 }
 
 

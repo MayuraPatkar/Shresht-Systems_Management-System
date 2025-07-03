@@ -252,6 +252,16 @@ function generateViewPreviewHTML(quotation, withTax = false) {
         </div>
         <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
     <div class="page-break"></div>
+    <div class="notes-section" contenteditable="true">
+    <p><strong>Notes:</strong></p>
+        <ul>
+            <li>All prices are exclusive of taxes unless stated otherwise.</li>    
+            <li>Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation.</li>
+            <li>Delivery and installation will be completed within the stipulated timeline as per mutual agreement.</li>
+            <li>All equipment supplied is covered under the manufacturer’s standard warranty.</li>              
+            <li>All applicable taxes and duties are included unless stated otherwise.</li>
+            </ul>
+        </div>
     <footer>
         <p>This is a computer-generated quotation.</p>
     </footer>
