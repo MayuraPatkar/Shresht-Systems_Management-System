@@ -52,6 +52,10 @@ document.getElementById('analytics').addEventListener('click', () => {
   window.location = '/analytics';
 })
 
+document.getElementById('calculations').addEventListener('click', () => {
+  window.location = '/calculations';
+})
+
 document.getElementById('settings').addEventListener('click', () => {
   window.location = '/settings';
 })

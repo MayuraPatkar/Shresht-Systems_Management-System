@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Calculations & Converters - Shresht Systems</title>
+    <link rel="stylesheet" href="../global/root.css">
+    <link rel="stylesheet" href="../global/globalStyle.css">
+    <link rel="stylesheet" href="../global/formStyle.css">
+    <style>
+        .flex-row {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-bottom: 2.5rem;
+        }
+
+        .flex-col {
+            flex: 1 1 320px;
+            min-width: 270px;
+            background: #f9fbfd;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #0001;
+            padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+            margin-bottom: 1.5rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .flex-col:hover {
+            box-shadow: 0 6px 24px #0002;
+        }
+
+        .calc-section h2 {
+            color: #2a4d8f;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .calc-section label {
+            font-weight: 600;
+            color: #222;
+        }
+
+        .calc-section input,
+        .calc-section select {
+            margin: 0.5rem 0 1rem 0;
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #bfc9d9;
+            font-size: 1rem;
+            width: 90%;
+            background: #fff;
+            transition: border 0.2s;
+        }
+
+        .calc-section input:focus,
+        .calc-section select:focus {
+            border: 1.5px solid #267746;
+            outline: none;
+        }
+
+        .calc-section button {
+            background: var(--primary, #2a4d8f);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #0001;
+        }
+
+        .calc-section button:hover {
+            background: var(--accent, #267746);
+            box-shadow: 0 4px 16px #0002;
+        }
+
+        .result {
+            font-weight: 700;
+            color: var(--accent, #267746);
+            margin-top: 0.5rem;
+            font-size: 1.08rem;
+            min-height: 1.5em;
+        }
+
+        .area-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+            align-items: flex-start;
+        }
+
+        .area-section .calc-section.flex-row {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            background: #f9fbfd;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px #0001;
+            padding: 2rem 2rem 1.5rem 2rem;
+            gap: 2.5rem;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .area-section .calc-section.flex-row>div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60%;
+            height: 50vh;
+            margin-bottom: 0;
+        }
+
+        .area-section .calc-section.flex-row>div img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 8px;
+            display: block;
+        }
+
+        .area-section #calcForm {
+            flex: 1 1 350px;
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem 2.5rem;
+            align-items: flex-end;
+        }
+
+        .area-section #calcForm label {
+            min-width: 170px;
+            font-size: 1.05rem;
+            color: #2a4d8f;
+            font-weight: 600;
+        }
+
+        .area-section #calcForm input[type="number"] {
+            margin-top: 0.4rem;
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            border: 1.5px solid #bfc9d9;
+            font-size: 1rem;
+            background: #fff;
+            transition: border 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .area-section #calcForm input[type="number"]:focus {
+            border: 1.5px solid #267746;
+            outline: none;
+            background: #eaf6ee;
+        }
+
+        .area-section #calcForm input.readonly,
+        .area-section #calcForm input[readonly] {
+            background: #e9ecef;
+            color: #888;
+            cursor: not-allowed;
+            border: 1.5px solid #e0e6ef;
+        }
+
+        .area-section #calcForm hr {
+            width: 100%;
+            border: none;
+            border-top: 1px solid #dbeafe;
+            margin: 1.2rem 0 0.7rem 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header Section -->
+    <header class="no-select">
+        <div class="imglogo-title">
+            <div class="img" id="logo">
+                <img src="../assets/icon.png" alt="Shresht Logo">
+            </div>
+            <h1 class="no-select">Calculations & Converters</h1>
+        </div>
+    </header>
+    <div class="container">
+        <!-- Add this button in your header for toggling sidebar (mobile only) -->
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" style="display:none;">
+            &#9776;
+        </button>
+        <!-- Add this overlay just after <body> or before .container -->
+        <div id="sidebar-overlay"></div>
+        <aside class="no-select">
+            <div class="nav-link" id="dashboard">
+                <img src="../assets/dashboard-interface.png" alt="dashboard">
+                Dashboard
+            </div>
+            <div class="nav-link" id="quotation">
+                <img src="../assets/quotation.png" alt="Quotation">
+                Quotation
+            </div>
+            <div class="nav-link" id="invoice">
+                <img src="../assets/transaction.png" alt="Invoice">
+                Bill / Invoice
+            </div>
+            <div class="nav-link" id="wayBill">
+                <img src="../assets/delivery.png" alt="Way Bill">
+                Way Bill
+            </div>
+            <div class="nav-link" id="service">
+                <img src="../assets/telemarketing.png" alt="Service">
+                Service
+            </div>
+            <div class="nav-link" id="postOrder">
+                <img src="../assets/economy-forecast.png" alt="Purchase Bill">
+                Purchase Bill
+            </div>
+            <div class="nav-link" id="stock">
+                <img src="../assets/in-stock.png" alt="Stock">
+                Stock
+            </div>
+            <div class="nav-link" id="comms">
+                <img src="../assets/customer-service.png" alt="comms">
+                Comms
+            </div>
+            <div class="nav-link" id="employees">
+                <img src="../assets/worker.png" alt="Employees">
+                Employees
+            </div>
+            <div class="nav-link" id="analytics">
+                <img src="../assets/analitics.png" alt="Analytics">
+                Analytics
+            </div>
+            <div class="nav-link" id="inventory">
+                <img src="../assets/inventory.png" alt="inventory">
+                Inventory
+            </div>
+            <div class="nav-link active" id="calculations">
+                <img src="../assets/calculator.png" alt="calculations">
+                Calculations
+            </div>
+            <div class="nav-link" id="settings">
+                <img src="../assets/settings.png" alt="Settings">
+                Settings
+            </div>
+        </aside>
+        <main>
+            <div class="flex-row">
+                <!-- Basic Calculator -->
+                <div class="calc-section flex-col">
+                    <h2>Basic Calculator</h2>
+                    <input type="text" id="basicCalcInput" placeholder="e.g. 12 + 7 * 3" style="width:90%;">
+                    <button onclick="calculateBasic()">Calculate</button>
+                    <div class="result" id="basicCalcResult"></div>
+                </div>
+
+                <!-- GST Calculator -->
+                <div class="calc-section flex-col">
+                    <h2>GST Calculator</h2>
+                    <label>Amount: <input type="number" id="gstAmount" min="0"></label><br>
+                    <label>GST Rate:
+                        <select id="gstRate">
+                            <option value="5">5%</option>
+                            <option value="12">12%</option>
+                            <option value="18" selected>18%</option>
+                            <option value="28">28%</option>
+                        </select>
+                    </label><br>
+                    <button onclick="calculateGST()">Calculate GST</button>
+                    <div class="result" id="gstResult"></div>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <!-- Unit Converter -->
+                <div class="calc-section flex-col">
+                    <h2>Length Converter</h2>
+                    <label>Value: <input type="number" id="lengthValue" min="0"></label>
+                    <select id="lengthFrom">
+                        <option value="m">Meter</option>
+                        <option value="cm">Centimeter</option>
+                        <option value="mm">Millimeter</option>
+                        <option value="ft">Feet</option>
+                        <option value="in">Inch</option>
+                    </select>
+                    to
+                    <select id="lengthTo">
+                        <option value="m">Meter</option>
+                        <option value="cm">Centimeter</option>
+                        <option value="mm">Millimeter</option>
+                        <option value="ft">Feet</option>
+                        <option value="in">Inch</option>
+                    </select>
+                    <button onclick="convertLength()">Convert</button>
+                    <div class="result" id="lengthResult"></div>
+                </div>
+
+                <!-- Area Converter -->
+                <div class="calc-section flex-col">
+                    <h2>Area Converter</h2>
+                    <label>Value: <input type="number" id="areaValue" min="0"></label>
+                    <select id="areaFrom">
+                        <option value="sqm">Sq. Meter</option>
+                        <option value="sqft">Sq. Feet</option>
+                        <option value="acre">Acre</option>
+                        <option value="hectare">Hectare</option>
+                    </select>
+                    to
+                    <select id="areaTo">
+                        <option value="sqm">Sq. Meter</option>
+                        <option value="sqft">Sq. Feet</option>
+                        <option value="acre">Acre</option>
+                        <option value="hectare">Hectare</option>
+                    </select>
+                    <button onclick="convertArea()">Convert</button>
+                    <div class="result" id="areaResult"></div>
+                </div>
+            </div>
+            <div class="flex-row area-section">
+                <div class="calc-section flex-row">
+                    <h2>Area ...</h2>
+                    <div calc-section flex-col><img src="../assets/area.png"></div>
+                    <form id="calcForm" autocomplete="off">
+                        <label>Angle θ (deg) (F)
+                            <input type="number" step="0.01" id="angle" placeholder="deg">
+                        </label>
+                        <label>Horizontal run (ft) (A)
+                            <input type="number" step="0.01" id="run" placeholder="ft">
+                        </label>
+                        <label>Vertical rise (ft) (E)
+                            <input type="number" step="0.01" id="rise" placeholder="ft">
+                        </label>
+                        <label>Hypotenuse (ft) (D)
+                            <input type="number" step="0.01" id="hyp" placeholder="ft">
+                        </label>
+                        <label>Rectangle height (ft) (C)
+                            <input type="number" step="0.01" id="rectHeight" placeholder="ft">
+                        </label>
+                        <hr>
+                        <label>Total height (rect + rise) (ft) (B)
+                            <input type="number" step="0.01" id="totalHeight" class="readonly" readonly>
+                        </label>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../global/globalScript.js"></script>
+    <script src="./calculations.js"></script>
+</body>
+
+</html>

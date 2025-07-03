@@ -9,6 +9,166 @@
     <link rel="stylesheet" href="../global/formStyle.css">
     <link rel="stylesheet" href="../global/previewStyle.css">
     <title>Way Bill</title>
+    <style>
+        /* Main view container */
+        #view {
+            display: none;
+            min-width: calc(100vw - 241px);
+            max-height: calc(100vh - 72px);
+            overflow-x: auto;
+            padding: 2rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+
+        /* Project Details & Preview Section */
+        #project-details-view {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Card styling */
+        #project-details-view .card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px #0002;
+            padding: 2.2rem 2rem;
+            margin-bottom: 0;
+            width: 90%;
+            max-width: 900px;
+            min-width: 280px;
+            transition: box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+
+        #project-details-view .card:hover {
+            box-shadow: 0 8px 24px #0003;
+        }
+
+        /* Headings */
+        #project-details-view h2 {
+            color: var(--primary, #2a4d8f);
+            margin-bottom: 1.2rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        #project-details-view h4 {
+            color: var(--accent, #267746);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Details layout */
+        #project-details-view>.card>div {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2.5rem;
+        }
+
+        #project-details-view strong {
+            color: #222;
+            font-weight: 600;
+        }
+
+        #project-details-view span {
+            color: #444;
+            font-weight: 400;
+        }
+
+        /* Payment Section - make it stand out */
+        #project-details-view .payment-section {
+            background: linear-gradient(90deg, #e3f0ff 0%, #f7fafd 100%);
+            border-left: 5px solid var(--primary, #2a4d8f);
+            padding: 1.5rem 2rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px #0001;
+            width: 90%;
+            max-width: 900px;
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+
+        #project-details-view .payment-section strong {
+            color: var(--primary, #2a4d8f);
+        }
+
+        /* Table styling */
+        #detail-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+            background: #f9fbfd;
+            border-radius: 8px;
+            overflow: hidden;
+            min-width: 600px;
+        }
+
+        #detail-items-table th,
+        #detail-items-table td {
+            border: 1px solid #e5e7eb;
+            padding: 0.7rem 1.1rem;
+            text-align: left;
+        }
+
+        #detail-items-table th {
+            background: #f0f4fa;
+            color: var(--primary, #2a4d8f);
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        #detail-items-table tbody tr:nth-child(even) {
+            background: #f6fafd;
+        }
+
+        #detail-items-table tbody tr:hover {
+            background: #eaf2fb;
+        }
+
+        /* Make table scrollable on small screens */
+        #project-details-view .card>div {
+            overflow-x: auto;
+        }
+
+        /* Preview Content */
+        #preview-content2 {
+            border-radius: 10px;
+            min-height: 120px;
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.08rem;
+        }
+
+        /* Buttons */
+        #project-details-view .button,
+        #project-details-view button {
+            background: var(--primary, #2a4d8f);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem 2rem;
+            font-size: 1.08rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #0001;
+        }
+
+        #project-details-view .button:hover,
+        #project-details-view button:hover {
+            background: var(--accent, #267746);
+            box-shadow: 0 4px 16px #0002;
+        }
+    </style>
 </head>
 
 <body>
@@ -76,6 +236,10 @@
             <div class="nav-link" id="inventory">
                 <img src="../assets/inventory.png" alt="inventory">
                 Inventory
+            </div>
+            <div class="nav-link" id="calculations">
+                <img src="../assets/calculator.png" alt="calculations">
+                Calculations
             </div>
             <div class="nav-link" id="settings">
                 <img src="../assets/settings.png" alt="Settings">
@@ -190,7 +354,72 @@
                 </div>
             </form>
         </div>
+        <div id="view" class="no-select">
+            <!-- Project Details & Preview Section -->
+            <div id="project-details-view">
+                <!-- Project Details -->
+                <div class="card">
+                    <h2>Project Details</h2>
+                    <div>
+                        <strong>Project Name:</strong> <span id="detail-projectName"></span><br>
+                        <strong>Way Bill ID:</strong> <span id="detail-wayBillId"></span><br>
+                    </div>
+                </div>
+                <!-- Buyer & Consignee Details -->
+                <div class="card">
+                    <h2>Recipient</h2>
+                    <div>
+                        <strong>Name:</strong> <span id="detail-buyerName"></span><br>
+                        <strong>Address:</strong> <span id="detail-buyerAddress"></span><br>
+                        <strong>Phone:</strong> <span id="detail-buyerPhone"></span><br>
+                        <strong>Email:</strong> <span id="detail-buyerEmail"></span>
+                    </div>
+                </div>
+
+                <!-- Transportation Details -->
+                <div class="card">
+                    <h2>Transportation Details</h2>
+                    <div>
+                        <strong>Way Bill ID:</strong> <span id="detail-wayBillId"></span><br>
+                        <strong>Transport Mode:</strong> <span id="detail-transportMode"></span><br>
+                        <strong>Vehicle Number:</strong> <span id="detail-vehicleNumber"></span><br>
+                        <strong>Place to Supply:</strong> <span id="detail-placeSupply"></span>
+                    </div>
+                </div>
+
+                <!-- Item List -->
+                <div class="card">
+                    <h2>Item List</h2>
+                    <div>
+                        <table id="detail-items-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>HSN/SAC</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Items will be dynamically filled -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Preview & Actions -->
+                <div class="card">
+                    <div id="preview-content2"></div>
+                    <div>
+                        <button type="button" id="printProject" class="button">Print</button>
+                        <button type="button" id="saveProjectPDF" class="button">Save as PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
     <!-- <script src="../global/globalScript.js"></script> -->
     <script src="./wayBill1.js"></script>
     <script src="./wayBill2.js"></script>
