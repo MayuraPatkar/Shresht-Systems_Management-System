@@ -32,20 +32,14 @@ document.getElementById("save").addEventListener("click", async () => {
 });
 
 document.getElementById("print").addEventListener("click", async () => {
-    // Always generate the latest preview before printing
-    generatePreview();
-
-    // Wait a tick to ensure DOM updates (optional but safer)
-    setTimeout(async () => {
-        const previewContent = document.getElementById("preview-content").innerHTML;
-        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-            const purchaseOrderData = collectFormData();
-            const ok = await sendToServer(purchaseOrderData);
-            if (ok) window.electronAPI.handlePrintEvent(previewContent, "print", "print");
-        } else {
-            window.electronAPI.showAlert1("Print functionality is not available.");
-        }
-    }, 0);
+    const previewContent = document.getElementById("preview-content").innerHTML;
+    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+        const purchaseOrderData = collectFormData();
+        const ok = await sendToServer(purchaseOrderData);
+        if (ok) window.electronAPI.handlePrintEvent(previewContent, "print", "print");
+    } else {
+        window.electronAPI.showAlert1("Print functionality is not available.");
+    }
 });
 
 document.getElementById("savePDF").addEventListener("click", async () => {
@@ -232,6 +226,7 @@ function collectFormData() {
     return {
         purchase_order_id: document.getElementById("Id").value,
         purchase_invoice_id: document.getElementById("purchaseInvoiceId").value,
+        purchaseDate: document.getElementById("purchaseDate").value,
         supplier_name: document.getElementById("supplierName").value,
         supplier_address: document.getElementById("supplierAddress").value,
         supplier_phone: document.getElementById("supplierPhone").value,

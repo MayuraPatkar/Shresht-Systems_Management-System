@@ -30,9 +30,9 @@ async function registerNumber() {
 
 async function sendPaymentReminder(
   phone,
-  cardName = 'CS Mutual Credit Plus',
+  cardName = 'Sandeep Nayak',
   last4    = '1234',
-  dueDate  = 'Mar 22, 2024'
+  dueDate  = '2521120'
 ) {
   const payload = {
     messaging_product: 'whatsapp',
@@ -148,7 +148,7 @@ router.post('/send-manual-reminder', async (req, res) => {
     const { phone } = req.body;
     if (!phone) return res.status(400).json({ message: 'Phone number required.' });
     try {
-        await sendPaymentReminder(phone, 'This is a manual payment reminder from Shresht Systems.');
+        await sendPaymentReminder(phone, 'Sneha');
         res.json({ message: 'Manual payment reminder sent.' });
     } catch (err) {
         // Log the full error response from Meta

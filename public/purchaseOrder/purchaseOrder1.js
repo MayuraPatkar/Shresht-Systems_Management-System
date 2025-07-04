@@ -49,7 +49,7 @@ function createPurchaseOrderDiv(purchaseOrder) {
                 <h4>#${purchaseOrder.purchase_order_id}</h4>
             </div>
             <div class="info2">
-                <p>${purchaseOrder.purchase_date}</p>
+                <p>${formatDate(purchaseOrder.purchase_date)}</p>
                 <p>${purchaseOrder.supplier_address}</p>
             </div>
         </div>
@@ -228,9 +228,9 @@ document.getElementById("print").addEventListener("click", () => {
 document.getElementById("savePDF").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content2").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-            let name = 'PurchaseOrder';
-            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
-        
+        let name = 'PurchaseOrder';
+        window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+
     } else {
         window.electronAPI.showAlert1("Print functionality is not available.");
     }
@@ -254,7 +254,7 @@ async function viewPurchaceOrder(purchaseOrderId) {
 
         document.getElementById('detail-projectId').textContent = purchaseOrder.purchase_order_id || '';
         document.getElementById('detail-invoiceId').textContent = purchaseOrder.purchase_invoice_id || '';
-        document.getElementById('detail-purchaseDate').textContent = purchaseOrder.date || new Date().toLocaleDateString();
+        document.getElementById('detail-purchaseDate').textContent = formatDate(purchaseOrder.purchase_date) || '';
 
         // Supplier Details
         document.getElementById('detail-buyerName').textContent = purchaseOrder.supplier_name || '';
@@ -284,10 +284,22 @@ async function viewPurchaceOrder(purchaseOrderId) {
 
         // Print and Save as PDF handlers
         document.getElementById('printProject').onclick = () => {
-            window.print();
+            const previewContent = document.getElementById("preview-content2").innerHTML;
+            if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+                window.electronAPI.handlePrintEvent(previewContent, "print", "print");
+            } else {
+                window.electronAPI.showAlert1("Print functionality is not available.");
+            }
         };
         document.getElementById('saveProjectPDF').onclick = () => {
-            window.print();
+            const previewContent = document.getElementById("preview-content").innerHTML;
+            if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+                let name = `PurchaseOrder-${purchaseOrder.purchase_order_id || purchaseOrder.Id || ""}`;
+                window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+
+            } else {
+                window.electronAPI.showAlert1("Print functionality is not available.");
+            }
         };
 
     } catch (error) {
@@ -314,6 +326,8 @@ async function openPurchaseOrder(purchaseOrderId) {
         document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 
         document.getElementById('Id').value = purchaseOrder.purchase_order_id;
+        document.getElementById('purchaseInvoiceId').value = purchaseOrder.purchase_invoice_id;
+        document.getElementById('purchaseDate').value = formatDate(purchaseOrder.purchase_date);
         document.getElementById('supplierName').value = purchaseOrder.supplier_name;
         document.getElementById('supplierAddress').value = purchaseOrder.supplier_address;
         document.getElementById('supplierPhone').value = purchaseOrder.supplier_phone;

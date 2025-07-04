@@ -68,8 +68,6 @@ router.post("/save-invoice", async (req, res) => {
             totalAmount = 0,
         } = req.body;
 
-        console.log("jkj", invoiceDate);
-
         const date = new Date();
 
         if (!invoiceId || !projectName) {
@@ -79,27 +77,20 @@ router.post("/save-invoice", async (req, res) => {
         const existingInvoice = await Invoices.findOne({ invoice_id: invoiceId });
 
         if (existingInvoice) {
-            // Calculate stock difference
-            const prevItems = existingInvoice.items;
-            const stockChanges = {};
-
-            for (let prevItem of prevItems) {
-                stockChanges[prevItem.description] = (stockChanges[prevItem.description] || 0) + prevItem.quantity;
+            // Update stock: revert previous items
+            for (let prevItem of existingInvoice.items) {
+                const stockItem = await Stock.findOne({ itemName: prevItem.description });
+                if (stockItem) {
+                    stockItem.quantity += prevItem.quantity;
+                    await stockItem.save();
+                }
             }
-            for (let newItem of items) {
-                stockChanges[newItem.description] = (stockChanges[newItem.description] || 0) - newItem.quantity;
-            }
-
-            for (let [itemName, change] of Object.entries(stockChanges)) {
-                if (change !== 0) {
-                    const stockItem = await Stock.findOne({ itemName });
-                    if (stockItem) {
-                        stockItem.quantity += change;
-                        if (stockItem.quantity < 0) {
-                            return res.status(400).json({ message: `Not enough stock for ${itemName}` });
-                        }
-                        await stockItem.save();
-                    }
+            // Update stock: deduct new items (allow negative)
+            for (let item of items) {
+                const stockItem = await Stock.findOne({ itemName: item.description });
+                if (stockItem) {
+                    stockItem.quantity -= item.quantity;
+                    await stockItem.save();
                 }
             }
 
@@ -120,10 +111,10 @@ router.post("/save-invoice", async (req, res) => {
             const updatedInvoice = await existingInvoice.save();
             return res.status(200).json({ message: 'Invoice updated successfully', invoice: updatedInvoice });
         } else {
-            // Deduct stock for new invoice
+            // Deduct stock for new invoice (allow negative)
             for (let item of items) {
                 const stockItem = await Stock.findOne({ itemName: item.description });
-                if (stockItem && stockItem.quantity >= item.quantity) {
+                if (stockItem) {
                     stockItem.quantity -= item.quantity;
                     await stockItem.save();
                 }

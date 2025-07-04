@@ -172,9 +172,14 @@
 </head>
 
 <body>
-    <header>
-        <div class="img" id="logo"><img src="../assets/icon.png" alt="logo"></div>
-        <h1>Purchase Bill</h1>
+    <header class="no-select">
+        <div class="imglogo-title">
+            <div class="img" id="logo">
+                <img src="../assets/icon.png" alt="logo">
+            </div>
+            <h1>Purchase Bill</h1>
+        </div>
+
         <div class="search">
             <img src="../assets/search.png" alt="Search">
             <input type="text" id="searchInput" placeholder="Search here...">
@@ -185,7 +190,7 @@
             <button onclick="window.location = '/purchaseOrder'">Home</button>
         </div>
     </header>
-    <div class="container">
+    <div class="container" class="no-select">
         <!-- Add this button in your header for toggling sidebar (mobile only) -->
         <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" style="display:none;">
             &#9776;
@@ -252,7 +257,7 @@
             </div>
         </div>
 
-        <div id="new">
+        <div id="new" class="no-select">
             <form id="purchaseOrder">
                 <input type="hidden" id="Id">
                 <!-- Basic purchase order Details -->

@@ -287,14 +287,18 @@ document.getElementById("save").addEventListener("click", () => {
 });
 
 // Event listener for the "Print" button
-document.getElementById("print").addEventListener("click", () => {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const invoiceData = collectFormData();
-        if (sendToServer(invoiceData, true)) window.electronAPI.handlePrintEvent(previewContent, "print");
-    } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
-    }
+document.getElementById("print").addEventListener("click", async () => {
+    generatePreview(); // Ensure preview is up to date
+    setTimeout(async () => {
+        const previewContent = document.getElementById("preview-content").innerHTML;
+        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+            const invoiceData = collectFormData();
+            const ok = await sendToServer(invoiceData, true);
+            if (ok) window.electronAPI.handlePrintEvent(previewContent, "print");
+        } else {
+            window.electronAPI.showAlert1("Print functionality is not available.");
+        }
+    }, 0);
 });
 
 // Event listener for the "savePDF" button
@@ -328,7 +332,6 @@ function collectFormData() {
         dcNumber: document.getElementById("dcNumber").value,
         dcDate: document.getElementById("dcDate").value,
         service_month: document.getElementById("service_month").value,
-        margin: document.getElementById("margin").value,
         wayBillNumber: document.getElementById("wayBillNumber").value,
         buyerName: document.getElementById("buyerName").value,
         buyerAddress: document.getElementById("buyerAddress").value,

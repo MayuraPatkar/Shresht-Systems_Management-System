@@ -141,7 +141,7 @@ const stockSchema = new mongoose.Schema({
     HSN_SAC: { type: String, required: false },
     unitPrice: { type: Number, required: true },
     GST: { type: Number, required: true },
-    threshold: { type: Number, required: true },
+    margin: { type: Number, required: true, default: 0 },
     quantity: { type: Number, required: true },
     min_quantity: { type: Number, required: false, default: 5 },
     type: { type: String, required: true, default: 'material' },

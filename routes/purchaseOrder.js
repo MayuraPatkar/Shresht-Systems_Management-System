@@ -35,7 +35,7 @@ router.post("/save-purchase-order", async (req, res) => {
         let {
             purchase_order_id = '',
             purchase_invoice_id = '',
-            purchaseDate = new Date(),
+            purchaseDate,
             supplier_name = '',
             supplier_address = '',
             supplier_phone = '',
@@ -53,10 +53,14 @@ router.post("/save-purchase-order", async (req, res) => {
 
         // Check if purchase order already exists
         let purchaseOrder = await Purchases.findOne({ purchase_order_id: purchase_order_id });
+        let previousItems = [];
         if (purchaseOrder) {
+            // Save previous items for stock adjustment
+            previousItems = Array.isArray(purchaseOrder.items) ? purchaseOrder.items : [];
+
             // Update existing purchase order
             purchaseOrder.purchase_invoice_id = purchase_invoice_id;
-            purchaseOrder.purchaseDate = purchaseDate;
+            purchaseOrder.purchase_date = purchaseDate;
             purchaseOrder.supplier_name = supplier_name;
             purchaseOrder.supplier_address = supplier_address;
             purchaseOrder.supplier_phone = supplier_phone;
@@ -68,7 +72,7 @@ router.post("/save-purchase-order", async (req, res) => {
             purchaseOrder = new Purchases({
                 purchase_order_id: purchase_order_id,
                 purchase_invoice_id: purchase_invoice_id,
-                purchaseDate: purchaseDate,
+                purchase_date: purchaseDate,
                 supplier_name: supplier_name,
                 supplier_address: supplier_address,
                 supplier_phone: supplier_phone,
@@ -80,30 +84,45 @@ router.post("/save-purchase-order", async (req, res) => {
         }
 
         // --- STOCK MANAGEMENT LOGIC START ---
-        for (const item of items) {
-            if (!item.description) continue; // skip if no description
 
-            // Try to find the stock item by description (you can use another unique field if needed)
-            let stockItem = await Stock.findOne({ description: item.description });
+        // If updating, first revert previous items from stock
+        if (previousItems.length > 0) {
+            for (const prevItem of previousItems) {
+                if (!prevItem.description) continue;
+                let stockItem = await Stock.findOne({ itemName: prevItem.description });
+                if (stockItem) {
+                    stockItem.quantity = Number(stockItem.quantity || 0) - Number(prevItem.quantity || 0);
+                    // Prevent negative stock
+                    if (stockItem.quantity < 0) stockItem.quantity = 0;
+                    await stockItem.save();
+                }
+            }
+        }
+
+        // Now add new items to stock
+        for (const item of items) {
+            if (!item.description) continue;
+
+            let stockItem = await Stock.findOne({ itemName: item.description });
 
             if (stockItem) {
-                // Update quantity and rate
-                const newQty = Number(stockItem.quantity || 0) + Number(item.quantity || 0);
-                // Optionally, you can average the rate or just update to the latest
-                stockItem.quantity = newQty;
-                stockItem.rate = item.rate || stockItem.rate;
-                stockItem.unitPrice = item.unitPrice || stockItem.unitPrice;
-                stockItem.updatedAt = new Date(); // Update the timestamp
+                // Update quantity and GST/unitPrice if needed
+                stockItem.quantity = Number(stockItem.quantity || 0) + Number(item.quantity || 0);
+                stockItem.unitPrice = Number(item.unitPrice) || stockItem.unitPrice;
+                stockItem.GST = Number(item.rate) || stockItem.GST;
+                stockItem.updatedAt = new Date();
                 await stockItem.save();
             } else {
-                // Add new stock item
                 await Stock.create({
-                    description: item.description,
+                    itemName: item.description,
                     HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
-                    quantity: item.quantity || 0,
-                    unitPrice: item.unitPrice || item.UnitPrice || 0,
-                    rate: item.rate || 0,
-                    createdAt: new Date()
+                    unitPrice: Number(item.unitPrice) || 0,
+                    GST: Number(item.rate) || 0,
+                    margin: 0,
+                    quantity: Number(item.quantity) || 0,
+                    type: 'material',
+                    createdAt: new Date(),
+                    updatedAt: new Date()
                 });
             }
         }
