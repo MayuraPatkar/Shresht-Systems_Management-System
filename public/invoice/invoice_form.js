@@ -1,40 +1,39 @@
 const totalSteps = 7;
+let invoiceId = '';
 
-document.getElementById("viewPreview").addEventListener("click", () => {
+document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
     generatePreview();
 });
 
 // Event listener for the "Next" button
-document.getElementById("nextBtn").addEventListener("click", () => {
-    if (currentStep === 2 && !document.getElementById("Id").value) {
-        const quotation_id = document.getElementById("quotationId").value;
-        if (quotation_id) {
-            fetch(`/quotation/${quotation_id}`)
+document.getElementById("next-btn").addEventListener("click", () => {
+    if (currentStep === 2 && !document.getElementById("invoice-id").value) {
+        const quotationId = document.getElementById("quotation-id").value;
+        if (quotationId) {
+            fetch(`/quotation/${quotationId}`)
                 .then(response => response.json())
                 .then(data => {
                     const quotation = data.quotation;
-                    document.getElementById("projectName").value = quotation.project_name;
-                    document.getElementById("buyerName").value = quotation.buyer_name;
-                    document.getElementById("buyerAddress").value = quotation.buyer_address;
-                    document.getElementById("buyerPhone").value = quotation.buyer_phone;
+                    document.getElementById("project-name").value = quotation.project_name;
+                    document.getElementById("buyer-name").value = quotation.buyer_name;
+                    document.getElementById("buyer-address").value = quotation.buyer_address;
+                    document.getElementById("buyer-phone").value = quotation.buyer_phone;
                     const itemsTableBody = document.querySelector("#items-table tbody");
                     itemsTableBody.innerHTML = "";
 
                     quotation.items.forEach(item => {
                         const row = document.createElement("tr");
-
                         row.innerHTML = `
-                                <td><input type="text" value="${item.description}" required></td>
-                                <td><input type="text" value="${item.HSN_SAC}" required></td>
-                                <td><input type="number" value="${item.quantity}" min="1" required></td>
-                                <td><input type="number" value="${item.unitPrice}" required></td>
-                                <td><input type="number" value="${item.rate}" required></td>
-                                <td><button type="button" class="remove-item-btn">Remove</button></td>
-                            `;
-
+                            <td><input type="text" value="${item.description}" required></td>
+                            <td><input type="text" value="${item.HSN_SAC}" required></td>
+                            <td><input type="number" value="${item.quantity}" min="1" required></td>
+                            <td><input type="number" value="${item.unitPrice}" required></td>
+                            <td><input type="number" value="${item.rate}" required></td>
+                            <td><button type="button" class="remove-item-btn">Remove</button></td>
+                        `;
                         itemsTableBody.appendChild(row);
-                    })
+                    });
                 })
                 .catch(error => {
                     console.error("Error:", error);
@@ -44,18 +43,71 @@ document.getElementById("nextBtn").addEventListener("click", () => {
     }
 });
 
-let invoiceId = '';
+// Open an invoice for editing
+async function openInvoice(id) {
+    try {
+        const response = await fetch(`/invoice/${id}`);
+        if (!response.ok) throw new Error("Failed to fetch invoice");
 
-// fuction to get the invoice id
+        const data = await response.json();
+        const invoice = data.invoice;
+
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('new').style.display = 'block';
+        document.getElementById('new-invoice').style.display = 'none';
+        document.getElementById('view-preview').style.display = 'block';
+
+        if (currentStep === 1) changeStep(2);
+
+        document.getElementById('id').value = invoice.invoice_id;
+        document.getElementById('invoice-date').value = formatDate(invoice.invoice_date);
+        document.getElementById('project-name').value = invoice.project_name;
+        document.getElementById('buyer-name').value = invoice.buyer_name;
+        document.getElementById('buyer-address').value = invoice.buyer_address;
+        document.getElementById('buyer-phone').value = invoice.buyer_phone;
+        document.getElementById('buyer-email').value = invoice.buyer_email;
+        document.getElementById('consignee-name').value = invoice.consignee_name;
+        document.getElementById('consignee-address').value = invoice.consignee_address;
+        document.getElementById('purchase-order-number').value = invoice.po_number;
+        document.getElementById('delivery-challan-number').value = invoice.dc_number;
+        document.getElementById('delivery-challan-date').value = formatDate(invoice.dc_date);
+        document.getElementById('service-months').value = invoice.service_month;
+        document.getElementById('waybill-number').value = invoice.Way_Bill_number;
+        document.querySelector(`input[name="question"][value="${invoice.paymentStatus}"]`).checked = true;
+        document.getElementById('payment-mode').value = invoice.paymentMode;
+        document.getElementById('payment-date').value = formatDate(invoice.paymentDate);
+        document.getElementById('advance-payment-date').value = formatDate(invoice.paymentDate);
+        document.getElementById('paid-amount').value = invoice.paidAmount || '';
+
+        const itemsTableBody = document.querySelector("#items-table tbody");
+        itemsTableBody.innerHTML = "";
+
+        invoice.items.forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><input type="text" value="${item.description}" required></td>
+                <td><input type="text" value="${item.HSN_SAC}" required></td>
+                <td><input type="number" value="${item.quantity}" min="1" required></td>
+                <td><input type="number" value="${item.unitPrice || item.UnitPrice}" required></td>
+                <td><input type="number" value="${item.rate}" required></td>
+                <td><button type="button" class="remove-item-btn">Remove</button></td>
+            `;
+            itemsTableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error fetching invoice:", error);
+        window.electronAPI.showAlert1("Failed to fetch invoice. Please try again later.");
+    }
+}
+
+// Function to get the invoice id
 async function getId() {
     try {
         const response = await fetch("/invoice/generate-id");
-        if (!response.ok) {
-            throw new Error("Failed to fetch invoice id");
-        }
+        if (!response.ok) throw new Error("Failed to fetch invoice id");
 
         const data = await response.json();
-        document.getElementById('Id').value = data.invoice_id;
+        document.getElementById('id').value = data.invoice_id;
         invoiceId = data.invoice_id;
         if (invoiceId) generatePreview();
     } catch (error) {
@@ -72,7 +124,7 @@ function calculateInvoice(itemsTable) {
     let itemsHTML = "";
 
     // Check if rate column is populated
-    let hasTax = Array.from(itemsTable.rows).some(row => row.cells[4].querySelector("input").value > 0);
+    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[4].querySelector("input").value) > 0);
 
     for (const row of itemsTable.rows) {
         const description = row.cells[0].querySelector("input").value || "-";
@@ -148,16 +200,15 @@ function calculateInvoice(itemsTable) {
     };
 }
 
-
 // Function to generate the invoice preview
 function generatePreview() {
-    if (!invoiceId) invoiceId = document.getElementById('Id').value;
-    const projectName = document.getElementById("projectName").value;
-    const poNumber = document.getElementById("poNumber").value;
-    const wayBillNumber = document.getElementById("wayBillNumber").value;
-    const buyerName = document.getElementById("buyerName").value;
-    const buyerAddress = document.getElementById("buyerAddress").value;
-    const buyerPhone = document.getElementById("buyerPhone").value;
+    if (!invoiceId) invoiceId = document.getElementById('id').value;
+    const projectName = document.getElementById("project-name").value;
+    const poNumber = document.getElementById("purchase-order-number").value;
+    const wayBillNumber = document.getElementById("waybill-number").value;
+    const buyerName = document.getElementById("buyer-name").value;
+    const buyerAddress = document.getElementById("buyer-address").value;
+    const buyerPhone = document.getElementById("buyer-phone").value;
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
 
     const {
@@ -228,7 +279,7 @@ function generatePreview() {
 
             <div class="totals-section" style="text-align: right;">
             ${totalsHTML}
-</div>
+            </div>
         </div>
         <div class="forth-section">
         <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(finalTotal)} Only</span></p>
@@ -250,7 +301,7 @@ function generatePreview() {
             <div class="signature-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
-</div>
+        </div>
         <footer>
             <p>This is a computer-generated invoice.</p>
         </footer>
@@ -281,13 +332,14 @@ async function sendToServer(data, shouldPrint) {
 }
 
 // Event listener for the "Save" button
-document.getElementById("save").addEventListener("click", () => {
+document.getElementById("save-btn").addEventListener("click", async () => {
     const invoiceData = collectFormData();
-    if (sendToServer(invoiceData, false)) window.electronAPI.showAlert1("Invoice saved successfully!");
+    const ok = await sendToServer(invoiceData, false);
+    if (ok) window.electronAPI.showAlert1("Invoice saved successfully!");
 });
 
 // Event listener for the "Print" button
-document.getElementById("print").addEventListener("click", async () => {
+document.getElementById("print-btn").addEventListener("click", async () => {
     generatePreview(); // Ensure preview is up to date
     setTimeout(async () => {
         const previewContent = document.getElementById("preview-content").innerHTML;
@@ -301,18 +353,22 @@ document.getElementById("print").addEventListener("click", async () => {
     }, 0);
 });
 
-// Event listener for the "savePDF" button
-document.getElementById("savePDF").addEventListener("click", () => {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const invoiceData = collectFormData();
-        if (sendToServer(invoiceData, true)) {
-            let name = `Invoice-${invoiceId}`;
-            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+// Event listener for the "Save as PDF" button
+document.getElementById("save-pdf-btn").addEventListener("click", async () => {
+    generatePreview();
+    setTimeout(async () => {
+        const previewContent = document.getElementById("preview-content").innerHTML;
+        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+            const invoiceData = collectFormData();
+            const ok = await sendToServer(invoiceData, true);
+            if (ok) {
+                let name = `Invoice-${invoiceId}`;
+                window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+            }
+        } else {
+            window.electronAPI.showAlert1("Print functionality is not available.");
         }
-    } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
-    }
+    }, 0);
 });
 
 // Function to collect form data
@@ -321,33 +377,33 @@ function collectFormData() {
     const { finalTotal } = calculateInvoice(itemsTable);
     const tolerance = 0.001;
     let paymentStatus = document.querySelector('input[name="question"]:checked')?.value || null;
-    if (Math.abs(parseFloat(finalTotal) - document.getElementById("paidAmount").value) < tolerance) {
+    if (Math.abs(parseFloat(finalTotal) - document.getElementById("paid-amount").value) < tolerance) {
         paymentStatus = 'Paid';
     }
     return {
-        projectName: document.getElementById("projectName").value,
-        invoiceId: document.getElementById("Id").value,
-        invoiceDate: document.getElementById("invoiceDate").value,
-        poNumber: document.getElementById("poNumber").value,
-        dcNumber: document.getElementById("dcNumber").value,
-        dcDate: document.getElementById("dcDate").value,
-        service_month: document.getElementById("service_month").value,
-        wayBillNumber: document.getElementById("wayBillNumber").value,
-        buyerName: document.getElementById("buyerName").value,
-        buyerAddress: document.getElementById("buyerAddress").value,
-        buyerPhone: document.getElementById("buyerPhone").value,
-        buyerEmail: document.getElementById("buyerEmail").value,
-        consigneeName: document.getElementById("consigneeName").value,
-        consigneeAddress: document.getElementById("consigneeAddress").value,
+        projectName: document.getElementById("project-name").value,
+        invoiceId: document.getElementById("invoice-id").value,
+        invoiceDate: document.getElementById("invoice-date").value,
+        poNumber: document.getElementById("purchase-order-number").value,
+        dcNumber: document.getElementById("delivery-challan-number").value,
+        dcDate: document.getElementById("delivery-challan-date").value,
+        service_month: document.getElementById("service-months").value,
+        wayBillNumber: document.getElementById("waybill-number").value,
+        buyerName: document.getElementById("buyer-name").value,
+        buyerAddress: document.getElementById("buyer-address").value,
+        buyerPhone: document.getElementById("buyer-phone").value,
+        buyerEmail: document.getElementById("buyer-email").value,
+        consigneeName: document.getElementById("consignee-name").value,
+        consigneeAddress: document.getElementById("consignee-address").value,
         paymentStatus: paymentStatus,
-        paidAmount: document.getElementById("paidAmount").value,
-        paymentDate: document.getElementById("paymentDate").value,
-        paymentMode: document.getElementById("paymentMode").value,
+        paidAmount: document.getElementById("paid-amount").value,
+        paymentDate: document.getElementById("payment-date").value,
+        paymentMode: document.getElementById("payment-mode").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(1) input").value,
             HSN_SAC: row.querySelector("td:nth-child(2) input").value,
             quantity: row.querySelector("td:nth-child(3) input").value,
-            UnitPrice: row.querySelector("td:nth-child(4) input").value,
+            unitPrice: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
         totalAmount: finalTotal,

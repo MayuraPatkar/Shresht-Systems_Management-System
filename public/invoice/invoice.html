@@ -8,167 +8,7 @@
     <link rel="stylesheet" href="../global/globalStyle.css">
     <link rel="stylesheet" href="../global/formStyle.css">
     <link rel="stylesheet" href="../global/previewStyle.css">
-    <style>
-        /* Main view container */
-        #view {
-            display: none;
-            min-width: calc(100vw - 241px);
-            max-height: calc(100vh - 72px);
-            overflow-x: auto;
-            padding: 2rem 0;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-        }
-
-        /* Project Details & Preview Section */
-        #project-details-view {
-            display: flex;
-            flex-direction: column;
-            gap: 2.5rem;
-            align-items: center;
-            width: 100%;
-        }
-
-        /* Card styling */
-        #project-details-view .card {
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 4px 16px #0002;
-            padding: 2.2rem 2rem;
-            margin-bottom: 0;
-            width: 90%;
-            max-width: 900px;
-            min-width: 280px;
-            transition: box-shadow 0.2s;
-            box-sizing: border-box;
-        }
-
-        #project-details-view .card:hover {
-            box-shadow: 0 8px 24px #0003;
-        }
-
-        /* Headings */
-        #project-details-view h2 {
-            color: var(--primary, #2a4d8f);
-            margin-bottom: 1.2rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        #project-details-view h4 {
-            color: var(--accent, #267746);
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        /* Details layout */
-        #project-details-view>.card>div {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2.5rem;
-        }
-
-        #project-details-view strong {
-            color: #222;
-            font-weight: 600;
-        }
-
-        #project-details-view span {
-            color: #444;
-            font-weight: 400;
-        }
-
-        /* Payment Section - make it stand out */
-        #project-details-view .payment-section {
-            background: linear-gradient(90deg, #e3f0ff 0%, #f7fafd 100%);
-            border-left: 5px solid var(--primary, #2a4d8f);
-            padding: 1.5rem 2rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px #0001;
-            width: 90%;
-            max-width: 900px;
-            min-width: 280px;
-            display: flex;
-            flex-direction: column;
-            gap: 0.7rem;
-        }
-
-        #project-details-view .payment-section strong {
-            color: var(--primary, #2a4d8f);
-        }
-
-        /* Table styling */
-        #detail-items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0.5rem;
-            background: #f9fbfd;
-            border-radius: 8px;
-            overflow: hidden;
-            min-width: 600px;
-        }
-
-        #detail-items-table th,
-        #detail-items-table td {
-            border: 1px solid #e5e7eb;
-            padding: 0.7rem 1.1rem;
-            text-align: left;
-        }
-
-        #detail-items-table th {
-            background: #f0f4fa;
-            color: var(--primary, #2a4d8f);
-            font-weight: 700;
-            font-size: 1.05rem;
-        }
-
-        #detail-items-table tbody tr:nth-child(even) {
-            background: #f6fafd;
-        }
-
-        #detail-items-table tbody tr:hover {
-            background: #eaf2fb;
-        }
-
-        /* Make table scrollable on small screens */
-        #project-details-view .card>div {
-            overflow-x: auto;
-        }
-
-        /* Preview Content */
-        #detail-preview-content {
-            border-radius: 10px;
-            padding: 1.7rem;
-            min-height: 120px;
-            margin-bottom: 1rem;
-            color: #333;
-            font-size: 1.08rem;
-        }
-
-        /* Buttons */
-        #project-details-view .button,
-        #project-details-view button {
-            background: var(--primary, #2a4d8f);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 0.8rem 2rem;
-            font-size: 1.08rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px #0001;
-        }
-
-        #project-details-view .button:hover,
-        #project-details-view button:hover {
-            background: var(--accent, #267746);
-            box-shadow: 0 4px 16px #0002;
-        }
-    </style>
+    <link rel="stylesheet" href="../global/viewStyle.css">
     <title>Invoice</title>
 </head>
 
@@ -183,22 +23,16 @@
         </div>
         <div class="search">
             <img src="../assets/search.png" alt="Search">
-            <input type="text" id="searchInput" placeholder="Search here...">
+            <input type="text" id="search-input" placeholder="Search here...">
         </div>
         <div class="header-buttons">
-            <button id="newInvoice">New Invoice</button>
-            <button id="viewPreview">View Preview</button>
+            <button id="new-invoice">New Invoice</button>
+            <button id="view-preview">View Preview</button>
             <button onclick="window.location = '/invoice'">Home</button>
         </div>
     </header>
-    <div class="container">
-        <!-- Add this button in your header for toggling sidebar (mobile only) -->
-        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" style="display:none;">
-            &#9776;
-        </button>
-        <!-- Add this overlay just after <body> or before .container -->
-        <div id="sidebar-overlay"></div>
-        <aside class="no-select">
+    <div class="container no-select">
+        <aside>
             <div class="nav-link" id="dashboard">
                 <img src="../assets/dashboard-interface.png" alt="dashboard">
                 Dashboard
@@ -261,21 +95,21 @@
 
         <!-- New Invoice Form -->
         <div id="new">
-            <form id="invoice-form" class="no-select">
+            <form id="invoice-form">
                 <!-- Step 1: import data from quotattion -->
                 <div class="steps active" id="step-1">
                     <h2>Import Data from Quotation?</h2>
                     <div class="form-group">
-                        <label for="quotationId">Quotation ID</label>
-                        <input type="text" id="quotationId">
+                        <label for="quotation-id">Quotation ID</label>
+                        <input type="text" id="quotation-id">
                     </div>
                     <div class="form-group">
-                        <label for="Id">Invoice ID (if available)</label>
-                        <input type="text" id="Id">
+                        <label for="id">Invoice ID (if available)</label>
+                        <input type="text" id="id">
                     </div>
                     <div class="form-group">
-                        <label for="invoiceDate">Invoice Date (for Previous)</label>
-                        <input type="date" id="invoiceDate">
+                        <label for="invoice-date">Invoice Date (for Previous)</label>
+                        <input type="date" id="invoice-date">
                     </div>
                 </div>
 
@@ -283,28 +117,28 @@
                 <div class="steps" id="step-2">
                     <h2>Project Details</h2>
                     <div class="form-group">
-                        <label for="projectName">Project Name</label>
-                        <input type="text" id="projectName" required>
+                        <label for="project-name">Project Name</label>
+                        <input type="text" id="project-name" required>
                     </div>
                     <div class="form-group">
-                        <label for="poNumber">P.O Number</label>
-                        <input type="text" id="poNumber">
+                        <label for="purchase-order-number">P.O Number</label>
+                        <input type="text" id="purchase-order-number">
                     </div>
                     <div class="form-group">
-                        <label for="dcNumber">D.C Number</label>
-                        <input type="text" id="dcNumber">
+                        <label for="delivery-challan-number">D.C Number</label>
+                        <input type="text" id="delivery-challan-number">
                     </div>
                     <div class="form-group">
-                        <label for="dcDate">D.C Date</label>
-                        <input type="date" id="dcDate">
+                        <label for="delivery-challan-date">D.C Date</label>
+                        <input type="date" id="delivery-challan-date">
                     </div>
                     <div class="form-group">
-                        <label for="wayBillNumber">E-Way Bill Number</label>
-                        <input type="text" id="wayBillNumber" required>
+                        <label for="waybill-number">E-Way Bill Number</label>
+                        <input type="text" id="waybill-number" required>
                     </div>
                     <div class="form-group">
-                        <label for="service_month">Enter Months For Service (0 for no service)</label>
-                        <input type="number" id="service_month" value=0 required>
+                        <label for="service-months">Enter Months For Service (0 for no service)</label>
+                        <input type="number" id="service-months" value=0 required>
                     </div>
                 </div>
 
@@ -326,17 +160,17 @@
                     </div>
                     <div>
                         <div class="form-group">
-                            <label for="paidAmount">Paid Amount (if unpaid or Advanced Payment)</label>
-                            <input type="number" id="paidAmount">
+                            <label for="paid-amount">Paid Amount (if unpaid or Advanced Payment)</label>
+                            <input type="number" id="paid-amount">
                         </div>
                         <div class="form-group">
-                            <label for="advancedPaymentDate">Payment Date (Advanced Payment)</label>
-                            <input type="date" id="advancedPaymentDate">
+                            <label for="advance-payment-date">Payment Date (Advanced Payment)</label>
+                            <input type="date" id="advance-payment-date">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="paymentMode">Payment Method</label>
-                        <select id="paymentMode" required>
+                        <label for="payment-mode">Payment Method</label>
+                        <select id="payment-mode" required>
                             <option value="Cash">Cash</option>
                             <option value="Cheque">Cheque</option>
                             <option value="Bank Transfer">Bank Transfer</option>
@@ -344,8 +178,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="paymentDate">Payment Date</label>
-                        <input type="date" id="paymentDate" required>
+                        <label for="payment-date">Payment Date</label>
+                        <input type="date" id="payment-date" required>
                     </div>
                 </div>
 
@@ -353,20 +187,20 @@
                 <div class="steps" id="step-4">
                     <h2>Recipient Details (Sold/Bill to)</h2>
                     <div class="form-group">
-                        <label for="buyerName">Buyer Name</label>
-                        <input type="text" id="buyerName">
+                        <label for="buyer-name">Buyer Name</label>
+                        <input type="text" id="buyer-name">
                     </div>
                     <div class="form-group">
-                        <label for="buyerAddress">Address</label>
-                        <textarea id="buyerAddress"></textarea>
+                        <label for="buyer-address">Address</label>
+                        <textarea id="buyer-address"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="buyerPhone">Phone Number</label>
-                        <input type="tel" id="buyerPhone">
+                        <label for="buyer-phone">Phone Number</label>
+                        <input type="tel" id="buyer-phone">
                     </div>
                     <div class="form-group">
-                        <label for="buyerEmail">Email</label>
-                        <input type="tel" id="buyerEmail">
+                        <label for="buyer-email">Email</label>
+                        <input type="email" id="buyer-email">
                     </div>
                 </div>
 
@@ -374,12 +208,12 @@
                 <div class="steps" id="step-5">
                     <h2>Consignee Details (Shipped To)</h2>
                     <div class="form-group">
-                        <label for="consigneeName">Name</label>
-                        <input type="text" id="consigneeName" required>
+                        <label for="consignee-name">Name</label>
+                        <input type="text" id="consignee-name" required>
                     </div>
                     <div class="form-group">
-                        <label for="consigneeAddress">Address</label>
-                        <textarea id="consigneeAddress" required></textarea>
+                        <label for="consignee-address">Address</label>
+                        <textarea id="consignee-address" required></textarea>
                     </div>
                 </div>
 
@@ -414,45 +248,46 @@
                             <!-- Preview will be dynamically generated -->
                         </div>
                     </div>
-                    <button type="button" id="save" class="button">Save</button>
-                    <button type="button" id="print" class="button">Print</button>
-                    <button type="button" id="savePDF" class="button">Save as PDF</button>
+                    <button type="button" id="save-btn" class="button">Save</button>
+                    <button type="button" id="print-btn" class="button">Print</button>
+                    <button type="button" id="save-pdf-btn" class="button">Save as PDF</button>
                 </div>
 
                 <!-- Navigation Buttons -->
                 <div class="navigation">
-                    <button type="button" id="prevBtn" disabled>Previous</button>
+                    <button type="button" id="prev-btn" disabled>Previous</button>
                     <div class="step-indicators">
                         <span id="step-indicator"></span>
                     </div>
-                    <button type="button" id="nextBtn">Next</button>
+                    <button type="button" id="next-btn">Next</button>
                 </div>
             </form>
         </div>
-        <div id="view" class="no-select">
+
+        <div id="view">
             <!-- Project Details & Preview Section -->
             <div id="project-details-view">
                 <!-- Project Details -->
                 <div class="card">
                     <h2>Project Details</h2>
                     <div>
-                        <strong>Project Name:</strong> <span id="detail-projectName"></span><br>
-                        <strong>Project ID:</strong> <span id="detail-projectId"></span><br>
-                        <strong>P.O Number:</strong> <span id="detail-poNumber"></span><br>
-                        <strong>D.C Number:</strong> <span id="detail-dcNumber"></span><br>
-                        <strong>D.C Date:</strong> <span id="detail-dcDate"></span><br>
-                        <strong>E-Way Bill Number:</strong> <span id="detail-wayBillNumber"></span><br>
-                        <strong>Service Months:</strong> <span id="detail-serviceMonth"></span>
+                        <strong>Project Name:</strong> <span id="view-project-name"></span><br>
+                        <strong>Project ID:</strong> <span id="view-project-id"></span><br>
+                        <strong>P.O Number:</strong> <span id="view-purchase-order-number"></span><br>
+                        <strong>D.C Number:</strong> <span id="view-delivery-challan-number"></span><br>
+                        <strong>D.C Date:</strong> <span id="view-delivery-challan-date"></span><br>
+                        <strong>E-Way Bill Number:</strong> <span id="view-waybill-number"></span><br>
+                        <strong>Service Months:</strong> <span id="view-service-months"></span>
                     </div>
                 </div>
                 <div class="card payment-section">
                     <h2>Payment Details</h2>
-                    <strong>Payment Status:</strong> <span id="detail-paymentStatus"></span><br>
-                    <strong>Balance Due:</strong> <span id="detail-balanceDue"></span><br>
-                    <strong>Advanced Payments:</strong> <span id="detail-advancedPay"></span><br>
-                    <strong>Paid Amount:</strong> <span id="detail-paidAmount"></span><br>
-                    <strong>Payment Mode:</strong> <span id="detail-paymentMode"></span><br>
-                    <strong>Payment Date:</strong> <span id="detail-paymentDate"></span>
+                    <strong>Payment Status:</strong> <span id="view-payment-status"></span><br>
+                    <strong>Balance Due:</strong> <span id="view-balance-due"></span><br>
+                    <strong>Advanced Payments:</strong> <span id="view-advance-pay"></span><br>
+                    <strong>Paid Amount:</strong> <span id="view-paid-amount"></span><br>
+                    <strong>Payment Mode:</strong> <span id="view-payment-mode"></span><br>
+                    <strong>Payment Date:</strong> <span id="view-payment-date"></span>
                 </div>
                 <!-- Buyer & Consignee Details -->
                 <div class="card">
@@ -460,15 +295,15 @@
                     <div>
                         <div>
                             <h4>Buyer (Bill To):</h4>
-                            <strong>Name:</strong> <span id="detail-buyerName"></span><br>
-                            <strong>Address:</strong> <span id="detail-buyerAddress"></span><br>
-                            <strong>Phone:</strong> <span id="detail-buyerPhone"></span><br>
-                            <strong>Email:</strong> <span id="detail-buyerEmail"></span>
+                            <strong>Name:</strong> <span id="view-buyer-name"></span><br>
+                            <strong>Address:</strong> <span id="view-buyer-address"></span><br>
+                            <strong>Phone:</strong> <span id="view-buyer-phone"></span><br>
+                            <strong>Email:</strong> <span id="view-buyer-email"></span>
                         </div>
                         <div>
                             <h4>Consignee (Shipped To):</h4>
-                            <strong>Name:</strong> <span id="detail-consigneeName"></span><br>
-                            <strong>Address:</strong> <span id="detail-consigneeAddress"></span>
+                            <strong>Name:</strong> <span id="view-consignee-name"></span><br>
+                            <strong>Address:</strong> <span id="view-consignee-address"></span>
                         </div>
                     </div>
                 </div>
@@ -496,10 +331,10 @@
 
                 <!-- Preview & Actions -->
                 <div class="card">
-                    <div id="detail-preview-content">
+                    <div id="view-preview-content">
                         <!-- Preview will be dynamically generated -->
                     </div>
-                    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                    <div class="view-buttons">
                         <button type="button" id="printProject" class="button">Print</button>
                         <button type="button" id="saveProjectPDF" class="button">Save as PDF</button>
                     </div>
@@ -511,8 +346,9 @@
 
     <!-- Scripts -->
     <script src="../global/globalScript.js"></script>
-    <script src="./invoice1.js"></script>
-    <script src="./invoice2.js"></script>
+    <script src="./invoice_home.js"></script>
+    <script src="./invoice_view.js"></script>
+    <script src="./invoice_form.js"></script>
 </body>
 
 </html>
