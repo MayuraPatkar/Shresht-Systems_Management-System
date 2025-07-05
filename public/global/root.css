@@ -8,6 +8,7 @@
 :root {
     --primary: #3765bc;
     --accent: #1f4191;
+    --header-bg: #f1f3f6;
     --bg: #b6c2e6;
     --sidebar-bg: #fff;
     --card-bg: #fff;
@@ -15,9 +16,33 @@
     --border: #e5e7eb;
     --danger: #dc3545;
     --success: #267746;
+    --warning: #ffc107;
+    --text: #333;
+    --text-secondary: #666;
+    --text-placeholder: #999;
+    --text-inverse: #fff;
+    --text-inverse-secondary: #ccc;
+    --text-inverse-placeholder: #aaa;
+    --font-family: 'Inter', sans-serif;
+    --font-size: 16px;
+    --font-size-small: 14px;
+    --font-size-large: 18px;
+    --font-weight: 400;
+    --font-weight-bold: 600;
+    --transition: all 0.3s ease;
+    --transition-fast: all 0.2s ease;
+    --transition-slow: all 0.4s ease;
+    --border-radius: 8px;
+    --border-radius-small: 4px;
+    --border-radius-large: 12px;
+    --shadow-small: 0 2px 8px rgba(0, 0, 0.1);
+    --shadow-large: 0 6px 24px rgba(0, 0, 0, 0.15);
+    --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-active: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .no-select {
     user-select: none;
-    /* Standard syntax */
+    -webkit-user-select: none;
 }

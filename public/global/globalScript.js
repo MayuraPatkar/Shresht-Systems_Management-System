@@ -63,7 +63,7 @@ document.getElementById('settings').addEventListener('click', () => {
 let currentStep = 1;
 
 function moveNext() {
-  document.getElementById('nextBtn').click();
+  document.getElementById('next-btn').click();
 }
 
 document.addEventListener("keydown", function (event) {
@@ -94,16 +94,16 @@ document.addEventListener("keydown", function (event) {
 });
 
 // Event listener for the "Next" button
-document.getElementById("nextBtn").addEventListener("click", () => {
+document.getElementById("next-btn").addEventListener("click", () => {
   if (currentStep < totalSteps) {
     changeStep(currentStep + 1);
-    if (currentStep === totalSteps && !document.getElementById('Id').value) getId();
+    if (currentStep === totalSteps && !document.getElementById('id').value) getId();
     else generatePreview();
   }
 });
 
 // Event listener for the "Previous" button
-document.getElementById("prevBtn").addEventListener("click", () => {
+document.getElementById("prev-btn").addEventListener("click", () => {
   if (currentStep > 1) {
     changeStep(currentStep - 1);
   }
@@ -120,8 +120,8 @@ function changeStep(step) {
 
 // Function to update the navigation buttons
 function updateNavigation() {
-  document.getElementById("prevBtn").disabled = currentStep === 1;
-  document.getElementById("nextBtn").disabled = currentStep === totalSteps;
+  document.getElementById("prev-btn").disabled = currentStep === 1;
+  document.getElementById("next-btn").disabled = currentStep === totalSteps;
 }
 
 // Function to convert number to words (Indian numbering system)

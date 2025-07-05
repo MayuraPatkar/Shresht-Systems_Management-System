@@ -7,7 +7,7 @@
 
         /* Header */
         header {
-            max-height: 72px;
+            height: 80px;
             background: var(--sidebar-bg);
             border-bottom: 1px solid var(--border);
             padding: 1rem 2rem;
@@ -45,12 +45,12 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            background: #f1f3f6;
+            background: var(--header-bg);
             border-radius: 8px;
             padding: 0.25rem 0.75rem;
             max-width: 35%;
             min-width: 220px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border);
         }
 
         .search img {
@@ -81,7 +81,7 @@
             align-items: center;
             width: 10%;
             padding: 0.8rem;
-            color: white;
+            color: var(--text-inverse);
             border-radius: 5px;
             cursor: pointer;
         }
@@ -103,7 +103,7 @@
         header button {
             width: 45%;
             background: var(--primary);
-            color: #fff;
+            color: var(--text-inverse);
             border: none;
             border-radius: 10px;
             padding: 0.8rem 1.2rem;
@@ -123,48 +123,16 @@
             display: none;
         }
 
-        /* Layout container */
         .container {
             display: flex;
-            /* justify-content: space-evenly; */
-            max-height: calc(100vh - 72px);
-        }
-
-        /* Sidebar slide-out/in animation */
-        .container {
-            position: relative;
-            transition: margin-left 0.3s;
-        }
-
-        aside {
-            transition: transform 0.3s cubic-bezier(.4, 0, .2, 1);
-            will-change: transform;
-            z-index: 100;
-        }
-
-        aside.hide-sidebar {
-            transform: translateX(-110%);
-        }
-
-        /* Overlay for mobile when sidebar is open */
-        #sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.2);
-            z-index: 99;
-        }
-
-        #sidebar-overlay.active {
-            display: block;
+            height: calc(100vh - 80px);
+            width: 100vw;
         }
 
         /* Sidebar */
         aside {
             width: 240px;
+            height: calc(100vh - 80px);
             background: var(--sidebar-bg);
             border-right: 1px solid var(--border);
             display: flex;
@@ -183,7 +151,7 @@
             cursor: pointer;
             transition: background 0.2s, color 0.2s;
             font-size: 1.1rem;
-            color: #333;
+            color: var(--text);
             font-weight: 500;
             background: transparent;
         }
@@ -195,7 +163,7 @@
 
         .nav-link.active {
             background: var(--primary);
-            color: #fff;
+            color: var(--text-inverse);
         }
 
         .nav-link:not(.active):hover {
@@ -205,7 +173,7 @@
 
         /* Main content */
         main {
-            max-height: calc(100vh - 72px);
+            max-height: calc(100vh - 80px);
             overflow-y: auto;
             flex: 1;
             padding: 2rem;
@@ -216,7 +184,7 @@
 
         /* Records section */
         #home {
-            max-height: calc(100vh - 72px);
+            max-height: calc(100vh - 80px);
             min-width: calc(100vw - 241px);
             display: flex;
             flex-direction: column;
@@ -346,7 +314,7 @@
 
         #new {
             display: none;
-            max-height: calc(100vh - 72px);
+            max-height: calc(100vh - 80px);
             min-width: calc(100vw - 241px);
             overflow-y: auto;
         }
