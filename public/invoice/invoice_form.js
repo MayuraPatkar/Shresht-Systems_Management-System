@@ -8,7 +8,7 @@ document.getElementById("view-preview").addEventListener("click", () => {
 
 // Event listener for the "Next" button
 document.getElementById("next-btn").addEventListener("click", () => {
-    if (currentStep === 2 && !document.getElementById("invoice-id").value) {
+    if (currentStep === 2 && !document.getElementById("id").value) {
         const quotationId = document.getElementById("quotation-id").value;
         if (quotationId) {
             fetch(`/quotation/${quotationId}`)
@@ -346,7 +346,9 @@ document.getElementById("print-btn").addEventListener("click", async () => {
         if (window.electronAPI && window.electronAPI.handlePrintEvent) {
             const invoiceData = collectFormData();
             const ok = await sendToServer(invoiceData, true);
-            if (ok) window.electronAPI.handlePrintEvent(previewContent, "print");
+            if (ok) {
+                console.log("Sending print request with content:", previewContent);
+                window.electronAPI.handlePrintEvent(previewContent, "print");}
         } else {
             window.electronAPI.showAlert1("Print functionality is not available.");
         }
@@ -382,7 +384,7 @@ function collectFormData() {
     }
     return {
         projectName: document.getElementById("project-name").value,
-        invoiceId: document.getElementById("invoice-id").value,
+        invoiceId: document.getElementById("id").value,
         invoiceDate: document.getElementById("invoice-date").value,
         poNumber: document.getElementById("purchase-order-number").value,
         dcNumber: document.getElementById("delivery-challan-number").value,

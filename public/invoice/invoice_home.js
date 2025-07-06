@@ -34,7 +34,7 @@ async function loadRecentInvoices() {
 function renderInvoices(invoices) {
     invoicesListDiv.innerHTML = "";
     if (!invoices || invoices.length === 0) {
-        invoicesListDiv.innerHTML = "<h1>No invoices found</h1>";
+        invoicesListDiv.innerHTML = "<h1>No Invoices Found</h1>";
         return;
     }
     invoices.forEach(invoice => {

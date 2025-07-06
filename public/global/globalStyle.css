@@ -92,7 +92,6 @@
 
         /* Header buttons */
         .header-buttons {
-            width: 30%;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -101,7 +100,6 @@
 
         .header-buttons button,
         header button {
-            width: 45%;
             background: var(--primary);
             color: var(--text-inverse);
             border: none;
