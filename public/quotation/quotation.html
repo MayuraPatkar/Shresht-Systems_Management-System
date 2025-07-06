@@ -7,168 +7,9 @@
     <link rel="stylesheet" href="../global/root.css">
     <link rel="stylesheet" href="../global/globalStyle.css">
     <link rel="stylesheet" href="../global/formStyle.css">
+    <link rel="stylesheet" href="../global/viewStyle.css">
     <link rel="stylesheet" href="./quotationPreview.css">
     <title>Quotation</title>
-    <style>
-        /* Main view container */
-        #view {
-            display: none;
-            min-width: calc(100vw - 241px);
-            max-height: calc(100vh - 72px);
-            overflow-x: auto;
-            padding: 2rem 0;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-        }
-
-        /* Project Details & Preview Section */
-        #project-details-view {
-            display: flex;
-            flex-direction: column;
-            gap: 2.5rem;
-            align-items: center;
-            width: 100%;
-        }
-
-        /* Card styling */
-        #project-details-view .card {
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 4px 16px #0002;
-            padding: 2.2rem 2rem;
-            margin-bottom: 0;
-            width: 90%;
-            max-width: 900px;
-            min-width: 280px;
-            transition: box-shadow 0.2s;
-            box-sizing: border-box;
-        }
-
-        #project-details-view .card:hover {
-            box-shadow: 0 8px 24px #0003;
-        }
-
-        /* Headings */
-        #project-details-view h2 {
-            color: var(--primary, #2a4d8f);
-            margin-bottom: 1.2rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        #project-details-view h4 {
-            color: var(--accent, #267746);
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        /* Details layout */
-        #project-details-view>.card>div {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2.5rem;
-        }
-
-        #project-details-view strong {
-            color: #222;
-            font-weight: 600;
-        }
-
-        #project-details-view span {
-            color: #444;
-            font-weight: 400;
-        }
-
-        /* Payment Section - make it stand out */
-        #project-details-view .payment-section {
-            background: linear-gradient(90deg, #e3f0ff 0%, #f7fafd 100%);
-            border-left: 5px solid var(--primary, #2a4d8f);
-            padding: 1.5rem 2rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px #0001;
-            width: 90%;
-            max-width: 900px;
-            min-width: 280px;
-            display: flex;
-            flex-direction: column;
-            gap: 0.7rem;
-        }
-
-        #project-details-view .payment-section strong {
-            color: var(--primary, #2a4d8f);
-        }
-
-        /* Table styling */
-        #detail-items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0.5rem;
-            background: #f9fbfd;
-            border-radius: 8px;
-            overflow: hidden;
-            min-width: 600px;
-        }
-
-        #detail-items-table th,
-        #detail-items-table td {
-            border: 1px solid #e5e7eb;
-            padding: 0.7rem 1.1rem;
-            text-align: left;
-        }
-
-        #detail-items-table th {
-            background: #f0f4fa;
-            color: var(--primary, #2a4d8f);
-            font-weight: 700;
-            font-size: 1.05rem;
-        }
-
-        #detail-items-table tbody tr:nth-child(even) {
-            background: #f6fafd;
-        }
-
-        #detail-items-table tbody tr:hover {
-            background: #eaf2fb;
-        }
-
-        /* Make table scrollable on small screens */
-        #project-details-view .card>div {
-            overflow-x: auto;
-        }
-
-        /* Preview Content */
-        #preview-content2 {
-            border-radius: 10px;
-            min-height: 120px;
-            margin-bottom: 1rem;
-            color: #333;
-            font-size: 1.08rem;
-        }
-
-        /* Buttons */
-        #project-details-view .button,
-        #project-details-view button {
-            background: var(--primary, #2a4d8f);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 0.8rem 2rem;
-            font-size: 1.08rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px #0001;
-        }
-
-        #project-details-view .button:hover,
-        #project-details-view button:hover {
-            background: var(--accent, #267746);
-            box-shadow: 0 4px 16px #0002;
-        }
-    </style>
 </head>
 
 <body>
@@ -179,22 +20,16 @@
         </div>
         <div class="search">
             <img src="../assets/search.png" alt="Search">
-            <input type="text" id="searchInput" placeholder="Search here...">
+            <input type="text" id="search-input" placeholder="Search here...">
         </div>
         <div class="header-buttons">
-            <button id="newQuotation">New Quotation</button>
-            <button id="viewPreview">View Preview</button>
+            <button id="new-quotation">New Quotation</button>
+            <button id="view-preview">View Preview</button>
             <button onclick="window.location = '/quotation'">Home</button>
         </div>
     </header>
     <div class="container" class="no-select">
-        <!-- Add this button in your header for toggling sidebar (mobile only) -->
-        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" style="display:none;">
-            &#9776;
-        </button>
-        <!-- Add this overlay just after <body> or before .container -->
-        <div id="sidebar-overlay"></div>
-        <aside class="no-select">
+        <aside>
             <div class="nav-link" id="dashboard">
                 <img src="../assets/dashboard-interface.png" alt="dashboard">
                 Dashboard
@@ -255,31 +90,31 @@
         </div>
         <div id="new">
             <form id="Quotation" class="no-select">
-                <input type="hidden" id="Id" value="">
+                <input type="hidden" id="id" value="">
                 <div class="steps active" id="step-1">
-                    <h2>Project Details</h2>
+                    <h2>Project views</h2>
                     <div class="form-group">
-                        <label for="projectName">Project name</label>
-                        <input type="text" id="projectName">
+                        <label for="project-name">Project name</label>
+                        <input type="text" id="project-name">
                     </div>
                 </div>
                 <div class="steps" id="step-2">
-                    <h2>Recipient Details (to)</h2>
+                    <h2>Recipient views (to)</h2>
                     <div class="form-group">
-                        <label for="buyerName">Buyer Name</label>
-                        <input type="text" id="buyerName">
+                        <label for="buyer-name">Buyer Name</label>
+                        <input type="text" id="buyer-name">
                     </div>
                     <div class="form-group">
-                        <label for="buyerAddress">Address</label>
-                        <textarea id="buyerAddress"></textarea>
+                        <label for="buyer-address">Address</label>
+                        <textarea id="buyer-address"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="buyerPhone">Phone Number</label>
-                        <input type="tel" id="buyerPhone">
+                        <label for="buyer-phone">Phone Number</label>
+                        <input type="tel" id="buyer-phone">
                     </div>
                     <div class="form-group">
-                        <label for="buyerEmail">Email</label>
-                        <input type="email" id="buyerEmail">
+                        <label for="buyer-email">Email</label>
+                        <input type="email" id="buyer-email">
                     </div>
                 </div>
                 <div class="steps" id="step-3">
@@ -307,38 +142,38 @@
                         <h2>Preview</h2>
                         <div id="preview-content"></div>
                     </div>
-                    <button type="button" id="save">Save</button>
-                    <button type="button" id="print">Print</button>
-                    <button type="button" id="savePDF">Save as PDF</button>
+                    <button type="button" id="save-btn">Save</button>
+                    <button type="button" id="print-btn">Print</button>
+                    <button type="button" id="save-pdf-btn">Save as PDF</button>
                 </div>
                 <div class="navigation">
-                    <button type="button" id="prevBtn" disabled>Previous</button>
+                    <button type="button" id="prev-btn" disabled>Previous</button>
                     <div class="step-indicators">
                         <span id="step-indicator"></span>
                     </div>
-                    <button type="button" id="nextBtn">Next</button>
+                    <button type="button" id="next-btn">Next</button>
                 </div>
             </form>
         </div>
         <div id="view" class="no-select">
-            <!-- Project Details & Preview Section -->
+            <!-- Project views & Preview Section -->
             <div id="project-details-view">
-                <!-- Project Details -->
+                <!-- Project views -->
                 <div class="card">
-                    <h2>Project Details</h2>
+                    <h2>Project views</h2>
                     <div>
-                        <strong>Project Name:</strong> <span id="detail-projectName"></span><br>
-                        <strong>Quotation ID:</strong> <span id="detail-projectId"></span><br>
+                        <strong>Project Name:</strong> <span id="view-project-name"></span><br>
+                        <strong>Quotation ID:</strong> <span id="view-project-id"></span><br>
                     </div>
                 </div>
-                <!-- Buyer & Consignee Details -->
+                <!-- Buyer & Consignee views -->
                 <div class="card">
                     <h2>Recipient</h2>
                     <div>
-                        <strong>Name:</strong> <span id="detail-buyerName"></span><br>
-                        <strong>Address:</strong> <span id="detail-buyerAddress"></span><br>
-                        <strong>Phone:</strong> <span id="detail-buyerPhone"></span><br>
-                        <strong>Email:</strong> <span id="detail-buyerEmail"></span>
+                        <strong>Name:</strong> <span id="view-buyer-name"></span><br>
+                        <strong>Address:</strong> <span id="view-buyer-address"></span><br>
+                        <strong>Phone:</strong> <span id="view-buyer-phone"></span><br>
+                        <strong>Email:</strong> <span id="view-buyer-email"></span>
                     </div>
                 </div>
 
@@ -346,7 +181,7 @@
                 <div class="card">
                     <h2>Item List</h2>
                     <div>
-                        <table id="detail-items-table">
+                        <table id="view-items-table">
                             <thead>
                                 <tr>
                                     <th>Description</th>
@@ -365,17 +200,18 @@
 
                 <!-- Preview & Actions -->
                 <div class="card">
-                    <div id="preview-content2"></div>
+                    <div id="view-preview-content"></div>
                     <div>
-                        <button type="button" id="printProject" class="button">Print</button>
-                        <button type="button" id="saveProjectPDF" class="button">Save as PDF</button>
+                        <button type="button" id="print-project" class="button">Print</button>
+                        <button type="button" id="save-project-PDF" class="button">Save as PDF</button>
                     </div>
                 </div>
             </div>
         </div>
         <script src="../global/globalScript.js"></script>
-        <script src="./quotation1.js"></script>
-        <script src="./quotation2.js"></script>
+        <script src="./quotation_home.js"></script>
+        <script src="./quotation_view.js"></script>
+        <script src="./quotation_form.js"></script>
 </body>
 
 </html>
