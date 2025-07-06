@@ -1,7 +1,7 @@
 const totalSteps = 3;
-let purchase_order_id = '';
+let purchaseOrderId = '';
 
-document.getElementById("viewPreview").addEventListener("click", () => {
+document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
     generatePreview();
 });
@@ -15,9 +15,9 @@ async function getId() {
         }
 
         const data = await response.json();
-        document.getElementById('Id').value = data.purchase_order_id;
-        purchase_order_id = data.purchase_order_id;
-        if (purchase_order_id) generatePreview();
+        document.getElementById('id').value = data.purchase_order_id;
+        purchase_order_id = data.purchaseOrderId;
+        if (purchaseOrderId) generatePreview();
     } catch (error) {
         console.error("Error fetching quotation id:", error);
         window.electronAPI.showAlert1("Failed to fetch quotation id. Please try again later.");
@@ -25,13 +25,13 @@ async function getId() {
 }
 
 // Improved: Async/await for save/print, better feedback, and bug fixes
-document.getElementById("save").addEventListener("click", async () => {
+document.getElementById("save-btn").addEventListener("click", async () => {
     const purchaseOrderData = collectFormData();
     const ok = await sendToServer(purchaseOrderData);
     if (ok) window.electronAPI.showAlert1("Purchase Order saved successfully!");
 });
 
-document.getElementById("print").addEventListener("click", async () => {
+document.getElementById("print-btn").addEventListener("click", async () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const purchaseOrderData = collectFormData();
@@ -42,13 +42,13 @@ document.getElementById("print").addEventListener("click", async () => {
     }
 });
 
-document.getElementById("savePDF").addEventListener("click", async () => {
+document.getElementById("save-pdf-btn").addEventListener("click", async () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const purchaseOrderData = collectFormData();
         const ok = await sendToServer(purchaseOrderData);
         if (ok) {
-            let name = `PurchaseOrder-${purchase_order_id}`;
+            let name = `PurchaseOrder-${purchaseOrderId}`;
             window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
         }
     } else {
@@ -58,11 +58,13 @@ document.getElementById("savePDF").addEventListener("click", async () => {
 
 // Function to generate the preview
 function generatePreview() {
-    if (!purchase_order_id) purchase_order_id = document.getElementById('Id').value;
-    const supplierName = document.getElementById("supplierName").value || "";
-    const supplierAddress = document.getElementById("supplierAddress").value || "";
-    const supplierPhone = document.getElementById("supplierPhone").value || "";
-    const GSTIN = document.getElementById("supplierGSTIN").value || "";
+    if (!purchaseOrderId) purchaseOrderId = document.getElementById('id').value;
+    const purchaseDate = document.getElementById("purchase-date").value || new Date().toLocaleDateString();
+    const purchaseInvoiceId = document.getElementById("purchase-invoice-id").value || purchaseOrderId;
+    const supplierName = document.getElementById("supplier-name").value || "";
+    const supplierAddress = document.getElementById("supplier-address").value || "";
+    const supplierPhone = document.getElementById("supplier-phone").value || "";
+    const GSTIN = document.getElementById("supplier-GSTIN").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
     let totalPrice = 0;
     let totalCGST = 0;
@@ -148,7 +150,7 @@ function generatePreview() {
             </div>
         </div>
 
-        <div class="title">Purchase Order #${purchase_order_id}</div>
+        <div class="title">Purchase Order #${purchaseOrderId}</div>
         <div class="first-section">
             <div class="buyer-details">
                 <p><strong>Purchase From:</strong></p>
@@ -158,8 +160,8 @@ function generatePreview() {
                 <p>GSTIN: ${GSTIN}</p>
             </div>
             <div class="info-section">
-                <p><strong>Purchase Invoice ID:</strong> ${document.getElementById("purchaseInvoiceId").value || "-"}</p>
-                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>Purchase Invoice ID:</strong> ${purchaseInvoiceId}</p>
+                <p><strong>Date:</strong> ${purchaseDate}</p>
             </div>
         </div>
         <div class="second-section">
@@ -224,14 +226,14 @@ async function sendToServer(data) {
 // Function to collect form data
 function collectFormData() {
     return {
-        purchase_order_id: document.getElementById("Id").value,
-        purchase_invoice_id: document.getElementById("purchaseInvoiceId").value,
-        purchaseDate: document.getElementById("purchaseDate").value,
-        supplier_name: document.getElementById("supplierName").value,
-        supplier_address: document.getElementById("supplierAddress").value,
-        supplier_phone: document.getElementById("supplierPhone").value,
-        supplier_email: document.getElementById("supplierEmail").value,
-        supplier_GSTIN: document.getElementById("supplierGSTIN").value,
+        purchaseOrderId: document.getElementById("id").value,
+        purchaseInvoiceId: document.getElementById("purchase-invoice-id").value,
+        purchaseDate: document.getElementById("purchase-date").value,
+        supplierName: document.getElementById("supplier-name").value,
+        supplierAddress: document.getElementById("supplier-address").value,
+        supplierPhone: document.getElementById("supplier-phone").value,
+        supplierEmail: document.getElementById("supplier-email").value,
+        supplierGSTIN: document.getElementById("supplier-GSTIN").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(1) input").value,
             HSN_SAC: row.querySelector("td:nth-child(2) input").value,

@@ -8,167 +8,8 @@
     <link rel="stylesheet" href="../global/globalStyle.css">
     <link rel="stylesheet" href="../global/formStyle.css">
     <link rel="stylesheet" href="../global/previewStyle.css">
+    <link rel="stylesheet" href="../global/viewStyle.css">
     <title>Purchase Order</title>
-    <style>
-        /* Main view container */
-        #view {
-            display: none;
-            min-width: calc(100vw - 241px);
-            max-height: calc(100vh - 72px);
-            overflow-x: auto;
-            padding: 2rem 0;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-        }
-
-        /* Project Details & Preview Section */
-        #project-details-view {
-            display: flex;
-            flex-direction: column;
-            gap: 2.5rem;
-            align-items: center;
-            width: 100%;
-        }
-
-        /* Card styling */
-        #project-details-view .card {
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 4px 16px #0002;
-            padding: 2.2rem 2rem;
-            margin-bottom: 0;
-            width: 90%;
-            max-width: 900px;
-            min-width: 280px;
-            transition: box-shadow 0.2s;
-            box-sizing: border-box;
-        }
-
-        #project-details-view .card:hover {
-            box-shadow: 0 8px 24px #0003;
-        }
-
-        /* Headings */
-        #project-details-view h2 {
-            color: var(--primary, #2a4d8f);
-            margin-bottom: 1.2rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        #project-details-view h4 {
-            color: var(--accent, #267746);
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        /* Details layout */
-        #project-details-view>.card>div {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2.5rem;
-        }
-
-        #project-details-view strong {
-            color: #222;
-            font-weight: 600;
-        }
-
-        #project-details-view span {
-            color: #444;
-            font-weight: 400;
-        }
-
-        /* Payment Section - make it stand out */
-        #project-details-view .payment-section {
-            background: linear-gradient(90deg, #e3f0ff 0%, #f7fafd 100%);
-            border-left: 5px solid var(--primary, #2a4d8f);
-            padding: 1.5rem 2rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px #0001;
-            width: 90%;
-            max-width: 900px;
-            min-width: 280px;
-            display: flex;
-            flex-direction: column;
-            gap: 0.7rem;
-        }
-
-        #project-details-view .payment-section strong {
-            color: var(--primary, #2a4d8f);
-        }
-
-        /* Table styling */
-        #detail-items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0.5rem;
-            background: #f9fbfd;
-            border-radius: 8px;
-            overflow: hidden;
-            min-width: 600px;
-        }
-
-        #detail-items-table th,
-        #detail-items-table td {
-            border: 1px solid #e5e7eb;
-            padding: 0.7rem 1.1rem;
-            text-align: left;
-        }
-
-        #detail-items-table th {
-            background: #f0f4fa;
-            color: var(--primary, #2a4d8f);
-            font-weight: 700;
-            font-size: 1.05rem;
-        }
-
-        #detail-items-table tbody tr:nth-child(even) {
-            background: #f6fafd;
-        }
-
-        #detail-items-table tbody tr:hover {
-            background: #eaf2fb;
-        }
-
-        /* Make table scrollable on small screens */
-        #project-details-view .card>div {
-            overflow-x: auto;
-        }
-
-        /* Preview Content */
-        #preview-content2 {
-            border-radius: 10px;
-            min-height: 120px;
-            margin-bottom: 1rem;
-            color: #333;
-            font-size: 1.08rem;
-        }
-
-        /* Buttons */
-        #project-details-view .button,
-        #project-details-view button {
-            background: var(--primary, #2a4d8f);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 0.8rem 2rem;
-            font-size: 1.08rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px #0001;
-        }
-
-        #project-details-view .button:hover,
-        #project-details-view button:hover {
-            background: var(--accent, #267746);
-            box-shadow: 0 4px 16px #0002;
-        }
-    </style>
 </head>
 
 <body>
@@ -182,21 +23,15 @@
 
         <div class="search">
             <img src="../assets/search.png" alt="Search">
-            <input type="text" id="searchInput" placeholder="Search here...">
+            <input type="text" id="search-input" placeholder="Search here...">
         </div>
         <div class="header-buttons">
-            <button id="newPurchase">New</button>
-            <button id="viewPreview">View Preview</button>
+            <button id="new-purchase">New</button>
+            <button id="view-preview">View Preview</button>
             <button onclick="window.location = '/purchaseOrder'">Home</button>
         </div>
     </header>
     <div class="container" class="no-select">
-        <!-- Add this button in your header for toggling sidebar (mobile only) -->
-        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" style="display:none;">
-            &#9776;
-        </button>
-        <!-- Add this overlay just after <body> or before .container -->
-        <div id="sidebar-overlay"></div>
         <aside class="no-select">
             <div class="nav-link" id="dashboard">
                 <img src="../assets/dashboard-interface.png" alt="dashboard">
@@ -258,38 +93,38 @@
         </div>
 
         <div id="new" class="no-select">
-            <form id="purchaseOrder">
-                <input type="hidden" id="Id">
+            <form id="purchase-order">
+                <input type="hidden" id="id">
                 <!-- Basic purchase order Details -->
                 <div class="steps active" id="step-1">
                     <h2>Supplier Details</h2>
                     <div class="form-group">
-                        <label for="purchaseInvoiceId">Purchase Invoice ID</label>
-                        <input type="text" id="purchaseInvoiceId" required>
+                        <label for="purchase-invoice-id">Purchase Invoice ID</label>
+                        <input type="text" id="purchase-invoice-id" required>
                     </div>
                     <div class="form-group">
-                        <label for="supplierName">Supplier Name</label>
-                        <input type="text" id="supplierName" required>
+                        <label for="supplier-name">Supplier Name</label>
+                        <input type="text" id="supplier-name" required>
                     </div>
                     <div class="form-group">
-                        <label for="supplierAddress">Address</label>
-                        <textarea id="supplierAddress" required></textarea>
+                        <label for="supplier-address">Address</label>
+                        <textarea id="supplier-address" required></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="supplierPhone">Phone Number</label>
-                        <input type="tel" id="supplierPhone" required>
+                        <label for="supplier-phone">Phone Number</label>
+                        <input type="tel" id="supplier-phone" required>
                     </div>
                     <div class="form-group">
-                        <label for="supplierEmail">Email</label>
-                        <input type="email" id="supplierEmail" required>
+                        <label for="supplier-email">Email</label>
+                        <input type="email" id="supplier-email" required>
                     </div>
                     <div class="form-group">
-                        <label for="supplierGSTIN">GSTIN</label>
-                        <input type="text" id="supplierGSTIN" required>
+                        <label for="supplier-GSTIN">GSTIN</label>
+                        <input type="text" id="supplier-GSTIN" required>
                     </div>
                     <div class="form-group">
-                        <label for="purchaseDate">Purchase Date</label>
-                        <input type="date" id="purchaseDate" required>
+                        <label for="purchase-date">Purchase Date</label>
+                        <input type="date" id="purchase-date" required>
                     </div>
                 </div>
 
@@ -322,41 +157,34 @@
                             <!-- Preview will be dynamically generated -->
                         </div>
                     </div>
-                    <button type="button" id="save">Save</button>
-                    <button type="button" id="print">Print</button>
-                    <button type="button" id="savePDF">Save as PDF</button>
+                    <button type="button" id="save-btn">Save</button>
+                    <button type="button" id="print-btn">Print</button>
+                    <button type="button" id="save-pdf-btn">Save as PDF</button>
                 </div>
 
                 <div class="navigation">
-                    <button type="button" id="prevBtn" disabled>Previous</button>
+                    <button type="button" id="prev-btn" disabled>Previous</button>
                     <div class="step-indicators">
                         <span id="step-indicator"></span>
                     </div>
-                    <button type="button" id="nextBtn">Next</button>
+                    <button type="button" id="next-btn">Next</button>
                 </div>
             </form>
         </div>
         <div id="view" class="no-select">
             <!-- Project Details & Preview Section -->
             <div id="project-details-view">
-                <!-- Project Details -->
-                <div class="card">
-                    <h2>Project Details</h2>
-                    <div>
-                        <strong>Project Name:</strong> <span id="detail-projectName"></span><br>
-                        <strong>Handled By:</strong> <span id="detail-handledBy"></span><br>
-                        <strong>Project ID:</strong> <span id="detail-projectId"></span><br>
-                    </div>
-                </div>
                 <!-- purchase from -->
                 <div class="card">
                     <h2>purchase from</h2>
                     <div>
-                        <strong>Name:</strong> <span id="detail-buyerName"></span><br>
-                        <strong>Address:</strong> <span id="detail-buyerAddress"></span><br>
-                        <strong>Phone:</strong> <span id="detail-buyerPhone"></span><br>
-                        <strong>Email:</strong> <span id="detail-buyerEmail"></span>
-                        <strong>GSTIN:</strong> <span id="detail-buyerGSTIN"></span><br>
+                        <strong>Purchase Invoice ID:</strong> <span id="view-purchase-invoice-iD"></span><br>
+                        <strong>Purchase Date:</strong> <span id="view-purchase-date"></span><br>
+                        <strong>Supplier Name:</strong> <span id="view-supplier-name"></span><br>
+                        <strong>Address:</strong> <span id="view-supplier-address"></span><br>
+                        <strong>Phone Number:</strong> <span id="view-supplier-phone"></span><br>
+                        <strong>Email:</strong> <span id="view-supplier-email"></span><br <strong>GSTIN:</strong> <span
+                            id="view-buyerGSTIN"></span><br>
                     </div>
                 </div>
 
@@ -364,7 +192,7 @@
                 <div class="card">
                     <h2>Item List</h2>
                     <div>
-                        <table id="detail-items-table">
+                        <table id="view-items-table">
                             <thead>
                                 <tr>
                                     <th>Description</th>
@@ -383,18 +211,19 @@
 
                 <!-- Preview & Actions -->
                 <div class="card">
-                    <div id="preview-content2"></div>
+                    <div id="view-preview-content"></div>
                     <div>
-                        <button type="button" id="printProject" class="button">Print</button>
-                        <button type="button" id="saveProjectPDF" class="button">Save as PDF</button>
+                        <button type="button" id="print-project" class="button">Print</button>
+                        <button type="button" id="save-project-pdf" class="button">Save as PDF</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <script src="../global/globalScript.js"></script>
-    <script src="./purchaseOrder1.js"></script>
-    <script src="./purchaseOrder2.js"></script>
+    <script src="./purchaseOrder_home.js"></script>
+    <script src="./purchaseOrder_view.js"></script>
+    <script src="./purchaseOrder_form.js"></script>
 </body>
 
 </html>
