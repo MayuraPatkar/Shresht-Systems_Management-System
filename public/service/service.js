@@ -1,109 +1,21 @@
-const serviceDiv = document.querySelector(".records");
+const serviceRecordsDiv = document.querySelector(".records");
+const totalSteps = 2;
 
 document.addEventListener("DOMContentLoaded", () => {
     loadService();
 
-    if (serviceDiv) {
-        serviceDiv.addEventListener("click", handleServiceListClick);
+    if (serviceRecordsDiv) {
+        serviceRecordsDiv.addEventListener("click", handleServiceListClick);
     }
 
-    document.getElementById('serviceSearchBtn')?.addEventListener('click', handleSearch);
-
-    // Fix: Attach search to correct input
-    document.getElementById("searchInput")?.addEventListener("keydown", (event) => {
+    document.getElementById('search-input')?.addEventListener('keydown', (event) => {
         if (event.key === "Enter") {
             handleSearch();
         }
     });
 });
 
-const totalSteps = 2;
-
-function moveNext() {
-    document.getElementById('nextBtn').click();
-}
-
-document.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-        moveNext();
-    }
-});
-
-// Event listener for the "Next" button
-document.getElementById("nextBtn").addEventListener("click", () => {
-    if (currentStep < totalSteps) {
-        changeStep(currentStep + 1);
-        if (currentStep === totalSteps) generatePreview();
-    }
-});
-
-// Event listener for the "Previous" button
-document.getElementById("prevBtn").addEventListener("click", () => {
-    if (currentStep > 1) {
-        changeStep(currentStep - 1);
-    }
-});
-
-// Function to change the current step
-function changeStep(step) {
-    document.getElementById(`step-${currentStep}`).classList.remove("active");
-    currentStep = step;
-    document.getElementById(`step-${currentStep}`).classList.add("active");
-    updateNavigation();
-}
-
-// Function to update the navigation buttons
-function updateNavigation() {
-    document.getElementById("prevBtn").disabled = currentStep === 1;
-    document.getElementById("nextBtn").disabled = currentStep === totalSteps;
-}
-
-// Function to convert number to words
-function numberToWords(num) {
-    const a = [
-        '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
-    ];
-    const b = [
-        '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
-    ];
-
-    const numToWords = (n) => {
-        if (n < 20) return a[n];
-        const digit = n % 10;
-        if (n < 100) return b[Math.floor(n / 10)] + (digit ? '-' + a[digit] : '');
-        if (n < 1000) return a[Math.floor(n / 100)] + ' hundred' + (n % 100 === 0 ? '' : ' and ' + numToWords(n % 100));
-        return numToWords(Math.floor(n / 1000)) + ' thousand' + (n % 1000 !== 0 ? ' ' + numToWords(n % 1000) : '');
-    };
-
-    if (num === 0) return 'zero';
-
-    const crore = Math.floor(num / 10000000);
-    const lakh = Math.floor((num % 10000000) / 100000);
-    const thousand = Math.floor((num % 100000) / 1000);
-    const remainder = num % 1000;
-
-    let result = '';
-
-    if (crore) {
-        result += numToWords(crore) + ' crore';
-    }
-
-    if (lakh) {
-        result += (result ? ' ' : '') + numToWords(lakh) + ' lakh';
-    }
-
-    if (thousand) {
-        result += (result ? ' ' : '') + numToWords(thousand) + ' thousand';
-    }
-
-    if (remainder) {
-        result += (result ? ' ' : '') + numToWords(remainder);
-    }
-
-    return result;
-}
-
-// Function to create service item element
+// Create service card
 function createServiceDiv(service) {
     const div = document.createElement("div");
     div.className = "record-item";
@@ -111,24 +23,24 @@ function createServiceDiv(service) {
     <div class="paid-icon">
         <img src="../assets/telemarketing.png" alt="Icon">
     </div>
-        <div class="details">
-            <div class="info1">
-                <h1>${service.project_name}</h1>
-                <h4>#${service.invoice_id}${service.service_stage+1}</h4>
-            </div>
-            <div class="info2">
-                <p>${service.buyer_name}</p>
-                <p>${service.buyer_address}</p>
-            </div>    
+    <div class="details">
+        <div class="info1">
+            <h1>${service.project_name}</h1>
+            <h4>#${service.invoice_id}${service.service_stage + 1}</h4>
         </div>
-        <div class="actions">
-            <button class="btn btn-primary open-service" data-id="${service.invoice_id}">Open</button>
-        </div>
+        <div class="info2">
+            <p>${service.buyer_name}</p>
+            <p>${service.buyer_address}</p>
+        </div>    
+    </div>
+    <div class="actions">
+        <button class="btn btn-primary open-service" data-id="${service.invoice_id}">Open</button>
+    </div>
     `;
     return div;
 }
 
-// Function to load service data
+// Load service data
 async function loadService() {
     try {
         const response = await fetch("/service/get-service");
@@ -142,7 +54,7 @@ async function loadService() {
             return;
         }
 
-        serviceListDiv.innerHTML = ""; // Clear existing services
+        serviceListDiv.innerHTML = "";
 
         if (!services.projects || services.projects.length === 0) {
             serviceListDiv.innerHTML = `<h1>No services available</h1>`;
@@ -156,9 +68,9 @@ async function loadService() {
     }
 }
 
-// Function to handle search functionality
+// Search functionality
 async function handleSearch() {
-    const queryInput = document.getElementById("searchInput");
+    const queryInput = document.getElementById("search-input");
     const serviceListDiv = document.querySelector(".records");
 
     if (!queryInput || !serviceListDiv) {
@@ -179,7 +91,7 @@ async function handleSearch() {
         const data = await response.json();
         const services = data.service || [];
 
-        serviceListDiv.innerHTML = ""; // Clear old results
+        serviceListDiv.innerHTML = "";
 
         if (services.length === 0) {
             serviceListDiv.innerHTML = `<p>No services found for "${query}"</p>`;
@@ -202,19 +114,10 @@ async function handleServiceListClick(event) {
 
     if (target.classList.contains("open-service")) {
         await openService(serviceId);
-    } else if (target.classList.contains("delete-service")) {
-        window.electronAPI.showAlert2('Are you sure you want to delete this service?');
-        if (window.electronAPI) {
-            window.electronAPI.receiveAlertResponse((response) => {
-                if (response === "Yes") {
-                    deleteService(serviceId);
-                }
-            });
-        }
     }
 }
 
-// Function to open a service form
+// Open a service form
 async function openService(serviceId) {
     try {
         const response = await fetch(`/invoice/${serviceId}`);
@@ -225,14 +128,14 @@ async function openService(serviceId) {
         const data = await response.json();
         const service = data.invoice;
 
-        // Fill form fields
-        document.getElementById('Id').value = service.invoice_id || '';
-        document.getElementById('serviceId').value = service.invoice_id+(service.service_stage+1) || '';
-        document.getElementById('invoiceId').value = service.invoice_id || '';
-        document.getElementById('projectName').value = service.project_name || '';
+        // Fill form fields (IDs match HTML)
+        document.getElementById('service-id').value = service.invoice_id || '';
+        document.getElementById('invoice-id').value = service.invoice_id || '';
+        document.getElementById('project-name').value = service.project_name || '';
         document.getElementById('name').value = service.buyer_name || '';
         document.getElementById('address').value = service.buyer_address || '';
         document.getElementById('phone').value = service.buyer_phone || '';
+        document.getElementById('service-stage').value = service.service_stage || '';
 
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
@@ -243,27 +146,9 @@ async function openService(serviceId) {
     }
 }
 
-// Function to delete a service
-async function deleteService(serviceId) {
-    try {
-        const response = await fetch(`/invoice/${serviceId}`, {
-            method: "DELETE",
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to delete service");
-        }
-
-        window.electronAPI?.showAlert1("Service deleted successfully.");
-    } catch (error) {
-        console.error("Error deleting service:", error);
-        window.electronAPI?.showAlert1("Failed to delete service. Please try again later.");
-    }
-}
-
-// Function to generate the preview
+// Generate the preview
 function generatePreview() {
-    const service_id = document.getElementById('serviceId').value;
+    const serviceId = document.getElementById('service-id').value;
     const name = document.getElementById("name").value || "";
     const address = document.getElementById("address").value || "";
     const phone = document.getElementById("phone").value || "";
@@ -284,7 +169,7 @@ function generatePreview() {
             </div>
         </div>
 
-        <div class="title">Service #${service_id}</div>
+        <div class="title">Service #${serviceId}</div>
         <div class="first-section">
             <div class="buyer-details">
                 <p><strong>To:</strong>
@@ -294,8 +179,8 @@ function generatePreview() {
                 </p>
             </div>
             <div class="info-section">
-                <p><strong>Project Name:</strong> ${document.getElementById("projectName").value}</p>
-                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>Project Name:</strong> ${document.getElementById("project-name").value}</p>
+                <p><strong>Date:</strong> ${document.getElementById("date").value || new Date().toLocaleDateString()}</p>
             </div>
         </div>
         <div class="third-section">
@@ -315,8 +200,8 @@ function generatePreview() {
     </div>`;
 }
 
-// Event listener for the "Print" button
-document.getElementById("print").addEventListener("click", () => {
+// Print and Save as PDF
+document.getElementById("print-btn").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const serviceData = collectFormData();
@@ -327,8 +212,7 @@ document.getElementById("print").addEventListener("click", () => {
     }
 });
 
-// Event listener for the "savePDF" button
-document.getElementById("savePDF").addEventListener("click", () => {
+document.getElementById("save-pdf-btn").addEventListener("click", () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const serviceData = collectFormData();
@@ -340,7 +224,18 @@ document.getElementById("savePDF").addEventListener("click", () => {
     }
 });
 
-// Function to collect form data and send to server
+// Save button
+document.getElementById("save-btn").addEventListener("click", async () => {
+    const serviceData = collectFormData();
+    const ok = await sendToServer(serviceData);
+    if (ok) {
+        window.electronAPI?.showAlert1("Service saved successfully.");
+    } else {
+        window.electronAPI?.showAlert1("Failed to save service.");
+    }
+});
+
+// Send to server
 async function sendToServer(data) {
     try {
         const response = await fetch("/service/save-service", {
@@ -349,7 +244,6 @@ async function sendToServer(data) {
             body: JSON.stringify(data),
         });
         const result = await response.json();
-        // Show alert only if save was successful
         if (response.ok) {
             return true;
         } else {
@@ -363,24 +257,13 @@ async function sendToServer(data) {
     }
 }
 
-// Function to collect form data
+// Collect form data
 function collectFormData() {
     return {
-        service_id: document.getElementById("serviceId").value,
-        invoice_id: document.getElementById("invoiceId").value,
+        service_id: document.getElementById("service-id").value,
+        invoice_id: document.getElementById("invoice-id").value,
         fee_amount: document.getElementById("payment")?.value || null,
         service_date: document.getElementById("date")?.value || new Date().toISOString().slice(0, 10),
-        service_stage: Number(document.getElementById("serviceStage")?.value) || 1 // Default to 1 if not set
+        service_stage: Number(document.getElementById("service-stage")?.value) || 1
     };
 }
-
-// Event listener for the "Save" button
-document.getElementById("save").addEventListener("click", async () => {
-    const serviceData = collectFormData();
-    const ok = await sendToServer(serviceData);
-    if (ok) {
-        window.electronAPI?.showAlert1("Service saved successfully.");
-    } else {
-        window.electronAPI?.showAlert1("Failed to save service.");
-    }
-});
