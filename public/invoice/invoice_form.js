@@ -28,7 +28,7 @@ document.getElementById("next-btn").addEventListener("click", () => {
                             <td><input type="text" value="${item.description}" required></td>
                             <td><input type="text" value="${item.HSN_SAC}" required></td>
                             <td><input type="number" value="${item.quantity}" min="1" required></td>
-                            <td><input type="number" value="${item.unitPrice}" required></td>
+                            <td><input type="number" value="${item.unit_price}" required></td>
                             <td><input type="number" value="${item.rate}" required></td>
                             <td><button type="button" class="remove-item-btn">Remove</button></td>
                         `;
@@ -91,7 +91,7 @@ async function openInvoice(id) {
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
-                <td><input type="number" value="${item.unitPrice || item.UnitPrice}" required></td>
+                <td><input type="number" value="${item.unit_price}" required></td>
                 <td><input type="number" value="${item.rate}" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
@@ -104,7 +104,7 @@ async function openInvoice(id) {
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
-                <td><input type="number" value="${item.unitPrice || item.UnitPrice}" required></td>
+                <td><input type="number" value="${item.unit_price}" required></td>
                 <td><input type="number" value="${item.rate}" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
@@ -364,7 +364,6 @@ document.getElementById("print-btn").addEventListener("click", async () => {
             const invoiceData = collectFormData();
             const ok = await sendToServer(invoiceData, true);
             if (ok) {
-                console.log("Sending print request with content:", previewContent);
                 window.electronAPI.handlePrintEvent(previewContent, "print");
             }
         } else {

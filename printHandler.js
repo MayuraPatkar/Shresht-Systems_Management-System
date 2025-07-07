@@ -1,6 +1,6 @@
 const { ipcMain, BrowserWindow, dialog } = require("electron");
 const fs = require("fs");
-const log = require("electron-log"); // Import electron-log in the preload process
+const log = require("electron-log");
 
 function handlePrintEvent(mainWindow) {
     ipcMain.on("PrintDoc", async (event, { content, mode, name }) => {
@@ -10,16 +10,17 @@ function handlePrintEvent(mainWindow) {
             show: false,
             parent: mainWindow,
             webPreferences: {
-                offscreen: true,
+                offscreen: false,
             },
         });
+
         try {
             await
                 // Load the HTML content into the print window
                 printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
-            <html>
-            <head>
-            <style>
+                <html>
+                <head>
+                <style>
                 @page {
                     size: A4;
                 }
@@ -33,10 +34,6 @@ function handlePrintEvent(mainWindow) {
                 }
 
                 .preview-container {
-                    //background: #fff !important;
-                    // width: 210mm;
-                    // height: 297mm;
-                    /* background: #fff; */
                     background-image: url("https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/icon2.png");
                     background-repeat: no-repeat;
                     background-position: center;
@@ -248,7 +245,7 @@ function handlePrintEvent(mainWindow) {
             <body>
                 ${content}
             </body>
-        </html>
+            </html>
         `)}`);
 
             if (mode === "print") {
@@ -268,7 +265,11 @@ function handlePrintEvent(mainWindow) {
 
                 if (filePath) {
                     try {
-                        const data = await printWindow.webContents.printToPDF({ printBackground: true });
+                        const data = await printWindow.webContents.printToPDF({
+                            printBackground: true, pageSize: 'A4',
+                            marginsType: 0,
+                            landscape: false,
+                        });
                         await fs.promises.writeFile(filePath, data);
                         event.sender.send("PDFSaved", { success: true, path: filePath });
                     } catch (error) {

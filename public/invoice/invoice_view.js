@@ -85,7 +85,7 @@ function calculateInvoice(itemsTable) {
     };
 }
 
-function generateInvoicePreview(invoice = {}, userRole, type, showOriginal = false) {
+function generateInvoicePreview(invoice = {}, userRole, type,) {
     let itemsHTML = "";
     let totalPrice = 0;
     let totalCGST = 0;
@@ -107,7 +107,7 @@ function generateInvoicePreview(invoice = {}, userRole, type, showOriginal = fal
             const description = item.description || "-";
             const hsnSac = item.HSN_SAC || "-";
             const qty = parseFloat(item.quantity || 0);
-            const unitPrice = parseFloat(item.unitPrice || item.UnitPrice || 0);
+            const unitPrice = parseFloat(item.unit_price || 0);
             const rate = parseFloat(item.rate || 0);
 
             const taxableValue = qty * unitPrice;
@@ -269,9 +269,9 @@ function generateInvoicePreview(invoice = {}, userRole, type, showOriginal = fal
     `;
 }
 
-async function viewInvoice(invoiceId, userRole, showOriginal) {
+async function viewInvoice(invoiceId, userRole) {
     try {
-        const type = sessionStorage.getItem('update-invoice');
+        const type = sessionStorage.getItem('view-invoice');
         const response = await fetch(`/invoice/${invoiceId}`);
         if (!response.ok) {
             throw new Error("Failed to fetch invoice");
@@ -292,21 +292,21 @@ async function viewInvoice(invoiceId, userRole, showOriginal) {
         document.getElementById('view-purchase-order-number').textContent = invoice.po_number || '';
         document.getElementById('view-delivery-challan-number').textContent = invoice.dc_number || '';
         document.getElementById('view-delivery-challan-date').textContent = invoice.dc_date ? formatDate(invoice.dc_date) : '';
-        document.getElementById('view-waybill-number').textContent = invoice.Way_Bill_number || '';
+        document.getElementById('view-waybill-number').textContent = invoice.Waybill_id || '';
         document.getElementById('view-service-months').textContent = invoice.service_month || '';
 
-        document.getElementById('view-payment-status').textContent = invoice.paymentStatus || '';
-        document.getElementById('view-balance-due').textContent = invoice.balanceDue || '';
-        document.getElementById('view-advance-pay').textContent = Array.isArray(invoice?.paidAmount) ? invoice.paidAmount.join(', ') : (invoice.advancedPay || '');
-        document.getElementById('view-paid-amount').textContent = invoice.paidAmount || '';
-        document.getElementById('view-payment-mode').textContent = invoice.paymentMode || '';
-        document.getElementById('view-payment-date').textContent = invoice.paymentDate ? formatDate(invoice.paymentDate) : '';
+        document.getElementById('view-payment-status').textContent = invoice.payment_status || '';
+        document.getElementById('view-balance-due').textContent = invoice.balance_due || '';
+        document.getElementById('view-advance-pay').textContent = Array.isArray(invoice?.paid_amount) ? invoice.paid_amount.join(', ') : (invoice.advancedPay || '');
+        document.getElementById('view-paid-amount').textContent = invoice.paid_amount || '';
+        document.getElementById('view-payment-mode').textContent = invoice.payment_mode || '';
+        document.getElementById('view-payment-date').textContent = invoice.payment_date ? formatDate(invoice.payment_date) : '';
 
         // Buyer & Consignee
         document.getElementById('view-buyer-name').textContent = invoice.buyer_name || '';
-        document.getElementById('view-buyer-address').textContent = invoice.buyer_address || '';
-        document.getElementById('view-buyer-phone').textContent = invoice.buyer_phone || '';
-        document.getElementById('view-buyer-email').textContent = invoice.buyer_email || '';
+        document.getElementById('view-buyer-address').textContent = invoice.customer_address || '';
+        document.getElementById('view-buyer-phone').textContent = invoice.customer_phone || '';
+        document.getElementById('view-buyer-email').textContent = invoice.customer_email || '';
         document.getElementById('view-consignee-name').textContent = invoice.consignee_name || '';
         document.getElementById('view-consignee-address').textContent = invoice.consignee_address || '';
 
@@ -316,54 +316,36 @@ async function viewInvoice(invoiceId, userRole, showOriginal) {
         if (type === 'original') {
             (invoice.items_original || []).forEach(item => {
                 const row = document.createElement("tr");
-                if (showOriginal) {
-                    row.innerHTML = `
+                row.innerHTML = `
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
-                    <td>${item.unitPrice || item.UnitPrice || ''}</td>
+                    <td>${item.unit_price || ''}</td>
                     <td>${item.rate ? item.rate + '%' : ''}</td>
                 `;
-                } else {
-                    row.innerHTML = `
-                    <td>${item.description || ''}</td>
-                    <td>${item.HSN_SAC || ''}</td>
-                    <td>${item.quantity || ''}</td>
-                    <td>${item.unitPrice || item.UnitPrice || ''}</td>
-                `;
-                }
                 detailItemsTableBody.appendChild(row);
             });
         }
         else {
             (invoice.items_duplicate || []).forEach(item => {
                 const row = document.createElement("tr");
-                if (showOriginal) {
-                    row.innerHTML = `
+                row.innerHTML = `
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
-                    <td>${item.unitPrice || item.UnitPrice || ''}</td>
+                    <td>${item.unit_price || ''}</td>
                     <td>${item.rate ? item.rate + '%' : ''}</td>
                 `;
-                } else {
-                    row.innerHTML = `
-                    <td>${item.description || ''}</td>
-                    <td>${item.HSN_SAC || ''}</td>
-                    <td>${item.quantity || ''}</td>
-                    <td>${item.unitPrice || item.UnitPrice || ''}</td>
-                `;
-                }
                 detailItemsTableBody.appendChild(row);
             });
         }
 
 
-        generateInvoicePreview(invoice, userRole, type, showOriginal);
+        generateInvoicePreview(invoice, userRole, type);
 
         // Print and Save as PDF handlers
         document.getElementById('printProject').onclick = () => {
-            const previewContent = document.getElementById("detail-preview-content").innerHTML;
+            const previewContent = document.getElementById("view-preview-content").innerHTML;
             if (window.electronAPI && window.electronAPI.handlePrintEvent) {
                 window.electronAPI.handlePrintEvent(previewContent, "print");
             } else {
@@ -371,7 +353,7 @@ async function viewInvoice(invoiceId, userRole, showOriginal) {
             }
         };
         document.getElementById('saveProjectPDF').onclick = () => {
-            const previewContent = document.getElementById("detail-preview-content").innerHTML;
+            const previewContent = document.getElementById("view-preview-content").innerHTML;
             if (window.electronAPI && window.electronAPI.handlePrintEvent) {
                 let name = `Invoice-${invoiceId}`;
                 window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);

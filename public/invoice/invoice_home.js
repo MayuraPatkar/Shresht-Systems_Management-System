@@ -83,13 +83,13 @@ function handleInvoiceAction(select, invoiceId) {
     const action = select.value;
     if (action === "view") {
         sessionStorage.setItem('view-invoice', 'duplicate');
-        viewInvoice(invoiceId, userRole, false);
+        viewInvoice(invoiceId, userRole);
     } else if (action === "update") {
         sessionStorage.setItem('update-invoice', 'duplicate');
         openInvoice(invoiceId);
     } else if (action === "view-original") {
         sessionStorage.setItem('view-invoice', 'original');
-        viewInvoice(invoiceId, userRole, true);
+        viewInvoice(invoiceId, userRole);
     } else if (action === "update-original") {
         sessionStorage.setItem('update-invoice', 'original');
         openInvoice(invoiceId);

@@ -64,6 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
         changeStep(totalSteps);
         generatePreview();
     });
+    document.getElementById('view-preview-btn').style.display = 'none'
 });
 
 // Step navigation
@@ -232,12 +233,12 @@ async function openWayBill(wayBillId) {
             changeStep(2);
         }
 
-        document.getElementById('waybill-id').value = wayBill.wayBill_id;
+        document.getElementById('waybill-id').value = wayBill.waybill_id;
         document.getElementById('project-name').value = wayBill.project_name;
-        document.getElementById('buyer-name').value = wayBill.buyer_name;
-        document.getElementById('buyer-address').value = wayBill.buyer_address;
-        document.getElementById('buyer-phone').value = wayBill.buyer_phone;
-        document.getElementById('buyer-email').value = wayBill.buyer_email || "";
+        document.getElementById('buyer-name').value = wayBill.customer_name;
+        document.getElementById('buyer-address').value = wayBill.customer_address;
+        document.getElementById('buyer-phone').value = wayBill.customer_phone;
+        document.getElementById('buyer-email').value = wayBill.customer_email || "";
         document.getElementById('transport-mode').value = wayBill.transport_mode;
         document.getElementById('vehicle-number').value = wayBill.vehicle_number;
         document.getElementById('place-supply').value = wayBill.place_supply;
@@ -251,7 +252,7 @@ async function openWayBill(wayBillId) {
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
-                <td><input type="number" value="${item.unitPrice}" required></td>
+                <td><input type="number" value="${item.unit_price}" required></td>
                 <td><input type="number" value="${item.rate}" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
