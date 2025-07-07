@@ -85,7 +85,7 @@ function calculateInvoice(itemsTable) {
     };
 }
 
-function generateInvoicePreview(invoice = {}, userRole, showOriginal = false) {
+function generateInvoicePreview(invoice = {}, userRole, type, showOriginal = false) {
     let itemsHTML = "";
     let totalPrice = 0;
     let totalCGST = 0;
@@ -93,8 +93,14 @@ function generateInvoicePreview(invoice = {}, userRole, showOriginal = false) {
     let totalTaxableValue = 0;
     let totalTax = 0;
     let hasTax = false;
+    let items = []
 
-    const items = invoice.items || [];
+    if (type == 'original') {
+        items = invoice.items_original;
+    } else {
+        items = invoice.items_duplicate;
+    }
+
     if (items.length > 0) {
         hasTax = items.some(item => parseFloat(item.rate || 0) > 0);
         items.forEach(item => {
@@ -229,6 +235,7 @@ function generateInvoicePreview(invoice = {}, userRole, showOriginal = false) {
                 <p><strong>Account No:</strong> 120002152652</p>
                 <p><strong>IFSC Code:</strong> CNRB0010261</p>
             </div>
+            <div class="QR-code"><img src="../assets/shresht systems payment QR-code.jpg" alt="qr-code"></div>
 
             <div class="totals-section" style="text-align: right;">
             ${totalsHTML}
@@ -264,6 +271,7 @@ function generateInvoicePreview(invoice = {}, userRole, showOriginal = false) {
 
 async function viewInvoice(invoiceId, userRole, showOriginal) {
     try {
+        const type = sessionStorage.getItem('update-invoice');
         const response = await fetch(`/invoice/${invoiceId}`);
         if (!response.ok) {
             throw new Error("Failed to fetch invoice");
@@ -305,28 +313,53 @@ async function viewInvoice(invoiceId, userRole, showOriginal) {
         // Item List
         const detailItemsTableBody = document.querySelector("#detail-items-table tbody");
         detailItemsTableBody.innerHTML = "";
-        (invoice.items || []).forEach(item => {
-            const row = document.createElement("tr");
-            if (showOriginal) {
-                row.innerHTML = `
+        if (type === 'original') {
+            (invoice.items_original || []).forEach(item => {
+                const row = document.createElement("tr");
+                if (showOriginal) {
+                    row.innerHTML = `
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
                     <td>${item.unitPrice || item.UnitPrice || ''}</td>
                     <td>${item.rate ? item.rate + '%' : ''}</td>
                 `;
-            } else {
-                row.innerHTML = `
+                } else {
+                    row.innerHTML = `
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
                     <td>${item.unitPrice || item.UnitPrice || ''}</td>
                 `;
-            }
-            detailItemsTableBody.appendChild(row);
-        });
+                }
+                detailItemsTableBody.appendChild(row);
+            });
+        }
+        else {
+            (invoice.items_duplicate || []).forEach(item => {
+                const row = document.createElement("tr");
+                if (showOriginal) {
+                    row.innerHTML = `
+                    <td>${item.description || ''}</td>
+                    <td>${item.HSN_SAC || ''}</td>
+                    <td>${item.quantity || ''}</td>
+                    <td>${item.unitPrice || item.UnitPrice || ''}</td>
+                    <td>${item.rate ? item.rate + '%' : ''}</td>
+                `;
+                } else {
+                    row.innerHTML = `
+                    <td>${item.description || ''}</td>
+                    <td>${item.HSN_SAC || ''}</td>
+                    <td>${item.quantity || ''}</td>
+                    <td>${item.unitPrice || item.UnitPrice || ''}</td>
+                `;
+                }
+                detailItemsTableBody.appendChild(row);
+            });
+        }
 
-        generateInvoicePreview(invoice, userRole, showOriginal);
+
+        generateInvoicePreview(invoice, userRole, type, showOriginal);
 
         // Print and Save as PDF handlers
         document.getElementById('printProject').onclick = () => {

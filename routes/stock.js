@@ -23,7 +23,7 @@ router.post('/addItem', async (req, res) => {
     try {
 
         // Check if item already exists
-        const existingItem = await Stock.findOne({ itemName });
+        const existingItem = await Stock.findOne({ item_name });
 
         if (existingItem) {
             return res.status(400).json({ error: 'Item already exists in stock' });
@@ -31,13 +31,14 @@ router.post('/addItem', async (req, res) => {
 
         // Add new stock item
         const newItem = new Stock({
-            itemName,
+            item_name: itemName,
             HSN_SAC,
-            unitPrice,
+            unit_price: unitPrice,
             quantity,
             GST,
-            threshold,
-            min_quantity
+            margin: threshold,
+            min_quantity,
+            type: 'material',
         });
 
         await newItem.save();
@@ -111,11 +112,11 @@ router.post('/editItem', async (req, res) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        item.name = name;
+        item.item_name = name;
         item.HSN_SAC = HSN_SAC;
-        item.unitPrice = unitPrice;
+        item.unit_price = unitPrice;
         item.quantity = quantity;
-        item.threshold = threshold;
+        item.margin = threshold;
         item.GST = GST;
         item.min_quantity = min_quantity;
         await item.save();
@@ -136,9 +137,9 @@ router.get("/get-stock-item", async (req, res) => {
         if (!stockItem) return res.status(404).json({ message: "Stock item not found" });
 
         res.json({
-            itemName: stockItem.itemName,
+            itemName: stockItem.item_name,
             HSN_SAC: stockItem.HSN_SAC,
-            unitPrice: stockItem.unitPrice,
+            unitPrice: stockItem.unit_price,
             GST: stockItem.GST
         });
     } catch (error) {
@@ -149,8 +150,8 @@ router.get("/get-stock-item", async (req, res) => {
 
 router.get("/get-names", async (req, res) => {
     try {
-        const stockItems = await Stock.find({}, { itemName: 1 });
-        res.json(stockItems.map(item => item.itemName));
+        const stockItems = await Stock.find({}, { item_name: 1 });
+        res.json(stockItems.map(item => item.item_name));
     } catch (error) {
         log.error("Error fetching stock item names:", error);
         res.status(500).json({ message: "Internal server error" });

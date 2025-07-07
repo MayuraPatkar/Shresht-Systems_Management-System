@@ -30,19 +30,20 @@ const Admin = mongoose.model('Admin', adminSchema);
 const quotationSchema = new mongoose.Schema({
     quotation_id: { type: String },
     project_name: { type: String },
-    buyer_name: { type: String },
-    buyer_address: { type: String },
-    buyer_phone: { type: String },
-    buyer_email: { type: String },
+    customer_name: { type: String },
+    customer_address: { type: String },
+    customer_phone: { type: String },
+    customer_email: { type: String },
     items: [
         {
             description: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
-            unitPrice: { type: String },
+            unit_price: { type: String },
             rate: { type: Number },
         },
     ],
+    quotation_date: { type: Date, default: Date.now },
     createdAt: { type: Date, default: Date.now },
 })
 
@@ -62,7 +63,7 @@ const purchaseSchema = new mongoose.Schema({
             description: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
-            unitPrice: { type: Number },
+            unit_price: { type: Number },
             rate: { type: Number },
         },
     ],
@@ -72,22 +73,22 @@ const purchaseSchema = new mongoose.Schema({
 const Purchases = mongoose.model('Purchases', purchaseSchema);
 
 const wayBillSchema = new mongoose.Schema({
-    wayBill_id: { type: String },
+    waybill_id: { type: String },
+    waybill_date: { type: Date, default: Date.now },
     project_name: { type: String },
-    buyer_name: { type: String },
-    buyer_address: { type: String },
-    buyer_phone: { type: String },
-    buyer_email: { type: String },
+    customer_name: { type: String },
+    customer_address: { type: String },
+    customer_phone: { type: String },
+    customer_email: { type: String },
     transport_mode: { type: String },
     vehicle_number: { type: String },
     place_supply: { type: String },
-
     items: [
         {
             description: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
-            unitPrice: { type: Number },
+            unit_price: { type: Number },
             rate: { type: Number },
         },
     ],
@@ -106,30 +107,39 @@ const invoiceSchema = new mongoose.Schema({
     po_date: { type: Date },
     dc_number: { type: String },
     dc_date: { type: Date },
+    Waybill_id: { type: String },
     service_month: { type: Number, default: 0 },
     service_stage: { type: Number, default: 0 },
     margin: { type: Number, default: 0 },
-    Way_Bill_number: { type: String },
-    buyer_name: { type: String },
-    buyer_address: { type: String },
-    buyer_phone: { type: String },
-    buyer_email: { type: String },
+    customer_name: { type: String },
+    customer_address: { type: String },
+    customer_phone: { type: String },
+    customer_email: { type: String },
     consignee_name: { type: String },
     consignee_address: { type: String },
-    items: [
+    items_original: [
         {
             description: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
-            UnitPrice: { type: Number },
+            unit_price: { type: Number },
             rate: { type: Number },
         },
     ],
-    totalAmount: { type: Number },
-    paidAmount: [{ type: Number }],
-    paymentMode: { type: String },
-    paymentDate: { type: Date },
-    paymentStatus: { type: String, default: 'Unpaid' },
+    items_duplicate: [
+        {
+            description: { type: String },
+            HSN_SAC: { type: String },
+            quantity: { type: Number },
+            unit_price: { type: Number },
+            rate: { type: Number },
+        },
+    ],
+    total_amount: { type: Number },
+    paid_amount: [{ type: Number }],
+    payment_mode: { type: String },
+    payment_date: { type: Date },
+    payment_status: { type: String, default: 'Unpaid' },
     createdAt: { type: Date, default: Date.now },
 });
 
@@ -137,9 +147,9 @@ const Invoices = mongoose.model('invoice', invoiceSchema);
 
 // Define Stock Schema and Model
 const stockSchema = new mongoose.Schema({
-    itemName: { type: String, required: true },
+    item_name: { type: String, required: true },
     HSN_SAC: { type: String, required: false },
-    unitPrice: { type: Number, required: true },
+    unit_price: { type: Number, required: true },
     GST: { type: Number, required: true },
     margin: { type: Number, required: true, default: 0 },
     quantity: { type: Number, required: true },

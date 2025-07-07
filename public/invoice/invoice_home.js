@@ -64,10 +64,14 @@ function createInvoiceCard(invoice) {
         </div>
         <select class="actions" onchange="handleInvoiceAction(this, '${invoice.invoice_id}')">
             <option value="" disabled selected>Actions</option>
-            <option class="open-invoice" data-id="${invoice.invoice_id}" value="view">View</option>
-            ${userRole === 'admin' ? `<option class="open-invoice" data-id="${invoice.invoice_id}" value="view-original">View Original</option>` : ""}
-            <option class="edit-invoice" data-id="${invoice.invoice_id}" value="update">Update</option>
-            <option class="delete-invoice" data-id="${invoice.invoice_id}" value="delete">Delete</option>
+            ${userRole === 'admin' ? `<option data-id="${invoice.invoice_id}" value="view">View</option>` : ""}
+            ${userRole === 'admin' ? `<option class="edit-invoice" data-id="${invoice.invoice_id}" value="update">Update</option>` : ""}
+            ${userRole === 'admin' ? `<option data-id="${invoice.invoice_id}" value="view-original">View original</option>` : ""}
+            ${userRole === 'admin' ? `<option data-id="${invoice.invoice_id}" value="update-original">Update original</option>` : ""}
+            ${userRole === 'admin' ? `<option class="delete-invoice" data-id="${invoice.invoice_id}" value="delete">Delete</option>` : ""}
+            ${userRole === 'manager' ? `<option data-id="${invoice.invoice_id}" value="view">View</option>` : ""}
+            ${userRole === 'manager' ? `<option class="edit-invoice" data-id="${invoice.invoice_id}" value="update">Update</option>` : ""}
+            ${userRole === 'manager' ? `<option class="delete-invoice" data-id="${invoice.invoice_id}" value="delete">Delete</option>` : ""}
         </select>
     `;
     return invoiceCard;
@@ -78,12 +82,19 @@ function handleInvoiceAction(select, invoiceId) {
     const userRole = sessionStorage.getItem('userRole');
     const action = select.value;
     if (action === "view") {
+        sessionStorage.setItem('view-invoice', 'duplicate');
         viewInvoice(invoiceId, userRole, false);
     } else if (action === "update") {
+        sessionStorage.setItem('update-invoice', 'duplicate');
         openInvoice(invoiceId);
     } else if (action === "view-original") {
+        sessionStorage.setItem('view-invoice', 'original');
         viewInvoice(invoiceId, userRole, true);
-    } else if (action === "delete") {
+    } else if (action === "update-original") {
+        sessionStorage.setItem('update-invoice', 'original');
+        openInvoice(invoiceId);
+    }
+    else if (action === "delete") {
         window.electronAPI.showAlert2("Are you sure you want to delete this invoice?");
         if (window.electronAPI) {
             window.electronAPI.receiveAlertResponse((response) => {
@@ -121,6 +132,7 @@ function showNewInvoiceForm() {
     document.getElementById('new').style.display = 'block';
     document.getElementById('new-invoice').style.display = 'none';
     document.getElementById('view').style.display = 'none';
+    sessionStorage.setItem('update-invoice', 'original');
 }
 
 // Handle search functionality

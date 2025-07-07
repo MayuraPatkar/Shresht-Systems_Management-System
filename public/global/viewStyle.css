@@ -163,3 +163,13 @@
             display: flex;
             gap: 1rem;
         }
+
+        .QR-code {
+            width: 100px;
+            height: 100px;
+            margin: 1rem 0;
+        }
+
+        .QR-code img {
+            height: 100%;
+        }

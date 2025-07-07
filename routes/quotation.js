@@ -76,20 +76,20 @@ router.post("/save-quotation", async (req, res) => {
         if (quotation) {
             // Update existing quotation
             quotation.project_name = projectName;
-            quotation.buyer_name = buyerName;
-            quotation.buyer_address = buyerAddress;
-            quotation.buyer_phone = buyerPhone;
-            quotation.buyer_email = buyerEmail;
+            quotation.customer_name = buyerName;
+            quotation.customer_address = buyerAddress;
+            quotation.customer_phone = buyerPhone;
+            quotation.customer_email = buyerEmail;
             quotation.items = items;
         } else {
             // Create a new quotation with the provided data
             quotation = new Quotations({
                 quotation_id: quotation_id,
                 project_name: projectName,
-                buyer_name: buyerName,
-                buyer_address: buyerAddress,
-                buyer_phone: buyerPhone,
-                buyer_email: buyerEmail,
+                customer_name: buyerName,
+                customer_address: buyerAddress,
+                customer_phone: buyerPhone,
+                customer_email: buyerEmail,
                 items,
                 createdAt: new Date(),
             });
@@ -195,9 +195,9 @@ router.get('/search/:query', async (req, res) => {
             $or: [
                 { quotation_id: { $regex: query, $options: 'i' } },
                 { project_name: { $regex: query, $options: 'i' } },
-                { buyer_name: { $regex: query, $options: 'i' } },
-                { buyer_phone: { $regex: query, $options: 'i' } },
-                { buyer_email: { $regex: query, $options: 'i' } }
+                { customer_name: { $regex: query, $options: 'i' } },
+                { customer_phone: { $regex: query, $options: 'i' } },
+                { customer_email: { $regex: query, $options: 'i' } }
             ]
         });
 

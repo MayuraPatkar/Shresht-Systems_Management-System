@@ -213,20 +213,20 @@ document.getElementById("save-pdf-btn").addEventListener("click", () => {
 // Function to collect form data
 function collectFormData() {
     return {
-        waybill_id: document.getElementById("waybill-id").value,
-        project_name: document.getElementById("project-name").value,
-        buyer_name: document.getElementById("buyer-name").value,
-        buyer_address: document.getElementById("buyer-address").value,
-        buyer_phone: document.getElementById("buyer-phone").value,
-        buyer_email: document.getElementById("buyer-email").value,
-        transport_mode: document.getElementById("transport-mode").value,
-        vehicle_number: document.getElementById("vehicle-number").value,
-        place_supply: document.getElementById("place-supply").value,
+        wayBillId: document.getElementById("waybill-id").value,
+        projectName: document.getElementById("project-name").value,
+        buyerName: document.getElementById("buyer-name").value,
+        buyerAddress: document.getElementById("buyer-address").value,
+        buyerPhone: document.getElementById("buyer-phone").value,
+        buyerEmail: document.getElementById("buyer-email").value,
+        transportMode: document.getElementById("transport-mode").value,
+        vehicleNumber: document.getElementById("vehicle-number").value,
+        placeSupply: document.getElementById("place-supply").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(1) input").value,
             HSN_SAC: row.querySelector("td:nth-child(2) input").value,
             quantity: row.querySelector("td:nth-child(3) input").value,
-            unitPrice: row.querySelector("td:nth-child(4) input").value,
+            unit_price: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
     };

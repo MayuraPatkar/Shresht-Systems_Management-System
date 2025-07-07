@@ -109,3 +109,8 @@ document.getElementById("export-data-button").addEventListener("click", () => {
 
     window.location.href = `/admin/export-data?format=${format}`;
 });
+
+document.getElementById("logout-button").addEventListener("click", () => {
+    sessionStorage.removeItem("admin");
+    window.location.href = "/";
+});

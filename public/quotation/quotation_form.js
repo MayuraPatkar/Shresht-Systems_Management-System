@@ -7,7 +7,7 @@ document.getElementById("view-preview").addEventListener("click", () => {
 });
 
 // Function to get the quotation id
-async function getQuotationId() {
+async function getId() {
     try {
         const response = await fetch("/quotation/generate-id");
         if (!response.ok) throw new Error("Failed to fetch quotation id");

@@ -44,6 +44,7 @@ router.get("/get-all", async (req, res) => {
 router.post("/save-invoice", async (req, res) => {
     try {
         const {
+            type,
             invoiceId = '',
             invoiceDate,
             projectName,
@@ -76,44 +77,64 @@ router.post("/save-invoice", async (req, res) => {
 
         const existingInvoice = await Invoices.findOne({ invoice_id: invoiceId });
 
+        let items_original = existingInvoice?.items_original || [];
+        let items_duplicate = existingInvoice?.items_duplicate || [];
+
+        if (type === 'original') {
+            items_original = items;                // overwrite originals
+            // leave duplicate untouched
+        } else if (type === 'duplicate') {
+            items_duplicate = items;               // overwrite duplicates
+            // originals stay as‐is
+        } else {
+            return res.status(400).json({ message: 'type must be "original" or "duplicate"' });
+        }
+
         if (existingInvoice) {
             // Update stock: revert previous items
-            for (let prevItem of existingInvoice.items) {
-                const stockItem = await Stock.findOne({ itemName: prevItem.description });
-                if (stockItem) {
-                    stockItem.quantity += prevItem.quantity;
-                    await stockItem.save();
-                }
+            for (let prev of existingInvoice.items_original) {
+                await Stock.updateOne({ item_name: prev.description }, { $inc: { quantity: prev.quantity } });
             }
             // Update stock: deduct new items (allow negative)
-            for (let item of items) {
-                const stockItem = await Stock.findOne({ itemName: item.description });
-                if (stockItem) {
-                    stockItem.quantity -= item.quantity;
-                    await stockItem.save();
-                }
+            for (let cur of items_original) {
+                await Stock.updateOne({ item_name: cur.description }, { $inc: { quantity: -cur.quantity } });
             }
 
             if (paidAmount && paidAmount !== 0) {
-                existingInvoice.paidAmount.push(paidAmount);
+                existingInvoice.paid_amount.push(paidAmount);
             }
 
             // Update the invoice
             Object.assign(existingInvoice, {
-                project_name: projectName, invoice_date: invoiceDate, po_number: poNumber, po_date: poDate,
-                dc_number: dcNumber, dc_date: dcDate, service_month, margin: margin, Way_Bill_number: wayBillNumber,
-                date, buyer_name: buyerName, buyer_address: buyerAddress, buyer_phone: buyerPhone, buyer_email: buyerEmail, 
-                consignee_name: consigneeName, consignee_address: consigneeAddress, items,
-                totalAmount: totalAmount, paymentStatus: paymentStatus,
-                paymentMode: paymentMode, paymentDate: paymentDate
+                project_name: projectName,
+                invoice_date: invoiceDate,
+                po_number: poNumber,
+                po_date: poDate,
+                dc_number: dcNumber,
+                dc_date: dcDate,
+                service_month,
+                margin: margin,
+                Waybill_id: wayBillNumber,
+                customer_name: buyerName,
+                customer_address: buyerAddress,
+                customerr_phone: buyerPhone,
+                customer_email: buyerEmail,
+                consignee_name: consigneeName,
+                consignee_address: consigneeAddress,
+                items_original: items_original,
+                items_duplicate: items_duplicate,
+                total_amount: totalAmount,
+                payment_status: paymentStatus,
+                payment_mode: paymentMode,
+                payment_date: paymentDate
             });
 
             const updatedInvoice = await existingInvoice.save();
             return res.status(200).json({ message: 'Invoice updated successfully', invoice: updatedInvoice });
         } else {
             // Deduct stock for new invoice (allow negative)
-            for (let item of items) {
-                const stockItem = await Stock.findOne({ itemName: item.description });
+            for (let item of items_original) {
+                const stockItem = await Stock.findOne({ item_name: item.description });
                 if (stockItem) {
                     stockItem.quantity -= item.quantity;
                     await stockItem.save();
@@ -122,17 +143,33 @@ router.post("/save-invoice", async (req, res) => {
 
             // Create a new invoice
             const invoice = new Invoices({
-                invoice_id: invoiceId, invoice_date: invoiceDate, project_name: projectName, po_number: poNumber,
-                po_date: poDate, dc_number: dcNumber, dc_date: dcDate, service_month, margin: margin,
-                Way_Bill_number: wayBillNumber, date, buyer_name: buyerName, buyer_address: buyerAddress,
-                buyer_phone: buyerPhone, buyer_email: buyerEmail, consignee_name: consigneeName, consignee_address: consigneeAddress,
-                items, totalAmount: totalAmount, paymentStatus: paymentStatus,
-                paymentMode: paymentMode, paymentDate: paymentDate
+                invoice_id: invoiceId,
+                invoice_date: invoiceDate,
+                project_name: projectName,
+                po_number: poNumber,
+                po_date: poDate,
+                dc_number: dcNumber,
+                dc_date: dcDate,
+                service_month, 
+                margin: margin,
+                Waybill_id: wayBillNumber,
+                customer_name: buyerName,
+                customer_address: buyerAddress,
+                customer_phone: buyerPhone,
+                customer_email: buyerEmail,
+                consignee_name: consigneeName,
+                consignee_address: consigneeAddress,
+                items_original: items,
+                items_duplicate: items,
+                total_amount: totalAmount,
+                payment_status: paymentStatus,
+                payment_dode: paymentMode,
+                payment_date: paymentDate
             });
 
             // Push the initial payment if provided
             if (paidAmount && paidAmount !== '0') {
-                invoice.paidAmount.push(paidAmount);
+                invoice.paid_amount.push(paidAmount);
             }
 
             const savedInvoice = await invoice.save();
@@ -206,9 +243,9 @@ router.get('/search/:query', async (req, res) => {
                 $or: [
                     { invoice_id: { $regex: query, $options: 'i' } },
                     { project_name: { $regex: query, $options: 'i' } },
-                    { buyer_name: { $regex: query, $options: 'i' } },
-                    { buyer_phone: { $regex: query, $options: 'i' } },
-                    { buyer_email: { $regex: query, $options: 'i' } },
+                    { customer_name: { $regex: query, $options: 'i' } },
+                    { customer_phone: { $regex: query, $options: 'i' } },
+                    { customer_email: { $regex: query, $options: 'i' } },
                 ]
             });
         }

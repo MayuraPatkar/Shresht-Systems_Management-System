@@ -117,7 +117,7 @@
             background: var(--accent);
         }
 
-        .header-buttons #viewPreview {
+        .header-buttons #view-preview {
             display: none;
         }
 
@@ -311,6 +311,13 @@
         }
 
         #new {
+            display: none;
+            max-height: calc(100vh - 80px);
+            min-width: calc(100vw - 241px);
+            overflow-y: auto;
+        }
+
+        #update-duplicate {
             display: none;
             max-height: calc(100vh - 80px);
             min-width: calc(100vw - 241px);

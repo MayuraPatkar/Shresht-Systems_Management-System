@@ -7,15 +7,14 @@ const log = require("electron-log"); // Import electron-log in the preload proce
 router.post("/save-way-bill", async (req, res) => {
     try {
         let {
-            way_bill_id = '',
+            wayBillId = '',
             projectName,
-            handledBy,
-            buyer_name = '',
-            buyer_address = '',
-            buyer_phone = '',
-            transport_mode = '',
-            vehicle_number = '',
-            place_supply = '',
+            buyerName = '',
+            buyerAddress = '',
+            buyerPhone = '',
+            transportMode = '',
+            vehicleNumber = '',
+            placeSupply = '',
             items = [],
         } = req.body;
 
@@ -27,30 +26,28 @@ router.post("/save-way-bill", async (req, res) => {
         }
 
         // Check if way bill already exists
-        let wayBill = await wayBills.findOne({ wayBill_id: way_bill_id });
+        let wayBill = await wayBills.findOne({ waybill_id: wayBillId });
         if (wayBill) {
             // Update existing way bill
             wayBill.project_name = projectName;
-            wayBill.handledBy = handledBy;
-            wayBill.buyer_name = buyer_name;
-            wayBill.buyer_address = buyer_address;
-            wayBill.buyer_phone = buyer_phone;
-            wayBill.transport_mode = transport_mode;
-            wayBill.vehicle_number = vehicle_number;
-            wayBill.place_supply = place_supply;
+            wayBill.customer_name = buyerName;
+            wayBill.customer_address = buyerAddress;
+            wayBill.customer_phone = buyerPhone;
+            wayBill.transport_mode = transportMode;
+            wayBill.vehicle_number = vehicleNumber;
+            wayBill.place_supply = placeSupply;
             wayBill.items = items;
         } else {
             // Create a new way bill with the provided data
             wayBill = new wayBills({
-                wayBill_id: way_bill_id,
+                wayBill_id: wayBillId,
                 project_name: projectName,
-                handledBy: handledBy,
-                buyer_name: buyer_name,
-                buyer_address: buyer_address,
-                buyer_phone: buyer_phone,
-                transport_mode: transport_mode,
-                vehicle_number: vehicle_number,
-                place_supply: place_supply,
+                customer_name: buyerName,
+                customer_address: buyerAddress,
+                customer_phone: buyerPhone,
+                transport_mode: transportMode,
+                vehicle_number: vehicleNumber,
+                place_supply: placeSupply,
                 items,
                 createdAt: new Date(),
             });
@@ -99,7 +96,7 @@ router.get("/:wayBillId", async (req, res) => {
         const { wayBillId } = req.params;
 
         // Fetch the way bill by ID
-        const wayBill = await wayBills.findOne({ wayBill_id: wayBillId });
+        const wayBill = await wayBills.findOne({ waybill_id: wayBillId });
         if (!wayBill) {
             return res.status(404).json({ message: 'Way bill not found' });
         }
@@ -125,7 +122,7 @@ router.delete("/:wayBillId", async (req, res) => {
         const { wayBillId } = req.params;
 
         // Fetch the way bill by ID
-        const wayBill = await wayBills.findOne({ wayBill_id: wayBillId });
+        const wayBill = await wayBills.findOne({ waybill_id: wayBillId });
         if (!wayBill) {
             return res.status(404).json({ message: 'Way bill not found' });
         }
@@ -154,10 +151,10 @@ router.get('/search/:query', async (req, res) => {
     try {
         const way_bills = await wayBills.find({
             $or: [
-                { wayBill_id: { $regex: query, $options: 'i' } },
+                { waybill_id: { $regex: query, $options: 'i' } },
                 { project_name: { $regex: query, $options: 'i' } },
-                { buyer_name: { $regex: query, $options: 'i' } },
-                { buyer_phone: { $regex: query, $options: 'i' } }
+                { customer_name: { $regex: query, $options: 'i' } },
+                { customer_phone: { $regex: query, $options: 'i' } }
             ]
         });
 

@@ -46,6 +46,7 @@ document.getElementById("next-btn").addEventListener("click", () => {
 // Open an invoice for editing
 async function openInvoice(id) {
     try {
+        const type = sessionStorage.getItem('update-invoice');
         const response = await fetch(`/invoice/${id}`);
         if (!response.ok) throw new Error("Failed to fetch invoice");
 
@@ -82,9 +83,11 @@ async function openInvoice(id) {
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
 
-        invoice.items.forEach(item => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
+        if (type == 'original') {
+
+            invoice.items_original.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
@@ -92,8 +95,22 @@ async function openInvoice(id) {
                 <td><input type="number" value="${item.rate}" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
-            itemsTableBody.appendChild(row);
-        });
+                itemsTableBody.appendChild(row);
+            });
+        } else {
+            invoice.items_duplicate.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                <td><input type="text" value="${item.description}" required></td>
+                <td><input type="text" value="${item.HSN_SAC}" required></td>
+                <td><input type="number" value="${item.quantity}" min="1" required></td>
+                <td><input type="number" value="${item.unitPrice || item.UnitPrice}" required></td>
+                <td><input type="number" value="${item.rate}" required></td>
+                <td><button type="button" class="remove-item-btn">Remove</button></td>
+            `;
+                itemsTableBody.appendChild(row);
+            });
+        }
     } catch (error) {
         console.error("Error fetching invoice:", error);
         window.electronAPI.showAlert1("Failed to fetch invoice. Please try again later.");
@@ -348,7 +365,8 @@ document.getElementById("print-btn").addEventListener("click", async () => {
             const ok = await sendToServer(invoiceData, true);
             if (ok) {
                 console.log("Sending print request with content:", previewContent);
-                window.electronAPI.handlePrintEvent(previewContent, "print");}
+                window.electronAPI.handlePrintEvent(previewContent, "print");
+            }
         } else {
             window.electronAPI.showAlert1("Print functionality is not available.");
         }
@@ -383,6 +401,7 @@ function collectFormData() {
         paymentStatus = 'Paid';
     }
     return {
+        type: sessionStorage.getItem('update-invoice'),
         projectName: document.getElementById("project-name").value,
         invoiceId: document.getElementById("id").value,
         invoiceDate: document.getElementById("invoice-date").value,
@@ -405,7 +424,7 @@ function collectFormData() {
             description: row.querySelector("td:nth-child(1) input").value,
             HSN_SAC: row.querySelector("td:nth-child(2) input").value,
             quantity: row.querySelector("td:nth-child(3) input").value,
-            unitPrice: row.querySelector("td:nth-child(4) input").value,
+            unit_price: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
         totalAmount: finalTotal,

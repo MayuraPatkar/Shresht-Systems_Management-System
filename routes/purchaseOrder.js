@@ -33,51 +33,52 @@ router.get("/generate-id", async (req, res) => {
 router.post("/save-purchase-order", async (req, res) => {
     try {
         let {
-            purchase_order_id = '',
-            purchase_invoice_id = '',
-            purchaseDate,
-            supplier_name = '',
-            supplier_address = '',
-            supplier_phone = '',
-            supplier_email = '',
-            supplier_GSTIN = '',
+            purchaseOrderId = '',
+            purchaseInvoiceId = '',
+            purchaseDate = new Date(),
+            supplierName = '',
+            supplierAddress = '',
+            supplierPhone = '',
+            supplierEmail = '',
+            supplierGSTIN = '',
             items = [],
         } = req.body;
 
         // Validate required fields
-        if (!purchase_order_id) {
+        if (!purchaseOrderId) {
             return res.status(400).json({
                 message: 'Missing required fields or invalid data: purchase order id',
             });
         }
 
         // Check if purchase order already exists
-        let purchaseOrder = await Purchases.findOne({ purchase_order_id: purchase_order_id });
+        let purchaseOrder = await Purchases.findOne({ purchase_order_id: purchaseOrderId });
         let previousItems = [];
         if (purchaseOrder) {
             // Save previous items for stock adjustment
             previousItems = Array.isArray(purchaseOrder.items) ? purchaseOrder.items : [];
 
             // Update existing purchase order
-            purchaseOrder.purchase_invoice_id = purchase_invoice_id;
+            purchaseOrder.purchase_order_id = purchaseOrderId;
+            purchaseOrder.purchase_invoice_id = purchaseInvoiceId;
             purchaseOrder.purchase_date = purchaseDate;
-            purchaseOrder.supplier_name = supplier_name;
-            purchaseOrder.supplier_address = supplier_address;
-            purchaseOrder.supplier_phone = supplier_phone;
-            purchaseOrder.supplier_email = supplier_email;
-            purchaseOrder.supplier_GSTIN = supplier_GSTIN;
+            purchaseOrder.supplier_name = supplierName;
+            purchaseOrder.supplier_address = supplierAddress;
+            purchaseOrder.supplier_phone = supplierPhone;
+            purchaseOrder.supplier_email = supplierEmail;
+            purchaseOrder.supplier_GSTIN = supplierGSTIN;
             purchaseOrder.items = items;
         } else {
             // Create a new purchase order with the provided data
             purchaseOrder = new Purchases({
-                purchase_order_id: purchase_order_id,
-                purchase_invoice_id: purchase_invoice_id,
+                purchase_order_id: purchaseOrderId,
+                purchase_invoice_id: purchaseInvoiceId,
                 purchase_date: purchaseDate,
-                supplier_name: supplier_name,
-                supplier_address: supplier_address,
-                supplier_phone: supplier_phone,
-                supplier_email: supplier_email,
-                supplier_GSTIN: supplier_GSTIN,
+                supplier_name: supplierName,
+                supplier_address: supplierAddress,
+                supplier_phone: supplierPhone,
+                supplier_email: supplierEmail,
+                supplier_GSTIN: supplierGSTIN,
                 items,
                 createdAt: new Date(),
             });
@@ -92,8 +93,8 @@ router.post("/save-purchase-order", async (req, res) => {
                 let stockItem = await Stock.findOne({ itemName: prevItem.description });
                 if (stockItem) {
                     stockItem.quantity = Number(stockItem.quantity || 0) - Number(prevItem.quantity || 0);
-                    // Prevent negative stock
-                    if (stockItem.quantity < 0) stockItem.quantity = 0;
+                    // // Prevent negative stock
+                    // if (stockItem.quantity < 0) stockItem.quantity = 0;
                     await stockItem.save();
                 }
             }
@@ -108,15 +109,15 @@ router.post("/save-purchase-order", async (req, res) => {
             if (stockItem) {
                 // Update quantity and GST/unitPrice if needed
                 stockItem.quantity = Number(stockItem.quantity || 0) + Number(item.quantity || 0);
-                stockItem.unitPrice = Number(item.unitPrice) || stockItem.unitPrice;
+                stockItem.unit_price = Number(item.unitPrice) || stockItem.unit_price;
                 stockItem.GST = Number(item.rate) || stockItem.GST;
                 stockItem.updatedAt = new Date();
                 await stockItem.save();
             } else {
                 await Stock.create({
-                    itemName: item.description,
+                    item_name: item.description,
                     HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
-                    unitPrice: Number(item.unitPrice) || 0,
+                    unit_price: Number(item.unitPrice) || 0,
                     GST: Number(item.rate) || 0,
                     margin: 0,
                     quantity: Number(item.quantity) || 0,
