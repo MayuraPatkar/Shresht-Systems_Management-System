@@ -1,51 +1,61 @@
 const express = require('express');
-const router = express.Router();
-const { Invoices, Quotations } = require('./database');
-const log = require("electron-log"); // Import electron-log in the preload process
+const router  = express.Router();
+const { Invoices, Quotations, Purchases } = require('./database');
+const log = require('electron-log');          // preload‑side logger
 
 router.get('/overview', async (req, res) => {
-    try {
-        const totalProjects = await Invoices.countDocuments();
-        const totalQuotations = await Quotations.countDocuments();
+  try {
+    /* ───────────────────────── Common date helpers ────────────────────────── */
+    const now          = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startNextMon = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-        // Sum of earnings for current month
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
+    /* ────────────────────────── Simple document counts ────────────────────── */
+    const totalProjects   = await Invoices.countDocuments();
+    const totalQuotations = await Quotations.countDocuments();
+    const totalUnpaid     = await Invoices.countDocuments({ paymentStatus: 'Unpaid' });
 
-        const monthlyEarnings = await Invoices.aggregate([
-            {
-                $match: {
-                    createdAt: {
-                        $gte: new Date(currentYear, currentMonth, 1),
-                        $lt: new Date(currentYear, currentMonth + 1, 1)
-                    },
-                    paymentStatus: "Paid"
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: "$totalAmount" },
-                }
-            }
-        ]);
+    /* ────────────────────── Monthly invoice earnings (Paid) ───────────────── */
+    const [{ total: totalEarned = 0 } = {}] = await Invoices.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startOfMonth, $lt: startNextMon },
+          paymentStatus: 'Paid',
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+    ]);
 
-        // If no invoices for the current month, set total to 0
-        const totalEarned = monthlyEarnings[0]?.total || 0;
+    /* ─────────────────────── Monthly purchase expenditure ─────────────────── */
+    const [{ total: totalExpenditure = 0 } = {}] = await Purchases.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startOfMonth, $lt: startNextMon },
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$total_amount' } } }, // field name → adapt if different
+    ]);
 
-        const totalUnpaid = await Invoices.countDocuments({ paymentStatus: "Unpaid" });
+    /* ────────────────────── Remaining service months (invoices) ───────────── */
+    // Assuming each invoice has `service_month` > 0 while service is still pending.
+    const [{ total: remainingServices = 0 } = {}] = await Invoices.aggregate([
+      { $match: { service_month: { $gt: 0 } } },
+      { $group: { _id: null, total: { $sum: '$service_month' } } },
+    ]);
 
-        res.json({
-            totalProjects,
-            totalQuotations,
-            totalEarned,
-            totalUnpaid
-        });
-    } catch (err) {
-        log.error("Error fetching analytics:", err);
-        res.status(500).json({ error: "Server error" });
-    }
+    /* ────────────────────────────── Response ──────────────────────────────── */
+    res.json({
+      totalProjects,
+      totalQuotations,
+      totalEarned,
+      totalUnpaid,
+      totalExpenditure,
+      remainingServices,
+    });
+  } catch (err) {
+    log.error('Error fetching analytics:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
-
 
 module.exports = router;

@@ -67,6 +67,7 @@ const purchaseSchema = new mongoose.Schema({
             rate: { type: Number },
         },
     ],
+    total_amount: { type: Number },
     createdAt: { type: Date, default: Date.now },
 })
 

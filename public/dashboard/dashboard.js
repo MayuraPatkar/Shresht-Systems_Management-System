@@ -7,31 +7,53 @@ document.addEventListener("DOMContentLoaded", () => {
             animateCounter("quotation-count", data.totalQuotations);
             animateCounter("earned-count", data.totalEarned, true);
             animateCounter("unpaid-count", data.totalUnpaid);
+            animateCounter("expenditure-count", data.totalExpenditure, true);
+            animateCounter("remaining-services-count", data.remainingServices);
         })
         .catch(err => {
             console.error("Error fetching analytics:", err);
         });
 });
 
+function formatIndian(num, fractionDigits = 0) {
+  return num.toLocaleString('en-IN', {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  });
+}
+
 
 // ---------------------- Animated Counter Function ----------------------
-function animateCounter(id, end, isCurrency = false, duration = 3000, delay = 500) {
-    const element = document.getElementById(id);
-    let start = 0;
-    const steps = Math.floor(duration / 16);
-    const increment = Math.ceil(end / steps);
+function animateCounter(
+  id,
+  end,
+  isCurrency = false,
+  duration = 1000,
+  delay = 10
+) {
+  const el = document.getElementById(id);
+  if (end === 0) {
+    el.textContent = isCurrency ? `₹${formatIndian(0)}` : formatIndian(0);
+    return;
+  }
 
-    setTimeout(() => {
-        const interval = setInterval(() => {
-            start += increment;
-            if (start >= end) {
-                start = end;
-                clearInterval(interval);
-            }
-            element.textContent = isCurrency ? `₹${start.toLocaleString()}` : start;
-        }, 16);
-    }, delay);
+  setTimeout(() => {
+    const t0 = performance.now();
+    const run = now => {
+      const p = Math.min((now - t0) / duration, 1);   // 0 → 1
+      const value = end * p;
+
+      el.textContent = isCurrency
+        ? `₹${formatIndian(value, 2)}`                // ₹ 12,34,560.75
+        : formatIndian(Math.floor(value));            // 12,34,561
+
+      if (p < 1) requestAnimationFrame(run);
+    };
+    requestAnimationFrame(run);
+  }, delay);
 }
+
+
 
 // Add this to dashboard.js
 function updateDateTime() {

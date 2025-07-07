@@ -42,6 +42,7 @@ router.post("/save-purchase-order", async (req, res) => {
             supplierEmail = '',
             supplierGSTIN = '',
             items = [],
+            totalAmount = 0
         } = req.body;
 
         // Validate required fields
@@ -68,6 +69,7 @@ router.post("/save-purchase-order", async (req, res) => {
             purchaseOrder.supplier_email = supplierEmail;
             purchaseOrder.supplier_GSTIN = supplierGSTIN;
             purchaseOrder.items = items;
+            purchaseOrder.total_amount = totalAmount;
         } else {
             // Create a new purchase order with the provided data
             purchaseOrder = new Purchases({
@@ -80,6 +82,7 @@ router.post("/save-purchase-order", async (req, res) => {
                 supplier_email: supplierEmail,
                 supplier_GSTIN: supplierGSTIN,
                 items,
+                total_amount: totalAmount,
                 createdAt: new Date(),
             });
         }
@@ -90,7 +93,7 @@ router.post("/save-purchase-order", async (req, res) => {
         if (previousItems.length > 0) {
             for (const prevItem of previousItems) {
                 if (!prevItem.description) continue;
-                let stockItem = await Stock.findOne({ itemName: prevItem.description });
+                let stockItem = await Stock.findOne({ item_name: prevItem.description });
                 if (stockItem) {
                     stockItem.quantity = Number(stockItem.quantity || 0) - Number(prevItem.quantity || 0);
                     // // Prevent negative stock
@@ -104,7 +107,7 @@ router.post("/save-purchase-order", async (req, res) => {
         for (const item of items) {
             if (!item.description) continue;
 
-            let stockItem = await Stock.findOne({ itemName: item.description });
+            let stockItem = await Stock.findOne({ item_name: item.description });
 
             if (stockItem) {
                 // Update quantity and GST/unitPrice if needed

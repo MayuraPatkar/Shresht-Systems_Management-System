@@ -82,7 +82,7 @@
 </head>
 
 <body>
-    <header>
+    <header class="no-select">
         <div class="imglogo-title">
             <div class="imglogo"><img src="../assets/icon.png" alt="logo"></div>
             <h1>Dashboard</h1>
@@ -147,7 +147,7 @@
                 Settings
             </div>
         </aside>
-        <main>
+        <main class="no-select">
             <!-- Add this inside your .date-time div in dashboard.html -->
             <div class="datetime-container">
                 <span id="current-date"></span>
@@ -171,11 +171,11 @@
                     <p>Total Unpaid Projects</p>
                 </div>
                 <div class="overview-card">
-                    <h2 id="expenditure">0</h2>
+                    <h2 id="expenditure-count">0</h2>
                     <p>Total Expenditure This Month</p>
                 </div>
                 <div class="overview-card">
-                    <h2 id="service">0</h2>
+                    <h2 id="remaining-services-count">0</h2>
                     <p>Service Remaining</p>
                 </div>
             </div>

@@ -13,13 +13,13 @@ function getWhatsAppApiUrl(endpoint = 'messages') {
 }
 
 async function registerNumber() {
-  const url = `https://graph.facebook.com/v20.0/${process.env.PHONE_NUMBER_ID}/register`;
-  const resp = await axios.post(
-    url,
-    { messaging_product: 'whatsapp', pin: '111111' },
-    { headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}` } }
-  );
-  console.log(resp.data); // expect { success: true }
+    const url = `https://graph.facebook.com/v20.0/${process.env.PHONE_NUMBER_ID}/register`;
+    const resp = await axios.post(
+        url,
+        { messaging_product: 'whatsapp', pin: '111111' },
+        { headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}` } }
+    );
+    console.log(resp.data); // expect { success: true }
 }
 
 
@@ -28,46 +28,40 @@ async function registerNumber() {
 // {{2}} → last‑4 digits         (text)
 // {{3}} → scheduled date        (text)
 
-async function sendPaymentReminder(
-  phone,
-  cardName = 'Sandeep Nayak',
-  last4    = '1234',
-  dueDate  = '2521120'
-) {
-  const payload = {
-    messaging_product: 'whatsapp',
-    to: phone.replace(/^\+/, ''),              // digits only
-    type: 'template',
-    template: {
-      name: 'pay_reminder',                    // EXACT name in Manager
-      language: { code: 'en_US' },               // or 'en_US' if that’s the locale you added
-      components: [
-        {
-          type: 'body',
-          parameters: [
-            { type: 'text', text: cardName },  // {{1}}
-            { type: 'text', text: last4 },     // {{2}}
-            { type: 'text', text: dueDate }    // {{3}}
-          ]
+async function sendPaymentReminder(phone, invoice_id, amount_due) {
+    const payload = {
+        messaging_product: 'whatsapp',
+        to: phone.replace(/^\+/, ''),              // digits only
+        type: 'template',
+        template: {
+            name: 'pay_reminder',                    // EXACT name in Manager
+            language: { code: 'en_US' },               // or 'en_US' if that’s the locale you added
+            components: [
+                {
+                    type: 'body',
+                    parameters: [
+                        { type: 'text', text: amount_due },  // {{1}}
+                        { type: 'text', text: invoice_id },     // {{2}}
+                    ]
+                }
+            ]
         }
-      ]
-    }
-  };
+    };
 
-  try {
-    const { data } = await axios.post(
-      getWhatsAppApiUrl('messages'),
-      payload,
-      { headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}` } }
-    );
-    console.log('sent:', data);
-  } catch (err) {
-    console.error(
-      'WhatsApp API error:',
-      err?.response?.data || err.message || err
-    );
-    throw err;
-  }
+    try {
+        const { data } = await axios.post(
+            getWhatsAppApiUrl('messages'),
+            payload,
+            { headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}` } }
+        );
+        console.log('sent:', data);
+    } catch (err) {
+        console.error(
+            'WhatsApp API error:',
+            err?.response?.data || err.message || err
+        );
+        throw err;
+    }
 }
 
 
@@ -114,48 +108,55 @@ async function sendMediaMessage(phone, mediaId, caption = '') {
     console.log(response.data);
 }
 
-// --- ROUTES ---
-
-// Get total unpaid projects
-router.get('/unpaid-projects', async (req, res) => {
-    try {
-        const total = await getUnpaidProjects();
-        res.json({ total });
-    } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch unpaid projects.' });
-    }
-});
-
-// Send automated payment reminders
-router.post('/send-automated-reminders', async (req, res) => {
-    try {
-        // Replace with your DB logic to get all unpaid clients
-        const unpaidClients = [
-            { phone: '+919999999999', name: 'Client A' },
-            { phone: '+918888888888', name: 'Client B' }
-        ];
-        for (const client of unpaidClients) {
-            await sendWhatsAppMessage(client.phone, `Dear ${client.name}, this is a payment reminder for your pending project.`);
-        }
-        res.json({ message: 'Automated payment reminders sent.' });
-    } catch (err) {
-        res.status(500).json({ message: 'Failed to send automated reminders.' });
-    }
-});
-
-// Send manual payment reminder
+// POST /send-manual-reminder
 router.post('/send-manual-reminder', async (req, res) => {
-    const { phone } = req.body;
-    if (!phone) return res.status(400).json({ message: 'Phone number required.' });
+    const { phoneNumber, invoiceId } = req.body;
+
+    // ── Basic validation ───────────────────────────────────────────────
+    if (!phoneNumber)
+        return res.status(400).json({ message: 'Phone number is required.' });
+    if (!invoiceId)
+        return res.status(400).json({ message: 'Invoice ID is required.' });
+
     try {
-        await sendPaymentReminder(phone, 'Sneha');
-        res.json({ message: 'Manual payment reminder sent.' });
+        // ── 1. Look up the invoice ───────────────────────────────────────
+        const invoice = await Invoices.findById(invoiceId).lean();
+        if (!invoice)
+            return res.status(404).json({ message: 'Invoice not found.' });
+
+        // ── 2. Bail out if already settled ───────────────────────────────
+        const isPaid =
+            (invoice.status?.toUpperCase?.() === 'PAID') ||  // string field
+            Boolean(invoice.paidAt);                         // timestamp field
+        if (isPaid) {
+            return res
+                .status(200)
+                .json({ message: 'Invoice already paid. No reminder sent.' });
+        }
+
+        // ── 3. Compute the amount still due ──────────────────────────────
+        const amountDue = Math.max((invoice.total_amount || 0) - (invoice.paid_amount || 0), 0);
+
+        // ── 4. Fire off the WhatsApp reminder ────────────────────────────
+        await sendPaymentReminder({
+            phoneNumber,
+            invoiceId: invoice._id.toString(),
+            amountDue,
+        });
+
+        return res.json({ message: 'Manual payment reminder sent.' });
     } catch (err) {
-        // Log the full error response from Meta
-        console.error('WhatsApp API error:', err?.response?.data || err.message || err);
-        res.status(500).json({ message: 'Failed to send manual reminder.', error: err?.response?.data || err.message });
+        console.error(
+            'WhatsApp API error:',
+            err?.response?.data || err.message || err
+        );
+        return res.status(500).json({
+            message: 'Failed to send manual reminder.',
+            error: err?.response?.data || err.message,
+        });
     }
 });
+
 
 // Send invoice
 router.post('/send-invoice', async (req, res) => {

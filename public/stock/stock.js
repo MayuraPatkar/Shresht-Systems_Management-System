@@ -16,7 +16,7 @@ function addItemDiv() {
     document.getElementById('HSN_SAC').value = "";
     document.getElementById('unit_price').value = "";
     document.getElementById('item_quantity').value = "";
-    document.getElementById('threshold').value = "";
+    // document.getElementById('threshold').value = "";
     document.getElementById('GST').value = "";
     document.getElementById('min_quantity').value = "";
     showModal('addItem');
@@ -41,7 +41,7 @@ function editItemDiv(itemId, HSN_SAC, name, unitPrice, quantity, threshold, GST,
     document.getElementById('edit_HSN_SAC').value = HSN_SAC;
     document.getElementById('edit_unit_price').value = unitPrice;
     document.getElementById('edit_quantity').value = quantity;
-    document.getElementById('edit_threshold').value = threshold;
+    // document.getElementById('edit_threshold').value = threshold;
     document.getElementById('edit_GST').value = GST;
     document.getElementById('edit_min_quantity').value = min_quantity;
 }
@@ -133,7 +133,7 @@ async function editItem() {
         const HSN_SAC = document.getElementById('edit_HSN_SAC').value;
         const unitPrice = parseFloat(document.getElementById('edit_unit_price').value);
         const quantity = parseInt(document.getElementById('edit_quantity').value, 10);
-        const threshold = parseInt(document.getElementById('edit_threshold').value, 10);
+        // const threshold = parseInt(document.getElementById('edit_threshold').value, 10);
         const GST = parseFloat(document.getElementById('edit_GST').value);
         const min_quantity = parseInt(document.getElementById('edit_min_quantity').value, 10);
 
@@ -176,7 +176,6 @@ async function lowStock() {
                     <td>${item.HSN_SAC}</td>
                     <td>${item.unitPrice}</td>
                     <td>${item.quantity}</td>
-                    <td>${item.threshold}%</td>
                     <td>${item.GST}%</td>
                     <td>${item.quantity < item.min_quantity ? 'Low Stock' : 'In Stock'}</td>
                     <td>
@@ -224,7 +223,6 @@ function renderStockTable(data) {
             <td>${item.HSN_SAC}</td>
             <td>${item.unitPrice}</td>
             <td>${item.quantity}</td>
-            <td>${item.threshold}%</td>
             <td>${item.GST}%</td>
             <td>${item.quantity < item.min_quantity ? 'Low Stock' : 'In Stock'}</td>
             <td>

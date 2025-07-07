@@ -1,5 +1,6 @@
 const totalSteps = 3;
 let purchaseOrderId = '';
+let totalAmount = 0;
 
 document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
@@ -135,6 +136,8 @@ function generatePreview() {
         <p><strong>Grand Total:</strong> ₹${(grandTotal + roundOff).toFixed(2)}</p>
     `;
 
+    totalAmount = grandTotal + roundOff;
+
     document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
         <div class="header">
@@ -241,5 +244,6 @@ function collectFormData() {
             unitPrice: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
+        totalAmount: totalAmount || 0
     };
 }
