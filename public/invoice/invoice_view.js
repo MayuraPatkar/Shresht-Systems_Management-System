@@ -235,8 +235,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                 <p><strong>Account No:</strong> 120002152652</p>
                 <p><strong>IFSC Code:</strong> CNRB0010261</p>
             </div>
-            <div class="QR-code"><img src="../assets/shresht systems payment QR-code.jpg" alt="qr-code"></div>
-
+            <div class="QR-code"><img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg" alt="qr-code"></div>
             <div class="totals-section" style="text-align: right;">
             ${totalsHTML}
             </div>

@@ -232,6 +232,15 @@ function handlePrintEvent(mainWindow) {
             color: #777;
             margin-top: 10px;
         }
+                    .QR-code {
+            width: 125px;
+            height: 125px;
+            margin: 1.5rem 0;
+        }
+
+        .QR-code img {
+            height: 100%;
+        }
                 
                 @media print {
                     th {
