@@ -12,6 +12,7 @@ router.post("/save-way-bill", async (req, res) => {
             buyerName = '',
             buyerAddress = '',
             buyerPhone = '',
+            buyerEmail = '',
             transportMode = '',
             vehicleNumber = '',
             placeSupply = '',
@@ -33,6 +34,7 @@ router.post("/save-way-bill", async (req, res) => {
             wayBill.customer_name = buyerName;
             wayBill.customer_address = buyerAddress;
             wayBill.customer_phone = buyerPhone;
+            wayBill.customer_email = buyerEmail;
             wayBill.transport_mode = transportMode;
             wayBill.vehicle_number = vehicleNumber;
             wayBill.place_supply = placeSupply;
@@ -40,11 +42,12 @@ router.post("/save-way-bill", async (req, res) => {
         } else {
             // Create a new way bill with the provided data
             wayBill = new wayBills({
-                wayBill_id: wayBillId,
+                waybill_id: wayBillId,
                 project_name: projectName,
                 customer_name: buyerName,
                 customer_address: buyerAddress,
                 customer_phone: buyerPhone,
+                customer_email: buyerEmail,
                 transport_mode: transportMode,
                 vehicle_number: vehicleNumber,
                 place_supply: placeSupply,
@@ -74,7 +77,7 @@ router.get("/recent-way-bills", async (req, res) => {
         const recentWayBills = await wayBills.find()
             .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
             .limit(5)
-            .select("project_name wayBill_id buyer_name buyer_address");
+            .select("project_name waybill_id customer_name customer_address");
 
         // Respond with the fetched way bills
         res.status(200).json({

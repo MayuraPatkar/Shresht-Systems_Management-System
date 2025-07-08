@@ -66,7 +66,8 @@ router.post("/save-invoice", async (req, res) => {
             paymentMode = '',
             paymentDate,
             items = [],
-            totalAmount = 0,
+            totalAmountOriginal = 0,
+            totalAmountDuplicate = 0,
         } = req.body;
 
         const date = new Date();
@@ -123,7 +124,8 @@ router.post("/save-invoice", async (req, res) => {
                 consignee_address: consigneeAddress,
                 items_original: items_original,
                 items_duplicate: items_duplicate,
-                total_amount: totalAmount,
+                total_amount_original: totalAmountOriginal,
+                total_amount_duplicate: totalAmountDuplicate,
                 payment_status: paymentStatus,
                 payment_mode: paymentMode,
                 payment_date: paymentDate
@@ -161,7 +163,8 @@ router.post("/save-invoice", async (req, res) => {
                 consignee_address: consigneeAddress,
                 items_original: items,
                 items_duplicate: items,
-                total_amount: totalAmount,
+                total_amount_duplicate: totalAmountDuplicate,
+                total_amount_original: totalAmountOriginal,
                 payment_status: paymentStatus,
                 payment_dode: paymentMode,
                 payment_date: paymentDate
@@ -189,7 +192,7 @@ router.get("/recent-invoices", async (req, res) => {
         const recentInvoices = await Invoices.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("project_name invoice_id buyer_name buyer_phone buyer_address paymentStatus");
+            .select("project_name invoice_id customer_name customer_phone customer_address payment_status");
 
         // Respond with the fetched invoices
         res.status(200).json({

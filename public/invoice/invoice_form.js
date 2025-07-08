@@ -64,7 +64,7 @@ async function openInvoice(id) {
         document.getElementById('invoice-date').value = formatDate(invoice.invoice_date);
         document.getElementById('project-name').value = invoice.project_name;
         document.getElementById('buyer-name').value = invoice.customer_name;
-        document.getElementById('buyer-address').value = invoice.custpmer_address;
+        document.getElementById('buyer-address').value = invoice.customer_address;
         document.getElementById('buyer-phone').value = invoice.customer_phone;
         document.getElementById('buyer-email').value = invoice.customer_email;
         document.getElementById('consignee-name').value = invoice.consignee_name;
@@ -73,7 +73,7 @@ async function openInvoice(id) {
         document.getElementById('delivery-challan-number').value = invoice.dc_number;
         document.getElementById('delivery-challan-date').value = formatDate(invoice.dc_date);
         document.getElementById('service-months').value = invoice.service_month;
-        document.getElementById('waybill-number').value = invoice.Waybil_id;
+        document.getElementById('waybill-number').value = invoice.Waybill_id;
         document.querySelector(`input[name="question"][value="${invoice.payment_status}"]`).checked = true;
         document.getElementById('payment-mode').value = invoice.payment_mode;
         document.getElementById('payment-date').value = formatDate(invoice.payment_date);
@@ -426,6 +426,7 @@ function collectFormData() {
             unit_price: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
-        totalAmount: finalTotal,
+        totalAmountOriginal: finalTotal,
+        totalAmountDuplicate: finalTotal,
     };
 }

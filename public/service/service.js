@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+function getId(){
+    generatePreview()
+}
+
 // Create service card
 function createServiceDiv(service) {
     const div = document.createElement("div");
