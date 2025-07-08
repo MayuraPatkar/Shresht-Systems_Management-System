@@ -14,7 +14,7 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
         const description = item.description || "-";
         const hsnSac = item.HSN_SAC || item.hsn_sac || "-";
         const qty = parseFloat(item.quantity || "0");
-        const unitPrice = parseFloat(item.unitPrice || item.UnitPrice || "0");
+        const unitPrice = parseFloat(item.unit_price || "0");
         const rate = parseFloat(item.rate || "0");
 
         const taxableValue = qty * unitPrice;
@@ -184,7 +184,7 @@ async function viewPurchaseOrder(purchaseOrderId) {
                 <td>${item.description || ''}</td>
                 <td>${item.HSN_SAC || item.hsn_sac || ''}</td>
                 <td>${item.quantity || ''}</td>
-                <td>${item.unitPrice || item.UnitPrice || ''}</td>
+                <td>${item.unit_price || ''}</td>
                 <td>${item.rate || ''}</td>
             `;
             viewItemsTableBody.appendChild(row);

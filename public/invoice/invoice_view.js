@@ -198,14 +198,14 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
         <div class="first-section">
             <div class="buyer-details">
                 <p><strong>Bill To: </strong></p>
-                <p>${invoice.buyer_name || ""}</p>
-                <p>${invoice.buyer_address || ""}</p>
-                <p>${invoice.buyer_phone || ""}</p>
+                <p>${invoice.customer_name || ""}</p>
+                <p>${invoice.customer_address || ""}</p>
+                <p>${invoice.customer_phone || ""}</p>
             </div>
             <div class="info-section">
                 <p><strong>Project:</strong> ${invoice.project_name || ""}</p>
                 <p><strong>P.O No:</strong> ${invoice.po_number || ""}</p>
-                <p><strong>E-Way Bill:</strong> ${invoice.Way_Bill_number || ""}</p>
+                <p><strong>E-Way Bill:</strong> ${invoice.Waybill_id || ""}</p>
             </div>
         </div>
         <div class="second-section">
@@ -303,7 +303,7 @@ async function viewInvoice(invoiceId, userRole) {
         document.getElementById('view-payment-date').textContent = invoice.payment_date ? formatDate(invoice.payment_date) : '';
 
         // Buyer & Consignee
-        document.getElementById('view-buyer-name').textContent = invoice.buyer_name || '';
+        document.getElementById('view-buyer-name').textContent = invoice.customer_name || '';
         document.getElementById('view-buyer-address').textContent = invoice.customer_address || '';
         document.getElementById('view-buyer-phone').textContent = invoice.customer_phone || '';
         document.getElementById('view-buyer-email').textContent = invoice.customer_email || '';

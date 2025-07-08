@@ -18,12 +18,12 @@ router.get('/getStock', async (req, res) => {
 
 // Route to Add Item to Stock
 router.post('/addItem', async (req, res) => {
-    const { itemName, HSN_SAC, unitPrice, quantity, threshold, GST, min_quantity } = req.body;
+    const { itemName, HSN_SAC, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
 
         // Check if item already exists
-        const existingItem = await Stock.findOne({ item_name });
+        const existingItem = await Stock.findOne({ item_name: itemName });
 
         if (existingItem) {
             return res.status(400).json({ error: 'Item already exists in stock' });
@@ -36,8 +36,8 @@ router.post('/addItem', async (req, res) => {
             unit_price: unitPrice,
             quantity,
             GST,
-            margin: threshold,
-            min_quantity,
+            // margin: threshold,
+            min_quantity: min_quantity || 5,
             type: 'material',
         });
 
@@ -103,7 +103,7 @@ router.post('/removeFromStock', async (req, res) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req, res) => {
-    const { itemId, name, HSN_SAC, unitPrice, quantity, threshold, GST, min_quantity } = req.body;
+    const { itemId, itemName, HSN_SAC, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
 
@@ -112,11 +112,10 @@ router.post('/editItem', async (req, res) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        item.item_name = name;
+        item.item_name = itemName;
         item.HSN_SAC = HSN_SAC;
         item.unit_price = unitPrice;
         item.quantity = quantity;
-        item.margin = threshold;
         item.GST = GST;
         item.min_quantity = min_quantity;
         await item.save();
@@ -133,7 +132,7 @@ router.get("/get-stock-item", async (req, res) => {
         const itemName = req.query.item;
         if (!itemName) return res.status(400).json({ message: "Item name required" });
 
-        const stockItem = await Stock.findOne({ itemName });
+        const stockItem = await Stock.findOne({ item_name: itemName });
         if (!stockItem) return res.status(404).json({ message: "Stock item not found" });
 
         res.json({

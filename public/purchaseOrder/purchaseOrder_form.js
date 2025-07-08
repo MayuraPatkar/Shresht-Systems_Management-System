@@ -241,7 +241,7 @@ function collectFormData() {
             description: row.querySelector("td:nth-child(1) input").value,
             HSN_SAC: row.querySelector("td:nth-child(2) input").value,
             quantity: row.querySelector("td:nth-child(3) input").value,
-            unitPrice: row.querySelector("td:nth-child(4) input").value,
+            unit_price: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
         totalAmount: totalAmount || 0

@@ -57,8 +57,8 @@ function createQuotationCard(quotation) {
                 <h4>#${quotation.quotation_id}</h4>
             </div>
             <div class="info2">
-                <p>${quotation.buyer_name}</p>
-                <p>${quotation.buyer_address}</p>
+                <p>${quotation.customer_name}</p>
+                <p>${quotation.customer_address}</p>
             </div>    
         </div>
         <select class="actions">
@@ -121,10 +121,10 @@ async function openQuotation(quotationId) {
 
         document.getElementById('id').value = quotation.quotation_id;
         document.getElementById('project-name').value = quotation.project_name;
-        document.getElementById('buyer-name').value = quotation.buyer_name;
-        document.getElementById('buyer-address').value = quotation.buyer_address;
-        document.getElementById('buyer-phone').value = quotation.buyer_phone;
-        document.getElementById('buyer-email').value = quotation.buyer_email;
+        document.getElementById('buyer-name').value = quotation.customer_name;
+        document.getElementById('buyer-address').value = quotation.customer_address;
+        document.getElementById('buyer-phone').value = quotation.customer_phone;
+        document.getElementById('buyer-email').value = quotation.customer_email;
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
@@ -135,7 +135,7 @@ async function openQuotation(quotationId) {
                 <td><input type="text" value="${item.description || ''}" required></td>
                 <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
                 <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
-                <td><input type="number" value="${item.unitPrice || item.UnitPrice || ''}" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" required></td>
                 <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;

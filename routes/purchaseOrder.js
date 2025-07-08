@@ -62,7 +62,7 @@ router.post("/save-purchase-order", async (req, res) => {
             // Update existing purchase order
             purchaseOrder.purchase_order_id = purchaseOrderId;
             purchaseOrder.purchase_invoice_id = purchaseInvoiceId;
-            purchaseOrder.purchase_date = purchaseDate;
+            purchaseOrder.purchase_date = purchaseDate || new Date();
             purchaseOrder.supplier_name = supplierName;
             purchaseOrder.supplier_address = supplierAddress;
             purchaseOrder.supplier_phone = supplierPhone;
@@ -75,7 +75,7 @@ router.post("/save-purchase-order", async (req, res) => {
             purchaseOrder = new Purchases({
                 purchase_order_id: purchaseOrderId,
                 purchase_invoice_id: purchaseInvoiceId,
-                purchase_date: purchaseDate,
+                purchase_date: purchaseDate || new Date(),
                 supplier_name: supplierName,
                 supplier_address: supplierAddress,
                 supplier_phone: supplierPhone,
@@ -112,7 +112,7 @@ router.post("/save-purchase-order", async (req, res) => {
             if (stockItem) {
                 // Update quantity and GST/unitPrice if needed
                 stockItem.quantity = Number(stockItem.quantity || 0) + Number(item.quantity || 0);
-                stockItem.unit_price = Number(item.unitPrice) || stockItem.unit_price;
+                stockItem.unit_price = Number(item.unit_price) || stockItem.unit_price;
                 stockItem.GST = Number(item.rate) || stockItem.GST;
                 stockItem.updatedAt = new Date();
                 await stockItem.save();
@@ -120,7 +120,7 @@ router.post("/save-purchase-order", async (req, res) => {
                 await Stock.create({
                     item_name: item.description,
                     HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
-                    unit_price: Number(item.unitPrice) || 0,
+                    unit_price: Number(item.unit_price) || 0,
                     GST: Number(item.rate) || 0,
                     margin: 0,
                     quantity: Number(item.quantity) || 0,

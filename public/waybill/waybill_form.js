@@ -8,9 +8,9 @@ document.getElementById("next-btn").addEventListener("click", () => {
                 .then(data => {
                     const quotation = data.quotation;
                     document.getElementById("project-name").value = quotation.project_name;
-                    document.getElementById("buyer-name").value = quotation.buyer_name;
-                    document.getElementById("buyer-address").value = quotation.buyer_address;
-                    document.getElementById("buyer-phone").value = quotation.buyer_phone;
+                    document.getElementById("buyer-name").value = quotation.customer_name;
+                    document.getElementById("buyer-address").value = quotation.customer_address;
+                    document.getElementById("buyer-phone").value = quotation.customer_phone;
                     const itemsTableBody = document.querySelector("#items-table tbody");
                     itemsTableBody.innerHTML = "";
 
@@ -20,7 +20,7 @@ document.getElementById("next-btn").addEventListener("click", () => {
                             <td><input type="text" value="${item.description}" required></td>
                             <td><input type="text" value="${item.HSN_SAC}" required></td>
                             <td><input type="number" value="${item.quantity}" min="1" required></td>
-                            <td><input type="number" value="${item.unitPrice}" required></td>
+                            <td><input type="number" value="${item.unit_price}" required></td>
                             <td><input type="number" value="${item.rate}" required></td>
                             <td><button type="button" class="remove-item-btn">Remove</button></td>
                         `;

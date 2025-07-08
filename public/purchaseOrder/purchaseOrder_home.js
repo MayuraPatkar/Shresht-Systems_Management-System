@@ -129,7 +129,7 @@ async function openPurchaseOrder(purchaseOrderId) {
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
-                <td><input type="number" value="${item.unitPrice}" required></td>
+                <td><input type="number" value="${item.unit_price}" required></td>
                 <td><input type="number" value="${item.rate}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;

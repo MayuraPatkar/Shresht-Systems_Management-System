@@ -34,7 +34,7 @@ function removeFromStockDiv(itemId) {
     document.getElementById('removeFromStock').setAttribute('data-item-id', itemId);
 }
 
-function editItemDiv(itemId, HSN_SAC, name, unitPrice, quantity, threshold, GST, min_quantity) {
+function editItemDiv(itemId, HSN_SAC, name, unitPrice, quantity, GST, min_quantity) {
     showModal('editItem');
     document.getElementById('editItem').setAttribute('data-item-id', itemId);
     document.getElementById('edit_item_name').value = name;
@@ -52,11 +52,11 @@ async function addItem() {
         const HSN_SAC = document.getElementById('HSN_SAC').value;
         const unitPrice = parseFloat(document.getElementById('unit_price').value);
         const quantity = parseInt(document.getElementById('item_quantity').value, 10);
-        const threshold = parseInt(document.getElementById('threshold').value, 10);
+        // const threshold = parseInt(document.getElementById('threshold').value, 10);
         const GST = parseFloat(document.getElementById('GST').value);
         const min_quantity = parseInt(document.getElementById('min_quantity').value, 10);
 
-        if (!itemName || isNaN(unitPrice) || isNaN(quantity) || isNaN(threshold) || isNaN(GST) || isNaN(min_quantity)) {
+        if (!itemName || isNaN(unitPrice) || isNaN(quantity) || isNaN(GST)) {
             window.electronAPI.showAlert1('Please fill all fields correctly.');
             return;
         }
@@ -64,7 +64,7 @@ async function addItem() {
         const response = await fetch('/stock/addItem', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ itemName, HSN_SAC, unitPrice, quantity, threshold, GST, min_quantity })
+            body: JSON.stringify({ itemName, HSN_SAC, unitPrice, quantity, GST, min_quantity })
         });
 
         if (!response.ok) throw new Error('Failed to add item');
@@ -137,15 +137,15 @@ async function editItem() {
         const GST = parseFloat(document.getElementById('edit_GST').value);
         const min_quantity = parseInt(document.getElementById('edit_min_quantity').value, 10);
 
-        if (!itemName || isNaN(unitPrice) || isNaN(quantity) || isNaN(threshold) || isNaN(GST) || isNaN(min_quantity)) {
-            window.electronAPI.showAlert('Please fill all fields correctly.');
+        if (!itemName || isNaN(unitPrice) || isNaN(quantity) || isNaN(GST)) {
+            window.electronAPI.showAlert1('Please fill all fields correctly.');
             return;
         }
 
         const response = await fetch('/stock/editItem', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ itemId, itemName, HSN_SAC, unitPrice, quantity, threshold, GST, min_quantity })
+            body: JSON.stringify({ itemId, itemName, HSN_SAC, unitPrice, quantity, GST, min_quantity })
         });
 
         if (!response.ok) throw new Error('Failed to edit item');
@@ -179,7 +179,7 @@ async function lowStock() {
                     <td>${item.GST}%</td>
                     <td>${item.quantity < item.min_quantity ? 'Low Stock' : 'In Stock'}</td>
                     <td>
-                        <select class="btn" onchange="handleStockAction(this, '${item._id}', '${item.HSN_SAC}', '${item.itemName}', '${item.unitPrice}', '${item.quantity}', '${item.threshold}', '${item.GST}', '${item.min_quantity}')">
+                        <select class="btn" onchange="handleStockAction(this, '${item._id}', '${item.HSN_SAC}', '${item.itemName}', '${item.unitPrice}', '${item.quantity}', '${item.GST}', '${item.min_quantity}')">
                             <option value="" disabled selected>Actions</option>
                             <option value="add">Add</option>
                             <option value="remove">Remove</option>
@@ -219,14 +219,14 @@ function renderStockTable(data) {
         row.classList.toggle('low-stock', item.quantity < item.min_quantity);
 
         row.innerHTML = `
-            <td>${item.itemName}</td>
+            <td>${item.item_name}</td>
             <td>${item.HSN_SAC}</td>
-            <td>${item.unitPrice}</td>
+            <td>${item.unit_price}</td>
             <td>${item.quantity}</td>
             <td>${item.GST}%</td>
             <td>${item.quantity < item.min_quantity ? 'Low Stock' : 'In Stock'}</td>
             <td>
-                <select class="btn" onchange="handleStockAction(this, '${item._id}', '${item.HSN_SAC}', '${item.itemName}', '${item.unitPrice}', '${item.quantity}', '${item.threshold}', '${item.GST}', '${item.min_quantity}')">
+                <select class="btn" onchange="handleStockAction(this, '${item._id}', '${item.HSN_SAC}', '${item.item_name}', '${item.unit_price}', '${item.quantity}', '${item.GST}', '${item.min_quantity}')">
                     <option value="" disabled selected>Actions</option>
                     <option value="add">Add</option>
                     <option value="remove">Remove</option>
@@ -238,14 +238,14 @@ function renderStockTable(data) {
     });
 }
 
-function handleStockAction(select, id, HSN_SAC, name, unitPrice, quantity, threshold, GST, min_quantity) {
+function handleStockAction(select, id, HSN_SAC, name, unitPrice, quantity, GST, min_quantity) {
     const action = select.value;
     if (action === "add") {
         addToStockDiv(id);
     } else if (action === "remove") {
         removeFromStockDiv(id);
     } else if (action === "edit") {
-        editItemDiv(id, HSN_SAC, name, unitPrice, quantity, threshold, GST, min_quantity);
+        editItemDiv(id, HSN_SAC, name, unitPrice, quantity, GST, min_quantity);
     }
     select.selectedIndex = 0; // Reset to default
 }

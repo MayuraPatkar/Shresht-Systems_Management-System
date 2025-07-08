@@ -23,7 +23,7 @@ document.getElementById('service-link').addEventListener('click', () => {
     window.location = '/service';
 });
 document.getElementById('purchase-bill-link').addEventListener('click', () => {
-    window.location = '/purchasebill';
+    window.location = '/purchaseorder';
 });
 document.getElementById('stock-link').addEventListener('click', () => {
     window.location = '/stock';
@@ -174,11 +174,11 @@ function createWayBillCard(wayBill) {
     <div class="details">
         <div class="info1">
             <h1>${wayBill.project_name}</h1>
-            <h4>#${wayBill.wayBill_id}</h4>
+            <h4>#${wayBill.waybill_id}</h4>
         </div>
         <div class="info2">
-            <p>${wayBill.buyer_name}</p>
-            <p>${wayBill.buyer_address}</p>
+            <p>${wayBill.customer_name}</p>
+            <p>${wayBill.customer_address}</p>
         </div>
     </div>
     <select class="actions">
@@ -189,7 +189,7 @@ function createWayBillCard(wayBill) {
     </select>
     `;
     wayBillDiv.querySelector('.actions').addEventListener('change', function () {
-        handleWayBillAction(this, wayBill.wayBill_id);
+        handleWayBillAction(this, wayBill.waybill_id);
     });
     return wayBillDiv;
 }

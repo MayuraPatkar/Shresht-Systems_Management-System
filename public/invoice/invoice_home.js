@@ -50,7 +50,7 @@ function createInvoiceCard(invoice) {
     invoiceCard.className = "record-item";
     invoiceCard.innerHTML = `
         <div class="paid-icon">
-            <img src="../assets/${invoice.paymentStatus === 'Paid' ? 'paid.png' : 'unpaid.png'}" alt="Paid Icon">
+            <img src="../assets/${invoice.payment_status === 'Paid' ? 'paid.png' : 'unpaid.png'}" alt="Paid Icon">
         </div>
         <div class="details">
             <div class="info1">
@@ -58,8 +58,8 @@ function createInvoiceCard(invoice) {
                 <h4>#${invoice.invoice_id}</h4>
             </div>
             <div class="info2">
-                <h4>${invoice.buyer_name}</h4>
-                <p>${invoice.buyer_address}</p>
+                <h4>${invoice.customer_name}</h4>
+                <p>${invoice.customer_address}</p>
             </div>
         </div>
         <select class="actions" onchange="handleInvoiceAction(this, '${invoice.invoice_id}')">

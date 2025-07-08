@@ -9,8 +9,8 @@ function generateViewPreviewHTML(quotation, withTax = false) {
 
     (quotation.items || []).forEach(item => {
         const qty = parseFloat(item.quantity || 0);
-        const unitPrice = parseFloat(item.UnitPrice || item.unitPrice || 0);
-        const taxRate = parseFloat(item.taxRate || item.rate || 0);
+        const unitPrice = parseFloat(item.Unit_price || 0);
+        const taxRate = parseFloat( item.rate || 0);
         const taxableValue = qty * unitPrice;
         const taxAmount = (taxableValue * taxRate) / 100;
         const totalWithTax = taxableValue + taxAmount;
@@ -80,12 +80,12 @@ function generateViewPreviewHTML(quotation, withTax = false) {
         <div class="title">Quotation - #${quotation.quotation_id}</div>
         <div class="info-section" >
             <p><strong>To:</strong></p>
-              ${quotation.buyer_name}<br>
-              ${quotation.buyer_address}<br>
-              ${quotation.buyer_phone}<br>
+              ${quotation.customer_name}<br>
+              ${quotation.customer_address}<br>
+              ${quotation.customer_phone}<br>
             <p contenteditable="true"><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${quotation.project_name}</p>
 
-            <p>Dear ${quotation.buyer_name},</p>
+            <p>Dear ${quotation.customer_name},</p>
 
             <p contenteditable="true">We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${quotation.project_name}. At <strong>Shresht Systems</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.</p>
             <p>Our proposal includes:</p>
@@ -232,10 +232,10 @@ async function viewQuotation(quotationId, withTax = false) {
         document.getElementById('view-project-id').textContent = quotation.quotation_id || '';
 
         // Buyer & Consignee
-        document.getElementById('view-buyer-name').textContent = quotation.buyer_name || '';
-        document.getElementById('view-buyer-address').textContent = quotation.buyer_address || '';
-        document.getElementById('view-buyer-phone').textContent = quotation.buyer_phone || '';
-        document.getElementById('view-buyer-email').textContent = quotation.buyer_email || '';
+        document.getElementById('view-buyer-name').textContent = quotation.customer_name || '';
+        document.getElementById('view-buyer-address').textContent = quotation.customer_address || '';
+        document.getElementById('view-buyer-phone').textContent = quotation.customer_phone || '';
+        document.getElementById('view-buyer-email').textContent = quotation.customer_email || '';
 
         // Item List
         const viewItemsTableBody = document.querySelector("#view-items-table tbody");
@@ -248,15 +248,15 @@ async function viewQuotation(quotationId, withTax = false) {
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
-                    <td>${item.UnitPrice || item.unitPrice || ''}</td>
-                    <td>${item.taxRate ? item.taxRate + '%' : (item.rate ? item.rate + '%' : '')}</td>
+                    <td>${item.Unit_price || ''}</td>
+                    <td>${item.rate ? item.rate + '%' : ''}</td>
                 `;
             } else {
                 row.innerHTML = `
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
-                    <td>${item.UnitPrice || item.unitPrice || ''}</td>
+                    <td>${item.Unit_price || ''}</td>
                 `;
             }
             viewItemsTableBody.appendChild(row);

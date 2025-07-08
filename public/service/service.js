@@ -29,8 +29,8 @@ function createServiceDiv(service) {
             <h4>#${service.invoice_id}${service.service_stage + 1}</h4>
         </div>
         <div class="info2">
-            <p>${service.buyer_name}</p>
-            <p>${service.buyer_address}</p>
+            <p>${service.customer_name}</p>
+            <p>${service.customer_address}</p>
         </div>    
     </div>
     <div class="actions">
@@ -132,9 +132,9 @@ async function openService(serviceId) {
         document.getElementById('service-id').value = service.invoice_id || '';
         document.getElementById('invoice-id').value = service.invoice_id || '';
         document.getElementById('project-name').value = service.project_name || '';
-        document.getElementById('name').value = service.buyer_name || '';
-        document.getElementById('address').value = service.buyer_address || '';
-        document.getElementById('phone').value = service.buyer_phone || '';
+        document.getElementById('name').value = service.customer_name || '';
+        document.getElementById('address').value = service.customer_address || '';
+        document.getElementById('phone').value = service.customer_phone || '';
         document.getElementById('service-stage').value = service.service_stage || '';
 
         document.getElementById('home').style.display = 'none';

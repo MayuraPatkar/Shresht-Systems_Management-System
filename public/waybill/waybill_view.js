@@ -2,9 +2,9 @@ function generateViewPreviewHTML(wayBill) {
     let itemsHTML = "";
     (wayBill.items || []).forEach(item => {
         const description = item.description || "-";
-        const hsnCode = item.HSN_SAC || item.hsn_sac || "-";
+        const hsnCode = item.HSN_SAC || "-";
         const qty = item.quantity || "0";
-        const unitPrice = item.unitPrice || item.UnitPrice || "0";
+        const unitPrice = item.unit_price || "0";
         const rate = item.rate || "0";
         const total = (qty * unitPrice).toFixed(2);
 
@@ -33,21 +33,21 @@ function generateViewPreviewHTML(wayBill) {
             </div>
         </div>
 
-        <div class="title">Way Bill #${wayBill.wayBill_id || wayBill.waybill_id || wayBill.ewayBillNumber || ""}</div>
+        <div class="title">Way Bill #${wayBill.waybill_id || " "}</div>
 
         <div class="first-section">
             <div class="buyer-details">
                 <h3>Buyer Details</h3>
-                <p>${wayBill.buyer_name || wayBill.buyerName || ""}</p>
-                <p>${wayBill.buyer_address || wayBill.buyerAddress || ""}</p>
-                <p>${wayBill.buyer_phone || wayBill.buyerPhone || ""}</p>
-                <p>${wayBill.buyer_email || wayBill.buyerEmail || ""}</p>
+                <p>${wayBill.customer_name || ""}</p>
+                <p>${wayBill.customer_address || ""}</p>
+                <p>${wayBill.customer_phone || ""}</p>
+                <p>${wayBill.customer_email || ""}</p>
             </div>
             <div class="info-section">
-                <p><strong>Project Name:</strong> ${wayBill.project_name || wayBill.projectName || ""}</p>
-                <p><strong>Transportation Mode:</strong> ${wayBill.transport_mode || wayBill.transportMode || ""}</p>
-                <p><strong>Vehicle Number:</strong> ${wayBill.vehicle_number || wayBill.vehicleNumber || ""}</p>
-                <p><strong>Place to Supply:</strong> ${wayBill.place_supply || wayBill.placeSupply || ""}</p>
+                <p><strong>Project Name:</strong> ${wayBill.project_name || ""}</p>
+                <p><strong>Transportation Mode:</strong> ${wayBill.transport_mode || ""}</p>
+                <p><strong>Vehicle Number:</strong> ${wayBill.vehicle_number || ""}</p>
+                <p><strong>Place to Supply:</strong> ${wayBill.place_supply || ""}</p>
             </div>  
         </div>
         <div class="second-section">
@@ -118,18 +118,18 @@ async function viewWayBill(wayBillId) {
 
         // Fill Project Details
         document.getElementById('view-project-name').textContent = waybill.project_name || '';
-        document.getElementById('view-waybill-id').textContent = waybill.wayBill_id || waybill.waybill_id || '';
+        document.getElementById('view-waybill-id').textContent = waybill.waybill_id || '';
 
         // Buyer & Consignee
-        document.getElementById('view-buyer-name').textContent = waybill.buyer_name || '';
-        document.getElementById('view-buyer-address').textContent = waybill.buyer_address || '';
-        document.getElementById('view-buyer-phone').textContent = waybill.buyer_phone || '';
-        document.getElementById('view-buyer-email').textContent = waybill.buyer_email || '';
+        document.getElementById('view-buyer-name').textContent = waybill.customer_name || '';
+        document.getElementById('view-buyer-address').textContent = waybill.customer_address || '';
+        document.getElementById('view-buyer-phone').textContent = waybill.customer_phone || '';
+        document.getElementById('view-buyer-email').textContent = waybill.customer_email || '';
 
         // Transportation Details
-        document.getElementById('view-transport-mode').textContent = waybill.transport_mode || waybill.transportMode || '';
-        document.getElementById('view-vehicle-number').textContent = waybill.vehicle_number || waybill.vehicleNumber || '';
-        document.getElementById('view-place-supply').textContent = waybill.place_supply || waybill.placeSupply || '';
+        document.getElementById('view-transport-mode').textContent = waybill.transport_mode || '';
+        document.getElementById('view-vehicle-number').textContent = waybill.vehicle_number || '';
+        document.getElementById('view-place-supply').textContent = waybill.place_supply || '';
 
         // Item List
         const viewItemsTableBody = document.querySelector("#view-items-table tbody");
@@ -141,7 +141,7 @@ async function viewWayBill(wayBillId) {
                 <td>${item.description || ''}</td>
                 <td>${item.HSN_SAC || item.hsn_sac || ''}</td>
                 <td>${item.quantity || ''}</td>
-                <td>${item.unitPrice || item.UnitPrice || ''}</td>
+                <td>${item.unit_price || ''}</td>
                 <td>${item.rate || ''}</td>
             `;
             viewItemsTableBody.appendChild(row);

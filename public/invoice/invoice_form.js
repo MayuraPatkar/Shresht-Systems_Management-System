@@ -16,9 +16,9 @@ document.getElementById("next-btn").addEventListener("click", () => {
                 .then(data => {
                     const quotation = data.quotation;
                     document.getElementById("project-name").value = quotation.project_name;
-                    document.getElementById("buyer-name").value = quotation.buyer_name;
-                    document.getElementById("buyer-address").value = quotation.buyer_address;
-                    document.getElementById("buyer-phone").value = quotation.buyer_phone;
+                    document.getElementById("buyer-name").value = quotation.customer_name;
+                    document.getElementById("buyer-address").value = quotation.customer_address;
+                    document.getElementById("buyer-phone").value = quotation.customer_phone;
                     const itemsTableBody = document.querySelector("#items-table tbody");
                     itemsTableBody.innerHTML = "";
 
@@ -63,22 +63,22 @@ async function openInvoice(id) {
         document.getElementById('id').value = invoice.invoice_id;
         document.getElementById('invoice-date').value = formatDate(invoice.invoice_date);
         document.getElementById('project-name').value = invoice.project_name;
-        document.getElementById('buyer-name').value = invoice.buyer_name;
-        document.getElementById('buyer-address').value = invoice.buyer_address;
-        document.getElementById('buyer-phone').value = invoice.buyer_phone;
-        document.getElementById('buyer-email').value = invoice.buyer_email;
+        document.getElementById('buyer-name').value = invoice.customer_name;
+        document.getElementById('buyer-address').value = invoice.custpmer_address;
+        document.getElementById('buyer-phone').value = invoice.customer_phone;
+        document.getElementById('buyer-email').value = invoice.customer_email;
         document.getElementById('consignee-name').value = invoice.consignee_name;
         document.getElementById('consignee-address').value = invoice.consignee_address;
         document.getElementById('purchase-order-number').value = invoice.po_number;
         document.getElementById('delivery-challan-number').value = invoice.dc_number;
         document.getElementById('delivery-challan-date').value = formatDate(invoice.dc_date);
         document.getElementById('service-months').value = invoice.service_month;
-        document.getElementById('waybill-number').value = invoice.Way_Bill_number;
-        document.querySelector(`input[name="question"][value="${invoice.paymentStatus}"]`).checked = true;
-        document.getElementById('payment-mode').value = invoice.paymentMode;
-        document.getElementById('payment-date').value = formatDate(invoice.paymentDate);
-        document.getElementById('advance-payment-date').value = formatDate(invoice.paymentDate);
-        document.getElementById('paid-amount').value = invoice.paidAmount || '';
+        document.getElementById('waybill-number').value = invoice.Waybil_id;
+        document.querySelector(`input[name="question"][value="${invoice.payment_status}"]`).checked = true;
+        document.getElementById('payment-mode').value = invoice.payment_mode;
+        document.getElementById('payment-date').value = formatDate(invoice.payment_date);
+        document.getElementById('advance-payment-date').value = formatDate(invoice.payment_date);
+        document.getElementById('paid-amount').value = invoice.paid_amount || '';
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
@@ -407,7 +407,7 @@ function collectFormData() {
         poNumber: document.getElementById("purchase-order-number").value,
         dcNumber: document.getElementById("delivery-challan-number").value,
         dcDate: document.getElementById("delivery-challan-date").value,
-        service_month: document.getElementById("service-months").value,
+        serviceMonth: document.getElementById("service-months").value,
         wayBillNumber: document.getElementById("waybill-number").value,
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,
