@@ -9,7 +9,7 @@ function generateViewPreviewHTML(quotation, withTax = false) {
 
     (quotation.items || []).forEach(item => {
         const qty = parseFloat(item.quantity || 0);
-        const unitPrice = parseFloat(item.Unit_price || 0);
+        const unitPrice = parseFloat(item.unit_price || 0);
         const taxRate = parseFloat( item.rate || 0);
         const taxableValue = qty * unitPrice;
         const taxAmount = (taxableValue * taxRate) / 100;
@@ -248,7 +248,7 @@ async function viewQuotation(quotationId, withTax = false) {
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
-                    <td>${item.Unit_price || ''}</td>
+                    <td>${item.unit_price || ''}</td>
                     <td>${item.rate ? item.rate + '%' : ''}</td>
                 `;
             } else {
@@ -256,7 +256,7 @@ async function viewQuotation(quotationId, withTax = false) {
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
-                    <td>${item.Unit_price || ''}</td>
+                    <td>${item.unit_price || ''}</td>
                 `;
             }
             viewItemsTableBody.appendChild(row);

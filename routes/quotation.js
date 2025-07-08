@@ -36,8 +36,8 @@ function isValidItem(item) {
         item.description.trim() !== '' &&
         typeof item.quantity !== 'undefined' &&
         !isNaN(Number(item.quantity)) &&
-        typeof item.unitPrice !== 'undefined' &&
-        !isNaN(Number(item.unitPrice))
+        typeof item.unit_price !== 'undefined' &&
+        !isNaN(Number(item.unit_price))
     );
 }
 
@@ -114,7 +114,7 @@ router.get("/recent-quotations", async (req, res) => {
         const recentQuotations = await Quotations.find()
             .sort({ createdAt: -1 })
             .limit(5)
-            .select("project_name quotation_id buyer_name buyer_address");
+            .select("project_name quotation_id customer_name customer_address");
 
         res.status(200).json({
             message: "Recent quotations retrieved successfully",
