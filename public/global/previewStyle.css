@@ -68,7 +68,7 @@
 }
 
 .info-section {
-    text-align: right;
+    text-align: center;
 }
 
 .info-section,
@@ -167,16 +167,18 @@
 .fifth-section {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    /* align-items: center; */
 }
 
 .terms-section {
     padding: 1%;
     font-size: 16px;
     line-height: 1.0;
+    margin-top: 0;
 }
 
 .signature {
+    margin-top: 100px;
     text-align: left;
 }
 

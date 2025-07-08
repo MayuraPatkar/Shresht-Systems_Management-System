@@ -12,36 +12,22 @@ function getWhatsAppApiUrl(endpoint = 'messages') {
     return `https://graph.facebook.com/v20.0/${WHATSAPP_PHONE_NUMBER_ID}/${endpoint}`;
 }
 
-async function registerNumber() {
-    const url = `https://graph.facebook.com/v20.0/${process.env.PHONE_NUMBER_ID}/register`;
-    const resp = await axios.post(
-        url,
-        { messaging_product: 'whatsapp', pin: '111111' },
-        { headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}` } }
-    );
-    console.log(resp.data); // expect { success: true }
-}
-
-
-// Send WhatsApp “Reminder” template
-// {{1}} → card / product name   (text)
-// {{2}} → last‑4 digits         (text)
-// {{3}} → scheduled date        (text)
-
-async function sendPaymentReminder(phone, invoice_id, amount_due) {
+async function sendPaymentReminder(phone, amount_due) {
+    // Send WhatsApp “Reminder” template
+    // {{1}} → amount   (text)
+    // {{2}} → invoice No         (text)
     const payload = {
         messaging_product: 'whatsapp',
-        to: phone.replace(/^\+/, ''),              // digits only
+        to: phone,
         type: 'template',
         template: {
-            name: 'pay_reminder',                    // EXACT name in Manager
-            language: { code: 'en_US' },               // or 'en_US' if that’s the locale you added
+            name: 'pay_reminder',
+            language: { code: 'en_US' },
             components: [
                 {
                     type: 'body',
                     parameters: [
                         { type: 'text', text: amount_due },  // {{1}}
-                        { type: 'text', text: invoice_id },     // {{2}}
                     ]
                 }
             ]
@@ -64,50 +50,6 @@ async function sendPaymentReminder(phone, invoice_id, amount_due) {
     }
 }
 
-
-// Send WhatsApp Text Message
-async function sendTextMessage(phone, text) {
-    const response = await axios({
-        url: getWhatsAppApiUrl('messages'),
-        method: 'post',
-        headers: {
-            'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-            'Content-Type': 'application/json'
-        },
-        data: JSON.stringify({
-            messaging_product: 'whatsapp',
-            to: phone,
-            type: 'text',
-            text: { body: text }
-        })
-    });
-
-    console.log(response.data);
-}
-
-// Send WhatsApp Media Message
-async function sendMediaMessage(phone, mediaId, caption = '') {
-    const response = await axios({
-        url: getWhatsAppApiUrl('messages'),
-        method: 'post',
-        headers: {
-            'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-            'Content-Type': 'application/json'
-        },
-        data: JSON.stringify({
-            messaging_product: 'whatsapp',
-            to: phone,
-            type: 'image',
-            image: {
-                id: mediaId,
-                caption: caption
-            }
-        })
-    });
-
-    console.log(response.data);
-}
-
 // POST /send-manual-reminder
 router.post('/send-manual-reminder', async (req, res) => {
     const { phoneNumber, invoiceId } = req.body;
@@ -120,7 +62,7 @@ router.post('/send-manual-reminder', async (req, res) => {
 
     try {
         // ── 1. Look up the invoice ───────────────────────────────────────
-        const invoice = await Invoices.findById(invoiceId).lean();
+        const invoice = await Invoices.findOne({ invoice_id: invoiceId });
         if (!invoice)
             return res.status(404).json({ message: 'Invoice not found.' });
 
@@ -138,11 +80,11 @@ router.post('/send-manual-reminder', async (req, res) => {
         const amountDue = Math.max((invoice.total_amount || 0) - (invoice.paid_amount || 0), 0);
 
         // ── 4. Fire off the WhatsApp reminder ────────────────────────────
-        await sendPaymentReminder({
+        await sendPaymentReminder(
             phoneNumber,
-            invoiceId: invoice._id.toString(),
-            amountDue,
-        });
+            amountDue            // {{1}}
+        );
+
 
         return res.json({ message: 'Manual payment reminder sent.' });
     } catch (err) {

@@ -118,7 +118,7 @@ router.post("/save-invoice", async (req, res) => {
                 Waybill_id: wayBillNumber,
                 customer_name: buyerName,
                 customer_address: buyerAddress,
-                customerr_phone: buyerPhone,
+                customer_phone: buyerPhone,
                 customer_email: buyerEmail,
                 consignee_name: consigneeName,
                 consignee_address: consigneeAddress,

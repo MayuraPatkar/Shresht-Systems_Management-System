@@ -50,7 +50,7 @@ exServer.use('/wayBill', wayBillRoutes);
 exServer.use('/service', serviceRoutes);
 exServer.use('/employee', employeeRoute);
 exServer.use('/analytics', analyticsRoutes);
-exServer.use('/api/comms', commsRouter);
+exServer.use('/comms', commsRouter);
 
 
 // Centralized Error Handling Middleware

@@ -97,7 +97,7 @@ function handlePrintEvent(mainWindow) {
         }
 
         .info-section{
-            text-align: right;
+            text-align: center;
         }
 
         .info-section,
@@ -203,7 +203,6 @@ function handlePrintEvent(mainWindow) {
         .fifth-section {
             display: flex;
             justify-content: space-between;
-            align-items: center;
         }
 
         .terms-section {
@@ -213,6 +212,7 @@ function handlePrintEvent(mainWindow) {
         }
 
         .signature {
+        margin-top: 100px;
             text-align: left;
         }
 
