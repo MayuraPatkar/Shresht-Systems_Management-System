@@ -44,6 +44,7 @@ const quotationSchema = new mongoose.Schema({
         },
     ],
     quotation_date: { type: Date, default: Date.now },
+    total_tax: {type: Number},
     total_amount_no_tax: { type: Number },
     total_amount_tax: { type: Number },
     createdAt: { type: Date, default: Date.now },

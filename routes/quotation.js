@@ -47,11 +47,13 @@ router.post("/save-quotation", async (req, res) => {
         let {
             quotation_id = '',
             projectName,
+            quotationDate,
             buyerName = '',
             buyerAddress = '',
             buyerPhone = '',
             buyerEmail = '',
             items = [],
+            totalTax = 0,
             totalAmountNoTax = 0,
             totalAmountTax = 0,
         } = req.body;
@@ -78,11 +80,13 @@ router.post("/save-quotation", async (req, res) => {
         if (quotation) {
             // Update existing quotation
             quotation.project_name = projectName;
+            quotation.quotation_date = quotationDate;
             quotation.customer_name = buyerName;
             quotation.customer_address = buyerAddress;
             quotation.customer_phone = buyerPhone;
             quotation.customer_email = buyerEmail;
             quotation.items = items;
+            quotation.total_tax = totalTax;
             quotation.total_amount_no_tax = totalAmountNoTax;
             quotation.total_amount_tax = totalAmountTax;
         } else {
@@ -90,11 +94,13 @@ router.post("/save-quotation", async (req, res) => {
             quotation = new Quotations({
                 quotation_id: quotation_id,
                 project_name: projectName,
+                quotation_date: quotationDate,
                 customer_name: buyerName,
                 customer_address: buyerAddress,
                 customer_phone: buyerPhone,
                 customer_email: buyerEmail,
                 items,
+                total_tax: totalTax,
                 total_amount_no_tax: totalAmountNoTax,
                 total_amount_tax: totalAmountTax,
                 createdAt: new Date(),

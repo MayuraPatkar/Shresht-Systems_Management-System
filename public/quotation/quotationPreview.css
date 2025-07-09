@@ -73,22 +73,26 @@
 .preview-container table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-    table-layout: auto;
+    margin-top: 0.5rem;
+    background: #f9fbfd;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 600px;
 }
 
 .preview-container table th,
 .preview-container table td {
-    border: 1px solid #000000;
-    padding: 10px;
+    border: 1px solid #e5e7eb;
+    padding: 0.7rem 1.1rem;
     text-align: left;
-    font-size: 15px;
+    font-size: 0.9rem;
 }
 
 .preview-container table th {
-    background-color: #007bff;
-    color: #fff;
-    font-weight: bold;
+    background: #f0f4fa;
+    color: var(--primary, #2a4d8f);
+    font-weight: 700;
+    font-size: 0.8rem;
 }
 
 .second-section {
@@ -99,12 +103,13 @@
 .totals-section {
     margin: 20px 0;
     text-align: right;
+    font-size: 0.4rem;
 }
 
 .totals-section p,
-.totals-section h3 {
+.totals-section h3, strong {
     margin: 5px 0;
-    font-size: 18px;
+    font-size: 0.4rem;
 }
 
 .totals-section h3 {
@@ -112,7 +117,8 @@
     font-weight: bold;
 }
 
-#totalInWords, p {
+#totalInWords,
+p {
     font-size: 18px;
 }
 
@@ -156,6 +162,6 @@ footer {
     margin-top: 20px;
 }
 
-footer p{
+footer p {
     font-size: 14px;
 }

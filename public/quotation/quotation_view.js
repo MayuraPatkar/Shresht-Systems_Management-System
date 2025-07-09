@@ -2,7 +2,7 @@
  * Generate and display the preview for the quotation in view-preview-content.
  * This works for both withTax and withoutTax view modes.
  */
-function generateViewPreviewHTML(quotation, withTax = false) {
+function generateViewPreviewHTML(quotation, viewType) {
     let itemsHTML = "";
     let totalPrice = 0;
     let totalTax = 0;
@@ -10,12 +10,12 @@ function generateViewPreviewHTML(quotation, withTax = false) {
     (quotation.items || []).forEach(item => {
         const qty = parseFloat(item.quantity || 0);
         const unitPrice = parseFloat(item.unit_price || 0);
-        const taxRate = parseFloat( item.rate || 0);
+        const taxRate = parseFloat(item.rate || 0);
         const taxableValue = qty * unitPrice;
         const taxAmount = (taxableValue * taxRate) / 100;
         const totalWithTax = taxableValue + taxAmount;
 
-        if (withTax) {
+        if (viewType === 2) {
             totalPrice += totalWithTax;
             totalTax += taxAmount;
             itemsHTML += `
@@ -23,10 +23,21 @@ function generateViewPreviewHTML(quotation, withTax = false) {
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${qty}</td>
-                    <td>${unitPrice.toFixed(2)}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
                     <td>${taxRate}%</td>
-                    <td>${taxAmount.toFixed(2)}</td>
-                    <td>${totalWithTax.toFixed(2)}</td>
+                    <td>${formatIndian(taxAmount, 2)}</td>
+                    <td>${formatIndian(totalWithTax, 2)}</td>
+                </tr>
+            `;
+        } else if (viewType === 1) {
+            totalPrice += taxableValue;
+            itemsHTML += `
+                <tr>
+                    <td>${item.description || ''}</td>
+                    <td>${item.HSN_SAC || ''}</td>
+                    <td>${qty}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(taxableValue, 2)}</td>
                 </tr>
             `;
         } else {
@@ -36,31 +47,44 @@ function generateViewPreviewHTML(quotation, withTax = false) {
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${qty}</td>
-                    <td>${unitPrice.toFixed(2)}</td>
-                    <td>${taxableValue.toFixed(2)}</td>
                 </tr>
             `;
         }
     });
 
-    let tableHead = withTax
-        ? `<th>Description</th>
+    if (viewType === 2) {
+        tableHead =
+            `<th>Description</th>
            <th>HSN/SAC</th>
            <th>Qty</th>
            <th>Unit Price</th>
            <th>Tax Rate</th>
            <th>Tax Amount</th>
-           <th>Total (With Tax)</th>`
-        : `<th>Description</th>
+           <th>Total (With Tax)</th>`;
+
+    } else if (viewType === 1) {
+        tableHead = `<th>Description</th>
            <th>HSN/SAC</th>
            <th>Qty</th>
            <th>Unit Price</th>
            <th>Total</th>`;
+    } else {
+        tableHead =
+            `<th>Description</th>
+           <th>HSN/SAC</th>
+           <th>Qty</th>`;
+    }
 
-    let totalsHTML = withTax
-        ? `<strong>Grand Total: ₹${totalPrice.toFixed(2)}</strong><br>
-           <strong>Total Tax: ₹${totalTax.toFixed(2)}</strong>`
-        : `<strong>Grand Total: ₹${totalPrice.toFixed(2)}</strong>`;
+    if (viewType === 2) {
+        totalsHTML =
+            `<strong>Total Tax: ₹ ${formatIndian(totalTax, 2)}</strong><br>
+        <strong>Grand Total: ₹ ${formatIndian(totalPrice, 2)}</strong>`;
+    } else if (viewType === 1) {
+        totalsHTML = `<strong>Grand Total: ₹ ${formatIndian(totalPrice, 2)}</strong>`;
+    } else {
+        totalsHTML = `<strong>Grand Total: ₹ ${formatIndian(totalPrice, 2)}</strong>`;
+    }
+
 
     document.getElementById("view-preview-content").innerHTML = `
     <div class="preview-container">
@@ -211,7 +235,7 @@ function generateViewPreviewHTML(quotation, withTax = false) {
     `;
 }
 
-async function viewQuotation(quotationId, withTax = false) {
+async function viewQuotation(quotationId, viewType) {
     try {
         const response = await fetch(`/quotation/${quotationId}`);
         if (!response.ok) {
@@ -230,12 +254,19 @@ async function viewQuotation(quotationId, withTax = false) {
         // Fill Project Details (match HTML IDs)
         document.getElementById('view-project-name').textContent = quotation.project_name || '';
         document.getElementById('view-project-id').textContent = quotation.quotation_id || '';
+        document.getElementById('view-quotation-date').textContent = formatDate(quotation.quotation_date) || '';
 
         // Buyer & Consignee
         document.getElementById('view-buyer-name').textContent = quotation.customer_name || '';
         document.getElementById('view-buyer-address').textContent = quotation.customer_address || '';
         document.getElementById('view-buyer-phone').textContent = quotation.customer_phone || '';
         document.getElementById('view-buyer-email').textContent = quotation.customer_email || '';
+        document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(quotation.total_amount_tax, 2) || ''}`;
+        document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(quotation.total_tax, 2) || ''}`;
+        document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(quotation.total_amount_tax, 2) || ''}`;
+        document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(quotation.total_amount_no_tax, 2) || ''}`;
+
+
 
         // Item List
         const viewItemsTableBody = document.querySelector("#view-items-table tbody");
@@ -243,28 +274,33 @@ async function viewQuotation(quotationId, withTax = false) {
 
         (quotation.items || []).forEach(item => {
             const row = document.createElement("tr");
-            if (withTax) {
+            if (viewType === 2) {
                 row.innerHTML = `
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
-                    <td>${item.unit_price || ''}</td>
+                    <td>${formatIndian(item.unit_price, 2) || ''}</td>
                     <td>${item.rate ? item.rate + '%' : ''}</td>
+                `;
+            } else if (viewType === 1) {
+                row.innerHTML = `
+                    <td>${item.description || ''}</td>
+                    <td>${item.HSN_SAC || ''}</td>
+                    <td>${item.quantity || ''}</td>
+                    <td>${formatIndian(item.unit_price, 2) || ''}</td>
                 `;
             } else {
                 row.innerHTML = `
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
-                    <td>${item.quantity || ''}</td>
-                    <td>${item.unit_price || ''}</td>
-                `;
+                    <td>${item.quantity || ''}</td>  `
             }
             viewItemsTableBody.appendChild(row);
         });
 
         // Update table header for with/without tax
         const tableHead = document.querySelector("#view-items-table thead tr");
-        if (withTax) {
+        if (viewType === 2) {
             tableHead.innerHTML = `
                 <th>Description</th>
                 <th>HSN/SAC</th>
@@ -272,17 +308,23 @@ async function viewQuotation(quotationId, withTax = false) {
                 <th>Unit Price</th>
                 <th>Rate</th>
             `;
-        } else {
+        } else if (viewType === 1) {
             tableHead.innerHTML = `
                 <th>Description</th>
                 <th>HSN/SAC</th>
                 <th>Qty</th>
                 <th>Unit Price</th>
             `;
+        } else {
+            tableHead.innerHTML = `
+                <th>Description</th>
+                <th>HSN/SAC</th>
+                <th>Qty</th>
+            `;
         }
 
         // Show the preview in view-preview-content
-        generateViewPreviewHTML(quotation, withTax);
+        generateViewPreviewHTML(quotation, viewType);
 
         // Print and Save as PDF handlers
         document.getElementById('print-project').onclick = () => {

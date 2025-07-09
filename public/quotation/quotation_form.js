@@ -2,6 +2,7 @@ const totalSteps = 4;
 let quotationId = '';
 let totalAmountNoTax = 0;
 let totalAmountTax = 0;
+let totalTax = 0;
 
 document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
@@ -98,6 +99,7 @@ function generatePreview() {
 
     grandTotal = totalTaxableValue + totalCGST + totalSGST;
     roundOff = Math.round(grandTotal) - grandTotal;
+    totalTax = totalCGST + totalSGST;
     totalAmountNoTax = totalTaxableValue;
     totalAmountTax = (totalPrice + roundOff).toFixed(2);
 
@@ -326,6 +328,7 @@ function collectFormData() {
     return {
         quotation_id: document.getElementById("id").value,
         projectName: document.getElementById("project-name").value,
+        quotationDate: document.getElementById("quotation-date").value,
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,
         buyerPhone: document.getElementById("buyer-phone").value,
@@ -337,6 +340,7 @@ function collectFormData() {
             unit_price: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
+        totalTax: totalTax,
         totalAmountNoTax: totalAmountNoTax,
         totalAmountTax: totalAmountTax,
     };

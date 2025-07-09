@@ -101,9 +101,11 @@ function createQuotationCard(quotation) {
 function handleQuotationAction(select, quotationId) {
     const action = select.value;
     if (action === "view") {
-        viewQuotation(quotationId, false);
+        viewQuotation(quotationId, viewType = 1);
     } else if (action === "viewWTax") {
-        viewQuotation(quotationId, true);
+        viewQuotation(quotationId, viewType = 2);
+    } else if (action === "compactView") {
+        viewQuotation(quotationId, viewType = 3);
     } else if (action === "update") {
         openQuotation(quotationId);
     } else if (action === "delete") {
@@ -140,6 +142,7 @@ async function openQuotation(quotationId) {
 
         document.getElementById('id').value = quotation.quotation_id;
         document.getElementById('project-name').value = quotation.project_name;
+        document.getElementById('quotation-date').value = formatDate(quotation.quotation_date);
         document.getElementById('buyer-name').value = quotation.customer_name;
         document.getElementById('buyer-address').value = quotation.customer_address;
         document.getElementById('buyer-phone').value = quotation.customer_phone;
