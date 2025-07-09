@@ -71,6 +71,8 @@ router.post("/save-invoice", async (req, res) => {
         } = req.body;
 
         const date = new Date();
+        let total_amount_original = totalAmountOriginal;
+        let total_amount_duplicate = totalAmountDuplicate;
 
         if (!invoiceId || !projectName) {
             return res.status(400).json({ message: 'Missing required fields: invoiceId, projectName.' });
@@ -89,6 +91,15 @@ router.post("/save-invoice", async (req, res) => {
             // originals stay as‐is
         } else {
             return res.status(400).json({ message: 'type must be "original" or "duplicate"' });
+        }
+
+        if (existingInvoice) {
+            if (totalAmountOriginal == 0) {
+                total_amount_original = existingInvoice.total_amount_original || 0;
+            }
+            if (totalAmountDuplicate == 0) {
+                total_amount_duplicate = existingInvoice.total_amount_duplicate || 0;
+            }
         }
 
         if (existingInvoice) {
@@ -124,8 +135,8 @@ router.post("/save-invoice", async (req, res) => {
                 consignee_address: consigneeAddress,
                 items_original: items_original,
                 items_duplicate: items_duplicate,
-                total_amount_original: totalAmountOriginal,
-                total_amount_duplicate: totalAmountDuplicate,
+                total_amount_original: total_amount_original,
+                total_amount_duplicate: total_amount_duplicate,
                 payment_status: paymentStatus,
                 payment_mode: paymentMode,
                 payment_date: paymentDate
@@ -152,7 +163,7 @@ router.post("/save-invoice", async (req, res) => {
                 po_date: poDate,
                 dc_number: dcNumber,
                 dc_date: dcDate,
-                service_month: serviceMonth, 
+                service_month: serviceMonth,
                 margin: margin,
                 Waybill_id: wayBillNumber,
                 customer_name: buyerName,
@@ -163,8 +174,8 @@ router.post("/save-invoice", async (req, res) => {
                 consignee_address: consigneeAddress,
                 items_original: items,
                 items_duplicate: items,
-                total_amount_duplicate: totalAmountDuplicate,
-                total_amount_original: totalAmountOriginal,
+                total_amount_duplicate: total_amount_original,
+                total_amount_original: total_amount_duplicate,
                 payment_status: paymentStatus,
                 payment_dode: paymentMode,
                 payment_date: paymentDate
@@ -192,7 +203,7 @@ router.get("/recent-invoices", async (req, res) => {
         const recentInvoices = await Invoices.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("project_name invoice_id customer_name customer_phone customer_address payment_status");
+            .select("project_name invoice_id customer_name customer_phone customer_address payment_status total_amount_duplicate");
 
         // Respond with the fetched invoices
         res.status(200).json({

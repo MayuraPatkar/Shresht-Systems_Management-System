@@ -217,6 +217,7 @@
             padding: 1.5rem 2rem;
             transition: box-shadow 0.2s, transform 0.15s, background 0.2s;
             gap: 2rem;
+            cursor: default;
         }
 
         .record-item:hover {
@@ -234,7 +235,6 @@
             background: #f6fdf8;
             border-radius: 50%;
             border: 2px solid #e5e7eb;
-            margin-right: 1.5rem;
         }
 
         .record-item .paid-icon img {
@@ -243,53 +243,40 @@
             object-fit: contain;
         }
 
-        .record-item .details {
+        .record-item-details {
             flex: 1;
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 0.5rem;
         }
 
-        .record-item .info1 {
+        .record-item-info-1 {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 1.5rem;
+            /* gap: 1.5rem; */
+
         }
 
-        .record-item .info1 h1 {
-            font-size: 1.4rem;
+        .record-item-info-1 h1 {
+            font-size: 2.8rem;
             color: var(--primary);
             margin: 0;
             font-weight: 700;
         }
+        .record-item-info-1 h2 {
+            font-size: 2.8rem;
+            color: var(--text);
+            margin: 0;
+            font-weight: 700;
+        }
 
-        .record-item .info1 h4 {
-            font-size: 1rem;
-            color: #888;
+        .record-item-info-1 h4 {
+            font-size: 1.4rem;
+            color: var(--text-secondary);
             margin: 0;
             font-weight: 500;
-        }
-
-        .record-item .info2 {
-            display: flex;
-            flex-direction: column;
-            gap: 0.2rem;
-            font-size: 1rem;
-            color: #444;
-        }
-
-        .record-item .info2 h4 {
-            font-size: 1.05rem;
-            color: var(--accent);
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .record-item .info2 p {
-            margin: 0;
-            color: #666;
-            font-size: 0.98rem;
-            word-break: break-word;
         }
 
         .record-item .actions {

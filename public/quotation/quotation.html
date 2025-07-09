@@ -97,6 +97,10 @@
                         <label for="project-name">Project name</label>
                         <input type="text" id="project-name">
                     </div>
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date">
+                    </div>
                 </div>
                 <div class="steps" id="step-2">
                     <h2>Recipient views (to)</h2>
@@ -156,30 +160,49 @@
             </form>
         </div>
         <div id="view" class="no-select">
+            <div class="view-nav">
+                <a href=#v-1>Project views</a>
+                <a href=#v-2>Recipient</a>
+                <a href=#v-3>Item List</a>
+                <a href=#v-4>Totals</a>
+                <a href=#v-5>Quotation</a>
+                <a href=#v-6>Print</a>
+            </div>
             <!-- Project views & Preview Section -->
             <div id="project-details-view">
                 <!-- Project views -->
-                <div class="card">
+                <div class="card" id="v-1">
                     <h2>Project views</h2>
+                    <hr>
+                    <br>
                     <div>
                         <strong>Project Name:</strong> <span id="view-project-name"></span><br>
                         <strong>Quotation ID:</strong> <span id="view-project-id"></span><br>
+                        <strong>Date:</strong> <span id="view-project-id"></span><br>
+
                     </div>
                 </div>
                 <!-- Buyer & Consignee views -->
-                <div class="card">
+                <div class="card" id="v-2">
                     <h2>Recipient</h2>
+                    <hr>
+                    <br>
                     <div>
                         <strong>Name:</strong> <span id="view-buyer-name"></span><br>
                         <strong>Address:</strong> <span id="view-buyer-address"></span><br>
+                    </div>
+                    <br>
+                    <div>
                         <strong>Phone:</strong> <span id="view-buyer-phone"></span><br>
                         <strong>Email:</strong> <span id="view-buyer-email"></span>
                     </div>
                 </div>
 
                 <!-- Item List -->
-                <div class="card">
+                <div class="card" id="v-3">
                     <h2>Item List</h2>
+                    <hr>
+                    <br>
                     <div>
                         <table id="view-items-table">
                             <thead>
@@ -198,10 +221,26 @@
                     </div>
                 </div>
 
-                <!-- Preview & Actions -->
-                <div class="card">
-                    <div id="view-preview-content"></div>
+                <!-- Total -->
+                <div class="card" id="v-4">
+                    <h2>Totals</h2>
+                    <hr>
+                    <br>
                     <div>
+                        <strong>Total Amount:</strong> <span id="view-buyer-name"></span><br>
+                        <strong>Total Tax:</strong> <span id="view-buyer-address"></span><br>
+                    </div>
+                    <br>
+                    <div>
+                        <strong>Grand Total with Tax:</strong> <span id="view-buyer-phone"></span><br>
+                        <strong>Grand Total Without Tax:</strong> <span id="view-buyer-email"></span>
+                    </div>
+                </div>
+
+                <!-- Preview & Actions -->
+                <div class="card" id="v-5">
+                    <div id="view-preview-content"></div>
+                    <div id="v-6">
                         <button type="button" id="print-project" class="button">Print</button>
                         <button type="button" id="save-project-PDF" class="button">Save as PDF</button>
                     </div>

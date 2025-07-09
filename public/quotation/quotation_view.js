@@ -71,7 +71,7 @@ function generateViewPreviewHTML(quotation, withTax = false) {
             </div>
             <div class="company-details">
                 <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
                 <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
@@ -121,7 +121,7 @@ function generateViewPreviewHTML(quotation, withTax = false) {
             </div>
             <div class="company-details">
                 <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
                 <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
@@ -168,7 +168,7 @@ function generateViewPreviewHTML(quotation, withTax = false) {
             </div>
             <div class="company-details">
                 <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
                 <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>

@@ -157,6 +157,13 @@ function numberToWords(num) {
   return result.join(' ').trim();
 }
 
+function formatIndian(num, fractionDigits = 0) {
+  return num.toLocaleString('en-IN', {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  });
+}
+
 // Function to format date to YYYY-MM-DD
 function formatDate(dateString) {
   if (!dateString) return "";

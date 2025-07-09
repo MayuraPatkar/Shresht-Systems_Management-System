@@ -52,6 +52,8 @@ router.post("/save-quotation", async (req, res) => {
             buyerPhone = '',
             buyerEmail = '',
             items = [],
+            totalAmountNoTax = 0,
+            totalAmountTax = 0,
         } = req.body;
 
         // Validate required fields
@@ -81,6 +83,8 @@ router.post("/save-quotation", async (req, res) => {
             quotation.customer_phone = buyerPhone;
             quotation.customer_email = buyerEmail;
             quotation.items = items;
+            quotation.total_amount_no_tax = totalAmountNoTax;
+            quotation.total_amount_tax = totalAmountTax;
         } else {
             // Create a new quotation with the provided data
             quotation = new Quotations({
@@ -91,6 +95,8 @@ router.post("/save-quotation", async (req, res) => {
                 customer_phone: buyerPhone,
                 customer_email: buyerEmail,
                 items,
+                total_amount_no_tax: totalAmountNoTax,
+                total_amount_tax: totalAmountTax,
                 createdAt: new Date(),
             });
         }
@@ -114,7 +120,7 @@ router.get("/recent-quotations", async (req, res) => {
         const recentQuotations = await Quotations.find()
             .sort({ createdAt: -1 })
             .limit(5)
-            .select("project_name quotation_id customer_name customer_address");
+            .select("project_name quotation_id customer_name customer_address total_amount_tax");
 
         res.status(200).json({
             message: "Recent quotations retrieved successfully",

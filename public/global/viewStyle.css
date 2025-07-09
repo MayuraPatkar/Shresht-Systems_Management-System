@@ -7,7 +7,40 @@
             padding: 2rem 0;
             scrollbar-width: thin;
             scrollbar-color: var(--primary) transparent;
+            flex-direction: column;
         }
+
+        .view-nav {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 12px 16px;
+            ;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .view-nav a {
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            background-color: var(--primary);
+            color: var(--text-inverse);
+            font-weight: 500;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .view-nav a:hover {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .view-nav a:focus {
+            outline: 2px solid #007bff;
+            outline-offset: 2px;
+        }
+
 
         /* Project Details & Preview Section */
         #project-details-view {
@@ -54,22 +87,39 @@
 
         /* Details layout */
         #project-details-view>.card>div {
+            width: 100%;
             display: flex;
             flex-wrap: wrap;
-            gap: 2.5rem;
+            gap: 1.0rem;
+        }
+
+        #project-details-view hr {
+            border: 1px solid var(--primary);
         }
 
         #project-details-view strong {
             color: #222;
             font-weight: 600;
+            font-size: 1.2rem;
         }
 
         #project-details-view span {
             color: #444;
             font-weight: 400;
+            font-size: 1.1rem;
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease-in-out;
         }
 
-        /* Payment Section - make it stand out */
+        #project-details-view span:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+
+        }
+
         #project-details-view .payment-section {
             background: linear-gradient(90deg, #e3f0ff 0%, #f7fafd 100%);
             border-left: 5px solid var(--primary, #2a4d8f);

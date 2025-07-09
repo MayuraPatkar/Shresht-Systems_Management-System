@@ -15,14 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 });
 
-function formatIndian(num, fractionDigits = 0) {
-  return num.toLocaleString('en-IN', {
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  });
-}
-
-
 // ---------------------- Animated Counter Function ----------------------
 function animateCounter(
   id,

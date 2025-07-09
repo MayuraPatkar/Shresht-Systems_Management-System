@@ -51,24 +51,43 @@ function createQuotationCard(quotation) {
         <div class="paid-icon">
             <img src="../assets/quotation.png" alt="Quotation Icon">
         </div>
-        <div class="details">
-            <div class="info1">
+        <div class="record-item-details">
+            <div class="record-item-info-1">
                 <h1>${quotation.project_name}</h1>
-                <h4>#${quotation.quotation_id}</h4>
-            </div>
-            <div class="info2">
+                <h4 class="copy-text">${quotation.quotation_id}</h4>
+            </div>   
+        </div>
+        <div class="record-item-details">
+            <div class="record-item-info-2">
+                <h2>Customer</h2>
                 <p>${quotation.customer_name}</p>
                 <p>${quotation.customer_address}</p>
-            </div>    
+            </div>
+        </div>
+        <div class="record-item-details">
+            <div class="record-item-info-3">
+                <h2>Amount</h2>
+                <p>₹${formatIndian(quotation.total_amount_tax, 2)}</p>
+            </div>
         </div>
         <select class="actions">
             <option value="" disabled selected>Actions</option>
             <option value="view">View</option>
             <option value="viewWTax">View With TAX</option>
+            <option value="compactView">Compact View</option>
             <option value="update">Update</option>
             <option value="delete">Delete</option>
         </select>
     `;
+
+    const copyElement = quotationDiv.querySelector('.copy-text');
+    copyElement.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(copyElement.textContent.trim());
+        } catch (err) {
+            console.error('Copy failed', err);
+        }
+    });
 
     // Attach event listener in JS, not inline
     quotationDiv.querySelector('.actions').addEventListener('change', function () {

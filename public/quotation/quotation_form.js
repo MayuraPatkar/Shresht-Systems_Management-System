@@ -1,5 +1,7 @@
 const totalSteps = 4;
 let quotationId = '';
+let totalAmountNoTax = 0;
+let totalAmountTax = 0;
 
 document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
@@ -96,13 +98,15 @@ function generatePreview() {
 
     grandTotal = totalTaxableValue + totalCGST + totalSGST;
     roundOff = Math.round(grandTotal) - grandTotal;
+    totalAmountNoTax = totalTaxableValue;
+    totalAmountTax = (totalPrice + roundOff).toFixed(2);
 
     totalsHTML = `
         ${hasTax ? `
         <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
         <p><strong>Total CGST:</strong> ₹${totalCGST.toFixed(2)}</p>
         <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>` : ""}
-        <p><strong>Grand Total:</strong> ₹${(totalPrice + roundOff).toFixed(2)}</p>
+        <p><strong>Grand Total:</strong> ₹${totalAmountTax}</p>
     `;
 
     document.getElementById("preview-content").innerHTML = `
@@ -114,7 +118,7 @@ function generatePreview() {
             </div>
             <div class="company-details">
                 <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
                 <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
@@ -164,7 +168,7 @@ function generatePreview() {
             </div>
             <div class="company-details">
                 <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
                 <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
@@ -218,7 +222,7 @@ function generatePreview() {
             </div>
             <div class="company-details">
                 <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Udupi Ontibettu, Hiradka - 576113</p>
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
                 <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
@@ -333,5 +337,7 @@ function collectFormData() {
             unit_price: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
+        totalAmountNoTax: totalAmountNoTax,
+        totalAmountTax: totalAmountTax,
     };
 }

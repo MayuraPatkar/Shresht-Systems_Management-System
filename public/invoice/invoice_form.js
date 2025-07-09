@@ -1,5 +1,8 @@
 const totalSteps = 7;
 let invoiceId = '';
+let totalAmountOriginal = 0;
+let totalAmountDuplicate = 0;
+let totalTax = 0;
 
 document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
@@ -194,6 +197,14 @@ function calculateInvoice(itemsTable) {
     const grandTotal = totalTaxableValue + totalCGST + totalSGST;
     const roundOff = Math.round(grandTotal) - grandTotal;
     const finalTotal = totalPrice + roundOff;
+
+    let type = sessionStorage.getItem('update-invoice');
+    if (type === 'original') {
+        totalAmountOriginal = Number(finalTotal.toFixed(2));
+        totalTax = totalCGST + totalSGST;
+    } else if (type === 'duplicate') {
+        totalAmountDuplicate = finalTotal.toFixed(2)
+    }
 
     const totalsHTML = `
         ${hasTax ? `
@@ -426,7 +437,7 @@ function collectFormData() {
             unit_price: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
-        totalAmountOriginal: finalTotal,
-        totalAmountDuplicate: finalTotal,
+        totalAmountOriginal: totalAmountOriginal,
+        totalAmountDuplicate: totalAmountDuplicate,
     };
 }

@@ -52,15 +52,25 @@ function createInvoiceCard(invoice) {
         <div class="paid-icon">
             <img src="../assets/${invoice.payment_status === 'Paid' ? 'paid.png' : 'unpaid.png'}" alt="Paid Icon">
         </div>
-        <div class="details">
-            <div class="info1">
+        <div class="record-item-details">
+            <div class="record-item-info-1">
                 <h1>${invoice.project_name}</h1>
-                <h4>#${invoice.invoice_id}</h4>
+                <h4 class="copy-text">${invoice.invoice_id}</h4>
             </div>
-            <div class="info2">
-                <h4>${invoice.customer_name}</h4>
+        </div>
+        <div class="record-item-details">
+            <div class="record-item-info-2">
+                <h2>Customer</h2>
+                <p>${invoice.customer_name}</p>
                 <p>${invoice.customer_address}</p>
             </div>
+        </div>
+        <div class="record-item-details">
+            <div class="record-item-info-2">
+            <h2>Amount</h2>
+                <p>${userRole === 'admin' ? `₹${formatIndian(invoice.total_amount_duplicate, 2)}` : ""}</p>
+            </div>
+        </div>
         </div>
         <select class="actions" onchange="handleInvoiceAction(this, '${invoice.invoice_id}')">
             <option value="" disabled selected>Actions</option>
@@ -74,6 +84,15 @@ function createInvoiceCard(invoice) {
             ${userRole === 'manager' ? `<option class="delete-invoice" data-id="${invoice.invoice_id}" value="delete">Delete</option>` : ""}
         </select>
     `;
+    const copyElement = invoiceCard.querySelector('.copy-text');
+    copyElement.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(copyElement.textContent.trim());
+        } catch (err) {
+            console.error('Copy failed', err);
+        }
+    });
+
     return invoiceCard;
 }
 
@@ -133,6 +152,10 @@ function showNewInvoiceForm() {
     document.getElementById('new-invoice').style.display = 'none';
     document.getElementById('view').style.display = 'none';
     sessionStorage.setItem('update-invoice', 'original');
+
+    if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
+        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+    }
 }
 
 // Handle search functionality
