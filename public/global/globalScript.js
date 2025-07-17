@@ -126,6 +126,7 @@ function updateNavigation() {
 
 // Function to convert number to words (Indian numbering system)
 function numberToWords(num) {
+  num = Math.round(num);
   const a = [
     '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
   ];
@@ -153,7 +154,6 @@ function numberToWords(num) {
   if (lakh) result.push(numToWords(lakh) + ' Lakh');
   if (thousand) result.push(numToWords(thousand) + ' Thousand');
   if (remainder) result.push(numToWords(remainder));
-
   return result.join(' ').trim();
 }
 

@@ -10,38 +10,6 @@
             flex-direction: column;
         }
 
-        .view-nav {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            padding: 12px 16px;
-            ;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .view-nav a {
-            text-decoration: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            background-color: var(--primary);
-            color: var(--text-inverse);
-            font-weight: 500;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-
-        .view-nav a:hover {
-            background-color: #333;
-            color: #fff;
-        }
-
-        .view-nav a:focus {
-            outline: 2px solid #007bff;
-            outline-offset: 2px;
-        }
-
-
         /* Project Details & Preview Section */
         #project-details-view {
             display: flex;
@@ -51,73 +19,68 @@
             width: 100%;
         }
 
-        /* Card styling */
-        #project-details-view .card {
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 4px 16px #0002;
-            padding: 2.2rem 2rem;
-            margin-bottom: 0;
-            width: 90%;
-            max-width: 900px;
-            min-width: 280px;
-            transition: box-shadow 0.2s;
-            box-sizing: border-box;
+        .content-area {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        #project-details-view .card:hover {
-            box-shadow: 0 8px 24px #0003;
+        /* Card styling */
+        #project-details-view .card {
+            width: 90%;
+            max-width: 920px;
+            min-width: 300px;
+            transition: box-shadow 0.3s ease, transform 0.2s ease;
+            box-sizing: border-box;
+            border: 1px solid #e0e0e0;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 25px 30px;
+            margin-bottom: 20px;
         }
 
         /* Headings */
         #project-details-view h2 {
             color: var(--primary, #2a4d8f);
             margin-bottom: 1.2rem;
-            font-size: 1.5rem;
+            font-size: 1.9rem;
             font-weight: 700;
             letter-spacing: 1px;
         }
 
-        #project-details-view h4 {
-            color: var(--accent, #267746);
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
+        .card-header {
+            font-size: 24px;
             font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
 
-        /* Details layout */
-        #project-details-view>.card>div {
-            width: 100%;
+        .card-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px 30px;
+        }
+
+        .info-item {
             display: flex;
-            flex-wrap: wrap;
-            gap: 1.0rem;
+            flex-direction: column;
         }
 
-        #project-details-view hr {
-            border: 1px solid var(--primary);
-        }
-
-        #project-details-view strong {
-            color: #222;
-            font-weight: 600;
-            font-size: 1.2rem;
-        }
-
-        #project-details-view span {
-            color: #444;
-            font-weight: 400;
+        .info-item .label {
             font-size: 1.1rem;
-            cursor: pointer;
-            position: relative;
-            display: inline-block;
-            padding: 2px 4px;
-            border-radius: 4px;
-            transition: background-color 0.2s ease-in-out;
+            color: #777;
+            margin-bottom: 5px;
+            font-weight: 500;
         }
 
-        #project-details-view span:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-
+        .info-item .value {
+            font-size: 1.3rem;
+            color: #333;
+            font-weight: 600;
         }
 
         #project-details-view .payment-section {
@@ -155,13 +118,14 @@
             border: 1px solid #e5e7eb;
             padding: 0.7rem 1.1rem;
             text-align: left;
+            font-size: 1.3rem;
         }
 
         #view-items-table th {
             background: #f0f4fa;
             color: var(--primary, #2a4d8f);
             font-weight: 700;
-            font-size: 1.05rem;
+            font-size: 1.4rem;
         }
 
         #detail-items-table tbody tr:nth-child(even) {
@@ -180,11 +144,10 @@
         /* Preview Content */
         #view-preview-content {
             border-radius: 10px;
-            padding: 1.7rem;
             min-height: 120px;
             margin-bottom: 1rem;
             color: #333;
-            font-size: 1.08rem;
+            font-size: 0.7rem;
         }
 
         /* Buttons */

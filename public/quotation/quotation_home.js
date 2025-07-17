@@ -46,15 +46,16 @@ function renderQuotations(quotations) {
 // Create a quotation card element
 function createQuotationCard(quotation) {
     const quotationDiv = document.createElement("div");
-    quotationDiv.className = "record-item";
+    quotationDiv.className = "record-item no-select";
     quotationDiv.innerHTML = `
         <div class="paid-icon">
             <img src="../assets/quotation.png" alt="Quotation Icon">
         </div>
-        <div class="record-item-details">
+        <div class="record-item-details" >
             <div class="record-item-info-1">
                 <h1>${quotation.project_name}</h1>
                 <h4 class="copy-text">${quotation.quotation_id}</h4>
+                <div id="toast" style="display:none;position:absolute;bottom:20px;left:275px;background:#333;color:#fff;padding:10px 20px;border-radius:5px;">Copied!</div>
             </div>   
         </div>
         <div class="record-item-details">
@@ -81,13 +82,23 @@ function createQuotationCard(quotation) {
     `;
 
     const copyElement = quotationDiv.querySelector('.copy-text');
+
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 500);
+    }
+
     copyElement.addEventListener('click', async () => {
         try {
             await navigator.clipboard.writeText(copyElement.textContent.trim());
+            showToast('Copied!');
         } catch (err) {
             console.error('Copy failed', err);
         }
     });
+
 
     // Attach event listener in JS, not inline
     quotationDiv.querySelector('.actions').addEventListener('change', function () {

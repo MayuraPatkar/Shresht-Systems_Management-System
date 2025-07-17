@@ -29,7 +29,7 @@
         </div>
     </header>
     <div class="container" class="no-select">
-        <aside>
+        <aside class="no-select">
             <div class="nav-link" id="dashboard">
                 <img src="../assets/dashboard-interface.png" alt="dashboard">
                 Dashboard
@@ -160,50 +160,52 @@
             </form>
         </div>
         <div id="view" class="no-select">
-            <div class="view-nav">
-                <a href=#v-1>Project views</a>
-                <a href=#v-2>Recipient</a>
-                <a href=#v-3>Item List</a>
-                <a href=#v-4>Totals</a>
-                <a href=#v-5>Quotation</a>
-                <a href=#v-6>Print</a>
-            </div>
             <!-- Project views & Preview Section -->
             <div id="project-details-view">
-                <!-- Project views -->
-                <div class="card" id="v-1">
-                    <h2>Project views</h2>
-                    <hr>
-                    <br>
-                    <div>
-                        <strong>Project Name:</strong> <span id="view-project-name"></span><br>
-                        <strong>Quotation ID:</strong> <span id="view-project-id"></span><br>
-                        <strong>Date:</strong> <span id="view-quotation-date"></span><br>
+                <section class="card">
+                    <h2 class="card-header">Project Views</h2>
+                    <div class="card-content grid-layout">
+                        <div class="info-item">
+                            <span class="label">Project Name:</span>
+                            <span class="value" id="view-project-name"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Quotation ID:</span>
+                            <span class="value" id="view-project-id"></span>
+                        </div>
+                        <div class="info-item full-width">
+                            <span class="label">Date:</span>
+                            <span class="value" id="view-quotation-date"></span>
+                        </div>
+                    </div>
+                </section>
 
+                <section class="card">
+                    <h2 class="card-header">Recipient</h2>
+                    <div class="card-content grid-layout">
+                        <div class="info-item">
+                            <span class="label">Name:</span>
+                            <span class="value" id="view-buyer-name"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Address:</span>
+                            <span class="value" id="view-buyer-address"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Phone:</span>
+                            <span class="value" id="view-buyer-phone"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Email:</span>
+                            <span class="value" id="view-buyer-email"></span>
+                        </div>
                     </div>
-                </div>
-                <!-- Buyer & Consignee views -->
-                <div class="card" id="v-2">
-                    <h2>Recipient</h2>
-                    <hr>
-                    <br>
-                    <div>
-                        <strong>Name:</strong> <span id="view-buyer-name"></span><br>
-                        <strong>Address:</strong> <span id="view-buyer-address"></span><br>
-                    </div>
-                    <br>
-                    <div>
-                        <strong>Phone:</strong> <span id="view-buyer-phone"></span><br>
-                        <strong>Email:</strong> <span id="view-buyer-email"></span>
-                    </div>
-                </div>
+                </section>
 
                 <!-- Item List -->
-                <div class="card" id="v-3">
-                    <h2>Item List</h2>
-                    <hr>
-                    <br>
-                    <div>
+                <section class="card">
+                    <h2 class="card-header">Item Details</h2>
+                    <div class="card-content grid-layout">
                         <table id="view-items-table">
                             <thead>
                                 <tr>
@@ -219,28 +221,36 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </section>
 
                 <!-- Total -->
-                <div class="card" id="v-4">
-                    <h2>Totals</h2>
-                    <hr>
-                    <br>
-                    <div>
-                        <strong>Total Amount:</strong> <span id="view-total-amount"></span><br>
-                        <strong>Total Tax:</strong> <span id="view-total-tax"></span><br>
+                <section class="card">
+                    <h2 class="card-header">Totals</h2>
+                    <div class="card-content grid-layout">
+                        <div class="info-item">
+                            <span class="label">Total Amount:</span>
+                            <span class="value" id="view-total-amount"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Total Tax:</span>
+                            <span class="value" id="view-total-tax"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Grand Total with Tax:</span>
+                            <span class="value" id="view-total-with-tax"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Grand Total Without Tax:</span>
+                            <span class="value" id="view-total-without-tax"></span>
+                        </div>
                     </div>
-                    <br>
-                    <div>
-                        <strong>Grand Total with Tax:</strong> <span id="view-total-with-tax"></span><br>
-                        <strong>Grand Total Without Tax:</strong> <span id="view-total-without-tax"></span>
-                    </div>
-                </div>
+
+                </section>
 
                 <!-- Preview & Actions -->
-                <div class="card" id="v-5">
+                <div class="card">
                     <div id="view-preview-content"></div>
-                    <div id="v-6">
+                    <div>
                         <button type="button" id="print-project" class="button">Print</button>
                         <button type="button" id="save-project-PDF" class="button">Save as PDF</button>
                     </div>

@@ -4,196 +4,220 @@
 }
 
 .preview-container {
-    /* background: #fff; */
     background-image: url("https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/icon2.png");
     background-repeat: no-repeat;
     background-position: center;
     margin: 50px auto;
     padding: 20px;
     box-shadow: 0 0 10px rgb(0, 0, 0);
-    width: 210mm;
-    height: 297mm;
+    width: 210.058mm;
+    height: 296.926mm;
 }
 
-
-/* 
-        header section starts here
-        */
-.header {
+.first-section {
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 2px solid #007bff;
-    padding-bottom: 2px;
-    margin-bottom: 2px;
 }
 
-.header .logo img {
+.first-section .logo img {
     max-width: 300px;
 }
 
-.header .company-details {
+.first-section .company-details {
     text-align: right;
 }
 
-.header .company-details h1 {
+.first-section .company-details h1 {
     margin: 0;
     font-size: 36px;
     color: rgb(0, 8, 116);
 }
 
-.header .company-details p {
+.first-section .company-details p {
     margin: 2px 0;
     font-size: 14px;
 }
 
-/* 
-        title section starts here
-        */
-.title {
+.second-section p {
     text-align: center;
     font-size: 25px;
     color: #007bff;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin: 0;
 }
 
-/* 
-        first-section starts here
-        */
-.first-section {
+.third-section {
     display: flex;
     justify-content: space-evenly;
     font-size: 16px;
 }
 
-.info-section {
-    text-align: center;
+.third-section p {
+    margin: 5px;
 }
 
-.info-section,
-.buyer-details {
+.third-section .info-section {
+    text-align: left;
+}
+
+.third-section .info-section,
+.third-section .buyer-details {
     padding: 0.2%;
     font-size: 16px;
     line-height: 1.0;
     width: 50%;
 }
 
-.buyer-details p .info-section p {
-    margin: 3px 0;
-}
-
-/* 
-        second-section starts here
-        */
-.second-section {
+.fourth-section {
     display: flex;
     justify-content: space-evenly;
     align-items: center;
     flex-direction: column;
 }
 
-.container table {
-    margin-top: 10px;
-    width: 99%;
+.fourth-section table {
+    width: 100%;
     border-collapse: collapse;
-    table-layout: auto;
+    margin-top: 0.5rem;
+    background: #f9fbfd;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 600px;
 }
 
-.container table th,
-.container table td {
-    border: 1px solid #000000;
-    padding: 7px;
+.fourth-section table th,
+.fourth-section table td {
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem 1.1rem;
+    text-align: left;
+    font-size: 0.8rem;
+}
+
+.fourth-section table th {
+    background: #f0f4fa;
+    color: var(--primary, #2a4d8f);
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.fifth-section {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 0.5rem;
+}
+
+.fifth-section-sub1 {
+    width: 100%;
+    display: flex;
+}
+
+.fifth-section-sub2 {
+    display: flex;
+    flex-direction: column;
+    width: 68%;
+}
+
+.fifth-section .totals-section {
+    width: 32%;
     text-align: left;
     font-size: 16px;
-}
-
-.container table th {
-    background-color: #007bff;
-    color: #fff;
-    font-weight: bold;
-    font-size: 16px;
-}
-
-/* 
-        third-section starts here
-        */
-
-.third-section {
-    margin-bottom: 10px;
     display: flex;
     justify-content: space-evenly;
 }
 
-.totals-section {
-    width: 50%;
-    text-align: right;
-    font-size: 16px;
+.fifth-section .totals-section p {
+    float: left;
+    margin: 0;
 }
 
-.bank-details {
-    width: 50%;
+.fifth-section .bank-details {
     text-align: left;
     font-size: 16px;
+    display: flex;
 }
 
-/* 
-        forth-section starts here
-        */
+.fifth-section .bank-details-sub2 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
 
-.forth-section {
+.fifth-section .fifth-section-sub2 p{
     margin: 0;
-    margin-bottom: 2px;
 }
 
-.forth-section p {
+.fifth-section .QR-code {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    margin: 10px 10px;
+}
+
+.fifth-section .QR-code img {
+    height: 100%;
+}
+
+.fifth-section .bank-details-sub2 p {
+    margin: 0;
+}
+
+.fifth-section .bank-details-sub2 h4 {
+    margin: 0;
+}
+
+.sixth-section {
+    margin: 0;
+}
+
+.sixth-section p {
     margin-top: 0;
 }
 
-.declaration {
-    margin-top: 10px;
+.sixth-section .declaration {
     font-size: 16px;
     line-height: 1.5;
 }
 
-.forth-section .declaration p {
+.sixth-section .declaration p {
     margin-bottom: 0;
 }
 
-/* 
-        fifth-section starts here
-        */
-
-.fifth-section {
-    display: flex;
-    justify-content: space-between;
-    /* align-items: center; */
-}
-
-.terms-section {
+.seventh-section {
     padding: 1%;
     font-size: 16px;
     line-height: 1.0;
     margin-top: 0;
 }
 
-.signature {
-    margin-top: 100px;
+.seventh-section p {
+    margin: 0;
+}
+
+.eighth-section {
+    /* height: 4%; */
     text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 }
 
-.signature p {
-    margin-top: 0;
+.eighth-section p {
+    margin: 0;
+    /* margintop: 0; */
 }
 
-.signature-space {
+.eighth-section-space {
+    margin-right: 0;
     width: 150px;
     height: 25px;
 }
 
-footer {
+.ninth-section {
     text-align: center;
     font-size: 12px;
     color: #777;
-    margin-top: 10px;
 }

@@ -39,7 +39,7 @@ const quotationSchema = new mongoose.Schema({
             description: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
-            unit_price: { type: String },
+            unit_price: { type: Number },
             rate: { type: Number },
         },
     ],

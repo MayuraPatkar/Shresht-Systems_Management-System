@@ -45,7 +45,6 @@ function generateViewPreviewHTML(quotation, viewType) {
             itemsHTML += `
                 <tr>
                     <td>${item.description || ''}</td>
-                    <td>${item.HSN_SAC || ''}</td>
                     <td>${qty}</td>
                 </tr>
             `;
@@ -71,7 +70,6 @@ function generateViewPreviewHTML(quotation, viewType) {
     } else {
         tableHead =
             `<th>Description</th>
-           <th>HSN/SAC</th>
            <th>Qty</th>`;
     }
 
@@ -101,7 +99,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             </div>
         </div>
 
-        <div class="title">Quotation - #${quotation.quotation_id}</div>
+        <div class="title">Quotation-${quotation.quotation_id}</div>
         <div class="info-section" >
             <p><strong>To:</strong></p>
               ${quotation.customer_name}<br>
@@ -261,10 +259,10 @@ async function viewQuotation(quotationId, viewType) {
         document.getElementById('view-buyer-address').textContent = quotation.customer_address || '';
         document.getElementById('view-buyer-phone').textContent = quotation.customer_phone || '';
         document.getElementById('view-buyer-email').textContent = quotation.customer_email || '';
-        document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(quotation.total_amount_tax, 2) || ''}`;
-        document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(quotation.total_tax, 2) || ''}`;
-        document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(quotation.total_amount_tax, 2) || ''}`;
-        document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(quotation.total_amount_no_tax, 2) || ''}`;
+        document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(quotation.total_amount_tax, 2) || '-'}`;
+        document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(quotation.total_tax, 2) || '-'}`;
+        document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(quotation.total_amount_tax, 2) || '-'}`;
+        document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(quotation.total_amount_no_tax, 2) || '-'}`;
 
 
 
@@ -289,12 +287,17 @@ async function viewQuotation(quotationId, viewType) {
                     <td>${item.quantity || ''}</td>
                     <td>${formatIndian(item.unit_price, 2) || ''}</td>
                 `;
+                document.getElementById('view-total-tax').textContent = 'No Tax';
+                document.getElementById('view-total-with-tax').textContent = 'No Tax';
             } else {
                 row.innerHTML = `
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>  `
             }
+            document.getElementById('view-total-tax').textContent = '-';
+            document.getElementById('view-total-with-tax').textContent = '-';
+            document.getElementById('view-total-without-tax').textContent = '-';
             viewItemsTableBody.appendChild(row);
         });
 
