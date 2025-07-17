@@ -56,6 +56,7 @@ function createInvoiceCard(invoice) {
             <div class="record-item-info-1">
                 <h1>${invoice.project_name}</h1>
                 <h4 class="copy-text">${invoice.invoice_id}</h4>
+                <div id="toast" style="display:none;position:absolute;bottom:20px;left:275px;background:#333;color:#fff;padding:10px 20px;border-radius:5px;">Copied!</div>
             </div>
         </div>
         <div class="record-item-details">
@@ -85,9 +86,18 @@ function createInvoiceCard(invoice) {
         </select>
     `;
     const copyElement = invoiceCard.querySelector('.copy-text');
+
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 500);
+    }
+
     copyElement.addEventListener('click', async () => {
         try {
             await navigator.clipboard.writeText(copyElement.textContent.trim());
+            showToast('Copied!');
         } catch (err) {
             console.error('Copy failed', err);
         }

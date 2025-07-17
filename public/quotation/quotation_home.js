@@ -38,16 +38,16 @@ function renderQuotations(quotations) {
         return;
     }
     quotations.forEach(quotation => {
-        const quotationDiv = createQuotationCard(quotation);
-        quotationListDiv.appendChild(quotationDiv);
+        const quotationCard = createQuotationCard(quotation);
+        quotationListDiv.appendChild(quotationCard);
     });
 }
 
 // Create a quotation card element
 function createQuotationCard(quotation) {
-    const quotationDiv = document.createElement("div");
-    quotationDiv.className = "record-item no-select";
-    quotationDiv.innerHTML = `
+    const quotationCard = document.createElement("div");
+    quotationCard.className = "record-item no-select";
+    quotationCard.innerHTML = `
         <div class="paid-icon">
             <img src="../assets/quotation.png" alt="Quotation Icon">
         </div>
@@ -81,7 +81,7 @@ function createQuotationCard(quotation) {
         </select>
     `;
 
-    const copyElement = quotationDiv.querySelector('.copy-text');
+    const copyElement = quotationCard.querySelector('.copy-text');
 
     function showToast(message) {
         const toast = document.getElementById('toast');
@@ -101,11 +101,11 @@ function createQuotationCard(quotation) {
 
 
     // Attach event listener in JS, not inline
-    quotationDiv.querySelector('.actions').addEventListener('change', function () {
+    quotationCard.querySelector('.actions').addEventListener('change', function () {
         handleQuotationAction(this, quotation.quotation_id);
     });
 
-    return quotationDiv;
+    return quotationCard;
 }
 
 // Handle actions from the actions dropdown
@@ -233,8 +233,8 @@ async function handleSearch() {
         const quotations = data.quotation;
         quotationListDiv.innerHTML = "";
         (quotations || []).forEach(quotation => {
-            const quotationDiv = createQuotationCard(quotation);
-            quotationListDiv.appendChild(quotationDiv);
+            const quotationCard = createQuotationCard(quotation);
+            quotationListDiv.appendChild(quotationCard);
         });
     } catch (error) {
         console.error("Error fetching quotation:", error);

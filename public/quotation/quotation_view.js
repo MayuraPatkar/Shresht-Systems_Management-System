@@ -250,15 +250,15 @@ async function viewQuotation(quotationId, viewType) {
         document.getElementById('view').style.display = 'flex';
 
         // Fill Project Details (match HTML IDs)
-        document.getElementById('view-project-name').textContent = quotation.project_name || '';
-        document.getElementById('view-project-id').textContent = quotation.quotation_id || '';
-        document.getElementById('view-quotation-date').textContent = formatDate(quotation.quotation_date) || '';
+        document.getElementById('view-project-name').textContent = quotation.project_name || '-';
+        document.getElementById('view-project-id').textContent = quotation.quotation_id || '-';
+        document.getElementById('view-quotation-date').textContent = formatDate(quotation.quotation_date) || '-';
 
         // Buyer & Consignee
-        document.getElementById('view-buyer-name').textContent = quotation.customer_name || '';
-        document.getElementById('view-buyer-address').textContent = quotation.customer_address || '';
-        document.getElementById('view-buyer-phone').textContent = quotation.customer_phone || '';
-        document.getElementById('view-buyer-email').textContent = quotation.customer_email || '';
+        document.getElementById('view-buyer-name').textContent = quotation.customer_name || '-';
+        document.getElementById('view-buyer-address').textContent = quotation.customer_address || '-';
+        document.getElementById('view-buyer-phone').textContent = quotation.customer_phone || '-';
+        document.getElementById('view-buyer-email').textContent = quotation.customer_email || '-';
         document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(quotation.total_amount_tax, 2) || '-'}`;
         document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(quotation.total_tax, 2) || '-'}`;
         document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(quotation.total_amount_tax, 2) || '-'}`;
@@ -274,26 +274,26 @@ async function viewQuotation(quotationId, viewType) {
             const row = document.createElement("tr");
             if (viewType === 2) {
                 row.innerHTML = `
-                    <td>${item.description || ''}</td>
-                    <td>${item.HSN_SAC || ''}</td>
-                    <td>${item.quantity || ''}</td>
-                    <td>${formatIndian(item.unit_price, 2) || ''}</td>
-                    <td>${item.rate ? item.rate + '%' : ''}</td>
+                    <td>${item.description || '-'}</td>
+                    <td>${item.HSN_SAC || '-'}</td>
+                    <td>${item.quantity || '-'}</td>
+                    <td>${formatIndian(item.unit_price, 2) || '-'}</td>
+                    <td>${item.rate ? item.rate + '%' : '-'}</td>
                 `;
             } else if (viewType === 1) {
                 row.innerHTML = `
-                    <td>${item.description || ''}</td>
-                    <td>${item.HSN_SAC || ''}</td>
-                    <td>${item.quantity || ''}</td>
-                    <td>${formatIndian(item.unit_price, 2) || ''}</td>
+                    <td>${item.description || '-'}</td>
+                    <td>${item.HSN_SAC || '-'}</td>
+                    <td>${item.quantity || '-'}</td>
+                    <td>${formatIndian(item.unit_price, 2) || '-'}</td>
                 `;
                 document.getElementById('view-total-tax').textContent = 'No Tax';
                 document.getElementById('view-total-with-tax').textContent = 'No Tax';
             } else {
                 row.innerHTML = `
-                    <td>${item.description || ''}</td>
-                    <td>${item.HSN_SAC || ''}</td>
-                    <td>${item.quantity || ''}</td>  `
+                    <td>${item.description || '-'}</td>
+                    <td>${item.HSN_SAC || '-'}</td>
+                    <td>${item.quantity || '-'}</td>  `
             }
             document.getElementById('view-total-tax').textContent = '-';
             document.getElementById('view-total-with-tax').textContent = '-';

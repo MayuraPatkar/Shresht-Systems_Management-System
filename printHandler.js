@@ -23,6 +23,7 @@ function handlePrintEvent(mainWindow) {
                 <style>
                 @page {
                     size: A4;
+                    margin: 0;
                 }
 
                 body {
@@ -33,218 +34,232 @@ function handlePrintEvent(mainWindow) {
                     overflow: hidden;      
                 }
 
-                .preview-container {
-                    background-image: url("https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/icon2.png");
-                    background-repeat: no-repeat;
-                    background-position: center;
-                    width: 250mm;
-                    height: 337mm;
-                    -webkit-print-color-adjust: exact;
+.preview-container {
+    background-image: url("https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/icon2.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 210.058mm;
+    height: 296.926mm;
+                        -webkit-print-color-adjust: exact;
                     print-color-adjust: exact;
-                    margin: 0;
-                    padding: 0;
-                }
+}
 
-                /* 
-        header section starts here
-        */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 2px;
-            margin-bottom: 2px;
-        }
+.first-section {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #007bff;
+}
 
-        .header .logo img {
-            max-width: 300px;
-        }
+.first-section .logo img {
+    max-width: 300px;
+}
 
-        .header .company-details {
-            text-align: right;
-        }
+.first-section .company-details {
+    text-align: right;
+}
 
-        .header .company-details h1 {
-            margin: 0;
-            font-size: 36px;
-            color: rgb(0, 8, 116);
-        }
+.first-section .company-details h1 {
+    margin: 0;
+    font-size: 36px;
+    color: rgb(0, 8, 116);
+}
 
-        .header .company-details p {
-            margin: 2px 0;
-            font-size: 14px;
-        }
+.first-section .company-details p {
+    margin: 2px 0;
+    font-size: 14px;
+}
 
-        /* 
-        title section starts here
-        */
-        .title {
-            text-align: center;
-            font-size: 25px;
-            color: #007bff;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
+.second-section p {
+    text-align: center;
+    font-size: 25px;
+    color: #007bff;
+    font-weight: bold;
+    margin: 0;
+}
 
-        /* 
-        first-section starts here
-        */
-        .first-section {
-            display: flex;
-            justify-content: space-evenly;
-             font-size: 20px;
-        }
+.third-section {
+    display: flex;
+    justify-content: space-evenly;
+    font-size: 16px;
+}
 
-        .info-section{
-            text-align: center;
-        }
+.third-section p {
+    margin: 5px;
+}
 
-        .info-section,
-        .buyer-details {
-            padding: 0.2%;
-            font-size: 20px;
-            line-height: 1;
-            width: 50%;
-        }
+.third-section .info-section {
+    text-align: left;
+}
 
-        .buyer-details p .info-section p {
-            margin: 3px 0;
-        }
+.third-section .info-section,
+.third-section .buyer-details {
+    padding: 0.2%;
+    font-size: 16px;
+    line-height: 1.0;
+    width: 50%;
+}
 
-        /* 
-        second-section starts here
-        */
-        .second-section {
-            display: flex;
-            justify-content: space-evenly;
-            align-items: center;
-            flex-direction: column;
-        }
+.fourth-section {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: column;
+}
 
-        .preview-container table {
-            width: 99%;
-            border-collapse: collapse;
-            table-layout: auto;
-        }
+.fourth-section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    background: #f9fbfd !important;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 600px;
+                        -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+}
 
-        .preview-container table th,
-        .preview-container table td {
-            border: 1px solid #000000;
-            padding: 7px;
-            text-align: left;
-            font-size: 20px;
-        }
-        
-        .preview-container table th{
-            font-size: 22px;
-        }
+.fourth-section table th,
+.fourth-section table td {
+    border: 1px solid #e5e7eb !important;
+    padding: 0.5rem 1.1rem;
+    text-align: left;
+    font-size: 0.8rem;
+                        -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+}
 
-        .preview-container table th {
-            background-color: #007bff;
-            color: #fff;
-            font-weight: bold;
-        }
+.fourth-section table th {
+    background: #f0f4fa !important;
+    color: var(--primary, #2a4d8f) !important;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
 
-        /* 
-        third-section starts here
-        */
+.fifth-section {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 0.5rem;
+}
 
-        .third-section {
-            line-height: 1;
-            display: flex;
-            justify-content: space-evenly;
-        }
+.fifth-section-sub1 {
+    width: 100%;
+    display: flex;
+}
 
-        .totals-section {
-            line-height: 0.2;
-            width: 50%;
-            text-align: right;
-            font-size: 20px;
-        }
+.fifth-section-sub2 {
+    display: flex;
+    flex-direction: column;
+    width: 68%;
+}
 
-        .bank-details {
-            line-height: 0.2;
-            width: 50%;
-            text-align: left;
-            font-size: 20px;
-        }
+.fifth-section .totals-section {
+    width: 32%;
+    text-align: left;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-evenly;
+}
 
-        #totalInWords, p { 
-        font-size: 20px;
-        }
+.fifth-section .totals-section p {
+    float: left;
+    margin: 0;
+}
 
-        /* 
-        forth-section starts here
-        */
+.fifth-section .bank-details {
+    text-align: left;
+    font-size: 16px;
+    display: flex;
+}
 
-        .forth-section {
-            margin: 0;
-            margin-bottom: 2px;
-        }
+.fifth-section .bank-details-sub2 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
 
-        .forth-section p {
-            margin-top: 0;
-        }
+.fifth-section .fifth-section-sub2 p{
+    margin: 0;
+}
 
-        .declaration {
-            line-height: 1;
-            font-size: 18px;
-        }
+.fifth-section .QR-code {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    margin: 10px 10px;
+}
 
-        .forth-section .declaration p {
-            margin-bottom: 0;
-        }
+.fifth-section .QR-code img {
+    height: 100%;
+}
 
-        /* 
-        fifth-section starts here
-        */
+.fifth-section .bank-details-sub2 p {
+    margin: 0;
+}
 
-        .fifth-section {
-            display: flex;
-            justify-content: space-between;
-        }
+.fifth-section .bank-details-sub2 h4 {
+    margin: 0;
+}
 
-        .terms-section {
-            line-height: 0.2;
-            padding: 1%;
-            font-size: 20px;
-        }
+.sixth-section {
+    margin: 0;
+}
 
-        .signature {
-        margin-top: 100px;
-            text-align: left;
-        }
+.sixth-section p {
+    margin-top: 0;
+}
 
-        .signature p {
-        font-size: 20px;
-            margin-top: 0;
-        }
+.sixth-section .declaration {
+    font-size: 16px;
+    line-height: 1.5;
+}
 
-        .signature-space {
-            width: 150px;
-            height: 30px;
-        }
+.sixth-section .declaration p {
+    margin-bottom: 0;
+}
 
-        footer {
-            text-align: center;
-            font-size: 12px;
-            color: #777;
-            margin-top: 10px;
-        }
-                    .QR-code {
-            width: 125px;
-            height: 125px;
-            margin: 1.5rem 0;
-        }
+.seventh-section {
+    padding: 1%;
+    font-size: 16px;
+    line-height: 1.0;
+    margin-top: 0;
+}
 
-        .QR-code img {
-            height: 100%;
-        }
+.seventh-section p {
+    margin: 0;
+}
+
+.eighth-section {
+    /* height: 4%; */
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.eighth-section p {
+    margin: 0;
+    /* margintop: 0; */
+}
+
+.eighth-section-space {
+    margin-right: 0;
+    width: 150px;
+    height: 25px;
+}
+
+.ninth-section {
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+}
+
                 
                 @media print {
                     th {
-                        background-color: #007bff !important;
+                        background-color: #f0f4fa !important;
                         color: #fff !important;
                     }
                 }

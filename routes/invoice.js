@@ -46,7 +46,7 @@ router.post("/save-invoice", async (req, res) => {
         const {
             type,
             invoiceId = '',
-            invoiceDate,
+            invoiceDate = '',
             projectName,
             poNumber = '',
             poDate,
@@ -157,7 +157,7 @@ router.post("/save-invoice", async (req, res) => {
             // Create a new invoice
             const invoice = new Invoices({
                 invoice_id: invoiceId,
-                invoice_date: invoiceDate,
+                invoice_date: invoiceDate || new Date(),
                 project_name: projectName,
                 po_number: poNumber,
                 po_date: poDate,

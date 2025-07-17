@@ -22,6 +22,7 @@ document.getElementById("next-btn").addEventListener("click", () => {
                     document.getElementById("buyer-name").value = quotation.customer_name;
                     document.getElementById("buyer-address").value = quotation.customer_address;
                     document.getElementById("buyer-phone").value = quotation.customer_phone;
+                    document.getElementById("buyer-email").value = quotation.customer_email;
                     const itemsTableBody = document.querySelector("#items-table tbody");
                     itemsTableBody.innerHTML = "";
 
@@ -172,10 +173,10 @@ function calculateInvoice(itemsTable) {
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
-                    <td>${unitPrice.toFixed(2)}</td>
-                    <td>${taxableValue.toFixed(2)}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(taxableValue, 2)}</td>
                     <td>${rate.toFixed(2)}</td>
-                    <td>${rowTotal.toFixed(2)}</td>
+                    <td>${formatIndian(rowTotal, 2)}</td>
                 </tr>
             `;
         } else {
@@ -207,11 +208,20 @@ function calculateInvoice(itemsTable) {
     }
 
     const totalsHTML = `
-        ${hasTax ? `
-        <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
-        <p><strong>Total CGST:</strong> ₹${totalCGST.toFixed(2)}</p>
-        <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>` : ""}
-        <p><strong>Grand Total:</strong> ₹${finalTotal.toFixed(2)}</p>
+        <div class="totals-section-sub1">
+            ${hasTax ? `
+            <p><strong>Taxable Value: </strong></p>
+            <p><strong>Total CGST: </strong></p>
+            <p><strong>Total SGST: </strong></p>` : ""}
+            <p><strong>Grand Total: </strong></p>
+        </div>
+        <div class="totals-section-sub2">
+            ${hasTax ? `
+            <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+            <p>₹ ${formatIndian(totalCGST, 2)}</p>
+            <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
+            <p>₹ ${formatIndian(finalTotal, 2)}</p>
+        </div>
     `;
 
     return {
@@ -249,10 +259,9 @@ function generatePreview() {
     // Generate preview content
     document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
-        <div class="header">
+        <div class="first-section">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
-                    alt="Shresht Logo">
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo" />
             </div>
             <div class="company-details">
                 <h1>SHRESHT SYSTEMS</h1>
@@ -262,77 +271,95 @@ function generatePreview() {
             </div>
         </div>
 
-        <div class="title">INVOICE #${invoiceId}</div>
+        <div class="second-section">
+            <p>INVOICE-${invoiceId}</p>
+        </div>
 
-        <div class="first-section">
+        <div class="third-section">
             <div class="buyer-details">
-                <p><strong>Bill To: </strong></p>
+                <p><strong>Bill To:</strong></p>
                 <p>${buyerName}</p>
                 <p>${buyerAddress}</p>
-                <p>${buyerPhone}</p>
+                <p>Ph. ${buyerPhone}</p>
             </div>
             <div class="info-section">
                 <p><strong>Project:</strong> ${projectName}</p>
                 <p><strong>P.O No:</strong> ${poNumber}</p>
+                <p><strong>D.C No:</strong> ${poNumber}</p>
                 <p><strong>E-Way Bill:</strong> ${wayBillNumber}</p>
             </div>
         </div>
-        <div class="second-section">
-        <table>
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th>HSN/SAC</th>
-                    <th>Qty</th>
-                    <th>Unit Price</th>
-                    ${hasTax ? `
+
+        <div class="fourth-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>HSN/SAC</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        ${hasTax ? `
                         <th>Taxable Value (₹)</th>
-                        <th>Tax Rate (%)</th>` : ""}
-                    <th>Total Price (₹)</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${itemsHTML}
-            </tbody>
-        </table>
+                        <th>Tax Rate (%)</th> ` : ""}
+                        <th>Total Price (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHTML}
+                </tbody>
+            </table>
         </div>
-        <div class="third-section">
-            <div class="bank-details">
-                <h4>Payment Details</h4>
-                <p><strong>Bank Name:</strong> Canara Bank</p>
-                <p><strong>Branch Name:</strong> ShanthiNagar Manipal</p>
-                <p><strong>Account No:</strong> 120002152652</p>
-                <p><strong>IFSC Code:</strong> CNRB0010261</p>
-            </div>
-            <div class="QR-code"><img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg" alt="qr-code"></div>
-            <div class="totals-section" style="text-align: right;">
-            ${totalsHTML}
-            </div>
-        </div>
-        <div class="forth-section">
-        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(finalTotal)} Only</span></p>
-        <div class="declaration">
-            <p>We declare that this invoice shows the actual price of the goods described and that all particulars are
-                true
-                and correct.</p>
-        </div>
-        </div>
+
         <div class="fifth-section">
-        <div class="terms-section">
+            <div class="fifth-section-sub1">
+                <div class="fifth-section-sub2">
+                    <div>
+                        <p><strong>Total Amount in Words: </strong><span id="totalInWords">${numberToWords(finalTotal)} Only</span></p>
+                    </div>
+                    <div class="bank-details">
+                        <div class="QR-code bank-details-sub1">
+                            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                alt="qr-code" />
+                        </div>
+                        <div class="bank-details-sub2">
+                            <h4>Payment Details</h4>
+                            <p><strong>Bank Name: </strong>Canara Bank</p>
+                            <p><strong>Branch Name: </strong>ShanthiNagar Manipal</p>
+                            <p><strong>Account No: </strong>120002152652</p>
+                            <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="totals-section">
+                    ${totalsHTML}
+                </div>
+            </div>
+        </div>
+
+        <div class="sixth-section">
+            <div class="declaration" contenteditable="true">
+                <p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+            </div>
+        </div>
+
+        <div class="seventh-section">
+            <div class="terms-section" contenteditable="true">
                 <p><strong>Terms & Conditions:</strong></p>
                 <p>1. Payment should be made within 15 days from the date of invoice.</p>
                 <p>2. Interest @ 18% per annum will be charged for the delayed payment.</p>
                 <p>3. Goods once sold will not be taken back.</p>
             </div>
-        <div class="signature">
+        </div>
+
+        <div class="eighth-section">
             <p>For SHRESHT SYSTEMS</p>
-            <div class="signature-space"></div>
+            <div class="eighth-section-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
-        </div>
-        <footer>
+
+        <div class="ninth-section">
             <p>This is a computer-generated invoice.</p>
-        </footer>
+        </div>
     </div>
     `;
 }
