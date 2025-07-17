@@ -17,7 +17,7 @@ async function getId() {
 
         const data = await response.json();
         document.getElementById('id').value = data.purchase_order_id;
-        purchase_order_id = data.purchaseOrderId;
+        purchaseOrderId = data.purchase_order_id;
         if (purchaseOrderId) generatePreview();
     } catch (error) {
         console.error("Error fetching quotation id:", error);
@@ -104,10 +104,10 @@ function generatePreview() {
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
-                    <td>${unitPrice.toFixed(2)}</td>
-                    <td>${taxableValue.toFixed(2)}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(taxableValue, 2)}</td>
                     <td>${rate.toFixed(2)}</td>
-                    <td>${rowTotal.toFixed(2)}</td>
+                    <td>${formatIndian(rowTotal, 2)}</td>
                 </tr>
             `;
         } else {
@@ -119,8 +119,8 @@ function generatePreview() {
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
-                    <td>${unitPrice.toFixed(2)}</td>
-                    <td>${rowTotal.toFixed(2)}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(rowTotal, 2)}</td>
                 </tr>
             `;
         }
@@ -128,19 +128,28 @@ function generatePreview() {
 
     const grandTotal = totalPrice;
     roundOff = Math.round(grandTotal) - grandTotal;
+    totalAmount = grandTotal + roundOff;
 
     let totalsHTML = `
+        <div class="totals-section-sub1">
+            ${hasTax ? `
+            <p><strong>Taxable Value: </strong></p>
+            <p><strong>Total Tax: </strong></p>` : ""}
+            <p><strong>Grand Total: </strong></p>
+        </div>
+        <div class="totals-section-sub2">
         ${hasTax ? `
-        <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
-        <p><strong>Total Tax:</strong> ₹${totalTax.toFixed(2)}</p>` : ""}
-        <p><strong>Grand Total:</strong> ₹${(grandTotal + roundOff).toFixed(2)}</p>
+        <p>₹ ${totalTaxableValue.toFixed(2)}</p>
+        <p>₹ ${totalTax.toFixed(2)}</p>` : ""}
+        <p>₹ ${(grandTotal + roundOff).toFixed(2)}</p>
+        </div>
     `;
 
-    totalAmount = grandTotal + roundOff;
+
 
     document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
-        <div class="header">
+        <div class="first-section">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
                     alt="Shresht Logo">
@@ -153,8 +162,12 @@ function generatePreview() {
             </div>
         </div>
 
-        <div class="title">Purchase Order #${purchaseOrderId}</div>
-        <div class="first-section">
+        <div class="second-section">
+            <p>Purchase Order-${purchaseOrderId}
+            </p>
+        </div>
+
+        <div class="third-section">
             <div class="buyer-details">
                 <p><strong>Purchase From:</strong></p>
                 <p>${supplierName}</p>
@@ -167,7 +180,8 @@ function generatePreview() {
                 <p><strong>Date:</strong> ${purchaseDate}</p>
             </div>
         </div>
-        <div class="second-section">
+
+        <div class="fourth-section">
         <table>
         <thead>
             <tr>
@@ -186,21 +200,30 @@ function generatePreview() {
         </tbody>
         </table>
         </div>
-        <div class="third-section">
-        <div class="bank-details"></div>
-        <div class="totals-section" style="text-align: right;">
-            ${totalsHTML}
+
+        <div class="fifth-section">
+            <div class="fifth-section-sub1">
+                <div class="fifth-section-sub2">
+                    <div>
+                        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(grandTotal + roundOff)} Only</span></p>
+                    </div>
+                    <div class="bank-details"></div>
+                </div>
+            </div>
+            <div class="totals-section">
+                ${totalsHTML}
+            </div>
         </div>
-        </div>
-        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(grandTotal + roundOff)} Only</span></p>
-        <div class="signature">
+
+        <div class="eighth-section">
             <p>For SHRESHT SYSTEMS</p>
-            <div class="signature-space"></div>
+            <div class="eighth-section-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
-        <footer>
+
+        <div class="ninth-section">
             <p>This is a computer-generated purchase order</p>
-        </footer>
+        </div>
     </div>`;
 }
 
@@ -244,6 +267,6 @@ function collectFormData() {
             unit_price: row.querySelector("td:nth-child(4) input").value,
             rate: row.querySelector("td:nth-child(5) input").value,
         })),
-        totalAmount: totalAmount || 0
+        totalAmount: totalAmount
     };
 }

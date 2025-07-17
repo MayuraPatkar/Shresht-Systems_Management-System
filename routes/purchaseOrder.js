@@ -153,7 +153,7 @@ router.get("/recent-purchase-orders", async (req, res) => {
         const recentPurchaseOrders = await Purchases.find()
             .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
             .limit(5)
-            .select("project_name purchase_order_id supplier_name supplier_address");
+            .select("project_name purchase_order_id supplier_name supplier_address total_amount");
 
         // Respond with the fetched purchase orders
         res.status(200).json({

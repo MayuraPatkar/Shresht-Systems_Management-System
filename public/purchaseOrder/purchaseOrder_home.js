@@ -49,16 +49,27 @@ function createPurchaseOrderDiv(purchaseOrder) {
     <div class="paid-icon">
         <img src="../assets/economy-forecast.png" alt="Icon">
     </div>
-    <div class="details">
-        <div class="info1">
-            <h1>${purchaseOrder.supplier_name}</h1>
-            <h4>#${purchaseOrder.purchase_order_id}</h4>
+    <div class="record-item-details">
+        <div class="record-item-info-2">
+            <h2>Supplier</h2>
+            <p>${purchaseOrder.supplier_name}</p>
+            <p>${purchaseOrder.purchase_order_id}</p>
         </div>
-        <div class="info2">
+    </div>
+        <div class="record-item-details">
+            <div class="record-item-info-2">
+            <h2>About</h2>
             <p>${formatDate(purchaseOrder.purchase_date)}</p>
             <p>${purchaseOrder.supplier_address}</p>
         </div>
     </div>
+    <div class="record-item-details">
+            <div class="record-item-info-2">
+            <h2>Amount</h2>
+                 <p>₹ ${formatIndian(purchaseOrder.total_amount, 2)}</p>
+            </div>
+        </div>
+        </div>
     <select class="actions">
         <option value="" disabled selected>Actions</option>
         <option value="view">View</option>

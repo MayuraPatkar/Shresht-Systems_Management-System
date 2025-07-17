@@ -171,14 +171,19 @@ function createWayBillCard(wayBill) {
     <div class="paid-icon">
         <img src="../assets/delivery.png" alt="Way Bill Icon">
     </div>
-    <div class="details">
-        <div class="info1">
+    <div class="record-item-details">
+        <div class="record-item-info-1">
             <h1>${wayBill.project_name}</h1>
-            <h4>#${wayBill.waybill_id}</h4>
+            <h4>${wayBill.waybill_id}</h4>
+            <div id="toast" style="display:none;position:absolute;bottom:20px;left:275px;background:#333;color:#fff;padding:10px 20px;border-radius:5px;">Copied!</div>
         </div>
-        <div class="info2">
-            <p>${wayBill.customer_name}</p>
-            <p>${wayBill.customer_address}</p>
+        </div>
+        <div class="record-item-details">
+            <div class="record-item-info-2">
+                <h2>Customer</h2>
+                <p>${wayBill.customer_name}</p>
+                <p>${wayBill.customer_address}</p>
+            </div>
         </div>
     </div>
     <select class="actions">
@@ -287,7 +292,7 @@ async function deleteWayBill(wayBillId) {
 // Show the new way bill form
 function showNewWayBillForm() {
     document.getElementById('home').style.display = 'none';
-    document.getElementById('new'). style.display = 'block';
+    document.getElementById('new').style.display = 'block';
     document.getElementById('new-waybill-btn').style.display = 'none';
     document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 }

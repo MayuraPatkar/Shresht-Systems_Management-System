@@ -69,7 +69,7 @@ function createInvoiceCard(invoice) {
         <div class="record-item-details">
             <div class="record-item-info-2">
             <h2>Amount</h2>
-                <p>${userRole === 'admin' ? `₹${formatIndian(invoice.total_amount_duplicate, 2)}` : ""}</p>
+                <p>${userRole === 'admin' ? `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}` : ""}</p>
             </div>
         </div>
         </div>

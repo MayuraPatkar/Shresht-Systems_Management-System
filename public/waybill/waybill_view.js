@@ -12,18 +12,17 @@ function generateViewPreviewHTML(wayBill) {
             <td>${description}</td>
             <td>${hsnCode}</td>
             <td>${qty}</td>
-            <td>${unitPrice}</td>
-            <td>${rate}</td>
-            <td>${total}</td>
+            <td>${formatIndian(unitPrice, 2)}</td>
+            <td>${rate}%</td>
+            <td>${formatIndian(total, 2)}</td>
         </tr>`;
     });
 
     document.getElementById("view-preview-content").innerHTML = `
     <div class="preview-container">
-        <div class="header">
+        <div class="first-section">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
-                    alt="Shresht Logo">
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo">
             </div>
             <div class="company-details">
                 <h1>SHRESHT SYSTEMS</h1>
@@ -33,9 +32,11 @@ function generateViewPreviewHTML(wayBill) {
             </div>
         </div>
 
-        <div class="title">Way Bill #${wayBill.waybill_id || " "}</div>
+        <div class="second-section">
+            <p>WAY BILL-${wayBill.waybill_id || " "}</p>
+        </div>
 
-        <div class="first-section">
+        <div class="third-section">
             <div class="buyer-details">
                 <h3>Buyer Details</h3>
                 <p>${wayBill.customer_name || ""}</p>
@@ -50,7 +51,7 @@ function generateViewPreviewHTML(wayBill) {
                 <p><strong>Place to Supply:</strong> ${wayBill.place_supply || ""}</p>
             </div>  
         </div>
-        <div class="second-section">
+        <div class="fourth-section">
         <table>
             <thead>
                 <tr>
@@ -68,16 +69,15 @@ function generateViewPreviewHTML(wayBill) {
         </table>
         </div>
         <br>
-        <div class="fifth-section">
-        <div class="signature">
+        <div class="eighth-section">
             <p>For SHRESHT SYSTEMS</p>
             <div class="signature-space"></div>
+            <div class="eighth-section-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
-        </div>
-        <footer>
+        <div class="ninth-section">
             <p>This is a computer-generated way bill</p>
-        </footer>
+        </div>
     </div>`;
 }
 
@@ -101,6 +101,13 @@ document.getElementById("save-project-pdf-btn").addEventListener("click", () => 
     }
 });
 
+function formatIndian(num, fractionDigits = 0) {
+    return num.toLocaleString('en-IN', {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits,
+    });
+}
+
 async function viewWayBill(wayBillId) {
     try {
         const response = await fetch(`/wayBill/${wayBillId}`);
@@ -117,19 +124,19 @@ async function viewWayBill(wayBillId) {
         document.getElementById('view').style.display = 'flex';
 
         // Fill Project Details
-        document.getElementById('view-project-name').textContent = waybill.project_name || '';
-        document.getElementById('view-waybill-id').textContent = waybill.waybill_id || '';
+        document.getElementById('view-project-name').textContent = waybill.project_name || '-';
+        document.getElementById('view-waybill-id').textContent = waybill.waybill_id || '-';
 
         // Buyer & Consignee
-        document.getElementById('view-buyer-name').textContent = waybill.customer_name || '';
-        document.getElementById('view-buyer-address').textContent = waybill.customer_address || '';
-        document.getElementById('view-buyer-phone').textContent = waybill.customer_phone || '';
-        document.getElementById('view-buyer-email').textContent = waybill.customer_email || '';
+        document.getElementById('view-buyer-name').textContent = waybill.customer_name || '-';
+        document.getElementById('view-buyer-address').textContent = waybill.customer_address || '-';
+        document.getElementById('view-buyer-phone').textContent = waybill.customer_phone || '-';
+        document.getElementById('view-buyer-email').textContent = waybill.customer_email || '-';
 
         // Transportation Details
-        document.getElementById('view-transport-mode').textContent = waybill.transport_mode || '';
-        document.getElementById('view-vehicle-number').textContent = waybill.vehicle_number || '';
-        document.getElementById('view-place-supply').textContent = waybill.place_supply || '';
+        document.getElementById('view-transport-mode').textContent = waybill.transport_mode || '-';
+        document.getElementById('view-vehicle-number').textContent = waybill.vehicle_number || '-';
+        document.getElementById('view-place-supply').textContent = waybill.place_supply || '-';
 
         // Item List
         const viewItemsTableBody = document.querySelector("#view-items-table tbody");
@@ -138,11 +145,11 @@ async function viewWayBill(wayBillId) {
         (waybill.items || []).forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${item.description || ''}</td>
-                <td>${item.HSN_SAC || item.hsn_sac || ''}</td>
-                <td>${item.quantity || ''}</td>
-                <td>${item.unit_price || ''}</td>
-                <td>${item.rate || ''}</td>
+                <td>${item.description || '-'}</td>
+                <td>${item.HSN_SAC || item.hsn_sac || '-'}</td>
+                <td>${item.quantity || '-'}</td>
+                <td>${formatIndian(item.unit_price, 2) || '-'}</td>
+                <td>${item.rate || '-'}%</td>
             `;
             viewItemsTableBody.appendChild(row);
         });

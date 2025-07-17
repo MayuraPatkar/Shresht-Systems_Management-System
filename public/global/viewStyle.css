@@ -98,10 +98,6 @@
             gap: 0.7rem;
         }
 
-        #project-details-view .payment-section strong {
-            color: var(--primary, #2a4d8f);
-        }
-
         /* Table styling */
         #view-items-table {
             width: 100%;

@@ -37,10 +37,10 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
-                    <td>${unitPrice.toFixed(2)}</td>
-                    <td>${taxableValue.toFixed(2)}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(taxableValue, 2)}</td>
                     <td>${rate.toFixed(2)}</td>
-                    <td>${rowTotal.toFixed(2)}</td>
+                    <td>${formatIndian(rowTotal, 2)}</td>
                 </tr>
             `;
         } else {
@@ -52,23 +52,31 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
-                    <td>${unitPrice.toFixed(2)}</td>
-                    <td>${rowTotal.toFixed(2)}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(rowTotal, 2)}</td>
                 </tr>
             `;
         }
     });
 
     let totalsHTML = `
+    <div class="totals-section-sub1">
+            ${hasTax ? `
+            <p><strong>Taxable Value: </strong></p>
+            <p><strong>Total Tax: </strong></p>` : ""}
+            <p><strong>Grand Total: </strong></p>
+        </div>
+        <div class="totals-section-sub2">
         ${hasTax ? `
-        <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
-        <p><strong>Total Tax:</strong> ₹${totalTax.toFixed(2)}</p>` : ""}
-        <p><strong>Grand Total:</strong> ₹${totalPrice.toFixed(2)}</p>
+        <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+        <p>₹ ${formatIndian(totalTax, 2)}</p>` : "-"}
+        <p>₹ ${formatIndian(totalPrice, 2)}</p>
+        </div>
     `;
 
     document.getElementById("view-preview-content").innerHTML = `
     <div class="preview-container">
-        <div class="header">
+        <div class="first-section">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
                     alt="Shresht Logo">
@@ -81,8 +89,11 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
             </div>
         </div>
 
-        <div class="title">Purchase Order #${purchaseOrder.purchase_order_id || purchaseOrder.Id || ""}</div>
-        <div class="first-section">
+        <div class="second-section">
+            <p>Purchase Order-${purchaseOrder.purchase_order_id || purchaseOrder.Id || ""}</p>
+        </div>
+
+        <div class="third-section">
             <div class="buyer-details">
                 <p><strong>To:</strong></p>
                 <p>${purchaseOrder.supplier_name || ""}</p>
@@ -94,7 +105,8 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
                 <p><strong>Date:</strong> ${formatDate(purchaseOrder.purchase_date) || new Date().toLocaleDateString()}</p>
             </div>
         </div>
-        <div class="second-section">
+
+        <div class="fourth-section">
         <table>
         <thead>
             <tr>
@@ -113,19 +125,30 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
         </tbody>
         </table>
         </div>
-        <div class="third-section">
-        <div class="totals-section" style="text-align: right;">
-            ${totalsHTML}
+
+        <div class="fifth-section">
+            <div class="fifth-section-sub1">
+                <div class="fifth-section-sub2">
+                    <div>
+                        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(purchaseOrder.total_amount)} Only</span></p>
+                    </div>
+                    <div class="bank-details"></div>
+                </div>
+            </div>
+            <div class="totals-section">
+                ${totalsHTML}
+            </div>
         </div>
-        </div>
-        <div class="signature">
+
+        <div class="eighth-section">
             <p>For SHRESHT SYSTEMS</p>
-            <div class="signature-space"></div>
+            <div class="eighth-section-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
-        <footer>
+
+        <div class="ninth-section">
             <p>This is a computer-generated purchase order</p>
-        </footer>
+        </div>
     </div>`;
 }
 
@@ -166,13 +189,13 @@ async function viewPurchaseOrder(purchaseOrderId) {
         document.getElementById('view').style.display = 'flex';
 
         // Fill Supplier Details
-        document.getElementById('view-purchase-invoice-iD').textContent = purchaseOrder.purchase_invoice_id || '';
-        document.getElementById('view-purchase-date').textContent = formatDate(purchaseOrder.purchase_date) || '';
-        document.getElementById('view-supplier-name').textContent = purchaseOrder.supplier_name || '';
-        document.getElementById('view-supplier-address').textContent = purchaseOrder.supplier_address || '';
-        document.getElementById('view-supplier-phone').textContent = purchaseOrder.supplier_phone || '';
-        document.getElementById('view-supplier-email').textContent = purchaseOrder.supplier_email || '';
-        document.getElementById('view-buyerGSTIN').textContent = purchaseOrder.supplier_GSTIN || '';
+        document.getElementById('view-purchase-invoice-iD').textContent = purchaseOrder.purchase_invoice_id || '-';
+        document.getElementById('view-purchase-date').textContent = formatDate(purchaseOrder.purchase_date) || '-';
+        document.getElementById('view-supplier-name').textContent = purchaseOrder.supplier_name || '-';
+        document.getElementById('view-supplier-address').textContent = purchaseOrder.supplier_address || '-';
+        document.getElementById('view-supplier-phone').textContent = purchaseOrder.supplier_phone || '-';
+        document.getElementById('view-supplier-email').textContent = purchaseOrder.supplier_email || '-';
+        document.getElementById('view-buyerGSTIN').textContent = purchaseOrder.supplier_GSTIN || '-';
 
         // Fill Item List
         const viewItemsTableBody = document.querySelector("#view-items-table tbody");
@@ -181,11 +204,11 @@ async function viewPurchaseOrder(purchaseOrderId) {
         (purchaseOrder.items || []).forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${item.description || ''}</td>
-                <td>${item.HSN_SAC || item.hsn_sac || ''}</td>
-                <td>${item.quantity || ''}</td>
-                <td>${item.unit_price || ''}</td>
-                <td>${item.rate || ''}</td>
+                <td>${item.description || '-'}</td>
+                <td>${item.HSN_SAC || item.hsn_sac || '-'}</td>
+                <td>${item.quantity || '-'}</td>
+                <td>${formatIndian(item.unit_price, 2) || '-'}</td>
+                <td>${item.rate || '-'}%</td>
             `;
             viewItemsTableBody.appendChild(row);
         });

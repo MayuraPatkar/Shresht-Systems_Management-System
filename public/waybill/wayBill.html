@@ -197,38 +197,58 @@
             <!-- Project Details & Preview Section -->
             <div id="project-details-view">
                 <!-- Project Details -->
-                <div class="card">
-                    <h2>Project Details</h2>
-                    <div>
-                        <strong>Project Name:</strong> <span id="view-project-name"></span><br>
-                        <strong>Way Bill ID:</strong> <span id="view-waybill-id"></span><br>
+                <section class="card">
+                    <h2 class="card-header">Project Details</h2>
+                    <div class="info-item">
+                        <strong class="label">Project Name:</strong>
+                        <strong class="value" id="view-project-name"></strong>
                     </div>
-                </div>
+                    <div class="info-item">
+                        <strong class="label">Way Bill ID:</strong>
+                        <strong class="value" id="view-waybill-id"></strong>
+                    </div>
+                </section>
                 <!-- Buyer & Consignee views -->
-                <div class="card">
-                    <h2>Recipient</h2>
-                    <div>
-                        <strong>Name:</strong> <span id="view-buyer-name"></span><br>
-                        <strong>Address:</strong> <span id="view-buyer-address"></span><br>
-                        <strong>Phone:</strong> <span id="view-buyer-phone"></span><br>
-                        <strong>Email:</strong> <span id="view-buyer-email"></span>
+                <section class="card">
+                    <h2 class="card-header">Recipient</h2>
+                    <div class="info-item">
+                        <strong class="label">Name:</strong>
+                        <strong class="value" id="view-buyer-name"></strong>
                     </div>
-                </div>
+                    <div class="info-item">
+                        <strong class="label">Address:</strong>
+                        <strong class="value" id="view-buyer-address"></strong>
+                    </div>
+                    <div class="info-item">
+                        <strong class="label">Phone:</strong>
+                        <strong class="value" id="view-buyer-phone"></strong>
+                    </div>
+                    <div class="info-item">
+                        <strong class="label">Email:</strong>
+                        <strong class="value" id="view-buyer-email"></strong>
+                    </div>
+                </section>
 
                 <!-- Transportation views -->
-                <div class="card">
-                    <h2>Transportation Details</h2>
-                    <div>
-                        <strong>Way Bill ID:</strong> <span id="view-waybill-id"></span><br>
-                        <strong>Transport Mode:</strong> <span id="view-transport-mode"></span><br>
-                        <strong>Vehicle Number:</strong> <span id="view-vehicle-number"></span><br>
-                        <strong>Place to Supply:</strong> <span id="view-place-supply"></span>
+                <section class="card">
+                    <h2 class="card-header">Transportation Details</h2>
+                    <div class="info-item">
+                        <strong class="label">Transport Mode:</strong>
+                        <strong class="value" id="view-transport-mode"></strong>
                     </div>
-                </div>
+                    <div class="info-item">
+                        <strong class="label">Vehicle Number:</strong>
+                        <strong class="value" id="view-vehicle-number"></strong>
+                    </div>
+                    <div class="info-item">
+                        <strong class="label">Place to Supply:</strong>
+                        <strong class="value" id="view-place-supply"></strong>
+                    </div>
+                </section>
 
                 <!-- Item List -->
-                <div class="card">
-                    <h2>Item List</h2>
+                <section class="card">
+                    <h2 class="card-header">Item List</h2>
                     <div>
                         <table id="view-items-table">
                             <thead>
@@ -245,16 +265,16 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </section>
 
                 <!-- Preview & Actions -->
-                <div class="card">
+                <section class="card">
                     <div id="view-preview-content"></div>
                     <div>
                         <button type="button" id="print-project-btn" class="button">Print</button>
                         <button type="button" id="save-project-pdf-btn" class="button">Save as PDF</button>
                     </div>
-                </div>
+                </section>
             </div>
         </div>
     </div>

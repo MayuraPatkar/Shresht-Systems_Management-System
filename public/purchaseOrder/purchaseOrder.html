@@ -175,23 +175,44 @@
             <!-- Project Details & Preview Section -->
             <div id="project-details-view">
                 <!-- purchase from -->
-                <div class="card">
-                    <h2>purchase from</h2>
-                    <div>
-                        <strong>Purchase Invoice ID:</strong> <span id="view-purchase-invoice-iD"></span><br>
-                        <strong>Purchase Date:</strong> <span id="view-purchase-date"></span><br>
-                        <strong>Supplier Name:</strong> <span id="view-supplier-name"></span><br>
-                        <strong>Address:</strong> <span id="view-supplier-address"></span><br>
-                        <strong>Phone Number:</strong> <span id="view-supplier-phone"></span><br>
-                        <strong>Email:</strong> <span id="view-supplier-email"></span><br <strong>GSTIN:</strong> <span
-                            id="view-buyerGSTIN"></span><br>
+                <section class="card">
+                    <h2 class="card-header">purchase from</h2>
+                    <div class="card-content grid-layout">
+                        <div class="info-item">
+                            <strong class="label">Purchase Invoice ID:</strong>
+                            <strong class="value" id="view-purchase-invoice-iD"></strong>
+                        </div>
+                        <div class="info-item">
+                            <strong class="label">Purchase Date:</strong>
+                            <strong class="value" id="view-purchase-date"></strong>
+                        </div>
+                        <div class="info-item">
+                            <strong class="label">Supplier Name:</strong>
+                            <strong class="value" id="view-supplier-name"></strong>
+                        </div>
+                        <div class="info-item">
+                            <strong class="label">Address:</strong>
+                            <strong class="value" id="view-supplier-address"></strong>
+                        </div>
+                        <div class="info-item">
+                            <strong class="label">Phone Number:</strong>
+                            <strong class="value" id="view-supplier-phone"></strong>
+                        </div>
+                        <div class="info-item">
+                            <strong class="label">Email:</strong>
+                            <strong class="value" id="view-supplier-email"></strong>
+                        </div>
+                        <div class="info-item">
+                            <strong class="label">GSTIN:</strong>
+                            <strong class="value" id="view-buyerGSTIN"></strong>
+                        </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- Item List -->
-                <div class="card">
-                    <h2>Item List</h2>
-                    <div>
+                <section class="card">
+                    <h2 class="card-header">Item List</h2>
+                    <div class="card-content grid-layout">
                         <table id="view-items-table">
                             <thead>
                                 <tr>
@@ -207,16 +228,16 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </section>
 
                 <!-- Preview & Actions -->
-                <div class="card">
+                <section class="card">
                     <div id="view-preview-content"></div>
                     <div>
                         <button type="button" id="print-project" class="button">Print</button>
                         <button type="button" id="save-project-pdf" class="button">Save as PDF</button>
                     </div>
-                </div>
+                </section>
             </div>
         </div>
     </div>

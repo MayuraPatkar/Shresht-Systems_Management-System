@@ -322,8 +322,8 @@ async function viewInvoice(invoiceId, userRole) {
 
         document.getElementById('view-payment-status').textContent = invoice.payment_status || '-';
         document.getElementById('view-balance-due').textContent = invoice.balance_due || '-';
-        document.getElementById('view-advance-pay').textContent = Array.isArray(invoice?.paid_amount) ? invoice.paid_amount.join(', ') : (invoice.advancedPay || '-');
-        document.getElementById('view-paid-amount').textContent = invoice.paid_amount || '-';
+        // document.getElementById('view-advance-pay').textContent = Array.isArray(invoice?.paid_amount) ? invoice.paid_amount.join(', ') : (invoice.advancedPay || '-');
+        // document.getElementById('view-paid-amount').textContent = invoice.paid_amount || '-';
         document.getElementById('view-payment-mode').textContent = invoice.payment_mode || '-';
         document.getElementById('view-payment-date').textContent = invoice.payment_date ? formatDate(invoice.payment_date) : '-';
 
