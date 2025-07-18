@@ -132,6 +132,40 @@
             background: #eaf2fb;
         }
 
+        /* Table styling */
+        #view-payment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+            background: #f9fbfd;
+            border-radius: 8px;
+            overflow: hidden;
+            min-width: 600px;
+        }
+
+        #view-payment-table th,
+        #view-payment-table td {
+            border: 1px solid #e5e7eb;
+            padding: 0.7rem 1.1rem;
+            text-align: left;
+            font-size: 1.3rem;
+        }
+
+        #view-payment-table th {
+            background: #f0f4fa;
+            color: var(--primary, #2a4d8f);
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+
+        #detail-payment-table tbody tr:nth-child(even) {
+            background: #f6fafd;
+        }
+
+        #view-payment-table tbody tr:hover {
+            background: #eaf2fb;
+        }
+
         /* Make table scrollable on small screens */
         #project-details-view .card>div {
             overflow-x: auto;
@@ -181,4 +215,8 @@
 
         .QR-code img {
             height: 100%;
+        }
+
+        #view-balance-due{
+            color: var(--danger);
         }

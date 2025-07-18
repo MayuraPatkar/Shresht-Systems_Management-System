@@ -1,4 +1,4 @@
-const totalSteps = 7;
+const totalSteps = 6;
 let invoiceId = '';
 let totalAmountOriginal = 0;
 let totalAmountDuplicate = 0;
@@ -78,12 +78,7 @@ async function openInvoice(id) {
         document.getElementById('delivery-challan-number').value = invoice.dc_number;
         document.getElementById('delivery-challan-date').value = formatDate(invoice.dc_date);
         document.getElementById('service-months').value = invoice.service_month;
-        document.getElementById('waybill-number').value = invoice.Waybill_id;
-        document.querySelector(`input[name="question"][value="${invoice.payment_status}"]`).checked = true;
-        document.getElementById('payment-mode').value = invoice.payment_mode;
-        document.getElementById('payment-date').value = formatDate(invoice.payment_date);
-        document.getElementById('advance-payment-date').value = formatDate(invoice.payment_date);
-        document.getElementById('paid-amount').value = invoice.paid_amount || '';
+        document.getElementById('waybill-number').value = invoice.Waybill_id;       
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
@@ -434,11 +429,7 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
 function collectFormData() {
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
     const { finalTotal } = calculateInvoice(itemsTable);
-    const tolerance = 0.001;
-    let paymentStatus = document.querySelector('input[name="question"]:checked')?.value || null;
-    if (Math.abs(parseFloat(finalTotal) - document.getElementById("paid-amount").value) < tolerance) {
-        paymentStatus = 'Paid';
-    }
+
     return {
         type: sessionStorage.getItem('update-invoice'),
         projectName: document.getElementById("project-name").value,
@@ -455,10 +446,6 @@ function collectFormData() {
         buyerEmail: document.getElementById("buyer-email").value,
         consigneeName: document.getElementById("consignee-name").value,
         consigneeAddress: document.getElementById("consignee-address").value,
-        paymentStatus: paymentStatus,
-        paidAmount: document.getElementById("paid-amount").value,
-        paymentDate: document.getElementById("payment-date").value,
-        paymentMode: document.getElementById("payment-mode").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(1) input").value,
             HSN_SAC: row.querySelector("td:nth-child(2) input").value,
@@ -472,3 +459,50 @@ function collectFormData() {
         totalTaxDuplicate: totalTaxDuplicate
     };
 }
+
+
+function payment(id) {
+    invoiceId = id
+    document.getElementById('view-preview').style.display = 'none';
+    document.getElementById('home').style.display = 'none';
+    document.getElementById('new').style.display = 'none';
+    document.getElementById('view').style.display = 'none';
+    document.getElementById('payment-container').style.display = 'block';
+}
+
+document.getElementById('payment-btn').addEventListener('click', async () => {
+    const paymentStatus = document.querySelector('input[name="payment-question"]:checked')?.value;
+    const paidAmount = parseInt(document.getElementById("paid-amount").value);
+    const paymentDate = document.getElementById("payment-date").value;
+    const paymentMode = document.getElementById("payment-mode").value;
+
+    const data = {
+        invoiceId: invoiceId,
+        paymentStatus: paymentStatus,
+        paidAmount: paidAmount,
+        paymentDate: paymentDate,
+        paymentMode: paymentMode,
+    };
+
+    try {
+        const response = await fetch("/invoice/save-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+            window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
+        } else {
+            window.electronAPI.showAlert1("Payment Saved!");
+            document.getElementById("paid-amount").value = '';
+            document.getElementById("payment-date").value = '';
+            document.getElementById("payment-mode").value = '';
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        window.electronAPI.showAlert1("Failed to connect to server.");
+    }
+});

@@ -142,49 +142,8 @@
                     </div>
                 </div>
 
-                <!-- Step 3: Transportation Details -->
-                <div class="steps" id="step-3">
-                    <h2>Payment Details</h2>
-                    <div class="form-group">
-                        <label for="payment">Payment Status</label>
-                        <div class="radio-group">
-                            <div>
-                                <input type="radio" name="question" id="invoice-Paid" value="Paid">
-                                <label for="invoice-Paid">Paid</label>
-                            </div>
-                            <div>
-                                <input type="radio" name="question" id="invoice-unpaid" value="Unpaid" checked>
-                                <label for="invoice-unpaid">Unpaid</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="form-group">
-                            <label for="paid-amount">Paid Amount (if unpaid or Advanced Payment)</label>
-                            <input type="number" id="paid-amount">
-                        </div>
-                        <div class="form-group">
-                            <label for="advance-payment-date">Payment Date (Advanced Payment)</label>
-                            <input type="date" id="advance-payment-date">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="payment-mode">Payment Method</label>
-                        <select id="payment-mode" required>
-                            <option value="Cash">Cash</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="UPI">UPI</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="payment-date">Payment Date</label>
-                        <input type="date" id="payment-date" required>
-                    </div>
-                </div>
-
                 <!-- Step 4: Recipient Details -->
-                <div class="steps" id="step-4">
+                <div class="steps" id="step-3">
                     <h2>Recipient Details (Sold/Bill to)</h2>
                     <div class="form-group">
                         <label for="buyer-name">Buyer Name</label>
@@ -205,7 +164,7 @@
                 </div>
 
                 <!-- Step 5: Consignee Details -->
-                <div class="steps" id="step-5">
+                <div class="steps" id="step-4">
                     <h2>Consignee Details (Shipped To)</h2>
                     <div class="form-group">
                         <label for="consignee-name">Name</label>
@@ -218,7 +177,7 @@
                 </div>
 
                 <!-- Step 6: Item List -->
-                <div class="steps" id="step-6">
+                <div class="steps" id="step-5">
                     <h2>Item List</h2>
                     <div class="form-group">
                         <table id="items-table">
@@ -241,7 +200,7 @@
                 </div>
 
                 <!-- Step 7: Preview -->
-                <div class="steps" id="step-7">
+                <div class="steps" id="step-6">
                     <div class="preview">
                         <h2>Preview</h2>
                         <div id="preview-content">
@@ -312,22 +271,20 @@
                             <span class="label">Balance Due:</span>
                             <span class="value" id="view-balance-due"></span>
                         </div>
-                        <!-- <div class="info-item">
-                            <span class="label">Advanced Payments:</span>
-                            <span class="value" id="view-advance-pay"></span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Paid Amount:</span>
-                            <span class="value" id="view-paid-amount"></span>
-                        </div> -->
-                        <div class="info-item">
-                            <span class="label">Payment Mode:</span>
-                            <span class="value" id="view-payment-mode"></span>
-                        </div>
-                        <div class="info-item">
-                            <span class="label">Payment Date:</span>
-                            <span class="value" id="view-payment-date"></span>
-                        </div>
+                    </div>
+                    <div class="card-content grid-layout">
+                        <table id="view-payment-table">
+                            <thead>
+                                <tr>
+                                    <th>Payment Date</th>
+                                    <th>Mode</th>
+                                    <th>Paid Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Items will be dynamically filled -->
+                            </tbody>
+                        </table>
                     </div>
                 </section>
                 <!-- Buyer & Consignee Details -->
@@ -423,6 +380,46 @@
                         <button type="button" id="saveProjectPDF" class="button">Save as PDF</button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="payment-container" id="payment-container">
+                    <h1>Payment Details</h1>
+
+            <div>
+                <div class="form-group">
+                    <label for="payment">Payment Status</label>
+                    <div class="radio-group">
+                        <div>
+                            <input type="radio" name="payment-question" id="invoice-Paid" value="Paid">
+                            <label for="invoice-Paid">Paid</label>
+                        </div>
+                        <div>
+                            <input type="radio" name="payment-question" id="invoice-unpaid" value="Unpaid" checked>
+                            <label for="invoice-unpaid">Unpaid</label>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-group">
+                        <label for="paid-amount">Paid Amount</label>
+                        <input type="number" id="paid-amount">
+                    </div>
+                    <div class="form-group">
+                        <label for="payment-date">Payment Date</label>
+                        <input type="date" id="payment-date">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="payment-mode">Payment Method</label>
+                    <select id="payment-mode" required>
+                        <option value="Cash">Cash</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="UPI">UPI</option>
+                    </select>
+                </div>
+                <button id="payment-btn">Save</button>
             </div>
         </div>
     </div>

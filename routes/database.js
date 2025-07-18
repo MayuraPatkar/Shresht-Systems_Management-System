@@ -143,9 +143,14 @@ const invoiceSchema = new mongoose.Schema({
     total_amount_duplicate: { type: Number },
     total_tax_original: { type: Number },
     total_tax_duplicate: { type: Number },
-    paid_amount: [{ type: Number }],
-    payment_mode: { type: String },
-    payment_date: { type: Date },
+    payments: [
+        {
+            payment_date: { type: Date },
+            paid_amount: { type: Number },
+            payment_mode: { type: String }
+        }
+    ],
+    total_paid_amount: { type: Number, default: 0},
     payment_status: { type: String, default: 'Unpaid' },
     createdAt: { type: Date, default: Date.now },
 });

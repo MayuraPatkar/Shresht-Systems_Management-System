@@ -321,11 +321,7 @@ async function viewInvoice(invoiceId, userRole) {
         document.getElementById('view-service-months').textContent = invoice.service_month || '-';
 
         document.getElementById('view-payment-status').textContent = invoice.payment_status || '-';
-        document.getElementById('view-balance-due').textContent = invoice.balance_due || '-';
-        // document.getElementById('view-advance-pay').textContent = Array.isArray(invoice?.paid_amount) ? invoice.paid_amount.join(', ') : (invoice.advancedPay || '-');
-        // document.getElementById('view-paid-amount').textContent = invoice.paid_amount || '-';
-        document.getElementById('view-payment-mode').textContent = invoice.payment_mode || '-';
-        document.getElementById('view-payment-date').textContent = invoice.payment_date ? formatDate(invoice.payment_date) : '-';
+        document.getElementById('view-balance-due').textContent = invoice.total_amount_duplicate - invoice.total_paid_amount || '0';
 
         // Buyer & Consignee
         document.getElementById('view-buyer-name').textContent = invoice.customer_name || '-';
@@ -346,6 +342,20 @@ async function viewInvoice(invoiceId, userRole) {
             document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate - invoice.total_tax_duplicate, 2)}` || '-';
         }
 
+        // payments List
+        const detailPaymentsTableBody = document.querySelector("#view-payment-table tbody");
+        detailPaymentsTableBody.innerHTML = "";
+        (invoice.payments || []).forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                    <td>${formatDate(item.payment_date) || '-'}</td>
+                    <td>${item.payment_mode || '-'}</td>
+                    <td>₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
+                `;
+            detailPaymentsTableBody.appendChild(row);
+        });
+
+
         // Item List
         const detailItemsTableBody = document.querySelector("#view-items-table tbody");
         detailItemsTableBody.innerHTML = "";
@@ -356,7 +366,7 @@ async function viewInvoice(invoiceId, userRole) {
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
-                    <td>${formatIndian(item.unit_price, 2) || ''}</td>
+                    <td>₹ ${formatIndian(item.unit_price, 2) || ''}</td>
                     <td>${item.rate ? item.rate + '%' : ''}</td>
                 `;
                 detailItemsTableBody.appendChild(row);
@@ -369,7 +379,7 @@ async function viewInvoice(invoiceId, userRole) {
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
-                    <td>${formatIndian(item.unit_price, 2) || ''}</td>
+                    <td>₹ ${formatIndian(item.unit_price, 2) || ''}</td>
                     <td>${item.rate ? item.rate + '%' : ''}</td>
                 `;
                 detailItemsTableBody.appendChild(row);

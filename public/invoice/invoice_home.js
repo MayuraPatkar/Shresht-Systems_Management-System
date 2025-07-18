@@ -79,9 +79,11 @@ function createInvoiceCard(invoice) {
             ${userRole === 'admin' ? `<option class="edit-invoice" data-id="${invoice.invoice_id}" value="update">Update</option>` : ""}
             ${userRole === 'admin' ? `<option data-id="${invoice.invoice_id}" value="view-original">View original</option>` : ""}
             ${userRole === 'admin' ? `<option data-id="${invoice.invoice_id}" value="update-original">Update original</option>` : ""}
+            ${userRole === 'admin' ? `<option data-id="${invoice.invoice_id}" value="payment">Payment</option>` : ""}
             ${userRole === 'admin' ? `<option class="delete-invoice" data-id="${invoice.invoice_id}" value="delete">Delete</option>` : ""}
             ${userRole === 'manager' ? `<option data-id="${invoice.invoice_id}" value="view">View</option>` : ""}
             ${userRole === 'manager' ? `<option class="edit-invoice" data-id="${invoice.invoice_id}" value="update">Update</option>` : ""}
+            ${userRole === 'manager' ? `<option data-id="${invoice.invoice_id}" value="payment">Payment</option>` : ""}
             ${userRole === 'manager' ? `<option class="delete-invoice" data-id="${invoice.invoice_id}" value="delete">Delete</option>` : ""}
         </select>
     `;
@@ -122,6 +124,8 @@ function handleInvoiceAction(select, invoiceId) {
     } else if (action === "update-original") {
         sessionStorage.setItem('update-invoice', 'original');
         openInvoice(invoiceId);
+    } else if (action === 'payment') {
+        payment(invoiceId);
     }
     else if (action === "delete") {
         window.electronAPI.showAlert2("Are you sure you want to delete this invoice?");

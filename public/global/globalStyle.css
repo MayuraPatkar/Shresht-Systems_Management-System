@@ -310,3 +310,16 @@
             min-width: calc(100vw - 241px);
             overflow-y: auto;
         }
+        .payment-container{
+            display: none;
+            max-height: calc(100vh - 80px);
+            min-width: calc(100vw - 241px);
+            overflow-y: auto;
+            background-color: var(--card-bg);
+            padding: 3.7rem;
+            box-sizing: border-box;
+        }
+
+        .payment-container input, select {
+            width: 45%;
+        }

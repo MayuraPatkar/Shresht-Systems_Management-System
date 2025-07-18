@@ -61,10 +61,6 @@ router.post("/save-invoice", async (req, res) => {
             buyerEmail = '',
             consigneeName = '',
             consigneeAddress = '',
-            paidAmount = 0,
-            paymentStatus = '',
-            paymentMode = '',
-            paymentDate,
             items = [],
             totalAmountOriginal = 0,
             totalAmountDuplicate = 0,
@@ -122,10 +118,6 @@ router.post("/save-invoice", async (req, res) => {
                 await Stock.updateOne({ item_name: cur.description }, { $inc: { quantity: -cur.quantity } });
             }
 
-            if (paidAmount && paidAmount !== 0) {
-                existingInvoice.paid_amount.push(paidAmount);
-            }
-
             // Update the invoice
             Object.assign(existingInvoice, {
                 project_name: projectName,
@@ -149,9 +141,6 @@ router.post("/save-invoice", async (req, res) => {
                 total_amount_duplicate: total_amount_duplicate,
                 total_tax_original: total_tax_original,
                 total_tax_duplicate: total_tax_duplicate,
-                payment_status: paymentStatus,
-                payment_mode: paymentMode,
-                payment_date: paymentDate
             });
 
             const updatedInvoice = await existingInvoice.save();
@@ -190,15 +179,7 @@ router.post("/save-invoice", async (req, res) => {
                 total_amount_duplicate: total_amount_duplicate,
                 total_tax_original: total_tax_original,
                 total_tax_duplicate: total_tax_duplicate,
-                payment_status: paymentStatus,
-                payment_dode: paymentMode,
-                payment_date: paymentDate
             });
-
-            // Push the initial payment if provided
-            if (paidAmount && paidAmount !== '0') {
-                invoice.paid_amount.push(paidAmount);
-            }
 
             const savedInvoice = await invoice.save();
             return res.status(201).json({ message: 'Invoice saved successfully', invoice: savedInvoice });
@@ -251,6 +232,66 @@ router.get("/:invoice_id", async (req, res) => {
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
+
+
+router.post("/save-payment", async (req, res) => {
+    try {
+        const {
+            invoiceId,
+            paymentStatus,
+            paymentMode,
+            paymentDate,
+            paidAmount = 0
+        } = req.body;
+
+        const invoice = await Invoices.findOne({ invoice_id: invoiceId });
+        if (!invoice) {
+            return res.status(404).json({ message: "Invoice not found" });
+        }
+
+        // Ensure total_paid_amount is initialized
+        invoice.total_paid_amount = Number(invoice.total_paid_amount || 0);
+
+        // Push new payment
+        invoice.payments.push({
+            payment_date: paymentDate,
+            paid_amount: Number(paidAmount),
+            payment_mode: paymentMode
+        });
+
+        // Update total_paid_amount
+        invoice.total_paid_amount += Number(paidAmount);
+        invoice.payment_status = paymentStatus;
+
+        if (
+            paymentStatus === 'Paid' &&
+            invoice.total_amount_duplicate > invoice.total_paid_amount
+        ) {
+            const remaining_amount = invoice.total_amount_duplicate - invoice.total_paid_amount;
+
+            invoice.payments.push({
+                payment_date: new Date(),
+                paid_amount: Number(remaining_amount),
+                payment_mode: 'Cash'
+            });
+
+            invoice.total_paid_amount += Number(remaining_amount);
+        }
+
+        if (invoice.total_amount_duplicate >= invoice.total_paid_amount) {
+            invoice.payment_status = 'Paid';
+        }
+
+        await invoice.save();
+
+        res.status(200).json({ message: "Payment saved successfully." });
+    } catch (error) {
+        console.error("Error saving payment:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+});
+
+
 
 // Search invoice by ID, owner name, or phone number
 router.get('/search/:query', async (req, res) => {
