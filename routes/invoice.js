@@ -68,11 +68,14 @@ router.post("/save-invoice", async (req, res) => {
             items = [],
             totalAmountOriginal = 0,
             totalAmountDuplicate = 0,
+            totalTaxOriginal = 0,
+            totalTaxDuplicate = 0
         } = req.body;
 
-        const date = new Date();
         let total_amount_original = totalAmountOriginal;
         let total_amount_duplicate = totalAmountDuplicate;
+        let total_tax_original = totalTaxOriginal;
+        let total_tax_duplicate = totalTaxDuplicate;
 
         if (!invoiceId || !projectName) {
             return res.status(400).json({ message: 'Missing required fields: invoiceId, projectName.' });
@@ -94,12 +97,19 @@ router.post("/save-invoice", async (req, res) => {
         }
 
         if (existingInvoice) {
-            if (totalAmountOriginal == 0) {
-                total_amount_original = existingInvoice.total_amount_original || 0;
+            if (totalAmountOriginal == 0 && totalTaxOriginal == 0) {
+                total_amount_original = existingInvoice.total_amount_original;
+                total_tax_original = existingInvoice.total_tax_original;
             }
-            if (totalAmountDuplicate == 0) {
-                total_amount_duplicate = existingInvoice.total_amount_duplicate || 0;
+            if (totalAmountDuplicate == 0 && totalTaxDuplicate == 0) {
+                total_amount_duplicate = existingInvoice.total_amount_duplicate;
+                total_tax_duplicate = existingInvoice.total_tax_duplicate;
             }
+        } else {
+            total_amount_original = total_amount_original;
+            total_tax_original = total_tax_original;
+            total_amount_duplicate = total_amount_original;
+            total_tax_duplicate = total_tax_original;
         }
 
         if (existingInvoice) {
@@ -137,6 +147,8 @@ router.post("/save-invoice", async (req, res) => {
                 items_duplicate: items_duplicate,
                 total_amount_original: total_amount_original,
                 total_amount_duplicate: total_amount_duplicate,
+                total_tax_original: total_tax_original,
+                total_tax_duplicate: total_tax_duplicate,
                 payment_status: paymentStatus,
                 payment_mode: paymentMode,
                 payment_date: paymentDate
@@ -174,8 +186,10 @@ router.post("/save-invoice", async (req, res) => {
                 consignee_address: consigneeAddress,
                 items_original: items,
                 items_duplicate: items,
-                total_amount_duplicate: total_amount_original,
-                total_amount_original: total_amount_duplicate,
+                total_amount_original: total_amount_original,
+                total_amount_duplicate: total_amount_duplicate,
+                total_tax_original: total_tax_original,
+                total_tax_duplicate: total_tax_duplicate,
                 payment_status: paymentStatus,
                 payment_dode: paymentMode,
                 payment_date: paymentDate

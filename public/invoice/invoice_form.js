@@ -2,7 +2,8 @@ const totalSteps = 7;
 let invoiceId = '';
 let totalAmountOriginal = 0;
 let totalAmountDuplicate = 0;
-let totalTax = 0;
+let totalTaxOriginal = 0;
+let totalTaxDuplicate = 0;
 
 document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
@@ -202,9 +203,10 @@ function calculateInvoice(itemsTable) {
     let type = sessionStorage.getItem('update-invoice');
     if (type === 'original') {
         totalAmountOriginal = Number(finalTotal.toFixed(2));
-        totalTax = totalCGST + totalSGST;
+        totalTaxOriginal = totalCGST + totalSGST;
     } else if (type === 'duplicate') {
-        totalAmountDuplicate = finalTotal.toFixed(2)
+        totalAmountDuplicate = finalTotal.toFixed(2);
+        totalTaxDuplicate = totalCGST + totalSGST;
     }
 
     const totalsHTML = `
@@ -466,5 +468,7 @@ function collectFormData() {
         })),
         totalAmountOriginal: totalAmountOriginal,
         totalAmountDuplicate: totalAmountDuplicate,
+        totalTaxOriginal: totalTaxOriginal,
+        totalTaxDuplicate: totalTaxDuplicate
     };
 }

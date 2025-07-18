@@ -334,10 +334,17 @@ async function viewInvoice(invoiceId, userRole) {
         document.getElementById('view-buyer-email').textContent = invoice.customer_email || '-';
         document.getElementById('view-consignee-name').textContent = invoice.consignee_name || '-';
         document.getElementById('view-consignee-address').textContent = invoice.consignee_address || '-';
-        // document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(invoice.total_amount_tax, 2)}` || '-';
-        // document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(invoice.total_amount_tax, 2)}` || '-';
-        // document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(invoice.total_amount_tax, 2)}` || '-';
-        // document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(invoice.total_amount_tax, 2)}` || '-';
+        if (userRole == 'admin' && type == 'original') {
+            document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(invoice.total_amount_original, 2)}` || '-';
+            document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(invoice.total_tax_original, 2)}` || '-';
+            document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(invoice.total_amount_original, 2)}` || '-';
+            document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(invoice.total_amount_original - invoice.total_tax_original, 2)}` || '-';
+        } else {
+            document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}` || '-';
+            document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(invoice.total_tax_duplicate, 2)}` || '-';
+            document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}` || '-';
+            document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate - invoice.total_tax_duplicate, 2)}` || '-';
+        }
 
         // Item List
         const detailItemsTableBody = document.querySelector("#view-items-table tbody");
