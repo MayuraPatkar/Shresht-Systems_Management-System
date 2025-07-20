@@ -97,7 +97,7 @@ function generatePreview() {
 
     document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
-        <div class="header">
+        <div class="first-section">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
                     alt="Shresht Logo">
@@ -110,9 +110,11 @@ function generatePreview() {
             </div>
         </div>
 
-        <div class="title">Way Bill #${waybillId}</div>
+        <div class="second-section">
+            <p>WAY BILL-${waybillId}</p>
+        </div>
 
-        <div class="first-section">
+        <div class="third-section">
             <div class="buyer-details">
                 <h3>Buyer Details</h3>
                 <p>${buyerName}</p>
@@ -127,7 +129,7 @@ function generatePreview() {
                 <p><strong>Place to Supply:</strong> ${placeSupply}</p>
             </div>  
         </div>
-        <div class="second-section">
+        <div class="fourth-section">
         <table>
             <thead>
                 <tr>
@@ -145,16 +147,14 @@ function generatePreview() {
         </table>
         </div>
         <br>
-        <div class="fifth-section">
-        <div class="signature">
+        <div class="eighth-section">
             <p>For SHRESHT SYSTEMS</p>
-            <div class="signature-space"></div>
+            <div class="eighth-section-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
-        </div>
-        <footer>
+        <div class="ninth-section">
             <p>This is a computer-generated way bill</p>
-        </footer>
+        </div>
     </div>`;
 }
 

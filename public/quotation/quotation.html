@@ -124,9 +124,10 @@
                 <div class="steps" id="step-3">
                     <h2>Item List</h2>
                     <div class="form-group">
-                        <table id="items-table">
+                        <table id="items-table" class="items-table">
                             <thead>
                                 <tr>
+                                    <th>S. No</th>
                                     <th>Description</th>
                                     <th>HSN/SAC</th>
                                     <th>Qty</th>
@@ -142,6 +143,49 @@
                     </div>
                 </div>
                 <div class="steps" id="step-4">
+                    <h2>Other Non-Items</h2>
+                    <div class="form-group">
+                        <table id="non-items-table" class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>S. No</th>
+                                    <th>Description</th>
+                                    <th>Price</th>
+                                    <th>Rate</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                        <button type="button" class="add-item-btn" id="add-non-item-btn">Add Item</button>
+                    </div>
+                </div>
+                <div class="steps" id="step-5">
+                    <h2>Add Specifications</h2>
+                    <div class="form-group">
+                        <table id="items-specifications-table" class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>S. No</th>
+                                    <th>Description</th>
+                                    <th>Specifications</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="steps" id="step-6">
+                    <h2>Additional Info to Include</h2>
+                    <div class="form-group">
+                        <label for="files">Upload Photos</label>
+                        <input type="file" id="files" multiple accept="image/*">
+                    </div>
+                    <div id="image-preview-container"></div>
+                </div>
+                <div class="steps" id="step-7">
                     <div class="preview">
                         <h2>Preview</h2>
                         <div id="preview-content"></div>
@@ -206,9 +250,10 @@
                 <section class="card">
                     <h2 class="card-header">Item Details</h2>
                     <div class="card-content grid-layout">
-                        <table id="view-items-table">
+                        <table id="view-items-table" class="view-items-table">
                             <thead>
                                 <tr>
+                                    <th>S. No</th>
                                     <th>Description</th>
                                     <th>HSN/SAC</th>
                                     <th>Qty</th>
@@ -222,6 +267,42 @@
                         </table>
                     </div>
                 </section>
+
+                <section class="card">
+                    <h2 class="card-header">Non Item Details</h2>
+                    <div class="card-content grid-layout">
+                        <table id="view-non-items-table" class="view-items-table">
+                            <thead>
+                                <tr>
+                                    <th>S. No</th>
+                                    <th>Description</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Items will be dynamically filled -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- <section class="card">
+                    <h2 class="card-header">Item Specifications Details</h2>
+                    <div class="card-content grid-layout">
+                        <table id="view-items-specifications-table" class="view-items-table">
+                            <thead>
+                                <tr>
+                                    <th>S. No</th>
+                                    <th>Description</th>
+                                    <th>Specifications</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                Items will be dynamically filled 
+                            </tbody>
+                        </table>
+                    </div>
+                </section> -->
 
                 <!-- Total -->
                 <section class="card">

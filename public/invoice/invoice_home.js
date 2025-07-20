@@ -72,6 +72,12 @@ function createInvoiceCard(invoice) {
                 <p>${userRole === 'admin' ? `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}` : ""}</p>
             </div>
         </div>
+        <div class="record-item-details">
+            <div class="record-item-info-2">
+            <h2 class="danger">Due Amount</h2>
+                <p class="danger">${userRole === 'admin' ? `₹ ${formatIndian(invoice.total_amount_duplicate - invoice.total_paid_amount, 2)}` : ""}</p>
+            </div>
+        </div>
         </div>
         <select class="actions" onchange="handleInvoiceAction(this, '${invoice.invoice_id}')">
             <option value="" disabled selected>Actions</option>

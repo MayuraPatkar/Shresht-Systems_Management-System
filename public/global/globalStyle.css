@@ -321,5 +321,9 @@
         }
 
         .payment-container input, select {
-            width: 45%;
+            width: 30%;
+        }
+
+        .danger{
+            color: var(--danger);
         }

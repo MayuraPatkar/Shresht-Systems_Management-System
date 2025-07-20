@@ -185,6 +185,12 @@ function createWayBillCard(wayBill) {
                 <p>${wayBill.customer_address}</p>
             </div>
         </div>
+        <div class="record-item-details">
+            <div class="record-item-info-2">
+                <h2>Transport Place</h2>
+                <p>${wayBill.transport_mode}</p>
+            </div>
+        </div>
     </div>
     <select class="actions">
         <option value="" disabled selected>Actions</option>
@@ -294,6 +300,7 @@ function showNewWayBillForm() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
     document.getElementById('new-waybill-btn').style.display = 'none';
+    document.getElementById('view').style.display = 'none';
     document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 }
 

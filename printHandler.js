@@ -276,7 +276,6 @@ function handlePrintEvent(mainWindow) {
                 printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
                     if (!success) {
                         log.error("Print failed:", errorType);
-                        event.sender.send("printFailed", { error: errorType }); // Send error to renderer
                     }
                     printWindow.close();
                 });

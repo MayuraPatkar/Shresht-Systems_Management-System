@@ -266,12 +266,7 @@
                     <h2>GST Calculator</h2>
                     <label>Amount: <input type="number" id="gstAmount" min="0"></label><br>
                     <label>GST Rate:
-                        <select id="gstRate">
-                            <option value="5">5%</option>
-                            <option value="12">12%</option>
-                            <option value="18" selected>18%</option>
-                            <option value="28">28%</option>
-                        </select>
+                        <input type="number" id="gstRate">
                     </label><br>
                     <button onclick="calculateGST()">Calculate GST</button>
                     <div class="result" id="gstResult"></div>

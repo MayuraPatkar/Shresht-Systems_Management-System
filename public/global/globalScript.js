@@ -14,50 +14,62 @@ document.addEventListener("keydown", function (event) {
 
 document.getElementById('dashboard').addEventListener('click', () => {
   window.location = '/dashboard';
+  sessionStorage.setItem('currentTab', 'dashboard');
 })
 
 document.getElementById('quotation').addEventListener('click', () => {
   window.location = '/quotation';
+  sessionStorage.setItem('currentTab', 'quotation');
 })
 
 document.getElementById('postOrder').addEventListener('click', () => {
   window.location = '/purchaseorder';
+  sessionStorage.setItem('currentTab', 'purchaseorder');
 })
 
 document.getElementById('wayBill').addEventListener('click', () => {
   window.location = '/wayBill';
+  sessionStorage.setItem('currentTab', 'wayBill');
 })
 
 document.getElementById('invoice').addEventListener('click', () => {
   window.location = '/invoice';
+  sessionStorage.setItem('currentTab', 'invoice');
 })
 
 document.getElementById('service').addEventListener('click', () => {
   window.location = '/service';
+  sessionStorage.setItem('currentTab', 'service');
 })
 
 document.getElementById('stock').addEventListener('click', () => {
   window.location = '/stock';
+  sessionStorage.setItem('currentTab', 'stock');
 })
 
 document.getElementById('employees').addEventListener('click', () => {
   window.location = '/employee';
+  sessionStorage.setItem('currentTab', 'employee');
 })
 
 document.getElementById('comms').addEventListener('click', () => {
   window.location = '/comms';
+  sessionStorage.setItem('currentTab', 'comms');
 })
 
 document.getElementById('analytics').addEventListener('click', () => {
   window.location = '/analytics';
+  sessionStorage.setItem('currentTab', 'analytics');
 })
 
 document.getElementById('calculations').addEventListener('click', () => {
   window.location = '/calculations';
+  sessionStorage.setItem('currentTab', 'calculations');
 })
 
 document.getElementById('settings').addEventListener('click', () => {
   window.location = '/settings';
+  sessionStorage.setItem('currentTab', 'settings');
 })
 
 let currentStep = 1;
@@ -98,7 +110,42 @@ document.getElementById("next-btn").addEventListener("click", () => {
   if (currentStep < totalSteps) {
     changeStep(currentStep + 1);
     if (currentStep === totalSteps && !document.getElementById('id').value) getId();
-    else generatePreview();
+    else if (currentStep === totalSteps && document.getElementById('id').value) generatePreview();
+  }
+
+  if (currentStep === 5 && sessionStorage.getItem('currentTab') === 'quotation') {
+    const itemsTable = document.querySelector('#items-table tbody');
+    const nonItemsTable = document.querySelector('#non-items-table tbody');
+    const itemsSpecificationTable = document.querySelector('#items-specifications-table tbody');
+
+    if (sessionStorage.getItem('currentTab-status') != 'update') {
+      const items1 = Array.from(itemsTable.querySelectorAll('tr')).map(row => {
+        return {
+          item: row.querySelector('input[placeholder="Item Description"]').value,
+        }
+      });
+
+      const items2 = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => {
+        return {
+          item: row.querySelector('input[placeholder="Item Description"]').value,
+        }
+      });
+
+      const items = items1.concat(items2);
+
+      itemsSpecificationTable.innerHTML = '';
+
+      for (const item of items) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${itemsSpecificationTable.children.length + 1}</td>
+          <td>${item.item || '-'}</td>
+          <td><input type="text" placeholder="Specifications" required></td>
+      `;
+        itemsSpecificationTable.appendChild(row);
+      }
+    }
+
   }
 });
 
@@ -177,6 +224,7 @@ function formatDate(dateString) {
 
 // Event listener for the "Add Item" button
 document.getElementById('add-item-btn').addEventListener('click', addItem);
+document.getElementById('add-non-item-btn').addEventListener('click', addNonItem);
 
 let selectedIndex = -1;
 let data = [];
@@ -199,14 +247,50 @@ function addItem() {
   const row = document.createElement("tr");
 
   row.innerHTML = `
+        <td>${tableBody.children.length + 1}</td>
         <td>
             <input type="text" placeholder="Item Description" class="item_name" required>
             <ul class="suggestions"></ul> <!-- Changed from id to class -->
         </td>
         <td><input type="text" placeholder="HSN/SAC" required></td>
         <td><input type="number" placeholder="Qty" min="1" required></td>
-        <td><input type="text" placeholder="Unit Price" required></td>
+        <td><input type="number" placeholder="Unit Price" required></td>
         <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
+        <td><button type="button" class="remove-item-btn">Remove</button></td>
+    `;
+
+  tableBody.appendChild(row);
+
+  const input = row.querySelector(".item_name");
+  const suggestionsList = row.querySelector(".suggestions");
+
+  input.addEventListener("input", function () {
+    showSuggestions(input, suggestionsList);
+  });
+
+  input.addEventListener("keydown", function (event) {
+    handleKeyboardNavigation(event, input, suggestionsList);
+  });
+
+  document.addEventListener("click", function (event) {
+    if (!input.contains(event.target) && !suggestionsList.contains(event.target)) {
+      suggestionsList.style.display = "none";
+    }
+  });
+}
+
+function addNonItem() {
+  const tableBody = document.querySelector("#non-items-table tbody");
+  const row = document.createElement("tr");
+
+  row.innerHTML = `
+        <td>${tableBody.children.length + 1}</td>
+        <td>
+            <input type="text" placeholder="Item Description" class="item_name" required>
+            <ul class="suggestions"></ul> <!-- Changed from id to class -->
+        </td>
+        <td><input type="number" placeholder="Price" required></td>
+        <td><input type="number" placeholder="Rate"></td>
         <td><button type="button" class="remove-item-btn">Remove</button></td>
     `;
 
@@ -290,6 +374,18 @@ function handleKeyboardNavigation(event, input, suggestionsList) {
 
 // Event listener for the "Remove Item" button
 document.querySelector("#items-table").addEventListener("click", (event) => {
+  if (event.target.classList.contains('remove-item-btn')) {
+    event.target.closest('tr').remove();
+  }
+});
+
+document.querySelector("#non-items-table").addEventListener("click", (event) => {
+  if (event.target.classList.contains('remove-item-btn')) {
+    event.target.closest('tr').remove();
+  }
+});
+
+document.querySelector("#items-specifications-table").addEventListener("click", (event) => {
   if (event.target.classList.contains('remove-item-btn')) {
     event.target.closest('tr').remove();
   }

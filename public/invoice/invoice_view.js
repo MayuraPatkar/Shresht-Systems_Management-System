@@ -130,10 +130,10 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                         <td>${description}</td>
                         <td>${hsnSac}</td>
                         <td>${qty}</td>
-                        <td>${unitPrice.toFixed(2)}</td>
-                        <td>${taxableValue.toFixed(2)}</td>
+                        <td>${formatIndian(unitPrice, 2)}</td>
+                        <td>${formatIndian(taxableValue, 2)}</td>
                         <td>${rate.toFixed(2)}</td>
-                        <td>${rowTotal.toFixed(2)}</td>
+                        <td>${formatIndian(rowTotal, 2)}</td>
                     </tr>
                 `;
             } else {
@@ -145,8 +145,8 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                         <td>${description}</td>
                         <td>${hsnSac}</td>
                         <td>${qty}</td>
-                        <td>${unitPrice.toFixed(2)}</td>
-                        <td>${rowTotal.toFixed(2)}</td>
+                        <td>${formatIndian(unitPrice, 2)}</td>
+                        <td>${formatIndian(rowTotal, 2)}</td>
                     </tr>
                 `;
             }

@@ -1,8 +1,9 @@
-const totalSteps = 4;
+const totalSteps = 7;
 let quotationId = '';
 let totalAmountNoTax = 0;
 let totalAmountTax = 0;
 let totalTax = 0;
+
 
 document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
@@ -25,6 +26,39 @@ async function getId() {
     }
 }
 
+function generateFilePages(files) {
+    if (!files || files.length === 0) return '';
+    return Array.from(files).map(file => {
+        const imageUrl = URL.createObjectURL(file); // Local blob URL for preview
+
+        return `
+            <div class="preview-container">
+                <div class="header">
+                    <div class="logo">
+                        <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                            alt="Shresht Logo">
+                    </div>
+                    <div class="company-details">
+                        <h1>SHRESHT SYSTEMS</h1>
+                        <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+                        <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                        <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+                    </div>
+                </div>
+
+                <div class="files-section" style="margin: 20px 0; text-align: center;">
+                    <img src="${imageUrl}" alt="Uploaded File" style="max-width: 100%; max-height: 800px; object-fit: contain;">
+                </div>
+
+                <footer>
+                    <p>This is a computer-generated quotation.</p>
+                </footer>
+            </div>
+        `;
+    }).join('');
+}
+
+
 // Function to generate the preview for both tax rate and without tax rate
 function generatePreview() {
     if (!quotationId) {
@@ -45,16 +79,17 @@ function generatePreview() {
 
     let itemsHTML = "";
     let totalsHTML = "";
+    let sno = 0;
 
     // Check if rate column is populated
     let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[4].querySelector("input").value) > 0);
 
     for (const row of itemsTable.rows) {
-        const description = row.cells[0].querySelector("input").value || "-";
-        const hsnSac = row.cells[1].querySelector("input").value || "-";
-        const qty = parseFloat(row.cells[2].querySelector("input").value || "0");
-        const unitPrice = parseFloat(row.cells[3].querySelector("input").value || "0");
-        const rate = parseFloat(row.cells[4].querySelector("input").value || "0");
+        const description = row.cells[1].querySelector("input").value || "-";
+        const hsnSac = row.cells[2].querySelector("input").value || "-";
+        const qty = parseFloat(row.cells[3].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[4].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
 
         const taxableValue = qty * unitPrice;
         totalTaxableValue += taxableValue;
@@ -72,6 +107,7 @@ function generatePreview() {
 
             itemsHTML += `
                 <tr>
+                    <td>${++sno}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -87,6 +123,7 @@ function generatePreview() {
 
             itemsHTML += `
                 <tr>
+                    <td>${++sno}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -95,6 +132,33 @@ function generatePreview() {
                 </tr>
             `;
         }
+    }
+
+    const nonItemsTable = document.querySelector('#non-items-table tbody');
+
+    const items = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => {
+        return {
+            descriptions: row.querySelector('input[placeholder="Item Description"]').value,
+            price: row.querySelector('input[placeholder="Price"]').value,
+            rate: row.querySelector('input[placeholder="Rate"]').value,
+        }
+    });
+
+
+    for (const item of items) {
+        itemsHTML += `
+        <tr>
+            <td>${++sno}</td>
+            <td>${item.descriptions || '-'}</td>
+            <td>-</td>
+            <td>-</td>
+            ${hasTax ? `
+            <td>-</td>
+            <td>-</td>` :""}
+            <td>${item.rate || '-'}</td>
+            <td>${item.price || '-'}</td>
+        </tr>
+      `;
     }
 
     grandTotal = totalTaxableValue + totalCGST + totalSGST;
@@ -110,6 +174,8 @@ function generatePreview() {
         <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>` : ""}
         <p><strong>Grand Total:</strong> ₹${totalAmountTax}</p>
     `;
+
+    const files = document.getElementById('files').files;
 
     document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
@@ -175,11 +241,14 @@ function generatePreview() {
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
         </div>
+        <div class="title">Quotation - #${quotationId}</div>
+        <div class="info-section" contenteditable="true"><p>HeadLine</p></div>
         <div class="items-section">
             <h2>Item Details</h2>
             <table class="items-table">
                 <thead>
                     <tr>
+                        <th>S. No</th>
                         <th>Description</th>
                         <th>HSN/SAC</th>
                         <th>Qty</th>
@@ -229,6 +298,7 @@ function generatePreview() {
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
         </div>
+        <div class="title">Quotation - #${quotationId}</div>
         <div class="terms-section" contenteditable="true">
             <h3>Terms & Conditions</h3>
             <ul>
@@ -264,6 +334,7 @@ function generatePreview() {
             <p>This is a computer-generated quotation.</p>
         </footer>
     </div>
+    ${generateFilePages(files)}
     `;
 }
 
@@ -323,6 +394,46 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
     }
 });
 
+const fileInput = document.getElementById('files');
+const previewContainer = document.getElementById('image-preview-container');
+
+fileInput.addEventListener('change', function () {
+    previewContainer.innerHTML = ''; // Clear previous previews
+
+    Array.from(this.files).forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.flexDirection = 'column';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.width = '200px';
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.width = '200px';
+            img.style.height = '150px';
+            img.style.objectFit = 'cover';
+            img.style.border = '1px solid #ccc';
+            img.style.borderRadius = '4px';
+
+            const name = document.createElement('span');
+            name.textContent = file.name;
+            name.style.fontSize = '12px';
+            name.style.marginTop = '5px';
+            name.style.textAlign = 'center';
+            name.style.wordBreak = 'break-word';
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(name);
+            previewContainer.appendChild(wrapper);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
 // Function to collect form data
 function collectFormData() {
     return {
@@ -334,11 +445,30 @@ function collectFormData() {
         buyerPhone: document.getElementById("buyer-phone").value,
         buyerEmail: document.getElementById("buyer-email").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
-            description: row.querySelector("td:nth-child(1) input").value,
-            HSN_SAC: row.querySelector("td:nth-child(2) input").value,
-            quantity: row.querySelector("td:nth-child(3) input").value,
-            unit_price: row.querySelector("td:nth-child(4) input").value,
-            rate: row.querySelector("td:nth-child(5) input").value,
+            description: row.querySelector("td:nth-child(2) input").value,
+            HSN_SAC: row.querySelector("td:nth-child(3) input").value,
+            quantity: row.querySelector("td:nth-child(4) input").value,
+            unit_price: row.querySelector("td:nth-child(5) input").value,
+            rate: row.querySelector("td:nth-child(6) input").value,
+            specification: (() => {
+                // Try to match specification from specifications table
+                const desc = row.querySelector("td:nth-child(2) input").value;
+                const specRow = Array.from(document.querySelectorAll("#items-specifications-table tbody tr"))
+                    .find(spec => spec.querySelector("td:nth-child(2)").textContent === desc);
+                return specRow ? specRow.querySelector("td:nth-child(3) input").value : "";
+            })()
+        })),
+        non_items: Array.from(document.querySelectorAll("#non-items-table tbody tr")).map(row => ({
+            description: row.querySelector("td:nth-child(2) input").value,
+            price: row.querySelector("td:nth-child(3) input").value,
+            rate: row.querySelector("td:nth-child(4) input").value,
+            specification: (() => {
+                // Try to match specification from specifications table
+                const desc = row.querySelector("td:nth-child(2) input").value;
+                const specRow = Array.from(document.querySelectorAll("#items-specifications-table tbody tr"))
+                    .find(spec => spec.querySelector("td:nth-child(2)").textContent === desc);
+                return specRow ? specRow.querySelector("td:nth-child(3) input").value : "";
+            })()
         })),
         totalTax: totalTax,
         totalAmountNoTax: totalAmountNoTax,

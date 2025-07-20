@@ -73,7 +73,7 @@ form h2 {
     background: var(--primary);
 }
 
-#items-table {
+.items-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 1rem;
@@ -83,28 +83,28 @@ form h2 {
     box-shadow: 0 1px 4px rgba(55, 101, 188, 0.05);
 }
 
-#items-table th,
-#items-table td {
+.items-table th,
+.items-table td {
     border: 1px solid var(--border);
     padding: 0.7rem;
     text-align: left;
     font-size: 1rem;
 }
 
-#items-table th {
+.items-table th {
     background: #f1f3f6;
     color: var(--primary);
     font-weight: 600;
     letter-spacing: 0.02em;
 }
 
-#items-table td {
+.items-table td {
     background: #fff;
     vertical-align: middle;
     position: relative;
 }
 
-#items-table td input {
+.items-table td input {
     width: 100%;
     border: none;
     background: transparent;
@@ -114,7 +114,7 @@ form h2 {
     color: #222;
 }
 
-#items-table .remove-item-btn {
+.items-table .remove-item-btn {
     background: var(--danger);
     color: #fff;
     border: none;
@@ -127,8 +127,8 @@ form h2 {
     box-shadow: 0 1px 4px rgba(220, 53, 69, 0.08);
 }
 
-#items-table .remove-item-btn:hover,
-#items-table .remove-item-btn:active {
+.items-table .remove-item-btn:hover,
+.items-table .remove-item-btn:active {
     background: #b91c1c;
 }
 

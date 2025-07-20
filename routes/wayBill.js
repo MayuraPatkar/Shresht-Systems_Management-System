@@ -77,7 +77,7 @@ router.get("/recent-way-bills", async (req, res) => {
         const recentWayBills = await wayBills.find()
             .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
             .limit(5)
-            .select("project_name waybill_id customer_name customer_address");
+            .select("project_name waybill_id customer_name customer_address place_supply");
 
         // Respond with the fetched way bills
         res.status(200).json({

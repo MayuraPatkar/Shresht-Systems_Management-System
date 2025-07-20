@@ -118,6 +118,7 @@ function handleQuotationAction(select, quotationId) {
     } else if (action === "compactView") {
         viewQuotation(quotationId, viewType = 3);
     } else if (action === "update") {
+          sessionStorage.setItem('currentTab-status', 'update');
         openQuotation(quotationId);
     } else if (action === "delete") {
         window.electronAPI.showAlert2('Are you sure you want to delete this quotation?');
@@ -160,12 +161,17 @@ async function openQuotation(quotationId) {
         document.getElementById('buyer-email').value = quotation.customer_email;
 
         const itemsTableBody = document.querySelector("#items-table tbody");
+        const nonItemsTableBody = document.querySelector("#non-items-table tbody");
+        const itemsSpecificationsTableBody = document.querySelector("#items-specifications-table tbody");
         itemsTableBody.innerHTML = "";
+        nonItemsTableBody.innerHTML = "";
+        itemsSpecificationsTableBody.innerHTML = "";
 
         (quotation.items || []).forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td><input type="text" value="${item.description || ''}" required></td>
+                <td>${itemsTableBody.children.length + 1}</td>
+                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
                 <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
                 <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" required></td>
@@ -173,6 +179,38 @@ async function openQuotation(quotationId) {
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
             itemsTableBody.appendChild(row);
+        });
+
+        (quotation.non_items || []).forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${nonItemsTableBody.children.length + 1}</td>
+                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
+                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><button type="button" class="remove-item-btn">Remove</button></td>
+            `;
+            nonItemsTableBody.appendChild(row);
+        });
+
+        (quotation.items || []).forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${itemsSpecificationsTableBody.children.length + 1}</td>
+                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td><input type="text" value="${item.specification || ''}" required></td>
+            `;
+            itemsSpecificationsTableBody.appendChild(row);
+        });
+
+        (quotation.non_items || []).forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${itemsSpecificationsTableBody.children.length + 1}</td>
+                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td><input type="text" value="${item.specification || ''}" required></td>
+            `;
+            itemsSpecificationsTableBody.appendChild(row);
         });
 
     } catch (error) {

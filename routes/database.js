@@ -37,9 +37,18 @@ const quotationSchema = new mongoose.Schema({
     items: [
         {
             description: { type: String },
+            specification: { type: String },
             HSN_SAC: { type: String },
             quantity: { type: Number },
             unit_price: { type: Number },
+            rate: { type: Number },
+        },
+    ],
+    non_items: [
+        {
+            description: { type: String },
+            specification: { type: String },
+            price: { type: Number },
             rate: { type: Number },
         },
     ],
@@ -150,7 +159,7 @@ const invoiceSchema = new mongoose.Schema({
             payment_mode: { type: String }
         }
     ],
-    total_paid_amount: { type: Number, default: 0},
+    total_paid_amount: { type: Number, default: 0 },
     payment_status: { type: String, default: 'Unpaid' },
     createdAt: { type: Date, default: Date.now },
 });

@@ -6,6 +6,7 @@ function generateViewPreviewHTML(quotation, viewType) {
     let itemsHTML = "";
     let totalPrice = 0;
     let totalTax = 0;
+    let sno = 0;
 
     (quotation.items || []).forEach(item => {
         const qty = parseFloat(item.quantity || 0);
@@ -20,6 +21,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             totalTax += taxAmount;
             itemsHTML += `
                 <tr>
+                    <td>${++sno}</td>
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${qty}</td>
@@ -33,6 +35,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             totalPrice += taxableValue;
             itemsHTML += `
                 <tr>
+                    <td>${++sno}</td>
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${qty}</td>
@@ -44,33 +47,41 @@ function generateViewPreviewHTML(quotation, viewType) {
             totalPrice += taxableValue;
             itemsHTML += `
                 <tr>
+                    <td>${++sno}</td>
                     <td>${item.description || ''}</td>
-                    <td>${qty}</td>
+                    <td>${item.specification || ''}</td>
+                    <td>${item.quantity}</td>
                 </tr>
             `;
         }
     });
 
     if (viewType === 2) {
-        tableHead =
-            `<th>Description</th>
-           <th>HSN/SAC</th>
-           <th>Qty</th>
-           <th>Unit Price</th>
-           <th>Tax Rate</th>
-           <th>Tax Amount</th>
-           <th>Total (With Tax)</th>`;
+        tableHead = `
+            <th>S. No</th>    
+            <th>Description</th>
+            <th>HSN/SAC</th>
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Tax Rate</th>
+            <th>Tax Amount</th>
+            <th>Total (With Tax)</th>`;
 
     } else if (viewType === 1) {
-        tableHead = `<th>Description</th>
-           <th>HSN/SAC</th>
-           <th>Qty</th>
-           <th>Unit Price</th>
-           <th>Total</th>`;
+        tableHead = `
+            <th>S. No</th>    
+            <th>Description</th>
+            <th>HSN/SAC</th>
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Total</th>`;
     } else {
-        tableHead =
-            `<th>Description</th>
-           <th>Qty</th>`;
+        tableHead = `
+            <th>S. No</th> 
+            <th>Description</th>
+            <th>Specification</th>
+            <th>Qty</th>
+        `;
     }
 
     if (viewType === 2) {
@@ -268,13 +279,19 @@ async function viewQuotation(quotationId, viewType) {
 
         // Item List
         const viewItemsTableBody = document.querySelector("#view-items-table tbody");
+        const viewNonItesTableBody = document.querySelector("#view-non-items-table tbody");
+        // const viewItemSpecificayionsTableBody = document.querySelector("#view-items-specifications-table tbody");
         viewItemsTableBody.innerHTML = "";
+        viewNonItesTableBody.innerHTML = "";
+        // viewItemSpecificayionsTableBody.innerHTML = "";
 
         (quotation.items || []).forEach(item => {
             const row = document.createElement("tr");
             if (viewType === 2) {
                 row.innerHTML = `
+                    <td>${viewItemsTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
+                    <td>${item.specification}</td>
                     <td>${item.HSN_SAC || '-'}</td>
                     <td>${item.quantity || '-'}</td>
                     <td>${formatIndian(item.unit_price, 2) || '-'}</td>
@@ -282,7 +299,9 @@ async function viewQuotation(quotationId, viewType) {
                 `;
             } else if (viewType === 1) {
                 row.innerHTML = `
+                    <td>${viewItemsTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
+                    <td>${item.specification}</td>
                     <td>${item.HSN_SAC || '-'}</td>
                     <td>${item.quantity || '-'}</td>
                     <td>${formatIndian(item.unit_price, 2) || '-'}</td>
@@ -291,21 +310,77 @@ async function viewQuotation(quotationId, viewType) {
                 document.getElementById('view-total-with-tax').textContent = 'No Tax';
             } else {
                 row.innerHTML = `
+                    <td>${viewItemsTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${item.HSN_SAC || '-'}</td>
-                    <td>${item.quantity || '-'}</td>  `
+                    <td>${item.specification}</td>
+                    <td>${item.quantity || '-'}</td>
+                    `;
+                document.getElementById('view-total-tax').textContent = '-';
+                document.getElementById('view-total-with-tax').textContent = '-';
+                document.getElementById('view-total-without-tax').textContent = '-';
             }
-            document.getElementById('view-total-tax').textContent = '-';
-            document.getElementById('view-total-with-tax').textContent = '-';
-            document.getElementById('view-total-without-tax').textContent = '-';
+
             viewItemsTableBody.appendChild(row);
         });
+
+        (quotation.non_items || []).forEach(item => {
+            const row = document.createElement("tr");
+            if (viewType === 2) {
+                row.innerHTML = `
+                    <td>${viewNonItesTableBody.children.length + 1}</td>
+                    <td>${item.description || '-'}</td>
+                    <td>${item.specification || '-'}</td>
+                    <td>${formatIndian(item.price, 2) || '-'}</td>
+                    <td>${item.rate ? item.rate + '%' : '-'}</td>
+                `;
+            } else if (viewType === 1) {
+                row.innerHTML = `
+                    <td>${viewNonItesTableBody.children.length + 1}</td>
+                    <td>${item.description || '-'}</td>
+                    <td>${item.specification || '-'}</td>
+                    <td>${formatIndian(item.price, 2) || '-'}</td>
+                `;
+            } else {
+                row.innerHTML = `
+                    <td>${viewNonItesTableBody.children.length + 1}</td>
+                    <td>${item.description || '-'}</td>
+                    <td>${item.specification || '-'}</td>
+                    `;
+            }
+
+            viewNonItesTableBody.appendChild(row);
+        });
+
+        // (quotation.items || []).forEach(item => {
+        //     const row = document.createElement("tr");
+        //         row.innerHTML = `
+        //             <td>${viewItemSpecificayionsTableBody.children.length + 1}</td>
+        //             <td>${item.description || '-'}</td>
+        //             <td>${item.specification}</td>
+        //         `;
+
+        //     viewItemSpecificayionsTableBody.appendChild(row);
+        // });
+
+        // (quotation.non_items || []).forEach(item => {
+        //     const row = document.createElement("tr");
+        //         row.innerHTML = `
+        //             <td>${viewItemSpecificayionsTableBody.children.length + 1}</td>
+        //             <td>${item.description || '-'}</td>
+        //             <td>${item.specification}</td>
+        //         `;
+
+        //     viewItemSpecificayionsTableBody.appendChild(row);
+        // });
+
 
         // Update table header for with/without tax
         const tableHead = document.querySelector("#view-items-table thead tr");
         if (viewType === 2) {
             tableHead.innerHTML = `
+                <th>S. No</th>
                 <th>Description</th>
+                <th>Specification</th>
                 <th>HSN/SAC</th>
                 <th>Qty</th>
                 <th>Unit Price</th>
@@ -313,16 +388,43 @@ async function viewQuotation(quotationId, viewType) {
             `;
         } else if (viewType === 1) {
             tableHead.innerHTML = `
+                <th>S. No</th>
                 <th>Description</th>
+                <th>Specification</th>
                 <th>HSN/SAC</th>
                 <th>Qty</th>
                 <th>Unit Price</th>
             `;
         } else {
             tableHead.innerHTML = `
+                <th>S. No</th>
                 <th>Description</th>
-                <th>HSN/SAC</th>
+                <th>Specification</th>
                 <th>Qty</th>
+            `;
+        }
+
+        const tableHeadNonItems = document.querySelector("#view-non-items-table thead tr");
+        if (viewType === 2) {
+            tableHeadNonItems.innerHTML = `
+                <th>S. No</th>
+                <th>Description</th>
+                <th>Specifications</th>
+                <th>Price</th>
+                <th>Rate</th>
+            `;
+        } else if (viewType === 1) {
+            tableHeadNonItems.innerHTML = `
+                <th>S. No</th>
+                <th>Description</th>
+                <th>Specifications</th>
+                <th>Price</th>
+            `;
+        } else {
+            tableHeadNonItems.innerHTML = `
+                <th>S. No</th>
+                <th>Description</th>
+                <th>Specifications</th>
             `;
         }
 
