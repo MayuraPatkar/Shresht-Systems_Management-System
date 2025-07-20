@@ -111,10 +111,10 @@ function generatePreview() {
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
-                    <td>${unitPrice.toFixed(2)}</td>
-                    <td>${taxableValue.toFixed(2)}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(taxableValue, 2)}</td>
                     <td>${rate.toFixed(2)}</td>
-                    <td>${rowTotal.toFixed(2)}</td>
+                    <td>${formatIndian(rowTotal, 2)}</td>
                 </tr>
             `;
         } else {
@@ -127,8 +127,8 @@ function generatePreview() {
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
-                    <td>${unitPrice.toFixed(2)}</td>
-                    <td>${rowTotal.toFixed(2)}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(rowTotal, 2)}</td>
                 </tr>
             `;
         }
@@ -156,7 +156,7 @@ function generatePreview() {
             <td>-</td>
             <td>-</td>` :""}
             <td>${item.rate || '-'}</td>
-            <td>${item.price || '-'}</td>
+            <td>${formatIndian(Number(item.price), 2) || '-'}</td>
         </tr>
       `;
     }
@@ -168,11 +168,20 @@ function generatePreview() {
     totalAmountTax = (totalPrice + roundOff).toFixed(2);
 
     totalsHTML = `
-        ${hasTax ? `
-        <p><strong>Total Taxable Value:</strong> ₹${totalTaxableValue.toFixed(2)}</p>
-        <p><strong>Total CGST:</strong> ₹${totalCGST.toFixed(2)}</p>
-        <p><strong>Total SGST:</strong> ₹${totalSGST.toFixed(2)}</p>` : ""}
-        <p><strong>Grand Total:</strong> ₹${totalAmountTax}</p>
+        <div class="totals-section-sub1">
+            ${hasTax ? `
+            <p><strong>Taxable Value: </strong></p>
+            <p><strong>Total CGST: </strong></p>
+            <p><strong>Total SGST: </strong></p>` : ""}
+            <p><strong>Grand Total: </strong></p>
+        </div>
+        <div class="totals-section-sub2">
+            ${hasTax ? `
+            <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+            <p>₹ ${formatIndian(totalCGST, 2)}</p>
+            <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
+            <p>₹ ${formatIndian(totalPrice, 2)}</p>
+        </div>
     `;
 
     const files = document.getElementById('files').files;
@@ -192,7 +201,7 @@ function generatePreview() {
             </div>
         </div>
 
-        <div class="title">Quotation - #${quotationId}</div>
+        <div class="title">Quotation-${quotationId}</div>
         <div class="info-section" >
             <p><strong>To:</strong></p>
               ${buyerName}<br>
@@ -241,10 +250,9 @@ function generatePreview() {
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
         </div>
-        <div class="title">Quotation - #${quotationId}</div>
-        <div class="info-section" contenteditable="true"><p>HeadLine</p></div>
+        <div class="title">Quotation-${quotationId}</div>
+        <div class="table headline-section" contenteditable="true"><p><u>5KW Solar Systems</u></p></div>
         <div class="items-section">
-            <h2>Item Details</h2>
             <table class="items-table">
                 <thead>
                     <tr>
@@ -265,10 +273,33 @@ function generatePreview() {
             </table>
         </div>
 
-        <div class="totals-section" style="text-align: right;">
-            ${totalsHTML}
+        <div class="fifth-section">
+            <div class="fifth-section-sub1">
+                <div class="fifth-section-sub2">
+                    <div class="fifth-section-sub3">
+                        <p><strong>Total Amount in Words: </strong></p>
+                        <p><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                    </div>
+                    <div class="bank-details">
+                        <div class="QR-code bank-details-sub1">
+                            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                alt="qr-code" />
+                        </div>
+                        <div class="bank-details-sub2">
+                            <h4><u>Payment Details</u></h4>
+                            <p><strong>Bank Name: </strong>Canara Bank</p>
+                            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
+                            <p><strong>Account No: </strong>120002152652</p>
+                            <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="totals-section">
+                    ${totalsHTML}
+                </div>
+            </div>
         </div>
-        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${typeof numberToWords === "function" ? numberToWords(totalPrice) : totalPrice} Only</span></p>
+
         <div class="page-break"></div>
         <div class="notes-section" contenteditable="true">
             <p><strong>Notes:</strong></p>

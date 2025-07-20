@@ -342,9 +342,6 @@ function handlePrintEvent(mainWindow) {
                 }
 
                 .preview-container {
-                    //background: #fff !important;
-                    // width: 210mm;
-                    // height: 297mm;
                     background-image: url("https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/icon2.png");
                     background-repeat: no-repeat;
                     background-position: center;
@@ -414,22 +411,39 @@ function handlePrintEvent(mainWindow) {
                     margin: 0;
                 }
 
+                .headline-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--text);
+    margin: 10px 0;
+}
+
                 .preview-container table {
                     width: 99%;
-                    border-collapse: collapse;
-                    table-layout: auto;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    background: #f9fbfd;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 600px;
                 }
 
                 .preview-container table th,
                 .preview-container table td {
-                    border: 1px solid #000000;
-                    padding: 10px;
-                    text-align: left;
-                    font-size: 18px;
+                    border: 1px solid #535353ff;
+    padding: 0.5rem 1.1rem;
+    text-align: left;
+    font-size: 18px;
                 }
                 
                 .preview-container table th {
-                    font-size: 20px;
+                        background: #f0f4fa;
+    color: var(--primary, #2a4d8f);
+    font-weight: 700;
+    font-size: 17px;
                 }
             
                 .preview-container table th {
@@ -445,30 +459,93 @@ function handlePrintEvent(mainWindow) {
                     justify-content: space-between;
                 }
 
-                .totals-section {
-                    margin: 20px 0;
-                    text-align: right;
-                    font-size: 20px;
-                }
+                .fifth-section {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 0.5rem;
+    font-size: 18px;
+}
 
-                .totals-section p,
-                .totals-section h3 {
-                    margin: 5px 0;
-                    font-size: 20px;
-                }
+.fifth-section-sub1 {
+    width: 100%;
+    display: flex;
+}
 
-                .totals-section h3 {
-                    color: #007bff;
-                    font-weight: bold;
-                }
+.fifth-section-sub2 {
+    display: flex;
+    flex-direction: column;
+    width: 70%;
+}
 
-                #totalInWords, p {
-                    font-size: 20px;
-                }
+.fifth-section-sub3{
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.fifth-section-sub3-1{
+width:35%;
+}
+
+.fifth-section-sub3-2{
+width:65%;
+}
+
+.fifth-section-sub2 p{
+font-size: 20px;}
+
+
+.fifth-section .totals-section {
+    width: 30%;
+    text-align: left;
+    font-size: 20px;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.fifth-section .totals-section p {
+    float: left;
+    margin: 0;
+}
+
+.fifth-section .bank-details {
+    text-align: left;
+    font-size: 18px;
+    display: flex;
+}
+
+.fifth-section .bank-details-sub2 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.fifth-section .fifth-section-sub2 p{
+    margin: 0;
+}
+
+.fifth-section .QR-code {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    margin: 10px 10px;
+}
+
+.fifth-section .QR-code img {
+    height: 100%;
+}
+
+.fifth-section .bank-details-sub2 p {
+    margin: 0;
+}
+
+.fifth-section .bank-details-sub2 h4 {
+    margin: 0;
+}
 
                 .notes-section {
                     padding: 3%;
-                    font-size: 14px;
+                    font-size: 20px;
                     margin-top: 20px;
                     line-height: 1.5;
                 }
@@ -488,7 +565,7 @@ function handlePrintEvent(mainWindow) {
 
                 footer {
                     text-align: center;
-                    font-size: 12px;
+                    font-size: 14px;
                     color: #777;
                     margin-top: 20px;
                 }

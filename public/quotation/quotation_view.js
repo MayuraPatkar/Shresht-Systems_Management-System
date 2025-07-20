@@ -159,8 +159,10 @@ function generateViewPreviewHTML(quotation, viewType) {
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
         </div>
+                
+        <div class="title">Quotation-${quotation.quotation_id}</div>
         <div class="items-section">
-            <h2>Item Details</h2>
+            <div class="table headline-section" contenteditable="true"><p><u>5KW Solar Systems</u></p></div>
             <table class="items-table">
                 <thead>
                     <tr>
@@ -173,10 +175,33 @@ function generateViewPreviewHTML(quotation, viewType) {
             </table>
         </div>
 
-        <div class="totals-section" style="text-align: right;">
-            ${totalsHTML}
+        <div class="fifth-section">
+            <div class="fifth-section-sub1">
+                <div class="fifth-section-sub2">
+                    <div class="fifth-section-sub3">
+                        <p class="fifth-section-sub3-1"><strong>Total Amount in Words: </strong></p>
+                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                    </div>
+                    <div class="bank-details">
+                        <div class="QR-code bank-details-sub1">
+                            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                alt="qr-code" />
+                        </div>
+                        <div class="bank-details-sub2">
+                            <h4>Payment Details</h4>
+                            <p><strong>Bank Name: </strong>Canara Bank</p>
+                            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
+                            <p><strong>Account No: </strong>120002152652</p>
+                            <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="totals-section">
+                    ${totalsHTML}
+                </div>
+            </div>
         </div>
-        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${typeof numberToWords === "function" ? numberToWords(totalPrice) : totalPrice} Only</span></p>
+
         <div class="page-break"></div>
         <div class="notes-section" contenteditable="true">
             <p><strong>Notes:</strong></p>
@@ -206,6 +231,8 @@ function generateViewPreviewHTML(quotation, viewType) {
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
         </div>
+
+        <div class="title">Quotation-${quotation.quotation_id}</div>
         <div class="terms-section" contenteditable="true">
             <h3>Terms & Conditions</h3>
             <ul>
