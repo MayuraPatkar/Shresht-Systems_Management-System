@@ -197,7 +197,7 @@ async function openQuotation(quotationId) {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${itemsSpecificationsTableBody.children.length + 1}</td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td>${item.description || ''}</td>
                 <td><input type="text" value="${item.specification || ''}" required></td>
             `;
             itemsSpecificationsTableBody.appendChild(row);
@@ -207,7 +207,7 @@ async function openQuotation(quotationId) {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${itemsSpecificationsTableBody.children.length + 1}</td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td>${item.description || ''}</td>
                 <td><input type="text" value="${item.specification || ''}" required></td>
             `;
             itemsSpecificationsTableBody.appendChild(row);

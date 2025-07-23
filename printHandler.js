@@ -411,59 +411,55 @@ function handlePrintEvent(mainWindow) {
                     margin: 0;
                 }
 
-                .headline-section {
+.headline-section {
     display: flex;
-    justify-content: center;
     align-items: center;
     font-size: 20px;
     font-weight: bold;
     color: var(--text);
-    margin: 10px 0;
 }
 
                 .preview-container table {
-                    width: 99%;
+    width: 99.9%;
     border-collapse: collapse;
     margin-top: 0.5rem;
     background: #f9fbfd;
     border-radius: 8px;
     overflow: hidden;
     min-width: 600px;
-                }
+}
 
-                .preview-container table th,
-                .preview-container table td {
-                    border: 1px solid #535353ff;
-    padding: 0.5rem 1.1rem;
+.preview-container table th,
+.preview-container table td {
+    border: 1px solid #9ca0a8;
+    padding: 0.6rem 0.8rem;
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+.preview-container table td:nth-child(1),
+.preview-container table td:nth-child(2),
+.preview-container table td:nth-child(3) {
     text-align: left;
-    font-size: 18px;
-                }
-                
-                .preview-container table th {
-                        background: #f0f4fa;
+}
+
+.preview-container table th {
+    background: #f0f4fa;
     color: var(--primary, #2a4d8f);
     font-weight: 700;
-    font-size: 17px;
-                }
-            
-                .preview-container table th {
-                    background-color: #007bff !important;
-                    color: #fff !important;
-                    font-weight: bold;
-                    -webkit-print-color-adjust: exact;
-                    print-color-adjust: exact;
-                }
+    font-size: 0.9rem;
+    text-align: center;
+}
 
-                .second-section {
-                    display: flex;
-                    justify-content: space-between;
-                }
+.second-section {
+    display: flex;
+    justify-content: space-between;
+}
 
-                .fifth-section {
+.fifth-section {
     display: flex;
     justify-content: space-evenly;
     margin-top: 0.5rem;
-    font-size: 18px;
 }
 
 .fifth-section-sub1 {
@@ -474,42 +470,47 @@ function handlePrintEvent(mainWindow) {
 .fifth-section-sub2 {
     display: flex;
     flex-direction: column;
-    width: 70%;
+    width: 68%;
 }
 
-.fifth-section-sub3{
+.fifth-section .fifth-section-sub2 p {
+    margin: 0;
+}
+
+.fifth-section-sub3 {
     display: flex;
-    margin-bottom: 10px;
 }
-
-.fifth-section-sub3-1{
-width:35%;
-}
-
-.fifth-section-sub3-2{
-width:65%;
-}
-
-.fifth-section-sub2 p{
-font-size: 20px;}
-
 
 .fifth-section .totals-section {
-    width: 30%;
+    width: 32%;
     text-align: left;
-    font-size: 20px;
+    font-size: 16px;
     display: flex;
-    justify-content: space-evenly;
+    justify-content:space-between;
 }
 
 .fifth-section .totals-section p {
-    float: left;
-    margin: 0;
+    margin: 12px 0; 
+}
+
+.fifth-section .totals-section h3{
+        margin: 10px 0; 
+
+}
+
+.fifth-section .totals-section .totals-section-sub1 {
+    text-align: center;
+    width: 40%;
+}
+
+.fifth-section .totals-section .totals-section-sub2 {
+    width: 60%;
+    text-align: right;
 }
 
 .fifth-section .bank-details {
     text-align: left;
-    font-size: 18px;
+    font-size: 16px;
     display: flex;
 }
 
@@ -519,8 +520,19 @@ font-size: 20px;}
     justify-content: center;
 }
 
-.fifth-section .fifth-section-sub2 p{
-    margin: 0;
+.fifth-section-sub3 {
+    display: flex;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.fifth-section-sub3-1 {
+    width: 25%;
+}
+
+.fifth-section-sub3-2 {
+text-align: left;
+    width: 75%;
 }
 
 .fifth-section .QR-code {
@@ -535,44 +547,64 @@ font-size: 20px;}
     height: 100%;
 }
 
-.fifth-section .bank-details-sub2 p {
+.fifth-section .bank-details-sub2 p,
+.fifth-section .bank-details-sub2 h3 {
     margin: 0;
 }
 
-.fifth-section .bank-details-sub2 h4 {
-    margin: 0;
+.notes-section {
+    padding: 3%;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
-                .notes-section {
-                    padding: 3%;
-                    font-size: 20px;
-                    margin-top: 20px;
-                    line-height: 1.5;
-                }
+.bank-details {
+    font-size: 14px;
+}
 
+.terms-section {
+    padding: 3%;
+    font-size: 18px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
 
-                .terms-section {
-                    padding: 3%;
-                    font-size: 20px;
-                    margin-bottom: 20px;
-                    line-height: 1.5;
-                }
+.declaration {
+    font-size: 14px;
+    line-height: 1.5;
+}
 
-                .closing-section {
-                    font-size: 20px;
-                    line-height: 1.5;
-                }
+.signature {
+    text-align: left;
+}
 
-                footer {
-                    text-align: center;
-                    font-size: 14px;
-                    color: #777;
-                    margin-top: 20px;
-                }
+.signature-space {
+    margin-top: 20px;
+    width: 150px;
+    height: 40px;
+}
 
-                footer p{
-                    font-size: 12px;
-                }
+.closing-section {
+    font-size: 1.1rem;
+}
+
+footer {
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+    margin-top: 20px;
+}
+
+footer p {
+    font-size: 14px;
+}
+
+#image-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+}
                 
                 @media print {
                     th {

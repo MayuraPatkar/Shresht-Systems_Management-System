@@ -85,13 +85,20 @@ function generateViewPreviewHTML(quotation, viewType) {
     }
 
     if (viewType === 2) {
-        totalsHTML =
-            `<strong>Total Tax: ₹ ${formatIndian(totalTax, 2)}</strong><br>
-        <strong>Grand Total: ₹ ${formatIndian(totalPrice, 2)}</strong>`;
+        totalsHTML =`
+            <div class="totals-section-sub1">
+                <p><strong>Total Tax: </strong></p>
+                <p><strong>Grand Total: </strong></p>
+            </div>
+            <div class="totals-section-sub2">
+                <h3>₹ ${formatIndian(totalTax, 2)}</h3>
+                <h3>₹ ${formatIndian(Math.round(totalPrice), 2)}</h3>
+            </div>    
+            `;
     } else if (viewType === 1) {
-        totalsHTML = `<strong>Grand Total: ₹ ${formatIndian(totalPrice, 2)}</strong>`;
+        totalsHTML = `<h3>Grand Total: ₹ ${formatIndian(totalPrice, 2)}</h3>`;
     } else {
-        totalsHTML = `<strong>Grand Total: ₹ ${formatIndian(totalPrice, 2)}</strong>`;
+        totalsHTML = `<h3>Grand Total: ₹ ${formatIndian(totalPrice, 2)}</h3>`;
     }
 
 
@@ -179,7 +186,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             <div class="fifth-section-sub1">
                 <div class="fifth-section-sub2">
                     <div class="fifth-section-sub3">
-                        <p class="fifth-section-sub3-1"><strong>Total Amount in Words: </strong></p>
+                        <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
                         <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
                     </div>
                     <div class="bank-details">
@@ -188,7 +195,7 @@ function generateViewPreviewHTML(quotation, viewType) {
                                 alt="qr-code" />
                         </div>
                         <div class="bank-details-sub2">
-                            <h4>Payment Details</h4>
+                            <h3><u>Payment Details</u></h3>
                             <p><strong>Bank Name: </strong>Canara Bank</p>
                             <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
                             <p><strong>Account No: </strong>120002152652</p>
@@ -208,7 +215,6 @@ function generateViewPreviewHTML(quotation, viewType) {
             <ul>
                 <li>All prices are exclusive of taxes unless stated otherwise.</li>    
                 <li>Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation.</li>
-                <li>Delivery and installation will be completed within the stipulated timeline as per mutual agreement.</li>
                 <li>All equipment supplied is covered under the manufacturer’s standard warranty.</li>              
                 <li>All applicable taxes and duties are included unless stated otherwise.</li>
             </ul>
