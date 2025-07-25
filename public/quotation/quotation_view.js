@@ -120,7 +120,7 @@ function generateViewPreviewHTML(quotation, viewType) {
     let tableHead = "";
     if (viewType === 2) {
         tableHead = `
-            <th>S. No</th>
+            <th>Sr. No</th>
             <th>Description</th>
             <th>Specification</th>
             <th>HSN/SAC</th>
@@ -130,7 +130,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             <th>Total (With Tax)</th>`;
     } else if (viewType === 1) {
         tableHead = `
-            <th>S. No</th>
+            <th>Sr. No</th>
             <th>Description</th>
             <th>Specification</th>
             <th>HSN/SAC</th>
@@ -139,7 +139,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             <th>Total</th>`;
     } else {
         tableHead = `
-            <th>S. No</th>
+            <th>Sr. No</th>
             <th>Description</th>
             <th>Specification</th>
             <th>Qty</th>`;
@@ -155,9 +155,9 @@ function generateViewPreviewHTML(quotation, viewType) {
                 <p><strong>Grand Total: </strong></p>
             </div>
             <div class="totals-section-sub2">
-                <h3>₹ ${formatIndian(grandTotalTaxable, 2)}</h3>
-                <h3>₹ ${formatIndian(grandTotalTax, 2)}</h3>
-                <h3>₹ ${formatIndian(grandTotal, 2)}</h3>
+                <p>₹ ${formatIndian(grandTotalTaxable, 2)}</p>
+                <p>₹ ${formatIndian(grandTotalTax, 2)}</p>
+                <p>₹ ${formatIndian(grandTotal, 2)}</p>
             </div>
         `;
     } else {

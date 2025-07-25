@@ -460,7 +460,7 @@ margin-bottom: 5px;
     border: 1px solid #9ca0a8;
     padding: 0.6rem 0.8rem;
     text-align: right;
-    font-size: 0.9rem;
+    font-size: 20px;
 }
 
 .preview-container table td:nth-child(1),
@@ -473,7 +473,7 @@ margin-bottom: 5px;
     background: #f0f4fa;
     color:  #2a4d8f;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 21px;
     text-align: center;
 }
 
@@ -500,11 +500,15 @@ margin-bottom: 5px;
 }
 
 .fifth-section .fifth-section-sub2 h3 {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
 }
 
 .fifth-section-sub3 {
     display: flex;
+}
+
+.fifth-section-sub3 p{
+    font-size: 18px;
 }
 
 .fifth-section .totals-section {
@@ -535,7 +539,7 @@ margin-bottom: 5px;
 
 .fifth-section .bank-details {
     text-align: left;
-    font-size: 16px;
+    font-size: 20px;
     display: flex;
 }
 
@@ -579,24 +583,24 @@ text-align: left;
 }
 
 .notes-section {
-    padding: 3%;
-    font-size: 16px;
+    font-size: 20px;
     line-height: 1.5;
+    margin: 0;
 }
 
 .bank-details {
-    font-size: 14px;
+    font-size: 20px;
 }
 
 .terms-section {
     padding: 3%;
-    font-size: 18px;
+    font-size: 20px;
     margin-bottom: 20px;
     line-height: 1.5;
 }
 
 .declaration {
-    font-size: 14px;
+    font-size: 20px;
     line-height: 1.5;
 }
 
