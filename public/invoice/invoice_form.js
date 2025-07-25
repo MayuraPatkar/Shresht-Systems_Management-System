@@ -78,7 +78,7 @@ async function openInvoice(id) {
         document.getElementById('delivery-challan-number').value = invoice.dc_number;
         document.getElementById('delivery-challan-date').value = formatDate(invoice.dc_date);
         document.getElementById('service-months').value = invoice.service_month;
-        document.getElementById('waybill-number').value = invoice.Waybill_id;       
+        document.getElementById('waybill-number').value = invoice.Waybill_id;
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
@@ -144,6 +144,7 @@ function calculateInvoice(itemsTable) {
     let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[4].querySelector("input").value) > 0);
 
     for (const row of itemsTable.rows) {
+        let sno = 1;
         const description = row.cells[0].querySelector("input").value || "-";
         const hsnSac = row.cells[1].querySelector("input").value || "-";
         const qty = parseFloat(row.cells[2].querySelector("input").value || "0");
@@ -166,6 +167,7 @@ function calculateInvoice(itemsTable) {
 
             itemsHTML += `
                 <tr>
+                    <td>${sno++}}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -181,6 +183,7 @@ function calculateInvoice(itemsTable) {
 
             itemsHTML += `
                 <tr>
+                    <td>${sno++}}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -291,6 +294,7 @@ function generatePreview() {
             <table>
                 <thead>
                     <tr>
+                        <th>Sr. No.</th>
                         <th>Description</th>
                         <th>HSN/SAC</th>
                         <th>Qty</th>
@@ -310,8 +314,10 @@ function generatePreview() {
         <div class="fifth-section">
             <div class="fifth-section-sub1">
                 <div class="fifth-section-sub2">
-                    <div>
-                        <p><strong>Total Amount in Words: </strong><span id="totalInWords">${numberToWords(finalTotal)} Only</span></p>
+                    <div class="fifth-section-sub3">
+                        <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(finalTotal)} Only.
+                        </span></p>
                     </div>
                     <h3>Payment Details</h3>
                     <div class="bank-details">
@@ -342,7 +348,7 @@ function generatePreview() {
 
         <div class="seventh-section">
             <div class="terms-section" contenteditable="true">
-                <p><strong>Terms & Conditions:</strong></p>
+                <h4>Terms & Conditions:</h4>
                 <p>1. Payment should be made within 15 days from the date of invoice.</p>
                 <p>2. Interest @ 18% per annum will be charged for the delayed payment.</p>
                 <p>3. Goods once sold will not be taken back.</p>
@@ -470,12 +476,58 @@ function payment(id) {
     document.getElementById('view').style.display = 'none';
     document.getElementById('payment-container').style.display = 'block';
 }
+document.getElementById('payment-mode').addEventListener('change', function () {
+    const mode = this.value;
+    let extraField = document.getElementById('extra-payment-details');
+    if (!extraField) {
+        extraField = document.createElement('div');
+        extraField.id = 'payment-extra-field';
+        extraField.className = 'form-group';
+        this.parentNode.parentNode.appendChild(extraField);
+    }
+    extraField.innerHTML = ''; // Clear previous
 
+    if (mode === 'Cash') {
+        extraField.innerHTML = `
+            <label for="cash-location">Cash Location</label>
+            <input type="text" id="cash-location" placeholder="Enter cash location">
+        `;
+    } else if (mode === 'UPI') {
+        extraField.innerHTML = `
+            <label for="upi-transaction-id">UPI Transaction ID</label>
+            <input type="text" id="upi-transaction-id" placeholder="Enter UPI transaction ID">
+        `;
+    } else if (mode === 'Cheque') {
+        extraField.innerHTML = `
+            <label for="cheque-number">Cheque Number</label>
+            <input type="text" id="cheque-number" placeholder="Enter cheque number">
+        `;
+    } else if (mode === 'Bank Transfer') {
+        extraField.innerHTML = `
+            <label for="bank-details">Bank Details</label>
+            <input type="text" id="bank-details" placeholder="Enter bank details">
+        `;
+    }
+});
+
+// Update payment-btn click handler to include extra field value
 document.getElementById('payment-btn').addEventListener('click', async () => {
     const paymentStatus = document.querySelector('input[name="payment-question"]:checked')?.value;
     const paidAmount = parseInt(document.getElementById("paid-amount").value);
     const paymentDate = document.getElementById("payment-date").value;
     const paymentMode = document.getElementById("payment-mode").value;
+
+    // Get extra field value
+    let extraInfo = '';
+    if (paymentMode === 'Cash') {
+        extraInfo = document.getElementById('cash-location')?.value || '';
+    } else if (paymentMode === 'UPI') {
+        extraInfo = document.getElementById('upi-transaction-id')?.value || '';
+    } else if (paymentMode === 'Cheque') {
+        extraInfo = document.getElementById('cheque-number')?.value || '';
+    } else if (paymentMode === 'Bank Transfer') {
+        extraInfo = document.getElementById('bank-details')?.value || '';
+    }
 
     const data = {
         invoiceId: invoiceId,
@@ -483,6 +535,7 @@ document.getElementById('payment-btn').addEventListener('click', async () => {
         paidAmount: paidAmount,
         paymentDate: paymentDate,
         paymentMode: paymentMode,
+        paymentExtra: extraInfo,
     };
 
     try {
@@ -501,6 +554,9 @@ document.getElementById('payment-btn').addEventListener('click', async () => {
             document.getElementById("paid-amount").value = '';
             document.getElementById("payment-date").value = '';
             document.getElementById("payment-mode").value = '';
+            if (document.getElementById('payment-extra-field')) {
+                document.getElementById('payment-extra-field').innerHTML = '';
+            }
         }
     } catch (error) {
         console.error("Error:", error);

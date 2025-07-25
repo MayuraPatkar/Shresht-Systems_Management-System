@@ -91,7 +91,7 @@
             margin-bottom: 1.5rem;
             box-shadow: 0 2px 8px #0001;
             width: 90%;
-            max-width: 900px;
+            /* max-width: 900px; */
             min-width: 280px;
             display: flex;
             flex-direction: column;

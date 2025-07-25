@@ -149,6 +149,24 @@
     margin: 0;
 }
 
+.fifth-section-sub3 {
+    display: flex;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.fifth-section-sub3-1 {
+    width: 30%;
+}
+
+.fifth-section-sub3-2 {
+    width: 70%;
+}
+
+.fifth-section .fifth-section-sub2 h3 {
+    font-size: 1.1rem;
+}
+
 .fifth-section .QR-code {
     width: 100px;
     height: 100px;

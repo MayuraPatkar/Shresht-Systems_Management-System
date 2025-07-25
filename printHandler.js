@@ -23,7 +23,6 @@ function handlePrintEvent(mainWindow) {
                 <style>
                 @page {
                     size: A4;
-                    margin: 0;
                 }
 
                 body {
@@ -42,6 +41,8 @@ function handlePrintEvent(mainWindow) {
     height: 296.926mm;
                         -webkit-print-color-adjust: exact;
                     print-color-adjust: exact;
+                                        margin: 0;
+                    padding: 0;
 }
 
 .first-section {
@@ -81,16 +82,17 @@ function handlePrintEvent(mainWindow) {
 
 .third-section {
     display: flex;
-    justify-content: space-evenly;
-    font-size: 16px;
-}
+        justify-content: space-evenly;
+        font-size: 16px;
+    }
 
-.third-section p {
-    margin: 5px;
-}
+    .third-section p {  
+        margin: 5px;
+    }
 
-.third-section .info-section {
-    text-align: left;
+    .third-section .info-section {
+        text-align: left;
+        margin-left: 250px;
 }
 
 .third-section .info-section,
@@ -112,7 +114,7 @@ function handlePrintEvent(mainWindow) {
     width: 100%;
     border-collapse: collapse;
     margin-top: 0.5rem;
-    background: #f9fbfd !important;
+    background: #f9fbfd; !important;
     border-radius: 8px;
     overflow: hidden;
     min-width: 600px;
@@ -122,19 +124,19 @@ function handlePrintEvent(mainWindow) {
 
 .fourth-section table th,
 .fourth-section table td {
-    border: 1px solid #e5e7eb !important;
+    border: 1px solid #858585ff !important;
     padding: 0.5rem 1.1rem;
     text-align: left;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
                         -webkit-print-color-adjust: exact;
                     print-color-adjust: exact;
 }
 
 .fourth-section table th {
-    background: #f0f4fa !important;
-    color: var(--primary, #2a4d8f) !important;
+    background: #2657b0ff !important;
+    color: #ffffffff !important;
     font-weight: 700;
-    font-size: 0.8rem;
+    font-size: 1rem;
 }
 
 .fifth-section {
@@ -152,6 +154,10 @@ function handlePrintEvent(mainWindow) {
     display: flex;
     flex-direction: column;
     width: 68%;
+}
+
+.fifth-section .fifth-section-sub2 h3 {
+    font-size: 1.1rem;
 }
 
 .fifth-section .totals-section {
@@ -179,7 +185,22 @@ function handlePrintEvent(mainWindow) {
     justify-content: center;
 }
 
-.fifth-section .fifth-section-sub2 p{
+.fifth-section-sub3 {
+    display: flex;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.fifth-section-sub3-1 {
+    width: 30%;
+}
+
+.fifth-section-sub3-2 {
+    width: 70%;
+    margin-left: 0;
+}
+
+.fifth-section .fifth-section-sub2 h3{
     margin: 0;
 }
 
@@ -230,6 +251,11 @@ function handlePrintEvent(mainWindow) {
 .seventh-section p {
     margin: 0;
 }
+
+.seventh-section .terms-section h4{
+margin-bottom: 5px;
+}
+
 
 .eighth-section {
     /* height: 4%; */
@@ -474,7 +500,6 @@ function handlePrintEvent(mainWindow) {
 }
 
 .fifth-section .fifth-section-sub2 h3 {
-    margin:0;
     font-size: 1.1rem;
 }
 
@@ -496,7 +521,6 @@ function handlePrintEvent(mainWindow) {
 
 .fifth-section .totals-section h3{
         margin: 10px 0; 
-
 }
 
 .fifth-section .totals-section .totals-section-sub1 {
@@ -556,7 +580,7 @@ text-align: left;
 
 .notes-section {
     padding: 3%;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.5;
 }
 

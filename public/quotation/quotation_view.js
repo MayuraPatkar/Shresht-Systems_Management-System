@@ -259,7 +259,7 @@ function generateViewPreviewHTML(quotation, viewType) {
                         <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
                         <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
                     </div>
-                    <h3>Payment Details</h3>
+                    <h3>Payment Details:</h3>
                     <div class="bank-details">
                         <div class="QR-code bank-details-sub1">
                             <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
@@ -491,7 +491,7 @@ async function viewQuotation(quotationId, viewType) {
         const tableHead = document.querySelector("#view-items-table thead tr");
         if (viewType === 2) {
             tableHead.innerHTML = `
-                <th>S. No</th>
+                <th>Sr. No</th>
                 <th>Description</th>
                 <th>Specification</th>
                 <th>HSN/SAC</th>
@@ -502,7 +502,7 @@ async function viewQuotation(quotationId, viewType) {
             `;
         } else if (viewType === 1) {
             tableHead.innerHTML = `
-                <th>S. No</th>
+                <th>Sr. No</th>
                 <th>Description</th>
                 <th>Specification</th>
                 <th>HSN/SAC</th>
@@ -512,7 +512,7 @@ async function viewQuotation(quotationId, viewType) {
             `;
         } else {
             tableHead.innerHTML = `
-                <th>S. No</th>
+                <th>Sr. No</th>
                 <th>Description</th>
                 <th>Specification</th>
                 <th>Qty</th>
@@ -522,7 +522,7 @@ async function viewQuotation(quotationId, viewType) {
         const tableHeadNonItems = document.querySelector("#view-non-items-table thead tr");
         if (viewType === 2) {
             tableHeadNonItems.innerHTML = `
-                <th>S. No</th>
+                <th>Sr. No</th>
                 <th>Description</th>
                 <th>Specifications</th>
                 <th>Price</th>
@@ -531,14 +531,14 @@ async function viewQuotation(quotationId, viewType) {
             `;
         } else if (viewType === 1) {
             tableHeadNonItems.innerHTML = `
-                <th>S. No</th>
+                <th>Sr. No</th>
                 <th>Description</th>
                 <th>Specifications</th>
                 <th>Price</th>
             `;
         } else {
             tableHeadNonItems.innerHTML = `
-                <th>S. No</th>
+                <th>Sr. No</th>
                 <th>Description</th>
                 <th>Specifications</th>
                 <th>Price</th>

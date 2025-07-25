@@ -1,4 +1,4 @@
-const totalSteps = 7;
+const totalSteps = 6;
 let quotationId = '';
 let totalAmountNoTax = 0;
 let totalAmountTax = 0;
@@ -195,7 +195,7 @@ function generatePreview() {
         </div>
     `;
 
-    const files = document.getElementById('files').files;
+    // const files = document.getElementById('files').files;
 
     document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
@@ -341,7 +341,7 @@ function generatePreview() {
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
         </div>
-        <div class="title">Quotation - #${quotationId}</div>
+        <div class="title">Quotation-${quotationId}</div>
         <div class="terms-section" contenteditable="true">
             <h3>Terms & Conditions</h3>
             <ul>
@@ -439,45 +439,45 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
     }
 });
 
-const fileInput = document.getElementById('files');
-const previewContainer = document.getElementById('image-preview-container');
+// const fileInput = document.getElementById('files');
+// const previewContainer = document.getElementById('image-preview-container');
 
-fileInput.addEventListener('change', function () {
-    previewContainer.innerHTML = ''; // Clear previous previews
+// fileInput.addEventListener('change', function () {
+//     previewContainer.innerHTML = ''; // Clear previous previews
 
-    Array.from(this.files).forEach(file => {
-        if (!file.type.startsWith('image/')) return;
+//     Array.from(this.files).forEach(file => {
+//         if (!file.type.startsWith('image/')) return;
 
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const wrapper = document.createElement('div');
-            wrapper.style.display = 'flex';
-            wrapper.style.flexDirection = 'column';
-            wrapper.style.alignItems = 'center';
-            wrapper.style.width = '200px';
+//         const reader = new FileReader();
+//         reader.onload = function (e) {
+//             const wrapper = document.createElement('div');
+//             wrapper.style.display = 'flex';
+//             wrapper.style.flexDirection = 'column';
+//             wrapper.style.alignItems = 'center';
+//             wrapper.style.width = '200px';
 
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.style.width = '200px';
-            img.style.height = '150px';
-            img.style.objectFit = 'cover';
-            img.style.border = '1px solid #ccc';
-            img.style.borderRadius = '4px';
+//             const img = document.createElement('img');
+//             img.src = e.target.result;
+//             img.style.width = '200px';
+//             img.style.height = '150px';
+//             img.style.objectFit = 'cover';
+//             img.style.border = '1px solid #ccc';
+//             img.style.borderRadius = '4px';
 
-            const name = document.createElement('span');
-            name.textContent = file.name;
-            name.style.fontSize = '12px';
-            name.style.marginTop = '5px';
-            name.style.textAlign = 'center';
-            name.style.wordBreak = 'break-word';
+//             const name = document.createElement('span');
+//             name.textContent = file.name;
+//             name.style.fontSize = '12px';
+//             name.style.marginTop = '5px';
+//             name.style.textAlign = 'center';
+//             name.style.wordBreak = 'break-word';
 
-            wrapper.appendChild(img);
-            wrapper.appendChild(name);
-            previewContainer.appendChild(wrapper);
-        };
-        reader.readAsDataURL(file);
-    });
-});
+//             wrapper.appendChild(img);
+//             wrapper.appendChild(name);
+//             previewContainer.appendChild(wrapper);
+//         };
+//         reader.readAsDataURL(file);
+//     });
+// });
 
 // Function to collect form data
 function collectFormData() {

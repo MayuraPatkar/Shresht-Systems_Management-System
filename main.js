@@ -79,6 +79,7 @@ log.transports.file.resolvePathFn = () => {
 cleanOldLogs();
 log.info("---------------------------***App started***---------------------------");
 
+
 // Enable hot-reload for development
 require("electron-reload")(path.join(__dirname), {
   electron: require(path.join(__dirname, "node_modules", "electron")),

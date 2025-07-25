@@ -156,7 +156,8 @@ const invoiceSchema = new mongoose.Schema({
         {
             payment_date: { type: Date },
             paid_amount: { type: Number },
-            payment_mode: { type: String }
+            payment_mode: { type: String },
+            extra_details: { type: String }, // For UPI, Bank Transfer, etc.
         }
     ],
     total_paid_amount: { type: Number, default: 0 },

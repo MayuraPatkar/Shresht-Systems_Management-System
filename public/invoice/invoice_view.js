@@ -102,6 +102,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
     }
 
     if (items.length > 0) {
+        let sno = 1;
         hasTax = items.some(item => parseFloat(item.rate || 0) > 0);
         items.forEach(item => {
             const description = item.description || "-";
@@ -127,6 +128,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
 
                 itemsHTML += `
                     <tr>
+                        <td>${sno++}</td>
                         <td>${description}</td>
                         <td>${hsnSac}</td>
                         <td>${qty}</td>
@@ -142,6 +144,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
 
                 itemsHTML += `
                     <tr>
+                        <td>${sno++}</td>
                         <td>${description}</td>
                         <td>${hsnSac}</td>
                         <td>${qty}</td>
@@ -224,6 +227,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
             <table>
                 <thead>
                     <tr>
+                        <th>Sr. No.</th>
                         <th>Description</th>
                         <th>HSN/SAC</th>
                         <th>Qty</th>
@@ -243,10 +247,11 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
         <div class="fifth-section">
             <div class="fifth-section-sub1">
                 <div class="fifth-section-sub2">
-                    <div>
-                        <p><strong>Total Amount in Words: </strong><span id="totalInWords">${numberToWords(finalTotal)} Only</span></p>
+                    <div class="fifth-section-sub3">
+                        <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(finalTotal)} Only.</span></p>
                     </div>
-                    <h3>Payment Details</h3>
+                    <h3>Payment Details:</h3>
                     <div class="bank-details">
                         <div class="QR-code bank-details-sub1">
                             <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
@@ -275,7 +280,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
 
         <div class="seventh-section">
             <div class="terms-section" contenteditable="true">
-                <p><strong>Terms & Conditions:</strong></p>
+                <h3>Terms & Conditions:</h3>
                 <p>1. Payment should be made within 15 days from the date of invoice.</p>
                 <p>2. Interest @ 18% per annum will be charged for the delayed payment.</p>
                 <p>3. Goods once sold will not be taken back.</p>
