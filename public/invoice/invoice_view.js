@@ -246,15 +246,16 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                     <div>
                         <p><strong>Total Amount in Words: </strong><span id="totalInWords">${numberToWords(finalTotal)} Only</span></p>
                     </div>
+                    <h3>Payment Details</h3>
                     <div class="bank-details">
                         <div class="QR-code bank-details-sub1">
                             <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
                                 alt="qr-code" />
                         </div>
                         <div class="bank-details-sub2">
-                            <h4>Payment Details</h4>
+                            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
                             <p><strong>Bank Name: </strong>Canara Bank</p>
-                            <p><strong>Branch Name: </strong>ShanthiNagar Manipal</p>
+                            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
                             <p><strong>Account No: </strong>120002152652</p>
                             <p><strong>IFSC Code: </strong>CNRB0010261</p>
                         </div>

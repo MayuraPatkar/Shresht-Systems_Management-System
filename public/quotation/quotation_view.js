@@ -364,7 +364,7 @@ async function viewQuotation(quotationId, viewType) {
         document.getElementById('new').style.display = 'none';
         document.getElementById('view').style.display = 'flex';
 
-        // Fill Project Details (match HTML IDs)
+        // Fill Project Details
         document.getElementById('view-project-name').textContent = quotation.project_name || '-';
         document.getElementById('view-project-id').textContent = quotation.quotation_id || '-';
         document.getElementById('view-quotation-date').textContent = formatDate(quotation.quotation_date) || '-';
@@ -462,6 +462,7 @@ async function viewQuotation(quotationId, viewType) {
                     <td>${viewNonItesTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
                     <td>${item.specification || '-'}</td>
+                    <td>${formatIndian(totalWithTax, 2) || '-'}</td>
                 `;
             }
             viewNonItesTableBody.appendChild(row);
@@ -540,6 +541,7 @@ async function viewQuotation(quotationId, viewType) {
                 <th>S. No</th>
                 <th>Description</th>
                 <th>Specifications</th>
+                <th>Price</th>
             `;
         }
 
