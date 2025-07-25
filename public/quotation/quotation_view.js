@@ -50,7 +50,7 @@ function generateViewPreviewHTML(quotation, viewType) {
                 </tr>
             `;
         } else {
-            totalPrice += taxableValue;
+            totalPrice += taxableValue + taxAmount;
             itemsHTML += `
                 <tr>
                     <td>${++sno}</td>
@@ -395,7 +395,7 @@ async function viewQuotation(quotationId, viewType) {
 
             itemsTotalTaxable += taxableValue;
             itemsTotalTax += taxAmount;
-            itemsGrandTotal += (viewType === 2) ? totalWithTax : taxableValue;
+            itemsGrandTotal += (viewType === 2 || viewType === 3) ? totalWithTax : taxableValue;
 
             const row = document.createElement("tr");
             if (viewType === 2) {
@@ -484,7 +484,7 @@ async function viewQuotation(quotationId, viewType) {
 
         document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(overallGrandTotal, 2) || '-'}`;
         document.getElementById('view-total-tax').textContent = viewType === 2 ? `₹ ${formatIndian(overallTax, 2) || '-'}` : (viewType === 1 ? 'No Tax' : '-');
-        document.getElementById('view-total-with-tax').textContent = viewType === 2 ? `₹ ${formatIndian(overallGrandTotal, 2) || '-'}` : (viewType === 1 ? 'No Tax' : '-');
+        document.getElementById('view-total-with-tax').textContent = viewType === 2 || viewType === 3 ? `₹ ${formatIndian(overallGrandTotal, 2) || '-'}` : (viewType === 1 ? 'No Tax' : '-');
         document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(overallTaxable, 2) || '-'}`;
 
         // Update table header for with/without tax
