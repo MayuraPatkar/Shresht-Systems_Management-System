@@ -131,8 +131,8 @@
     width: 68%;
 }
 
-.fifth-section .fifth-section-sub2 p {
-    margin: 0;
+.fifth-section .fifth-section-sub2 h3 {
+    font-size: 1.1rem;
 }
 
 .fifth-section-sub3 {
@@ -153,16 +153,15 @@
 
 .fifth-section .totals-section h3{
         margin: 10px 0; 
-
 }
 
 .fifth-section .totals-section .totals-section-sub1 {
     text-align: center;
-    width: 40%;
+    width: 45%;
 }
 
 .fifth-section .totals-section .totals-section-sub2 {
-    width: 60%;
+    width: 55%;
     text-align: right;
 }
 
@@ -198,6 +197,7 @@
     display: flex;
     justify-content: center;
     margin: 10px 10px;
+    margin-left: 0;
 }
 
 .fifth-section .QR-code img {

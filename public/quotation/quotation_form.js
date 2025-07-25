@@ -26,10 +26,18 @@ async function getId() {
     }
 }
 
-function generateFilePages(files) {
+async function generateFilePages(files) {
     if (!files || files.length === 0) return '';
-    return Array.from(files).map(file => {
-        const imageUrl = URL.createObjectURL(file); // Local blob URL for preview
+
+    const getFilePath = async (file) => {
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = new Uint8Array(arrayBuffer);
+        const filePath = await window.electronAPI.saveFile(buffer, file.name);
+        return filePath;
+    };
+
+    const pages = await Promise.all(Array.from(files).map(async (file) => {
+        const imagePath = await getFilePath(file);
 
         return `
             <div class="preview-container">
@@ -47,7 +55,7 @@ function generateFilePages(files) {
                 </div>
 
                 <div class="files-section" style="margin: 20px 0; text-align: center;">
-                    <img src="${imageUrl}" alt="Uploaded File" style="max-width: 100%; max-height: 800px; object-fit: contain;">
+                    <img src="${imagePath}" alt="Uploaded File" style="max-width: 100%; max-height: 800px; object-fit: contain;">
                 </div>
 
                 <footer>
@@ -55,8 +63,11 @@ function generateFilePages(files) {
                 </footer>
             </div>
         `;
-    }).join('');
+    }));
+
+    return pages.join('');
 }
+
 
 
 // Function to generate the preview for both tax rate and without tax rate
@@ -154,7 +165,7 @@ function generatePreview() {
             <td>-</td>
             ${hasTax ? `
             <td>-</td>
-            <td>-</td>` :""}
+            <td>-</td>` : ""}
             <td>${item.rate || '-'}</td>
             <td>${formatIndian(Number(item.price), 2) || '-'}</td>
         </tr>
@@ -177,10 +188,10 @@ function generatePreview() {
         </div>
         <div class="totals-section-sub2">
             ${hasTax ? `
-            <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
-            <p>₹ ${formatIndian(totalCGST, 2)}</p>
-            <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-            <p>₹ ${formatIndian(totalPrice, 2)}</p>
+            <h3>₹ ${formatIndian(totalTaxableValue, 2)}</h3>
+            <h3>₹ ${formatIndian(totalCGST, 2)}</h3>
+            <h3>₹ ${formatIndian(totalSGST, 2)}</h3>` : ""}
+            <h3>₹ ${formatIndian(totalPrice, 2)}</h3>
         </div>
     `;
 
@@ -277,16 +288,17 @@ function generatePreview() {
             <div class="fifth-section-sub1">
                 <div class="fifth-section-sub2">
                     <div class="fifth-section-sub3">
-                        <p><strong>Total Amount in Words: </strong></p>
-                        <p><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                        <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
                     </div>
+                    <h3>Payment Details</h3>
                     <div class="bank-details">
                         <div class="QR-code bank-details-sub1">
                             <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
                                 alt="qr-code" />
                         </div>
                         <div class="bank-details-sub2">
-                            <h4><u>Payment Details</u></h4>
+                            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
                             <p><strong>Bank Name: </strong>Canara Bank</p>
                             <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
                             <p><strong>Account No: </strong>120002152652</p>
@@ -365,9 +377,11 @@ function generatePreview() {
             <p>This is a computer-generated quotation.</p>
         </footer>
     </div>
-    ${generateFilePages(files)}
     `;
+
+    // generateFilePages(files)
 }
+
 
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {

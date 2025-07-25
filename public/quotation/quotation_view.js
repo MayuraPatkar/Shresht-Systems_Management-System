@@ -6,13 +6,14 @@ function generateViewPreviewHTML(quotation, viewType) {
     let itemsHTML = "";
     let totalPrice = 0;
     let totalTax = 0;
+    let taxableValue = 0;
     let sno = 0;
 
     (quotation.items || []).forEach(item => {
         const qty = parseFloat(item.quantity || 0);
         const unitPrice = parseFloat(item.unit_price || 0);
         const taxRate = parseFloat(item.rate || 0);
-        const taxableValue = qty * unitPrice;
+        taxableValue = qty * unitPrice;
         const taxAmount = (taxableValue * taxRate) / 100;
         const totalWithTax = taxableValue + taxAmount;
 
@@ -26,8 +27,8 @@ function generateViewPreviewHTML(quotation, viewType) {
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${qty}</td>
                     <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(taxableValue, 2)}</td>
                     <td>${taxRate}%</td>
-                    <td>${formatIndian(taxAmount, 2)}</td>
                     <td>${formatIndian(totalWithTax, 2)}</td>
                 </tr>
             `;
@@ -63,8 +64,8 @@ function generateViewPreviewHTML(quotation, viewType) {
             <th>HSN/SAC</th>
             <th>Qty</th>
             <th>Unit Price</th>
+            <th>Taxable Value</th>
             <th>Tax Rate</th>
-            <th>Tax Amount</th>
             <th>Total (With Tax)</th>`;
 
     } else if (viewType === 1) {
@@ -85,20 +86,38 @@ function generateViewPreviewHTML(quotation, viewType) {
     }
 
     if (viewType === 2) {
-        totalsHTML =`
+        totalsHTML = `
             <div class="totals-section-sub1">
-                <p><strong>Total Tax: </strong></p>
+                <p><strong>Taxable Value: </strong></p>
+                <p><strong>Total CGST: </strong></p>
+                <p><strong>Total SGST: </strong></p>
                 <p><strong>Grand Total: </strong></p>
             </div>
             <div class="totals-section-sub2">
-                <h3>₹ ${formatIndian(totalTax, 2)}</h3>
+                <h3>₹ ${formatIndian(taxableValue, 2)}</h3>
+                <h3>₹ ${formatIndian((totalTax / 2), 2)}</h3>
+                <h3>₹ ${formatIndian((totalTax / 2), 2)}</h3>
                 <h3>₹ ${formatIndian(Math.round(totalPrice), 2)}</h3>
             </div>    
             `;
     } else if (viewType === 1) {
-        totalsHTML = `<h3>Grand Total: ₹ ${formatIndian(totalPrice, 2)}</h3>`;
+        totalsHTML = `
+        <div class="totals-section-sub1">
+            <p><strong>Grand Total: </strong></p>
+        </div>
+        <div class="totals-section-sub2">
+            <h3>₹ ${formatIndian(totalPrice, 2)}</h3>
+        </div>
+        `;
     } else {
-        totalsHTML = `<h3>Grand Total: ₹ ${formatIndian(totalPrice, 2)}</h3>`;
+        totalsHTML = `
+        <div class="totals-section-sub1">
+            <p><strong>Grand Total: </strong></p>
+        </div>
+        <div class="totals-section-sub2">
+            <h3>₹ ${formatIndian(totalPrice, 2)}</h3>
+        </div>
+        `;
     }
 
 
@@ -189,13 +208,14 @@ function generateViewPreviewHTML(quotation, viewType) {
                         <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
                         <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
                     </div>
+                    <h3>Payment Details</h3>
                     <div class="bank-details">
                         <div class="QR-code bank-details-sub1">
                             <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
                                 alt="qr-code" />
                         </div>
                         <div class="bank-details-sub2">
-                            <h3><u>Payment Details</u></h3>
+                            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
                             <p><strong>Bank Name: </strong>Canara Bank</p>
                             <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
                             <p><strong>Account No: </strong>120002152652</p>

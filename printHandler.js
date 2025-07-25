@@ -416,7 +416,7 @@ function handlePrintEvent(mainWindow) {
     align-items: center;
     font-size: 20px;
     font-weight: bold;
-    color: var(--text);
+    color: #000000ff;
 }
 
                 .preview-container table {
@@ -445,7 +445,7 @@ function handlePrintEvent(mainWindow) {
 
 .preview-container table th {
     background: #f0f4fa;
-    color: var(--primary, #2a4d8f);
+    color:  #2a4d8f;
     font-weight: 700;
     font-size: 0.9rem;
     text-align: center;
@@ -473,8 +473,9 @@ function handlePrintEvent(mainWindow) {
     width: 68%;
 }
 
-.fifth-section .fifth-section-sub2 p {
-    margin: 0;
+.fifth-section .fifth-section-sub2 h3 {
+    margin:0;
+    font-size: 1.1rem;
 }
 
 .fifth-section-sub3 {
@@ -541,6 +542,7 @@ text-align: left;
     display: flex;
     justify-content: center;
     margin: 10px 10px;
+    margin-left: 0;
 }
 
 .fifth-section .QR-code img {
@@ -604,7 +606,7 @@ footer p {
     flex-wrap: wrap;
     gap: 15px;
     margin-top: 10px;
-}
+    }
                 
                 @media print {
                     th {
