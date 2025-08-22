@@ -88,12 +88,11 @@ function generatePreview() {
     let grandTotal = 0;
     let roundOff = 0;
 
-    let itemsHTML = "";
-    let totalsHTML = "";
+    let allItems = [];
     let sno = 0;
 
     // Check if rate column is populated
-    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[4].querySelector("input").value) > 0);
+    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[5].querySelector("input").value) > 0);
 
     for (const row of itemsTable.rows) {
         const description = row.cells[1].querySelector("input").value || "-";
@@ -104,6 +103,8 @@ function generatePreview() {
 
         const taxableValue = qty * unitPrice;
         totalTaxableValue += taxableValue;
+
+        let itemHTML = "";
 
         if (hasTax) {
             const cgstPercent = rate / 2;
@@ -116,7 +117,7 @@ function generatePreview() {
             totalSGST += sgstValue;
             totalPrice += rowTotal;
 
-            itemsHTML += `
+            itemHTML = `
                 <tr>
                     <td>${++sno}</td>
                     <td>${description}</td>
@@ -132,7 +133,7 @@ function generatePreview() {
             const rowTotal = taxableValue;
             totalPrice += rowTotal;
 
-            itemsHTML += `
+            itemHTML = `
                 <tr>
                     <td>${++sno}</td>
                     <td>${description}</td>
@@ -143,11 +144,12 @@ function generatePreview() {
                 </tr>
             `;
         }
+        allItems.push(itemHTML);
     }
 
     const nonItemsTable = document.querySelector('#non-items-table tbody');
 
-    const items = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => {
+    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => {
         return {
             descriptions: row.querySelector('input[placeholder="Item Description"]').value,
             price: row.querySelector('input[placeholder="Price"]').value,
@@ -156,8 +158,8 @@ function generatePreview() {
     });
 
 
-    for (const item of items) {
-        itemsHTML += `
+    for (const item of nonItems) {
+        const itemHTML = `
         <tr>
             <td>${++sno}</td>
             <td>${item.descriptions || '-'}</td>
@@ -170,6 +172,7 @@ function generatePreview() {
             <td>${formatIndian(Number(item.price), 2) || '-'}</td>
         </tr>
       `;
+      allItems.push(itemHTML);
     }
 
     grandTotal = totalTaxableValue + totalCGST + totalSGST;
@@ -178,7 +181,7 @@ function generatePreview() {
     totalAmountNoTax = totalTaxableValue;
     totalAmountTax = (totalPrice + roundOff).toFixed(2);
 
-    totalsHTML = `
+    const totalsHTML = `
         <div class="totals-section-sub1">
             ${hasTax ? `
             <p><strong>Taxable Value: </strong></p>
@@ -194,6 +197,101 @@ function generatePreview() {
             <h3>₹ ${formatIndian(totalPrice, 2)}</h3>
         </div>
     `;
+
+    const ITEMS_PER_PAGE = 10;
+    const itemPages = [];
+    for (let i = 0; i < allItems.length; i += ITEMS_PER_PAGE) {
+        const chunk = allItems.slice(i, i + ITEMS_PER_PAGE);
+        itemPages.push(chunk.join(''));
+    }
+
+    const itemsPageHTML = itemPages.map((itemsHTML, index) => {
+        const isLastItemsPage = index === itemPages.length - 1;
+        return `
+        <div class="preview-container">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                        alt="Shresht Logo">
+                </div>
+                <div class="company-details">
+                    <h1>SHRESHT SYSTEMS</h1>
+                    <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+                    <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                    <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+                </div>
+            </div>
+            <div class="title">Quotation-${quotationId}</div>
+            ${index === 0 ? `<div class="table headline-section" contenteditable="true"><p><u>5KW Solar Systems</u></p></div>` : ''}
+            <div class="items-section">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>S. No</th>
+                            <th>Description</th>
+                            <th>HSN/SAC</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            ${hasTax ? `
+                            <th>Taxable Value (₹)</th>
+                            <th>Rate (%)</th>` : ""}
+                            <th>Total Price (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHTML}
+                    </tbody>
+                </table>
+            </div>
+
+            ${isLastItemsPage ? `
+            <div class="fifth-section">
+                <div class="fifth-section-sub1">
+                    <div class="fifth-section-sub2">
+                        <div class="fifth-section-sub3">
+                            <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                        </div>
+                        <h3>Payment Details</h3>
+                        <div class="bank-details">
+                            <div class="QR-code bank-details-sub1">
+                                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                    alt="qr-code" />
+                            </div>
+                            <div class="bank-details-sub2">
+                                <p><strong>Account Holder Name: </strong>Shresht Systems</p>
+                                <p><strong>Bank Name: </strong>Canara Bank</p>
+                                <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
+                                <p><strong>Account No: </strong>120002152652</p>
+                                <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="totals-section">
+                        ${totalsHTML}
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-break"></div>
+            <div class="notes-section" contenteditable="true">
+                <p><strong>Notes:</strong></p>
+                <ul>
+                    <li>All prices are exclusive of taxes unless stated otherwise.</li>    
+                    <li>Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation.</li>
+                    <li>Delivery and installation will be completed within the stipulated timeline as per mutual agreement.</li>
+                    <li>All equipment supplied is covered under the manufacturer’s standard warranty.</li>              
+                    <li>All applicable taxes and duties are included unless stated otherwise.</li>
+                </ul>
+            </div>
+            ` : ''}
+            <footer>
+                <p>This is a computer-generated quotation.</p>
+            </footer>
+        </div>
+        `;
+    }).join('');
+
 
     // const files = document.getElementById('files').files;
 
@@ -248,85 +346,7 @@ function generatePreview() {
         </footer>
     </div>
 
-    <div class="preview-container">
-        <div class="header">
-            <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
-                    alt="Shresht Logo">
-            </div>
-            <div class="company-details">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-            </div>
-        </div>
-        <div class="title">Quotation-${quotationId}</div>
-        <div class="table headline-section" contenteditable="true"><p><u>5KW Solar Systems</u></p></div>
-        <div class="items-section">
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th>S. No</th>
-                        <th>Description</th>
-                        <th>HSN/SAC</th>
-                        <th>Qty</th>
-                        <th>Unit Price</th>
-                        ${hasTax ? `
-                        <th>Taxable Value (₹)</th>
-                        <th>Rate (%)</th>` : ""}
-                        <th>Total Price (₹)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsHTML}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="fifth-section">
-            <div class="fifth-section-sub1">
-                <div class="fifth-section-sub2">
-                    <div class="fifth-section-sub3">
-                        <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
-                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
-                    </div>
-                    <h3>Payment Details</h3>
-                    <div class="bank-details">
-                        <div class="QR-code bank-details-sub1">
-                            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
-                                alt="qr-code" />
-                        </div>
-                        <div class="bank-details-sub2">
-                            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                            <p><strong>Bank Name: </strong>Canara Bank</p>
-                            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                            <p><strong>Account No: </strong>120002152652</p>
-                            <p><strong>IFSC Code: </strong>CNRB0010261</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="totals-section">
-                    ${totalsHTML}
-                </div>
-            </div>
-        </div>
-
-        <div class="page-break"></div>
-        <div class="notes-section" contenteditable="true">
-            <p><strong>Notes:</strong></p>
-            <ul>
-                <li>All prices are exclusive of taxes unless stated otherwise.</li>    
-                <li>Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation.</li>
-                <li>Delivery and installation will be completed within the stipulated timeline as per mutual agreement.</li>
-                <li>All equipment supplied is covered under the manufacturer’s standard warranty.</li>              
-                <li>All applicable taxes and duties are included unless stated otherwise.</li>
-            </ul>
-        </div>
-        <footer>
-            <p>This is a computer-generated quotation.</p>
-        </footer>
-    </div>
+    ${itemsPageHTML}
 
     <div class="preview-container">
         <div class="header">
