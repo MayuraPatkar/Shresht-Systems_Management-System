@@ -122,30 +122,50 @@
                 </div>
             </section>
 
-            <!-- Export Data Section -->
-            <section id="export-data-section">
-                <div class="export-options">
-                    <p>Select the data you want to export</p>
-
-                    <label>
-                        <input type="radio" name="export-data" value="quotaion" checked> Quotation
-                    </label>
-                    <label>
-                        <input type="radio" name="export-data" value="purchase"> Purchase Order
-                    </label>
-                    <label>
-                        <input type="radio" name="export-data" value="waybill"> Waybill
-                    </label>
-                    <label>
-                        <input type="radio" name="export-data" value="invoice"> Invoice
-                    </label>
-                    <label>
-                        <input type="radio" name="export-data" value="stock"> Stock
-                    </label>
-                    <button type="button" id="export-data-button">Export</button>
-
+            <!-- Data Controle Section -->
+            <section id="data-backup-section">
+                <!-- Backup Status -->
+                <div class="data-options">
+                    <p><strong>Status of Backup:</strong></p>
+                    <p id="backup-status">No backup performed yet.</p>
                 </div>
-            </section>
+
+                <!-- Export Options -->
+                <div class="export-backup">
+                    <p><strong>Select the data you want to export:</strong></p>
+
+                    <label>
+                        <input type="radio" name="export-data" value="quotations" checked> Quotation
+                    </label>
+                    <label>
+                        <input type="radio" name="export-data" value="purchases"> Purchase Order
+                    </label>
+                    <label>
+                        <input type="radio" name="export-data" value="waybills"> Waybill
+                    </label>
+                    <label>
+                        <input type="radio" name="export-data" value="invoices"> Invoice
+                    </label>
+                    <label>
+                        <input type="radio" name="export-data" value="stocks"> Stock
+                    </label>
+
+                    <br><br>
+                    <button type="button" id="export-data-button">Export</button>
+                </div>
+                <!-- Cloud Backup Options -->
+                <div class="cloud-backup-options">
+                    <p><strong>Cloud Backup:</strong></p>
+                    <p>Status: </p>
+                    <button type="button" id="google-drive-backup">Backup to Google Drive</button>
+                </div>
+
+                <!-- Restore Option -->
+                <div class="restore-backup">
+                    <p><strong>Restore from Backup:</strong></p>
+                    <input type="file" id="restore-file" accept=".gz,.zip,.json,.bson">
+                    <button type="button" id="restore-button">Restore</button>
+                </div>
         </main>
     </div>
     <script src="./settings.js"></script>

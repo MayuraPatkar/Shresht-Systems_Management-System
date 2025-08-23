@@ -4,6 +4,8 @@ const path = require('path');
 const exServer = express();
 const config = require('./config');
 const log = require("electron-log"); // Import electron-log in the preload process
+const autoBackup = require("./utils/backup");
+
 
 // Middleware
 exServer.use(express.json());
@@ -38,6 +40,7 @@ const serviceRoutes = require('./routes/service');
 const employeeRoute = require('./routes/employee');
 const analyticsRoutes = require('./routes/analytics');
 const commsRouter = require('./routes/comms');
+const settingsRoutes = require('./routes/settings');
 
 // Using routes middleware
 exServer.use('/', viewRoutes);
@@ -51,6 +54,7 @@ exServer.use('/service', serviceRoutes);
 exServer.use('/employee', employeeRoute);
 exServer.use('/analytics', analyticsRoutes);
 exServer.use('/comms', commsRouter);
+exServer.use('/settings', settingsRoutes);
 
 
 // Centralized Error Handling Middleware
@@ -61,6 +65,9 @@ exServer.use((err, req, res, next) => {
     }
     res.status(500).send({ error: 'Something went wrong!', details: err.message }); // Send generic error response
 });
+
+// Run automatic backup on startup
+autoBackup();
 
 // Start the server
 const server = exServer.listen(config.port, () => {

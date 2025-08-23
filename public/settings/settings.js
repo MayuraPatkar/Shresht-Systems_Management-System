@@ -28,7 +28,7 @@ function fetchAdminInfo() {
 
 // Toggle visibility of sections
 function toggleSection(sectionId) {
-    const sections = ["admin-info-section", "change-credentials-section", "export-data-section"];
+    const sections = ["admin-info-section", "change-credentials-section", "data-backup-section"];
     sections.forEach((id) => {
         document.getElementById(id).style.display = id === sectionId ? "flex" : "none";
     });
@@ -44,7 +44,7 @@ document.getElementById("change-password-button1").addEventListener("click", () 
 });
 
 document.getElementById("data-control-button").addEventListener("click", () => {
-    toggleSection("export-data-section");
+    toggleSection("data-backup-section");
 });
 
 // Change Username
@@ -100,17 +100,42 @@ document.getElementById("change-password-button").addEventListener("click", () =
 
 // Export Data
 document.getElementById("export-data-button").addEventListener("click", () => {
-    const format = document.querySelector("input[name='export-format']:checked").value;
+    const selected = document.querySelector('input[name="export-data"]:checked').value;
+    document.getElementById("backup-status").innerText = `Exporting ${selected} data...`;
 
-    if (!format) {
-        window.electronAPI.showAlert1("Please select a data format to export.");
+    fetch(`settings/backup/export/${selected}`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("backup-status").innerText = data.message;
+        })
+        .catch(err => {
+            document.getElementById("backup-status").innerText = "Export failed!";
+            console.error(err);
+        });
+});
+
+document.getElementById("restore-button").addEventListener("click", () => {
+    const fileInput = document.getElementById("restore-file");
+    if (fileInput.files.length === 0) {
+        alert("Please select a backup file.");
         return;
     }
 
-    window.location.href = `/admin/export-data?format=${format}`;
-});
+    const formData = new FormData();
+    formData.append("backupFile", fileInput.files[0]);
 
-document.getElementById("logout-button").addEventListener("click", () => {
-    sessionStorage.removeItem("admin");
-    window.location.href = "/";
+    document.getElementById("backup-status").innerText = "Restoring backup...";
+
+    fetch("/settings/backup/restore", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("backup-status").innerText = data.message;
+        })
+        .catch(err => {
+            document.getElementById("backup-status").innerText = "Restore failed!";
+            console.error(err);
+        });
 });

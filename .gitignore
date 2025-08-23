@@ -4,3 +4,5 @@ package-lock.json
 dist/
 logs/
 notes
+uploads/
+backups/
