@@ -147,34 +147,6 @@ function generatePreview() {
         allItems.push(itemHTML);
     }
 
-    const nonItemsTable = document.querySelector('#non-items-table tbody');
-
-    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => {
-        return {
-            descriptions: row.querySelector('input[placeholder="Item Description"]').value,
-            price: row.querySelector('input[placeholder="Price"]').value,
-            rate: row.querySelector('input[placeholder="Rate"]').value,
-        }
-    });
-
-
-    for (const item of nonItems) {
-        const itemHTML = `
-        <tr>
-            <td>${++sno}</td>
-            <td>${item.descriptions || '-'}</td>
-            <td>-</td>
-            <td>-</td>
-            ${hasTax ? `
-            <td>-</td>
-            <td>-</td>` : ""}
-            <td>${item.rate || '-'}</td>
-            <td>${formatIndian(Number(item.price), 2) || '-'}</td>
-        </tr>
-      `;
-      allItems.push(itemHTML);
-    }
-
     grandTotal = totalTaxableValue + totalCGST + totalSGST;
     roundOff = Math.round(grandTotal) - grandTotal;
     totalTax = totalCGST + totalSGST;
@@ -200,10 +172,112 @@ function generatePreview() {
 
     const ITEMS_PER_PAGE = 10;
     const itemPages = [];
-    for (let i = 0; i < allItems.length; i += ITEMS_PER_PAGE) {
-        const chunk = allItems.slice(i, i + ITEMS_PER_PAGE);
-        itemPages.push(chunk.join(''));
+    let currentPageItems = [];
+    let currentPageRowCount = 0;
+    const CHARS_PER_LINE = 40; // Approximate characters per line in the description column.
+
+    sno = 0; // Reset serial number for preview generation
+    for (const row of itemsTable.rows) {
+        const description = row.cells[1].querySelector("input").value || "-";
+        const hsnSac = row.cells[2].querySelector("input").value || "-";
+        const qty = parseFloat(row.cells[3].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[4].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
+
+        const taxableValue = qty * unitPrice;
+        let itemHTML = "";
+
+        if (hasTax) {
+            const cgstPercent = rate / 2;
+            const sgstPercent = rate / 2;
+            const cgstValue = (taxableValue * cgstPercent) / 100;
+            const sgstValue = (taxableValue * sgstPercent) / 100;
+            const rowTotal = taxableValue + cgstValue + sgstValue;
+
+            itemHTML = `
+                <tr>
+                    <td>${sno + 1}</td>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(taxableValue, 2)}</td>
+                    <td>${rate.toFixed(2)}</td>
+                    <td>${formatIndian(rowTotal, 2)}</td>
+                </tr>
+            `;
+        } else {
+            const rowTotal = taxableValue;
+            itemHTML = `
+                <tr>
+                    <td>${sno + 1}</td>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(rowTotal, 2)}</td>
+                </tr>
+            `;
+        }
+
+        const descriptionRowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
+
+        if (currentPageRowCount + descriptionRowCount > ITEMS_PER_PAGE && currentPageItems.length > 0) {
+            itemPages.push(currentPageItems.join(''));
+            currentPageItems = [];
+            currentPageRowCount = 0;
+        }
+
+        currentPageItems.push(itemHTML);
+        currentPageRowCount += descriptionRowCount;
+        sno++;
     }
+
+    const nonItemsTable = document.querySelector('#non-items-table tbody');
+    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => {
+        return {
+            descriptions: row.querySelector('input[placeholder="Item Description"]').value,
+            price: row.querySelector('input[placeholder="Price"]').value,
+            rate: row.querySelector('input[placeholder="Rate"]').value,
+        }
+    });
+
+    for (const item of nonItems) {
+        const description = item.descriptions || '-';
+        const price = Number(item.price) || 0;
+        totalPrice += price; // Add non-item price to total
+
+        const itemHTML = `
+        <tr>
+            <td>${sno + 1}</td>
+            <td>${description}</td>
+            <td>-</td>
+            <td>-</td>
+            ${hasTax ? `
+            <td>-</td>
+            <td>-</td>` : ""}
+            <td>${item.rate || '-'}</td>
+            <td>${formatIndian(price, 2) || '-'}</td>
+        </tr>
+      `;
+
+        const descriptionRowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
+
+        if (currentPageRowCount + descriptionRowCount > ITEMS_PER_PAGE && currentPageItems.length > 0) {
+            itemPages.push(currentPageItems.join(''));
+            currentPageItems = [];
+            currentPageRowCount = 0;
+        }
+
+        currentPageItems.push(itemHTML);
+        currentPageRowCount += descriptionRowCount;
+        sno++;
+    }
+
+    if (currentPageItems.length > 0) {
+        itemPages.push(currentPageItems.join(''));
+    }
+
 
     const itemsPageHTML = itemPages.map((itemsHTML, index) => {
         const isLastItemsPage = index === itemPages.length - 1;
@@ -293,8 +367,7 @@ function generatePreview() {
     }).join('');
 
 
-    // const files = document.getElementById('files').files;
-
+    // const files = document.getElementById('files');
     document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
         <div class="header">
