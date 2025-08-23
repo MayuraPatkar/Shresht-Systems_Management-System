@@ -118,7 +118,37 @@ document.getElementById("next-btn").addEventListener("click", () => {
     const nonItemsTable = document.querySelector('#non-items-table tbody');
     const itemsSpecificationTable = document.querySelector('#items-specifications-table tbody');
 
-    if (sessionStorage.getItem('currentTab-status') != 'update') {
+    if (sessionStorage.getItem('currentTab-status') === 'update') {
+        // Store existing specifications to preserve them
+        const existingSpecs = new Map();
+        itemsSpecificationTable.querySelectorAll('tr').forEach(row => {
+            const itemName = row.cells[1].textContent.trim();
+            const specInput = row.cells[2].querySelector('input');
+            if (specInput) {
+                existingSpecs.set(itemName, specInput.value);
+            }
+        });
+
+        // Get all current items from the form
+        const formItems = [
+            ...Array.from(itemsTable.querySelectorAll('tr')).map(row => row.querySelector('input[placeholder="Item Description"]').value.trim()),
+            ...Array.from(nonItemsTable.querySelectorAll('tr')).map(row => row.querySelector('input[placeholder="Item Description"]').value.trim())
+        ].filter(item => item); // Filter out empty item names
+
+        // Clear and rebuild the specifications table
+        itemsSpecificationTable.innerHTML = '';
+        formItems.forEach((item, index) => {
+            const row = document.createElement("tr");
+            const preservedSpec = existingSpecs.get(item) || '';
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item}</td>
+                <td><input type="text" placeholder="Specifications" value="${preservedSpec}" required></td>
+            `;
+            itemsSpecificationTable.appendChild(row);
+        });
+
+    } else {
       const items1 = Array.from(itemsTable.querySelectorAll('tr')).map(row => {
         return {
           item: row.querySelector('input[placeholder="Item Description"]').value,
