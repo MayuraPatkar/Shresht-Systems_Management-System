@@ -1,14 +1,39 @@
-// Fetch and populate admin information
+/**
+ * @file Admin panel script for handling information display, credential changes, and data backup/restore.
+ * @summary This script manages the client-side logic for an admin settings page. It fetches and displays
+ * admin information, allows for changing usernames and passwords, and provides functionality
+ * for exporting and restoring database collections or the entire database.
+ */
+
+// --- CORE EVENT LISTENERS ---
+
+/**
+ * Fetches initial admin information once the DOM is fully loaded.
+ * This ensures that the elements the script needs to populate are available.
+ */
 document.addEventListener("DOMContentLoaded", () => {
     fetchAdminInfo();
 });
 
-// Fetch admin information from the server
+// --- DATA FETCHING AND DISPLAY ---
+
+/**
+ * Fetches administrative information from the server via a GET request.
+ * Populates the 'admin-info-section' with the retrieved data, including
+ * contact details, GSTIN, and bank information. Handles potential network
+ * or server errors by displaying an alert to the user.
+ */
 function fetchAdminInfo() {
     fetch("/admin/admin-info")
-        .then((response) => response.json())
+        .then((response) => {
+            // Check if the response is successful (status code 200-299)
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then((data) => {
-            // Populate the admin info section
+            // Populate the admin info section with data from the server
             document.getElementById("admin-address").textContent = `Address: ${data.address}`;
             document.getElementById("admin-contact1").textContent = `Contact: ${data.phone.ph1}`;
             document.getElementById("admin-contact2").textContent = `Contact: ${data.phone.ph2}`;
@@ -21,20 +46,34 @@ function fetchAdminInfo() {
             document.getElementById("branch-name").textContent = `Branch: ${data.bank_details.branch}`;
         })
         .catch((error) => {
+            // Log the error and show an alert to the user if the fetch fails
             console.error("Error loading admin info:", error);
             window.electronAPI.showAlert1("Failed to load admin information. Please try again.");
         });
 }
 
-// Toggle visibility of sections
+// --- UI NAVIGATION AND SECTION TOGGLING ---
+
+/**
+ * Manages the visibility of different sections in the admin panel.
+ * It ensures that only one section is visible at a time.
+ * @param {string} sectionId The ID of the section to display.
+ */
 function toggleSection(sectionId) {
     const sections = ["admin-info-section", "change-credentials-section", "data-backup-section"];
     sections.forEach((id) => {
-        document.getElementById(id).style.display = id === sectionId ? "flex" : "none";
+        const sectionElement = document.getElementById(id);
+        if (sectionElement) {
+            // Display the target section as a flex container, hide others
+            sectionElement.style.display = id === sectionId ? "flex" : "none";
+        }
     });
 }
 
-// Event listeners for navigation buttons
+/**
+ * Attaches click event listeners to the main navigation buttons.
+ * Each button calls toggleSection to display the corresponding content.
+ */
 document.getElementById("admin-info-button").addEventListener("click", () => {
     toggleSection("admin-info-section");
 });
@@ -47,95 +86,159 @@ document.getElementById("data-control-button").addEventListener("click", () => {
     toggleSection("data-backup-section");
 });
 
-// Change Username
+// --- USER CREDENTIAL MANAGEMENT ---
+
+/**
+ * Handles the "Change Username" button click.
+ * It retrieves the new username, validates it, and sends a POST request
+ * to the server to update it.
+ */
 document.getElementById("change-username-button").addEventListener("click", () => {
     const username = document.getElementById("username").value.trim();
 
+    // Basic validation to ensure the username is not empty
     if (!username) {
         window.electronAPI.showAlert1("Username cannot be empty.");
         return;
     }
 
+    // Send the new username to the server
     fetch("/admin/change-username", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username }),
     })
-        .then((response) => response.json())
-        .then((data) => window.electronAPI.showAlert1(data.message))
+        .then(response => response.json())
+        .then(data => window.electronAPI.showAlert1(data.message))
         .catch((error) => {
             console.error("Error changing username:", error);
             window.electronAPI.showAlert1("Failed to change username. Please try again.");
         });
 });
 
-// Change Password
+/**
+ * Handles the "Change Password" button click.
+ * It validates the input fields (old password, new password, confirm password)
+ * and sends a POST request to the server to update the password.
+ */
 document.getElementById("change-password-button").addEventListener("click", () => {
     const oldPassword = document.getElementById("old-password").value.trim();
     const newPassword = document.getElementById("new-password").value.trim();
     const confirmPassword = document.getElementById("confirm-password").value.trim();
 
+    // Ensure all fields are filled
     if (!oldPassword || !newPassword || !confirmPassword) {
         window.electronAPI.showAlert1("All password fields are required.");
         return;
     }
 
+    // Ensure the new password and confirmation match
     if (newPassword !== confirmPassword) {
         window.electronAPI.showAlert1("New password and confirm password do not match.");
         return;
     }
 
+    // Send the old and new passwords to the server for verification and update
     fetch("/admin/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ oldPassword, newPassword }),
     })
-        .then((response) => response.json())
-        .then((data) => window.electronAPI.showAlert1(data.message))
+        .then(response => response.json())
+        .then(data => window.electronAPI.showAlert1(data.message))
         .catch((error) => {
             console.error("Error changing password:", error);
             window.electronAPI.showAlert1("Failed to change password. Please try again.");
         });
 });
 
-// Export Data
+// --- DATA BACKUP AND RESTORE ---
+
+/**
+ * Handles the "Export Data" button click.
+ * It identifies which data set (e.g., 'customers', 'inventory') is selected
+ * and sends a GET request to the server to trigger the export process.
+ */
 document.getElementById("export-data-button").addEventListener("click", () => {
     const selected = document.querySelector('input[name="export-data"]:checked').value;
-    document.getElementById("backup-status").innerText = `Exporting ${selected} data...`;
+    const statusElement = document.getElementById("backup-status");
+    statusElement.innerText = `Exporting ${selected} data...`;
 
-    fetch(`settings/backup/export/${selected}`)
+    fetch(`/settings/backup/export/${selected}`)
         .then(res => res.json())
         .then(data => {
-            document.getElementById("backup-status").innerText = data.message;
+            statusElement.innerText = data.message;
         })
         .catch(err => {
-            document.getElementById("backup-status").innerText = "Export failed!";
+            statusElement.innerText = "Export failed!";
             console.error(err);
         });
 });
 
-document.getElementById("restore-button").addEventListener("click", () => {
-    const fileInput = document.getElementById("restore-file");
+/**
+ * Handles the "Restore Collection" button click.
+ * It takes the selected backup file and collection name, packages them into
+ * a FormData object, and sends a POST request to restore the specific collection.
+ */
+document.getElementById("restore-collection-button").addEventListener("click", () => {
+    const fileInput = document.getElementById("restore-collection-file");
+    const statusElement = document.getElementById("backup-status");
+
     if (fileInput.files.length === 0) {
-        alert("Please select a backup file.");
+        window.electronAPI.showAlert1("Please select a backup file.");
+        return;
+    }
+
+    // Use FormData to handle file uploads
+    const formData = new FormData();
+    formData.append("backupFile", fileInput.files[0]);
+    formData.append("collection", document.getElementById("collection-select").value);
+
+    statusElement.innerText = "Restoring collection...";
+
+    fetch("/settings/backup/restore-collection", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(data => {
+            statusElement.innerText = data.message;
+        })
+        .catch(err => {
+            statusElement.innerText = "Restore failed!";
+            console.error(err);
+        });
+});
+
+/**
+ * Handles the "Restore Database" button click.
+ * It takes the selected backup file and sends it as FormData in a POST request
+ * to restore the entire database.
+ */
+document.getElementById("restore-database-button").addEventListener("click", () => {
+    const fileInput = document.getElementById("restore-database-file");
+    const statusElement = document.getElementById("backup-status");
+
+    if (fileInput.files.length === 0) {
+        window.electronAPI.showAlert1("Please select a backup file.");
         return;
     }
 
     const formData = new FormData();
     formData.append("backupFile", fileInput.files[0]);
 
-    document.getElementById("backup-status").innerText = "Restoring backup...";
+    statusElement.innerText = "Restoring database...";
 
-    fetch("/settings/backup/restore", {
+    fetch("/settings/backup/restore-database", {
         method: "POST",
         body: formData
     })
         .then(res => res.json())
         .then(data => {
-            document.getElementById("backup-status").innerText = data.message;
+            statusElement.innerText = data.message;
         })
         .catch(err => {
-            document.getElementById("backup-status").innerText = "Restore failed!";
+            statusElement.innerText = "Restore failed!";
             console.error(err);
         });
 });
