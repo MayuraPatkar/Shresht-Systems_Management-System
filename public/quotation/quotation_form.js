@@ -187,8 +187,8 @@ function generatePreview() {
         </div>
     `;
 
-    const ITEMS_PER_PAGE = 20; // Represents available lines on a page for items.
-    const SUMMARY_SECTION_ROW_COUNT = 10; // Estimated height of totals, payment, and notes sections.
+    const ITEMS_PER_PAGE = 15; // Represents available lines on a page for items.
+    const SUMMARY_SECTION_ROW_COUNT = 8; // Estimated height of totals, payment, and notes sections.
 
     // Build pages with the new logic
     const itemPages = [];
@@ -197,12 +197,21 @@ function generatePreview() {
 
     allRenderableItems.forEach((item, index) => {
         const isLastItem = index === allRenderableItems.length - 1;
-        let requiredSpace = item.rowCount;
-        if (isLastItem) {
-            requiredSpace += SUMMARY_SECTION_ROW_COUNT;
-        }
+        
+        // Calculate the space this item will take up.
+        const itemSpace = item.rowCount;
+        
+        // If this is the last item, the required space must also include the summary.
+        const requiredSpaceForLastItem = itemSpace + SUMMARY_SECTION_ROW_COUNT;
 
-        if (currentPageRowCount > 0 && currentPageRowCount + requiredSpace > ITEMS_PER_PAGE) {
+        // Condition to create a new page:
+        // 1. If the current page is not empty AND
+        // 2. EITHER this item (if not the last) overflows the page
+        // 3. OR this item (if it IS the last) plus the summary overflows the page.
+        if (currentPageRowCount > 0 && 
+            ((!isLastItem && currentPageRowCount + itemSpace > ITEMS_PER_PAGE) || 
+             (isLastItem && currentPageRowCount + requiredSpaceForLastItem > ITEMS_PER_PAGE))) {
+            
             itemPages.push(currentPageItemsHTML);
             currentPageItemsHTML = '';
             currentPageRowCount = 0;
