@@ -80,6 +80,7 @@ function generatePreview() {
     const buyerAddress = document.getElementById("buyer-address").value || "";
     const buyerPhone = document.getElementById("buyer-phone").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
+    const nonItemsTable = document.querySelector('#non-items-table tbody');
 
     let totalPrice = 0;
     let totalCGST = 0;
@@ -87,13 +88,15 @@ function generatePreview() {
     let totalTaxableValue = 0;
     let grandTotal = 0;
     let roundOff = 0;
-
-    let allItems = [];
     let sno = 0;
+
+    const allRenderableItems = [];
+    const CHARS_PER_LINE = 60;
 
     // Check if rate column is populated
     let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[5].querySelector("input").value) > 0);
 
+    // Process regular items
     for (const row of itemsTable.rows) {
         const description = row.cells[1].querySelector("input").value || "-";
         const hsnSac = row.cells[2].querySelector("input").value || "-";
@@ -103,7 +106,6 @@ function generatePreview() {
 
         const taxableValue = qty * unitPrice;
         totalTaxableValue += taxableValue;
-
         let itemHTML = "";
 
         if (hasTax) {
@@ -117,37 +119,52 @@ function generatePreview() {
             totalSGST += sgstValue;
             totalPrice += rowTotal;
 
-            itemHTML = `
-                <tr>
-                    <td>${++sno}</td>
-                    <td>${description}</td>
-                    <td>${hsnSac}</td>
-                    <td>${qty}</td>
-                    <td>${formatIndian(unitPrice, 2)}</td>
-                    <td>${formatIndian(taxableValue, 2)}</td>
-                    <td>${rate.toFixed(2)}</td>
-                    <td>${formatIndian(rowTotal, 2)}</td>
-                </tr>
-            `;
+            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(taxableValue, 2)}</td><td>${rate.toFixed(2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
         } else {
             const rowTotal = taxableValue;
             totalPrice += rowTotal;
-
-            itemHTML = `
-                <tr>
-                    <td>${++sno}</td>
-                    <td>${description}</td>
-                    <td>${hsnSac}</td>
-                    <td>${qty}</td>
-                    <td>${formatIndian(unitPrice, 2)}</td>
-                    <td>${formatIndian(rowTotal, 2)}</td>
-                </tr>
-            `;
+            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
         }
-        allItems.push(itemHTML);
+        const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
+        allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
+        sno++;
     }
 
-    grandTotal = totalTaxableValue + totalCGST + totalSGST;
+    // Process non-items
+    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => ({
+        descriptions: row.querySelector('input[placeholder="Item Description"]').value,
+        price: row.querySelector('input[placeholder="Price"]').value,
+        rate: row.querySelector('input[placeholder="Rate"]').value,
+    }));
+
+    for (const item of nonItems) {
+        const description = item.descriptions || '-';
+        const price = Number(item.price) || 0;
+        const rate = Number(item.rate) || 0;
+        
+        let rowTotal = price;
+        totalTaxableValue += price; // Add non-item price to taxable value
+
+        if (hasTax && rate > 0) {
+            const cgstPercent = rate / 2;
+            const sgstPercent = rate / 2;
+            const cgstValue = (price * cgstPercent) / 100;
+            const sgstValue = (price * sgstPercent) / 100;
+            
+            totalCGST += cgstValue;
+            totalSGST += sgstValue;
+            rowTotal += cgstValue + sgstValue;
+        }
+        
+        totalPrice += rowTotal; // Add the final row total to the grand total
+
+        const itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td>${hasTax ? `<td>-</td><td>-</td>` : ""}<td>${item.rate || '-'}</td><td>${formatIndian(rowTotal, 2) || '-'}</td></tr>`;
+        const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
+        allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
+        sno++;
+    }
+
+    grandTotal = totalPrice; // Use totalPrice which now includes non-items
     roundOff = Math.round(grandTotal) - grandTotal;
     totalTax = totalCGST + totalSGST;
     totalAmountNoTax = totalTaxableValue;
@@ -171,56 +188,9 @@ function generatePreview() {
     `;
 
     const ITEMS_PER_PAGE = 20; // Represents available lines on a page for items.
-    const CHARS_PER_LINE = 60;
     const SUMMARY_SECTION_ROW_COUNT = 10; // Estimated height of totals, payment, and notes sections.
 
-    // 1. Unify all items into a single list
-    const allRenderableItems = [];
-    sno = 0;
-
-    for (const row of itemsTable.rows) {
-        const description = row.cells[1].querySelector("input").value || "-";
-        const hsnSac = row.cells[2].querySelector("input").value || "-";
-        const qty = parseFloat(row.cells[3].querySelector("input").value || "0");
-        const unitPrice = parseFloat(row.cells[4].querySelector("input").value || "0");
-        const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
-        const taxableValue = qty * unitPrice;
-        let itemHTML = "";
-
-        if (hasTax) {
-            const cgstPercent = rate / 2;
-            const sgstPercent = rate / 2;
-            const cgstValue = (taxableValue * cgstPercent) / 100;
-            const sgstValue = (taxableValue * sgstPercent) / 100;
-            const rowTotal = taxableValue + cgstValue + sgstValue;
-            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(taxableValue, 2)}</td><td>${rate.toFixed(2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
-        } else {
-            const rowTotal = taxableValue;
-            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
-        }
-        const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
-        allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
-        sno++;
-    }
-
-    const nonItemsTable = document.querySelector('#non-items-table tbody');
-    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => ({
-        descriptions: row.querySelector('input[placeholder="Item Description"]').value,
-        price: row.querySelector('input[placeholder="Price"]').value,
-        rate: row.querySelector('input[placeholder="Rate"]').value,
-    }));
-
-    for (const item of nonItems) {
-        const description = item.descriptions || '-';
-        const price = Number(item.price) || 0;
-        totalPrice += price; // This is being added twice, but let's fix the layout first.
-        const itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td>${hasTax ? `<td>-</td><td>-</td>` : ""}<td>${item.rate || '-'}</td><td>${formatIndian(price, 2) || '-'}</td></tr>`;
-        const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
-        allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
-        sno++;
-    }
-
-    // 2. Build pages with the new logic
+    // Build pages with the new logic
     const itemPages = [];
     let currentPageItemsHTML = '';
     let currentPageRowCount = 0;
