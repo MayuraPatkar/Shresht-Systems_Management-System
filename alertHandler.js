@@ -1,8 +1,21 @@
 const { ipcMain, BrowserWindow } = require("electron");
 const path = require('path');
 
-function createAlertWindow(message, htmlFile, responseHandler) {
+/**
+ * Creates a reusable modal alert window.
+ * @param {BrowserWindow} parentWindow - The parent window to which the modal will be attached.
+ * @param {string} message - The message to display in the alert.
+ * @param {string} htmlFile - The path to the HTML file for the alert window's content.
+ * @returns {BrowserWindow | null} The created alert window or null if arguments are invalid.
+ */
+function createAlertWindow(parentWindow, message, htmlFile) {
+    // Validate inputs
+    if (!parentWindow || parentWindow.isDestroyed()) {
+        console.error("Cannot create an alert without a valid parent window.");
+        return null;
+    }
     if (!message || typeof message !== 'string') {
+        console.error("Invalid message provided for alert.");
         return null;
     }
 
@@ -10,9 +23,10 @@ function createAlertWindow(message, htmlFile, responseHandler) {
         width: 400,
         height: 200,
         resizable: false,
-        modal: true,
         frame: false,
         alwaysOnTop: true,
+        parent: parentWindow,
+        modal: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
@@ -24,45 +38,35 @@ function createAlertWindow(message, htmlFile, responseHandler) {
         console.error(`Failed to load ${htmlFile}:`, err);
     });
 
-    alertWindow.once('ready-to-show', () => {
+    // Send the message after the content has loaded
+    alertWindow.webContents.once('did-finish-load', () => {
         alertWindow.webContents.send('set-message', message);
-        if (responseHandler) {
-            responseHandler(alertWindow);
-        }
-    });
-
-    alertWindow.on('closed', () => {
-        alertWindow.destroy();
     });
 
     return alertWindow;
 }
 
-function showAlert1(message) {
-    createAlertWindow(message, 'alert/alert1.html', null);
-}
+// IPC handler for a simple alert (no response needed)
+ipcMain.on('show-alert1', (event, message) => {
+    const parentWindow = BrowserWindow.fromWebContents(event.sender);
+    createAlertWindow(parentWindow, message, 'alert/alert1.html');
+});
 
-function showAlert2(mainWindow, message) {
-    const alertWindow = createAlertWindow(message, "alert/alert2.html", (alertWindow) => {
+// IPC handler for an alert that expects a response
+ipcMain.on('show-alert2', (event, message) => {
+    const parentWindow = BrowserWindow.fromWebContents(event.sender);
+    const alertWindow = createAlertWindow(parentWindow, message, "alert/alert2.html");
+
+    // Only proceed if the window was created successfully
+    if (alertWindow) {
         ipcMain.once("send-response", (_, response) => {
-            if (mainWindow && !mainWindow.isDestroyed()) {
-                mainWindow.webContents.send("receive-response", response);
+            if (parentWindow && !parentWindow.isDestroyed()) {
+                parentWindow.webContents.send("receive-response", response);
             }
-            // Close alert window
+            // Gracefully close the alert window
             if (alertWindow && !alertWindow.isDestroyed()) {
-                alertWindow.destroy();
+                alertWindow.close();
             }
         });
-    });
-}
-
-ipcMain.on('show-alert1', (_, message) => {
-    showAlert1(message);
+    }
 });
-
-ipcMain.on('show-alert2', (event, message) => {
-    const mainWindow = BrowserWindow.fromWebContents(event.sender);
-    showAlert2(mainWindow, message);
-});
-
-module.exports = { showAlert1, showAlert2 };
