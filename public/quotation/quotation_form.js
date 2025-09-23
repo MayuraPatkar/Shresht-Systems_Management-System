@@ -170,20 +170,20 @@ function generatePreview() {
         </div>
     `;
 
-    const ITEMS_PER_PAGE = 10;
-    const itemPages = [];
-    let currentPageItems = [];
-    let currentPageRowCount = 0;
-    const CHARS_PER_LINE = 40; // Approximate characters per line in the description column.
+    const ITEMS_PER_PAGE = 20; // Represents available lines on a page for items.
+    const CHARS_PER_LINE = 60;
+    const SUMMARY_SECTION_ROW_COUNT = 10; // Estimated height of totals, payment, and notes sections.
 
-    sno = 0; // Reset serial number for preview generation
+    // 1. Unify all items into a single list
+    const allRenderableItems = [];
+    sno = 0;
+
     for (const row of itemsTable.rows) {
         const description = row.cells[1].querySelector("input").value || "-";
         const hsnSac = row.cells[2].querySelector("input").value || "-";
         const qty = parseFloat(row.cells[3].querySelector("input").value || "0");
         const unitPrice = parseFloat(row.cells[4].querySelector("input").value || "0");
         const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
-
         const taxableValue = qty * unitPrice;
         let itemHTML = "";
 
@@ -193,93 +193,60 @@ function generatePreview() {
             const cgstValue = (taxableValue * cgstPercent) / 100;
             const sgstValue = (taxableValue * sgstPercent) / 100;
             const rowTotal = taxableValue + cgstValue + sgstValue;
-
-            itemHTML = `
-                <tr>
-                    <td>${sno + 1}</td>
-                    <td>${description}</td>
-                    <td>${hsnSac}</td>
-                    <td>${qty}</td>
-                    <td>${formatIndian(unitPrice, 2)}</td>
-                    <td>${formatIndian(taxableValue, 2)}</td>
-                    <td>${rate.toFixed(2)}</td>
-                    <td>${formatIndian(rowTotal, 2)}</td>
-                </tr>
-            `;
+            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(taxableValue, 2)}</td><td>${rate.toFixed(2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
         } else {
             const rowTotal = taxableValue;
-            itemHTML = `
-                <tr>
-                    <td>${sno + 1}</td>
-                    <td>${description}</td>
-                    <td>${hsnSac}</td>
-                    <td>${qty}</td>
-                    <td>${formatIndian(unitPrice, 2)}</td>
-                    <td>${formatIndian(rowTotal, 2)}</td>
-                </tr>
-            `;
+            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
         }
-
-        const descriptionRowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
-
-        if (currentPageRowCount + descriptionRowCount > ITEMS_PER_PAGE && currentPageItems.length > 0) {
-            itemPages.push(currentPageItems.join(''));
-            currentPageItems = [];
-            currentPageRowCount = 0;
-        }
-
-        currentPageItems.push(itemHTML);
-        currentPageRowCount += descriptionRowCount;
+        const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
+        allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
         sno++;
     }
 
     const nonItemsTable = document.querySelector('#non-items-table tbody');
-    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => {
-        return {
-            descriptions: row.querySelector('input[placeholder="Item Description"]').value,
-            price: row.querySelector('input[placeholder="Price"]').value,
-            rate: row.querySelector('input[placeholder="Rate"]').value,
-        }
-    });
+    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => ({
+        descriptions: row.querySelector('input[placeholder="Item Description"]').value,
+        price: row.querySelector('input[placeholder="Price"]').value,
+        rate: row.querySelector('input[placeholder="Rate"]').value,
+    }));
 
     for (const item of nonItems) {
         const description = item.descriptions || '-';
         const price = Number(item.price) || 0;
-        totalPrice += price; // Add non-item price to total
-
-        const itemHTML = `
-        <tr>
-            <td>${sno + 1}</td>
-            <td>${description}</td>
-            <td>-</td>
-            <td>-</td>
-            ${hasTax ? `
-            <td>-</td>
-            <td>-</td>` : ""}
-            <td>${item.rate || '-'}</td>
-            <td>${formatIndian(price, 2) || '-'}</td>
-        </tr>
-      `;
-
-        const descriptionRowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
-
-        if (currentPageRowCount + descriptionRowCount > ITEMS_PER_PAGE && currentPageItems.length > 0) {
-            itemPages.push(currentPageItems.join(''));
-            currentPageItems = [];
-            currentPageRowCount = 0;
-        }
-
-        currentPageItems.push(itemHTML);
-        currentPageRowCount += descriptionRowCount;
+        totalPrice += price; // This is being added twice, but let's fix the layout first.
+        const itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td>${hasTax ? `<td>-</td><td>-</td>` : ""}<td>${item.rate || '-'}</td><td>${formatIndian(price, 2) || '-'}</td></tr>`;
+        const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
+        allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
         sno++;
     }
 
-    if (currentPageItems.length > 0) {
-        itemPages.push(currentPageItems.join(''));
+    // 2. Build pages with the new logic
+    const itemPages = [];
+    let currentPageItemsHTML = '';
+    let currentPageRowCount = 0;
+
+    allRenderableItems.forEach((item, index) => {
+        const isLastItem = index === allRenderableItems.length - 1;
+        let requiredSpace = item.rowCount;
+        if (isLastItem) {
+            requiredSpace += SUMMARY_SECTION_ROW_COUNT;
+        }
+
+        if (currentPageRowCount > 0 && currentPageRowCount + requiredSpace > ITEMS_PER_PAGE) {
+            itemPages.push(currentPageItemsHTML);
+            currentPageItemsHTML = '';
+            currentPageRowCount = 0;
+        }
+
+        currentPageItemsHTML += item.html;
+        currentPageRowCount += item.rowCount;
+    });
+
+    if (currentPageItemsHTML !== '') {
+        itemPages.push(currentPageItemsHTML);
     }
 
-
-    const itemsPageHTML = itemPages.map((itemsHTML, index) => {
+    const itemsPageHTML = itemPages.map((pageHTML, index) => {
         const isLastItemsPage = index === itemPages.length - 1;
         return `
         <div class="preview-container">
@@ -313,7 +280,7 @@ function generatePreview() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${itemsHTML}
+                        ${pageHTML}
                     </tbody>
                 </table>
             </div>
@@ -346,8 +313,6 @@ function generatePreview() {
                     </div>
                 </div>
             </div>
-
-            <div class="page-break"></div>
             <div class="notes-section" contenteditable="true">
                 <p><strong>Notes:</strong></p>
                 <ul>
@@ -366,6 +331,8 @@ function generatePreview() {
         `;
     }).join('');
 
+    // Remove the separate summary page
+    const summaryPageHTML = ``;
 
     // const files = document.getElementById('files');
     document.getElementById("preview-content").innerHTML = `
@@ -421,6 +388,8 @@ function generatePreview() {
 
     ${itemsPageHTML}
 
+    ${summaryPageHTML}
+
     <div class="preview-container">
         <div class="header">
             <div class="logo">
@@ -474,7 +443,6 @@ function generatePreview() {
 
     // generateFilePages(files)
 }
-
 
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
@@ -571,6 +539,7 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
 //         reader.readAsDataURL(file);
 //     });
 // });
+
 
 // Function to collect form data
 function collectFormData() {
