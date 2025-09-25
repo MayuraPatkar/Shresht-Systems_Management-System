@@ -3,7 +3,7 @@
  * This works for both withTax and withoutTax view modes.
  */
 function generateViewPreviewHTML(quotation, viewType) {
-    let itemsHTML = "";
+    let tableRowsHTML = "";
     let totalTaxableValue = 0;
     let totalTax = 0;
     let totalPrice = 0;
@@ -24,7 +24,7 @@ function generateViewPreviewHTML(quotation, viewType) {
         if (viewType === 2) {
             const totalWithTax = taxableValue + taxAmount;
             totalPrice += totalWithTax;
-            itemsHTML += `
+            tableRowsHTML += `
                 <tr>
                     <td>${++sno}</td>
                     <td>${item.description || ''}</td>
@@ -38,7 +38,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             `;
         } else if (viewType === 1) {
             totalPrice += taxableValue;
-            itemsHTML += `
+            tableRowsHTML += `
                 <tr>
                     <td>${++sno}</td>
                     <td>${item.description || ''}</td>
@@ -50,7 +50,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             `;
         } else {
             totalPrice += taxableValue + taxAmount;
-            itemsHTML += `
+            tableRowsHTML += `
                 <tr>
                     <td>${++sno}</td>
                     <td>${item.description || ''}</td>
@@ -62,7 +62,6 @@ function generateViewPreviewHTML(quotation, viewType) {
     });
 
     // Non-items calculation
-    let nonItemsHTML = "";
     let totalNonItemsTaxable = 0;
     let totalNonItemsTax = 0;
     let totalNonItemsPrice = 0;
@@ -78,10 +77,13 @@ function generateViewPreviewHTML(quotation, viewType) {
         if (viewType === 2) {
             const totalWithTax = taxableValue + taxAmount;
             totalNonItemsPrice += totalWithTax;
-            nonItemsHTML += `
+            tableRowsHTML += `
                 <tr>
-                    <td>${idx + 1}</td>
+                    <td>${++sno}</td>
                     <td>${item.description || '-'}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
                     <td>${formatIndian(price, 2)}</td>
                     <td>${taxRate}%</td>
                     <td>${formatIndian(totalWithTax, 2)}</td>
@@ -89,20 +91,24 @@ function generateViewPreviewHTML(quotation, viewType) {
             `;
         } else if (viewType === 1) {
             totalNonItemsPrice += taxableValue;
-            nonItemsHTML += `
+            tableRowsHTML += `
                 <tr>
-                    <td>${idx + 1}</td>
+                    <td>${++sno}</td>
                     <td>${item.description || '-'}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
                     <td>${formatIndian(price, 2)}</td>
                 </tr>
             `;
         } else {
             totalNonItemsPrice += taxableValue;
-            nonItemsHTML += `
+            tableRowsHTML += `
                 <tr>
-                    <td>${idx + 1}</td>
+                    <td>${++sno}</td>
                     <td>${item.description || '-'}</td>
                     <td>${specification}</td>
+                    <td>-</td>
                 </tr>
             `;
         }
@@ -115,18 +121,19 @@ function generateViewPreviewHTML(quotation, viewType) {
 
     // Table headers
     let tableHead = "";
+    let nonItemsTableHead = ""; // Added for non-items
     if (viewType === 2) {
-        tableHead = `
+        tableHead = nonItemsTableHead = `
             <th>Sr. No</th>
             <th>Description</th>
             <th>HSN/SAC</th>
             <th>Qty</th>
             <th>Unit Price</th>
             <th>Taxable Value</th>
-            <th>Tax Rate</th>
+            <th>Rate</th>
             <th>Total (With Tax)</th>`;
     } else if (viewType === 1) {
-        tableHead = `
+        tableHead = nonItemsTableHead = `
             <th>Sr. No</th>
             <th>Description</th>
             <th>HSN/SAC</th>
@@ -235,7 +242,7 @@ function generateViewPreviewHTML(quotation, viewType) {
                 
         <div class="title">Quotation-${quotation.quotation_id}</div>
         <div class="items-section">
-            <div class="table headline-section"><p><u>5KW Solar Systems</u></p></div>
+            <div class="table headline-section"><p><u>${quotation.project_name || 'Items and Charges'}</u></p></div>
             <table class="items-table">
                 <thead>
                     <tr>
@@ -243,7 +250,7 @@ function generateViewPreviewHTML(quotation, viewType) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${itemsHTML}
+                    ${tableRowsHTML}
                 </tbody>
             </table>
         </div>
@@ -253,7 +260,7 @@ function generateViewPreviewHTML(quotation, viewType) {
                 <div class="fifth-section-sub2">
                     <div class="fifth-section-sub3">
                         <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
-                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(grandTotal)} Only</span></p>
                     </div>
                     <h3>Payment Details:</h3>
                     <div class="bank-details">
@@ -398,10 +405,10 @@ async function viewQuotation(quotationId, viewType) {
                 row.innerHTML = `
                     <td>${viewItemsTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${item.specification}</td>
                     <td>${item.HSN_SAC || '-'}</td>
                     <td>${item.quantity || '-'}</td>
                     <td>${formatIndian(item.unit_price, 2) || '-'}</td>
+                    <td>${formatIndian(taxableValue, 2) || '-'}</td>
                     <td>${item.rate ? item.rate + '%' : '-'}</td>
                     <td>${formatIndian(totalWithTax, 2) || '-'}</td>
                 `;
@@ -409,7 +416,6 @@ async function viewQuotation(quotationId, viewType) {
                 row.innerHTML = `
                     <td>${viewItemsTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${item.specification}</td>
                     <td>${item.HSN_SAC || '-'}</td>
                     <td>${item.quantity || '-'}</td>
                     <td>${formatIndian(item.unit_price, 2) || '-'}</td>
@@ -419,8 +425,8 @@ async function viewQuotation(quotationId, viewType) {
                 row.innerHTML = `
                     <td>${viewItemsTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${item.specification}</td>
-                    <td>${item.quantity || '-'}</td>
+                    <td>${specification}</td>
+                    <td>${qty}</td>
                 `;
             }
             viewItemsTableBody.appendChild(row);
@@ -441,7 +447,9 @@ async function viewQuotation(quotationId, viewType) {
                 row.innerHTML = `
                     <td>${viewNonItesTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${item.specification || '-'}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
                     <td>${formatIndian(price, 2) || '-'}</td>
                     <td>${item.rate ? item.rate + '%' : '-'}</td>
                     <td>${formatIndian(totalWithTax, 2) || '-'}</td>
@@ -450,15 +458,16 @@ async function viewQuotation(quotationId, viewType) {
                 row.innerHTML = `
                     <td>${viewNonItesTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${item.specification || '-'}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
                     <td>${formatIndian(price, 2) || '-'}</td>
                 `;
             } else {
                 row.innerHTML = `
                     <td>${viewNonItesTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${item.specification || '-'}</td>
-                    <td>${formatIndian(totalWithTax, 2) || '-'}</td>
+                    <td>${specification}</td>
                 `;
             }
             viewNonItesTableBody.appendChild(row);
@@ -489,10 +498,10 @@ async function viewQuotation(quotationId, viewType) {
             tableHead.innerHTML = `
                 <th>Sr. No</th>
                 <th>Description</th>
-                <th>Specification</th>
                 <th>HSN/SAC</th>
                 <th>Qty</th>
                 <th>Unit Price</th>
+                <th>Taxable Value</th>
                 <th>Rate</th>
                 <th>Total (With Tax)</th>
             `;
@@ -500,7 +509,6 @@ async function viewQuotation(quotationId, viewType) {
             tableHead.innerHTML = `
                 <th>Sr. No</th>
                 <th>Description</th>
-                <th>Specification</th>
                 <th>HSN/SAC</th>
                 <th>Qty</th>
                 <th>Unit Price</th>
@@ -520,8 +528,10 @@ async function viewQuotation(quotationId, viewType) {
             tableHeadNonItems.innerHTML = `
                 <th>Sr. No</th>
                 <th>Description</th>
-                <th>Specifications</th>
-                <th>Price</th>
+                <th>HSN/SAC</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Taxable Value</th>
                 <th>Rate</th>
                 <th>Total (With Tax)</th>
             `;
@@ -529,15 +539,19 @@ async function viewQuotation(quotationId, viewType) {
             tableHeadNonItems.innerHTML = `
                 <th>Sr. No</th>
                 <th>Description</th>
-                <th>Specifications</th>
-                <th>Price</th>
+                <th>HSN/SAC</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Total</th>
             `;
         } else {
             tableHeadNonItems.innerHTML = `
                 <th>Sr. No</th>
                 <th>Description</th>
-                <th>Specifications</th>
-                <th>Price</th>
+                <th>HSN/SAC</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Total</th>
             `;
         }
 
