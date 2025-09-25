@@ -28,10 +28,10 @@ function generateViewPreviewHTML(quotation, viewType) {
                 <tr>
                     <td>${++sno}</td>
                     <td>${item.description || ''}</td>
-                    <td>${specification}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
                     <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(taxableValue, 2)}</td>
                     <td>${taxRate}%</td>
                     <td>${formatIndian(totalWithTax, 2)}</td>
                 </tr>
@@ -42,7 +42,6 @@ function generateViewPreviewHTML(quotation, viewType) {
                 <tr>
                     <td>${++sno}</td>
                     <td>${item.description || ''}</td>
-                    <td>${specification}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
                     <td>${formatIndian(unitPrice, 2)}</td>
@@ -83,7 +82,6 @@ function generateViewPreviewHTML(quotation, viewType) {
                 <tr>
                     <td>${idx + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${specification}</td>
                     <td>${formatIndian(price, 2)}</td>
                     <td>${taxRate}%</td>
                     <td>${formatIndian(totalWithTax, 2)}</td>
@@ -95,7 +93,6 @@ function generateViewPreviewHTML(quotation, viewType) {
                 <tr>
                     <td>${idx + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${specification}</td>
                     <td>${formatIndian(price, 2)}</td>
                 </tr>
             `;
@@ -122,17 +119,16 @@ function generateViewPreviewHTML(quotation, viewType) {
         tableHead = `
             <th>Sr. No</th>
             <th>Description</th>
-            <th>Specification</th>
             <th>HSN/SAC</th>
             <th>Qty</th>
             <th>Unit Price</th>
+            <th>Taxable Value</th>
             <th>Tax Rate</th>
             <th>Total (With Tax)</th>`;
     } else if (viewType === 1) {
         tableHead = `
             <th>Sr. No</th>
             <th>Description</th>
-            <th>Specification</th>
             <th>HSN/SAC</th>
             <th>Qty</th>
             <th>Unit Price</th>
