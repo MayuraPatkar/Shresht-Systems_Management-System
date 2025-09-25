@@ -141,7 +141,7 @@ function generatePreview() {
         const description = item.descriptions || '-';
         const price = Number(item.price) || 0;
         const rate = Number(item.rate) || 0;
-        
+
         let rowTotal = price;
         totalTaxableValue += price; // Add non-item price to taxable value
 
@@ -150,12 +150,12 @@ function generatePreview() {
             const sgstPercent = rate / 2;
             const cgstValue = (price * cgstPercent) / 100;
             const sgstValue = (price * sgstPercent) / 100;
-            
+
             totalCGST += cgstValue;
             totalSGST += sgstValue;
             rowTotal += cgstValue + sgstValue;
         }
-        
+
         totalPrice += rowTotal; // Add the final row total to the grand total
 
         const itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td>${hasTax ? `<td>-</td><td>-</td>` : ""}<td>${item.rate || '-'}</td><td>${formatIndian(rowTotal, 2) || '-'}</td></tr>`;
@@ -197,10 +197,10 @@ function generatePreview() {
 
     allRenderableItems.forEach((item, index) => {
         const isLastItem = index === allRenderableItems.length - 1;
-        
+
         // Calculate the space this item will take up.
         const itemSpace = item.rowCount;
-        
+
         // If this is the last item, the required space must also include the summary.
         const requiredSpaceForLastItem = itemSpace + SUMMARY_SECTION_ROW_COUNT;
 
@@ -208,10 +208,10 @@ function generatePreview() {
         // 1. If the current page is not empty AND
         // 2. EITHER this item (if not the last) overflows the page
         // 3. OR this item (if it IS the last) plus the summary overflows the page.
-        if (currentPageRowCount > 0 && 
-            ((!isLastItem && currentPageRowCount + itemSpace > ITEMS_PER_PAGE) || 
-             (isLastItem && currentPageRowCount + requiredSpaceForLastItem > ITEMS_PER_PAGE))) {
-            
+        if (currentPageRowCount > 0 &&
+            ((!isLastItem && currentPageRowCount + itemSpace > ITEMS_PER_PAGE) ||
+                (isLastItem && currentPageRowCount + requiredSpaceForLastItem > ITEMS_PER_PAGE))) {
+
             itemPages.push(currentPageItemsHTML);
             currentPageItemsHTML = '';
             currentPageRowCount = 0;
@@ -559,5 +559,14 @@ function collectFormData() {
         totalTax: totalTax,
         totalAmountNoTax: totalAmountNoTax,
         totalAmountTax: totalAmountTax,
+
+
+        //  content of files cannot be sent to server
+        subject: document.querySelector(".info-section p[contenteditable]").innerText.replace("Subject:", "").trim(),
+        letter_1: document.querySelectorAll(".info-section p[contenteditable]")[1].innerText.trim(),
+        letter_2: Array.from(document.querySelectorAll(".info-section ul[contenteditable] li")).map(li => li.innerText.trim()),
+        letter_3: document.querySelectorAll(".info-section p[contenteditable]")[3].innerText.trim(),
+        notes: Array.from(document.querySelector(".notes-section ul").querySelectorAll("li")).map(li => li.innerText.trim()),
+        termsAndConditions: document.querySelector(".terms-section").innerHTML.trim(),
     };
 }
