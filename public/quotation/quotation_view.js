@@ -193,22 +193,22 @@ function generateViewPreviewHTML(quotation, viewType) {
               ${quotation.customer_name}<br>
               ${quotation.customer_address}<br>
               ${quotation.customer_phone}<br>
-            <p contenteditable="true"><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${quotation.project_name}</p>
+            <p><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${quotation.project_name}</p>
 
             <p>Dear ${quotation.customer_name},</p>
 
-            <p contenteditable="true">We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${quotation.project_name}. At <strong>Shresht Systems</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.</p>
+            <p>We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${quotation.project_name}. At <strong>Shresht Systems</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.</p>
             <p>Our proposal includes:</p>
-            <ul contenteditable="true">
+            <ul>
                 <li>Cutting-edge technology and premium-grade equipment</li>
                 <li>Expert installation by certified professionals</li>
                 <li>Comprehensive commissioning and quality assurance</li>
                 <li>Reliable after-sales support and service</li>
             </ul>
             
-            <p contenteditable="true">We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.</p>
+            <p>We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.</p>
             
-            <p contenteditable="true">We look forward to your positive response and the opportunity to collaborate with you.</p>
+            <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
           
             <p>Best regards,</p>
             <p><strong>Sandeep Nayak</strong><br>
@@ -239,7 +239,7 @@ function generateViewPreviewHTML(quotation, viewType) {
                 
         <div class="title">Quotation-${quotation.quotation_id}</div>
         <div class="items-section">
-            <div class="table headline-section" contenteditable="true"><p><u>5KW Solar Systems</u></p></div>
+            <div class="table headline-section"><p><u>5KW Solar Systems</u></p></div>
             <table class="items-table">
                 <thead>
                     <tr>
@@ -281,7 +281,7 @@ function generateViewPreviewHTML(quotation, viewType) {
         </div>
 
         <div class="page-break"></div>
-        <div class="notes-section" contenteditable="true">
+        <div class="notes-section">
             <p><strong>Notes:</strong></p>
             <ul>
                 <li>All prices are exclusive of taxes unless stated otherwise.</li>    
@@ -310,7 +310,7 @@ function generateViewPreviewHTML(quotation, viewType) {
         </div>
 
         <div class="title">Quotation-${quotation.quotation_id}</div>
-        <div class="terms-section" contenteditable="true">
+        <div class="terms-section">
             <h3>Terms & Conditions</h3>
             <ul>
                 <li><strong>Lead Time:</strong> Delivery and installation will be completed within the stipulated timeline as per mutual agreement.</li>
