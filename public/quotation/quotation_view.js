@@ -3,36 +3,31 @@
  * This works for both withTax and withoutTax view modes.
  */
 function generateViewPreviewHTML(quotation, viewType) {
+    let itemsHTML = "";
     let totalTaxableValue = 0;
     let totalTax = 0;
     let totalPrice = 0;
     let sno = 0;
-
-    const allRenderableItems = [];
-    const CHARS_PER_LINE = 60;
 
     // Items calculation
     (quotation.items || []).forEach(item => {
         const qty = parseFloat(item.quantity || 0);
         const unitPrice = parseFloat(item.unit_price || 0);
         const taxRate = parseFloat(item.rate || 0);
-        const description = item.description || '';
         const specification = item.specification || '';
         const hsnSac = item.HSN_SAC || '';
         const taxableValue = qty * unitPrice;
         const taxAmount = (taxableValue * taxRate) / 100;
         totalTaxableValue += taxableValue;
         totalTax += taxAmount;
-        sno++;
 
-        let itemHTML = "";
         if (viewType === 2) {
             const totalWithTax = taxableValue + taxAmount;
             totalPrice += totalWithTax;
-            itemHTML = `
+            itemsHTML += `
                 <tr>
-                    <td>${sno}</td>
-                    <td>${description}</td>
+                    <td>${++sno}</td>
+                    <td>${item.description || ''}</td>
                     <td>${specification}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -43,10 +38,10 @@ function generateViewPreviewHTML(quotation, viewType) {
             `;
         } else if (viewType === 1) {
             totalPrice += taxableValue;
-            itemHTML = `
+            itemsHTML += `
                 <tr>
-                    <td>${sno}</td>
-                    <td>${description}</td>
+                    <td>${++sno}</td>
+                    <td>${item.description || ''}</td>
                     <td>${specification}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -56,42 +51,38 @@ function generateViewPreviewHTML(quotation, viewType) {
             `;
         } else {
             totalPrice += taxableValue + taxAmount;
-            itemHTML = `
+            itemsHTML += `
                 <tr>
-                    <td>${sno}</td>
-                    <td>${description}</td>
+                    <td>${++sno}</td>
+                    <td>${item.description || ''}</td>
                     <td>${specification}</td>
                     <td>${qty}</td>
                 </tr>
             `;
         }
-        const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
-        allRenderableItems.push({ html: itemHTML, rowCount: rowCount, isNonItem: false });
     });
 
     // Non-items calculation
+    let nonItemsHTML = "";
     let totalNonItemsTaxable = 0;
     let totalNonItemsTax = 0;
     let totalNonItemsPrice = 0;
-    (quotation.non_items || []).forEach(item => {
+    (quotation.non_items || []).forEach((item, idx) => {
         const price = parseFloat(item.price || 0);
         const taxRate = parseFloat(item.rate || 0);
-        const description = item.description || '-';
         const specification = item.specification || '';
         const taxableValue = price;
         const taxAmount = (taxableValue * taxRate) / 100;
         totalNonItemsTaxable += taxableValue;
         totalNonItemsTax += taxAmount;
-        sno++;
 
-        let nonItemHTML = "";
         if (viewType === 2) {
             const totalWithTax = taxableValue + taxAmount;
             totalNonItemsPrice += totalWithTax;
-            nonItemHTML = `
+            nonItemsHTML += `
                 <tr>
-                    <td>${sno}</td>
-                    <td>${description}</td>
+                    <td>${idx + 1}</td>
+                    <td>${item.description || '-'}</td>
                     <td>${specification}</td>
                     <td>${formatIndian(price, 2)}</td>
                     <td>${taxRate}%</td>
@@ -100,26 +91,24 @@ function generateViewPreviewHTML(quotation, viewType) {
             `;
         } else if (viewType === 1) {
             totalNonItemsPrice += taxableValue;
-            nonItemHTML = `
+            nonItemsHTML += `
                 <tr>
-                    <td>${sno}</td>
-                    <td>${description}</td>
+                    <td>${idx + 1}</td>
+                    <td>${item.description || '-'}</td>
                     <td>${specification}</td>
                     <td>${formatIndian(price, 2)}</td>
                 </tr>
             `;
         } else {
             totalNonItemsPrice += taxableValue;
-            nonItemHTML = `
+            nonItemsHTML += `
                 <tr>
-                    <td>${sno}</td>
-                    <td>${description}</td>
+                    <td>${idx + 1}</td>
+                    <td>${item.description || '-'}</td>
                     <td>${specification}</td>
                 </tr>
             `;
         }
-        const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
-        allRenderableItems.push({ html: nonItemHTML, rowCount: rowCount, isNonItem: true });
     });
 
     // Grand totals
@@ -129,7 +118,6 @@ function generateViewPreviewHTML(quotation, viewType) {
 
     // Table headers
     let tableHead = "";
-    let nonItemsTableHead = "";
     if (viewType === 2) {
         tableHead = `
             <th>Sr. No</th>
@@ -138,13 +126,6 @@ function generateViewPreviewHTML(quotation, viewType) {
             <th>HSN/SAC</th>
             <th>Qty</th>
             <th>Unit Price</th>
-            <th>Tax Rate</th>
-            <th>Total (With Tax)</th>`;
-        nonItemsTableHead = `
-            <th>Sr. No</th>
-            <th>Description</th>
-            <th>Specification</th>
-            <th>Price</th>
             <th>Tax Rate</th>
             <th>Total (With Tax)</th>`;
     } else if (viewType === 1) {
@@ -156,21 +137,12 @@ function generateViewPreviewHTML(quotation, viewType) {
             <th>Qty</th>
             <th>Unit Price</th>
             <th>Total</th>`;
-        nonItemsTableHead = `
-            <th>Sr. No</th>
-            <th>Description</th>
-            <th>Specification</th>
-            <th>Price</th>`;
     } else {
         tableHead = `
             <th>Sr. No</th>
             <th>Description</th>
             <th>Specification</th>
             <th>Qty</th>`;
-        nonItemsTableHead = `
-            <th>Sr. No</th>
-            <th>Description</th>
-            <th>Specification</th>`;
     }
 
     // Totals HTML
@@ -198,120 +170,6 @@ function generateViewPreviewHTML(quotation, viewType) {
             </div>
         `;
     }
-
-    const ITEMS_PER_PAGE = 15;
-    const SUMMARY_SECTION_ROW_COUNT = 8;
-
-    const itemPages = [];
-    let currentPageItems = [];
-    let currentPageRowCount = 0;
-
-    allRenderableItems.forEach((item, index) => {
-        const isLastItem = index === allRenderableItems.length - 1;
-        const itemSpace = item.rowCount;
-        const requiredSpaceForLastItem = itemSpace + SUMMARY_SECTION_ROW_COUNT;
-
-        if (currentPageRowCount > 0 &&
-            ((!isLastItem && currentPageRowCount + itemSpace > ITEMS_PER_PAGE) ||
-                (isLastItem && currentPageRowCount + requiredSpaceForLastItem > ITEMS_PER_PAGE))) {
-            itemPages.push(currentPageItems);
-            currentPageItems = [];
-            currentPageRowCount = 0;
-        }
-
-        currentPageItems.push(item);
-        currentPageRowCount += item.rowCount;
-    });
-
-    if (currentPageItems.length > 0) {
-        itemPages.push(currentPageItems);
-    }
-
-    const itemsPageHTML = itemPages.map((pageItems, index) => {
-        const isLastItemsPage = index === itemPages.length - 1;
-
-        const regularItemsHTML = pageItems.filter(p => !p.isNonItem).map(p => p.html).join('');
-        const nonItemsHTML = pageItems.filter(p => p.isNonItem).map(p => p.html).join('');
-
-        return `
-        <div class="preview-container">
-            <div class="header">
-                <div class="logo">
-                    <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
-                        alt="Shresht Logo">
-                </div>
-                <div class="company-details">
-                    <h1>SHRESHT SYSTEMS</h1>
-                    <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                    <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                    <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-                </div>
-            </div>
-            <div class="title">Quotation-${quotation.quotation_id}</div>
-            
-            ${regularItemsHTML ? `
-            <div class="items-section">
-                ${index === 0 ? `<div class="table headline-section"><p><u>${quotation.project_name}</u></p></div>` : ''}
-                <table class="items-table">
-                    <thead><tr>${tableHead}</tr></thead>
-                    <tbody>${regularItemsHTML}</tbody>
-                </table>
-            </div>` : ''}
-
-            ${nonItemsHTML ? `
-            <div class="items-section">
-                ${!regularItemsHTML && index === 0 ? `<div class="table headline-section"><p><u>Other Charges</u></p></div>` : ''}
-                <table class="items-table">
-                    <thead><tr>${nonItemsTableHead}</tr></thead>
-                    <tbody>${nonItemsHTML}</tbody>
-                </table>
-            </div>` : ''}
-
-            ${isLastItemsPage ? `
-            <div class="fifth-section">
-                <div class="fifth-section-sub1">
-                    <div class="fifth-section-sub2">
-                        <div class="fifth-section-sub3">
-                            <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
-                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(grandTotal)} Only</span></p>
-                        </div>
-                        <h3>Payment Details:</h3>
-                        <div class="bank-details">
-                            <div class="QR-code bank-details-sub1">
-                                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
-                                    alt="qr-code" />
-                            </div>
-                            <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                                <p><strong>Bank Name: </strong>Canara Bank</p>
-                                <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                                <p><strong>Account No: </strong>120002152652</p>
-                                <p><strong>IFSC Code: </strong>CNRB0010261</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="totals-section">
-                        ${totalsHTML}
-                    </div>
-                </div>
-            </div>
-            <div class="page-break"></div>
-            <div class="notes-section">
-                <p><strong>Notes:</strong></p>
-                <ul>
-                    <li>All prices are exclusive of taxes unless stated otherwise.</li>    
-                    <li>Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation.</li>
-                    <li>All equipment supplied is covered under the manufacturer’s standard warranty.</li>              
-                    <li>All applicable taxes and duties are included unless stated otherwise.</li>
-                </ul>
-            </div>
-            ` : ''}
-            <footer>
-                <p>This is a computer-generated quotation.</p>
-            </footer>
-        </div>
-        `;
-    }).join('');
 
 
     document.getElementById("view-preview-content").innerHTML = `
@@ -365,7 +223,77 @@ function generateViewPreviewHTML(quotation, viewType) {
         </footer>
     </div>
 
-    ${itemsPageHTML}
+    <div class="preview-container">
+        <div class="header">
+            <div class="logo">
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                    alt="Shresht Logo">
+            </div>
+            <div class="company-details">
+                <h1>SHRESHT SYSTEMS</h1>
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+            </div>
+        </div>
+                
+        <div class="title">Quotation-${quotation.quotation_id}</div>
+        <div class="items-section">
+            <div class="table headline-section"><p><u>5KW Solar Systems</u></p></div>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        ${tableHead}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHTML}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="fifth-section">
+            <div class="fifth-section-sub1">
+                <div class="fifth-section-sub2">
+                    <div class="fifth-section-sub3">
+                        <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                    </div>
+                    <h3>Payment Details:</h3>
+                    <div class="bank-details">
+                        <div class="QR-code bank-details-sub1">
+                            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                alt="qr-code" />
+                        </div>
+                        <div class="bank-details-sub2">
+                            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
+                            <p><strong>Bank Name: </strong>Canara Bank</p>
+                            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
+                            <p><strong>Account No: </strong>120002152652</p>
+                            <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="totals-section">
+                    ${totalsHTML}
+                </div>
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+        <div class="notes-section">
+            <p><strong>Notes:</strong></p>
+            <ul>
+                <li>All prices are exclusive of taxes unless stated otherwise.</li>    
+                <li>Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation.</li>
+                <li>All equipment supplied is covered under the manufacturer’s standard warranty.</li>              
+                <li>All applicable taxes and duties are included unless stated otherwise.</li>
+            </ul>
+        </div>
+        <footer>
+            <p>This is a computer-generated quotation.</p>
+        </footer>
+    </div>
 
     <div class="preview-container">
         <div class="header">
