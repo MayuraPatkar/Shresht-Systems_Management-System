@@ -270,8 +270,8 @@ async function viewQuotation(quotationId, viewType) {
                 row.innerHTML = `
                     <td>${viewItemsTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${item.specification}</td>
-                    <td>${qty || '-'}</td>
+                    <td>${item.specification || ''}</td>
+                    <td>${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td>
                 `;
             }
             viewItemsTableBody.appendChild(row);
@@ -312,7 +312,8 @@ async function viewQuotation(quotationId, viewType) {
                 row.innerHTML = `
                     <td>${viewNonItesTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
-                    <td>${item.specification}</td>
+                    <td>${item.specification || ''}</td>
+                    <td>${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td>
                 `;
             }
             viewNonItesTableBody.appendChild(row);
@@ -364,7 +365,7 @@ async function viewQuotation(quotationId, viewType) {
                 <th>Sr. No</th>
                 <th>Description</th>
                 <th>Specification</th>
-                <th>Qty</th>
+                <th>Price</th>
             `;
         }
 
@@ -393,10 +394,8 @@ async function viewQuotation(quotationId, viewType) {
             tableHeadNonItems.innerHTML = `
                 <th>Sr. No</th>
                 <th>Description</th>
-                <th>HSN/SAC</th>
-                <th>Qty</th>
-                <th>Unit Price</th>
-                <th>Total</th>
+                <th>Specification</th>
+                <th>Price</th>
             `;
         }
 
