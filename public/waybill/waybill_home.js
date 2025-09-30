@@ -188,7 +188,7 @@ function createWayBillCard(wayBill) {
         <div class="record-item-details">
             <div class="record-item-info-2">
                 <h2>Transport Place</h2>
-                <p>${wayBill.transport_mode}</p>
+                <p>${wayBill.place_supply}</p>
             </div>
         </div>
     </div>
@@ -256,10 +256,12 @@ async function openWayBill(wayBillId) {
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
+        let sno = 0; 
 
         (wayBill.items || []).forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
+                <td>${++sno}</td>
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>

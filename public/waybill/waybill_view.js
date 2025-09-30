@@ -1,5 +1,6 @@
 function generateViewPreviewHTML(wayBill) {
     let itemsHTML = "";
+    let sno = 0;
     (wayBill.items || []).forEach(item => {
         const description = item.description || "-";
         const hsnCode = item.HSN_SAC || "-";
@@ -9,6 +10,7 @@ function generateViewPreviewHTML(wayBill) {
         const total = (qty * unitPrice).toFixed(2);
 
         itemsHTML += `<tr>
+            <td>${++sno}</td>
             <td>${description}</td>
             <td>${hsnCode}</td>
             <td>${qty}</td>
@@ -55,6 +57,7 @@ function generateViewPreviewHTML(wayBill) {
         <table>
             <thead>
                 <tr>
+                    <th>Sl. No</th>
                     <th>Description</th>
                     <th>HSN Code</th>
                     <th>Qty</th>
@@ -117,6 +120,7 @@ async function viewWayBill(wayBillId) {
 
         const data = await response.json();
         const waybill = data.wayBill;
+        let sno = 0;
 
         // Hide other sections, show view section
         document.getElementById('home').style.display = 'none';
@@ -145,6 +149,7 @@ async function viewWayBill(wayBillId) {
         (waybill.items || []).forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
+                <td>${++sno}</td>
                 <td>${item.description || '-'}</td>
                 <td>${item.HSN_SAC || item.hsn_sac || '-'}</td>
                 <td>${item.quantity || '-'}</td>
