@@ -180,9 +180,10 @@
                 <div class="steps" id="step-5">
                     <h2>Item List</h2>
                     <div class="form-group">
-                        <table id="items-table">
+                        <table id="items-table" class="items-table">
                             <thead>
                                 <tr>
+                                    <th>S. No</th>
                                     <th>Description</th>
                                     <th>HSN/SAC</th>
                                     <th>Qty</th>
@@ -199,8 +200,28 @@
                     </div>
                 </div>
 
-                <!-- Step 7: Preview -->
                 <div class="steps" id="step-6">
+                    <h2>Other Non-Items</h2>
+                    <div class="form-group">
+                        <table id="non-items-table" class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>S. No</th>
+                                    <th>Description</th>
+                                    <th>Price</th>
+                                    <th>Rate</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                        <button type="button" class="add-item-btn" id="add-non-item-btn">Add Item</button>
+                    </div>
+                </div>
+
+                <!-- Step 7: Preview -->
+                <div class="steps" id="step-7">
                     <div class="preview">
                         <h2>Preview</h2>
                         <div id="preview-content">

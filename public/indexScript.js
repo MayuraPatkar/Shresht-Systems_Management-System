@@ -1,6 +1,7 @@
 document.getElementById('show-login').addEventListener('click', () => {
     document.querySelector('.auth-container').style.display = "none";
     document.querySelector('.login-container').style.display = "flex";
+    // window.location = '/dashboard';
 });
 
 document.getElementById('login-btn').addEventListener('click', () => {

@@ -1,4 +1,4 @@
-const totalSteps = 6;
+const totalSteps = 7;
 let invoiceId = '';
 let totalAmountOriginal = 0;
 let totalAmountDuplicate = 0;
@@ -12,6 +12,7 @@ document.getElementById("view-preview").addEventListener("click", () => {
 
 // Event listener for the "Next" button
 document.getElementById("next-btn").addEventListener("click", () => {
+    let sno = 0;
     if (currentStep === 2 && !document.getElementById("id").value) {
         const quotationId = document.getElementById("quotation-id").value;
         if (quotationId) {
@@ -30,6 +31,7 @@ document.getElementById("next-btn").addEventListener("click", () => {
                     quotation.items.forEach(item => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
+                            <td>${sno++}</td>
                             <td><input type="text" value="${item.description}" required></td>
                             <td><input type="text" value="${item.HSN_SAC}" required></td>
                             <td><input type="number" value="${item.quantity}" min="1" required></td>
@@ -82,12 +84,13 @@ async function openInvoice(id) {
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
+let s = 0;
 
         if (type == 'original') {
-
             invoice.items_original.forEach(item => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
+                <td>${s++}</td>
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
@@ -101,6 +104,7 @@ async function openInvoice(id) {
             invoice.items_duplicate.forEach(item => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
+                <td>${s++}</td>
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
@@ -138,18 +142,18 @@ function calculateInvoice(itemsTable) {
     let totalCGST = 0;
     let totalSGST = 0;
     let totalTaxableValue = 0;
+    let sno = 0;
     let itemsHTML = "";
 
     // Check if rate column is populated
     let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[4].querySelector("input").value) > 0);
 
     for (const row of itemsTable.rows) {
-        let sno = 1;
-        const description = row.cells[0].querySelector("input").value || "-";
-        const hsnSac = row.cells[1].querySelector("input").value || "-";
-        const qty = parseFloat(row.cells[2].querySelector("input").value || "0");
-        const unitPrice = parseFloat(row.cells[3].querySelector("input").value || "0");
-        const rate = parseFloat(row.cells[4].querySelector("input").value || "0");
+        const description = row.cells[1].querySelector("input").value || "-";
+        const hsnSac = row.cells[2].querySelector("input").value || "-";
+        const qty = parseFloat(row.cells[3].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[4].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
 
         const taxableValue = qty * unitPrice;
         totalTaxableValue += taxableValue;
@@ -167,7 +171,7 @@ function calculateInvoice(itemsTable) {
 
             itemsHTML += `
                 <tr>
-                    <td>${sno++}}</td>
+                    <td>${sno++}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -183,7 +187,7 @@ function calculateInvoice(itemsTable) {
 
             itemsHTML += `
                 <tr>
-                    <td>${sno++}}</td>
+                    <td>${sno++}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -193,6 +197,57 @@ function calculateInvoice(itemsTable) {
             `;
         }
     }
+
+    const nonItemsTable = document.querySelector('#non-items-table tbody');
+const rows = Array.from(nonItemsTable.querySelectorAll('tr'));
+
+for (const row of rows) {
+    const description = row.querySelector('input[placeholder="Item Description"]').value || "-";
+    const unitPrice = parseFloat(row.querySelector('input[placeholder="Price"]').value || "0");
+    const rate = parseFloat(row.querySelector('input[placeholder="Rate"]').value || "0");
+
+    totalTaxableValue += unitPrice;
+
+    if (hasTax) {
+        const cgstPercent = rate / 2;
+        const sgstPercent = rate / 2;
+        const cgstValue = (unitPrice * cgstPercent) / 100;
+        const sgstValue = (unitPrice * sgstPercent) / 100;
+        const rowTotal = unitPrice + cgstValue + sgstValue;
+
+        totalCGST += cgstValue;
+        totalSGST += sgstValue;
+        totalPrice += rowTotal;
+
+        itemsHTML += `
+            <tr>
+                <td>${sno++}</td>
+                <td>${description}</td>
+                <td>-</td>
+                <td>-</td>
+                <td>${formatIndian(unitPrice, 2)}</td>
+                <td>${formatIndian(unitPrice, 2)}</td>
+                <td>${rate.toFixed(2)}</td>
+                <td>${formatIndian(rowTotal, 2)}</td>
+            </tr>
+        `;
+    } else {
+        const rowTotal = unitPrice;
+        totalPrice += rowTotal;
+
+        itemsHTML += `
+            <tr>
+                <td>${sno++}</td>
+                <td>${description}</td>
+                <td>${hsnSac}</td>
+                <td>-</td>
+                <td>${unitPrice.toFixed(2)}</td>
+                <td>${rowTotal.toFixed(2)}</td>
+            </tr>
+        `;
+    }
+}
+
 
     const grandTotal = totalTaxableValue + totalCGST + totalSGST;
     const roundOff = Math.round(grandTotal) - grandTotal;
@@ -454,11 +509,11 @@ function collectFormData() {
         consigneeName: document.getElementById("consignee-name").value,
         consigneeAddress: document.getElementById("consignee-address").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
-            description: row.querySelector("td:nth-child(1) input").value,
-            HSN_SAC: row.querySelector("td:nth-child(2) input").value,
-            quantity: row.querySelector("td:nth-child(3) input").value,
-            unit_price: row.querySelector("td:nth-child(4) input").value,
-            rate: row.querySelector("td:nth-child(5) input").value,
+            description: row.querySelector("td:nth-child(2) input").value,
+            HSN_SAC: row.querySelector("td:nth-child(3) input").value,
+            quantity: row.querySelector("td:nth-child(4) input").value,
+            unit_price: row.querySelector("td:nth-child(5) input").value,
+            rate: row.querySelector("td:nth-child(6) input").value,
         })),
         totalAmountOriginal: totalAmountOriginal,
         totalAmountDuplicate: totalAmountDuplicate,
