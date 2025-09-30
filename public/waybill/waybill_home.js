@@ -17,7 +17,7 @@ document.getElementById('quotation').addEventListener('click', () => {
   sessionStorage.setItem('currentTab', 'quotation');
 })
 
-document.getElementById('postOrder').addEventListener('click', () => {
+document.getElementById('purchase-bill').addEventListener('click', () => {
   window.location = '/purchaseorder';
   sessionStorage.setItem('currentTab', 'purchaseorder');
 })
