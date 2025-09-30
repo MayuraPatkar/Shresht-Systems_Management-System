@@ -533,9 +533,9 @@ function collectFormData() {
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(2) input").value,
             HSN_SAC: row.querySelector("td:nth-child(3) input").value,
-            quantity: row.querySelector("td:nth-child(4) input").value,
-            unit_price: row.querySelector("td:nth-child(5) input").value,
-            rate: row.querySelector("td:nth-child(6) input").value,
+            quantity: Number(row.querySelector("td:nth-child(4) input").value) || 0,
+            unit_price: Number(row.querySelector("td:nth-child(5) input").value) || 0,
+            rate: Number(row.querySelector("td:nth-child(6) input").value) || 0,
             specification: (() => {
                 // Try to match specification from specifications table
                 const desc = row.querySelector("td:nth-child(2) input").value;
@@ -546,8 +546,8 @@ function collectFormData() {
         })),
         non_items: Array.from(document.querySelectorAll("#non-items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(2) input").value,
-            price: row.querySelector("td:nth-child(3) input").value,
-            rate: row.querySelector("td:nth-child(4) input").value,
+            price: Number(row.querySelector("td:nth-child(3) input").value) || 0,
+            rate: Number(row.querySelector("td:nth-child(4) input").value) || 0,
             specification: (() => {
                 // Try to match specification from specifications table
                 const desc = row.querySelector("td:nth-child(2) input").value;

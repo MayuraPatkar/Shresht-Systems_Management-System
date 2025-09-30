@@ -28,13 +28,13 @@ function generateViewPreviewHTML(quotation, viewType) {
         if (viewType === 2) {
             const totalWithTax = taxableValue + taxAmount;
             totalPrice += totalWithTax;
-            itemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(taxableValue, 2)}</td><td>${taxRate}%</td><td>${formatIndian(totalWithTax, 2)}</td></tr>`;
+            itemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${hsnSac || '-'}</td><td>${qty || '-'}</td><td>${unitPrice ? formatIndian(unitPrice, 2) : '-'}</td><td>${taxableValue ? formatIndian(taxableValue, 2) : '-'}</td><td>${taxRate}%</td><td>${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
         } else if (viewType === 1) {
             totalPrice += taxableValue;
-            itemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(taxableValue, 2)}</td></tr>`;
+            itemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${hsnSac || '-'}</td><td>${qty || '-'}</td><td>${unitPrice ? formatIndian(unitPrice, 2) : '-'}</td><td>${taxableValue ? formatIndian(taxableValue, 2) : '-'}</td></tr>`;
         } else {
             totalPrice += taxableValue + taxAmount;
-            itemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${item.specification || ''}</td><td>${qty}</td></tr>`;
+            itemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${item.specification || ''}</td><td>${qty || '-'}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
@@ -56,10 +56,10 @@ function generateViewPreviewHTML(quotation, viewType) {
         if (viewType === 2) {
             const totalWithTax = taxableValue + taxAmount;
             totalNonItemsPrice += totalWithTax;
-            nonItemHTML = `<tr><td>${sno}</td><td>${description}</td><td>-</td><td>-</td><td>-</td><td>${formatIndian(price, 2)}</td><td>${taxRate}%</td><td>${formatIndian(totalWithTax, 2)}</td></tr>`;
+            nonItemHTML = `<tr><td>${sno}</td><td>${description}</td><td>-</td><td>-</td><td>-</td><td>${price ? formatIndian(price, 2) : '-'}</td><td>${taxRate}%</td><td>${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
         } else if (viewType === 1) {
             totalNonItemsPrice += taxableValue;
-            nonItemHTML = `<tr><td>${sno}</td><td>${description}</td><td>-</td><td>-</td><td>-</td><td>${formatIndian(price, 2)}</td></tr>`;
+            nonItemHTML = `<tr><td>${sno}</td><td>${description}</td><td>-</td><td>-</td><td>-</td><td>${price ? formatIndian(price, 2) : '-'}</td></tr>`;
         } else {
             totalNonItemsPrice += taxableValue;
             nonItemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${item.specification || ''}</td><td>-</td></tr>`;
@@ -252,10 +252,10 @@ async function viewQuotation(quotationId, viewType) {
                     <td>${item.description || '-'}</td>
                     <td>${item.HSN_SAC || '-'}</td>
                     <td>${item.quantity || '-'}</td>
-                    <td>${formatIndian(item.unit_price, 2) || '-'}</td>
-                    <td>${formatIndian(taxableValue, 2) || '-'}</td>
+                    <td>${item.unit_price ? formatIndian(item.unit_price, 2) : '-'}</td>
+                    <td>${taxableValue ? formatIndian(taxableValue, 2) : '-'}</td>
                     <td>${item.rate ? item.rate + '%' : '-'}</td>
-                    <td>${formatIndian(totalWithTax, 2) || '-'}</td>
+                    <td>${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td>
                 `;
             } else if (viewType === 1) {
                 row.innerHTML = `
@@ -263,15 +263,15 @@ async function viewQuotation(quotationId, viewType) {
                     <td>${item.description || '-'}</td>
                     <td>${item.HSN_SAC || '-'}</td>
                     <td>${item.quantity || '-'}</td>
-                    <td>${formatIndian(item.unit_price, 2) || '-'}</td>
-                    <td>${formatIndian(taxableValue, 2) || '-'}</td>
+                    <td>${item.unit_price ? formatIndian(item.unit_price, 2) : '-'}</td>
+                    <td>${taxableValue ? formatIndian(taxableValue, 2) : '-'}</td>
                 `;
             } else {
                 row.innerHTML = `
                     <td>${viewItemsTableBody.children.length + 1}</td>
                     <td>${item.description || '-'}</td>
                     <td>${item.specification}</td>
-                    <td>${qty}</td>
+                    <td>${qty || '-'}</td>
                 `;
             }
             viewItemsTableBody.appendChild(row);
@@ -295,9 +295,9 @@ async function viewQuotation(quotationId, viewType) {
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>
-                    <td>${formatIndian(price, 2) || '-'}</td>
+                    <td>${price ? formatIndian(price, 2) : '-'}</td>
                     <td>${item.rate ? item.rate + '%' : '-'}</td>
-                    <td>${formatIndian(totalWithTax, 2) || '-'}</td>
+                    <td>${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td>
                 `;
             } else if (viewType === 1) {
                 row.innerHTML = `
@@ -306,7 +306,7 @@ async function viewQuotation(quotationId, viewType) {
                     <td>-</td>
                     <td>-</td>
                     <td>-</td>
-                    <td>${formatIndian(price, 2) || '-'}</td>
+                    <td>${price ? formatIndian(price, 2) : '-'}</td>
                 `;
             } else {
                 row.innerHTML = `
