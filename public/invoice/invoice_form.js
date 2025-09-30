@@ -27,6 +27,8 @@ document.getElementById("next-btn").addEventListener("click", () => {
                     document.getElementById("buyer-email").value = quotation.customer_email;
                     const itemsTableBody = document.querySelector("#items-table tbody");
                     itemsTableBody.innerHTML = "";
+                    const nonItemsTableBody = document.querySelector("#non-items-table tbody");
+                    nonItemsTableBody.innerHTML = "";
 
                     quotation.items.forEach(item => {
                         const row = document.createElement("tr");
@@ -40,6 +42,18 @@ document.getElementById("next-btn").addEventListener("click", () => {
                             <td><button type="button" class="remove-item-btn">Remove</button></td>
                         `;
                         itemsTableBody.appendChild(row);
+                    });
+
+                    quotation.non_items.forEach(item => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${sno++}</td>
+                            <td><input type="text" value="${item.description}" required></td>
+                            <td><input type="number" value="${item.price}" required></td>
+                            <td><input type="number" value="${item.rate}" required></td>
+                            <td><button type="button" class="remove-item-btn">Remove</button></td>
+                        `;
+                        nonItemsTableBody.appendChild(row);
                     });
                 })
                 .catch(error => {
@@ -84,7 +98,9 @@ async function openInvoice(id) {
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
-let s = 0;
+        const nonItemsTableBody = document.querySelector("#non-items-table tbody");
+        nonItemsTableBody.innerHTML = "";
+        let s = 0;
 
         if (type == 'original') {
             invoice.items_original.forEach(item => {
@@ -100,6 +116,18 @@ let s = 0;
             `;
                 itemsTableBody.appendChild(row);
             });
+
+            invoice.non_items_original.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                <td>${s++}</td>
+                <td><input type="text" value="${item.description}" required></td>
+                <td><input type="number" value="${item.price}" required></td>
+                <td><input type="number" value="${item.rate}" required></td>
+                <td><button type="button" class="remove-item-btn">Remove</button></td>
+            `;
+                nonItemsTableBody.appendChild(row);
+            });
         } else {
             invoice.items_duplicate.forEach(item => {
                 const row = document.createElement("tr");
@@ -113,6 +141,18 @@ let s = 0;
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
                 itemsTableBody.appendChild(row);
+            });
+
+            invoice.non_items_duplicate.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                <td>${s++}</td>
+                <td><input type="text" value="${item.description}" required></td>
+                <td><input type="number" value="${item.price}" required></td>
+                <td><input type="number" value="${item.rate}" required></td>
+                <td><button type="button" class="remove-item-btn">Remove</button></td>
+            `;
+                nonItemsTableBody.appendChild(row);
             });
         }
     } catch (error) {
@@ -187,7 +227,7 @@ function calculateInvoice(itemsTable) {
 
             itemsHTML += `
                 <tr>
-                    <td>${sno++}</td>
+                    <td>${sno++}</td>   
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -199,27 +239,27 @@ function calculateInvoice(itemsTable) {
     }
 
     const nonItemsTable = document.querySelector('#non-items-table tbody');
-const rows = Array.from(nonItemsTable.querySelectorAll('tr'));
+    const rows = Array.from(nonItemsTable.querySelectorAll('tr'));
 
-for (const row of rows) {
-    const description = row.querySelector('input[placeholder="Item Description"]').value || "-";
-    const unitPrice = parseFloat(row.querySelector('input[placeholder="Price"]').value || "0");
-    const rate = parseFloat(row.querySelector('input[placeholder="Rate"]').value || "0");
+    for (const row of rows) {
+        const description = row.cells[1].querySelector("input").value || "-";
+        const unitPrice = parseFloat(row.cells[2].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[3].querySelector("input").value || "0");
 
-    totalTaxableValue += unitPrice;
+        totalTaxableValue += unitPrice;
 
-    if (hasTax) {
-        const cgstPercent = rate / 2;
-        const sgstPercent = rate / 2;
-        const cgstValue = (unitPrice * cgstPercent) / 100;
-        const sgstValue = (unitPrice * sgstPercent) / 100;
-        const rowTotal = unitPrice + cgstValue + sgstValue;
+        if (hasTax) {
+            const cgstPercent = rate / 2;
+            const sgstPercent = rate / 2;
+            const cgstValue = (unitPrice * cgstPercent) / 100;
+            const sgstValue = (unitPrice * sgstPercent) / 100;
+            const rowTotal = unitPrice + cgstValue + sgstValue;
 
-        totalCGST += cgstValue;
-        totalSGST += sgstValue;
-        totalPrice += rowTotal;
+            totalCGST += cgstValue;
+            totalSGST += sgstValue;
+            totalPrice += rowTotal;
 
-        itemsHTML += `
+            itemsHTML += `
             <tr>
                 <td>${sno++}</td>
                 <td>${description}</td>
@@ -231,11 +271,11 @@ for (const row of rows) {
                 <td>${formatIndian(rowTotal, 2)}</td>
             </tr>
         `;
-    } else {
-        const rowTotal = unitPrice;
-        totalPrice += rowTotal;
+        } else {
+            const rowTotal = unitPrice;
+            totalPrice += rowTotal;
 
-        itemsHTML += `
+            itemsHTML += `
             <tr>
                 <td>${sno++}</td>
                 <td>${description}</td>
@@ -245,8 +285,8 @@ for (const row of rows) {
                 <td>${rowTotal.toFixed(2)}</td>
             </tr>
         `;
+        }
     }
-}
 
 
     const grandTotal = totalTaxableValue + totalCGST + totalSGST;
@@ -304,12 +344,23 @@ function generatePreview() {
     const buyerPhone = document.getElementById("buyer-phone").value;
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
 
+    let allItems = [];
+
     const {
         itemsHTML,
         totalsHTML,
         finalTotal,
         hasTax
     } = calculateInvoice(itemsTable);
+
+    allItems.push(itemsHTML);
+
+    const ITEMS_PER_PAGE = 10;
+    const itemPages = [];
+    for (let i = 0; i < allItems.length; i += ITEMS_PER_PAGE) {
+        const chunk = allItems.slice(i, i + ITEMS_PER_PAGE);
+        itemPages.push(chunk.join(''));
+    }
 
     // Generate preview content
     document.getElementById("preview-content").innerHTML = `
@@ -514,6 +565,11 @@ function collectFormData() {
             quantity: row.querySelector("td:nth-child(4) input").value,
             unit_price: row.querySelector("td:nth-child(5) input").value,
             rate: row.querySelector("td:nth-child(6) input").value,
+        })),
+        non_items: Array.from(document.querySelectorAll("#non-items-table tbody tr")).map(row => ({
+            description: row.querySelector("td:nth-child(2) input").value,
+            price: row.querySelector("td:nth-child(3) input").value,
+            rate: row.querySelector("td:nth-child(4) input").value,
         })),
         totalAmountOriginal: totalAmountOriginal,
         totalAmountDuplicate: totalAmountDuplicate,

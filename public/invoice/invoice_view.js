@@ -310,6 +310,8 @@ async function viewInvoice(invoiceId, userRole) {
 
         const data = await response.json();
         const invoice = data.invoice;
+        let sno = 0;
+
 
         // Hide other sections, show view section
         document.getElementById('view-preview').style.display = 'none';
@@ -369,6 +371,7 @@ async function viewInvoice(invoiceId, userRole) {
             (invoice.items_original || []).forEach(item => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
+                    <td>${++sno}</td>
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
@@ -382,6 +385,7 @@ async function viewInvoice(invoiceId, userRole) {
             (invoice.items_duplicate || []).forEach(item => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
+                    <td>${++sno}</td>
                     <td>${item.description || ''}</td>
                     <td>${item.HSN_SAC || ''}</td>
                     <td>${item.quantity || ''}</td>
@@ -389,6 +393,34 @@ async function viewInvoice(invoiceId, userRole) {
                     <td>${item.rate ? item.rate + '%' : ''}</td>
                 `;
                 detailItemsTableBody.appendChild(row);
+            });
+        }
+
+        // Item List
+        const detailNonItemsTableBody = document.querySelector("#view-non-items-table tbody");
+        detailNonItemsTableBody.innerHTML = "";
+        if (type === 'original') {
+            (invoice.non_items_original || []).forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${++sno}</td>
+                    <td>${item.description || ''}</td>
+                    <td>₹ ${formatIndian(item.price, 2) || ''}</td>
+                    <td>${item.rate ? item.rate + '%' : ''}</td>
+                `;
+                detailNonItemsTableBody.appendChild(row);
+            });
+        }
+        else {
+            (invoice.non_items_duplicate || []).forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${++sno}</td>
+                    <td>${item.description || ''}</td>
+                    <td>₹ ${formatIndian(item.price, 2) || ''}</td>
+                    <td>${item.rate ? item.rate + '%' : ''}</td>
+                `;
+                detailNonItemsTableBody.appendChild(row);
             });
         }
 
