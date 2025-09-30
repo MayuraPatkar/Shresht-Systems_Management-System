@@ -66,6 +66,7 @@ const quotationSchema = new mongoose.Schema({
     letter_1: { type: String },
     letter_2: [{ type: String }],
     letter_3: { type: String },
+    headline: { type: String },
     notes: [{ type: String }],
     termsAndConditions: { type: String },
 

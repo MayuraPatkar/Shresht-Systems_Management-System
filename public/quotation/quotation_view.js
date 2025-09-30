@@ -126,7 +126,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             </div>
             <div class="title">Quotation-${quotation.quotation_id}</div>
             <div class="items-section">
-                ${index === 0 ? `<div class="table headline-section"><p><u>${quotation.project_name || 'Items and Charges'}</u></p></div>` : ''}
+                ${index === 0 ? `<div class="table headline-section"><p><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
                 <table class="items-table"><thead><tr>${tableHead}</tr></thead><tbody>${pageHTML}</tbody></table>
             </div>
             ${isLastItemsPage ? `

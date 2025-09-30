@@ -242,7 +242,7 @@ function generatePreview() {
                 </div>
             </div>
             <div class="title">Quotation-${quotationId}</div>
-            ${index === 0 ? `<div class="table headline-section" contenteditable="true"><p><u>5KW Solar Systems</u></p></div>` : ''}
+            ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>5KW Solar Systems</u></p></div>` : ''}
             <div class="items-section">
                 <table class="items-table">
                     <thead>
@@ -561,12 +561,12 @@ function collectFormData() {
         totalAmountTax: totalAmountTax,
 
 
-        //  content of files cannot be sent to server
         subject: document.querySelector(".info-section p[contenteditable]").innerText.replace("Subject:", "").trim(),
         letter_1: document.querySelectorAll(".info-section p[contenteditable]")[1].innerText.trim(),
         letter_2: Array.from(document.querySelectorAll(".info-section ul[contenteditable] li")).map(li => li.innerText.trim()),
         letter_3: document.querySelectorAll(".info-section p[contenteditable]")[3].innerText.trim(),
         notes: Array.from(document.querySelector(".notes-section ul").querySelectorAll("li")).map(li => li.innerText.trim()),
         termsAndConditions: document.querySelector(".terms-section").innerHTML.trim(),
+        headline: document.querySelector(".headline-section p[contenteditable]")?.innerText.trim() || ''
     };
 }
