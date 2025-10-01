@@ -2,6 +2,8 @@
 document.getElementById("next-btn").addEventListener("click", () => {
     if (currentStep === 2 && !document.getElementById("waybill-id").value) {
         const quotationId = document.getElementById("quotation-id").value;
+
+        let sno = 0;
         if (quotationId) {
             fetch(`/quotation/${quotationId}`)
                 .then(response => response.json())
@@ -17,6 +19,7 @@ document.getElementById("next-btn").addEventListener("click", () => {
                     quotation.items.forEach(item => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
+                            <td>${++sno}</td>
                             <td><input type="text" value="${item.description}" required></td>
                             <td><input type="text" value="${item.HSN_SAC}" required></td>
                             <td><input type="number" value="${item.quantity}" min="1" required></td>
@@ -40,8 +43,10 @@ document.getElementById('add-item-btn').addEventListener('click', addItem);
 function addItem() {
     const tableBody = document.querySelector("#items-table tbody");
     const row = document.createElement("tr");
+    let sno = 0;
 
     row.innerHTML = `
+        <td>${++sno}</td>
         <td><input type="text" placeholder="Item Description" required></td>
         <td><input type="text" placeholder="HSN Code" required></td>
         <td><input type="number" placeholder="Qty" min="1" required></td>
@@ -77,15 +82,17 @@ function generatePreview() {
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
 
     let itemsHTML = "";
+    let sno = 0;
     for (let row of itemsTable.rows) {
-        const description = row.cells[0].querySelector("input").value || "-";
-        const hsnCode = row.cells[1].querySelector("input").value || "-";
-        const qty = row.cells[2].querySelector("input").value || "0";
-        const unitPrice = row.cells[3].querySelector("input").value || "0";
-        const rate = row.cells[4].querySelector("input").value || "0";
+        const description = row.cells[1].querySelector("input").value || "-";
+        const hsnCode = row.cells[2].querySelector("input").value || "-";
+        const qty = row.cells[3].querySelector("input").value || "0";
+        const unitPrice = row.cells[4].querySelector("input").value || "0";
+        const rate = row.cells[5].querySelector("input").value || "0";
         const total = (qty * unitPrice).toFixed(2);
 
         itemsHTML += `<tr>
+            <td>${++sno}</td>
             <td>${description}</td>
             <td>${hsnCode}</td>
             <td>${qty}</td>
@@ -133,6 +140,7 @@ function generatePreview() {
         <table>
             <thead>
                 <tr>
+                    <th>Sl. No</th>
                     <th>Description</th>
                     <th>HSN Code</th>
                     <th>Qty</th>
@@ -223,11 +231,11 @@ function collectFormData() {
         vehicleNumber: document.getElementById("vehicle-number").value,
         placeSupply: document.getElementById("place-supply").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
-            description: row.querySelector("td:nth-child(1) input").value,
-            HSN_SAC: row.querySelector("td:nth-child(2) input").value,
-            quantity: row.querySelector("td:nth-child(3) input").value,
-            unit_price: row.querySelector("td:nth-child(4) input").value,
-            rate: row.querySelector("td:nth-child(5) input").value,
+            description: row.querySelector("td:nth-child(2) input").value,
+            HSN_SAC: row.querySelector("td:nth-child(3) input").value,
+            quantity: row.querySelector("td:nth-child(4) input").value,
+            unit_price: row.querySelector("td:nth-child(5) input").value,
+            rate: row.querySelector("td:nth-child(6) input").value,
         })),
     };
 }

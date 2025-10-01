@@ -78,11 +78,12 @@ function generatePreview() {
     let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[4].querySelector("input").value) > 0);
 
     for (const row of itemsTable.rows) {
-        const description = row.cells[0].querySelector("input").value || "-";
-        const hsnSac = row.cells[1].querySelector("input").value || "-";
-        const qty = parseFloat(row.cells[2].querySelector("input").value || "0");
-        const unitPrice = parseFloat(row.cells[3].querySelector("input").value || "0");
-        const rate = parseFloat(row.cells[4].querySelector("input").value || "0");
+        const description = row.cells[1].querySelector("input").value || "-";
+        const hsnSac = row.cells[2].querySelector("input").value || "-";
+        const qty = parseFloat(row.cells[3].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[4].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
+        let sno = 0;
 
         const taxableValue = qty * unitPrice;
         totalTaxableValue += taxableValue;
@@ -101,6 +102,7 @@ function generatePreview() {
 
             itemsHTML += `
                 <tr>
+                    <td>${++sno}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -116,6 +118,7 @@ function generatePreview() {
 
             itemsHTML += `
                 <tr>
+                    <td>${++sno}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -185,6 +188,7 @@ function generatePreview() {
         <table>
         <thead>
             <tr>
+                <th>S.No</th>
                 <th>Description</th>
                 <th>HSN/SAC</th>
                 <th>Qty</th>
@@ -261,11 +265,11 @@ function collectFormData() {
         supplierEmail: document.getElementById("supplier-email").value,
         supplierGSTIN: document.getElementById("supplier-GSTIN").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
-            description: row.querySelector("td:nth-child(1) input").value,
-            HSN_SAC: row.querySelector("td:nth-child(2) input").value,
-            quantity: row.querySelector("td:nth-child(3) input").value,
-            unit_price: row.querySelector("td:nth-child(4) input").value,
-            rate: row.querySelector("td:nth-child(5) input").value,
+            description: row.querySelector("td:nth-child(2) input").value,
+            HSN_SAC: row.querySelector("td:nth-child(3) input").value,
+            quantity: row.querySelector("td:nth-child(4) input").value,
+            unit_price: row.querySelector("td:nth-child(5) input").value,
+            rate: row.querySelector("td:nth-child(6) input").value,
         })),
         totalAmount: totalAmount
     };

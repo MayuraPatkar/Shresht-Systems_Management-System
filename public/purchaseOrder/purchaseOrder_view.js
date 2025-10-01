@@ -15,6 +15,7 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
         const hsnSac = item.HSN_SAC || item.hsn_sac || "-";
         const qty = parseFloat(item.quantity || "0");
         const unitPrice = parseFloat(item.unit_price || "0");
+        let sno = 0;
         const rate = parseFloat(item.rate || "0");
 
         const taxableValue = qty * unitPrice;
@@ -34,6 +35,7 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
 
             itemsHTML += `
                 <tr>
+                    <td>${++sno}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -49,6 +51,7 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
 
             itemsHTML += `
                 <tr>
+                    <td>${++sno}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -200,10 +203,12 @@ async function viewPurchaseOrder(purchaseOrderId) {
         // Fill Item List
         const viewItemsTableBody = document.querySelector("#view-items-table tbody");
         viewItemsTableBody.innerHTML = "";
+        let sno = 0;
 
         (purchaseOrder.items || []).forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
+                <td>${++sno}</td>
                 <td>${item.description || '-'}</td>
                 <td>${item.HSN_SAC || item.hsn_sac || '-'}</td>
                 <td>${item.quantity || '-'}</td>

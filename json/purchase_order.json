@@ -1,0 +1,144 @@
+[
+  {
+    "purchase_order_id": "PO-2025-101",
+    "purchase_invoice_id": "INV-SCD-4590",
+    "supplier_name": "SecureCam Distributors",
+    "supplier_address": "42, Nehru Place, New Delhi, Delhi 110019",
+    "supplier_phone": "9811122233",
+    "supplier_email": "sales@securecamdist.in",
+    "supplier_GSTIN": "07AAPCS1234A1Z5",
+    "purchase_date": "2025-09-22T00:00:00.000Z",
+    "items": [
+      {
+        "description": "2MP Dome Camera (Model: SCD-DM2)",
+        "HSN_SAC": "85258020",
+        "quantity": 50,
+        "unit_price": 1200,
+        "rate": 1200
+      },
+      {
+        "description": "2MP Bullet Camera (Model: SCD-BL2)",
+        "HSN_SAC": "85258020",
+        "quantity": 50,
+        "unit_price": 1350,
+        "rate": 1350
+      },
+      {
+        "description": "16-Channel DVR (Model: SCD-DVR16)",
+        "HSN_SAC": "85219090",
+        "quantity": 10,
+        "unit_price": 3800,
+        "rate": 3800
+      }
+    ],
+    "total_amount": 165500
+  },
+  {
+    "purchase_order_id": "PO-2025-102",
+    "purchase_invoice_id": "SS-INV-2025-781",
+    "supplier_name": "Surya Solar Components",
+    "supplier_address": "Plot 15, Electronic City, Bengaluru, Karnataka 560100",
+    "supplier_phone": "9900112233",
+    "supplier_email": "contact@suryasolar.co.in",
+    "supplier_GSTIN": "29AABCS5678B1Z9",
+    "purchase_date": "2025-09-24T00:00:00.000Z",
+    "items": [
+      {
+        "description": "380W Monocrystalline Solar Panel",
+        "HSN_SAC": "85414011",
+        "quantity": 20,
+        "unit_price": 4200,
+        "rate": 4200
+      },
+      {
+        "description": "150Ah Tall Tubular Battery",
+        "HSN_SAC": "85072000",
+        "quantity": 20,
+        "unit_price": 7500,
+        "rate": 7500
+      }
+    ],
+    "total_amount": 234000
+  },
+  {
+    "purchase_order_id": "PO-2025-103",
+    "purchase_invoice_id": "ECI-5512",
+    "supplier_name": "ElectroCables India",
+    "supplier_address": "A-110, MIDC, Andheri East, Mumbai, Maharashtra 400093",
+    "supplier_phone": "9820098200",
+    "supplier_email": "sales.mumbai@electrocables.com",
+    "supplier_GSTIN": "27AACCE9876G1Z2",
+    "purchase_date": "2025-09-25T00:00:00.000Z",
+    "items": [
+      {
+        "description": "4-Core Copper CCTV Cable (90m Roll)",
+        "HSN_SAC": "85444999",
+        "quantity": 5,
+        "unit_price": 900,
+        "rate": 900
+      },
+      {
+        "description": "6 sq. mm Solar DC Wire (100m Roll)",
+        "HSN_SAC": "85446090",
+        "quantity": 2,
+        "unit_price": 1500,
+        "rate": 1500
+      }
+    ],
+    "total_amount": 7500
+  },
+  {
+    "purchase_order_id": "PO-2025-104",
+    "purchase_invoice_id": "GSI-INV-1102",
+    "supplier_name": "GridSol Inverters Pvt. Ltd.",
+    "supplier_address": "8-2-293/82/A, Road No. 36, Jubilee Hills, Hyderabad, Telangana 500033",
+    "supplier_phone": "9100081000",
+    "supplier_email": "support@gridsol.in",
+    "supplier_GSTIN": "36ABCDG1122H1Z4",
+    "purchase_date": "2025-09-28T00:00:00.000Z",
+    "items": [
+      {
+        "description": "1kW Solar PCU (Inverter)",
+        "HSN_SAC": "85044090",
+        "quantity": 100,
+        "unit_price": 800,
+        "rate": 800
+      },
+      {
+        "description": "2TB Surveillance HDD",
+        "HSN_SAC": "84717020",
+        "quantity": 20,
+        "unit_price": 2800,
+        "rate": 2800
+      }
+    ],
+    "total_amount": 136000
+  },
+  {
+    "purchase_order_id": "PO-2025-105",
+    "purchase_invoice_id": "PST-Q2-034",
+    "supplier_name": "PowerSecure Tech",
+    "supplier_address": "C-5, SIPCOT IT Park, Siruseri, Chennai, Tamil Nadu 603103",
+    "supplier_phone": "9840012345",
+    "supplier_email": "chennai.sales@powersecure.com",
+    "supplier_GSTIN": "33AFFCP4321K1Z7",
+    "purchase_date": "2025-09-30T00:00:00.000Z",
+    "items": [
+      {
+        "description": "Solar Fence Energizer Unit",
+        "HSN_SAC": "85437099",
+        "quantity": 15,
+        "unit_price": 11000,
+        "rate": 11000
+      },
+      {
+        "description": "5MP PTZ Solar Camera",
+        "HSN_SAC": "85258020",
+        "quantity": 15,
+        "unit_price": 7200,
+        "rate": 7200
+      }
+    ],
+    "total_amount": 273000
+  }
+]

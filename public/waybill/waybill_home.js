@@ -7,45 +7,65 @@ document.querySelectorAll('.nav-link').forEach(link => {
 });
 
 // Sidebar navigation routing (IDs must match HTML)
-document.getElementById('dashboard-link').addEventListener('click', () => {
-    window.location = '/dashboard';
-});
-document.getElementById('quotation-link').addEventListener('click', () => {
-    window.location = '/quotation';
-});
-document.getElementById('invoice-link').addEventListener('click', () => {
-    window.location = '/invoice';
-});
-document.getElementById('waybill-link').addEventListener('click', () => {
-    window.location = '/wayBill';
-});
-document.getElementById('service-link').addEventListener('click', () => {
-    window.location = '/service';
-});
-document.getElementById('purchase-bill-link').addEventListener('click', () => {
-    window.location = '/purchaseorder';
-});
-document.getElementById('stock-link').addEventListener('click', () => {
-    window.location = '/stock';
-});
-document.getElementById('comms-link').addEventListener('click', () => {
-    window.location = '/comms';
-});
-document.getElementById('employees-link').addEventListener('click', () => {
-    window.location = '/employee';
-});
-document.getElementById('analytics-link').addEventListener('click', () => {
-    window.location = '/analytics';
-});
-document.getElementById('inventory-link').addEventListener('click', () => {
-    window.location = '/inventory';
-});
-document.getElementById('calculations-link').addEventListener('click', () => {
-    window.location = '/calculations';
-});
-document.getElementById('settings-link').addEventListener('click', () => {
-    window.location = '/settings';
-});
+document.getElementById('dashboard').addEventListener('click', () => {
+  window.location = '/dashboard';
+  sessionStorage.setItem('currentTab', 'dashboard');
+})
+
+document.getElementById('quotation').addEventListener('click', () => {
+  window.location = '/quotation';
+  sessionStorage.setItem('currentTab', 'quotation');
+})
+
+document.getElementById('postOrder').addEventListener('click', () => {
+  window.location = '/purchaseorder';
+  sessionStorage.setItem('currentTab', 'purchaseorder');
+})
+
+document.getElementById('wayBill').addEventListener('click', () => {
+  window.location = '/wayBill';
+  sessionStorage.setItem('currentTab', 'wayBill');
+})
+
+document.getElementById('invoice').addEventListener('click', () => {
+  window.location = '/invoice';
+  sessionStorage.setItem('currentTab', 'invoice');
+})
+
+document.getElementById('service').addEventListener('click', () => {
+  window.location = '/service';
+  sessionStorage.setItem('currentTab', 'service');
+})
+
+document.getElementById('stock').addEventListener('click', () => {
+  window.location = '/stock';
+  sessionStorage.setItem('currentTab', 'stock');
+})
+
+document.getElementById('employees').addEventListener('click', () => {
+  window.location = '/employee';
+  sessionStorage.setItem('currentTab', 'employee');
+})
+
+document.getElementById('comms').addEventListener('click', () => {
+  window.location = '/comms';
+  sessionStorage.setItem('currentTab', 'comms');
+})
+
+document.getElementById('analytics').addEventListener('click', () => {
+  window.location = '/analytics';
+  sessionStorage.setItem('currentTab', 'analytics');
+})
+
+document.getElementById('calculations').addEventListener('click', () => {
+  window.location = '/calculations';
+  sessionStorage.setItem('currentTab', 'calculations');
+})
+
+document.getElementById('settings').addEventListener('click', () => {
+  window.location = '/settings';
+  sessionStorage.setItem('currentTab', 'settings');
+})
 
 // Main content references
 const wayBillsListDiv = document.querySelector(".records");
@@ -188,7 +208,7 @@ function createWayBillCard(wayBill) {
         <div class="record-item-details">
             <div class="record-item-info-2">
                 <h2>Transport Place</h2>
-                <p>${wayBill.transport_mode}</p>
+                <p>${wayBill.place_supply}</p>
             </div>
         </div>
     </div>
@@ -256,10 +276,12 @@ async function openWayBill(wayBillId) {
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
+        let sno = 0; 
 
         (wayBill.items || []).forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
+                <td>${++sno}</td>
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
