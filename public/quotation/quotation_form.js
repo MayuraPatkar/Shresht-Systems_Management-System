@@ -71,7 +71,7 @@ async function generateFilePages(files) {
 
 
 // Function to generate the preview for both tax rate and without tax rate
-function generatePreview() {
+async function generatePreview() {
     if (!quotationId) {
         quotationId = document.getElementById('id').value;
     }
@@ -310,11 +310,13 @@ function generatePreview() {
         `;
     }).join('');
 
+
     // Remove the separate summary page
     const summaryPageHTML = ``;
 
     // const files = document.getElementById('files');
-    document.getElementById("preview-content").innerHTML = `
+    if (sessionStorage.getItem('currentTab-status') != 'update') {
+        document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
         <div class="header">
             <div class="logo">
@@ -419,9 +421,189 @@ function generatePreview() {
         </footer>
     </div>
     `;
+        // generateFilePages(files)
+    } else {
+        try {
+            const response = await fetch(`/quotation/${quotationId}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch quotation");
+            }
 
-    // generateFilePages(files)
+            const data = await response.json();
+            const quotation = data.quotation;
+
+            const itemsPageHTML = itemPages.map((pageHTML, index) => {
+        const isLastItemsPage = index === itemPages.length - 1;
+        return `
+        <div class="preview-container">
+            <div class="header">
+                <div class="logo">
+                    <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                        alt="Shresht Logo">
+                </div>
+                <div class="company-details">
+                    <h1>SHRESHT SYSTEMS</h1>
+                    <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+                    <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                    <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+                </div>
+            </div>
+            <div class="title">Quotation-${quotationId}</div>
+            ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
+            <div class="items-section">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>S. No</th>
+                            <th>Description</th>
+                            <th>HSN/SAC</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            ${hasTax ? `
+                            <th>Taxable Value (₹)</th>
+                            <th>Rate (%)</th>` : ""}
+                            <th>Total Price (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pageHTML}
+                    </tbody>
+                </table>
+            </div>
+
+            ${isLastItemsPage ? `
+            <div class="fifth-section">
+                <div class="fifth-section-sub1">
+                    <div class="fifth-section-sub2">
+                        <div class="fifth-section-sub3">
+                            <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                        </div>
+                        <h3>Payment Details</h3>
+                        <div class="bank-details">
+                            <div class="QR-code bank-details-sub1">
+                                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                    alt="qr-code" />
+                            </div>
+                            <div class="bank-details-sub2">
+                                <p><strong>Account Holder Name: </strong>Shresht Systems</p>
+                                <p><strong>Bank Name: </strong>Canara Bank</p>
+                                <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
+                                <p><strong>Account No: </strong>120002152652</p>
+                                <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="totals-section">
+                        ${totalsHTML}
+                    </div>
+                </div>
+            </div>
+            <div class="notes-section" contenteditable="true">
+                <p><strong>Notes:</strong></p>
+                <ul>
+                   ${(quotation.notes || []).map(note => `<li>${note}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
+            <footer>
+                <p>This is a computer-generated quotation.</p>
+            </footer>
+        </div>
+        `;
+    }).join('');
+
+        document.getElementById("preview-content").innerHTML = `
+    <div class="preview-container">
+        <div class="header">
+            <div class="logo">
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                    alt="Shresht Logo">
+            </div>
+            <div class="company-details">
+                <h1>SHRESHT SYSTEMS</h1>
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+            </div>
+        </div>
+
+        <div class="title">Quotation-${quotationId}</div>
+        <div class="info-section" >
+            <p><strong>To:</strong></p>
+              ${buyerName}<br>
+              ${buyerAddress}<br>
+              ${buyerPhone}<br>
+            <p contenteditable="true"><strong>Subject:</strong> ${quotation.subject || ''}</p>
+
+            <p>Dear ${buyerName},</p>
+
+            <p contenteditable="true">${quotation.letter_1 || ''}</p>
+            <p>Our proposal includes:</p>
+            <ul contenteditable="true">
+                ${(quotation.letter_2 || []).map(li => `<li>${li}</li>`).join('')}
+            </ul>
+            
+            <p contenteditable="true">${quotation.letter_3 || ''}</p>
+            
+            <p contenteditable="true">We look forward to your positive response and the opportunity to collaborate with you.</p>
+          
+            <p>Best regards,</p>
+            <p><strong>Sandeep Nayak</strong><br>
+               <strong>Shresht Systems</strong><br>
+               Ph: 7204657707 / 9901730305<br>
+               Email: shreshtsystems@gmail.com<br>
+               Website: www.shreshtsystems.com</p>
+        </div>
+        
+        <footer>
+            <p>This is a computer-generated quotation.</p>
+        </footer>
+    </div>
+
+    ${itemsPageHTML}
+
+    ${summaryPageHTML}
+
+    <div class="preview-container">
+        <div class="header">
+            <div class="logo">
+                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                    alt="Shresht Logo">
+            </div>
+            <div class="company-details">
+                <h1>SHRESHT SYSTEMS</h1>
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+            </div>
+        </div>
+        <div class="title">Quotation-${quotationId}</div>
+        <div class="terms-section" contenteditable="true">
+            ${quotation.termsAndConditions || ''}
+        </div>
+
+        <div class="closing-section">
+            <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
+            <p>Thanking you,</p>
+            <p><strong>For Shresht Systems,</strong><br>Sandeep Nayak<br>Mob: +91 7204657707 / 9901730305</p>
+        </div>
+
+        <footer>
+            <p>This is a computer-generated quotation.</p>
+        </footer>
+    </div>
+    `;
+        // generateFilePages(files)
+    
+            } catch (error) { 
+
+        }
+    }
+
 }
+
+
 
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
@@ -628,8 +810,8 @@ async function loadQuotationForEditing(id) {
         specTableBody.innerHTML = ''; // Clear existing rows
         const allItems = [...(quotation.items || []), ...(quotation.non_items || [])];
         allItems.forEach(item => {
-             const row = specTableBody.insertRow();
-             row.innerHTML = `
+            const row = specTableBody.insertRow();
+            row.innerHTML = `
                 <td>${specTableBody.rows.length}</td>
                 <td>${item.description || ''}</td>
                 <td><input type="text" value="${item.specification || ''}" placeholder="Enter specification"></td>
