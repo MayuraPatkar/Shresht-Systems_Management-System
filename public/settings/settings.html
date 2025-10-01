@@ -162,9 +162,23 @@
 
                 <!-- Restore Option -->
                 <div class="restore-backup">
-                    <p><strong>Restore from Backup:</strong></p>
-                    <input type="file" id="restore-file" accept=".gz,.zip,.json,.bson">
-                    <button type="button" id="restore-button">Restore</button>
+                    <p><strong>Restore from Collection Backup:</strong></p>
+                    <select id="collection-select">
+                        <option selected>Choose collection</option>"
+                        <option value="quotations">Quotations</option>
+                        <option value="purchases">Purchase Orders</option>
+                        <option value="waybills">Waybills</option>
+                        <option value="invoices">Invoices</option>
+                        <option value="stocks">Stocks</option>
+                    </select>
+                    <input type="file" id="restore-collection-file" accept=".gz,.zip,.json,.bson">
+                    <button type="button" id="restore-collection-button">Restore Collection</button>
+                </div>
+
+                <div class="restore-backup">
+                    <p><strong>Restore from database Backup:</strong></p>
+                    <input type="file" id="restore-database-file" accept=".gz,.zip,.json,.bson">
+                    <button type="button" id="restore-database-button">Restore database</button>
                 </div>
         </main>
     </div>

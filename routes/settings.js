@@ -4,6 +4,8 @@ const { dialog } = require("electron"); // Electron’s dialog
 const path = require("path");
 const multer = require("multer");
 const fs = require("fs");
+const log = require("electron-log");
+
 
 const router = express.Router();
 
@@ -46,8 +48,45 @@ router.get("/settings/backup/export/:collection", async (req, res) => {
 // Multer config → store uploaded file temporarily
 const upload = multer({ dest: path.join(__dirname, "../uploads/") });
 
-// Restore from backup
-router.post("/backup/restore", upload.single("backupFile"), (req, res) => {
+// Restore collection from backup
+router.post("/backup/restore-collection", upload.single("backupFile"), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: "No backup file uploaded" });
+    }
+
+    const filePath = req.file.path; // Temp path where multer saved it
+    const originalName = req.file.originalname;
+    const collection = req.body.collection;
+
+    let cmd;
+
+    if (originalName.endsWith(".json")) {
+        // JSON backup → use mongoimport
+        cmd = `mongoimport --db shreshtSystems --collection "${collection}" --file "${filePath}" --jsonArray --drop`;
+    } else if (originalName.endsWith(".bson") || originalName.endsWith(".gz") || originalName.endsWith(".zip")) {
+        // BSON/mongodump backup → use mongorestore
+        // (supports gzipped BSON dumps as well)
+        cmd = `mongorestore --db shreshtSystems --collection "${collection}" --drop --archive="${filePath}" --gzip`;
+    } else {
+        return res.status(400).json({ message: "Unsupported file format" });
+    }
+
+    exec(cmd, (err, stdout, stderr) => {
+        fs.unlinkSync(filePath); // cleanup temp upload
+
+        if (err) {
+            console.error("Restore failed:", err);
+            return res.status(500).json({ message: "Restore failed" });
+        }
+
+        console.log("Restore successful:", originalName);
+        return res.json({ message: `Restore successful from ${originalName}` });
+    });
+});
+
+
+// Restore database from backup
+router.post("/backup/restore-database", upload.single("backupFile"), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: "No backup file uploaded" });
     }
@@ -72,11 +111,11 @@ router.post("/backup/restore", upload.single("backupFile"), (req, res) => {
         fs.unlinkSync(filePath); // cleanup temp upload
 
         if (err) {
-            console.error("Restore failed:", err);
+            log.error("Restore failed:", err);
             return res.status(500).json({ message: "Restore failed" });
         }
 
-        console.log("Restore successful:", originalName);
+        log.info("Restore successful:", originalName);
         return res.json({ message: `Restore successful from ${originalName}` });
     });
 });
