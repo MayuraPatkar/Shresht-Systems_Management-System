@@ -114,11 +114,11 @@ function createWindow() {
   mainWindow.maximize();
 
   // Open DevTools only in development mode
-  if (process.env.NODE_ENV === "development") {
-    setTimeout(() => {
-      mainWindow.webContents.openDevTools();
-    }, 1000);
-  }
+  // if (process.env.NODE_ENV === "development") {
+  //   setTimeout(() => {
+  //     mainWindow.webContents.openDevTools();
+  //   }, 1000);
+  // }
 
   // Load the frontend (React/HTML app)
   mainWindow.loadURL("http://localhost:3000").catch((err) => {
@@ -126,9 +126,9 @@ function createWindow() {
   });
 
   // Open DevTools only in development mode
-  setTimeout(() => {
-    mainWindow.webContents.openDevTools();
-  }, 1000);
+  // setTimeout(() => {
+  //   mainWindow.webContents.openDevTools();
+  // }, 1000);
 
 
   mainWindow.on("closed", () => {

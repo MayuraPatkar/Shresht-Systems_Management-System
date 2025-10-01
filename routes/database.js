@@ -29,11 +29,14 @@ const Admin = mongoose.model('Admin', adminSchema);
 
 const quotationSchema = new mongoose.Schema({
     quotation_id: { type: String },
+    quotation_date: { type: Date, default: Date.now },
     project_name: { type: String },
     customer_name: { type: String },
     customer_address: { type: String },
     customer_phone: { type: String },
     customer_email: { type: String },
+
+    // items details
     items: [
         {
             description: { type: String },
@@ -52,10 +55,21 @@ const quotationSchema = new mongoose.Schema({
             rate: { type: Number },
         },
     ],
-    quotation_date: { type: Date, default: Date.now },
+
+    // totals
     total_tax: { type: Number },
     total_amount_no_tax: { type: Number },
     total_amount_tax: { type: Number },
+
+    // contents
+    subject: { type: String },
+    letter_1: { type: String },
+    letter_2: [{ type: String }],
+    letter_3: { type: String },
+    notes: [{ type: String }],
+    termsAndConditions: { type: String },
+
+
     createdAt: { type: Date, default: Date.now },
 })
 

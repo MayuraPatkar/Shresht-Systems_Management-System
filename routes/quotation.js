@@ -57,6 +57,14 @@ router.post("/save-quotation", async (req, res) => {
             totalTax = 0,
             totalAmountNoTax = 0,
             totalAmountTax = 0,
+
+            subject = '',
+            letter_1 = '',
+            letter_2 = [],
+            letter_3 = '',
+            notes = [],
+            termsAndConditions = '',
+
         } = req.body;
 
         // Validate required fields
@@ -91,6 +99,12 @@ router.post("/save-quotation", async (req, res) => {
             quotation.total_tax = totalTax;
             quotation.total_amount_no_tax = totalAmountNoTax;
             quotation.total_amount_tax = totalAmountTax;
+            quotation.subject = subject;
+            quotation.letter_1 = letter_1;
+            quotation.letter_2 = letter_2;
+            quotation.letter_3 = letter_3;
+            quotation.notes = notes;
+            quotation.termsAndConditions = termsAndConditions;
         } else {
             // Create a new quotation with the provided data
             quotation = new Quotations({
@@ -106,6 +120,12 @@ router.post("/save-quotation", async (req, res) => {
                 total_tax: totalTax,
                 total_amount_no_tax: totalAmountNoTax,
                 total_amount_tax: totalAmountTax,
+                subject,
+                letter_1,
+                letter_2,
+                letter_3,
+                notes,
+                termsAndConditions,
                 createdAt: new Date(),
             });
         }

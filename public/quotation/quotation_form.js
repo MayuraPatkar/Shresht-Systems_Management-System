@@ -80,6 +80,7 @@ function generatePreview() {
     const buyerAddress = document.getElementById("buyer-address").value || "";
     const buyerPhone = document.getElementById("buyer-phone").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
+    const nonItemsTable = document.querySelector('#non-items-table tbody');
 
     let totalPrice = 0;
     let totalCGST = 0;
@@ -87,13 +88,15 @@ function generatePreview() {
     let totalTaxableValue = 0;
     let grandTotal = 0;
     let roundOff = 0;
-
-    let allItems = [];
     let sno = 0;
+
+    const allRenderableItems = [];
+    const CHARS_PER_LINE = 60;
 
     // Check if rate column is populated
     let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[5].querySelector("input").value) > 0);
 
+    // Process regular items
     for (const row of itemsTable.rows) {
         const description = row.cells[1].querySelector("input").value || "-";
         const hsnSac = row.cells[2].querySelector("input").value || "-";
@@ -103,7 +106,6 @@ function generatePreview() {
 
         const taxableValue = qty * unitPrice;
         totalTaxableValue += taxableValue;
-
         let itemHTML = "";
 
         if (hasTax) {
@@ -117,65 +119,52 @@ function generatePreview() {
             totalSGST += sgstValue;
             totalPrice += rowTotal;
 
-            itemHTML = `
-                <tr>
-                    <td>${++sno}</td>
-                    <td>${description}</td>
-                    <td>${hsnSac}</td>
-                    <td>${qty}</td>
-                    <td>${formatIndian(unitPrice, 2)}</td>
-                    <td>${formatIndian(taxableValue, 2)}</td>
-                    <td>${rate.toFixed(2)}</td>
-                    <td>${formatIndian(rowTotal, 2)}</td>
-                </tr>
-            `;
+            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(taxableValue, 2)}</td><td>${rate.toFixed(2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
         } else {
             const rowTotal = taxableValue;
             totalPrice += rowTotal;
-
-            itemHTML = `
-                <tr>
-                    <td>${++sno}</td>
-                    <td>${description}</td>
-                    <td>${hsnSac}</td>
-                    <td>${qty}</td>
-                    <td>${formatIndian(unitPrice, 2)}</td>
-                    <td>${formatIndian(rowTotal, 2)}</td>
-                </tr>
-            `;
+            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
         }
-        allItems.push(itemHTML);
+        const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
+        allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
+        sno++;
     }
 
-    const nonItemsTable = document.querySelector('#non-items-table tbody');
-
-    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => {
-        return {
-            descriptions: row.querySelector('input[placeholder="Item Description"]').value,
-            price: row.querySelector('input[placeholder="Price"]').value,
-            rate: row.querySelector('input[placeholder="Rate"]').value,
-        }
-    });
-
+    // Process non-items
+    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => ({
+        descriptions: row.querySelector('input[placeholder="Item Description"]').value,
+        price: row.querySelector('input[placeholder="Price"]').value,
+        rate: row.querySelector('input[placeholder="Rate"]').value,
+    }));
 
     for (const item of nonItems) {
-        const itemHTML = `
-        <tr>
-            <td>${++sno}</td>
-            <td>${item.descriptions || '-'}</td>
-            <td>-</td>
-            <td>-</td>
-            ${hasTax ? `
-            <td>-</td>
-            <td>-</td>` : ""}
-            <td>${item.rate || '-'}</td>
-            <td>${formatIndian(Number(item.price), 2) || '-'}</td>
-        </tr>
-      `;
-      allItems.push(itemHTML);
+        const description = item.descriptions || '-';
+        const price = Number(item.price) || 0;
+        const rate = Number(item.rate) || 0;
+        
+        let rowTotal = price;
+        totalTaxableValue += price; // Add non-item price to taxable value
+
+        if (hasTax && rate > 0) {
+            const cgstPercent = rate / 2;
+            const sgstPercent = rate / 2;
+            const cgstValue = (price * cgstPercent) / 100;
+            const sgstValue = (price * sgstPercent) / 100;
+            
+            totalCGST += cgstValue;
+            totalSGST += sgstValue;
+            rowTotal += cgstValue + sgstValue;
+        }
+        
+        totalPrice += rowTotal; // Add the final row total to the grand total
+
+        const itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td>${hasTax ? `<td>-</td><td>-</td>` : ""}<td>${item.rate || '-'}</td><td>${formatIndian(rowTotal, 2) || '-'}</td></tr>`;
+        const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
+        allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
+        sno++;
     }
 
-    grandTotal = totalTaxableValue + totalCGST + totalSGST;
+    grandTotal = totalPrice; // Use totalPrice which now includes non-items
     roundOff = Math.round(grandTotal) - grandTotal;
     totalTax = totalCGST + totalSGST;
     totalAmountNoTax = totalTaxableValue;
@@ -198,14 +187,45 @@ function generatePreview() {
         </div>
     `;
 
-    const ITEMS_PER_PAGE = 10;
+    const ITEMS_PER_PAGE = 15; // Represents available lines on a page for items.
+    const SUMMARY_SECTION_ROW_COUNT = 8; // Estimated height of totals, payment, and notes sections.
+
+    // Build pages with the new logic
     const itemPages = [];
-    for (let i = 0; i < allItems.length; i += ITEMS_PER_PAGE) {
-        const chunk = allItems.slice(i, i + ITEMS_PER_PAGE);
-        itemPages.push(chunk.join(''));
+    let currentPageItemsHTML = '';
+    let currentPageRowCount = 0;
+
+    allRenderableItems.forEach((item, index) => {
+        const isLastItem = index === allRenderableItems.length - 1;
+        
+        // Calculate the space this item will take up.
+        const itemSpace = item.rowCount;
+        
+        // If this is the last item, the required space must also include the summary.
+        const requiredSpaceForLastItem = itemSpace + SUMMARY_SECTION_ROW_COUNT;
+
+        // Condition to create a new page:
+        // 1. If the current page is not empty AND
+        // 2. EITHER this item (if not the last) overflows the page
+        // 3. OR this item (if it IS the last) plus the summary overflows the page.
+        if (currentPageRowCount > 0 && 
+            ((!isLastItem && currentPageRowCount + itemSpace > ITEMS_PER_PAGE) || 
+             (isLastItem && currentPageRowCount + requiredSpaceForLastItem > ITEMS_PER_PAGE))) {
+            
+            itemPages.push(currentPageItemsHTML);
+            currentPageItemsHTML = '';
+            currentPageRowCount = 0;
+        }
+
+        currentPageItemsHTML += item.html;
+        currentPageRowCount += item.rowCount;
+    });
+
+    if (currentPageItemsHTML !== '') {
+        itemPages.push(currentPageItemsHTML);
     }
 
-    const itemsPageHTML = itemPages.map((itemsHTML, index) => {
+    const itemsPageHTML = itemPages.map((pageHTML, index) => {
         const isLastItemsPage = index === itemPages.length - 1;
         return `
         <div class="preview-container">
@@ -239,7 +259,7 @@ function generatePreview() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${itemsHTML}
+                        ${pageHTML}
                     </tbody>
                 </table>
             </div>
@@ -272,8 +292,6 @@ function generatePreview() {
                     </div>
                 </div>
             </div>
-
-            <div class="page-break"></div>
             <div class="notes-section" contenteditable="true">
                 <p><strong>Notes:</strong></p>
                 <ul>
@@ -292,9 +310,10 @@ function generatePreview() {
         `;
     }).join('');
 
+    // Remove the separate summary page
+    const summaryPageHTML = ``;
 
-    // const files = document.getElementById('files').files;
-
+    // const files = document.getElementById('files');
     document.getElementById("preview-content").innerHTML = `
     <div class="preview-container">
         <div class="header">
@@ -347,6 +366,8 @@ function generatePreview() {
     </div>
 
     ${itemsPageHTML}
+
+    ${summaryPageHTML}
 
     <div class="preview-container">
         <div class="header">
@@ -401,7 +422,6 @@ function generatePreview() {
 
     // generateFilePages(files)
 }
-
 
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
@@ -498,6 +518,7 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
 //         reader.readAsDataURL(file);
 //     });
 // });
+
 
 // Function to collect form data
 function collectFormData() {
