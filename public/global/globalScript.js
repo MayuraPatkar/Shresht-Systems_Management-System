@@ -415,11 +415,13 @@ document.querySelector("#non-items-table").addEventListener("click", (event) => 
   }
 });
 
-document.querySelector("#items-specifications-table").addEventListener("click", (event) => {
-  if (event.target.classList.contains('remove-item-btn')) {
-    event.target.closest('tr').remove();
-  }
-});
+if (sessionStorage.getItem('currentTab') === 'quotation'  ) {
+  document.querySelector("#items-specifications-table").addEventListener("click", (event) => {
+    if (event.target.classList.contains('remove-item-btn')) {
+      event.target.closest('tr').remove();
+    }
+  });
+}
 
 // Fetch stock data from the backend
 async function fetchStockData(itemName) {
