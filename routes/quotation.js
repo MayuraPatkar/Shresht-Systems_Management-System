@@ -62,6 +62,7 @@ router.post("/save-quotation", async (req, res) => {
             letter_1 = '',
             letter_2 = [],
             letter_3 = '',
+            headline = '',
             notes = [],
             termsAndConditions = '',
 
@@ -103,6 +104,7 @@ router.post("/save-quotation", async (req, res) => {
             quotation.letter_1 = letter_1;
             quotation.letter_2 = letter_2;
             quotation.letter_3 = letter_3;
+            quotation.headline = headline;
             quotation.notes = notes;
             quotation.termsAndConditions = termsAndConditions;
         } else {
@@ -124,6 +126,7 @@ router.post("/save-quotation", async (req, res) => {
                 letter_1,
                 letter_2,
                 letter_3,
+                headline,
                 notes,
                 termsAndConditions,
                 createdAt: new Date(),

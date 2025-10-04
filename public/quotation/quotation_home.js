@@ -43,6 +43,11 @@ function renderQuotations(quotations) {
     });
 }
 
+document.getElementById('home-btn').addEventListener('click', () => {
+    sessionStorage.removeItem('currentTab-status');
+    window.location = '/quotation';
+});
+
 // Create a quotation card element
 function createQuotationCard(quotation) {
     const quotationCard = document.createElement("div");
@@ -118,7 +123,7 @@ function handleQuotationAction(select, quotationId) {
     } else if (action === "compactView") {
         viewQuotation(quotationId, viewType = 3);
     } else if (action === "update") {
-          sessionStorage.setItem('currentTab-status', 'update');
+        sessionStorage.setItem('currentTab-status', 'update');
         openQuotation(quotationId);
     } else if (action === "delete") {
         window.electronAPI.showAlert2('Are you sure you want to delete this quotation?');
