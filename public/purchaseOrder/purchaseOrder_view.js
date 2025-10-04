@@ -113,6 +113,7 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
         <table>
         <thead>
             <tr>
+                <th>S. No.</th>
                 <th>Description</th>
                 <th>HSN/SAC</th>
                 <th>Qty</th>
