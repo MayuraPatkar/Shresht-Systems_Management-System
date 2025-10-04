@@ -352,7 +352,7 @@ async function generatePreview() {
             
             <p contenteditable="true">We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.</p>
             
-            <p contenteditable="true">We look forward to your positive response and the opportunity to collaborate with you.</p>
+            <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
           
             <p>Best regards,</p>
             <p><strong>Sandeep Nayak</strong><br>
@@ -546,7 +546,7 @@ async function generatePreview() {
             
             <p contenteditable="true">${quotation.letter_3 || ''}</p>
             
-            <p contenteditable="true">We look forward to your positive response and the opportunity to collaborate with you.</p>
+            <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
           
             <p>Best regards,</p>
             <p><strong>Sandeep Nayak</strong><br>

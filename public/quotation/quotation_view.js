@@ -170,6 +170,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             <p>Our proposal includes:</p>
             <ul>${(quotation.letter_2 || []).map(li => `<li>${li}</li>`).join('')}</ul>
             <p>${quotation.letter_3 || ''}</p>
+            <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
             <p>Best regards,</p>
             <p><strong>Sandeep Nayak</strong><br><strong>Shresht Systems</strong><br>Ph: 7204657707 / 9901730305<br>Email: shreshtsystems@gmail.com<br>Website: www.shreshtsystems.com</p>
         </div>
