@@ -746,7 +746,7 @@ function collectFormData() {
         subject: document.querySelector(".info-section p[contenteditable]").innerText.replace("Subject:", "").trim(),
         letter_1: document.querySelectorAll(".info-section p[contenteditable]")[1].innerText.trim(),
         letter_2: Array.from(document.querySelectorAll(".info-section ul[contenteditable] li")).map(li => li.innerText.trim()),
-        letter_3: document.querySelectorAll(".info-section p[contenteditable]")[3].innerText.trim(),
+        letter_3: document.querySelectorAll(".info-section p[contenteditable]")[2].innerText.trim(),
         notes: Array.from(document.querySelector(".notes-section ul").querySelectorAll("li")).map(li => li.innerText.trim()),
         termsAndConditions: document.querySelector(".terms-section").innerHTML.trim(),
         headline: document.querySelector(".headline-section p[contenteditable]")?.innerText.trim() || ''
@@ -828,7 +828,7 @@ async function loadQuotationForEditing(id) {
         previewContent.querySelectorAll(".info-section p[contenteditable]")[1].innerText = quotation.letter_1 || '';
         const letter2List = previewContent.querySelector(".info-section ul[contenteditable]");
         letter2List.innerHTML = (quotation.letter_2 || []).map(li => `<li>${li}</li>`).join('');
-        previewContent.querySelectorAll(".info-section p[contenteditable]")[3].innerText = quotation.letter_3 || '';
+        previewContent.querySelectorAll(".info-section p[contenteditable]")[2].innerText = quotation.letter_3 || '';
         previewContent.querySelector(".notes-section ul").innerHTML = (quotation.notes || []).map(li => `<li>${li}</li>`).join('');
         previewContent.querySelector(".terms-section").innerHTML = quotation.termsAndConditions || '';
 
