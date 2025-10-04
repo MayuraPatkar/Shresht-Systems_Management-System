@@ -18,7 +18,7 @@ router.get('/getStock', async (req, res) => {
 
 // Route to Add Item to Stock
 router.post('/addItem', async (req, res) => {
-    const { itemName, HSN_SAC, unitPrice, quantity, GST, min_quantity } = req.body;
+    const { itemName, HSN_SAC, company, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
 
@@ -33,6 +33,7 @@ router.post('/addItem', async (req, res) => {
         const newItem = new Stock({
             item_name: itemName,
             HSN_SAC,
+            company,
             unit_price: unitPrice,
             quantity,
             GST,
@@ -103,7 +104,7 @@ router.post('/removeFromStock', async (req, res) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req, res) => {
-    const { itemId, itemName, HSN_SAC, unitPrice, quantity, GST, min_quantity } = req.body;
+    const { itemId, itemName, HSN_SAC, company, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
 
@@ -114,6 +115,7 @@ router.post('/editItem', async (req, res) => {
 
         item.item_name = itemName;
         item.HSN_SAC = HSN_SAC;
+        item.company = company;
         item.unit_price = unitPrice;
         item.quantity = quantity;
         item.GST = GST;

@@ -14,6 +14,7 @@ function hideModal() {
 function addItemDiv() {
     document.getElementById('item_name').value = "";
     document.getElementById('HSN_SAC').value = "";
+    document.getElementById('company').value = "";
     document.getElementById('unit_price').value = "";
     document.getElementById('item_quantity').value = "";
     // document.getElementById('threshold').value = "";
@@ -39,6 +40,7 @@ function editItemDiv(itemId, HSN_SAC, name, unitPrice, quantity, GST, min_quanti
     document.getElementById('editItem').setAttribute('data-item-id', itemId);
     document.getElementById('edit_item_name').value = name;
     document.getElementById('edit_HSN_SAC').value = HSN_SAC;
+    document.getElementById('edit_company').value = company;
     document.getElementById('edit_unit_price').value = unitPrice;
     document.getElementById('edit_quantity').value = quantity;
     // document.getElementById('edit_threshold').value = threshold;
@@ -50,6 +52,7 @@ async function addItem() {
     try {
         const itemName = document.getElementById('item_name').value;
         const HSN_SAC = document.getElementById('HSN_SAC').value;
+        const company = document.getElementById('company').value;
         const unitPrice = parseFloat(document.getElementById('unit_price').value);
         const quantity = parseInt(document.getElementById('item_quantity').value, 10);
         // const threshold = parseInt(document.getElementById('threshold').value, 10);
@@ -131,6 +134,7 @@ async function editItem() {
         const itemId = document.getElementById('editItem').getAttribute('data-item-id');
         const itemName = document.getElementById('edit_item_name').value;
         const HSN_SAC = document.getElementById('edit_HSN_SAC').value;
+        const company = document.getElementById('edit_company').value;
         const unitPrice = parseFloat(document.getElementById('edit_unit_price').value);
         const quantity = parseInt(document.getElementById('edit_quantity').value, 10);
         // const threshold = parseInt(document.getElementById('edit_threshold').value, 10);
@@ -174,6 +178,7 @@ async function lowStock() {
                 row.innerHTML = `
                     <td>${item.itemName}</td>
                     <td>${item.HSN_SAC}</td>
+                    <td>${item.company}</td>
                     <td>${item.unitPrice}</td>
                     <td>${item.quantity}</td>
                     <td>${item.GST}%</td>
@@ -221,6 +226,7 @@ function renderStockTable(data) {
         row.innerHTML = `
             <td>${item.item_name}</td>
             <td>${item.HSN_SAC}</td>
+            <td>${item.company}</td>
             <td>${item.unit_price}</td>
             <td>${item.quantity}</td>
             <td>${item.GST}%</td>
@@ -248,6 +254,20 @@ function handleStockAction(select, id, HSN_SAC, name, unitPrice, quantity, GST, 
         editItemDiv(id, HSN_SAC, name, unitPrice, quantity, GST, min_quantity);
     }
     select.selectedIndex = 0; // Reset to default
+}
+
+function printStock() {
+    const stockContainer = document.querySelector('.stock-container');
+    if (!stockContainer) {
+        window.electronAPI.showAlert1('Stock table not found.');
+        return;
+    }
+    const content = stockContainer.innerHTML;
+    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+        window.electronAPI.handlePrintEvent(content, "print", "Stock");
+    } else {
+        window.electronAPI.showAlert1("Print functionality is not available.");
+    }
 }
 
 // Initial fetch
