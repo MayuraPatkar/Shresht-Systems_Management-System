@@ -89,6 +89,9 @@ const purchaseSchema = new mongoose.Schema({
         {
             description: { type: String },
             HSN_SAC: { type: String },
+            company: { type: String },
+            type: { type: String },
+            category: { type: String },
             quantity: { type: Number },
             unit_price: { type: Number },
             rate: { type: Number },
