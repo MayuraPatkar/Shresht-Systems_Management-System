@@ -133,10 +133,11 @@ async function openPurchaseOrder(purchaseOrderId) {
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
-
+        let sno = 0;
         (purchaseOrder.items || []).forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
+                <td>${++sno}</td>
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>

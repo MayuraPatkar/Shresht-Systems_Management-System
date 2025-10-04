@@ -1,0 +1,170 @@
+[
+  {
+    "waybill_id": "WB-SEC-2025-001",
+    "waybill_date": "2025-09-28T10:00:00.000Z",
+    "project_name": "Phoenix Mall Security Upgrade",
+    "customer_name": "Phoenix Malls Pvt. Ltd.",
+    "customer_address": "123 MG Road, Bengaluru, Karnataka 560001",
+    "customer_phone": "9876543210",
+    "customer_email": "procurement@phoenixmall.in",
+    "transport_mode": "Road",
+    "vehicle_number": "KA 05 MN 1234",
+    "place_supply": "Bengaluru",
+    "items": [
+      {
+        "description": "5MP 4G Solar PTZ Camera",
+        "HSN_SAC": "85258020",
+        "quantity": 10,
+        "unit_price": 25000,
+        "rate": 25000
+      },
+      {
+        "description": "100W Monocrystalline Solar Panel",
+        "HSN_SAC": "85414011",
+        "quantity": 10,
+        "unit_price": 4500,
+        "rate": 4500
+      },
+      {
+        "description": "40Ah Lithium-ion Battery Pack",
+        "HSN_SAC": "85076000",
+        "quantity": 10,
+        "unit_price": 8000,
+        "rate": 8000
+      }
+    ]
+  },
+  {
+    "waybill_id": "WB-SOL-2025-002",
+    "waybill_date": "2025-09-29T11:30:00.000Z",
+    "project_name": "Green Acres Farm Surveillance",
+    "customer_name": "Rohan Patel",
+    "customer_address": "Survey No. 45, Near Lonavala, Pune, Maharashtra 410401",
+    "customer_phone": "9988776655",
+    "customer_email": "rohan.patel.farm@example.com",
+    "transport_mode": "Road",
+    "vehicle_number": "MH 12 PQ 5678",
+    "place_supply": "Pune",
+    "items": [
+      {
+        "description": "Solar Powered Wireless Bullet Camera Kit",
+        "HSN_SAC": "85258020",
+        "quantity": 4,
+        "unit_price": 18000,
+        "rate": 18000
+      },
+      {
+        "description": "500GB Surveillance Hard Disk",
+        "HSN_SAC": "84717020",
+        "quantity": 1,
+        "unit_price": 3500,
+        "rate": 3500
+      }
+    ]
+  },
+  {
+    "waybill_id": "WB-SEC-2025-003",
+    "waybill_date": "2025-09-29T15:00:00.000Z",
+    "project_name": "DLF Cyber City Perimeter Security",
+    "customer_name": "DLF Limited",
+    "customer_address": "Sector 24, DLF Phase 3, Gurugram, Haryana 122002",
+    "customer_phone": "9123456789",
+    "customer_email": "admin.security@dlf.com",
+    "transport_mode": "Truck",
+    "vehicle_number": "HR 26 DA 9911",
+    "place_supply": "Gurugram",
+    "items": [
+      {
+        "description": "Solar Fence Energizer Machine",
+        "HSN_SAC": "85437099",
+        "quantity": 5,
+        "unit_price": 9500,
+        "rate": 9500
+      },
+      {
+        "description": "High Tensile Fencing Wire (1000m roll)",
+        "HSN_SAC": "72171010",
+        "quantity": 20,
+        "unit_price": 4000,
+        "rate": 4000
+      },
+      {
+        "description": "20W Solar Panel for Energizer",
+        "HSN_SAC": "85414011",
+        "quantity": 5,
+        "unit_price": 1200,
+        "rate": 1200
+      }
+    ]
+  },
+  {
+    "waybill_id": "WB-GEN-2025-004",
+    "waybill_date": "2025-09-30T09:45:00.000Z",
+    "project_name": "Residential CCTV Installation",
+    "customer_name": "Anjali Sharma",
+    "customer_address": "B-204, Lodha Palava, Dombivli, Thane, Maharashtra 421201",
+    "customer_phone": "9819819819",
+    "customer_email": "anjali.s@example.com",
+    "transport_mode": "Van",
+    "vehicle_number": "MH 04 XY 4321",
+    "place_supply": "Thane",
+    "items": [
+      {
+        "description": "8-Channel DVR",
+        "HSN_SAC": "85219090",
+        "quantity": 1,
+        "unit_price": 4200,
+        "rate": 4200
+      },
+      {
+        "description": "2MP Dome Camera",
+        "HSN_SAC": "85258020",
+        "quantity": 4,
+        "unit_price": 1500,
+        "rate": 1500
+      },
+      {
+        "description": "2MP Bullet Camera",
+        "HSN_SAC": "85258020",
+        "quantity": 2,
+        "unit_price": 1650,
+        "rate": 1650
+      },
+      {
+        "description": "CAT6 Copper Cable (90m box)",
+        "HSN_SAC": "85444999",
+        "quantity": 1,
+        "unit_price": 1100,
+        "rate": 1100
+      }
+    ]
+  },
+  {
+    "waybill_id": "WB-SOL-2025-005",
+    "waybill_date": "2025-09-30T14:20:00.000Z",
+    "project_name": "Highway Toll Plaza Lighting & Surveillance",
+    "customer_name": "National Highways Authority of India",
+    "customer_address": "G 5&6, Sector-10, Dwarka, New Delhi, Delhi 110075",
+    "customer_phone": "9990001112",
+    "customer_email": "tenders@nhai.gov.in",
+    "transport_mode": "Truck",
+    "vehicle_number": "DL 1C AB 8080",
+    "place_supply": "New Delhi",
+    "items": [
+      {
+        "description": "150W All-in-One Solar Street Light",
+        "HSN_SAC": "94054090",
+        "quantity": 25,
+        "unit_price": 16000,
+        "rate": 16000
+      },
+      {
+        "description": "4K ANPR (Number Plate Recognition) Camera",
+        "HSN_SAC": "85258020",
+        "quantity": 8,
+        "unit_price": 35000,
+        "rate": 35000
+      }
+    ]
+  }
+]

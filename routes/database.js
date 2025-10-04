@@ -127,24 +127,31 @@ const wayBills = mongoose.model('wayBills', wayBillSchema);
 
 // Define Project Schema and Model
 const invoiceSchema = new mongoose.Schema({
+    // 
     quotation_id: { type: String },
-    project_name: { type: String },
     invoice_id: { type: String },
+    project_name: { type: String },
     invoice_date: { type: Date, default: Date.now },
     po_number: { type: String },
     po_date: { type: Date },
     dc_number: { type: String },
     dc_date: { type: Date },
     Waybill_id: { type: String },
-    service_month: { type: Number, default: 0 },
-    service_stage: { type: Number, default: 0 },
-    margin: { type: Number, default: 0 },
+
+    // customer and consignee
     customer_name: { type: String },
     customer_address: { type: String },
     customer_phone: { type: String },
     customer_email: { type: String },
     consignee_name: { type: String },
     consignee_address: { type: String },
+
+    // service
+    service_month: { type: Number, default: 0 },
+    service_stage: { type: Number, default: 0 },
+    margin: { type: Number, default: 0 },
+
+    // items
     items_original: [
         {
             description: { type: String },
@@ -157,16 +164,34 @@ const invoiceSchema = new mongoose.Schema({
     items_duplicate: [
         {
             description: { type: String },
-            HSN_SAC: { type: String },
             quantity: { type: Number },
             unit_price: { type: Number },
             rate: { type: Number },
         },
     ],
+    non_items_original: [
+        {
+            description: { type: String },
+            price: { type: Number },
+            rate: { type: Number },
+        },
+    ],
+    non_items_duplicate: [
+        {
+            description: { type: String },
+            price: { type: Number },
+            rate: { type: Number },
+        },
+    ],
+
+    // totals
     total_amount_original: { type: Number },
     total_amount_duplicate: { type: Number },
     total_tax_original: { type: Number },
     total_tax_duplicate: { type: Number },
+    total_paid_amount: { type: Number, default: 0 },
+
+    // payment
     payments: [
         {
             payment_date: { type: Date },
@@ -175,8 +200,8 @@ const invoiceSchema = new mongoose.Schema({
             extra_details: { type: String }, // For UPI, Bank Transfer, etc.
         }
     ],
-    total_paid_amount: { type: Number, default: 0 },
     payment_status: { type: String, default: 'Unpaid' },
+
     createdAt: { type: Date, default: Date.now },
 });
 
