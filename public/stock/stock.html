@@ -1,272 +1,429 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
-    <link rel="stylesheet" href="../global/root.css">
-    <link rel="stylesheet" href="../global/globalStyle.css">
-    <title>Stock Management</title>
+    <title>Shresht Management System - Stock</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        .stock-container {
-            min-width: calc(100vw - 241px);
-            padding: 20px;
-            box-sizing: border-box;
+        body {
+            font-family: 'Inter', sans-serif;
         }
-
-        .addItem {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 400px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            display: none;
-            text-align: center;
+        .sidebar {
+            width: 260px;
         }
-
-        .addItem label {
-            display: block;
-            margin: 10px 0 5px;
-            font-weight: bold;
-        }
-
-        .addItem input {
-            width: 100%;
-            padding: 8px 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-
-        .addItem button {
-            width: 100px;
-            padding: 10px;
-            margin: 5px;
-            background-color: var(--primary);
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .addItem button:hover {
-            background-color: #0056b3;
-        }
-
-        .backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            display: none;
-        }
-
-        .stock-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .stock-table th,
-        .stock-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        .stock-table th {
-            background-color: var(--primary);
-            color: #fff;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .stock-table td {
-            font-size: 1.1rem;
-        }
-
-        .low-stock {
-            background-color: #ff6868;
-        }
-
-        .btn {
-            width: auto;
-            padding: 10px 20px;
-            margin: 10px 5px;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 1rem;
+        /* Style for the dropdown arrow */
+        [data-action-dropdown]::before {
+            content: '';
+            position: absolute;
+            bottom: 100%; /* Position it on top of the dropdown */
+            right: 1.25rem; /* Align with the ellipsis icon */
+            border-width: 8px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+            filter: drop-shadow(0 -1px 1px rgba(0,0,0,0.05));
         }
     </style>
 </head>
+<body class="bg-gray-100">
 
-<body>
-    <header>
-        <div class="imglogo-title">
-            <div class="img" id="logo"><img src="../assets/icon.png" alt="logo"></div>
-            <h1>Stock</h1>
-        </div>
-        <div class="search">
-            <img src="../assets/search.png" alt="Search">
-            <input type="text" id="searchInput" placeholder="Search here...">
-        </div>
-        <div class="header-buttons">
-            <button class="btn" onclick="fetchStockData()">Refresh</button>
-            <button class="btn" onclick="addItemDiv()">New Item</button>
-            <button class="btn" onclick="lowStock()">Low</button>
-            <button class="btn" onclick="printStock()">Print</button>
+    <!-- Unified Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Stock Management</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" placeholder="Search stock items..." class="bg-gray-50 border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                 <a href="../dashboard/dashboard.html" class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-home text-gray-500"></i>
+                    <span>Home</span>
+                </a>
+                <button id="newStockItemBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                    <i class="fas fa-plus"></i>
+                    New Stock Item
+                </button>
+            </div>
         </div>
     </header>
-    <div class="container" class="no-select">
-        <aside class="no-select">
-            <div class="nav-link" id="dashboard">
-                <img src="../assets/dashboard-interface.png" alt="dashboard">
-                Dashboard
+
+    <!-- Sidebar -->
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24">
+        <!-- Navigation Links -->
+        <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+            <div class="flex flex-col gap-2 nav-link" id="dashboard">
+                <a href="../dashboard/dashboard.html" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-th-large w-5 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../quotation/quotation.html" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-file-alt w-5 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="../invoice/invoice.html" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                     <i class="fas fa-file-invoice-dollar w-5 text-center"></i>
+                    <span>Bill / Invoice</span>
+                </a>
+                <a href="../waybill/wayBill.html" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-route w-5 text-center"></i>
+                    <span>Way Bill</span>
+                </a>
+                <a href="../service/service.html" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-wrench w-5 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                   <i class="fas fa-shopping-cart w-5 text-center"></i>
+                    <span>Purchase Bill</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 p-3 text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-box w-5 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                   <i class="fas fa-inbox w-5 text-center"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="../comms/comms.html" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                   <i class="fas fa-comments w-5 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="../employees/employee.html" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-users w-5 text-center"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="../analytics/analytics.html" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-chart-line w-5 text-center"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="../calculations/calculations.html" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-calculator w-5 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="../settings/settings.html" class="flex items-center gap-3 p-3 text-gray-600 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-cog w-5 text-center"></i>
+                    <span>Settings</span>
+                </a>
             </div>
-            <div class="nav-link" id="quotation">
-                <img src="../assets/quotation.png" alt="Quotation">
-                Quotation
+        </nav>
+    </aside>
+
+    <!-- Fixed Action Bar -->
+    <div class="fixed top-24 left-[260px] right-0 bg-gray-100 z-20 px-8 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button class="flex items-center gap-2 px-4 py-2 text-green-700 bg-green-100 border border-green-200 rounded-lg hover:bg-green-200">
+                    <i class="fas fa-sync-alt text-green-700"></i>
+                    <span>Refresh</span>
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 text-orange-600 bg-orange-100 border-orange-200 rounded-lg hover:bg-orange-200">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Low Stock Items</span>
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-100 border border-blue-200 rounded-lg hover:bg-blue-200">
+                    <i class="fas fa-print text-blue-700"></i>
+                    <span>Print</span>
+                </button>
             </div>
-            <div class="nav-link" id="invoice">
-                <img src="../assets/transaction.png" alt="Invoice">
-                Bill / Invoice
+            <div class="relative">
+                <button id="filterBtn" class="flex items-center gap-2 px-4 py-2 text-purple-700 bg-purple-100 border border-purple-200 rounded-lg hover:bg-purple-200">
+                    <i class="fas fa-filter text-purple-700"></i>
+                    <span>Filter</span>
+                </button>
+                <div id="filterDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold" data-filter="all">All Items</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-green-600 hover:bg-gray-100" data-filter="In Stock">In Stock</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-orange-600 hover:bg-gray-100" data-filter="Low Stock">Low Stock</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100" data-filter="Out of Stock">Out of Stock</a>
+                </div>
             </div>
-            <div class="nav-link" id="wayBill">
-                <img src="../assets/delivery.png" alt="Way Bill">
-                Way Bill
-            </div>
-            <div class="nav-link" id="service">
-                <img src="../assets/telemarketing.png" alt="Service">
-                Service
-            </div>
-            <div class="nav-link" id="postOrder">
-                <img src="../assets/economy-forecast.png" alt="Purchase Bill">
-                Purchase Bill
-            </div>
-            <div class="nav-link active" id="stock">
-                <img src="../assets/in-stock.png" alt="Stock">
-                Stock
-            </div>
-            <div class="nav-link" id="comms">
-                <img src="../assets/customer-service.png" alt="comms">
-                Comms
-            </div>
-            <div class="nav-link" id="employees">
-                <img src="../assets/worker.png" alt="Employees">
-                Employees
-            </div>
-            <div class="nav-link" id="analytics">
-                <img src="../assets/analitics.png" alt="Analytics">
-                Analytics
-            </div>
-            <div class="nav-link" id="inventory">
-                <img src="../assets/inventory.png" alt="inventory">
-                Inventory
-            </div>
-            <div class="nav-link" id="calculations">
-                <img src="../assets/calculator.png" alt="calculations">
-                Calculations
-            </div>
-            <div class="nav-link" id="settings">
-                <img src="../assets/settings.png" alt="Settings">
-                Settings
-            </div>
-        </aside>
-        <div class="backdrop" id="backdrop"></div>
-        <div class="stock-container">
-            <div class="addItem" id="addItem">
-                <label>Item Name</label>
-                <input type="text" id="item_name">
-                <label>HSN/SAC</label>
-                <input type="text" id="HSN_SAC">
-                <label>Company</label>
-                <input type="text" id="company">
-                <label>Unit Price</label>
-                <input type="number" id="unit_price">
-                <label>Quantity</label>
-                <input type="number" id="item_quantity">
-                <!-- <label>Threshold</label>
-                <input type="number" id="threshold"> -->
-                <label>GST</label>
-                <input type="number" id="GST">
-                <label>Minimum Quantity</label>
-                <input type="number" id="min_quantity">
-                <button onclick="addItem()">Add</button>
-                <button onclick="hideModal()">Cancel</button>
-            </div>
-            <div class="addItem" id="addToStock">
-                <label>Quantity</label>
-                <input type="number" id="add_quantity">
-                <button onclick="addToStock()">Add</button>
-                <button onclick="hideModal()">Cancel</button>
-            </div>
-            <div class="addItem" id="removeFromStock">
-                <label>Quantity</label>
-                <input type="number" id="remove_quantity">
-                <button onclick="removeFromStock()">Remove</button>
-                <button onclick="hideModal()">Cancel</button>
-            </div>
-            <div class="addItem" id="editItem">
-                <label>Item Name</label>
-                <input type="text" id="edit_item_name">
-                <label>HSN/SAC</label>
-                <input type="text" id="edit_HSN_SAC">
-                <label>Company</label>
-                <input type="text" id="edit_company">
-                <label>Unit Price</label>
-                <input type="number" id="edit_unit_price">
-                <label>Quantity</label>
-                <input type="number" id="edit_quantity">
-                <!-- <label>Threshold</label>
-                <input type="number" id="edit_threshold"> -->
-                <label>GST</label>
-                <input type="number" id="edit_GST">
-                <label>Minimum Quantity</label>
-                <input type="number" id="edit_min_quantity">
-                <button onclick="editItem()">Save</button>
-                <button onclick="hideModal()">Cancel</button>
-            </div>
-            <table class="stock-table">
+        </div>
+    </div>
+
+
+    <!-- Main Content -->
+    <main class="ml-[260px] pt-44 px-8 pb-8">
+        <!-- Stock Table -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+            <table class="w-full text-left" id="stock-table">
                 <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>HSN/SAC</th>
-                        <th>Company</th>
-                        <th>Unit Price</th>
-                        <th>Quantity</th>
-                        <!-- <th>Margin</th> -->
-                        <th>GST</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                    <tr class="bg-blue-600 text-white">
+                        <th class="p-4 font-semibold">Item</th>
+                        <th class="p-4 font-semibold">HSN/SAC</th>
+                        <th class="p-4 font-semibold">Company</th>
+                        <th class="p-4 font-semibold">Category</th>
+                        <th class="p-4 font-semibold">Type</th>
+                        <th class="p-4 font-semibold">Unit Price</th>
+                        <th class="p-4 font-semibold">Quantity</th>
+                        <th class="p-4 font-semibold">GST</th>
+                        <th class="p-4 font-semibold">Status</th>
+                        <th class="p-4 font-semibold">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="stock-table-body">
-                    <!-- Rows will be populated dynamically -->
+                <tbody class="text-gray-700">
+                    <!-- Table rows will be inserted here by JavaScript -->
                 </tbody>
             </table>
         </div>
-    </div>
-    <script src="../global/globalScript.js"></script>
-    <script src="./stock.js"></script>
-</body>
+    </main>
 
+    <!-- Add New Stock Item Modal -->
+    <div id="newStockModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+            <div class="flex justify-between items-center pb-4 border-b mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Add New Stock Item</h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <form id="newStockForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="itemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="itemName" placeholder="e.g., Solar Panels 320W" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="hsnCode" class="block text-sm font-medium text-gray-700 mb-1">HSN/SAC Code <span class="text-red-500">*</span></label>
+                        <input type="text" id="hsnCode" placeholder="e.g., 8541" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="company" class="block text-sm font-medium text-gray-700 mb-1">Company <span class="text-red-500">*</span></label>
+                        <input type="text" id="company" placeholder="e.g., Tata Power Solar" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                     <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
+                        <input type="text" id="category" placeholder="e.g., Solar Panels" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
+                        <input type="text" id="type" placeholder="e.g., Polycrystalline" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="unitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹) <span class="text-red-500">*</span></label>
+                        <input type="text" id="unitPrice" placeholder="e.g., 12500" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
+                        <input type="number" id="quantity" placeholder="e.g., 150" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="gstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span class="text-red-500">*</span></label>
+                        <input type="number" id="gstRate" placeholder="18" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                </div>
+                <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
+                    <button type="button" id="cancelBtn" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                        <i class="fas fa-plus"></i>
+                        Add Stock Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const stockData = [
+            { item: 'Solar Panels 320W', hsn: '8541', company: 'Tata Power Solar', category: 'Solar Panels', type: 'Polycrystalline', price: '12,500', quantity: 150, gst: '18%', status: 'In Stock' },
+            { item: 'Inverter 5KW', hsn: '8504', company: 'Luminous Power', category: 'Inverters', type: 'Grid-Tie', price: '45,000', quantity: 25, gst: '18%', status: 'In Stock' },
+            { item: 'Battery 100Ah', hsn: '8507', company: 'Exide Industries', category: 'Batteries', type: 'Lead Acid', price: '18,500', quantity: 8, gst: '18%', status: 'Low Stock' },
+            { item: 'Cable 4mm2', hsn: '8544', company: 'Polycab India', category: 'Cables & Wires', type: 'Copper', price: '85', quantity: 500, gst: '18%', status: 'In Stock' },
+            { item: 'DC Combiner Box', hsn: '8536', company: 'Schneider Electric', category: 'BOS', type: 'AJB', price: '3,500', quantity: 0, gst: '18%', status: 'Out of Stock' },
+            { item: 'Mounting Structure', hsn: '7610', company: 'Mahindra Susten', category: 'BOS', type: 'Rooftop', price: '2,200', quantity: 75, gst: '18%', status: 'In Stock' },
+            { item: 'Surge Protection Device', hsn: '8536', company: 'Phoenix Contact', category: 'BOS', type: 'SPD', price: '1,850', quantity: 12, gst: '18%', status: 'Low Stock' },
+            { item: 'MC4 Connectors (Pair)', hsn: '8536', company: 'Generic', category: 'BOS', type: 'Connector', price: '150', quantity: 250, gst: '18%', status: 'In Stock' },
+            { item: 'AC Distribution Box', hsn: '8537', company: 'Legrand', category: 'BOS', type: 'ACDB', price: '4,500', quantity: 30, gst: '18%', status: 'In Stock' },
+            { item: 'Earthing Kit', hsn: '8543', company: 'Generic', category: 'BOS', type: 'Safety', price: '2,000', quantity: 40, gst: '18%', status: 'In Stock' },
+            { item: 'Lightning Arrester', hsn: '8535', company: 'OBO Bettermann', category: 'BOS', type: 'Safety', price: '3,200', quantity: 15, gst: '18%', status: 'Low Stock' },
+            { item: 'Solar Charge Controller 50A', hsn: '8504', company: 'Morningstar', category: 'Inverters', type: 'Off-Grid', price: '15,000', quantity: 5, gst: '18%', status: 'Low Stock' },
+            { item: 'Grid-Tie Inverter 3KW', hsn: '8504', company: 'SMA Solar', category: 'Inverters', type: 'Grid-Tie', price: '35,000', quantity: 10, gst: '18%', status: 'In Stock' },
+            { item: 'Solar Panel 450W Mono', hsn: '8541', company: 'Adani Solar', category: 'Solar Panels', type: 'Monocrystalline', price: '18,000', quantity: 100, gst: '18%', status: 'In Stock' },
+            { item: 'Battery 150Ah Tall Tubular', hsn: '8507', company: 'Amaron', category: 'Batteries', type: 'Lead Acid', price: '22,000', quantity: 0, gst: '18%', status: 'Out of Stock' },
+            { item: 'Junction Box IP67', hsn: '8536', company: 'Generic', category: 'BOS', type: 'Junction Box', price: '500', quantity: 150, gst: '18%', status: 'In Stock' },
+            { item: 'Crimping Tool', hsn: '8203', company: 'Stanley', category: 'Tools', type: 'Hand Tool', price: '1,200', quantity: 20, gst: '18%', status: 'In Stock' },
+            { item: 'Net Meter', hsn: '9028', company: 'Secure Meters', category: 'Meters', type: 'Digital', price: '5,500', quantity: 22, gst: '18%', status: 'In Stock' },
+            { item: 'DC Fuse 15A', hsn: '8536', company: 'Eaton', category: 'BOS', type: 'Fuse', price: '250', quantity: 300, gst: '18%', status: 'In Stock' },
+            { item: 'AC Cable 2.5mm2', hsn: '8544', company: 'Havells', category: 'Cables & Wires', type: 'Copper', price: '45', quantity: 1000, gst: '18%', status: 'In Stock' },
+            { item: 'Conduit Pipe 25mm', hsn: '3917', company: 'Precision', category: 'BOS', type: 'Piping', price: '120', quantity: 400, gst: '18%', status: 'In Stock' },
+            { item: 'Cable Glands PG13.5', hsn: '8538', company: 'Generic', category: 'BOS', type: 'Gland', price: '30', quantity: 500, gst: '18%', status: 'In Stock' },
+            { item: 'Lithium Battery 100Ah', hsn: '8507', company: 'Loom Solar', category: 'Batteries', type: 'Lithium Ion', price: '50,000', quantity: 7, gst: '18%', status: 'Low Stock' },
+            { item: 'Off-Grid Inverter 1KW', hsn: '8504', company: 'Microtek', category: 'Inverters', type: 'Off-Grid', price: '8,000', quantity: 18, gst: '18%', status: 'In Stock' },
+            { item: 'Solar Panel Stand (2 panels)', hsn: '7610', company: 'Generic', category: 'BOS', type: 'Structure', price: '1,500', quantity: 60, gst: '18%', status: 'In Stock' },
+            { item: 'Digital Multimeter', hsn: '9030', company: 'Fluke', category: 'Tools', type: 'Measuring', price: '6,000', quantity: 9, gst: '18%', status: 'Low Stock' },
+            { item: 'Wire Stripper', hsn: '8203', company: 'Taparia', category: 'Tools', type: 'Hand Tool', price: '350', quantity: 0, gst: '18%', status: 'Out of Stock' },
+            { item: 'Lithium Battery 100Ah with 15 years Warranty Claim and 10years Replacement', hsn: '8507', company: 'Loom Solar', category: 'Batteries', type: 'Lithium Ion', price: '60,000', quantity: 10, gst: '18%', status: 'In Stock' }
+        ];
+
+        const tableBody = document.getElementById('stock-table').getElementsByTagName('tbody')[0];
+
+        function getStatus(quantity) {
+             if (quantity <= 0) {
+                return 'Out of Stock';
+            } else if (quantity <= 5) {
+                return 'Low Stock';
+            } else {
+                return 'In Stock';
+            }
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'In Stock':
+                    return 'bg-green-100 text-green-700';
+                case 'Low Stock':
+                    return 'bg-yellow-100 text-yellow-700';
+                case 'Out of Stock':
+                    return 'bg-red-100 text-red-700';
+                default:
+                    return 'bg-gray-100 text-gray-700';
+            }
+        }
+
+        function renderTable(data) {
+            tableBody.innerHTML = ''; // Clear existing table
+            data.forEach(d => {
+                const row = tableBody.insertRow();
+                row.className = 'border-b border-gray-200 hover:bg-gray-50';
+                const currentStatus = getStatus(d.quantity);
+                
+                row.innerHTML = `
+                    <td class="p-4 font-medium text-gray-900">${d.item}</td>
+                    <td class="p-4">${d.hsn}</td>
+                    <td class="p-4 whitespace-nowrap">${d.company}</td>
+                    <td class="p-4">${d.category}</td>
+                    <td class="p-4">${d.type}</td>
+                    <td class="p-4 whitespace-nowrap">₹${d.price}</td>
+                    <td class="p-4">${d.quantity}</td>
+                    <td class="p-4">${d.gst}</td>
+                    <td class="p-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusClass(currentStatus)}">
+                            ${currentStatus}
+                        </span>
+                    </td>
+                    <td class="p-4 relative">
+                        <button class="text-gray-500 hover:text-gray-700 focus:outline-none" data-action-button>
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div class="absolute right-0 top-full mt-4 w-32 bg-white rounded-md shadow-lg py-1 z-20 hidden" data-action-dropdown>
+                            <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-plus w-4"></i> Add
+                            </a>
+                            <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-edit w-4"></i> Edit
+                            </a>
+                            <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                <i class="fas fa-trash-alt w-4"></i> Delete
+                            </a>
+                        </div>
+                    </td>
+                `;
+            });
+        }
+        
+        renderTable(stockData);
+
+
+        // --- EVENT LISTENERS ---
+
+        // General click listener for popups
+        document.addEventListener('click', function (event) {
+            const closeAllPopups = (except) => {
+                document.querySelectorAll('[data-action-dropdown], #filterDropdown').forEach(popup => {
+                    if (popup !== except) {
+                        popup.classList.add('hidden');
+                    }
+                });
+            };
+
+            const actionButton = event.target.closest('[data-action-button]');
+            const filterButton = event.target.closest('#filterBtn');
+
+            if (actionButton) {
+                const dropdown = actionButton.nextElementSibling;
+                const isHidden = dropdown.classList.contains('hidden');
+                closeAllPopups(dropdown);
+                if (isHidden) dropdown.classList.remove('hidden');
+            } else if (filterButton) {
+                const dropdown = document.getElementById('filterDropdown');
+                const isHidden = dropdown.classList.contains('hidden');
+                closeAllPopups(dropdown);
+                if (isHidden) dropdown.classList.remove('hidden');
+            } else {
+                if (!event.target.closest('[data-action-dropdown]') && !event.target.closest('#filterDropdown')) {
+                    closeAllPopups(null);
+                }
+            }
+        });
+
+        // Filter functionality
+        const filterDropdownLinks = document.querySelectorAll('#filterDropdown a');
+        filterDropdownLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const filterValue = link.getAttribute('data-filter');
+
+                // Update active style
+                filterDropdownLinks.forEach(l => l.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                // Filter data and re-render table
+                if (filterValue === 'all') {
+                    renderTable(stockData);
+                } else {
+                    const filteredData = stockData.filter(item => getStatus(item.quantity) === filterValue);
+                    renderTable(filteredData);
+                }
+            });
+        });
+
+        // Modal functionality
+        const newStockModal = document.getElementById('newStockModal');
+        const newStockItemBtn = document.getElementById('newStockItemBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const newStockForm = document.getElementById('newStockForm');
+
+        const openModal = () => newStockModal.classList.remove('hidden');
+        const closeModal = () => newStockModal.classList.add('hidden');
+
+        newStockItemBtn.addEventListener('click', openModal);
+        closeModalBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        newStockModal.addEventListener('click', (e) => {
+            if (e.target === newStockModal) {
+                closeModal();
+            }
+        });
+        
+        newStockForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const quantity = parseInt(e.target.quantity.value);
+            const newItem = {
+                item: e.target.itemName.value,
+                hsn: e.target.hsnCode.value,
+                company: e.target.company.value,
+                category: e.target.category.value,
+                type: e.target.type.value,
+                price: e.target.unitPrice.value,
+                quantity: quantity,
+                gst: `${e.target.gstRate.value}%`,
+                status: getStatus(quantity)
+            };
+            stockData.unshift(newItem); // Add to the beginning of the array
+            renderTable(stockData);
+            newStockForm.reset();
+            closeModal();
+        });
+
+    </script>
+
+</body>
 </html>
+
