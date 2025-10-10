@@ -18,7 +18,7 @@ router.get('/getStock', async (req, res) => {
 
 // Route to Add Item to Stock
 router.post('/addItem', async (req, res) => {
-    const { itemName, HSN_SAC, company, unitPrice, quantity, GST, min_quantity } = req.body;
+    const { itemName, HSN_SAC, specifications, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
 
@@ -33,13 +33,14 @@ router.post('/addItem', async (req, res) => {
         const newItem = new Stock({
             item_name: itemName,
             HSN_SAC,
+            specifications,
             company,
+            category,
+            type: type || 'material',
             unit_price: unitPrice,
             quantity,
             GST,
-            // margin: threshold,
             min_quantity: min_quantity || 5,
-            type: 'material',
         });
 
         await newItem.save();
@@ -104,7 +105,7 @@ router.post('/removeFromStock', async (req, res) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req, res) => {
-    const { itemId, itemName, HSN_SAC, company, unitPrice, quantity, GST, min_quantity } = req.body;
+    const { itemId, itemName, HSN_SAC, specification, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
 
@@ -115,11 +116,15 @@ router.post('/editItem', async (req, res) => {
 
         item.item_name = itemName;
         item.HSN_SAC = HSN_SAC;
+        item.specification = specifications,
         item.company = company;
+        item.category = category;
+        item.type = type;
         item.unit_price = unitPrice;
         item.quantity = quantity;
         item.GST = GST;
         item.min_quantity = min_quantity;
+        item.updatedAt = new Date();
         await item.save();
 
         res.status(200).json({ message: 'Item updated successfully' });
@@ -140,6 +145,7 @@ router.get("/get-stock-item", async (req, res) => {
         res.json({
             itemName: stockItem.item_name,
             HSN_SAC: stockItem.HSN_SAC,
+            specifications: stockItem.specifications,
             unitPrice: stockItem.unit_price,
             GST: stockItem.GST
         });

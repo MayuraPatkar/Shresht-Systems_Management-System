@@ -1,21 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shresht Management System - Stock</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
+
         .sidebar {
             width: 280px;
         }
+
+        .low-stock {
+            background-color: #fef3cd !important;
+        }
+
+        .table-row:hover {
+            background-color: #f8fafc;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-notification {
+            animation: slideIn 0.3s ease-out, slideOut 0.3s ease-in 2.7s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Custom scrollbar styling */
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            border-radius: none;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
+        }
+
+        *::-webkit-scrollbar-corner {
+            background: #f1f5f9;
+        }
+
+        /* Full height table container */
+        .table-container {
+            height: calc(100vh - 11rem);
+            min-height: 400px;
+        }
+
+        /* Quantity input styling */
+        .quantity-input {
+            width: 80px;
+            text-align: center;
+        }
+
+        .quantity-btn {
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
+
 <body class="bg-gray-100">
 
     <!-- Unified Header -->
@@ -28,13 +133,16 @@
             <div class="flex items-center gap-4">
                 <div class="relative">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" placeholder="Search stock items..." class="bg-gray-50 border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" placeholder="Search stock items..."
+                        class="bg-gray-50 border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                 <a href="../dashboard/dashboard.html" class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                <a href="../dashboard/dashboard.html"
+                    class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
                     <i class="fas fa-home text-gray-500"></i>
                     <span>Home</span>
                 </a>
-                <button id="newStockItemBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                <button id="newStockItemBtn"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
                     <i class="fas fa-plus"></i>
                     New Stock Item
                 </button>
@@ -47,55 +155,68 @@
         <!-- Navigation Links -->
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
-                <a href="../dashboard/dashboard.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                <a href="../dashboard/dashboard.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="../quotation/quotation.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                <a href="../quotation/quotation.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
                 </a>
-                <a href="../invoice/invoice.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
-                     <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                <a href="../invoice/invoice.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
                     <span>Bill / Invoice</span>
                 </a>
-                <a href="../waybill/wayBill.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                <a href="../waybill/wayBill.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
                     <i class="fas fa-route w-8 text-center"></i>
                     <span>Way Bill</span>
                 </a>
-                <a href="../service/service.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                <a href="../service/service.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
                 </a>
-                <a href="../purchaseOrder/purchaseOrder.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
-                   <i class="fas fa-shopping-cart w-8 text-center"></i>
+                <a href="../purchaseOrder/purchaseOrder.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
                     <span>Purchase Bill</span>
                 </a>
-                <a href="#" class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                <a href="#"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
                     <i class="fas fa-box w-8 text-center"></i>
                     <span>Stock</span>
                 </a>
-                <a href="#" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
-                   <i class="fas fa-inbox w-8 text-center"></i>
+                <a href="#"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-inbox w-8 text-center"></i>
                     <span>Inventory</span>
                 </a>
-                <a href="../comms/comms.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
-                   <i class="fas fa-comments w-8 text-center"></i>
+                <a href="../comms/comms.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-comments w-8 text-center"></i>
                     <span>Comms</span>
                 </a>
-                <a href="../employees/employee.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                <a href="../employees/employee.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
                     <i class="fas fa-users w-8 text-center"></i>
                     <span>Employees</span>
                 </a>
-                <a href="../analytics/analytics.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                <a href="../analytics/analytics.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
                     <i class="fas fa-chart-line w-8 text-center"></i>
                     <span>Analytics</span>
                 </a>
-                <a href="../calculations/calculations.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                <a href="../calculations/calculations.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
                     <i class="fas fa-calculator w-8 text-center"></i>
                     <span>Calculations</span>
                 </a>
-                <a href="../settings/settings.html" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                <a href="../settings/settings.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
                     <i class="fas fa-cog w-8 text-center"></i>
                     <span>Settings</span>
                 </a>
@@ -107,49 +228,67 @@
     <div class="fixed top-24 left-[280px] right-0 bg-white z-20 px-8 py-4 shadow-md">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <button class="flex items-center gap-2 px-4 py-2 text-green-700 bg-green-100 border border-green-200 rounded-lg hover:bg-green-200">
+                <button
+                    class="flex items-center gap-2 px-4 py-2 text-green-700 bg-green-100 border border-green-200 rounded-lg hover:bg-green-200">
                     <i class="fas fa-sync-alt text-green-700"></i>
                     <span>Refresh</span>
                 </button>
-                <button class="flex items-center gap-2 px-4 py-2 text-orange-600 bg-orange-100 border-orange-200 rounded-lg hover:bg-orange-200">
+                <button
+                    class="flex items-center gap-2 px-4 py-2 text-orange-600 bg-orange-100 border-orange-200 rounded-lg hover:bg-orange-200">
                     <i class="fas fa-exclamation-triangle"></i>
                     <span>Low Stock Items</span>
                 </button>
-                <button id="printBtn" class="flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-100 border border-blue-200 rounded-lg hover:bg-blue-200">
+                <button id="printBtn"
+                    class="flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-100 border border-blue-200 rounded-lg hover:bg-blue-200">
                     <i class="fas fa-print text-blue-700"></i>
                     <span>Print</span>
                 </button>
             </div>
             <div class="flex items-center gap-4">
                 <div class="relative">
-                    <button id="typeFilterBtn" class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <button id="typeFilterBtn"
+                        class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
                         <i class="fas fa-shapes text-gray-500"></i>
                         <span>Type</span>
                     </button>
-                    <div id="typeFilterDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold" data-type-filter="all">All Types</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-type-filter="Asset">Asset</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-type-filter="Material">Material</a>
+                    <div id="typeFilterDropdown"
+                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                        <a href="#"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold"
+                            data-type-filter="all">All Types</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            data-type-filter="Asset">Asset</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            data-type-filter="Material">Material</a>
                     </div>
                 </div>
                 <div class="relative">
-                    <button id="categoryFilterBtn" class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <button id="categoryFilterBtn"
+                        class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
                         <i class="fas fa-tags text-gray-500"></i>
                         <span>Category</span>
                     </button>
-                    <div id="categoryFilterDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                    <div id="categoryFilterDropdown"
+                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
                     </div>
                 </div>
                 <div class="relative">
-                    <button id="filterBtn" class="flex items-center gap-2 px-4 py-2 text-purple-700 bg-purple-100 border border-purple-200 rounded-lg hover:bg-purple-200">
+                    <button id="filterBtn"
+                        class="flex items-center gap-2 px-4 py-2 text-purple-700 bg-purple-100 border border-purple-200 rounded-lg hover:bg-purple-200">
                         <i class="fas fa-filter text-purple-700"></i>
                         <span>Filter</span>
                     </button>
-                    <div id="filterDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold" data-filter="all">All Items</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-green-600 hover:bg-gray-100" data-filter="In Stock">In Stock</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-orange-600 hover:bg-gray-100" data-filter="Low Stock">Low Stock</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100" data-filter="Out of Stock">Out of Stock</a>
+                    <div id="filterDropdown"
+                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                        <a href="#"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold"
+                            data-filter="all">All Items</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-green-600 hover:bg-gray-100"
+                            data-filter="In Stock">In Stock</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-orange-600 hover:bg-gray-100"
+                            data-filter="Low Stock">Low Stock</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                            data-filter="Out of Stock">Out of Stock</a>
                     </div>
                 </div>
             </div>
@@ -157,22 +296,50 @@
     </div>
 
     <!-- Main Content -->
-    <main class="ml-[280px] pt-44 px-8 pb-8">
+    <main class="ml-[280px] pt-44">
         <!-- Stock Table -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-auto h-[calc(100vh-14rem)]">
+        <div class="bg-white border border-gray-200 overflow-auto table-container">
             <table class="w-full text-left table-fixed" id="stock-table">
                 <thead>
                     <tr class="bg-blue-600 text-white">
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-4/12">Item</th>
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12">Unit Price</th>
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12">Quantity</th>
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12">GST</th>
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12">Status</th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-4/12 cursor-pointer hover:bg-blue-700"
+                            data-sort="name">
+                            Item <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 cursor-pointer hover:bg-blue-700"
+                            data-sort="price">
+                            Unit Price <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12 cursor-pointer hover:bg-blue-700"
+                            data-sort="quantity">
+                            Quantity <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12 cursor-pointer hover:bg-blue-700"
+                            data-sort="gst">
+                            GST <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 cursor-pointer hover:bg-blue-700"
+                            data-sort="status">
+                            Status <i class="fas fa-sort ml-1"></i>
+                        </th>
                         <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="text-gray-700">
+                <tbody class="text-gray-700" id="stock-table-body">
                     <!-- Table rows will be inserted here by JavaScript -->
+                    <tr id="loading-row" class="hidden">
+                        <td colspan="6" class="p-8 text-center">
+                            <div class="flex items-center justify-center">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>
+                                Loading stock data...
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="empty-row" class="hidden">
+                        <td colspan="6" class="p-8 text-center text-gray-500">
+                            No stock items found
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -190,45 +357,80 @@
             <form id="newStockForm">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="itemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name <span class="text-red-500">*</span></label>
-                        <input type="text" id="itemName" placeholder="e.g., Solar Panels 320W" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="itemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="itemName" placeholder="e.g., Solar Panels 320W"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div>
-                        <label for="hsnCode" class="block text-sm font-medium text-gray-700 mb-1">HSN/SAC Code <span class="text-red-500">*</span></label>
-                        <input type="text" id="hsnCode" placeholder="e.g., 8541" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="hsnCode" class="block text-sm font-medium text-gray-700 mb-1">HSN/SAC Code <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="hsnCode" placeholder="e.g., 8541"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div>
-                        <label for="company" class="block text-sm font-medium text-gray-700 mb-1">Company <span class="text-red-500">*</span></label>
-                        <input type="text" id="company" placeholder="e.g., Tata Power Solar" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    </div>
-                     <div>
-                        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
-                        <input type="text" id="category" placeholder="e.g., Solar Panels" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    </div>
-                    <div>
-                        <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
-                        <input type="text" id="type" placeholder="e.g., Asset" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="company" class="block text-sm font-medium text-gray-700 mb-1">Company <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="company" placeholder="e.g., Tata Power Solar"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div>
-                        <label for="unitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹) <span class="text-red-500">*</span></label>
-                        <input type="text" id="unitPrice" placeholder="e.g., 12500" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="category" placeholder="e.g., Solar Panels"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div>
-                        <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
-                        <input type="number" id="quantity" placeholder="e.g., 150" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="type" placeholder="e.g., Asset"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div>
-                        <label for="gstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span class="text-red-500">*</span></label>
-                        <input type="number" id="gstRate" placeholder="18" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="unitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹) <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="unitPrice" placeholder="e.g., 12500"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" id="quantity" placeholder="e.g., 150"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="gstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" id="gstRate" placeholder="18"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="minQuantity" class="block text-sm font-medium text-gray-700 mb-1">Minimum Quantity
+                            <span class="text-red-500">*</span></label>
+                        <input type="number" id="minQuantity" placeholder="e.g., 10"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div class="md:col-span-2">
-                        <label for="specifications" class="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
-                        <textarea id="specifications" placeholder="Enter item specifications..." rows="3" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <label for="specifications"
+                            class="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
+                        <textarea id="specifications" placeholder="Enter item specifications..." rows="3"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                 </div>
                 <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
-                    <button type="button" id="cancelBtn" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                    <button type="button" id="cancelBtn"
+                        class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
                         <i class="fas fa-plus"></i>
                         Add Stock Item
                     </button>
@@ -249,48 +451,85 @@
             <form id="editStockForm">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="editItemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name <span class="text-red-500">*</span></label>
-                        <input type="text" id="editItemName" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="editItemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editItemName"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div>
-                        <label for="editHsnCode" class="block text-sm font-medium text-gray-700 mb-1">HSN/SAC Code <span class="text-red-500">*</span></label>
-                        <input type="text" id="editHsnCode" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="editHsnCode" class="block text-sm font-medium text-gray-700 mb-1">HSN/SAC Code <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editHsnCode"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div>
-                        <label for="editCompany" class="block text-sm font-medium text-gray-700 mb-1">Company <span class="text-red-500">*</span></label>
-                        <input type="text" id="editCompany" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    </div>
-                     <div>
-                        <label for="editCategory" class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
-                        <input type="text" id="editCategory" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                    </div>
-                    <div>
-                        <label for="editType" class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
-                        <input type="text" id="editType" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="editCompany" class="block text-sm font-medium text-gray-700 mb-1">Company <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editCompany"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div>
-                        <label for="editUnitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹) <span class="text-red-500">*</span></label>
-                        <input type="text" id="editUnitPrice" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="editCategory" class="block text-sm font-medium text-gray-700 mb-1">Category <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editCategory"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div>
-                        <label for="editQuantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
+                        <label for="editType" class="block text-sm font-medium text-gray-700 mb-1">Type <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editType"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editUnitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹)
+                            <span class="text-red-500">*</span></label>
+                        <input type="text" id="editUnitPrice"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editQuantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity <span
+                                class="text-red-500">*</span></label>
                         <div class="flex items-center gap-2">
-                           <input type="number" id="editQuantity" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                           <button type="button" id="addQuantityBtn" class="bg-green-500 text-white px-3 py-2 rounded-lg font-semibold hover:bg-green-600"><i class="fas fa-plus"></i></button>
+                            <input type="number" id="editQuantity"
+                                class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required>
+                            <button type="button" id="addQuantityBtn"
+                                class="bg-green-500 text-white px-3 py-2 rounded-lg font-semibold hover:bg-green-600"><i
+                                    class="fas fa-plus"></i></button>
                         </div>
                     </div>
                     <div>
-                        <label for="editGstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span class="text-red-500">*</span></label>
-                        <input type="number" id="editGstRate" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <label for="editGstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" id="editGstRate"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editMinQuantity" class="block text-sm font-medium text-gray-700 mb-1">Minimum
+                            Quantity <span class="text-red-500">*</span></label>
+                        <input type="number" id="editMinQuantity"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
                     </div>
                     <div class="md:col-span-2">
-                        <label for="editSpecifications" class="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
-                        <textarea id="editSpecifications" rows="3" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <label for="editSpecifications"
+                            class="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
+                        <textarea id="editSpecifications" rows="3"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                 </div>
                 <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
-                    <button type="button" id="cancelEditBtn" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                    <button type="button" id="cancelEditBtn"
+                        class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
                         <i class="fas fa-save"></i>
                         Update Stock Item
                     </button>
@@ -298,17 +537,22 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Item Details Modal -->
-    <div id="itemDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+    <div id="itemDetailsModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
         <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg">
             <div class="flex justify-between items-center pb-4 border-b mb-4">
-                <h3 id="detailsItemName" class="text-xl font-semibold text-gray-800">Item Details</h3>
+                <h3 id="detailsModalTitle" class="text-xl font-semibold text-gray-800">Item Details</h3>
                 <button id="closeDetailsModalBtn" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times fa-lg"></i>
                 </button>
             </div>
             <div class="space-y-4">
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Item Name</h4>
+                    <p id="detailsItemName" class="text-gray-800"></p>
+                </div>
                 <div>
                     <h4 class="text-sm font-medium text-gray-500">HSN/SAC</h4>
                     <p id="detailsHsn" class="text-gray-800"></p>
@@ -324,6 +568,22 @@
                 <div>
                     <h4 class="text-sm font-medium text-gray-500">Type</h4>
                     <p id="detailsType" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Quantity</h4>
+                    <p id="detailsQuantity" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">GST Rate</h4>
+                    <p id="detailsGstRate" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Unit Price</h4>
+                    <p id="detailsUnitPrice" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Minimum Quantity</h4>
+                    <p id="detailsMinQuantity" class="text-gray-800"></p>
                 </div>
                 <div>
                     <h4 class="text-sm font-medium text-gray-500">Specifications</h4>
@@ -345,21 +605,26 @@
             <div class="space-y-4">
                 <div>
                     <label for="printTypeFilter" class="block text-sm font-medium text-gray-700">Filter by Type</label>
-                    <select id="printTypeFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
+                    <select id="printTypeFilter"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
                         <option value="all">All Types</option>
                         <option value="Asset">Asset</option>
                         <option value="Material">Material</option>
                     </select>
                 </div>
                 <div>
-                    <label for="printCategoryFilter" class="block text-sm font-medium text-gray-700">Filter by Category</label>
-                    <select id="printCategoryFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
+                    <label for="printCategoryFilter" class="block text-sm font-medium text-gray-700">Filter by
+                        Category</label>
+                    <select id="printCategoryFilter"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
                         <!-- Options populated by JS -->
                     </select>
                 </div>
                 <div>
-                    <label for="printStatusFilter" class="block text-sm font-medium text-gray-700">Filter by Status</label>
-                    <select id="printStatusFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
+                    <label for="printStatusFilter" class="block text-sm font-medium text-gray-700">Filter by
+                        Status</label>
+                    <select id="printStatusFilter"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
                         <option value="all">All</option>
                         <option value="In Stock">In Stock</option>
                         <option value="Low Stock">Low Stock</option>
@@ -368,8 +633,10 @@
                 </div>
             </div>
             <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
-                <button type="button" id="cancelPrintBtn" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-                <button id="finalPrintBtn" type="button" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                <button type="button" id="cancelPrintBtn"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button id="finalPrintBtn" type="button"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
                     <i class="fas fa-print"></i>
                     Print Report
                 </button>
@@ -377,435 +644,44 @@
         </div>
     </div>
 
+    <!-- Quantity Adjustment Modal -->
+    <div id="quantityModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center pb-4 border-b mb-4">
+                <h3 id="quantityModalTitle" class="text-xl font-semibold text-gray-800">Adjust Quantity</h3>
+                <button id="closeQuantityModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <div class="mb-6">
+                <p id="quantityModalText" class="text-gray-600 mb-4">How much quantity do you want to add/remove?</p>
+                <div class="flex items-center justify-center gap-4">
+                    <button id="decreaseQuantityBtn"
+                        class="quantity-btn bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" id="quantityModalInput"
+                        class="quantity-input border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value="1" min="1">
+                    <button id="increaseQuantityBtn"
+                        class="quantity-btn bg-green-500 text-white rounded-lg hover:bg-green-600">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-end items-center gap-4">
+                <button id="cancelQuantityBtn"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button id="confirmQuantityBtn"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                    <span id="confirmQuantityText">Add</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-    <script>
-        const stockData = [
-            { item: 'Solar Panels 320W', hsn: '8541', company: 'Tata Power Solar', category: 'Solar Panels', type: 'Asset', price: '12,500', quantity: 150, gst: '18%', specifications: 'High-efficiency polycrystalline solar panels.'},
-            { item: 'Inverter 5KW', hsn: '8504', company: 'Luminous Power', category: 'Inverters', type: 'Asset', price: '45,000', quantity: 25, gst: '18%', specifications: '5KW Grid-Tie Solar Inverter.'},
-            { item: 'Battery 100Ah', hsn: '8507', company: 'Exide Industries', category: 'Batteries', type: 'Asset', price: '18,500', quantity: 8, gst: '18%', specifications: '100Ah Tall Tubular Battery with 5-year warranty.'},
-            { item: 'Cable 4mm2', hsn: '8544', company: 'Polycab India', category: 'Cables & Wires', type: 'Material', price: '85', quantity: 500, gst: '18%', specifications: '4 sq. mm solar DC cable, UV resistant.'},
-            { item: 'DC Combiner Box', hsn: '8536', company: 'Schneider Electric', category: 'BOS', type: 'Material', price: '3,500', quantity: 0, gst: '18%', specifications: '4-in 1-out DC Distribution Box.'},
-            { item: 'Mounting Structure', hsn: '7610', company: 'Mahindra Susten', category: 'BOS', type: 'Material', price: '2,200', quantity: 75, gst: '18%', specifications: 'Aluminum structure for 2 panels.'},
-            { item: 'Surge Protection Device', hsn: '8536', company: 'Phoenix Contact', category: 'BOS', type: 'Material', price: '1,850', quantity: 12, gst: '18%', specifications: 'Type 2 AC/DC SPD.'},
-            { item: 'MC4 Connectors (Pair)', hsn: '8536', company: 'Generic', category: 'BOS', type: 'Material', price: '150', quantity: 250, gst: '18%', specifications: 'IP67 rated solar connectors.'},
-            { item: 'AC Distribution Box', hsn: '8537', company: 'Legrand', category: 'BOS', type: 'Material', price: '4,500', quantity: 30, gst: '18%', specifications: 'ACDB for 5KW inverter.'},
-            { item: 'Earthing Kit', hsn: '8543', company: 'Generic', category: 'BOS', type: 'Material', price: '2,000', quantity: 40, gst: '18%', specifications: 'Copper earthing rod with clamp and wire.'},
-            { item: 'Lightning Arrester', hsn: '8535', company: 'OBO Bettermann', category: 'BOS', type: 'Material', price: '3,200', quantity: 15, gst: '18%', specifications: 'Conventional lightning arrester.'},
-            { item: 'Solar Charge Controller 50A', hsn: '8504', company: 'Morningstar', category: 'Inverters', type: 'Asset', price: '15,000', quantity: 5, gst: '18%', specifications: 'MPPT 50A Charge Controller.'},
-            { item: 'Grid-Tie Inverter 3KW', hsn: '8504', company: 'SMA Solar', category: 'Inverters', type: 'Asset', price: '35,000', quantity: 10, gst: '18%', specifications: 'SMA Sunny Boy 3.0.'},
-            { item: 'Solar Panel 450W Mono', hsn: '8541', company: 'Adani Solar', category: 'Solar Panels', type: 'Asset', price: '18,000', quantity: 100, gst: '18%', specifications: 'Monocrystalline PERC half-cut cells.'},
-            { item: 'Battery 150Ah Tall Tubular', hsn: '8507', company: 'Amaron', category: 'Batteries', type: 'Asset', price: '22,000', quantity: 0, gst: '18%', specifications: '150Ah Tall Tubular, 5-year warranty.'},
-            { item: 'Junction Box IP67', hsn: '8536', company: 'Generic', category: 'BOS', type: 'Material', price: '500', quantity: 150, gst: '18%', specifications: 'Waterproof junction box.'},
-            { item: 'Crimping Tool', hsn: '8203', company: 'Stanley', category: 'Tools', type: 'Asset', price: '1,200', quantity: 20, gst: '18%', specifications: 'MC4 solar crimping tool.'},
-            { item: 'Net Meter', hsn: '9028', company: 'Secure Meters', category: 'Meters', type: 'Asset', price: '5,500', quantity: 22, gst: '18%', specifications: '3-phase net meter.'},
-            { item: 'DC Fuse 15A', hsn: '8536', company: 'Eaton', category: 'BOS', type: 'Material', price: '250', quantity: 300, gst: '18%', specifications: '1000V DC Fuse.'},
-            { item: 'AC Cable 2.5mm2', hsn: '8544', company: 'Havells', category: 'Cables & Wires', type: 'Material', price: '45', quantity: 1000, gst: '18%', specifications: '3-core AC cable.'},
-            { item: 'Conduit Pipe 25mm', hsn: '3917', company: 'Precision', category: 'BOS', type: 'Material', price: '120', quantity: 400, gst: '18%', specifications: '25mm PVC conduit pipe.'},
-            { item: 'Cable Glands PG13.5', hsn: '8538', company: 'Generic', category: 'BOS', type: 'Material', price: '30', quantity: 500, gst: '18%', specifications: 'PG13.5 Cable Gland.'},
-            { item: 'Lithium Battery 100Ah', hsn: '8507', company: 'Loom Solar', category: 'Batteries', type: 'Asset', price: '50,000', quantity: 7, gst: '18%', specifications: '100Ah Lithium-ion battery.'},
-            { item: 'Off-Grid Inverter 1KW', hsn: '8504', company: 'Microtek', category: 'Inverters', type: 'Asset', price: '8,000', quantity: 18, gst: '18%', specifications: '1KW Off-grid solar inverter.'},
-            { item: 'Solar Panel Stand (2 panels)', hsn: '7610', company: 'Generic', category: 'BOS', type: 'Material', price: '1,500', quantity: 60, gst: '18%', specifications: 'Galvanized iron stand.'},
-            { item: 'Digital Multimeter', hsn: '9030', company: 'Fluke', category: 'Tools', type: 'Asset', price: '6,000', quantity: 9, gst: '18%', specifications: 'Fluke 101 Digital Multimeter.'},
-            { item: 'Wire Stripper', hsn: '8203', company: 'Taparia', category: 'Tools', type: 'Asset', price: '350', quantity: 0, gst: '18%', specifications: 'Standard wire stripper.'},
-            { item: 'Lithium Battery 100Ah with 15 years Warranty Claim and 10years Replacement', hsn: '8507', company: 'Loom Solar', category: 'Batteries', type: 'Asset', price: '60,000', quantity: 10, gst: '18%', specifications: 'Premium Lithium battery with long warranty.'}
-        ];
+    <script src="stock.js"></script>
 
-        let currentlyRenderedData = [];
-        const tableBody = document.getElementById('stock-table').getElementsByTagName('tbody')[0];
-
-        function getStatus(quantity) {
-             if (quantity <= 0) {
-                return 'Out of Stock';
-            } else if (quantity <= 5) {
-                return 'Low Stock';
-            } else {
-                return 'In Stock';
-            }
-        }
-
-        function getStatusClass(status) {
-            switch (status) {
-                case 'In Stock': return 'bg-green-100 text-green-700';
-                case 'Low Stock': return 'bg-yellow-100 text-yellow-700';
-                case 'Out of Stock': return 'bg-red-100 text-red-700';
-                default: return 'bg-gray-100 text-gray-700';
-            }
-        }
-
-        function renderTable(data) {
-            currentlyRenderedData = data;
-            tableBody.innerHTML = ''; 
-            data.forEach((d, index) => {
-                const row = tableBody.insertRow();
-                row.className = 'border-b border-gray-200 hover:bg-gray-50';
-                const currentStatus = getStatus(d.quantity);
-                
-                row.innerHTML = `
-                    <td class="p-4 font-medium text-gray-900 cursor-pointer hover:text-blue-600 item-details-trigger truncate" data-index="${index}">${d.item}</td>
-                    <td class="p-4 whitespace-nowrap">₹${d.price}</td>
-                    <td class="p-4">${d.quantity}</td>
-                    <td class="p-4">${d.gst}</td>
-                    <td class="p-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusClass(currentStatus)}">${currentStatus}</span>
-                    </td>
-                    <td class="p-4 relative">
-                        <button class="text-gray-500 hover:text-gray-700 focus:outline-none" data-action-button>
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                        <div class="absolute right-0 top-full mt-1 w-32 bg-white rounded-md shadow-lg py-1 z-20 hidden" data-action-dropdown>
-                            <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fas fa-plus w-4"></i> Add</a>
-                            <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-edit-button data-index="${index}"><i class="fas fa-edit w-4"></i> Edit</a>
-                            <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"><i class="fas fa-trash-alt w-4"></i> Delete</a>
-                        </div>
-                    </td>
-                `;
-            });
-        }
-        
-        renderTable(stockData);
-
-        document.addEventListener('DOMContentLoaded', () => {
-             // --- Sidebar Active State ---
-            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            const navLinks = document.querySelectorAll('#sidebar-nav a');
-            navLinks.forEach(link => {
-                const linkPage = (link.getAttribute('href') || '').split('/').pop();
-                if (currentPage === linkPage || (currentPage === '' && linkPage === 'stock.html')) {
-                    link.classList.add('text-blue-600', 'bg-blue-50', 'font-semibold');
-                    link.classList.remove('text-gray-600', 'hover:bg-gray-100', 'font-medium');
-                }
-            });
-            let activeTypeFilter = 'all';
-            let activeCategoryFilter = 'all';
-            let activeStatusFilter = 'all';
-            let editingItemIndex = null;
-
-            document.addEventListener('click', function (event) {
-                const closeAllPopups = (except) => {
-                    document.querySelectorAll('[data-action-dropdown], #filterDropdown, #categoryFilterDropdown, #typeFilterDropdown').forEach(popup => {
-                        if (popup !== except) popup.classList.add('hidden');
-                    });
-                };
-
-                const actionButton = event.target.closest('[data-action-button]');
-                const filterButton = event.target.closest('#filterBtn');
-                const categoryFilterButton = event.target.closest('#categoryFilterBtn');
-                const typeFilterButton = event.target.closest('#typeFilterBtn');
-                const editButton = event.target.closest('[data-edit-button]');
-
-                if (editButton) {
-                    event.preventDefault();
-                    const index = editButton.getAttribute('data-index');
-                    openEditModal(currentlyRenderedData[index], index);
-                }
-
-                if (actionButton) {
-                    const dropdown = actionButton.nextElementSibling;
-                    const isHidden = dropdown.classList.contains('hidden');
-                    closeAllPopups(dropdown);
-                    if (isHidden) dropdown.classList.remove('hidden');
-                } else if (filterButton) {
-                    const dropdown = document.getElementById('filterDropdown');
-                    const isHidden = dropdown.classList.contains('hidden');
-                    closeAllPopups(dropdown);
-                    if (isHidden) dropdown.classList.remove('hidden');
-                } else if (categoryFilterButton) {
-                    const dropdown = document.getElementById('categoryFilterDropdown');
-                    const isHidden = dropdown.classList.contains('hidden');
-                    closeAllPopups(dropdown);
-                    if (isHidden) dropdown.classList.remove('hidden');
-                } else if (typeFilterButton) {
-                    const dropdown = document.getElementById('typeFilterDropdown');
-                    const isHidden = dropdown.classList.contains('hidden');
-                    closeAllPopups(dropdown);
-                    if (isHidden) dropdown.classList.remove('hidden');
-                } else if (!event.target.closest('[data-action-dropdown]') && !event.target.closest('#filterDropdown') && !event.target.closest('#categoryFilterDropdown') && !event.target.closest('#typeFilterDropdown')) {
-                    closeAllPopups(null);
-                }
-            });
-
-            function applyFilters() {
-                let filteredData = [...stockData];
-
-                if (activeTypeFilter !== 'all') {
-                    filteredData = filteredData.filter(item => item.type === activeTypeFilter);
-                }
-
-                if (activeCategoryFilter !== 'all') {
-                    filteredData = filteredData.filter(item => item.category === activeCategoryFilter);
-                }
-
-                if (activeStatusFilter !== 'all') {
-                    filteredData = filteredData.filter(item => getStatus(item.quantity) === activeStatusFilter);
-                }
-
-                renderTable(filteredData);
-            }
-
-            const filterDropdownLinks = document.querySelectorAll('#filterDropdown a');
-            filterDropdownLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    activeStatusFilter = link.getAttribute('data-filter');
-                    filterDropdownLinks.forEach(l => l.classList.remove('bg-gray-100', 'font-semibold'));
-                    link.classList.add('bg-gray-100', 'font-semibold');
-                    applyFilters();
-                });
-            });
-
-            const typeFilterLinks = document.querySelectorAll('#typeFilterDropdown a');
-            typeFilterLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    activeTypeFilter = link.getAttribute('data-type-filter');
-                    typeFilterLinks.forEach(l => l.classList.remove('bg-gray-100', 'font-semibold'));
-                    link.classList.add('bg-gray-100', 'font-semibold');
-                    applyFilters();
-                });
-            });
-
-            const categoryFilterDropdown = document.getElementById('categoryFilterDropdown');
-            const categories = ['all', ...new Set(stockData.map(item => item.category))];
-            
-            categoryFilterDropdown.innerHTML = categories.map(category => {
-                const isActive = category === 'all' ? 'bg-gray-100 font-semibold' : '';
-                const label = category === 'all' ? 'All Categories' : category;
-                return `<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${isActive}" data-category-filter="${category}">${label}</a>`;
-            }).join('');
-
-            const categoryFilterLinks = document.querySelectorAll('#categoryFilterDropdown a');
-            categoryFilterLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    activeCategoryFilter = link.getAttribute('data-category-filter');
-                    categoryFilterLinks.forEach(l => l.classList.remove('bg-gray-100', 'font-semibold'));
-                    link.classList.add('bg-gray-100', 'font-semibold');
-                    applyFilters();
-                });
-            });
-
-            const newStockModal = document.getElementById('newStockModal');
-            const newStockItemBtn = document.getElementById('newStockItemBtn');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const cancelBtn = document.getElementById('cancelBtn');
-            const newStockForm = document.getElementById('newStockForm');
-            
-            const itemDetailsModal = document.getElementById('itemDetailsModal');
-            const closeDetailsModalBtn = document.getElementById('closeDetailsModalBtn');
-
-            const openDetailsModal = (item) => {
-                document.getElementById('detailsItemName').textContent = item.item;
-                document.getElementById('detailsHsn').textContent = item.hsn;
-                document.getElementById('detailsCompany').textContent = item.company;
-                document.getElementById('detailsCategory').textContent = item.category;
-                document.getElementById('detailsType').textContent = item.type;
-                document.getElementById('detailsSpecifications').textContent = item.specifications || 'N/A';
-                itemDetailsModal.classList.remove('hidden');
-            };
-
-            const closeDetailsModal = () => {
-                itemDetailsModal.classList.add('hidden');
-            };
-
-            closeDetailsModalBtn.addEventListener('click', closeDetailsModal);
-            itemDetailsModal.addEventListener('click', (e) => {
-                if (e.target === itemDetailsModal) {
-                    closeDetailsModal();
-                }
-            });
-
-            tableBody.addEventListener('click', (e) => {
-                const itemTrigger = e.target.closest('.item-details-trigger');
-                if (itemTrigger) {
-                    const rowIndex = itemTrigger.getAttribute('data-index');
-                    if (rowIndex !== null) {
-                        const itemData = currentlyRenderedData[parseInt(rowIndex)];
-                        if (itemData) {
-                            openDetailsModal(itemData);
-                        }
-                    }
-                }
-            });
-
-
-            const openModal = () => newStockModal.classList.remove('hidden');
-            const closeModal = () => newStockModal.classList.add('hidden');
-
-            newStockItemBtn.addEventListener('click', openModal);
-            closeModalBtn.addEventListener('click', closeModal);
-            cancelBtn.addEventListener('click', closeModal);
-            newStockModal.addEventListener('click', (e) => {
-                if (e.target === newStockModal) closeModal();
-            });
-            
-            newStockForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const quantity = parseInt(e.target.quantity.value);
-                const newItem = {
-                    item: e.target.itemName.value,
-                    hsn: e.target.hsnCode.value,
-                    company: e.target.company.value,
-                    category: e.target.category.value,
-                    type: e.target.type.value,
-                    specifications: e.target.specifications.value,
-                    price: e.target.unitPrice.value,
-                    quantity: quantity,
-                    gst: `${e.target.gstRate.value}%`,
-                };
-                stockData.unshift(newItem);
-                applyFilters();
-                newStockForm.reset();
-                closeModal();
-            });
-
-            const editStockModal = document.getElementById('editStockModal');
-            const closeEditModalBtn = document.getElementById('closeEditModalBtn');
-            const cancelEditBtn = document.getElementById('cancelEditBtn');
-            const editStockForm = document.getElementById('editStockForm');
-            const addQuantityBtn = document.getElementById('addQuantityBtn');
-
-            const openEditModal = (item, index) => {
-                editingItemIndex = index;
-                document.getElementById('editItemName').value = item.item;
-                document.getElementById('editHsnCode').value = item.hsn;
-                document.getElementById('editCompany').value = item.company;
-                document.getElementById('editCategory').value = item.category;
-                document.getElementById('editType').value = item.type;
-                document.getElementById('editUnitPrice').value = item.price;
-                document.getElementById('editQuantity').value = item.quantity;
-                document.getElementById('editGstRate').value = item.gst.replace('%','');
-                document.getElementById('editSpecifications').value = item.specifications || '';
-                editStockModal.classList.remove('hidden');
-            };
-
-            const closeEditModal = () => {
-                editStockModal.classList.add('hidden');
-                editingItemIndex = null;
-            };
-
-            addQuantityBtn.addEventListener('click', () => {
-                const quantityInput = document.getElementById('editQuantity');
-                quantityInput.value = parseInt(quantityInput.value) + 1;
-            });
-
-            closeEditModalBtn.addEventListener('click', closeEditModal);
-            cancelEditBtn.addEventListener('click', closeEditModal);
-
-            editStockForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                if (editingItemIndex === null) return;
-
-                const updatedItem = {
-                    item: document.getElementById('editItemName').value,
-                    hsn: document.getElementById('editHsnCode').value,
-                    company: document.getElementById('editCompany').value,
-                    category: document.getElementById('editCategory').value,
-                    type: document.getElementById('editType').value,
-                    price: document.getElementById('editUnitPrice').value,
-                    quantity: parseInt(document.getElementById('editQuantity').value),
-                    gst: `${document.getElementById('editGstRate').value}%`,
-                    specifications: document.getElementById('editSpecifications').value,
-                };
-
-                const originalItem = currentlyRenderedData[editingItemIndex];
-                const originalIndexInStockData = stockData.findIndex(item => item.item === originalItem.item && item.company === originalItem.company);
-
-                if (originalIndexInStockData !== -1) {
-                    stockData[originalIndexInStockData] = updatedItem;
-                }
-                
-                applyFilters();
-                closeEditModal();
-            });
-            
-            const printBtn = document.getElementById('printBtn');
-            const printModal = document.getElementById('printModal');
-            const closePrintModalBtn = document.getElementById('closePrintModalBtn');
-            const cancelPrintBtn = document.getElementById('cancelPrintBtn');
-            const finalPrintBtn = document.getElementById('finalPrintBtn');
-            const printCategoryFilter = document.getElementById('printCategoryFilter');
-
-            const openPrintModal = () => {
-                printCategoryFilter.innerHTML = categories.map(category => {
-                    const label = category === 'all' ? 'All Categories' : category;
-                    return `<option value="${category}">${label}</option>`;
-                }).join('');
-                printModal.classList.remove('hidden');
-            };
-
-            const closePrintModal = () => {
-                printModal.classList.add('hidden');
-            };
-
-            printBtn.addEventListener('click', openPrintModal);
-            closePrintModalBtn.addEventListener('click', closePrintModal);
-            cancelPrintBtn.addEventListener('click', closePrintModal);
-
-            finalPrintBtn.addEventListener('click', () => {
-                const type = document.getElementById('printTypeFilter').value;
-                const category = document.getElementById('printCategoryFilter').value;
-                const status = document.getElementById('printStatusFilter').value;
-
-                let dataToPrint = [...stockData];
-
-                if (type !== 'all') {
-                    dataToPrint = dataToPrint.filter(item => item.type === type);
-                }
-                if (category !== 'all') {
-                    dataToPrint = dataToPrint.filter(item => item.category === category);
-                }
-                if (status !== 'all') {
-                    dataToPrint = dataToPrint.filter(item => getStatus(item.quantity) === status);
-                }
-
-                let printWindow = window.open('', '', 'height=800,width=1000');
-                printWindow.document.write('<html><head><title>Stock Report</title>');
-                printWindow.document.write(`
-                    <style>
-                        body { font-family: 'Inter', sans-serif; margin: 2rem; }
-                        h1 { text-align: center; margin-bottom: 2rem; }
-                        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                        th { background-color: #f2f2f2; }
-                        tr:nth-child(even) { background-color: #f9f9f9; }
-                    </style>
-                `);
-                printWindow.document.write('</head><body>');
-                printWindow.document.write('<h1>Stock Report</h1>');
-                printWindow.document.write('<table>');
-                printWindow.document.write(`
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Unit Price</th>
-                            <th>Quantity</th>
-                            <th>GST</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                `);
-                printWindow.document.write('<tbody>');
-                dataToPrint.forEach(item => {
-                    const itemStatus = getStatus(item.quantity);
-                    printWindow.document.write(`
-                        <tr>
-                            <td>${item.item}</td>
-                            <td>₹${item.price}</td>
-                            <td>${item.quantity}</td>
-                            <td>${item.gst}</td>
-                            <td>${itemStatus}</td>
-                        </tr>
-                    `);
-                });
-                printWindow.document.write('</tbody></table>');
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
-                printWindow.focus(); 
-                printWindow.print();
-                printWindow.close();
-            });
-        });
-    </script>
 </body>
-</html>
 
+</html>

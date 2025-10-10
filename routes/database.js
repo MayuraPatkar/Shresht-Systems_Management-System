@@ -211,6 +211,7 @@ const Invoices = mongoose.model('invoice', invoiceSchema);
 const stockSchema = new mongoose.Schema({
     item_name: { type: String, required: true },
     HSN_SAC: { type: String, required: false },
+    specifications: { type: String, required: false },
     company: { type: String, required: false },
     unit_price: { type: Number, required: true },
     GST: { type: Number, required: true },
