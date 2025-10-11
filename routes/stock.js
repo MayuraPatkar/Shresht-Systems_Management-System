@@ -108,6 +108,15 @@ router.post('/editItem', async (req, res) => {
     const { itemId, itemName, HSN_SAC, specifications, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
+        // Check if another item with the same name exists (excluding current item)
+        const existingItem = await Stock.findOne({ 
+            item_name: itemName, 
+            _id: { $ne: itemId } 
+        });
+
+        if (existingItem) {
+            return res.status(400).json({ error: 'Item with this name already exists' });
+        }
 
         const item = await Stock.findOne({ _id: itemId });
         if (!item) {
