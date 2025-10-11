@@ -12,10 +12,10 @@ function hideModal(modalId) {
 }
 
 function formatIndian(num, fractionDigits = 0) {
-  return num.toLocaleString('en-IN', {
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  });
+    return num.toLocaleString('en-IN', {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits,
+    });
 }
 
 // Fetch and render
@@ -73,11 +73,11 @@ function normalizeField(item, fieldAlternatives) {
 function renderStockTable(data) {
     const tbody = document.querySelector('#stock-table tbody');
     if (!tbody) return;
-    
+
     // Clear existing rows but keep loading/empty rows
     const existingRows = tbody.querySelectorAll('tr:not(#loading-row):not(#empty-row)');
     existingRows.forEach(row => row.remove());
-    
+
     showLoading(false);
     showEmpty(false);
 
@@ -128,36 +128,41 @@ function renderStockTable(data) {
             } else if (action === 'details') {
                 openDetailsModal({ id, name, HSN, company, unitPrice, quantity, GST, minQuantity, category, type, specifications: normalizeField(item, ['specifications', 'details']) });
             } else if (action === 'delete') {
-                if (window.electronAPI.showAlert2(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
-                    try {
-                        const res = await fetch('/stock/deleteItem', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ itemId: id })
-                        });
-                        if (!res.ok) throw new Error('Failed to delete item');
-                        await fetchStockData();
-                        showSuccessMessage('Stock item deleted successfully!');
-                    } catch (err) {
-                        console.error(err);
-                        if (window.electronAPI && window.electronAPI.showAlert1) {
-                            window.electronAPI.showAlert1('Failed to delete item.');
-                        } else {
-                            alert('Failed to delete item.');
+                window.electronAPI.showAlert2(`Are you sure you want to delete "${name}"? This action cannot be undone.`);
+                if (window.electronAPI) {
+                    window.electronAPI.receiveAlertResponse(async (response) => {
+                        if (response === "Yes") {
+                            try {
+                                const res = await fetch('/stock/deleteItem', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ itemId: id })
+                                });
+                                if (!res.ok) throw new Error('Failed to delete item');
+                                await fetchStockData();
+                                window.electronAPI.showAlert1('Stock item deleted successfully!');
+                            } catch (err) {
+                                console.error(err);
+                                if (window.electronAPI && window.electronAPI.showAlert1) {
+                                    window.electronAPI.showAlert1('Failed to delete item.');
+                                } else {
+                                    alert('Failed to delete item.');
+                                }
+                            }
                         }
-                    }
+                    });
                 }
             }
             select.selectedIndex = 0;
         });
 
-        actionsCell.className = 'p-4';
+        actionsCell.className = 'p-4 text-center';
         actionsCell.appendChild(select);
 
         // Determine status and badge
         let status = 'In Stock';
-        let statusClass = 'bg-green-100 text-green-800';
-        
+        let statusClass = 'bg-green-100 text-green-800 flex items-center';
+
         if (quantity === 0) {
             status = 'Out of Stock';
             statusClass = 'bg-red-100 text-red-800';
@@ -177,7 +182,7 @@ function renderStockTable(data) {
             <td class="p-4 text-right">${escapeHtml(formatIndian(quantity))}</td>
             <td class="p-4 text-right">${escapeHtml(GST)}%</td>
             <td class="p-4">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+                <span class="flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium justify-center align-center ${statusClass}">
                     ${status}
                 </span>
             </td>
@@ -228,22 +233,22 @@ if (newStockForm) {
             showErrorMessage('Please fill all required text fields.');
             return;
         }
-        
+
         if (isNaN(unitPrice) || unitPrice <= 0) {
             showErrorMessage('Please enter a valid unit price.');
             return;
         }
-        
+
         if (isNaN(quantity) || quantity < 0) {
             showErrorMessage('Please enter a valid quantity.');
             return;
         }
-        
+
         if (isNaN(GST) || GST < 0) {
             showErrorMessage('Please enter a valid GST rate.');
             return;
         }
-        
+
         if (isNaN(minQuantity) || minQuantity < 0) {
             showErrorMessage('Please enter a valid minimum quantity.');
             return;
@@ -303,27 +308,27 @@ if (editForm) {
         const specifications = document.getElementById('editSpecifications').value.trim();
 
         if (!itemId) return;
-        
+
         if (!itemName || !HSN_SAC || !company || !category || !type) {
             showErrorMessage('Please fill all required text fields.');
             return;
         }
-        
+
         if (isNaN(unitPrice) || unitPrice <= 0) {
             showErrorMessage('Please enter a valid unit price.');
             return;
         }
-        
+
         if (isNaN(quantity) || quantity < 0) {
             showErrorMessage('Please enter a valid quantity.');
             return;
         }
-        
+
         if (isNaN(GST) || GST < 0) {
             showErrorMessage('Please enter a valid GST rate.');
             return;
         }
-        
+
         if (isNaN(minQuantity) || minQuantity < 0) {
             showErrorMessage('Please enter a valid minimum quantity.');
             return;
@@ -352,8 +357,8 @@ function openDetailsModal(item) {
     document.getElementById('detailsMinQuantity').textContent = item.minQuantity || '0';
     document.getElementById('detailsUnitPrice').textContent = item.unitPrice ? `₹ ${formatIndian(item.unitPrice)}` : '';
     document.getElementById('detailsQuantity').textContent = item.quantity || '0';
-    document.getElementById('detailsGst').textContent = item.GST ? `${item.GST}%` : '0%';
-    document.getElementById('detailsMargin').textContent = item.margin ? `${item.margin}%` : '0%';
+    document.getElementById('detailsGstRate').textContent = item.GST ? `${item.GST}%` : '0%';
+    // document.getElementById('detailsMargin').textContent = item.margin ? `${item.margin}%` : '0%';
     document.getElementById('detailsHsn').textContent = item.HSN || '';
     document.getElementById('detailsCompany').textContent = item.company || '';
     document.getElementById('detailsCategory').textContent = item.category || '';
@@ -366,17 +371,17 @@ let quantityModalData = { action: '', itemId: '', itemName: '' };
 
 function showQuantityModal(action, itemId, itemName) {
     quantityModalData = { action, itemId, itemName };
-    
+
     const title = document.getElementById('quantityModalTitle');
     const text = document.getElementById('quantityModalText');
     const confirmText = document.getElementById('confirmQuantityText');
     const input = document.getElementById('quantityModalInput');
-    
+
     title.textContent = action === 'add' ? 'Add Quantity' : 'Remove Quantity';
     text.textContent = `How much quantity do you want to ${action} ${action === 'add' ? 'to' : 'from'} "${itemName}"?`;
     confirmText.textContent = action === 'add' ? 'Add' : 'Remove';
     input.value = '1';
-    
+
     showModal('quantityModal');
     input.focus();
 }
@@ -409,7 +414,7 @@ document.getElementById('confirmQuantityBtn')?.addEventListener('click', async (
         }
         return;
     }
-    
+
     try {
         const { action, itemId } = quantityModalData;
         const url = action === 'add' ? '/stock/addToStock' : '/stock/removeFromStock';
@@ -498,7 +503,7 @@ if (searchInput) {
 }
 
 // Refresh functionality
-const refreshBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+const refreshBtn = Array.from(document.querySelectorAll('button')).find(btn =>
     btn.querySelector('i.fa-sync-alt') !== null
 );
 if (refreshBtn) {
@@ -512,18 +517,22 @@ if (refreshBtn) {
 function setupDropdown(buttonId, dropdownId) {
     const button = document.getElementById(buttonId);
     const dropdown = document.getElementById(dropdownId);
-    
+
     if (button && dropdown) {
         button.addEventListener('click', (e) => {
             e.stopPropagation();
+            // Close all other dropdowns
+            document.querySelectorAll('.dropdown-menu').forEach(d => {
+                if (d !== dropdown) d.classList.add('hidden');
+            });
             dropdown.classList.toggle('hidden');
         });
-        
+
         // Close dropdown when clicking outside
         document.addEventListener('click', () => {
             dropdown.classList.add('hidden');
         });
-        
+
         dropdown.addEventListener('click', (e) => {
             e.stopPropagation();
         });
@@ -540,29 +549,29 @@ function applyFilters() {
     const typeFilter = document.querySelector('#typeFilterDropdown .bg-gray-100')?.getAttribute('data-type-filter') || 'all';
     const categoryFilter = document.querySelector('#categoryFilterDropdown .bg-gray-100')?.getAttribute('data-type-filter') || 'all';
     const statusFilter = document.querySelector('#filterDropdown .bg-gray-100')?.getAttribute('data-filter') || 'all';
-    
+
     let filteredData = currentStockData;
-    
+
     if (typeFilter !== 'all') {
         filteredData = filteredData.filter(item => normalizeField(item, ['type']) === typeFilter);
     }
-    
+
     if (categoryFilter !== 'all') {
         filteredData = filteredData.filter(item => normalizeField(item, ['category']) === categoryFilter);
     }
-    
+
     if (statusFilter !== 'all') {
         filteredData = filteredData.filter(item => {
             const quantity = Number(normalizeField(item, ['quantity', 'qty'])) || 0;
             const minQuantity = Number(normalizeField(item, ['min_quantity', 'minQuantity'])) || 0;
-            
+
             if (statusFilter === 'In Stock') return quantity >= minQuantity;
             if (statusFilter === 'Low Stock') return quantity > 0 && quantity < minQuantity;
             if (statusFilter === 'Out of Stock') return quantity === 0;
             return true;
         });
     }
-    
+
     renderStockTable(filteredData);
 }
 
@@ -573,18 +582,18 @@ function setupFilterHandlers(dropdownId) {
         dropdown.addEventListener('click', (e) => {
             if (e.target.tagName === 'A') {
                 e.preventDefault();
-                
+
                 // Remove active state from all items in this dropdown
                 dropdown.querySelectorAll('a').forEach(link => {
                     link.classList.remove('bg-gray-100', 'font-semibold');
                 });
-                
+
                 // Add active state to clicked item
                 e.target.classList.add('bg-gray-100', 'font-semibold');
-                
+
                 // Apply filters
                 applyFilters();
-                
+
                 // Hide dropdown
                 dropdown.classList.add('hidden');
             }
@@ -603,7 +612,7 @@ if (addQuantityBtn) {
         const quantityInput = document.getElementById('editQuantity');
         const currentQty = parseInt(quantityInput.value) || 0;
         const addQty = parseInt(window.prompt('Enter quantity to add:')) || 0;
-        
+
         if (addQty > 0) {
             quantityInput.value = currentQty + addQty;
         }
@@ -617,7 +626,7 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         showModal('newStockModal');
     }
-    
+
     // Escape to close modals
     if (e.key === 'Escape') {
         const modals = ['newStockModal', 'editStockModal', 'itemDetailsModal', 'printModal', 'quantityModal'];
@@ -628,7 +637,7 @@ document.addEventListener('keydown', (e) => {
             }
         });
     }
-    
+
     // Ctrl+R or Cmd+R to refresh (prevent default and use our refresh)
     if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
         e.preventDefault();
@@ -640,12 +649,12 @@ document.addEventListener('keydown', (e) => {
 function addTooltips() {
     const newStockBtn = document.getElementById('newStockItemBtn');
     if (newStockBtn) newStockBtn.title = 'Add new stock item (Ctrl+N)';
-    
-    const refreshBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+
+    const refreshBtn = Array.from(document.querySelectorAll('button')).find(btn =>
         btn.querySelector('i.fa-sync-alt') !== null
     );
     if (refreshBtn) refreshBtn.title = 'Refresh data (Ctrl+R)';
-    
+
     const printBtn = document.getElementById('printBtn');
     if (printBtn) printBtn.title = 'Print stock report';
 }
@@ -660,7 +669,7 @@ function showSuccessMessage(message) {
         notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 success-notification';
         notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.remove();
         }, 3000);
@@ -677,7 +686,7 @@ function showErrorMessage(message) {
         notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 success-notification';
         notification.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.remove();
         }, 3000);
@@ -693,18 +702,18 @@ function setupSorting() {
         header.addEventListener('click', () => {
             const field = header.getAttribute('data-sort');
             const direction = currentSort.field === field && currentSort.direction === 'asc' ? 'desc' : 'asc';
-            
+
             currentSort = { field, direction };
-            
+
             // Update header icons
             sortableHeaders.forEach(h => {
                 const icon = h.querySelector('i');
                 icon.className = 'fas fa-sort ml-1';
             });
-            
+
             const currentIcon = header.querySelector('i');
             currentIcon.className = `fas fa-sort-${direction === 'asc' ? 'up' : 'down'} ml-1`;
-            
+
             // Sort and re-render
             const sortedData = sortData(currentStockData, field, direction);
             renderStockTable(sortedData);
@@ -715,7 +724,7 @@ function setupSorting() {
 function sortData(data, field, direction) {
     return [...data].sort((a, b) => {
         let aVal, bVal;
-        
+
         switch (field) {
             case 'name':
                 aVal = normalizeField(a, ['item_name', 'itemName']).toLowerCase();
@@ -747,7 +756,7 @@ function sortData(data, field, direction) {
             default:
                 return 0;
         }
-        
+
         if (aVal < bVal) return direction === 'asc' ? -1 : 1;
         if (aVal > bVal) return direction === 'asc' ? 1 : -1;
         return 0;

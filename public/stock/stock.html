@@ -252,7 +252,7 @@
                         <span>Type</span>
                     </button>
                     <div id="typeFilterDropdown"
-                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                        class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
                         <a href="#"
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold"
                             data-type-filter="all">All Types</a>
@@ -269,7 +269,7 @@
                         <span>Category</span>
                     </button>
                     <div id="categoryFilterDropdown"
-                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                        class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
                     </div>
                 </div>
                 <div class="relative">
@@ -279,7 +279,7 @@
                         <span>Filter</span>
                     </button>
                     <div id="filterDropdown"
-                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                        class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
                         <a href="#"
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold"
                             data-filter="all">All Items</a>
@@ -302,27 +302,27 @@
             <table class="w-full text-left table-fixed" id="stock-table">
                 <thead>
                     <tr class="bg-blue-600 text-white">
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-4/12 cursor-pointer hover:bg-blue-700"
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-4/12 cursor-pointer hover:bg-blue-700 text-center"
                             data-sort="name">
-                            Item <i class="fas fa-sort ml-1"></i>
+                            Items <i class="fas fa-sort ml-1"></i>
                         </th>
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 cursor-pointer hover:bg-blue-700"
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 cursor-pointer hover:bg-blue-700 text-center"
                             data-sort="price">
                             Unit Price <i class="fas fa-sort ml-1"></i>
                         </th>
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12 cursor-pointer hover:bg-blue-700"
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12 cursor-pointer hover:bg-blue-700 text-center"
                             data-sort="quantity">
                             Quantity <i class="fas fa-sort ml-1"></i>
                         </th>
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12 cursor-pointer hover:bg-blue-700"
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12 cursor-pointer hover:bg-blue-700 text-center"
                             data-sort="gst">
                             GST <i class="fas fa-sort ml-1"></i>
                         </th>
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 cursor-pointer hover:bg-blue-700"
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 cursor-pointer hover:bg-blue-700 text-center"
                             data-sort="status">
                             Status <i class="fas fa-sort ml-1"></i>
                         </th>
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12">Actions</th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 text-center ">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-700" id="stock-table-body">
@@ -499,9 +499,6 @@
                             <input type="number" id="editQuantity"
                                 class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required>
-                            <button type="button" id="addQuantityBtn"
-                                class="bg-green-500 text-white px-3 py-2 rounded-lg font-semibold hover:bg-green-600"><i
-                                    class="fas fa-plus"></i></button>
                         </div>
                     </div>
                     <div>

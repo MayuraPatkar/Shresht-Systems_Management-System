@@ -105,7 +105,7 @@ router.post('/removeFromStock', async (req, res) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req, res) => {
-    const { itemId, itemName, HSN_SAC, specification, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
+    const { itemId, itemName, HSN_SAC, specifications, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
 
@@ -116,7 +116,7 @@ router.post('/editItem', async (req, res) => {
 
         item.item_name = itemName;
         item.HSN_SAC = HSN_SAC;
-        item.specification = specifications,
+        item.specifications = specifications,
         item.company = company;
         item.category = category;
         item.type = type;
@@ -165,5 +165,19 @@ router.get("/get-names", async (req, res) => {
     }
 });
 
+// Delete stock item
+router.post('/deleteItem', async (req, res) => {
+    const { itemId } = req.body;
+    try {
+        const result = await Stock.deleteOne({ _id: itemId });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+        res.json({ success: true });
+    } catch (error) {
+        log.error('Error deleting stock item:', error);
+        res.status(500).json({ error: 'Failed to delete item' });
+    }
+});
 
 module.exports = router;
