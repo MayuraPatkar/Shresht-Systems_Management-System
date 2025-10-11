@@ -202,7 +202,7 @@ async function createWindow() {
         nodeIntegration: false, // Disabled for better security
         contextIsolation: true, // Ensures safer IPC communication
         enableRemoteModule: false,
-        devTools: process.env.NODE_ENV === "development",
+        devTools: process.env.NODE_ENV === "production",
         preload: path.join(__dirname, "preload.js"),
         webSecurity: true,
         allowRunningInsecureContent: false,

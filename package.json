@@ -4,12 +4,14 @@
   "description": "Software for Shresht systems",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "npm run build-css-prod && electron .",
     "dev": "NODE_ENV=development electron .",
     "server": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "backup": "node utils/backup.js",
-    "clean": "rm -rf dist/ logs/ uploads/ backups/"
+    "clean": "rm -rf dist/ logs/ uploads/ backups/",
+    "build-css": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
+    "build-css-prod": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify"
   },
   "keywords": [],
   "author": "Mayura Patkar",
@@ -46,6 +48,7 @@
   },
   "devDependencies": {
     "electron": "^38.1.2",
-    "electron-packager": "^17.1.2"
+    "electron-packager": "^17.1.2",
+    "tailwindcss": "^3.4.18"
   }
 }
