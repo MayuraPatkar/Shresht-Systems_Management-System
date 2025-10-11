@@ -101,6 +101,7 @@ function renderStockTable(data) {
         const row = document.createElement('tr');
         row.classList.add('table-row', 'fade-in');
         if (quantity < minQuantity) row.classList.add('low-stock');
+        if (quantity <= 0) row.classList.add('out-of-stock');
 
         const actionsCell = document.createElement('td');
 
@@ -181,8 +182,8 @@ function renderStockTable(data) {
             <td class="p-4 text-right">₹ ${escapeHtml(formatIndian(unitPrice))}</td>
             <td class="p-4 text-right">${escapeHtml(formatIndian(quantity))}</td>
             <td class="p-4 text-right">${escapeHtml(GST)}%</td>
-            <td class="p-4">
-                <span class="flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium justify-center align-center ${statusClass}">
+            <td class="p-4" style="width:120px; text-align:center;">
+                <span class="inline-flex text-center px-2.5 py-0.5 rounded-full text-s font-medium ${statusClass}">
                     ${status}
                 </span>
             </td>
