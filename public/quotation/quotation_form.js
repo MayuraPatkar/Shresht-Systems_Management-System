@@ -264,6 +264,8 @@ async function generatePreview() {
                 </table>
             </div>
 
+            ${!isLastItemsPage ? `<div class="continuation-text">Continued on next page...</div>` : ''}
+
             ${isLastItemsPage ? `
             <div class="fifth-section">
                 <div class="fifth-section-sub1">
@@ -470,6 +472,8 @@ async function generatePreview() {
                     </tbody>
                 </table>
             </div>
+
+            ${!isLastItemsPage ? `<div class="continuation-text">Continued on next page...</div>` : ''}
 
             ${isLastItemsPage ? `
             <div class="fifth-section">
@@ -814,7 +818,7 @@ async function loadQuotationForEditing(id) {
             row.innerHTML = `
                 <td>${specTableBody.rows.length}</td>
                 <td>${item.description || ''}</td>
-                <td><input type="text" value="${item.specification || ''}" placeholder="Enter specification"></td>
+                <td><input type="text" value="${item.specification || ''}" placeholder="Enter specifications"></td>
              `;
         });
 

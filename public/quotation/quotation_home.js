@@ -117,11 +117,11 @@ function createQuotationCard(quotation) {
 function handleQuotationAction(select, quotationId) {
     const action = select.value;
     if (action === "view") {
-        viewQuotation(quotationId, viewType = 1);
+        viewQuotation(quotationId, 1);
     } else if (action === "viewWTax") {
-        viewQuotation(quotationId, viewType = 2);
+        viewQuotation(quotationId, 2);
     } else if (action === "compactView") {
-        viewQuotation(quotationId, viewType = 3);
+        viewQuotation(quotationId, 3);
     } else if (action === "update") {
         sessionStorage.setItem('currentTab-status', 'update');
         openQuotation(quotationId);

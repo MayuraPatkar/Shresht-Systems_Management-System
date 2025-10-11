@@ -78,7 +78,7 @@ function generateViewPreviewHTML(quotation, viewType) {
     } else if (viewType === 1) {
         tableHead = `<th>Sr. No</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Total</th>`;
     } else {
-        tableHead = `<th>Sr. No</th><th>Description</th><th>Specification</th><th>Qty</th>`;
+        tableHead = `<th>Sr. No</th><th>Description</th><th>Specifications</th><th>Qty</th>`;
     }
 
     // Totals HTML
@@ -129,6 +129,7 @@ function generateViewPreviewHTML(quotation, viewType) {
                 ${index === 0 ? `<div class="table headline-section"><p><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
                 <table class="items-table"><thead><tr>${tableHead}</tr></thead><tbody>${pageHTML}</tbody></table>
             </div>
+            ${!isLastItemsPage ? `<div class="continuation-text">Continued on next page...</div>` : ''}
             ${isLastItemsPage ? `
             <div class="fifth-section">
                 <div class="fifth-section-sub1">
@@ -361,7 +362,7 @@ async function viewQuotation(quotationId, viewType) {
             tableHead.innerHTML = `
                 <th>Sr. No</th>
                 <th>Description</th>
-                <th>Specification</th>
+                <th>Specifications</th>
                 <th>Price</th>
             `;
         }
@@ -391,7 +392,7 @@ async function viewQuotation(quotationId, viewType) {
             tableHeadNonItems.innerHTML = `
                 <th>Sr. No</th>
                 <th>Description</th>
-                <th>Specification</th>
+                <th>Specifications</th>
                 <th>Price</th>
             `;
         }
