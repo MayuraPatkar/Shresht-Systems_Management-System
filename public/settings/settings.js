@@ -160,18 +160,37 @@ document.getElementById("change-password-button").addEventListener("click", () =
  * and sends a GET request to the server to trigger the export process.
  */
 document.getElementById("export-data-button").addEventListener("click", () => {
-    const selected = document.querySelector('input[name="export-data"]:checked').value;
+    const selectedElement = document.querySelector('input[name="export-data"]:checked');
     const statusElement = document.getElementById("backup-status");
+    
+    if (!selectedElement) {
+        window.electronAPI.showAlert1("Please select a data type to export.");
+        return;
+    }
+    
+    const selected = selectedElement.value;
     statusElement.innerText = `Exporting ${selected} data...`;
 
     fetch(`/settings/backup/export/${selected}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
         .then(data => {
-            statusElement.innerText = data.message;
+            if (data.success) {
+                statusElement.innerText = data.message;
+                if (data.fileSize) {
+                    statusElement.innerText += ` (${(data.fileSize / 1024).toFixed(2)} KB)`;
+                }
+            } else {
+                statusElement.innerText = `Export failed: ${data.message}`;
+            }
         })
         .catch(err => {
             statusElement.innerText = "Export failed!";
-            console.error(err);
+            console.error('Export error:', err);
         });
 });
 
@@ -189,24 +208,63 @@ document.getElementById("restore-collection-button").addEventListener("click", (
         return;
     }
 
+    // Validate file type
+    const file = fileInput.files[0];
+    const allowedExtensions = ['.json', '.bson', '.gz', '.zip'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    if (!allowedExtensions.includes(fileExtension)) {
+        window.electronAPI.showAlert1(`Invalid file type. Allowed types: ${allowedExtensions.join(', ')}`);
+        return;
+    }
+
+    // Check file size (100MB limit)
+    if (file.size > 100 * 1024 * 1024) {
+        window.electronAPI.showAlert1("File size exceeds 100MB limit.");
+        return;
+    }
+
+    // Validate collection selection
+    const collectionSelect = document.getElementById("collection-select");
+    if (!collectionSelect || !collectionSelect.value) {
+        window.electronAPI.showAlert1("Please select a collection to restore.");
+        return;
+    }
+
     // Use FormData to handle file uploads
     const formData = new FormData();
     formData.append("backupFile", fileInput.files[0]);
-    formData.append("collection", document.getElementById("collection-select").value);
+    formData.append("collection", collectionSelect.value);
 
     statusElement.innerText = "Restoring collection...";
+    statusElement.style.color = "blue";
 
     fetch("/settings/backup/restore-collection", {
         method: "POST",
         body: formData
     })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
         .then(data => {
-            statusElement.innerText = data.message;
+            if (data.success) {
+                statusElement.innerText = data.message;
+                statusElement.style.color = "green";
+                if (data.fileSize) {
+                    statusElement.innerText += ` (${(data.fileSize / 1024).toFixed(2)} KB processed)`;
+                }
+            } else {
+                statusElement.innerText = `Restore failed: ${data.message}`;
+                statusElement.style.color = "red";
+            }
         })
         .catch(err => {
             statusElement.innerText = "Restore failed!";
-            console.error(err);
+            statusElement.style.color = "red";
+            console.error('Restore error:', err);
         });
 });
 
@@ -224,6 +282,22 @@ document.getElementById("restore-database-button").addEventListener("click", () 
         return;
     }
 
+    // Validate file type (only BSON formats for database restore)
+    const file = fileInput.files[0];
+    const allowedExtensions = ['.bson', '.gz', '.zip'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    if (!allowedExtensions.includes(fileExtension)) {
+        window.electronAPI.showAlert1(`Invalid file type for database restore. Allowed types: ${allowedExtensions.join(', ')}`);
+        return;
+    }
+
+    // Check file size (100MB limit)
+    if (file.size > 100 * 1024 * 1024) {
+        window.electronAPI.showAlert1("File size exceeds 100MB limit.");
+        return;
+    }
+
     const formData = new FormData();
     formData.append("backupFile", fileInput.files[0]);
 
@@ -233,12 +307,27 @@ document.getElementById("restore-database-button").addEventListener("click", () 
         method: "POST",
         body: formData
     })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
         .then(data => {
-            statusElement.innerText = data.message;
+            if (data.success) {
+                statusElement.innerText = data.message;
+                if (data.warning) {
+                    statusElement.innerText += ` Warning: ${data.warning}`;
+                }
+                if (data.fileSize) {
+                    statusElement.innerText += ` (${(data.fileSize / 1024).toFixed(2)} KB processed)`;
+                }
+            } else {
+                statusElement.innerText = `Database restore failed: ${data.message}`;
+            }
         })
         .catch(err => {
-            statusElement.innerText = "Restore failed!";
-            console.error(err);
+            statusElement.innerText = "Database restore failed!";
+            console.error('Database restore error:', err);
         });
 });

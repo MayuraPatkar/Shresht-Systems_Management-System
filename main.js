@@ -25,6 +25,10 @@ const log = require("electron-log");
 const fs = require("fs");
 const { handlePrintEvent } = require("./printHandler");
 require('./alertHandler');
+const EventEmitter = require("events");
+
+// Create a global event emitter for server-main communication
+global.dialogEmitter = new EventEmitter();
 
 // Security: Prevent new window creation from renderer
 app.on('web-contents-created', (event, contents) => {
@@ -113,6 +117,68 @@ if (process.env.NODE_ENV === "development") {
 }
 
 let mainWindow; // Reference to the main application window
+
+/**
+ * Setup IPC handlers for file dialog operations.
+ * These handlers allow the renderer process and server to request file dialogs.
+ */
+function setupIPCHandlers() {
+  // Handle save dialog requests for backup exports
+  ipcMain.handle('show-save-dialog', async (event, options) => {
+    try {
+      const result = await dialog.showSaveDialog(mainWindow, options);
+      return result;
+    } catch (error) {
+      log.error('Error showing save dialog:', error);
+      return { canceled: true, error: error.message };
+    }
+  });
+
+  // Handle open dialog requests for backup imports
+  ipcMain.handle('show-open-dialog', async (event, options) => {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, options);
+      return result;
+    } catch (error) {
+      log.error('Error showing open dialog:', error);
+      return { canceled: true, error: error.message };
+    }
+  });
+
+  // Handle message box dialogs
+  ipcMain.handle('show-message-box', async (event, options) => {
+    try {
+      const result = await dialog.showMessageBox(mainWindow, options);
+      return result;
+    } catch (error) {
+      log.error('Error showing message box:', error);
+      return { canceled: true, error: error.message };
+    }
+  });
+
+  // Setup server-to-main communication for dialogs
+  global.dialogEmitter.on('show-save-dialog', async (options, callback) => {
+    try {
+      const result = await dialog.showSaveDialog(mainWindow, options);
+      callback(null, result);
+    } catch (error) {
+      log.error('Error showing save dialog from server:', error);
+      callback(error, null);
+    }
+  });
+
+  global.dialogEmitter.on('show-open-dialog', async (options, callback) => {
+    try {
+      const result = await dialog.showOpenDialog(mainWindow, options);
+      callback(null, result);
+    } catch (error) {
+      log.error('Error showing open dialog from server:', error);
+      callback(error, null);
+    }
+  });
+
+  log.info("IPC handlers for dialogs registered successfully");
+}
 
 /**
  * Creates the main application window and sets up event handlers.
@@ -218,6 +284,9 @@ async function createWindow() {
 
     // Setup custom event handlers with mainWindow as parameter
     handlePrintEvent(mainWindow);
+    
+    // Setup IPC handlers for file dialogs
+    setupIPCHandlers();
     
     log.info("Main window created successfully");
     
