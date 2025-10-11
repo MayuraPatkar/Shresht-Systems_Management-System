@@ -283,6 +283,9 @@ function addItem() {
             <ul class="suggestions"></ul> <!-- Changed from id to class -->
         </td>
         <td><input type="text" placeholder="HSN/SAC" required></td>
+        <td><input type="text" placeholder="Company"></td>
+        <td><input type="text" placeholder="Type"></td>
+        <td><input type="text" placeholder="Category"></td>
         <td><input type="number" placeholder="Qty" min="1" required></td>
         <td><input type="number" placeholder="Unit Price" required></td>
         <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>

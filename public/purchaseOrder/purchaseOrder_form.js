@@ -80,9 +80,12 @@ function generatePreview() {
     for (const row of itemsTable.rows) {
         const description = row.cells[1].querySelector("input").value || "-";
         const hsnSac = row.cells[2].querySelector("input").value || "-";
-        const qty = parseFloat(row.cells[3].querySelector("input").value || "0");
-        const unitPrice = parseFloat(row.cells[4].querySelector("input").value || "0");
-        const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
+        const company = row.cells[3].querySelector("input").value || "-";
+        const type = row.cells[4].querySelector("input").value || "-";
+        const category = row.cells[5].querySelector("input").value || "-";
+        const qty = parseFloat(row.cells[6].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[7].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[8].querySelector("input").value || "0");
         let sno = 0;
 
         const taxableValue = qty * unitPrice;
@@ -267,9 +270,12 @@ function collectFormData() {
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(2) input").value,
             HSN_SAC: row.querySelector("td:nth-child(3) input").value,
-            quantity: row.querySelector("td:nth-child(4) input").value,
-            unit_price: row.querySelector("td:nth-child(5) input").value,
-            rate: row.querySelector("td:nth-child(6) input").value,
+            company: row.querySelector("td:nth-child(4) input").value,
+            type: row.querySelector("td:nth-child(5) input").value,
+            category: row.querySelector("td:nth-child(6) input").value,
+            quantity: row.querySelector("td:nth-child(7) input").value,
+            unit_price: row.querySelector("td:nth-child(8) input").value,
+            rate: row.querySelector("td:nth-child(9) input").value,
         })),
         totalAmount: totalAmount
     };
