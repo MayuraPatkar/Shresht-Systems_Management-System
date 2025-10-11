@@ -8,10 +8,8 @@
     "dev": "NODE_ENV=development electron .",
     "server": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "electron-builder",
     "backup": "node utils/backup.js",
-    "clean": "rm -rf dist/ logs/ uploads/ backups/",
-    "postinstall": "electron-builder install-app-deps"
+    "clean": "rm -rf dist/ logs/ uploads/ backups/"
   },
   "keywords": [],
   "author": "Mayura Patkar",
