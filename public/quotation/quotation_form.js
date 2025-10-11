@@ -818,7 +818,7 @@ async function loadQuotationForEditing(id) {
             row.innerHTML = `
                 <td>${specTableBody.rows.length}</td>
                 <td>${item.description || ''}</td>
-                <td><input type="text" value="${item.specification || ''}" placeholder="Enter specification"></td>
+                <td><input type="text" value="${item.specification || ''}" placeholder="Enter specifications"></td>
              `;
         });
 

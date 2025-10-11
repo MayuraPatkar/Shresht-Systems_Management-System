@@ -78,7 +78,7 @@ function generateViewPreviewHTML(quotation, viewType) {
     } else if (viewType === 1) {
         tableHead = `<th>Sr. No</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Total</th>`;
     } else {
-        tableHead = `<th>Sr. No</th><th>Description</th><th>Specification</th><th>Qty</th>`;
+        tableHead = `<th>Sr. No</th><th>Description</th><th>Specifications</th><th>Qty</th>`;
     }
 
     // Totals HTML
@@ -362,7 +362,7 @@ async function viewQuotation(quotationId, viewType) {
             tableHead.innerHTML = `
                 <th>Sr. No</th>
                 <th>Description</th>
-                <th>Specification</th>
+                <th>Specifications</th>
                 <th>Price</th>
             `;
         }
@@ -392,7 +392,7 @@ async function viewQuotation(quotationId, viewType) {
             tableHeadNonItems.innerHTML = `
                 <th>Sr. No</th>
                 <th>Description</th>
-                <th>Specification</th>
+                <th>Specifications</th>
                 <th>Price</th>
             `;
         }
