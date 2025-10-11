@@ -264,6 +264,8 @@ async function generatePreview() {
                 </table>
             </div>
 
+            ${!isLastItemsPage ? `<div class="continuation-text">Continued on next page...</div>` : ''}
+
             ${isLastItemsPage ? `
             <div class="fifth-section">
                 <div class="fifth-section-sub1">
@@ -470,6 +472,8 @@ async function generatePreview() {
                     </tbody>
                 </table>
             </div>
+
+            ${!isLastItemsPage ? `<div class="continuation-text">Continued on next page...</div>` : ''}
 
             ${isLastItemsPage ? `
             <div class="fifth-section">

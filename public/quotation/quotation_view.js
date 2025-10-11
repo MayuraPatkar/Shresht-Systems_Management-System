@@ -129,6 +129,7 @@ function generateViewPreviewHTML(quotation, viewType) {
                 ${index === 0 ? `<div class="table headline-section"><p><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
                 <table class="items-table"><thead><tr>${tableHead}</tr></thead><tbody>${pageHTML}</tbody></table>
             </div>
+            ${!isLastItemsPage ? `<div class="continuation-text">Continued on next page...</div>` : ''}
             ${isLastItemsPage ? `
             <div class="fifth-section">
                 <div class="fifth-section-sub1">

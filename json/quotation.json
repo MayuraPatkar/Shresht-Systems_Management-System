@@ -349,5 +349,90 @@
         "total_amount_no_tax": 881000,
         "total_amount_tax": 1039580,
         "createdAt": "2025-09-26T12:05:00.000Z"
+    },
+    {
+        "quotation_id": "QUO-WAT-2025-020",
+        "project_name": "Automated Drip Irrigation System for Farm",
+        "customer_name": "Sunrise Agro Farms",
+        "customer_address": "H.D. Kote Road, Mysuru, Karnataka, 570008",
+        "customer_phone": "9980099800",
+        "customer_email": "manager.sunriseagro@email.com",
+        "items": [
+            {
+                "description": "Smart Water Pump Controller",
+                "specification": "3-Phase, IoT Enabled, with Mobile App",
+                "HSN_SAC": "8537",
+                "quantity": 1,
+                "unit_price": 25000,
+                "rate": 18
+            },
+            {
+                "description": "Solenoid Valves",
+                "specification": "2-inch, 24V AC, Weatherproof",
+                "HSN_SAC": "8481",
+                "quantity": 12,
+                "unit_price": 3500,
+                "rate": 18
+            },
+            {
+                "description": "Soil Moisture Sensors",
+                "specification": "Capacitive, with 10m cable",
+                "HSN_SAC": "9031",
+                "quantity": 12,
+                "unit_price": 2200,
+                "rate": 18
+            },
+            {
+                "description": "HDPE Mainline Drip Tubing",
+                "specification": "16mm, 500m Roll",
+                "HSN_SAC": "3917",
+                "quantity": 4,
+                "unit_price": 4500,
+                "rate": 18
+            },
+            {
+                "description": "Pressure Compensating Drip Emitters",
+                "specification": "4 Liters Per Hour (LPH)",
+                "HSN_SAC": "8424",
+                "quantity": 5000,
+                "unit_price": 5,
+                "rate": 18
+            },
+            {
+                "description": "Venturi Fertilizer Injector",
+                "specification": "1.5 inch inlet/outlet",
+                "HSN_SAC": "8424",
+                "quantity": 1,
+                "unit_price": 7500,
+                "rate": 18
+            },
+            {
+                "description": "Disc Filter for Irrigation",
+                "specification": "120 Mesh, 2 inch connection",
+                "HSN_SAC": "8421",
+                "quantity": 1,
+                "unit_price": 6000,
+                "rate": 18
+            }
+        ],
+        "non_items": [
+            {
+                "description": "System Installation & Trenching",
+                "specification": "Includes pipe laying, valve installation, and sensor placement",
+                "price": 75000,
+                "rate": 18
+            },
+            {
+                "description": "Automation Programming & Commissioning",
+                "specification": "Configuration of watering schedules based on sensor data",
+                "price": 20000,
+                "rate": 18
+            }
+        ],
+        "quotation_date": "2025-10-11T10:15:00.000Z",
+        "total_tax": 44082,
+        "total_amount_no_tax": 244900,
+        "total_amount_tax": 288982,
+        "createdAt": "2025-10-11T10:16:30.000Z"
     }
 ]
