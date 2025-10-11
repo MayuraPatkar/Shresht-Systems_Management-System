@@ -21,9 +21,25 @@ router.post('/addItem', async (req, res) => {
     const { itemName, HSN_SAC, specifications, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
+        // Input validation
+        if (!itemName || !itemName.trim()) {
+            return res.status(400).json({ error: 'Item name is required' });
+        }
+        
+        if (unitPrice && (isNaN(unitPrice) || unitPrice < 0)) {
+            return res.status(400).json({ error: 'Unit price must be a valid positive number' });
+        }
+        
+        if (quantity && (isNaN(quantity) || quantity < 0)) {
+            return res.status(400).json({ error: 'Quantity must be a valid positive number' });
+        }
+        
+        if (GST && (isNaN(GST) || GST < 0 || GST > 100)) {
+            return res.status(400).json({ error: 'GST must be a valid number between 0 and 100' });
+        }
 
         // Check if item already exists
-        const existingItem = await Stock.findOne({ item_name: itemName });
+        const existingItem = await Stock.findOne({ item_name: itemName.trim() });
 
         if (existingItem) {
             return res.status(400).json({ error: 'Item already exists in stock' });
@@ -31,7 +47,7 @@ router.post('/addItem', async (req, res) => {
 
         // Add new stock item
         const newItem = new Stock({
-            item_name: itemName,
+            item_name: itemName.trim(),
             HSN_SAC,
             specifications,
             company,
@@ -108,9 +124,26 @@ router.post('/editItem', async (req, res) => {
     const { itemId, itemName, HSN_SAC, specifications, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
+        // Input validation
+        if (!itemName || !itemName.trim()) {
+            return res.status(400).json({ error: 'Item name is required' });
+        }
+        
+        if (unitPrice && (isNaN(unitPrice) || unitPrice < 0)) {
+            return res.status(400).json({ error: 'Unit price must be a valid positive number' });
+        }
+        
+        if (quantity && (isNaN(quantity) || quantity < 0)) {
+            return res.status(400).json({ error: 'Quantity must be a valid positive number' });
+        }
+        
+        if (GST && (isNaN(GST) || GST < 0 || GST > 100)) {
+            return res.status(400).json({ error: 'GST must be a valid number between 0 and 100' });
+        }
+
         // Check if another item with the same name exists (excluding current item)
         const existingItem = await Stock.findOne({ 
-            item_name: itemName, 
+            item_name: itemName.trim(), 
             _id: { $ne: itemId } 
         });
 
@@ -123,7 +156,7 @@ router.post('/editItem', async (req, res) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        item.item_name = itemName;
+        item.item_name = itemName.trim();
         item.HSN_SAC = HSN_SAC;
         item.specifications = specifications,
         item.company = company;
