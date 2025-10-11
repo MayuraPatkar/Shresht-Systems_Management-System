@@ -18,7 +18,7 @@ router.get('/getStock', async (req, res) => {
 
 // Route to Add Item to Stock
 router.post('/addItem', async (req, res) => {
-    const { itemName, HSN_SAC, unitPrice, quantity, GST, min_quantity } = req.body;
+    const { itemName, HSN_SAC, specifications, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
 
@@ -33,12 +33,14 @@ router.post('/addItem', async (req, res) => {
         const newItem = new Stock({
             item_name: itemName,
             HSN_SAC,
+            specifications,
+            company,
+            category,
+            type: type || 'material',
             unit_price: unitPrice,
             quantity,
             GST,
-            // margin: threshold,
             min_quantity: min_quantity || 5,
-            type: 'material',
         });
 
         await newItem.save();
@@ -103,9 +105,18 @@ router.post('/removeFromStock', async (req, res) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req, res) => {
-    const { itemId, itemName, HSN_SAC, unitPrice, quantity, GST, min_quantity } = req.body;
+    const { itemId, itemName, HSN_SAC, specifications, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
 
     try {
+        // Check if another item with the same name exists (excluding current item)
+        const existingItem = await Stock.findOne({ 
+            item_name: itemName, 
+            _id: { $ne: itemId } 
+        });
+
+        if (existingItem) {
+            return res.status(400).json({ error: 'Item with this name already exists' });
+        }
 
         const item = await Stock.findOne({ _id: itemId });
         if (!item) {
@@ -114,10 +125,15 @@ router.post('/editItem', async (req, res) => {
 
         item.item_name = itemName;
         item.HSN_SAC = HSN_SAC;
+        item.specifications = specifications,
+        item.company = company;
+        item.category = category;
+        item.type = type;
         item.unit_price = unitPrice;
         item.quantity = quantity;
         item.GST = GST;
         item.min_quantity = min_quantity;
+        item.updatedAt = new Date();
         await item.save();
 
         res.status(200).json({ message: 'Item updated successfully' });
@@ -138,6 +154,7 @@ router.get("/get-stock-item", async (req, res) => {
         res.json({
             itemName: stockItem.item_name,
             HSN_SAC: stockItem.HSN_SAC,
+            specifications: stockItem.specifications,
             unitPrice: stockItem.unit_price,
             GST: stockItem.GST
         });
@@ -157,5 +174,19 @@ router.get("/get-names", async (req, res) => {
     }
 });
 
+// Delete stock item
+router.post('/deleteItem', async (req, res) => {
+    const { itemId } = req.body;
+    try {
+        const result = await Stock.deleteOne({ _id: itemId });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+        res.json({ success: true });
+    } catch (error) {
+        log.error('Error deleting stock item:', error);
+        res.status(500).json({ error: 'Failed to delete item' });
+    }
+});
 
 module.exports = router;

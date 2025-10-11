@@ -4,265 +4,685 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" />
-    <link rel="stylesheet" href="../global/root.css">
-    <link rel="stylesheet" href="../global/globalStyle.css">
-    <title>Stock Management</title>
+    <title>Stock</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        .stock-container {
-            min-width: calc(100vw - 241px);
-            padding: 20px;
-            box-sizing: border-box;
+        body {
+            font-family: 'Inter', sans-serif;
         }
 
-        .addItem {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 400px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            display: none;
-            text-align: center;
-        }
-
-        .addItem label {
-            display: block;
-            margin: 10px 0 5px;
-            font-weight: bold;
-        }
-
-        .addItem input {
-            width: 100%;
-            padding: 8px 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-
-        .addItem button {
-            width: 100px;
-            padding: 10px;
-            margin: 5px;
-            background-color: var(--primary);
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .addItem button:hover {
-            background-color: #0056b3;
-        }
-
-        .backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            display: none;
-        }
-
-        .stock-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .stock-table th,
-        .stock-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        .stock-table th {
-            background-color: var(--primary);
-            color: #fff;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .stock-table td {
-            font-size: 1.1rem;
+        .sidebar {
+            width: 280px;
         }
 
         .low-stock {
-            background-color: #ff6868;
+            background-color: #fef3cd !important;
         }
 
-        .btn {
-            width: auto;
-            padding: 10px 20px;
-            margin: 10px 5px;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 1rem;
+        .out-of-stock {
+            background-color: #ffb4b4 !important;
         }
 
+        .table-row:hover {
+            background-color: #f8fafc;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-notification {
+            animation: slideIn 0.3s ease-out, slideOut 0.3s ease-in 2.7s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Custom scrollbar styling */
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            border-radius: none;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
+        }
+
+        *::-webkit-scrollbar-corner {
+            background: #f1f5f9;
+        }
+
+        /* Full height table container */
+        .table-container {
+            height: calc(100vh - 11rem);
+            min-height: 400px;
+        }
+
+        /* Quantity input styling */
+        .quantity-input {
+            width: 80px;
+            text-align: center;
+        }
+
+        .quantity-btn {
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 
-<body>
-    <header>
-        <div class="imglogo-title">
-            <div class="img" id="logo"><img src="../assets/icon.png" alt="logo"></div>
-            <h1>Stock</h1>
-        </div>
-        <div class="search">
-            <img src="../assets/search.png" alt="Search">
-            <input type="text" id="searchInput" placeholder="Search here...">
-        </div>
-        <div class="header-buttons">
-            <button class="btn" onclick="fetchStockData()">Refresh</button>
-            <button class="btn" onclick="addItemDiv()">New Item</button>
-            <button class="btn" onclick="lowStock()">Low</button>
-            <button class="btn" onclick="printStock()">Print</button>
+<body class="bg-gray-100">
+
+    <!-- Unified Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Stock Management</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" placeholder="Search stock items..."
+                        class="bg-gray-50 border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <a href="../dashboard/dashboard.html"
+                    class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-home text-gray-500"></i>
+                    <span>Home</span>
+                </a>
+                <button id="newStockItemBtn"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                    <i class="fas fa-plus"></i>
+                    New Stock Item
+                </button>
+            </div>
         </div>
     </header>
-    <div class="container" class="no-select">
-        <aside class="no-select">
-            <div class="nav-link" id="dashboard">
-                <img src="../assets/dashboard-interface.png" alt="dashboard">
-                Dashboard
+
+    <!-- Sidebar -->
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24">
+        <!-- Navigation Links -->
+        <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+            <div class="flex flex-col gap-2">
+                <a href="../dashboard/dashboard.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-th-large w-8 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../quotation/quotation.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-file-alt w-8 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="../invoice/invoice.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                    <span>Bill / Invoice</span>
+                </a>
+                <a href="../waybill/wayBill.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-route w-8 text-center"></i>
+                    <span>Way Bill</span>
+                </a>
+                <a href="../service/service.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-wrench w-8 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="../purchaseOrder/purchaseOrder.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
+                    <span>Purchase Bill</span>
+                </a>
+                <a href="#"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-box w-8 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="#"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-inbox w-8 text-center"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="../comms/comms.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-comments w-8 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="../employees/employee.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="../analytics/analytics.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-chart-line w-8 text-center"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="../calculations/calculations.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-calculator w-8 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="../settings/settings.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-cog w-8 text-center"></i>
+                    <span>Settings</span>
+                </a>
             </div>
-            <div class="nav-link" id="quotation">
-                <img src="../assets/quotation.png" alt="Quotation">
-                Quotation
+        </nav>
+    </aside>
+
+    <!-- Fixed Action Bar -->
+    <div class="fixed top-24 left-[280px] right-0 bg-white z-20 px-8 py-4 shadow-md">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button
+                    class="flex items-center gap-2 px-4 py-2 text-green-700 bg-green-100 border border-green-200 rounded-lg hover:bg-green-200">
+                    <i class="fas fa-sync-alt text-green-700"></i>
+                    <span>Refresh</span>
+                </button>
+                <button
+                    class="flex items-center gap-2 px-4 py-2 text-orange-600 bg-orange-100 border-orange-200 rounded-lg hover:bg-orange-200">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Low Stock Items</span>
+                </button>
+                <button id="printBtn"
+                    class="flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-100 border border-blue-200 rounded-lg hover:bg-blue-200">
+                    <i class="fas fa-print text-blue-700"></i>
+                    <span>Print</span>
+                </button>
             </div>
-            <div class="nav-link" id="invoice">
-                <img src="../assets/transaction.png" alt="Invoice">
-                Bill / Invoice
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <button id="typeFilterBtn"
+                        class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-shapes text-gray-500"></i>
+                        <span>Type</span>
+                    </button>
+                    <div id="typeFilterDropdown"
+                        class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                        <a href="#"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold"
+                            data-type-filter="all">All Types</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            data-type-filter="Asset">Asset</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            data-type-filter="Material">Material</a>
+                    </div>
+                </div>
+                <div class="relative">
+                    <button id="categoryFilterBtn"
+                        class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-tags text-gray-500"></i>
+                        <span>Category</span>
+                    </button>
+                    <div id="categoryFilterDropdown"
+                        class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                    </div>
+                </div>
+                <div class="relative">
+                    <button id="filterBtn"
+                        class="flex items-center gap-2 px-4 py-2 text-purple-700 bg-purple-100 border border-purple-200 rounded-lg hover:bg-purple-200">
+                        <i class="fas fa-filter text-purple-700"></i>
+                        <span>Filter</span>
+                    </button>
+                    <div id="filterDropdown"
+                        class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                        <a href="#"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold"
+                            data-filter="all">All Items</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-green-600 hover:bg-gray-100"
+                            data-filter="In Stock">In Stock</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-orange-600 hover:bg-gray-100"
+                            data-filter="Low Stock">Low Stock</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                            data-filter="Out of Stock">Out of Stock</a>
+                    </div>
+                </div>
             </div>
-            <div class="nav-link" id="wayBill">
-                <img src="../assets/delivery.png" alt="Way Bill">
-                Way Bill
-            </div>
-            <div class="nav-link" id="service">
-                <img src="../assets/telemarketing.png" alt="Service">
-                Service
-            </div>
-            <div class="nav-link" id="postOrder">
-                <img src="../assets/economy-forecast.png" alt="Purchase Bill">
-                Purchase Bill
-            </div>
-            <div class="nav-link active" id="stock">
-                <img src="../assets/in-stock.png" alt="Stock">
-                Stock
-            </div>
-            <div class="nav-link" id="comms">
-                <img src="../assets/customer-service.png" alt="comms">
-                Comms
-            </div>
-            <div class="nav-link" id="employees">
-                <img src="../assets/worker.png" alt="Employees">
-                Employees
-            </div>
-            <div class="nav-link" id="analytics">
-                <img src="../assets/analitics.png" alt="Analytics">
-                Analytics
-            </div>
-            <div class="nav-link" id="inventory">
-                <img src="../assets/inventory.png" alt="inventory">
-                Inventory
-            </div>
-            <div class="nav-link" id="calculations">
-                <img src="../assets/calculator.png" alt="calculations">
-                Calculations
-            </div>
-            <div class="nav-link" id="settings">
-                <img src="../assets/settings.png" alt="Settings">
-                Settings
-            </div>
-        </aside>
-        <div class="backdrop" id="backdrop"></div>
-        <div class="stock-container">
-            <div class="addItem" id="addItem">
-                <label>Item Name</label>
-                <input type="text" id="item_name">
-                <label>HSN/SAC</label>
-                <input type="text" id="HSN_SAC">
-                <label>Unit Price</label>
-                <input type="number" id="unit_price">
-                <label>Quantity</label>
-                <input type="number" id="item_quantity">
-                <!-- <label>Threshold</label>
-                <input type="number" id="threshold"> -->
-                <label>GST</label>
-                <input type="number" id="GST">
-                <label>Minimum Quantity</label>
-                <input type="number" id="min_quantity">
-                <button onclick="addItem()">Add</button>
-                <button onclick="hideModal()">Cancel</button>
-            </div>
-            <div class="addItem" id="addToStock">
-                <label>Quantity</label>
-                <input type="number" id="add_quantity">
-                <button onclick="addToStock()">Add</button>
-                <button onclick="hideModal()">Cancel</button>
-            </div>
-            <div class="addItem" id="removeFromStock">
-                <label>Quantity</label>
-                <input type="number" id="remove_quantity">
-                <button onclick="removeFromStock()">Remove</button>
-                <button onclick="hideModal()">Cancel</button>
-            </div>
-            <div class="addItem" id="editItem">
-                <label>Item Name</label>
-                <input type="text" id="edit_item_name">
-                <label>HSN/SAC</label>
-                <input type="text" id="edit_HSN_SAC">
-                <label>Unit Price</label>
-                <input type="number" id="edit_unit_price">
-                <label>Quantity</label>
-                <input type="number" id="edit_quantity">
-                <!-- <label>Threshold</label>
-                <input type="number" id="edit_threshold"> -->
-                <label>GST</label>
-                <input type="number" id="edit_GST">
-                <label>Minimum Quantity</label>
-                <input type="number" id="edit_min_quantity">
-                <button onclick="editItem()">Save</button>
-                <button onclick="hideModal()">Cancel</button>
-            </div>
-            <table class="stock-table">
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="ml-[280px] pt-44">
+        <!-- Stock Table -->
+        <div class="bg-white border border-gray-200 overflow-auto table-container">
+            <table class="w-full text-left table-fixed" id="stock-table">
                 <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>HSN/SAC</th>
-                        <th>Unit Price</th>
-                        <th>Quantity</th>
-                        <!-- <th>Margin</th> -->
-                        <th>GST</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                    <tr class="bg-blue-600 text-white">
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-4/12 cursor-pointer hover:bg-blue-700 text-center"
+                            data-sort="name">
+                            Items <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 cursor-pointer hover:bg-blue-700 text-center"
+                            data-sort="price">
+                            Unit Price <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12 cursor-pointer hover:bg-blue-700 text-center"
+                            data-sort="quantity">
+                            Quantity <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12 cursor-pointer hover:bg-blue-700 text-center"
+                            data-sort="gst">
+                            GST <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 cursor-pointer hover:bg-blue-700 text-center"
+                            data-sort="status">
+                            Status <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 text-center ">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="stock-table-body">
-                    <!-- Rows will be populated dynamically -->
+                <tbody class="text-gray-700" id="stock-table-body">
+                    <!-- Table rows will be inserted here by JavaScript -->
+                    <tr id="loading-row" class="hidden">
+                        <td colspan="6" class="p-8 text-center">
+                            <div class="flex items-center justify-center">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>
+                                Loading stock data...
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="empty-row" class="hidden">
+                        <td colspan="6" class="p-8 text-center text-gray-500">
+                            No stock items found
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
+    </main>
+
+    <!-- Add New Stock Item Modal -->
+    <div id="newStockModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+            <div class="flex justify-between items-center pb-4 border-b mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Add New Stock Item</h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <form id="newStockForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="itemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="itemName" placeholder="e.g., Solar Panels 320W"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="hsnCode" class="block text-sm font-medium text-gray-700 mb-1">HSN/SAC Code <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="hsnCode" placeholder="e.g., 8541"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="company" class="block text-sm font-medium text-gray-700 mb-1">Company <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="company" placeholder="e.g., Tata Power Solar"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="category" placeholder="e.g., Solar Panels"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="type" placeholder="e.g., Asset"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="unitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹) <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="unitPrice" placeholder="e.g., 12500"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" id="quantity" placeholder="e.g., 150"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="gstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" id="gstRate" placeholder="18"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="minQuantity" class="block text-sm font-medium text-gray-700 mb-1">Minimum Quantity
+                            <span class="text-red-500">*</span></label>
+                        <input type="number" id="minQuantity" placeholder="e.g., 10"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="specifications"
+                            class="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
+                        <textarea id="specifications" placeholder="Enter item specifications..." rows="3"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
+                    <button type="button" id="cancelBtn"
+                        class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                        <i class="fas fa-plus"></i>
+                        Add Stock Item
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-    <script src="../global/globalScript.js"></script>
-    <script src="./stock.js"></script>
+
+    <!-- Edit Stock Item Modal -->
+    <div id="editStockModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+            <div class="flex justify-between items-center pb-4 border-b mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Edit Stock Item</h3>
+                <button id="closeEditModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <form id="editStockForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="editItemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editItemName"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editHsnCode" class="block text-sm font-medium text-gray-700 mb-1">HSN/SAC Code <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editHsnCode"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editCompany" class="block text-sm font-medium text-gray-700 mb-1">Company <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editCompany"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editCategory" class="block text-sm font-medium text-gray-700 mb-1">Category <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editCategory"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editType" class="block text-sm font-medium text-gray-700 mb-1">Type <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editType"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editUnitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹)
+                            <span class="text-red-500">*</span></label>
+                        <input type="text" id="editUnitPrice"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editQuantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity <span
+                                class="text-red-500">*</span></label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="editQuantity"
+                                class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="editGstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" id="editGstRate"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editMinQuantity" class="block text-sm font-medium text-gray-700 mb-1">Minimum
+                            Quantity <span class="text-red-500">*</span></label>
+                        <input type="number" id="editMinQuantity"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="editSpecifications"
+                            class="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
+                        <textarea id="editSpecifications" rows="3"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
+                    <button type="button" id="cancelEditBtn"
+                        class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                        <i class="fas fa-save"></i>
+                        Update Stock Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Item Details Modal -->
+    <div id="itemDetailsModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg">
+            <div class="flex justify-between items-center pb-4 border-b mb-4">
+                <h3 id="detailsModalTitle" class="text-xl font-semibold text-gray-800">Item Details</h3>
+                <button id="closeDetailsModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Item Name</h4>
+                    <p id="detailsItemName" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">HSN/SAC</h4>
+                    <p id="detailsHsn" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Company</h4>
+                    <p id="detailsCompany" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Category</h4>
+                    <p id="detailsCategory" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Type</h4>
+                    <p id="detailsType" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Quantity</h4>
+                    <p id="detailsQuantity" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">GST Rate</h4>
+                    <p id="detailsGstRate" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Unit Price</h4>
+                    <p id="detailsUnitPrice" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Minimum Quantity</h4>
+                    <p id="detailsMinQuantity" class="text-gray-800"></p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Specifications</h4>
+                    <p id="detailsSpecifications" class="text-gray-800 whitespace-pre-wrap"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Modal -->
+    <div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-xl">
+            <div class="flex justify-between items-center pb-4 border-b mb-6">
+                <h3 class="text-xl font-semibold text-gray-800">Print Stock Report</h3>
+                <button id="closePrintModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label for="printTypeFilter" class="block text-sm font-medium text-gray-700">Filter by Type</label>
+                    <select id="printTypeFilter"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
+                        <option value="all">All Types</option>
+                        <option value="Asset">Asset</option>
+                        <option value="Material">Material</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="printCategoryFilter" class="block text-sm font-medium text-gray-700">Filter by
+                        Category</label>
+                    <select id="printCategoryFilter"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label for="printStatusFilter" class="block text-sm font-medium text-gray-700">Filter by
+                        Status</label>
+                    <select id="printStatusFilter"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
+                        <option value="all">All</option>
+                        <option value="In Stock">In Stock</option>
+                        <option value="Low Stock">Low Stock</option>
+                        <option value="Out of Stock">Out of Stock</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
+                <button type="button" id="cancelPrintBtn"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button id="finalPrintBtn" type="button"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                    <i class="fas fa-print"></i>
+                    Print Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quantity Adjustment Modal -->
+    <div id="quantityModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center pb-4 border-b mb-4">
+                <h3 id="quantityModalTitle" class="text-xl font-semibold text-gray-800">Adjust Quantity</h3>
+                <button id="closeQuantityModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <div class="mb-6">
+                <p id="quantityModalText" class="text-gray-600 mb-4">How much quantity do you want to add/remove?</p>
+                <div class="flex items-center justify-center gap-4">
+                    <button id="decreaseQuantityBtn"
+                        class="quantity-btn bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" id="quantityModalInput"
+                        class="quantity-input border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value="1" min="1">
+                    <button id="increaseQuantityBtn"
+                        class="quantity-btn bg-green-500 text-white rounded-lg hover:bg-green-600">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-end items-center gap-4">
+                <button id="cancelQuantityBtn"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button id="confirmQuantityBtn"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                    <span id="confirmQuantityText">Add</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="stock.js"></script>
+
 </body>
 
 </html>

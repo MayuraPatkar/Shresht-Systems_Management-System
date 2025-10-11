@@ -211,12 +211,15 @@ const Invoices = mongoose.model('invoice', invoiceSchema);
 const stockSchema = new mongoose.Schema({
     item_name: { type: String, required: true },
     HSN_SAC: { type: String, required: false },
+    specifications: { type: String, required: false },
+    company: { type: String, required: false },
     unit_price: { type: Number, required: true },
     GST: { type: Number, required: true },
     margin: { type: Number, default: 0 },
     quantity: { type: Number, required: true },
     min_quantity: { type: Number, required: false, default: 5 },
-    type: { type: String, required: true, default: 'material' },
+    type: { type: String, required: true},
+    category: { type: String },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });
