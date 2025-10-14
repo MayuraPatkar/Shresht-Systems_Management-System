@@ -18,7 +18,7 @@ const adminSchema = new mongoose.Schema({
     bank_details: {
         bank_name: { type: String, required: true },
         name: { type: String, required: true },
-        accountNo: { type: Number, required: true },
+        accountNo: { type: String, required: true },
         type: { type: String, required: true },
         IFSC_code: { type: String, required: true },
         branch: { type: String, required: true },
@@ -250,7 +250,7 @@ const serviceSchema = new mongoose.Schema({
     invoice_id: { type: String, required: true },
     fee_amount: { type: Number },
     service_date: { type: Date, default: Date.now },
-    service_stage: { type: Number, default: '0' },
+    service_stage: { type: Number, default: 0 }, // Fixed: Number default instead of string
 });
 
 const service = mongoose.model('service', serviceSchema);

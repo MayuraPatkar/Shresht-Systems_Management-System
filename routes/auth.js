@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcrypt');
 const { Admin } = require('./database');
 const log = require("electron-log"); // Import electron-log in the preload process
 
@@ -13,13 +14,14 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // Compare provided password with the stored password
-        if (password !== user.password) {
+        // Use bcrypt to compare hashed passwords
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
             log.warn('Authentication failed due to invalid password');
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        role = user.role;
+        const role = user.role; // Fixed: added const declaration
 
         log.info(`Login successful for ${role}: ${user.username}`);
         res.status(200).json({
@@ -69,10 +71,19 @@ router.post("/change-password", async (req, res) => {
     const { oldPassword, newPassword } = req.body;
     try {
         const admin = await Admin.findOne();
-        if (!admin || admin.password !== oldPassword) {
+        if (!admin) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+
+        // Verify old password using bcrypt
+        const isValidOldPassword = await bcrypt.compare(oldPassword, admin.password);
+        if (!isValidOldPassword) {
             return res.status(401).json({ message: "Invalid old password" });
         }
-        admin.password = newPassword;
+
+        // Hash and save new password
+        const saltRounds = 10;
+        admin.password = await bcrypt.hash(newPassword, saltRounds);
         await admin.save();
         res.json({ message: "Password updated successfully" });
     } catch (error) {

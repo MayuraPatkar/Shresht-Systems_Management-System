@@ -92,6 +92,10 @@ async function connectDB() {
         await mongoose.connect(config.mongodbUri, mongoOptions);
         log.info('MongoDB connected successfully');
         
+        // Initialize database with default admin users if needed
+        const initializeDatabase = require('./utils/initDatabase');
+        await initializeDatabase();
+        
         // Connection event listeners
         mongoose.connection.on('connected', () => {
             log.info('Mongoose connected to MongoDB');
