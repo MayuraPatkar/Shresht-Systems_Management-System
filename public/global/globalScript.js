@@ -427,7 +427,6 @@ if (sessionStorage.getItem('currentTab') === 'quotation'  ) {
 async function fetchStockData(itemName) {
   try {
     const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
-    if (!response.ok) throw new Error('Stock not found');
     return await response.json();
   } catch (error) {
     console.error("Error fetching stock data:", error);
