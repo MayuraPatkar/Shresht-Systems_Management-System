@@ -64,8 +64,14 @@ function toggleSection(sectionId) {
     sections.forEach((id) => {
         const sectionElement = document.getElementById(id);
         if (sectionElement) {
-            // Display the target section as a flex container, hide others
-            sectionElement.style.display = id === sectionId ? "flex" : "none";
+            // Display the target section as a block container, hide others with fade animation
+            if (id === sectionId) {
+                sectionElement.classList.remove('hidden');
+                sectionElement.classList.add('fade-in');
+            } else {
+                sectionElement.classList.add('hidden');
+                sectionElement.classList.remove('fade-in');
+            }
         }
     });
 }

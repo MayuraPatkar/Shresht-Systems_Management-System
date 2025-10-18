@@ -4,173 +4,442 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../global/globalStyle.css">
-    <link rel="stylesheet" href="../global/root.css">
-    <link rel="stylesheet" href="./settings_style.css">
     <title>Settings</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar {
+            width: 280px;
+        }
+
+        /* Custom scrollbar styling */
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-section {
+            min-height: calc(100vh - 11rem);
+        }
+    </style>
 </head>
 
-<body>
-    <!-- Navigation Bar -->
-    <header>
-        <div class="imglogo-title">
-            <div class="imglogo"><img src="../assets/icon.png" alt="logo"></div>
-            <h1>SSMS</h1>
+<body class="bg-gray-100">
+
+    <!-- Unified Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Settings</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="admin-info-button"
+                    class="flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-100 border border-blue-200 rounded-lg hover:bg-blue-200 font-medium">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Admin Info</span>
+                </button>
+                <button id="change-password-button1"
+                    class="flex items-center gap-2 px-4 py-2 text-purple-700 bg-purple-100 border border-purple-200 rounded-lg hover:bg-purple-200 font-medium">
+                    <i class="fas fa-key"></i>
+                    <span>Change Password</span>
+                </button>
+                <button id="data-control-button"
+                    class="flex items-center gap-2 px-4 py-2 text-green-700 bg-green-100 border border-green-200 rounded-lg hover:bg-green-200 font-medium">
+                    <i class="fas fa-database"></i>
+                    <span>Data Control</span>
+                </button>
+                <button id="logout-button"
+                    class="flex items-center gap-2 px-4 py-2 text-red-700 bg-red-100 border border-red-200 rounded-lg hover:bg-red-200 font-medium">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
         </div>
-        <nav class="navigation-buttons">
-            <button id="admin-info-button" aria-label="View Admin Information">Admin Info</button>
-            <button id="change-password-button1" aria-label="Change Password">Change Password</button>
-            <button id="data-control-button" aria-label="Data Control">Data Control</button>
-            <button id="logout-button" aria-label="Logout">Logout</button>
-        </nav>
     </header>
-    <div class="container">
-        <aside>
-            <div class="nav-link" id="dashboard">
-                <img src="../assets/dashboard-interface.png" alt="dashboard">
-                Dashboard
-            </div>
-            <div class="nav-link" id="quotation">
-                <img src="../assets/quotation.png" alt="Quotation">
-                Quotation
-            </div>
-            <div class="nav-link" id="invoice">
-                <img src="../assets/transaction.png" alt="Invoice">
-                Bill / Invoice
-            </div>
-            <div class="nav-link" id="wayBill">
-                <img src="../assets/delivery.png" alt="Way Bill">
-                Way Bill
-            </div>
-            <div class="nav-link" id="service">
-                <img src="../assets/telemarketing.png" alt="Service">
-                Service
-            </div>
-            <div class="nav-link" id="postOrder">
-                <img src="../assets/economy-forecast.png" alt="Purchase Bill">
-                Purchase Bill
-            </div>
-            <div class="nav-link" id="stock">
-                <img src="../assets/in-stock.png" alt="Stock">
-                Stock
-            </div>
-            <div class="nav-link" id="comms">
-                <img src="../assets/customer-service.png" alt="comms">
-                Comms
-            </div>
-            <div class="nav-link" id="calculations">
-                <img src="../assets/calculator.png" alt="calculations">
-                Calculations
-            </div>
-            <div class="nav-link active" id="settings">
-                <img src="../assets/settings.png" alt="Settings">
-                Settings
-            </div>
-        </aside>
-        <main>
-            <!-- Admin Information Section -->
-            <section id="admin-info-section">
-                <article class="admin-details">
-                    <h1>Admin - Shresht Systems</h1>
-                    <p id="admin-address"></p>
-                    <p id="admin-contact1"></p>
-                    <p id="admin-contact2"></p>
-                    <p id="admin-email"></p>
-                    <p id="admin-website"></p>
-                    <p id="admin-gstin"></p>
-                </article>
-                <article class="bank-details">
-                    <h1>Bank Details</h1>
-                    <p id="bank-name"></p>
-                    <p id="account-holder"></p>
-                    <p id="account-number"></p>
-                    <p id="ifsc-code"></p>
-                    <p id="branch-name"></p>
-                </article>
-            </section>
 
-            <!-- Change Username and Password Section -->
-            <section id="change-credentials-section">
-                <div class="change-username">
-                    <h1>Change Username</h1>
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" required>
-                    <button type="button" id="change-username-button">Change Username</button>
-                </div>
-                <div class="change-password">
-                    <h1>Change Password</h1>
-                    <label for="old-password">Old Password:</label>
-                    <input type="password" id="old-password" name="old-password" required>
-                    <label for="new-password">New Password:</label>
-                    <input type="password" id="new-password" name="new-password" required>
-                    <label for="confirm-password">Confirm Password:</label>
-                    <input type="password" id="confirm-password" name="confirm-password" required>
-                    <button type="submit" id="change-password-button">Change Password</button>
-                </div>
-            </section>
+    <!-- Sidebar -->
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24">
+        <!-- Navigation Links -->
+        <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+            <div class="flex flex-col gap-2">
+                <a href="../dashboard/dashboard.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-th-large w-8 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../quotation/quotation.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-file-alt w-8 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="../invoice/invoice.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                    <span>Bill / Invoice</span>
+                </a>
+                <a href="../waybill/wayBill.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-route w-8 text-center"></i>
+                    <span>Way Bill</span>
+                </a>
+                <a href="../service/service.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-wrench w-8 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="../purchaseOrder/purchaseOrder.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
+                    <span>Purchase Bill</span>
+                </a>
+                <a href="../stock/stock.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-box w-8 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="../comms/comms.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-comments w-8 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="../calculations/calculations.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-calculator w-8 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="#"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-cog w-8 text-center"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
 
-            <!-- Data Controle Section -->
-            <section id="data-backup-section">
-                <!-- Backup Status -->
-                <div class="data-options">
-                    <p><strong>Status of Backup:</strong></p>
-                    <p id="backup-status">No backup performed yet.</p>
-                </div>
-
-                <!-- Export Options -->
-                <div class="export-backup">
-                    <p><strong>Select the data you want to export:</strong></p>
-
-                    <label>
-                        <input type="radio" name="export-data" value="quotations" checked> Quotation
-                    </label>
-                    <label>
-                        <input type="radio" name="export-data" value="purchases"> Purchase Order
-                    </label>
-                    <label>
-                        <input type="radio" name="export-data" value="waybills"> Waybill
-                    </label>
-                    <label>
-                        <input type="radio" name="export-data" value="invoices"> Invoice
-                    </label>
-                    <label>
-                        <input type="radio" name="export-data" value="stocks"> Stock
-                    </label>
-
-                    <br><br>
-                    <button type="button" id="export-data-button">Export</button>
-                </div>
-                <!-- Cloud Backup Options -->
-                <div class="cloud-backup-options">
-                    <p><strong>Cloud Backup:</strong></p>
-                    <p>Status: </p>
-                    <button type="button" id="google-drive-backup">Backup to Google Drive</button>
+    <!-- Main Content -->
+    <main class="ml-[280px] pt-24 p-8 content-section">
+        
+        <!-- Admin Information Section -->
+        <section id="admin-info-section" class="space-y-6 mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Admin Details Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
+                        <i class="fas fa-building text-blue-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Admin - Shresht Systems</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-map-marker-alt text-gray-500 mt-1"></i>
+                            <p id="admin-address" class="text-gray-700"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-phone text-gray-500"></i>
+                            <p id="admin-contact1" class="text-gray-700"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-phone-alt text-gray-500"></i>
+                            <p id="admin-contact2" class="text-gray-700"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-envelope text-gray-500"></i>
+                            <p id="admin-email" class="text-gray-700"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-globe text-gray-500"></i>
+                            <p id="admin-website" class="text-gray-700"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-file-invoice text-gray-500"></i>
+                            <p id="admin-gstin" class="text-gray-700"></p>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Restore Option -->
-                <div class="restore-backup">
-                    <p><strong>Restore from Collection Backup:</strong></p>
-                    <select id="collection-select">
-                        <option selected>Choose collection</option>"
-                        <option value="quotations">Quotations</option>
-                        <option value="purchases">Purchase Orders</option>
-                        <option value="waybills">Waybills</option>
-                        <option value="invoices">Invoices</option>
-                        <option value="stocks">Stocks</option>
-                    </select>
-                    <input type="file" id="restore-collection-file" accept=".gz,.zip,.json,.bson">
-                    <button type="button" id="restore-collection-button">Restore Collection</button>
+                <!-- Bank Details Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
+                        <i class="fas fa-university text-green-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Bank Details</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-building-columns text-gray-500"></i>
+                            <p id="bank-name" class="text-gray-700"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-user text-gray-500"></i>
+                            <p id="account-holder" class="text-gray-700"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-hashtag text-gray-500"></i>
+                            <p id="account-number" class="text-gray-700"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-code text-gray-500"></i>
+                            <p id="ifsc-code" class="text-gray-700"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-map-pin text-gray-500"></i>
+                            <p id="branch-name" class="text-gray-700"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Change Username and Password Section -->
+        <section id="change-credentials-section" class="space-y-6 mb-8 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Change Username Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-user-edit text-purple-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Change Username</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-user text-gray-500 mr-2"></i>Username
+                            </label>
+                            <input type="text" id="username" name="username" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter new username">
+                        </div>
+                        <button type="button" id="change-username-button"
+                            class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-save"></i>
+                            Change Username
+                        </button>
+                    </div>
                 </div>
 
-                <div class="restore-backup">
-                    <p><strong>Restore from database Backup:</strong></p>
-                    <input type="file" id="restore-database-file" accept=".gz,.zip,.json,.bson">
-                    <button type="button" id="restore-database-button">Restore database</button>
+                <!-- Change Password Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-lock text-purple-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Change Password</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="old-password" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-key text-gray-500 mr-2"></i>Old Password
+                            </label>
+                            <input type="password" id="old-password" name="old-password" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter old password">
+                        </div>
+                        <div>
+                            <label for="new-password" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-lock text-gray-500 mr-2"></i>New Password
+                            </label>
+                            <input type="password" id="new-password" name="new-password" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter new password">
+                        </div>
+                        <div>
+                            <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-check-circle text-gray-500 mr-2"></i>Confirm Password
+                            </label>
+                            <input type="password" id="confirm-password" name="confirm-password" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Confirm new password">
+                        </div>
+                        <button type="submit" id="change-password-button"
+                            class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-save"></i>
+                            Change Password
+                        </button>
+                    </div>
                 </div>
-        </main>
-    </div>
+            </div>
+        </section>
+
+        <!-- Data Control Section -->
+        <section id="data-backup-section" class="space-y-6 hidden">
+            <!-- Backup Status Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
+                    <i class="fas fa-info-circle text-blue-600 text-2xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Backup Status</h2>
+                </div>
+                <div class="flex items-center gap-3 bg-blue-50 p-4 rounded-lg">
+                    <i class="fas fa-clock text-blue-600 text-xl"></i>
+                    <p id="backup-status" class="text-gray-700 font-medium">No backup performed yet.</p>
+                </div>
+            </div>
+
+            <!-- Export Options Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                    <i class="fas fa-download text-green-600 text-2xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Export Data</h2>
+                </div>
+                <div class="space-y-4">
+                    <p class="text-gray-700 font-medium mb-4">Select the data you want to export:</p>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <label class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 border border-gray-200">
+                            <input type="radio" name="export-data" value="quotations" checked class="text-blue-600 focus:ring-blue-500">
+                            <span class="text-gray-700">Quotation</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 border border-gray-200">
+                            <input type="radio" name="export-data" value="purchases" class="text-blue-600 focus:ring-blue-500">
+                            <span class="text-gray-700">Purchase Order</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 border border-gray-200">
+                            <input type="radio" name="export-data" value="waybills" class="text-blue-600 focus:ring-blue-500">
+                            <span class="text-gray-700">Waybill</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 border border-gray-200">
+                            <input type="radio" name="export-data" value="invoices" class="text-blue-600 focus:ring-blue-500">
+                            <span class="text-gray-700">Invoice</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 border border-gray-200">
+                            <input type="radio" name="export-data" value="stocks" class="text-blue-600 focus:ring-blue-500">
+                            <span class="text-gray-700">Stock</span>
+                        </label>
+                    </div>
+                    <button type="button" id="export-data-button"
+                        class="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center justify-center gap-2">
+                        <i class="fas fa-file-export"></i>
+                        Export Selected Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cloud Backup Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                    <i class="fas fa-cloud-upload-alt text-indigo-600 text-2xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Cloud Backup</h2>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between bg-indigo-50 p-4 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-info-circle text-indigo-600"></i>
+                            <span class="text-gray-700 font-medium">Status:</span>
+                        </div>
+                        <span class="text-gray-600">Not configured</span>
+                    </div>
+                    <button type="button" id="google-drive-backup"
+                        class="w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 flex items-center justify-center gap-2">
+                        <i class="fab fa-google-drive"></i>
+                        Backup to Google Drive
+                    </button>
+                </div>
+            </div>
+
+            <!-- Restore Options -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Restore Collection Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-upload text-orange-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Restore Collection</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="collection-select" class="block text-sm font-medium text-gray-700 mb-2">
+                                Choose Collection
+                            </label>
+                            <select id="collection-select"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                <option selected>Choose collection</option>
+                                <option value="quotations">Quotations</option>
+                                <option value="purchases">Purchase Orders</option>
+                                <option value="waybills">Waybills</option>
+                                <option value="invoices">Invoices</option>
+                                <option value="stocks">Stocks</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="restore-collection-file" class="block text-sm font-medium text-gray-700 mb-2">
+                                Select Backup File
+                            </label>
+                            <input type="file" id="restore-collection-file" accept=".gz,.zip,.json,.bson"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                        </div>
+                        <button type="button" id="restore-collection-button"
+                            class="w-full bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-redo"></i>
+                            Restore Collection
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Restore Database Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-database text-red-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Restore Database</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="restore-database-file" class="block text-sm font-medium text-gray-700 mb-2">
+                                Select Database Backup
+                            </label>
+                            <input type="file" id="restore-database-file" accept=".gz,.zip,.json,.bson"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-exclamation-triangle text-red-600 mt-1"></i>
+                                <p class="text-sm text-red-700">
+                                    <strong>Warning:</strong> Restoring the database will replace all existing data. Make sure you have a backup before proceeding.
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" id="restore-database-button"
+                            class="w-full bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Restore Database
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
     <script src="./settings.js"></script>
-    <script src="../global/globalScript.js"></script>
 </body>
 
 </html>
