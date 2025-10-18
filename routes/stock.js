@@ -207,6 +207,34 @@ router.get("/get-names", async (req, res) => {
     }
 });
 
+// Route to search for stock item by name and get specifications
+router.get('/search/:itemName', async (req, res) => {
+    try {
+        const itemName = req.params.itemName.trim();
+        const stockItem = await Stock.findOne({ 
+            item_name: { $regex: new RegExp(`^${itemName}$`, 'i') } 
+        });
+        
+        if (stockItem) {
+            res.json({
+                found: true,
+                item: {
+                    item_name: stockItem.item_name,
+                    specifications: stockItem.specifications,
+                    HSN_SAC: stockItem.HSN_SAC,
+                    unit_price: stockItem.unit_price,
+                    GST: stockItem.GST
+                }
+            });
+        } else {
+            res.json({ found: false });
+        }
+    } catch (error) {
+        log.error("Error searching stock item:", error);
+        res.status(500).json({ error: "Failed to search stock item" });
+    }
+});
+
 // Delete stock item
 router.post('/deleteItem', async (req, res) => {
     const { itemId } = req.body;

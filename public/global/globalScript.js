@@ -104,68 +104,8 @@ document.getElementById("next-btn").addEventListener("click", () => {
   }
 
   if (currentStep === 5 && sessionStorage.getItem('currentTab') === 'quotation') {
-    const itemsTable = document.querySelector('#items-table tbody');
-    const nonItemsTable = document.querySelector('#non-items-table tbody');
-    const itemsSpecificationTable = document.querySelector('#items-specifications-table tbody');
-
-    if (sessionStorage.getItem('currentTab-status') === 'update') {
-        // Store existing specifications to preserve them
-        const existingSpecs = new Map();
-        itemsSpecificationTable.querySelectorAll('tr').forEach(row => {
-            const itemName = row.cells[1].textContent.trim();
-            const specInput = row.cells[2].querySelector('input');
-            if (specInput) {
-                existingSpecs.set(itemName, specInput.value);
-            }
-        });
-
-        // Get all current items from the form
-        const formItems = [
-            ...Array.from(itemsTable.querySelectorAll('tr')).map(row => row.querySelector('input[placeholder="Item Description"]').value.trim()),
-            ...Array.from(nonItemsTable.querySelectorAll('tr')).map(row => row.querySelector('input[placeholder="Item Description"]').value.trim())
-        ].filter(item => item); // Filter out empty item names
-
-        // Clear and rebuild the specifications table
-        itemsSpecificationTable.innerHTML = '';
-        formItems.forEach((item, index) => {
-            const row = document.createElement("tr");
-            const preservedSpec = existingSpecs.get(item) || '';
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${item}</td>
-                <td><input type="text" placeholder="Specifications" value="${preservedSpec}" required></td>
-            `;
-            itemsSpecificationTable.appendChild(row);
-        });
-
-    } else {
-      const items1 = Array.from(itemsTable.querySelectorAll('tr')).map(row => {
-        return {
-          item: row.querySelector('input[placeholder="Item Description"]').value,
-        }
-      });
-
-      const items2 = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => {
-        return {
-          item: row.querySelector('input[placeholder="Item Description"]').value,
-        }
-      });
-
-      const items = items1.concat(items2);
-
-      itemsSpecificationTable.innerHTML = '';
-
-      for (const item of items) {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${itemsSpecificationTable.children.length + 1}</td>
-          <td>${item.item || '-'}</td>
-          <td><input type="text" placeholder="Specifications" required></td>
-      `;
-        itemsSpecificationTable.appendChild(row);
-      }
-    }
-
+    // Use the new updateSpecificationsTable function that fetches from stock
+    updateSpecificationsTable();
   }
 });
 
@@ -286,6 +226,13 @@ function addItem() {
 
   input.addEventListener("input", function () {
     showSuggestions(input, suggestionsList);
+    // Update specifications table when item description changes (with debounce)
+    clearTimeout(input.specUpdateTimeout);
+    input.specUpdateTimeout = setTimeout(() => {
+      if (input.value.trim()) {
+        updateSpecificationsTable();
+      }
+    }, 500);
   });
 
   input.addEventListener("keydown", function (event) {
@@ -321,6 +268,13 @@ function addNonItem() {
 
   input.addEventListener("input", function () {
     showSuggestions(input, suggestionsList);
+    // Update specifications table when item description changes (with debounce)
+    clearTimeout(input.specUpdateTimeout);
+    input.specUpdateTimeout = setTimeout(() => {
+      if (input.value.trim()) {
+        updateSpecificationsTable();
+      }
+    }, 500);
   });
 
   input.addEventListener("keydown", function (event) {
@@ -396,12 +350,16 @@ function handleKeyboardNavigation(event, input, suggestionsList) {
 document.querySelector("#items-table").addEventListener("click", (event) => {
   if (event.target.classList.contains('remove-item-btn')) {
     event.target.closest('tr').remove();
+    // Update specifications table after removing item
+    setTimeout(() => updateSpecificationsTable(), 100);
   }
 });
 
 document.querySelector("#non-items-table").addEventListener("click", (event) => {
   if (event.target.classList.contains('remove-item-btn')) {
     event.target.closest('tr').remove();
+    // Update specifications table after removing item
+    setTimeout(() => updateSpecificationsTable(), 100);
   }
 });
 
@@ -431,6 +389,73 @@ async function fill(itemName, row) {
     row.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
     row.querySelector("input[placeholder='Unit Price']").value = stockData.unitPrice || 0;
     row.querySelector("input[placeholder='Rate']").value = stockData.GST || 0;
+    
+    // Update specifications table when item is filled
+    updateSpecificationsTable();
+  }
+}
+
+// Function to update specifications table with stock data
+async function updateSpecificationsTable() {
+  const itemsTable = document.querySelector('#items-table tbody');
+  const nonItemsTable = document.querySelector('#non-items-table tbody');
+  const itemsSpecificationTable = document.querySelector('#items-specifications-table tbody');
+  
+  if (!itemsSpecificationTable) return; // Not on quotation page
+  
+  // Store existing manually entered specifications to preserve them
+  const existingSpecs = {};
+  itemsSpecificationTable.querySelectorAll('tr').forEach(row => {
+    const description = row.cells[1].textContent.trim();
+    const specInput = row.querySelector('input[placeholder="Specifications"], input[type="text"]');
+    if (specInput && description) {
+      existingSpecs[description] = specInput.value;
+    }
+  });
+  
+  // Get all current items from both tables
+  const allItems = [
+    ...Array.from(itemsTable.querySelectorAll('tr')).map(row => ({
+      description: row.querySelector('input[placeholder="Item Description"]')?.value.trim() || '',
+      type: 'item'
+    })),
+    ...Array.from(nonItemsTable.querySelectorAll('tr')).map(row => ({
+      description: row.querySelector('input[placeholder="Item Description"]')?.value.trim() || '',
+      type: 'non_item'
+    }))
+  ];
+  
+  // Clear and rebuild the specifications table
+  itemsSpecificationTable.innerHTML = '';
+  
+  for (let i = 0; i < allItems.length; i++) {
+    const item = allItems[i];
+    if (!item.description) continue;
+    
+    let specification = '';
+    
+    // First check if user has manually entered specification
+    if (existingSpecs[item.description]) {
+      specification = existingSpecs[item.description];
+    } else {
+      // Try to fetch from stock
+      try {
+        const stockData = await fetchStockData(item.description);
+        if (stockData && stockData.specifications) {
+          specification = stockData.specifications;
+        }
+      } catch (error) {
+        console.log("No stock data found for:", item.description);
+      }
+    }
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${item.description}</td>
+      <td><input type="text" placeholder="Specifications" value="${specification}" required></td>
+    `;
+    itemsSpecificationTable.appendChild(row);
   }
 }
 
@@ -439,6 +464,18 @@ document.querySelector("#items-table").addEventListener("input", async (event) =
   const row = event.target.closest("tr");
 
   if (event.target.placeholder === "Item Description" || event.target.placeholder === "HSN/SAC") {
+    const itemName = row.querySelector("input[placeholder='Item Description']").value.trim();
+    if (itemName.length > 2) { // Avoid unnecessary API calls for short inputs
+      fill(itemName, row);
+    }
+  }
+});
+
+// Event listener for non-item description input
+document.querySelector("#non-items-table").addEventListener("input", async (event) => {
+  const row = event.target.closest("tr");
+
+  if (event.target.placeholder === "Item Description") {
     const itemName = row.querySelector("input[placeholder='Item Description']").value.trim();
     if (itemName.length > 2) { // Avoid unnecessary API calls for short inputs
       fill(itemName, row);
