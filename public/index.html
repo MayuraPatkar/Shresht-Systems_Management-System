@@ -4,108 +4,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./global/root.css">
-    <link rel="stylesheet" href="./global/globalStyle.css">
-    <title>Shresht System</title>
+    <title>Shresht Systems Management</title>
+    <link rel="stylesheet" href="./css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f4f4f9;
-            text-align: center;
+            font-family: 'Inter', sans-serif;
         }
 
-        .container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            justify-content: space-evenly;
-            align-items: center;
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
         }
 
-        .logo-container img {
-            max-width: 100%;
-            height: 35vh;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .auth-container,
-        .login-container {
-            width: 40%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        .slide-in-left {
+            animation: slideInLeft 0.8s ease-out;
         }
 
-        .login-container {
-            display: none;
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
-        h1 {
-            margin: 0.5rem 0 1.5rem;
-            font-size: 1.8rem;
-            color: #333;
+        .slide-in-right {
+            animation: slideInRight 0.8s ease-out;
         }
 
-        .btn {
-            width: 200px;
-            height: 50px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            background-color: #4949ff;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-            margin-top: 1rem;
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
-        .btn:hover {
-            background-color: #3737d6;
-            transform: scale(1.05);
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
-        input {
-            width: 100%;
-            max-width: 350px;
-            height: 40px;
-            border-radius: 5px;
-            padding: 0 10px;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            margin: 10px 0;
+        .logo-glow {
+            filter: drop-shadow(0 10px 20px rgba(102, 126, 234, 0.3));
         }
 
-        input:focus {
-            border-color: #4949ff;
-            outline: none;
-            box-shadow: 0 0 5px rgba(73, 73, 255, 0.5);
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            pointer-events: none;
+        }
+
+        .input-with-icon {
+            padding-left: 40px;
         }
     </style>
 </head>
 
-<body>
-    <div class="container">
-        <div class="logo-container">
-            <img src="./assets/logo.png" alt="Shresht System Logo">
-        </div>
-        <div class="auth-container">
-            <h1>Welcome to Shresht System</h1>
-            <h1>Management System</h1>
-            <button id="show-login" class="btn">Login</button>
-        </div>
-        <div class="login-container">
-            <h1>Login to SSMS</h1>
-            <label for="username">Username</label>
-            <input type="text" id="username">
-            <label for="password">Password</label>
-            <input type="password" id="password">
-            <button id="login-btn" class="btn">Login</button>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <!-- Main Container -->
+    <div class="w-full max-w-6xl mx-4 my-8">
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+            
+            <!-- Left Side - Branding -->
+            <div class="slide-in-left hidden lg:flex flex-col items-center justify-center space-y-8 p-12">
+                <div class="logo-glow">
+                    <img src="./assets/logo.png" alt="Shresht System Logo" class="h-96 w-auto object-contain">
+                </div>
+                <div class="text-center space-y-4">
+                    <h1 class="text-5xl font-extrabold text-gray-800 tracking-tight">Shresht Systems</h1>
+                    <p class="text-2xl text-gray-600 font-semibold">Management System</p>
+                    <div class="flex items-center justify-center gap-8 mt-8 text-gray-500">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-chart-line text-4xl text-blue-600 mb-2"></i>
+                            <span class="text-base font-medium">Analytics</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-boxes text-4xl text-green-600 mb-2"></i>
+                            <span class="text-base font-medium">Inventory</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-file-invoice text-4xl text-purple-600 mb-2"></i>
+                            <span class="text-base font-medium">Billing</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Authentication -->
+            <div class="slide-in-right">
+                
+                <!-- Welcome Screen -->
+                <div id="auth-container" class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12 fade-in">
+                    <div class="text-center space-y-6">
+                        <div class="inline-block p-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full">
+                            <i class="fas fa-building text-white text-4xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2">Welcome Back!</h2>
+                            <p class="text-gray-600">Access your business management dashboard</p>
+                        </div>
+                        <div class="pt-6">
+                            <button id="show-login" 
+                                class="w-full gradient-bg text-white px-8 py-4 rounded-lg font-semibold text-lg hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-sign-in-alt mr-2"></i>
+                                Sign In to Continue
+                            </button>
+                        </div>
+                        <div class="pt-6 border-t border-gray-200">
+                            <p class="text-sm text-gray-500">
+                                <i class="fas fa-shield-alt text-green-600 mr-1"></i>
+                                Secure authentication powered by encryption
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login Form -->
+                <div id="login-container" class="bg-white rounded-2xl shadow-2xl p-8 lg:p-12 hidden fade-in">
+                    <div class="space-y-6">
+                        <!-- Header -->
+                        <div class="text-center">
+                            <div class="inline-block p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4">
+                                <i class="fas fa-lock text-white text-3xl"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2">Sign In</h2>
+                            <p class="text-gray-600">Enter your credentials to access SSMS</p>
+                        </div>
+
+                        <!-- Login Form -->
+                        <form id="login-form" class="space-y-5">
+                            <!-- Username Field -->
+                            <div class="space-y-2">
+                                <label for="username" class="block text-sm font-semibold text-gray-700">
+                                    <i class="fas fa-user text-gray-500 mr-2"></i>Username
+                                </label>
+                                <div class="input-group">
+                                    <i class="fas fa-user input-icon"></i>
+                                    <input type="text" id="username" autocomplete="username" required
+                                        class="input-with-icon w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        placeholder="Enter your username">
+                                </div>
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="space-y-2">
+                                <label for="password" class="block text-sm font-semibold text-gray-700">
+                                    <i class="fas fa-lock text-gray-500 mr-2"></i>Password
+                                </label>
+                                <div class="input-group">
+                                    <i class="fas fa-lock input-icon"></i>
+                                    <input type="password" id="password" autocomplete="current-password" required
+                                        class="input-with-icon w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        placeholder="Enter your password">
+                                </div>
+                            </div>
+
+                            <!-- Login Button -->
+                            <button type="submit" id="login-btn"
+                                class="w-full gradient-bg text-white px-8 py-4 rounded-lg font-semibold text-lg hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-sign-in-alt mr-2"></i>
+                                Login to Dashboard
+                            </button>
+
+                            <!-- Back Button -->
+                            <button type="button" id="back-btn"
+                                class="w-full bg-gray-100 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Back
+                            </button>
+                        </form>
+
+                        <!-- Footer Info -->
+                        <div class="pt-6 border-t border-gray-200 text-center">
+                            <p class="text-xs text-gray-500">
+                                <i class="fas fa-info-circle text-blue-600 mr-1"></i>
+                                Contact your Developers if you're having trouble logging in
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
     </div>
+
     <script src="./indexScript.js"></script>
 </body>
 

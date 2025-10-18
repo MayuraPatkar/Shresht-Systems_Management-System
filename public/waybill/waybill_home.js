@@ -8,63 +8,58 @@ document.querySelectorAll('.nav-link').forEach(link => {
 
 // Sidebar navigation routing (IDs must match HTML)
 document.getElementById('dashboard').addEventListener('click', () => {
-  window.location = '/dashboard';
-  sessionStorage.setItem('currentTab', 'dashboard');
+    window.location = '/dashboard';
+    sessionStorage.setItem('currentTab', 'dashboard');
 })
 
 document.getElementById('quotation').addEventListener('click', () => {
-  window.location = '/quotation';
-  sessionStorage.setItem('currentTab', 'quotation');
+    window.location = '/quotation';
+    sessionStorage.setItem('currentTab', 'quotation');
 })
 
 document.getElementById('purchase-bill').addEventListener('click', () => {
-  window.location = '/purchaseorder';
-  sessionStorage.setItem('currentTab', 'purchaseorder');
+    window.location = '/purchaseorder';
+    sessionStorage.setItem('currentTab', 'purchaseorder');
 })
 
 document.getElementById('wayBill').addEventListener('click', () => {
-  window.location = '/wayBill';
-  sessionStorage.setItem('currentTab', 'wayBill');
+    window.location = '/wayBill';
+    sessionStorage.setItem('currentTab', 'wayBill');
 })
 
 document.getElementById('invoice').addEventListener('click', () => {
-  window.location = '/invoice';
-  sessionStorage.setItem('currentTab', 'invoice');
+    window.location = '/invoice';
+    sessionStorage.setItem('currentTab', 'invoice');
 })
 
 document.getElementById('service').addEventListener('click', () => {
-  window.location = '/service';
-  sessionStorage.setItem('currentTab', 'service');
+    window.location = '/service';
+    sessionStorage.setItem('currentTab', 'service');
 })
 
 document.getElementById('stock').addEventListener('click', () => {
-  window.location = '/stock';
-  sessionStorage.setItem('currentTab', 'stock');
-})
-
-document.getElementById('employees').addEventListener('click', () => {
-  window.location = '/employee';
-  sessionStorage.setItem('currentTab', 'employee');
+    window.location = '/stock';
+    sessionStorage.setItem('currentTab', 'stock');
 })
 
 document.getElementById('comms').addEventListener('click', () => {
-  window.location = '/comms';
-  sessionStorage.setItem('currentTab', 'comms');
-})
-
-document.getElementById('analytics').addEventListener('click', () => {
-  window.location = '/analytics';
-  sessionStorage.setItem('currentTab', 'analytics');
+    window.location = '/comms';
+    sessionStorage.setItem('currentTab', 'comms');
 })
 
 document.getElementById('calculations').addEventListener('click', () => {
-  window.location = '/calculations';
-  sessionStorage.setItem('currentTab', 'calculations');
+    window.location = '/calculations';
+    sessionStorage.setItem('currentTab', 'calculations');
 })
 
 document.getElementById('settings').addEventListener('click', () => {
-  window.location = '/settings';
-  sessionStorage.setItem('currentTab', 'settings');
+    window.location = '/settings';
+    sessionStorage.setItem('currentTab', 'settings');
+})
+
+document.getElementById('home-btn').addEventListener('click', () => {
+    window.location = '/wayBill';
+    sessionStorage.setItem('currentTab', 'wayBill');
 })
 
 // Main content references
@@ -84,7 +79,27 @@ document.addEventListener("DOMContentLoaded", () => {
         changeStep(totalSteps);
         generatePreview();
     });
-    document.getElementById('view-preview-btn').style.display = 'none'
+    document.getElementById('view-preview-btn').style.display = 'none';
+
+    // Keyboard shortcuts modal handlers
+    const shortcutsModal = document.getElementById('shortcuts-modal');
+    const shortcutsBtn = document.getElementById('shortcuts-btn');
+    const closeShortcutsBtn = document.getElementById('close-shortcuts');
+
+    shortcutsBtn.addEventListener('click', () => {
+        shortcutsModal.classList.remove('hidden');
+    });
+
+    closeShortcutsBtn.addEventListener('click', () => {
+        shortcutsModal.classList.add('hidden');
+    });
+
+    // Close modal when clicking outside
+    shortcutsModal.addEventListener('click', (e) => {
+        if (e.target === shortcutsModal) {
+            shortcutsModal.classList.add('hidden');
+        }
+    });
 });
 
 // Step navigation
@@ -121,26 +136,140 @@ function updateNavigation() {
 function moveNext() {
     document.getElementById('next-btn').click();
 }
-document.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-        moveNext();
-    }
-});
+
+// Comprehensive keyboard shortcuts
 document.addEventListener("keydown", function (event) {
     const active = document.activeElement;
-    if (
-        active &&
-        (
-            active.tagName === "INPUT" ||
-            active.tagName === "TEXTAREA" ||
-            active.isContentEditable
-        )
-    ) {
-        return;
+    const isTyping = active && (
+        active.tagName === "INPUT" ||
+        active.tagName === "TEXTAREA" ||
+        active.tagName === "SELECT" ||
+        active.isContentEditable
+    );
+
+    // Enter key - move to next step (only when not typing)
+    if (event.key === "Enter" && !isTyping) {
+        event.preventDefault();
+        moveNext();
     }
-    if (event.key === "Backspace") {
+
+    // Backspace - go to previous step (only when not typing)
+    if (event.key === "Backspace" && !isTyping) {
+        event.preventDefault();
         if (currentStep > 1) {
             changeStep(currentStep - 1);
+        }
+    }
+
+    // Ctrl/Cmd + N - New Waybill
+    if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
+        event.preventDefault();
+        const newBtn = document.getElementById('new-waybill-btn');
+        if (newBtn.style.display !== 'none') {
+            newBtn.click();
+        }
+    }
+
+    // Ctrl/Cmd + H - Go Home
+    if ((event.ctrlKey || event.metaKey) && event.key === 'h') {
+        event.preventDefault();
+        window.location = '/wayBill';
+    }
+
+    // Ctrl/Cmd + P - View Preview (when in form)
+    if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+        event.preventDefault();
+        const previewBtn = document.getElementById('view-preview-btn');
+        if (previewBtn.style.display !== 'none') {
+            previewBtn.click();
+        }
+    }
+
+    // Ctrl/Cmd + S - Save (when on preview step)
+    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault();
+        const saveBtn = document.getElementById('save-btn');
+        if (saveBtn && currentStep === totalSteps) {
+            saveBtn.click();
+        }
+    }
+
+    // Ctrl/Cmd + Shift + P - Print (when on preview step)
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'P') {
+        event.preventDefault();
+        const printBtn = document.getElementById('print-btn');
+        if (printBtn && currentStep === totalSteps) {
+            printBtn.click();
+        }
+    }
+
+    // Ctrl/Cmd + I - Add Item (when on items step)
+    if ((event.ctrlKey || event.metaKey) && event.key === 'i') {
+        event.preventDefault();
+        if (currentStep === 5) {
+            document.getElementById('add-item-btn').click();
+        }
+    }
+
+    // Arrow Right - Next step
+    if (event.key === "ArrowRight" && !isTyping) {
+        event.preventDefault();
+        if (currentStep < totalSteps) {
+            document.getElementById('next-btn').click();
+        }
+    }
+
+    // Arrow Left - Previous step
+    if (event.key === "ArrowLeft" && !isTyping) {
+        event.preventDefault();
+        if (currentStep > 1) {
+            document.getElementById('prev-btn').click();
+        }
+    }
+
+    // Number keys 1-6 - Jump to specific step
+    if (!isTyping && event.key >= '1' && event.key <= '6') {
+        const stepNum = parseInt(event.key);
+        if (stepNum <= totalSteps) {
+            event.preventDefault();
+            changeStep(stepNum);
+        }
+    }
+
+    // Escape - Go back to home
+    if (event.key === "Escape") {
+        event.preventDefault();
+        const homeView = document.getElementById('home');
+        const newView = document.getElementById('new');
+        const viewSection = document.getElementById('view');
+        const shortcutsModal = document.getElementById('shortcuts-modal');
+
+        // Close shortcuts modal if open
+        if (!shortcutsModal.classList.contains('hidden')) {
+            shortcutsModal.classList.add('hidden');
+            return;
+        }
+
+        // Otherwise go back to home
+        if (newView.style.display === 'block' || viewSection.style.display === 'block') {
+            window.location = '/wayBill';
+        }
+    }
+
+    // ? key - Show keyboard shortcuts
+    if (event.key === '?' && !isTyping) {
+        event.preventDefault();
+        const shortcutsModal = document.getElementById('shortcuts-modal');
+        shortcutsModal.classList.remove('hidden');
+    }
+
+    // Ctrl/Cmd + F - Focus on search
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        event.preventDefault();
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
         }
     }
 });
@@ -159,14 +288,40 @@ async function loadRecentWayBills() {
     try {
         const response = await fetch(`/wayBill/recent-way-bills`);
         if (!response.ok) {
-            wayBillsListDiv.innerHTML = "<h1>No Waybills Found</h1>";
+            wayBillsListDiv.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16 fade-in">
+                    <div class="bg-gray-100 rounded-full p-8 mb-4">
+                        <i class="fas fa-inbox text-gray-400 text-6xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Waybills Found</h2>
+                    <p class="text-gray-500 mb-6">Get started by creating your first way bill</p>
+                    <button id="new-waybill-btn-2"" 
+                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                        <i class="fas fa-plus"></i>
+                        Create Way Bill
+                    </button>
+                </div>
+            `;
             return;
         }
         const data = await response.json();
         renderWayBills(data.wayBill);
     } catch (error) {
         console.error("Error loading way bills:", error);
-        wayBillsListDiv.innerHTML = "<p>Failed to load way bills. Please try again later.</p>";
+        wayBillsListDiv.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-16 fade-in">
+                <div class="bg-red-100 rounded-full p-8 mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">Failed to Load Way Bills</h2>
+                <p class="text-gray-500 mb-6">Please try again later</p>
+                <button onclick="loadRecentWayBills()" 
+                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                    <i class="fas fa-redo"></i>
+                    Retry
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -174,7 +329,20 @@ async function loadRecentWayBills() {
 function renderWayBills(wayBills) {
     wayBillsListDiv.innerHTML = "";
     if (!wayBills || wayBills.length === 0) {
-        wayBillsListDiv.innerHTML = "<h1>No Waybills Found</h1>";
+        wayBillsListDiv.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-16 fade-in">
+                <div class="bg-gray-100 rounded-full p-8 mb-4">
+                    <i class="fas fa-inbox text-gray-400 text-6xl"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Waybills Found</h2>
+                <p class="text-gray-500 mb-6">Get started by creating your first way bill</p>
+                <button onclick="document.getElementById('new-waybill-btn').click()" 
+                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                    <i class="fas fa-plus"></i>
+                    Create Way Bill
+                </button>
+            </div>
+        `;
         return;
     }
     wayBills.forEach(wayBill => {
@@ -186,40 +354,42 @@ function renderWayBills(wayBills) {
 // Create a way bill card element
 function createWayBillCard(wayBill) {
     const wayBillDiv = document.createElement("div");
-    wayBillDiv.className = "record-item";
+    wayBillDiv.className = "bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow fade-in";
     wayBillDiv.innerHTML = `
-    <div class="paid-icon">
-        <img src="../assets/delivery.png" alt="Way Bill Icon">
-    </div>
-    <div class="record-item-details">
-        <div class="record-item-info-1">
-            <h1>${wayBill.project_name}</h1>
-            <h4>${wayBill.waybill_id}</h4>
-            <div id="toast" style="display:none;position:absolute;bottom:20px;left:275px;background:#333;color:#fff;padding:10px 20px;border-radius:5px;">Copied!</div>
-        </div>
-        </div>
-        <div class="record-item-details">
-            <div class="record-item-info-2">
-                <h2>Customer</h2>
-                <p>${wayBill.customer_name}</p>
-                <p>${wayBill.customer_address}</p>
+        <div class="flex items-start justify-between">
+            <div class="flex items-start gap-4 flex-1">
+                <div class="bg-blue-100 p-3 rounded-lg">
+                    <i class="fas fa-route text-blue-600 text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-1">${wayBill.project_name}</h3>
+                            <p class="text-sm text-gray-500 font-mono">${wayBill.waybill_id}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 mb-1">Customer</p>
+                            <p class="text-sm font-semibold text-gray-700">${wayBill.customer_name}</p>
+                            <p class="text-xs text-gray-500 mt-1">${wayBill.customer_address}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 mb-1">Destination</p>
+                            <p class="text-sm font-semibold text-gray-700">${wayBill.place_supply}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
+            <select class="ml-4 px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                <option value="" disabled selected>Actions</option>
+                <option value="view">👁️ View</option>
+                <option value="update">✏️ Update</option>
+                <option value="delete">🗑️ Delete</option>
+            </select>
         </div>
-        <div class="record-item-details">
-            <div class="record-item-info-2">
-                <h2>Transport Place</h2>
-                <p>${wayBill.place_supply}</p>
-            </div>
-        </div>
-    </div>
-    <select class="actions">
-        <option value="" disabled selected>Actions</option>
-        <option value="view">View</option>
-        <option value="update">Update</option>
-        <option value="delete">Delete</option>
-    </select>
     `;
-    wayBillDiv.querySelector('.actions').addEventListener('change', function () {
+    wayBillDiv.querySelector('select').addEventListener('change', function () {
         handleWayBillAction(this, wayBill.waybill_id);
     });
     return wayBillDiv;
@@ -276,18 +446,23 @@ async function openWayBill(wayBillId) {
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
-        let sno = 0; 
+        let sno = 0;
 
         (wayBill.items || []).forEach(item => {
             const row = document.createElement("tr");
+            row.className = "border-b border-gray-200 hover:bg-gray-50";
             row.innerHTML = `
-                <td>${++sno}</td>
-                <td><input type="text" value="${item.description}" required></td>
-                <td><input type="text" value="${item.HSN_SAC}" required></td>
-                <td><input type="number" value="${item.quantity}" min="1" required></td>
-                <td><input type="number" value="${item.unit_price}" required></td>
-                <td><input type="number" value="${item.rate}" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
+                <td class="border border-gray-300 px-4 py-3 text-center text-base">${++sno}</td>
+                <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description}" required></td>
+                <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC}" required></td>
+                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity}" min="1" required></td>
+                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.unit_price}" required></td>
+                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.rate}" required></td>
+                <td class="border border-gray-300 px-2 py-2 text-center">
+                    <button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
             `;
             itemsTableBody.appendChild(row);
         });
@@ -319,10 +494,29 @@ async function deleteWayBill(wayBillId) {
 
 // Show the new way bill form
 function showNewWayBillForm() {
+    // Hide other sections
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
-    document.getElementById('new-waybill-btn').style.display = 'none';
     document.getElementById('view').style.display = 'none';
+
+    // Update header buttons
+    document.getElementById('new-waybill-btn').style.display = 'none';
+    document.getElementById('view-preview-btn').style.display = 'block';
+
+    // Reset form
+    document.getElementById('waybill-form').reset();
+
+    // Clear items table
+    const itemsTableBody = document.querySelector("#items-table tbody");
+    if (itemsTableBody) {
+        itemsTableBody.innerHTML = "";
+    }
+
+    // Reset to step 1
+    document.querySelectorAll('.steps').forEach(step => step.classList.remove('active'));
+    document.getElementById('step-1').classList.add('active');
+    currentStep = 1;
+    updateNavigation();
     document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 }
 
@@ -338,7 +532,20 @@ async function handleSearch() {
         const response = await fetch(`/wayBill/search/${query}`);
         if (!response.ok) {
             const errorText = await response.text();
-            wayBillsListDiv.innerHTML = `<h1>${errorText}</h1>`;
+            wayBillsListDiv.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16 fade-in">
+                    <div class="bg-yellow-100 rounded-full p-8 mb-4">
+                        <i class="fas fa-search text-yellow-500 text-6xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
+                    <p class="text-gray-500 mb-2">No way bills match "${query}"</p>
+                    <button onclick="document.getElementById('search-input').value=''; loadRecentWayBills();" 
+                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium mt-4">
+                        <i class="fas fa-list"></i>
+                        Show All Way Bills
+                    </button>
+                </div>
+            `;
             return;
         }
 

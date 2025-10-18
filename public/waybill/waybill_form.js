@@ -18,14 +18,19 @@ document.getElementById("next-btn").addEventListener("click", () => {
 
                     quotation.items.forEach(item => {
                         const row = document.createElement("tr");
+                        row.className = "border-b border-gray-200 hover:bg-gray-50";
                         row.innerHTML = `
-                            <td>${++sno}</td>
-                            <td><input type="text" value="${item.description}" required></td>
-                            <td><input type="text" value="${item.HSN_SAC}" required></td>
-                            <td><input type="number" value="${item.quantity}" min="1" required></td>
-                            <td><input type="number" value="${item.unit_price}" required></td>
-                            <td><input type="number" value="${item.rate}" required></td>
-                            <td><button type="button" class="remove-item-btn">Remove</button></td>
+                            <td class="border border-gray-300 px-4 py-3 text-center text-base">${++sno}</td>
+                            <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description}" required></td>
+                            <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC}" required></td>
+                            <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity}" min="1" required></td>
+                            <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.unit_price}" required></td>
+                            <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.rate}" required></td>
+                            <td class="border border-gray-300 px-2 py-2 text-center">
+                                <button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
                         `;
                         itemsTableBody.appendChild(row);
                     });
@@ -43,16 +48,21 @@ document.getElementById('add-item-btn').addEventListener('click', addItem);
 function addItem() {
     const tableBody = document.querySelector("#items-table tbody");
     const row = document.createElement("tr");
-    let sno = 0;
+    const rowCount = tableBody.rows.length + 1;
 
+    row.className = "border-b border-gray-200 hover:bg-gray-50";
     row.innerHTML = `
-        <td>${++sno}</td>
-        <td><input type="text" placeholder="Item Description" required></td>
-        <td><input type="text" placeholder="HSN Code" required></td>
-        <td><input type="number" placeholder="Qty" min="1" required></td>
-        <td><input type="number" placeholder="Unit Price" required></td>
-        <td><input type="number" placeholder="Tax Rate" required></td>
-        <td><button type="button" class="remove-item-btn" onclick="removeItem(this)">Remove</button></td>
+        <td class="border border-gray-300 px-4 py-3 text-center text-base">${rowCount}</td>
+        <td class="border border-gray-300 px-2 py-2"><input type="text" placeholder="Item Description" required></td>
+        <td class="border border-gray-300 px-2 py-2"><input type="text" placeholder="HSN Code" required></td>
+        <td class="border border-gray-300 px-2 py-2"><input type="number" placeholder="Qty" min="1" required></td>
+        <td class="border border-gray-300 px-2 py-2"><input type="number" placeholder="Unit Price" required></td>
+        <td class="border border-gray-300 px-2 py-2"><input type="number" placeholder="Tax Rate" required></td>
+        <td class="border border-gray-300 px-2 py-2 text-center">
+            <button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm" onclick="removeItem(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
     `;
 
     tableBody.appendChild(row);

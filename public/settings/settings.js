@@ -41,6 +41,13 @@ function fetchAdminInfo() {
             document.getElementById("admin-website").textContent = `Website: ${data.website}`;
             document.getElementById("admin-gstin").textContent = `GSTIN: ${data.GSTIN}`;
             document.getElementById("bank-name").textContent = `Bank Name: ${data.bank_details.bank_name}`;
+            
+            // Check if account-holder element exists before setting it
+            const accountHolderElement = document.getElementById("account-holder");
+            if (accountHolderElement && data.bank_details.account_holder) {
+                accountHolderElement.textContent = `Account Holder: ${data.bank_details.account_holder}`;
+            }
+            
             document.getElementById("account-number").textContent = `Account No: ${data.bank_details.accountNo}`;
             document.getElementById("ifsc-code").textContent = `IFSC Code: ${data.bank_details.IFSC_code}`;
             document.getElementById("branch-name").textContent = `Branch: ${data.bank_details.branch}`;
@@ -90,6 +97,18 @@ document.getElementById("change-password-button1").addEventListener("click", () 
 
 document.getElementById("data-control-button").addEventListener("click", () => {
     toggleSection("data-backup-section");
+});
+
+/**
+ * Handles the logout button click.
+ * Clears session storage and redirects to the login page.
+ */
+document.getElementById("logout-button").addEventListener("click", () => {
+    // Clear session storage
+    sessionStorage.clear();
+    
+    // Redirect to login page
+    window.location.href = '/';
 });
 
 // --- USER CREDENTIAL MANAGEMENT ---
