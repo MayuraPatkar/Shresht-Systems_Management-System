@@ -165,8 +165,43 @@
             </div>
         </section>
 
+        <!-- Quick Actions Panel -->
+        <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6 fade-in">
+            <div class="flex items-center gap-3 mb-4">
+                <i class="fas fa-bolt text-yellow-600 text-2xl"></i>
+                <h2 class="text-xl font-semibold text-gray-800">Quick Actions</h2>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <a href="../quotation/quotation.html" 
+                    class="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200">
+                    <i class="fas fa-file-alt text-blue-600 text-3xl"></i>
+                    <span class="text-sm font-medium text-gray-700">New Quotation</span>
+                </a>
+                <a href="../invoice/invoice.html" 
+                    class="flex flex-col items-center gap-2 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200">
+                    <i class="fas fa-file-invoice text-green-600 text-3xl"></i>
+                    <span class="text-sm font-medium text-gray-700">New Invoice</span>
+                </a>
+                <a href="../waybill/wayBill.html" 
+                    class="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200">
+                    <i class="fas fa-truck text-purple-600 text-3xl"></i>
+                    <span class="text-sm font-medium text-gray-700">New Waybill</span>
+                </a>
+                <a href="../stock/stock.html" 
+                    class="flex flex-col items-center gap-2 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200">
+                    <i class="fas fa-box text-orange-600 text-3xl"></i>
+                    <span class="text-sm font-medium text-gray-700">Add Stock</span>
+                </a>
+                <a href="../service/service.html" 
+                    class="flex flex-col items-center gap-2 p-4 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors border border-teal-200">
+                    <i class="fas fa-wrench text-teal-600 text-3xl"></i>
+                    <span class="text-sm font-medium text-gray-700">New Service</span>
+                </a>
+            </div>
+        </section>
+
         <!-- Statistics Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             
             <!-- Total Quotations Card -->
             <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500 fade-in">
@@ -241,6 +276,145 @@
             </div>
 
         </div>
+
+        <!-- Two Column Layout for Recent Activity and Stock Alerts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            
+            <!-- Recent Activity Section -->
+            <section class="bg-white rounded-lg shadow-md border border-gray-200 fade-in">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-history text-indigo-600 text-2xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Recent Activity</h2>
+                        </div>
+                        <button onclick="refreshActivity()" class="text-blue-600 hover:text-blue-700">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div id="recent-activity" class="space-y-4 max-h-96 overflow-y-auto">
+                        <!-- Activity items will be loaded dynamically -->
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                            <p>Loading recent activity...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stock Alerts Section -->
+            <section class="bg-white rounded-lg shadow-md border border-gray-200 fade-in">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Stock Alerts</h2>
+                        </div>
+                        <a href="../stock/stock.html" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                            View All →
+                        </a>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div id="stock-alerts" class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- Stock alerts will be loaded dynamically -->
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                            <p>Loading stock alerts...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Pending Tasks Section -->
+        <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6 fade-in">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-tasks text-purple-600 text-2xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Pending Tasks & Reminders</h2>
+                </div>
+                <button onclick="refreshTasks()" class="text-blue-600 hover:text-blue-700">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div id="pending-tasks" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Tasks will be loaded dynamically -->
+                <div class="col-span-3 text-center text-gray-500 py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                    <p>Loading pending tasks...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Metrics -->
+        <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+            <div class="flex items-center gap-3 mb-6">
+                <i class="fas fa-chart-line text-green-600 text-2xl"></i>
+                <h2 class="text-xl font-semibold text-gray-800">This Month vs Last Month</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Revenue Comparison -->
+                <div class="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Revenue</span>
+                        <i class="fas fa-rupee-sign text-green-600"></i>
+                    </div>
+                    <p id="revenue-current" class="text-2xl font-bold text-gray-800 mb-1">₹0</p>
+                    <div class="flex items-center gap-2">
+                        <span id="revenue-trend" class="text-sm font-semibold text-green-600">
+                            <i class="fas fa-arrow-up"></i> 0%
+                        </span>
+                        <span class="text-xs text-gray-600">vs last month</span>
+                    </div>
+                </div>
+
+                <!-- Projects Comparison -->
+                <div class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Projects</span>
+                        <i class="fas fa-project-diagram text-blue-600"></i>
+                    </div>
+                    <p id="projects-current" class="text-2xl font-bold text-gray-800 mb-1">0</p>
+                    <div class="flex items-center gap-2">
+                        <span id="projects-trend" class="text-sm font-semibold text-blue-600">
+                            <i class="fas fa-arrow-up"></i> 0%
+                        </span>
+                        <span class="text-xs text-gray-600">vs last month</span>
+                    </div>
+                </div>
+
+                <!-- Quotations Comparison -->
+                <div class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Quotations</span>
+                        <i class="fas fa-file-alt text-purple-600"></i>
+                    </div>
+                    <p id="quotations-current" class="text-2xl font-bold text-gray-800 mb-1">0</p>
+                    <div class="flex items-center gap-2">
+                        <span id="quotations-trend" class="text-sm font-semibold text-purple-600">
+                            <i class="fas fa-arrow-up"></i> 0%
+                        </span>
+                        <span class="text-xs text-gray-600">vs last month</span>
+                    </div>
+                </div>
+
+                <!-- Conversion Rate -->
+                <div class="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Conversion</span>
+                        <i class="fas fa-percentage text-orange-600"></i>
+                    </div>
+                    <p id="conversion-rate" class="text-2xl font-bold text-gray-800 mb-1">0%</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-600">Quotation → Project</span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
     </main>
 
