@@ -198,20 +198,16 @@ async function openQuotation(quotationId) {
             nonItemsTableBody.appendChild(row);
         });
 
-        (quotation.items || []).forEach(item => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${itemsSpecificationsTableBody.children.length + 1}</td>
-                <td>${item.description || ''}</td>
-                <td><input type="text" value="${item.specification || ''}" required></td>
-            `;
-            itemsSpecificationsTableBody.appendChild(row);
-        });
+        // Combine items and non_items for specifications table
+        const allItemsForSpecs = [
+            ...(quotation.items || []).map(item => ({ ...item, type: 'item' })),
+            ...(quotation.non_items || []).map(item => ({ ...item, type: 'non_item' }))
+        ];
 
-        (quotation.non_items || []).forEach(item => {
+        allItemsForSpecs.forEach((item, index) => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${itemsSpecificationsTableBody.children.length + 1}</td>
+                <td>${index + 1}</td>
                 <td>${item.description || ''}</td>
                 <td><input type="text" value="${item.specification || ''}" required></td>
             `;

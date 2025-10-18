@@ -813,10 +813,10 @@ async function loadQuotationForEditing(id) {
         const specTableBody = document.querySelector("#items-specifications-table tbody");
         specTableBody.innerHTML = ''; // Clear existing rows
         const allItems = [...(quotation.items || []), ...(quotation.non_items || [])];
-        allItems.forEach(item => {
+        allItems.forEach((item, index) => {
             const row = specTableBody.insertRow();
             row.innerHTML = `
-                <td>${specTableBody.rows.length}</td>
+                <td>${index + 1}</td>
                 <td>${item.description || ''}</td>
                 <td><input type="text" value="${item.specification || ''}" placeholder="Enter specifications"></td>
              `;
