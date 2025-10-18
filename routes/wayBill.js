@@ -3,6 +3,16 @@ const router = express.Router();
 const { wayBills } = require('./database');
 const log = require("electron-log"); // Import electron-log in the preload process
 
+// Route to get all waybills
+router.get("/all", async (req, res) => {
+    try {
+        const allWayBills = await wayBills.find().sort({ createdAt: -1 });
+        return res.status(200).json(allWayBills);
+    } catch (error) {
+        log.error("Error fetching waybills:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
 
 router.post("/save-way-bill", async (req, res) => {
     try {

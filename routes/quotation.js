@@ -28,6 +28,17 @@ router.get("/generate-id", async (req, res) => {
     res.status(200).json({ quotation_id: quotationId });
 });
 
+// Route to get all quotations
+router.get("/all", async (req, res) => {
+    try {
+        const quotations = await Quotations.find().sort({ createdAt: -1 });
+        return res.status(200).json(quotations);
+    } catch (error) {
+        log.error("Error fetching quotations:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 // Helper: Validate item structure
 function isValidItem(item) {
     return (

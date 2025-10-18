@@ -1,3 +1,15 @@
+// ---------------------- Utility Functions ----------------------
+function formatIndian(num, fractionDigits = 0) {
+    if (typeof num !== 'number' || isNaN(num)) {
+        return '0';
+    }
+    return num.toLocaleString('en-IN', {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits,
+    });
+}
+
+// ---------------------- Load Dashboard Data on Page Load ----------------------
 document.addEventListener("DOMContentLoaded", () => {
     // Fetch and populate overview data
     fetch('/analytics/overview')
@@ -13,6 +25,12 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch(err => {
             console.error("Error fetching analytics:", err);
         });
+    
+    // Load all dashboard sections
+    loadRecentActivity();
+    loadStockAlerts();
+    loadPendingTasks();
+    loadPerformanceMetrics();
 });
 
 // ---------------------- Animated Counter Function ----------------------
@@ -405,11 +423,3 @@ function refreshTasks() {
     `;
     loadPendingTasks();
 }
-
-// ---------------------- Initialize All Sections ----------------------
-document.addEventListener('DOMContentLoaded', () => {
-    loadRecentActivity();
-    loadStockAlerts();
-    loadPendingTasks();
-    loadPerformanceMetrics();
-});

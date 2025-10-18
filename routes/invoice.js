@@ -40,6 +40,18 @@ router.get("/get-all", async (req, res) => {
     }
 });
 
+// Alias for dashboard compatibility
+router.get("/all", async (req, res) => {
+    try {
+        const invoices = await Invoices.find().sort({ createdAt: -1 });
+        return res.status(200).json(invoices);
+    } catch (error) {
+        log.error("Error fetching invoices:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
 
 router.post("/save-invoice", async (req, res) => {
     try {

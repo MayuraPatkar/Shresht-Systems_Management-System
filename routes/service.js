@@ -30,6 +30,17 @@ router.get("/generate-id", async (req, res) => {
     res.status(200).json({ service_id: service_id });
 });
 
+// Route to get all services (invoices with service_month > 0)
+router.get('/all', async (req, res) => {
+    try {
+        const services = await Invoices.find({ service_month: { $ne: 0 } }).sort({ createdAt: -1 });
+        return res.status(200).json(services);
+    } catch (error) {
+        log.error("Error fetching services:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 // Get service notifications (all invoices with service_month > 0 and due)
 router.get('/get-service', async (req, res) => {
     try {
