@@ -1,16 +1,3 @@
-// Basic Calculator
-function calculateBasic() {
-    try {
-        const input = document.getElementById('basicCalcInput').value;
-        // Only allow numbers and math operators
-        if (!/^[\d+\-*/().\s]+$/.test(input)) throw "Invalid input";
-        const result = Function('"use strict";return (' + input + ')')();
-        document.getElementById('basicCalcResult').textContent = "Result: " + result;
-    } catch {
-        document.getElementById('basicCalcResult').textContent = "Invalid expression";
-    }
-}
-
 // GST Calculator
 function calculateGST() {
     const amount = parseFloat(document.getElementById('gstAmount').value);

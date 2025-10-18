@@ -47,19 +47,9 @@ document.getElementById('stock').addEventListener('click', () => {
   sessionStorage.setItem('currentTab', 'stock');
 })
 
-document.getElementById('employees').addEventListener('click', () => {
-  window.location = '/employee';
-  sessionStorage.setItem('currentTab', 'employee');
-})
-
 document.getElementById('comms').addEventListener('click', () => {
   window.location = '/comms';
   sessionStorage.setItem('currentTab', 'comms');
-})
-
-document.getElementById('analytics').addEventListener('click', () => {
-  window.location = '/analytics';
-  sessionStorage.setItem('currentTab', 'analytics');
 })
 
 document.getElementById('calculations').addEventListener('click', () => {
