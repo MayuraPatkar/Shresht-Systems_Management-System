@@ -28,13 +28,13 @@ function createAlertWindow(parentWindow, message, htmlFile) {
         parent: parentWindow,
         modal: true,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, '../../preload.js'),
             contextIsolation: true,
             nodeIntegration: false,
         },
     });
 
-    alertWindow.loadFile(path.join(__dirname, 'public', htmlFile)).catch((err) => {
+    alertWindow.loadFile(path.join(__dirname, '../../public', htmlFile)).catch((err) => {
         console.error(`Failed to load ${htmlFile}:`, err);
     });
 

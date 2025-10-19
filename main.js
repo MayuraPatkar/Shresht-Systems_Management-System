@@ -23,8 +23,8 @@ const { app, BrowserWindow, ipcMain, screen, dialog } = require("electron");
 const path = require("path");
 const log = require("electron-log");
 const fs = require("fs");
-const { handlePrintEvent } = require("./printHandler");
-require('./alertHandler');
+const { handlePrintEvent } = require("./src/utils/printHandler");
+require('./src/utils/alertHandler');
 const EventEmitter = require("events");
 
 // Create a global event emitter for server-main communication
