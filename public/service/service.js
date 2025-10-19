@@ -1,5 +1,6 @@
 const serviceRecordsDiv = document.querySelector(".records");
 const totalSteps = 2;
+let currentStep = 1;
 
 document.addEventListener("DOMContentLoaded", () => {
     loadService();
@@ -8,12 +9,47 @@ document.addEventListener("DOMContentLoaded", () => {
         serviceRecordsDiv.addEventListener("click", handleServiceListClick);
     }
 
+    // Search functionality
     document.getElementById('search-input')?.addEventListener('keydown', (event) => {
         if (event.key === "Enter") {
             handleSearch();
         }
     });
+
+    // Navigation buttons
+    document.getElementById('home-btn')?.addEventListener('click', showHome);
+    document.getElementById('prev-btn')?.addEventListener('click', prevStep);
+    document.getElementById('next-btn')?.addEventListener('click', nextStep);
+
+    // Shortcuts modal
+    document.getElementById('shortcuts-btn')?.addEventListener('click', () => {
+        document.getElementById('shortcuts-modal').classList.remove('hidden');
+    });
+    document.getElementById('close-shortcuts')?.addEventListener('click', () => {
+        document.getElementById('shortcuts-modal').classList.add('hidden');
+    });
+
+    // Click outside modal to close
+    document.getElementById('shortcuts-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'shortcuts-modal') {
+            document.getElementById('shortcuts-modal').classList.add('hidden');
+        }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+
+    // Set current date as default
+    const dateInput = document.getElementById('date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
 });
+
+// Get ID for preview generation
+function getId() {
+    generatePreview();
+}
 
 function getId(){
     generatePreview()
@@ -22,24 +58,49 @@ function getId(){
 // Create service card
 function createServiceDiv(service) {
     const div = document.createElement("div");
-    div.className = "record-item";
+    div.className = "service-card bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-all";
+    
+    const serviceDate = service.service_date ? new Date(service.service_date).toLocaleDateString() : 'N/A';
+    const feeAmount = service.fee_amount ? `₹${parseFloat(service.fee_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : 'N/A';
+    
     div.innerHTML = `
-    <div class="paid-icon">
-        <img src="../assets/telemarketing.png" alt="Icon">
-    </div>
-    <div class="details">
-        <div class="info1">
-            <h1>${service.project_name}</h1>
-            <h4>#${service.invoice_id}${service.service_stage + 1}</h4>
+        <div class="flex items-start justify-between">
+            <div class="flex items-center gap-4 flex-1">
+                <div class="bg-blue-100 rounded-full p-3">
+                    <i class="fas fa-wrench text-blue-600 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        <h3 class="text-lg font-semibold text-gray-800">${service.project_name || 'Unnamed Project'}</h3>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">#${service.invoice_id}${service.service_stage + 1}</span>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-user text-gray-400 mr-1"></i>
+                            ${service.customer_name || 'N/A'}
+                        </p>
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i>
+                            ${service.customer_address || 'N/A'}
+                        </p>
+                        <div class="flex gap-4 mt-2">
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-calendar text-gray-400 mr-1"></i>
+                                ${serviceDate}
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-rupee-sign text-gray-400 mr-1"></i>
+                                ${feeAmount}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="open-service bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors" data-id="${service.invoice_id}">
+                <i class="fas fa-folder-open"></i>
+                Open
+            </button>
         </div>
-        <div class="info2">
-            <p>${service.customer_name}</p>
-            <p>${service.customer_address}</p>
-        </div>    
-    </div>
-    <div class="actions">
-        <button class="btn btn-primary open-service" data-id="${service.invoice_id}">Open</button>
-    </div>
     `;
     return div;
 }
@@ -61,7 +122,13 @@ async function loadService() {
         serviceListDiv.innerHTML = "";
 
         if (!services.projects || services.projects.length === 0) {
-            serviceListDiv.innerHTML = `<h1>No services available</h1>`;
+            serviceListDiv.innerHTML = `
+                <div class="col-span-full flex flex-col items-center justify-center py-12">
+                    <i class="fas fa-wrench text-gray-300 text-6xl mb-4"></i>
+                    <h2 class="text-xl font-semibold text-gray-600 mb-2">No services available</h2>
+                    <p class="text-gray-500">Services will appear here once created</p>
+                </div>
+            `;
             return;
         }
 
@@ -98,7 +165,13 @@ async function handleSearch() {
         serviceListDiv.innerHTML = "";
 
         if (services.length === 0) {
-            serviceListDiv.innerHTML = `<p>No services found for "${query}"</p>`;
+            serviceListDiv.innerHTML = `
+                <div class="col-span-full flex flex-col items-center justify-center py-12">
+                    <i class="fas fa-search text-gray-300 text-6xl mb-4"></i>
+                    <h2 class="text-xl font-semibold text-gray-600 mb-2">No results found</h2>
+                    <p class="text-gray-500">No services found for "${query}"</p>
+                </div>
+            `;
             return;
         }
 
@@ -141,12 +214,157 @@ async function openService(serviceId) {
         document.getElementById('phone').value = service.customer_phone || '';
         document.getElementById('service-stage').value = service.service_stage || '';
 
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'block';
+        showNew();
+        updateStepIndicator();
 
     } catch (error) {
         console.error("Error fetching service:", error);
         window.electronAPI?.showAlert1("Failed to fetch service. Please try again later.");
+    }
+}
+
+// Show/Hide sections
+function showHome() {
+    document.getElementById('home').style.display = 'block';
+    document.getElementById('new').style.display = 'none';
+    currentStep = 1;
+    resetForm();
+    loadService();
+}
+
+function showNew() {
+    document.getElementById('home').style.display = 'none';
+    document.getElementById('new').style.display = 'block';
+    currentStep = 1;
+    updateStepIndicator();
+}
+
+// Step navigation
+function nextStep() {
+    if (currentStep < totalSteps) {
+        // Validate current step before proceeding
+        if (!validateStep(currentStep)) {
+            return;
+        }
+
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        currentStep++;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        updateStepIndicator();
+        
+        // Generate preview on step 2
+        if (currentStep === 2) {
+            generatePreview();
+        }
+    }
+}
+
+function prevStep() {
+    if (currentStep > 1) {
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        currentStep--;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        updateStepIndicator();
+    }
+}
+
+function updateStepIndicator() {
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const indicator = document.getElementById('step-indicator');
+
+    indicator.textContent = `Step ${currentStep} of ${totalSteps}`;
+    
+    prevBtn.disabled = currentStep === 1;
+    nextBtn.style.display = currentStep === totalSteps ? 'none' : 'flex';
+}
+
+// Validate step
+function validateStep(step) {
+    if (step === 1) {
+        const payment = document.getElementById('payment').value;
+        const date = document.getElementById('date').value;
+
+        if (!payment || parseFloat(payment) <= 0) {
+            window.electronAPI?.showAlert1("Please enter a valid payment amount");
+            return false;
+        }
+
+        if (!date) {
+            window.electronAPI?.showAlert1("Please select a service date");
+            return false;
+        }
+    }
+    return true;
+}
+
+// Reset form
+function resetForm() {
+    document.getElementById('service-form').reset();
+    document.getElementById('payment').value = '';
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('question-yes').checked = true;
+    
+    // Reset all steps
+    for (let i = 1; i <= totalSteps; i++) {
+        document.getElementById(`step-${i}`).classList.remove('active');
+    }
+    document.getElementById('step-1').classList.add('active');
+}
+
+// Keyboard shortcuts
+function handleKeyboardShortcuts(event) {
+    // Don't trigger if user is typing in an input
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    // Ctrl/Cmd + H - Go Home
+    if ((event.ctrlKey || event.metaKey) && event.key === 'h') {
+        event.preventDefault();
+        showHome();
+    }
+
+    // Ctrl/Cmd + S - Save
+    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault();
+        if (document.getElementById('new').style.display === 'block' && currentStep === 2) {
+            document.getElementById('save-btn').click();
+        }
+    }
+
+    // Ctrl/Cmd + Shift + P - Print
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'P') {
+        event.preventDefault();
+        if (document.getElementById('new').style.display === 'block' && currentStep === 2) {
+            document.getElementById('print-btn').click();
+        }
+    }
+
+    // Ctrl/Cmd + F - Focus search
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        event.preventDefault();
+        document.getElementById('search-input')?.focus();
+    }
+
+    // Arrow keys for navigation (only in form)
+    if (document.getElementById('new').style.display === 'block') {
+        if (event.key === 'ArrowRight' || event.key === 'Enter') {
+            event.preventDefault();
+            nextStep();
+        } else if (event.key === 'ArrowLeft' || event.key === 'Backspace') {
+            event.preventDefault();
+            prevStep();
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            showHome();
+        }
+    }
+
+    // ? - Show shortcuts
+    if (event.key === '?') {
+        event.preventDefault();
+        document.getElementById('shortcuts-modal').classList.remove('hidden');
     }
 }
 
@@ -234,6 +452,9 @@ document.getElementById("save-btn").addEventListener("click", async () => {
     const ok = await sendToServer(serviceData);
     if (ok) {
         window.electronAPI?.showAlert1("Service saved successfully.");
+        setTimeout(() => {
+            showHome();
+        }, 1500);
     } else {
         window.electronAPI?.showAlert1("Failed to save service.");
     }

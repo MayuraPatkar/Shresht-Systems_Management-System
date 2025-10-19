@@ -4,80 +4,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../global/root.css">
-    <link rel="stylesheet" href="../global/globalStyle.css">
-    <link rel="stylesheet" href="../global/formStyle.css">
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="../global/previewStyle.css">
     <title>Service</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar {
+            width: 280px;
+        }
+
+        /* Custom scrollbar */
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Hide non-active sections */
+        #new {
+            display: none;
+        }
+
+        /* Step visibility */
+        .steps {
+            display: none;
+        }
+
+        .steps.active {
+            display: block;
+        }
+
+        /* Pulse animation for shortcuts button */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        #shortcuts-btn:hover {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        /* Smooth modal transitions */
+        #shortcuts-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #shortcuts-modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #shortcuts-modal:not(.hidden) {
+            opacity: 1;
+        }
+
+        /* Service card hover effect */
+        .service-card {
+            transition: all 0.3s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 
-<body>
-    <header class="no-select">
-        <div class="imglogo-title">
-            <div class="img" id="logo">
-                <img src="../assets/icon.png" alt="logo" onclick="window.location = '/dashboard'">
-            </div>
-            <h1>Service</h1>
+<body class="bg-gray-100">
 
-        </div>
-        <div class="search">
-            <img src="../assets/search.png" alt="Search">
-            <input type="text" id="search-input" placeholder="Search here...">
-        </div>
-        <div class="header-buttons">
-            <button onclick="window.location = '/service'">Home</button>
+    <!-- Fixed Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Service</h1>
+            </div>
+            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
+                <div class="relative flex-1">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="search-input" placeholder="Search services..."
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="home-btn"
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
+                    <i class="fas fa-home"></i>
+                    Home
+                </button>
+                <button id="shortcuts-btn"
+                    class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 flex items-center gap-2 font-medium"
+                    title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-keyboard"></i>
+                </button>
+            </div>
         </div>
     </header>
-    <div class="container" class="no-select">
-        <aside>
-            <div class="nav-link" id="dashboard">
-                <img src="../assets/dashboard-interface.png" alt="dashboard">
-                Dashboard
+
+    <!-- Sidebar -->
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
+        <nav class="flex-1 p-4 overflow-y-auto">
+            <div class="flex flex-col gap-2">
+                <a href="../dashboard/dashboard.html" id="dashboard"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-th-large w-8 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../quotation/quotation.html" id="quotation"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-file-alt w-8 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="../invoice/invoice.html" id="invoice"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                    <span>Bill / Invoice</span>
+                </a>
+                <a href="../waybill/wayBill.html" id="wayBill"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-route w-8 text-center"></i>
+                    <span>Way Bill</span>
+                </a>
+                <a href="#" id="service"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-wrench w-8 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="../purchaseOrder/purchaseOrder.html" id="purchase-bill"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
+                    <span>Purchase Bill</span>
+                </a>
+                <a href="../stock/stock.html" id="stock"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-box w-8 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="../comms/comms.html" id="comms"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-comments w-8 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="../calculations/calculations.html" id="calculations"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-calculator w-8 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="../settings/settings.html" id="settings"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    <i class="fas fa-cog w-8 text-center"></i>
+                    <span>Settings</span>
+                </a>
             </div>
-            <div class="nav-link" id="quotation">
-                <img src="../assets/quotation.png" alt="Quotation">
-                Quotation
-            </div>
-            <div class="nav-link" id="invoice">
-                <img src="../assets/transaction.png" alt="Invoice">
-                Bill / Invoice
-            </div>
-            <div class="nav-link" id="wayBill">
-                <img src="../assets/delivery.png" alt="Way Bill">
-                Way Bill
-            </div>
-            <div class="nav-link active" id="service">
-                <img src="../assets/telemarketing.png" alt="Service">
-                Service
-            </div>
-            <div class="nav-link" id="postOrder">
-                <img src="../assets/economy-forecast.png" alt="Purchase Bill">
-                Purchase Bill
-            </div>
-            <div class="nav-link" id="stock">
-                <img src="../assets/in-stock.png" alt="Stock">
-                Stock
-            </div>
-            <div class="nav-link" id="comms">
-                <img src="../assets/customer-service.png" alt="comms">
-                Comms
-            </div>
-            <div class="nav-link" id="calculations">
-                <img src="../assets/calculator.png" alt="calculations">
-                Calculations
-            </div>
-            <div class="nav-link" id="settings">
-                <img src="../assets/settings.png" alt="Settings">
-                Settings
-            </div>
-        </aside>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-[280px] pt-24 p-8">
+
+        <!-- Home View - Service List -->
         <div id="home">
-            <div class="records">
+            <div class="records grid grid-cols-1 gap-4">
                 <!-- content will be loaded dynamically -->
             </div>
         </div>
-        <div class="no-select" id="new">
-            <form id="Service">
+
+        <!-- New/Edit Service Form -->
+        <div id="new">
+            <form id="service-form" class="max-w-5xl mx-auto">
                 <input type="hidden" id="id" value="">
                 <input type="hidden" id="service-id" value="">
                 <input type="hidden" id="invoice-id" value="">
@@ -87,54 +220,216 @@
                 <input type="hidden" id="address" value="">
                 <input type="hidden" id="email" value="">
                 <input type="hidden" id="service-stage" value="">
+
+                <!-- Step 1: Service Details -->
                 <div class="steps active" id="step-1">
-                    <h2>Service Details</h2>
-                    <div class="form-group">
-                        <label for="payment">Payment</label>
-                        <input type="text" id="payment">
-                    </div>
-                    <div class="form-group">
-                        <label for="date">Date</label>
-                        <input type="date" id="date">
-                    </div>
-                    <!-- <div class="form-group">
-                        <label for="serviceStage">Service Stage</label>
-                        <input type="number" id="serviceStage">
-                    </div> -->
-                    <div class="form-group">
-                        <label for="question-yes">Is There Next Service?</label>
-                        <div class="radio-group">
+                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <i class="fas fa-wrench text-blue-600 text-2xl"></i>
+                            <h2 class="text-2xl font-semibold text-gray-800">Service Details</h2>
+                        </div>
+                        <div class="space-y-4">
                             <div>
-                                <input type="radio" name="question" id="question-yes" value="yes" checked>
-                                <label for="question-yes">Yes</label>
+                                <label for="payment" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>Payment Amount *
+                                </label>
+                                <input type="number" id="payment" required placeholder="Enter payment amount" step="0.01"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                             <div>
-                                <input type="radio" name="question" id="question-no" value="no">
-                                <label for="question-no">No</label>
+                                <label for="date" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-calendar text-gray-500 mr-1"></i>Service Date *
+                                </label>
+                                <input type="date" id="date" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-question-circle text-gray-500 mr-1"></i>Is There Next Service?
+                                </label>
+                                <div class="flex gap-6">
+                                    <div class="flex items-center">
+                                        <input type="radio" name="question" id="question-yes" value="yes" checked
+                                            class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                        <label for="question-yes" class="ml-2 text-sm font-medium text-gray-700">Yes</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="radio" name="question" id="question-no" value="no"
+                                            class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                        <label for="question-no" class="ml-2 text-sm font-medium text-gray-700">No</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Step 2: Preview -->
                 <div class="steps" id="step-2">
-                    <div class="preview">
-                        <h2>Preview</h2>
-                        <div id="preview-content"></div>
+                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <i class="fas fa-eye text-indigo-600 text-2xl"></i>
+                            <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
+                        </div>
+                        <div id="preview-content" class="mb-6">
+                            <!-- Preview will be dynamically generated -->
+                        </div>
+                        <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
+                            <button type="button" id="save-btn"
+                                class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium">
+                                <i class="fas fa-save"></i>
+                                Save
+                            </button>
+                            <button type="button" id="print-btn"
+                                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                                <i class="fas fa-print"></i>
+                                Print
+                            </button>
+                            <button type="button" id="save-pdf-btn"
+                                class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
+                                <i class="fas fa-file-pdf"></i>
+                                Save as PDF
+                            </button>
+                        </div>
                     </div>
-                    <button type="button" id="save-btn">Save</button>
-                    <button type="button" id="print-btn">Print</button>
-                    <button type="button" id="save-pdf-btn">Save as PDF</button>
                 </div>
-                <div class="navigation">
-                    <button type="button" id="prev-btn" disabled>Previous</button>
-                    <div class="step-indicators">
-                        <span id="step-indicator"></span>
+
+                <!-- Navigation -->
+                <div class="bg-white rounded-lg shadow-md p-6 mt-6 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <button type="button" id="prev-btn" disabled
+                            class="bg-gray-300 text-gray-600 px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 flex items-center gap-2">
+                            <i class="fas fa-arrow-left"></i>
+                            Previous
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-stream text-blue-600"></i>
+                            <span id="step-indicator" class="text-lg font-semibold text-gray-700">Step 1 of 2</span>
+                        </div>
+                        <button type="button" id="next-btn"
+                            class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 flex items-center gap-2">
+                            Next
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
-                    <button type="button" id="next-btn">Next</button>
                 </div>
             </form>
         </div>
+
+    </main>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-keyboard text-2xl"></i>
+                    <h2 class="text-xl font-semibold">Keyboard Shortcuts</h2>
+                </div>
+                <button id="close-shortcuts" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <!-- Navigation Shortcuts -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-arrows-alt text-blue-600"></i>
+                        Navigation
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <span class="text-gray-700">Next Step</span>
+                            <div class="flex gap-2">
+                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Enter</kbd>
+                                <span class="text-gray-400">or</span>
+                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">→</kbd>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <span class="text-gray-700">Previous Step</span>
+                            <div class="flex gap-2">
+                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Backspace</kbd>
+                                <span class="text-gray-400">or</span>
+                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">←</kbd>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <span class="text-gray-700">Go Back/Cancel</span>
+                            <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Esc</kbd>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Shortcuts -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-bolt text-yellow-600"></i>
+                        Actions
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <span class="text-gray-700">Go Home</span>
+                            <div class="flex gap-1">
+                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
+                                <span class="text-gray-400">+</span>
+                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">H</kbd>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <span class="text-gray-700">Save Service</span>
+                            <div class="flex gap-1">
+                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
+                                <span class="text-gray-400">+</span>
+                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">S</kbd>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <span class="text-gray-700">Print</span>
+                            <div class="flex gap-1">
+                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
+                                <span class="text-gray-400">+</span>
+                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Shift</kbd>
+                                <span class="text-gray-400">+</span>
+                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">P</kbd>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <span class="text-gray-700">Focus Search</span>
+                            <div class="flex gap-1">
+                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
+                                <span class="text-gray-400">+</span>
+                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">F</kbd>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help Shortcut -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-question-circle text-green-600"></i>
+                        Help
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                            <span class="text-gray-700">Show This Help</span>
+                            <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">?</kbd>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-sm text-blue-800">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Tip:</strong> Use <kbd class="px-2 py-1 bg-white border border-blue-300 rounded text-xs font-mono">Cmd</kbd> instead of <kbd class="px-2 py-1 bg-white border border-blue-300 rounded text-xs font-mono">Ctrl</kbd> on Mac
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
-        <script src="./service.js"></script>
+
+    <script src="./service.js"></script>
     <script src="../global/globalScript.js"></script>
 </body>
 

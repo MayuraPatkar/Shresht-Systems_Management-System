@@ -218,11 +218,11 @@ async function createWindow() {
       mainWindow.maximize();
       
       // Open DevTools only in development mode
-      if (process.env.NODE_ENV === "development") {
-        setTimeout(() => {
-          mainWindow.webContents.openDevTools();
-        }, 1000);
-      }
+      // if (process.env.NODE_ENV === "development") {
+      //   setTimeout(() => {
+      //     mainWindow.webContents.openDevTools();
+      //   }, 1000);
+      // }
     });
 
     // Enhanced frontend loading with retry logic
