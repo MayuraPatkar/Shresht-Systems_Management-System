@@ -6,7 +6,7 @@
 const { exec } = require("child_process");
 const path = require("path");
 const fs = require("fs");
-const log = require("electron-log");
+const logger = require("./logger");
 
 /**
  * Creates a gzipped backup of the 'shreshtSystems' MongoDB database.
@@ -14,7 +14,7 @@ const log = require("electron-log");
  */
 function autoBackup() {
     // 1. Set up the backup directory.
-    const backupDir = path.join(__dirname, "../backups");
+    const backupDir = path.join(__dirname, "../../backups");
     if (!fs.existsSync(backupDir)) {
         fs.mkdirSync(backupDir, { recursive: true });
     }
@@ -29,10 +29,10 @@ function autoBackup() {
     // 4. Execute the command and log the success or failure.
     exec(cmd, (err, stdout, stderr) => {
         if (err) {
-            log.error("Backup failed:", stderr);
+            logger.error("Backup failed:", stderr);
             return;
         }
-        log.info("Backup created successfully:", backupPath);
+        logger.info("Backup created successfully:");
     });
 }
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Invoices } = require('../src/models');
+const { Invoices } = require('../models');
 const moment = require('moment');
 const log = require("electron-log");
 
@@ -105,7 +105,7 @@ router.post('/save-service', async (req, res) => {
         } = req.body;
 
         // 1. Save service entry in the service collection
-        const { service } = require('../src/models');
+        const { service } = require('../models');
         await service.create({
             service_id,
             invoice_id,

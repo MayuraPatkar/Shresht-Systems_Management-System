@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { Quotations } = require('../src/models');
-const logger = require('../src/utils/logger');
-const { asyncHandler } = require('../src/middleware/errorHandler');
+const { Quotations } = require('../models');
+const logger = require('../utils/logger');
+const { asyncHandler } = require('../middleware/errorHandler');
 
 // Function to generate a unique ID for each quotation
 function generateUniqueId() {

@@ -3,10 +3,10 @@
  * Seeds the database with default admin users from json/info.json if they don't exist
  */
 
-const { Admin } = require('../src/models');
+const { Admin } = require('../models');
 const fs = require('fs');
 const path = require('path');
-const logger = require("../src/utils/logger");
+const logger = require("./logger");
 
 async function initializeDatabase() {
     try {
@@ -19,7 +19,7 @@ async function initializeDatabase() {
         }
 
         // Read the info.json file
-        const infoPath = path.join(__dirname, '../json/info.json');
+        const infoPath = path.join(__dirname, '../../json/info.json');
         const data = fs.readFileSync(infoPath, 'utf8');
         const defaultAdmins = JSON.parse(data);
 

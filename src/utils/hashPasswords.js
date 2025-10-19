@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function hashPasswordsInInfoJson() {
-    const infoPath = path.join(__dirname, '../json/info.json');
+    const infoPath = path.join(__dirname, '../../json/info.json');
     
     try {
         // Read the current info.json

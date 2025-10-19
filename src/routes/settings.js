@@ -258,7 +258,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
 }));
 
 // Enhanced Multer config with security
-const uploadDir = path.join(__dirname, "../uploads/");
+const uploadDir = path.join(__dirname, "../../uploads/");
 
 // Ensure upload directory exists
 const ensureUploadDir = async () => {
@@ -658,7 +658,7 @@ router.get("/backup/status", asyncHandler(async (req, res) => {
 
 // ==================== SYSTEM SETTINGS MANAGEMENT ====================
 
-const { Settings, Admin } = require('../src/models');
+const { Settings, Admin } = require('../models');
 const mongoose = require('mongoose');
 
 // Get system settings
@@ -836,7 +836,7 @@ router.post("/database/backup-completed", asyncHandler(async (req, res) => {
 // Logo upload configuration
 const logoStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const logoDir = path.join(__dirname, "../public/assets/");
+        const logoDir = path.join(__dirname, "../../public/assets/");
         cb(null, logoDir);
     },
     filename: (req, file, cb) => {

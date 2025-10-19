@@ -10,7 +10,7 @@ const logger = require('./src/utils/logger');
 const connectDB = require('./src/config/database');
 const { errorHandler, notFound } = require('./src/middleware/errorHandler');
 const { apiLimiter } = require('./src/middleware/rateLimiter');
-const autoBackup = require("./utils/backup");
+const autoBackup = require("./src/utils/backup");
 
 // Security Middleware
 exServer.use(helmet({
@@ -84,7 +84,7 @@ exServer.set('views', path.join(__dirname, 'public', 'views'));
 // Initialize database connection with default admin users
 connectDB().then(async () => {
     logger.info('Database connected, initializing default data...');
-    const initializeDatabase = require('./utils/initDatabase');
+    const initializeDatabase = require('./src/utils/initDatabase');
     await initializeDatabase();
     logger.info('Database initialization complete');
 }).catch(err => {
@@ -92,18 +92,18 @@ connectDB().then(async () => {
 });
 
 // Routes - Importing route modules
-const authRoutes = require('./routes/auth');
-const viewRoutes = require('./routes/views');
-const stockRoutes = require('./routes/stock');
-const invoiceRoutes = require('./routes/invoice');
-const quotationRoutes = require('./routes/quotation');
-const purchaseRoutes = require('./routes/purchaseOrder');
-const wayBillRoutes = require('./routes/wayBill');
-const serviceRoutes = require('./routes/service');
-const employeeRoute = require('./routes/employee');
-const analyticsRoutes = require('./routes/analytics');
-const commsRouter = require('./routes/comms');
-const settingsRoutes = require('./routes/settings');
+const authRoutes = require('./src/routes/auth');
+const viewRoutes = require('./src/routes/views');
+const stockRoutes = require('./src/routes/stock');
+const invoiceRoutes = require('./src/routes/invoice');
+const quotationRoutes = require('./src/routes/quotation');
+const purchaseRoutes = require('./src/routes/purchaseOrder');
+const wayBillRoutes = require('./src/routes/wayBill');
+const serviceRoutes = require('./src/routes/service');
+const employeeRoute = require('./src/routes/employee');
+const analyticsRoutes = require('./src/routes/analytics');
+const commsRouter = require('./src/routes/comms');
+const settingsRoutes = require('./src/routes/settings');
 
 // Health check endpoint
 exServer.get('/health', async (req, res) => {

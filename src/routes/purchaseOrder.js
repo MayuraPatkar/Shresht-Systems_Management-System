@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Purchases, Stock } = require('../src/models');
+const { Purchases, Stock } = require('../models');
 const log = require("electron-log"); // Import electron-log in the preload process
 
 

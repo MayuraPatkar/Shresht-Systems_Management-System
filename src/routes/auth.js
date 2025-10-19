@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const { Admin } = require('../src/models');
-const logger = require('../src/utils/logger');
-const { asyncHandler } = require('../src/middleware/errorHandler');
-const validators = require('../src/middleware/validators');
+const { Admin } = require('../models');
+const logger = require('../utils/logger');
+const { asyncHandler } = require('../middleware/errorHandler');
+const validators = require('../middleware/validators');
 
 // Login endpoint
 router.post('/login', async (req, res) => {

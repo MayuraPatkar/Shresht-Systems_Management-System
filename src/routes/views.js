@@ -24,7 +24,7 @@ const pages = [
 
 pages.forEach(({ route, file }) => {
     router.get(route, (req, res) => {
-        res.sendFile(path.join(__dirname, '../public', file));
+        res.sendFile(path.join(__dirname, '../../public', file));
     });
 });
 

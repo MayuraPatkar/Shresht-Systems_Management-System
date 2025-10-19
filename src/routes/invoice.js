@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { Invoices, Stock } = require('../src/models');
-const logger = require('../src/utils/logger');
-const { asyncHandler } = require('../src/middleware/errorHandler');
+const { Invoices, Stock } = require('../models');
+const logger = require('../utils/logger');
+const { asyncHandler } = require('../middleware/errorHandler');
 
 
 // Function to generate a unique ID for each Invoice
