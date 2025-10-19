@@ -9,8 +9,10 @@
     "margin": 10,
     "quantity": 50,
     "min_quantity": 10,
-    "type": "Solar",
-    "category": "Panel"
+    "type": "material",
+    "category": "Panel",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Solar Panel 450W Polycrystalline",
@@ -22,8 +24,10 @@
     "margin": 8,
     "quantity": 80,
     "min_quantity": 10,
-    "type": "Solar",
-    "category": "Panel"
+    "type": "material",
+    "category": "Panel",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "On-Grid Solar Inverter 5kW",
@@ -35,8 +39,10 @@
     "margin": 15,
     "quantity": 15,
     "min_quantity": 2,
-    "type": "Solar",
-    "category": "Inverter"
+    "type": "material",
+    "category": "Inverter",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Hybrid Solar Inverter 3kVA",
@@ -48,8 +54,10 @@
     "margin": 12,
     "quantity": 25,
     "min_quantity": 3,
-    "type": "Solar",
-    "category": "Inverter"
+    "type": "material",
+    "category": "Inverter",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Tall Tubular Battery 150Ah",
@@ -61,8 +69,10 @@
     "margin": 10,
     "quantity": 60,
     "min_quantity": 4,
-    "type": "Solar",
-    "category": "Battery"
+    "type": "material",
+    "category": "Battery",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Lithium-ion Battery 100Ah",
@@ -74,8 +84,10 @@
     "margin": 20,
     "quantity": 12,
     "min_quantity": 1,
-    "type": "Solar",
-    "category": "Battery"
+    "type": "material",
+    "category": "Battery",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Solar DC Wire 4 sq.mm Red",
@@ -87,8 +99,10 @@
     "margin": 15,
     "quantity": 30,
     "min_quantity": 5,
-    "type": "Solar",
-    "category": "Cable"
+    "type": "material",
+    "category": "Cable",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Solar DC Wire 4 sq.mm Black",
@@ -99,8 +113,10 @@
     "GST": 18,
     "margin": 15,
     "quantity": 30,
-    "type": "Solar",
-    "category": "Cable"
+    "type": "material",
+    "category": "Cable",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "AC Distribution Box (ACDB) 2-in-1-out",
@@ -112,8 +128,10 @@
     "margin": 25,
     "quantity": 40,
     "min_quantity": 5,
-    "type": "Solar",
-    "category": "Accessory"
+    "type": "material",
+    "category": "Accessory",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "DC Distribution Box (DCDB) 2-in-2-out",
@@ -124,8 +142,10 @@
     "GST": 18,
     "margin": 25,
     "quantity": 35,
-    "type": "Solar",
-    "category": "Accessory"
+    "type": "material",
+    "category": "Accessory",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "MC4 Connector Pair",
@@ -137,8 +157,10 @@
     "margin": 50,
     "quantity": 500,
     "min_quantity": 20,
-    "type": "Solar",
-    "category": "Accessory"
+    "type": "material",
+    "category": "Accessory",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Galvanized Iron Mounting Structure",
@@ -150,8 +172,10 @@
     "margin": 20,
     "quantity": 20,
     "min_quantity": 2,
-    "type": "Solar",
-    "category": "Structure"
+    "type": "material",
+    "category": "Structure",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Earthing Kit",
@@ -163,8 +187,10 @@
     "margin": 30,
     "quantity": 75,
     "min_quantity": 5,
-    "type": "Solar",
-    "category": "Accessory"
+    "type": "material",
+    "category": "Accessory",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Lightning Arrester 20kA",
@@ -175,8 +201,10 @@
     "GST": 18,
     "margin": 20,
     "quantity": 45,
-    "type": "Solar",
-    "category": "Accessory"
+    "type": "material",
+    "category": "Accessory",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "5MP Dome CCTV Camera",
@@ -188,8 +216,10 @@
     "margin": 20,
     "quantity": 150,
     "min_quantity": 10,
-    "type": "Security",
-    "category": "Camera"
+    "type": "material",
+    "category": "Camera",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "5MP Bullet CCTV Camera",
@@ -201,8 +231,10 @@
     "margin": 20,
     "quantity": 120,
     "min_quantity": 10,
-    "type": "Security",
-    "category": "Camera"
+    "type": "material",
+    "category": "Camera",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "8 Channel DVR",
@@ -214,8 +246,10 @@
     "margin": 15,
     "quantity": 40,
     "min_quantity": 5,
-    "type": "Security",
-    "category": "DVR"
+    "type": "material",
+    "category": "DVR",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "4 Channel DVR",
@@ -226,8 +260,10 @@
     "GST": 18,
     "margin": 15,
     "quantity": 60,
-    "type": "Security",
-    "category": "DVR"
+    "type": "material",
+    "category": "DVR",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Surveillance Hard Disk 1TB",
@@ -239,8 +275,10 @@
     "margin": 10,
     "quantity": 90,
     "min_quantity": 5,
-    "type": "Security",
-    "category": "Storage"
+    "type": "material",
+    "category": "Storage",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Surveillance Hard Disk 2TB",
@@ -252,8 +290,10 @@
     "margin": 10,
     "quantity": 70,
     "min_quantity": 5,
-    "type": "Security",
-    "category": "Storage"
+    "type": "material",
+    "category": "Storage",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Coaxial Cable 3+1 (90m roll)",
@@ -265,8 +305,10 @@
     "margin": 25,
     "quantity": 100,
     "min_quantity": 10,
-    "type": "Security",
-    "category": "Cable"
+    "type": "material",
+    "category": "Cable",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "BNC Connector",
@@ -278,8 +320,10 @@
     "margin": 100,
     "quantity": 2000,
     "min_quantity": 50,
-    "type": "Security",
-    "category": "Accessory"
+    "type": "material",
+    "category": "Accessory",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "DC Pin Connector",
@@ -291,8 +335,10 @@
     "margin": 100,
     "quantity": 2500,
     "min_quantity": 50,
-    "type": "Security",
-    "category": "Accessory"
+    "type": "material",
+    "category": "Accessory",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "8 Channel SMPS Power Supply",
@@ -303,8 +349,10 @@
     "GST": 18,
     "margin": 20,
     "quantity": 85,
-    "type": "Security",
-    "category": "Power Supply"
+    "type": "material",
+    "category": "Power Supply",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Video Door Phone Kit",
@@ -316,8 +364,10 @@
     "margin": 15,
     "quantity": 18,
     "min_quantity": 2,
-    "type": "Security",
-    "category": "Access Control"
+    "type": "assets",
+    "category": "Access Control",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Biometric Attendance Machine",
@@ -329,8 +379,10 @@
     "margin": 25,
     "quantity": 22,
     "min_quantity": 3,
-    "type": "Security",
-    "category": "Access Control"
+    "type": "assets",
+    "category": "Access Control",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "CAT6 LAN Cable (305m box)",
@@ -342,8 +394,10 @@
     "margin": 15,
     "quantity": 30,
     "min_quantity": 1,
-    "type": "Security",
-    "category": "Cable"
+    "type": "material",
+    "category": "Cable",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "8 Port PoE Switch",
@@ -354,8 +408,10 @@
     "GST": 18,
     "margin": 20,
     "quantity": 38,
-    "type": "Security",
-    "category": "Networking"
+    "type": "material",
+    "category": "Networking",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Wi-Fi Smart Camera 2MP",
@@ -367,8 +423,10 @@
     "margin": 15,
     "quantity": 95,
     "min_quantity": 5,
-    "type": "Security",
-    "category": "Camera"
+    "type": "material",
+    "category": "Camera",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   },
   {
     "item_name": "Electromagnetic Lock 600lbs",
@@ -380,7 +438,9 @@
     "margin": 30,
     "quantity": 48,
     "min_quantity": 4,
-    "type": "Security",
-    "category": "Access Control"
+    "type": "material",
+    "category": "Access Control",
+    "createdAt": "2025-01-15T00:00:00.000Z",
+    "updatedAt": "2025-01-15T00:00:00.000Z"
   }
 ]

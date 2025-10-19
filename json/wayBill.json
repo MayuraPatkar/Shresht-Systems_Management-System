@@ -13,26 +13,28 @@
     "items": [
       {
         "description": "5MP 4G Solar PTZ Camera",
-        "HSN_SAC": "85258020",
+        "HSN_SAC": "8525",
         "quantity": 10,
         "unit_price": 25000,
-        "rate": 25000
+        "rate": 18
       },
       {
         "description": "100W Monocrystalline Solar Panel",
-        "HSN_SAC": "85414011",
+        "HSN_SAC": "8541",
         "quantity": 10,
         "unit_price": 4500,
-        "rate": 4500
+        "rate": 12
       },
       {
         "description": "40Ah Lithium-ion Battery Pack",
-        "HSN_SAC": "85076000",
+        "HSN_SAC": "8507",
         "quantity": 10,
         "unit_price": 8000,
-        "rate": 8000
+        "rate": 18
       }
-    ]
+    ],
+    "createdAt": "2025-09-28T10:00:00.000Z",
+    "updatedAt": "2025-09-28T10:00:00.000Z"
   },
   {
     "waybill_id": "WB-SOL-2025-002",
@@ -48,19 +50,21 @@
     "items": [
       {
         "description": "Solar Powered Wireless Bullet Camera Kit",
-        "HSN_SAC": "85258020",
+        "HSN_SAC": "8525",
         "quantity": 4,
         "unit_price": 18000,
-        "rate": 18000
+        "rate": 18
       },
       {
         "description": "500GB Surveillance Hard Disk",
-        "HSN_SAC": "84717020",
+        "HSN_SAC": "8471",
         "quantity": 1,
         "unit_price": 3500,
-        "rate": 3500
+        "rate": 18
       }
-    ]
+    ],
+    "createdAt": "2025-09-29T11:30:00.000Z",
+    "updatedAt": "2025-09-29T11:30:00.000Z"
   },
   {
     "waybill_id": "WB-SEC-2025-003",
@@ -76,26 +80,28 @@
     "items": [
       {
         "description": "Solar Fence Energizer Machine",
-        "HSN_SAC": "85437099",
+        "HSN_SAC": "8543",
         "quantity": 5,
         "unit_price": 9500,
-        "rate": 9500
+        "rate": 18
       },
       {
         "description": "High Tensile Fencing Wire (1000m roll)",
-        "HSN_SAC": "72171010",
+        "HSN_SAC": "7217",
         "quantity": 20,
         "unit_price": 4000,
-        "rate": 4000
+        "rate": 18
       },
       {
         "description": "20W Solar Panel for Energizer",
-        "HSN_SAC": "85414011",
+        "HSN_SAC": "8541",
         "quantity": 5,
         "unit_price": 1200,
-        "rate": 1200
+        "rate": 12
       }
-    ]
+    ],
+    "createdAt": "2025-09-29T15:00:00.000Z",
+    "updatedAt": "2025-09-29T15:00:00.000Z"
   },
   {
     "waybill_id": "WB-GEN-2025-004",
@@ -111,33 +117,35 @@
     "items": [
       {
         "description": "8-Channel DVR",
-        "HSN_SAC": "85219090",
+        "HSN_SAC": "8521",
         "quantity": 1,
         "unit_price": 4200,
-        "rate": 4200
+        "rate": 18
       },
       {
         "description": "2MP Dome Camera",
-        "HSN_SAC": "85258020",
+        "HSN_SAC": "8525",
         "quantity": 4,
         "unit_price": 1500,
-        "rate": 1500
+        "rate": 18
       },
       {
         "description": "2MP Bullet Camera",
-        "HSN_SAC": "85258020",
+        "HSN_SAC": "8525",
         "quantity": 2,
         "unit_price": 1650,
-        "rate": 1650
+        "rate": 18
       },
       {
         "description": "CAT6 Copper Cable (90m box)",
-        "HSN_SAC": "85444999",
+        "HSN_SAC": "8544",
         "quantity": 1,
         "unit_price": 1100,
-        "rate": 1100
+        "rate": 18
       }
-    ]
+    ],
+    "createdAt": "2025-09-30T09:45:00.000Z",
+    "updatedAt": "2025-09-30T09:45:00.000Z"
   },
   {
     "waybill_id": "WB-SOL-2025-005",
@@ -153,18 +161,20 @@
     "items": [
       {
         "description": "150W All-in-One Solar Street Light",
-        "HSN_SAC": "94054090",
+        "HSN_SAC": "9405",
         "quantity": 25,
         "unit_price": 16000,
-        "rate": 16000
+        "rate": 18
       },
       {
         "description": "4K ANPR (Number Plate Recognition) Camera",
-        "HSN_SAC": "85258020",
+        "HSN_SAC": "8525",
         "quantity": 8,
         "unit_price": 35000,
-        "rate": 35000
+        "rate": 18
       }
-    ]
+    ],
+    "createdAt": "2025-09-30T14:20:00.000Z",
+    "updatedAt": "2025-09-30T14:20:00.000Z"
   }
 ]

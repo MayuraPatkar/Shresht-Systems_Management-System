@@ -11,27 +11,38 @@
     "items": [
       {
         "description": "2MP Dome Camera (Model: SCD-DM2)",
-        "HSN_SAC": "85258020",
+        "HSN_SAC": "8525",
+        "company": "SecureCam",
+        "type": "Security",
+        "category": "Camera",
         "quantity": 50,
         "unit_price": 1200,
-        "rate": 1200
+        "rate": 18
       },
       {
         "description": "2MP Bullet Camera (Model: SCD-BL2)",
-        "HSN_SAC": "85258020",
+        "HSN_SAC": "8525",
+        "company": "SecureCam",
+        "type": "Security",
+        "category": "Camera",
         "quantity": 50,
         "unit_price": 1350,
-        "rate": 1350
+        "rate": 18
       },
       {
         "description": "16-Channel DVR (Model: SCD-DVR16)",
-        "HSN_SAC": "85219090",
+        "HSN_SAC": "8521",
+        "company": "SecureCam",
+        "type": "Security",
+        "category": "DVR",
         "quantity": 10,
         "unit_price": 3800,
-        "rate": 3800
+        "rate": 18
       }
     ],
-    "total_amount": 165500
+    "total_amount": 165500,
+    "createdAt": "2025-09-22T00:00:00.000Z",
+    "updatedAt": "2025-09-22T00:00:00.000Z"
   },
   {
     "purchase_order_id": "PO-2025-102",
@@ -45,20 +56,28 @@
     "items": [
       {
         "description": "380W Monocrystalline Solar Panel",
-        "HSN_SAC": "85414011",
+        "HSN_SAC": "8541",
+        "company": "Surya Solar",
+        "type": "Solar",
+        "category": "Panel",
         "quantity": 20,
         "unit_price": 4200,
-        "rate": 4200
+        "rate": 12
       },
       {
         "description": "150Ah Tall Tubular Battery",
-        "HSN_SAC": "85072000",
+        "HSN_SAC": "8507",
+        "company": "Surya Solar",
+        "type": "Solar",
+        "category": "Battery",
         "quantity": 20,
         "unit_price": 7500,
-        "rate": 7500
+        "rate": 28
       }
     ],
-    "total_amount": 234000
+    "total_amount": 234000,
+    "createdAt": "2025-09-24T00:00:00.000Z",
+    "updatedAt": "2025-09-24T00:00:00.000Z"
   },
   {
     "purchase_order_id": "PO-2025-103",
@@ -72,20 +91,28 @@
     "items": [
       {
         "description": "4-Core Copper CCTV Cable (90m Roll)",
-        "HSN_SAC": "85444999",
+        "HSN_SAC": "8544",
+        "company": "ElectroCables",
+        "type": "Security",
+        "category": "Cable",
         "quantity": 5,
         "unit_price": 900,
-        "rate": 900
+        "rate": 18
       },
       {
         "description": "6 sq. mm Solar DC Wire (100m Roll)",
-        "HSN_SAC": "85446090",
+        "HSN_SAC": "8544",
+        "company": "ElectroCables",
+        "type": "Solar",
+        "category": "Cable",
         "quantity": 2,
         "unit_price": 1500,
-        "rate": 1500
+        "rate": 18
       }
     ],
-    "total_amount": 7500
+    "total_amount": 7500,
+    "createdAt": "2025-09-25T00:00:00.000Z",
+    "updatedAt": "2025-09-25T00:00:00.000Z"
   },
   {
     "purchase_order_id": "PO-2025-104",
@@ -99,20 +126,28 @@
     "items": [
       {
         "description": "1kW Solar PCU (Inverter)",
-        "HSN_SAC": "85044090",
+        "HSN_SAC": "8504",
+        "company": "GridSol",
+        "type": "Solar",
+        "category": "Inverter",
         "quantity": 100,
         "unit_price": 800,
-        "rate": 800
+        "rate": 18
       },
       {
         "description": "2TB Surveillance HDD",
-        "HSN_SAC": "84717020",
+        "HSN_SAC": "8471",
+        "company": "GridSol",
+        "type": "Security",
+        "category": "Storage",
         "quantity": 20,
         "unit_price": 2800,
-        "rate": 2800
+        "rate": 18
       }
     ],
-    "total_amount": 136000
+    "total_amount": 136000,
+    "createdAt": "2025-09-28T00:00:00.000Z",
+    "updatedAt": "2025-09-28T00:00:00.000Z"
   },
   {
     "purchase_order_id": "PO-2025-105",
@@ -126,19 +161,27 @@
     "items": [
       {
         "description": "Solar Fence Energizer Unit",
-        "HSN_SAC": "85437099",
+        "HSN_SAC": "8543",
+        "company": "PowerSecure",
+        "type": "Security",
+        "category": "Accessory",
         "quantity": 15,
         "unit_price": 11000,
-        "rate": 11000
+        "rate": 18
       },
       {
         "description": "5MP PTZ Solar Camera",
-        "HSN_SAC": "85258020",
+        "HSN_SAC": "8525",
+        "company": "PowerSecure",
+        "type": "Security",
+        "category": "Camera",
         "quantity": 15,
         "unit_price": 7200,
-        "rate": 7200
+        "rate": 18
       }
     ],
-    "total_amount": 273000
+    "total_amount": 273000,
+    "createdAt": "2025-09-30T00:00:00.000Z",
+    "updatedAt": "2025-09-30T00:00:00.000Z"
   }
 ]
