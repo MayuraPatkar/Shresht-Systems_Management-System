@@ -70,24 +70,44 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Settings</h1>
             </div>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 overflow-x-auto">
                 <button id="admin-info-button"
-                    class="flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-100 border border-blue-200 rounded-lg hover:bg-blue-200 font-medium">
+                    class="flex items-center gap-2 px-3 py-2 text-sm text-blue-700 bg-blue-100 border border-blue-200 rounded-lg hover:bg-blue-200 font-medium whitespace-nowrap">
                     <i class="fas fa-user-shield"></i>
-                    <span>Admin Info</span>
+                    <span>Company Info</span>
+                </button>
+                <button id="preferences-button"
+                    class="flex items-center gap-2 px-3 py-2 text-sm text-indigo-700 bg-indigo-100 border border-indigo-200 rounded-lg hover:bg-indigo-200 font-medium whitespace-nowrap">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Preferences</span>
+                </button>
+                <button id="security-button"
+                    class="flex items-center gap-2 px-3 py-2 text-sm text-orange-700 bg-orange-100 border border-orange-200 rounded-lg hover:bg-orange-200 font-medium whitespace-nowrap">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Security</span>
+                </button>
+                <button id="notifications-button"
+                    class="flex items-center gap-2 px-3 py-2 text-sm text-yellow-700 bg-yellow-100 border border-yellow-200 rounded-lg hover:bg-yellow-200 font-medium whitespace-nowrap">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
                 </button>
                 <button id="change-password-button1"
-                    class="flex items-center gap-2 px-4 py-2 text-purple-700 bg-purple-100 border border-purple-200 rounded-lg hover:bg-purple-200 font-medium">
+                    class="flex items-center gap-2 px-3 py-2 text-sm text-purple-700 bg-purple-100 border border-purple-200 rounded-lg hover:bg-purple-200 font-medium whitespace-nowrap">
                     <i class="fas fa-key"></i>
-                    <span>Change Password</span>
+                    <span>Password</span>
                 </button>
                 <button id="data-control-button"
-                    class="flex items-center gap-2 px-4 py-2 text-green-700 bg-green-100 border border-green-200 rounded-lg hover:bg-green-200 font-medium">
+                    class="flex items-center gap-2 px-3 py-2 text-sm text-green-700 bg-green-100 border border-green-200 rounded-lg hover:bg-green-200 font-medium whitespace-nowrap">
                     <i class="fas fa-database"></i>
-                    <span>Data Control</span>
+                    <span>Data Backup</span>
+                </button>
+                <button id="about-button"
+                    class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-200 font-medium whitespace-nowrap">
+                    <i class="fas fa-info-circle"></i>
+                    <span>About</span>
                 </button>
                 <button id="logout-button"
-                    class="flex items-center gap-2 px-4 py-2 text-red-700 bg-red-100 border border-red-200 rounded-lg hover:bg-red-200 font-medium">
+                    class="flex items-center gap-2 px-3 py-2 text-sm text-red-700 bg-red-100 border border-red-200 rounded-lg hover:bg-red-200 font-medium whitespace-nowrap">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </button>
@@ -159,17 +179,44 @@
         
         <!-- Admin Information Section -->
         <section id="admin-info-section" class="space-y-6 mb-8">
+            <!-- Edit Button -->
+            <div class="flex justify-end">
+                <button id="edit-company-info-button" type="button"
+                    class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                    <i class="fas fa-edit"></i>
+                    <span>Edit Company Info</span>
+                </button>
+                <div id="edit-company-actions" class="hidden flex items-center gap-2">
+                    <button id="save-company-info-button" type="button"
+                        class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
+                        <i class="fas fa-save"></i>
+                        <span>Save</span>
+                    </button>
+                    <button id="cancel-edit-company-button" type="button"
+                        class="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium">
+                        <i class="fas fa-times"></i>
+                        <span>Cancel</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Admin Details Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                     <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
                         <i class="fas fa-building text-blue-600 text-2xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Admin - Shresht Systems</h2>
+                        <h2 class="text-xl font-semibold text-gray-800" id="admin-company-name">Shresht Systems</h2>
                     </div>
-                    <div class="space-y-3">
+                    
+                    <!-- View Mode -->
+                    <div id="company-view-mode" class="space-y-3">
                         <div class="flex items-start gap-3">
                             <i class="fas fa-map-marker-alt text-gray-500 mt-1"></i>
                             <p id="admin-address" class="text-gray-700"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-map text-gray-500"></i>
+                            <p id="admin-state" class="text-gray-700"></p>
                         </div>
                         <div class="flex items-center gap-3">
                             <i class="fas fa-phone text-gray-500"></i>
@@ -192,6 +239,44 @@
                             <p id="admin-gstin" class="text-gray-700"></p>
                         </div>
                     </div>
+
+                    <!-- Edit Mode (Hidden by default) -->
+                    <div id="company-edit-mode" class="space-y-3 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                            <input type="text" id="edit-company" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                            <textarea id="edit-address" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                            <input type="text" id="edit-state" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Phone 1</label>
+                                <input type="tel" id="edit-phone1" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Phone 2</label>
+                                <input type="tel" id="edit-phone2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="edit-email" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                            <input type="url" id="edit-website" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">GSTIN</label>
+                            <input type="text" id="edit-gstin" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Bank Details Card -->
@@ -200,7 +285,9 @@
                         <i class="fas fa-university text-green-600 text-2xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Bank Details</h2>
                     </div>
-                    <div class="space-y-3">
+                    
+                    <!-- View Mode -->
+                    <div id="bank-view-mode" class="space-y-3">
                         <div class="flex items-center gap-3">
                             <i class="fas fa-building-columns text-gray-500"></i>
                             <p id="bank-name" class="text-gray-700"></p>
@@ -220,6 +307,30 @@
                         <div class="flex items-center gap-3">
                             <i class="fas fa-map-pin text-gray-500"></i>
                             <p id="branch-name" class="text-gray-700"></p>
+                        </div>
+                    </div>
+
+                    <!-- Edit Mode (Hidden by default) -->
+                    <div id="bank-edit-mode" class="space-y-3 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
+                            <input type="text" id="edit-bank-name" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Account Holder</label>
+                            <input type="text" id="edit-account-holder" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Account Number</label>
+                            <input type="text" id="edit-account-number" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">IFSC Code</label>
+                            <input type="text" id="edit-ifsc" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+                            <input type="text" id="edit-branch" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
                         </div>
                     </div>
                 </div>
@@ -432,6 +543,525 @@
                             <i class="fas fa-exclamation-circle"></i>
                             Restore Database
                         </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Preferences Section -->
+        <section id="preferences-section" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- General Settings Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-cog text-indigo-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">General Settings</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Currency Symbol</label>
+                                <input type="text" id="pref-currency" maxlength="3"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="₹">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Decimal Places</label>
+                                <input type="number" id="pref-decimal" min="0" max="4"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="2">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
+                                <select id="pref-date-format"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Time Format</label>
+                                <select id="pref-time-format"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="12h">12 Hour</option>
+                                    <option value="24h">24 Hour</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tax Settings Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-percent text-green-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Tax Settings</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Default GST Rate (%)</label>
+                            <input type="number" id="pref-gst-rate" min="0" max="100" step="0.01"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="18">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="pref-tax-included" class="w-4 h-4 text-green-600 focus:ring-green-500 rounded">
+                            <label for="pref-tax-included" class="text-sm text-gray-700">Tax Included in Price</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="pref-enable-gst" class="w-4 h-4 text-green-600 focus:ring-green-500 rounded">
+                            <label for="pref-enable-gst" class="text-sm text-gray-700">Enable GST</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Numbering Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-hashtag text-purple-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Document Numbering</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Invoice Prefix</label>
+                                <input type="text" id="pref-invoice-prefix" maxlength="10"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    placeholder="INV">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Start Number</label>
+                                <input type="number" id="pref-invoice-start" min="1"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    placeholder="1">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quotation Prefix</label>
+                                <input type="text" id="pref-quotation-prefix" maxlength="10"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    placeholder="QUO">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Start Number</label>
+                                <input type="number" id="pref-quotation-start" min="1"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    placeholder="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branding & Theme Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-palette text-pink-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Branding & Theme</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
+                            <div class="flex items-center gap-3">
+                                <img id="logo-preview" src="../assets/icon.png" alt="Logo" class="h-16 w-16 object-contain border rounded">
+                                <input type="file" id="logo-upload" accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Max 5MB. PNG, JPG, or SVG</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+                            <select id="pref-theme"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backup Schedule Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-clock text-blue-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Automatic Backup Schedule</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Enable Auto Backup</label>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="backup-auto-enabled" class="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded">
+                                <label for="backup-auto-enabled" class="text-sm text-gray-700">Enable</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
+                            <select id="backup-frequency"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Backup Time</label>
+                            <input type="time" id="backup-time"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Retention (days)</label>
+                            <input type="number" id="backup-retention" min="1" max="365"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="30">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Last Backup</label>
+                            <div class="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg">
+                                <span id="last-backup-time" class="text-gray-700">Never</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="lg:col-span-2">
+                    <button type="button" id="save-preferences-button"
+                        class="w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Save All Preferences
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Security Settings Section -->
+        <section id="security-section" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Session Settings Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-user-clock text-orange-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Session Settings</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Session Timeout (minutes)</label>
+                            <input type="number" id="security-session-timeout" min="5" max="1440"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                placeholder="30">
+                            <p class="text-xs text-gray-500 mt-1">Auto-logout after inactivity</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Policy Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-key text-red-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Password Policy</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Length</label>
+                            <input type="number" id="security-password-length" min="4" max="32"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                placeholder="8">
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="security-password-uppercase" class="w-4 h-4 text-red-600 focus:ring-red-500 rounded">
+                                <label for="security-password-uppercase" class="text-sm text-gray-700">Require Uppercase Letter</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="security-password-number" class="w-4 h-4 text-red-600 focus:ring-red-500 rounded">
+                                <label for="security-password-number" class="text-sm text-gray-700">Require Number</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="security-password-special" class="w-4 h-4 text-red-600 focus:ring-red-500 rounded">
+                                <label for="security-password-special" class="text-sm text-gray-700">Require Special Character</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login Security Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-shield-alt text-blue-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Login Security</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Max Login Attempts</label>
+                            <input type="number" id="security-max-attempts" min="1" max="10"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Lockout Duration (min)</label>
+                            <input type="number" id="security-lockout-duration" min="1" max="60"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="15">
+                        </div>
+                        <div class="flex items-center">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="security-enable-2fa" class="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded">
+                                <label for="security-enable-2fa" class="text-sm text-gray-700">Enable 2FA (Coming Soon)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="lg:col-span-2">
+                    <button type="button" id="save-security-button"
+                        class="w-full bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Save Security Settings
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notifications Section -->
+        <section id="notifications-section" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Stock Alerts Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-box text-yellow-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Stock Alerts</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="notif-stock-enabled" class="w-4 h-4 text-yellow-600 focus:ring-yellow-500 rounded">
+                            <label for="notif-stock-enabled" class="text-sm text-gray-700">Enable Stock Alerts</label>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Low Stock Threshold</label>
+                            <input type="number" id="notif-stock-threshold" min="0"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                placeholder="10">
+                            <p class="text-xs text-gray-500 mt-1">Alert when quantity falls below this number</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Reminders Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-file-invoice-dollar text-green-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Invoice Reminders</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="notif-invoice-enabled" class="w-4 h-4 text-green-600 focus:ring-green-500 rounded">
+                            <label for="notif-invoice-enabled" class="text-sm text-gray-700">Enable Invoice Reminders</label>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Reminder Days Before Due</label>
+                            <input type="number" id="notif-invoice-days" min="1" max="30"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="7">
+                            <p class="text-xs text-gray-500 mt-1">Alert N days before invoice due date</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Reminders Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-wrench text-blue-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Service Reminders</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="notif-service-enabled" class="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded">
+                            <label for="notif-service-enabled" class="text-sm text-gray-700">Enable Service Reminders</label>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Reminder Days Before Due</label>
+                            <input type="number" id="notif-service-days" min="1" max="30"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="3">
+                            <p class="text-xs text-gray-500 mt-1">Alert N days before service due date</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Notifications Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-envelope text-purple-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Email Notifications</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="notif-email-enabled" class="w-4 h-4 text-purple-600 focus:ring-purple-500 rounded">
+                            <label for="notif-email-enabled" class="text-sm text-gray-700">Enable Email Notifications</label>
+                        </div>
+                        <p class="text-xs text-gray-500">Configure email settings in SMTP section below</p>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="lg:col-span-2">
+                    <button type="button" id="save-notifications-button"
+                        class="w-full bg-yellow-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-yellow-700 flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Save Notification Settings
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- About/System Info Section -->
+        <section id="about-section" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Application Info Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-info-circle text-blue-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Application Information</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Application Name:</span>
+                            <span id="app-name" class="font-semibold text-gray-800">Shresht Systems Management</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Version:</span>
+                            <span id="app-version" class="font-semibold text-gray-800">1.0.0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Node Version:</span>
+                            <span id="node-version" class="font-mono text-sm text-gray-800">-</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Platform:</span>
+                            <span id="platform" class="text-gray-800">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Statistics Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-database text-green-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Database Statistics</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Database Size:</span>
+                            <span id="db-size" class="font-semibold text-gray-800">-</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Storage Size:</span>
+                            <span id="storage-size" class="font-semibold text-gray-800">-</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Total Documents:</span>
+                            <span id="total-docs" class="font-semibold text-gray-800">-</span>
+                        </div>
+                        <button type="button" id="refresh-stats-button"
+                            class="w-full mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh Statistics
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Collection Counts Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-table text-purple-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Collection Document Counts</h2>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="collection-counts">
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600" id="count-invoices">-</div>
+                            <div class="text-sm text-gray-600">Invoices</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600" id="count-quotations">-</div>
+                            <div class="text-sm text-gray-600">Quotations</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600" id="count-purchases">-</div>
+                            <div class="text-sm text-gray-600">Purchases</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-orange-600" id="count-waybills">-</div>
+                            <div class="text-sm text-gray-600">Waybills</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-red-600" id="count-stock">-</div>
+                            <div class="text-sm text-gray-600">Stock Items</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-yellow-600" id="count-services">-</div>
+                            <div class="text-sm text-gray-600">Services</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-indigo-600" id="count-employees">-</div>
+                            <div class="text-sm text-gray-600">Employees</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-pink-600" id="count-attendence">-</div>
+                            <div class="text-sm text-gray-600">Attendance</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Resources Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-server text-orange-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">System Resources</h2>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <div class="text-sm text-gray-600 mb-1">Total Memory</div>
+                            <div id="total-memory" class="text-lg font-semibold text-gray-800">-</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600 mb-1">Free Memory</div>
+                            <div id="free-memory" class="text-lg font-semibold text-gray-800">-</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600 mb-1">Architecture</div>
+                            <div id="arch" class="text-lg font-semibold text-gray-800">-</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600 mb-1">Uptime</div>
+                            <div id="uptime" class="text-lg font-semibold text-gray-800">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- License & Support Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-certificate text-yellow-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">License & Support</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <p class="text-gray-700">
+                            <strong>© 2025 Shresht Systems Management System</strong><br>
+                            All rights reserved. This software is proprietary and confidential.
+                        </p>
+                        <div class="pt-4 border-t border-gray-200">
+                            <p class="text-sm text-gray-600">For support and inquiries:</p>
+                            <p class="text-sm text-gray-800">Email: shreshtsystems@gmail.com</p>
+                            <p class="text-sm text-gray-800">Website: www.shreshtsystems.com</p>
+                        </div>
                     </div>
                 </div>
             </div>

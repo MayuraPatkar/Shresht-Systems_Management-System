@@ -58,11 +58,25 @@ const checkMongoTool = (toolName, timeout = 3000) => {
     });
 };
 
-// Allowed collections for security
+// Allowed collections for security (mapping frontend names to actual collection names)
 const ALLOWED_COLLECTIONS = [
     'invoices', 'quotations', 'purchaseorders', 'waybills', 
-    'services', 'employees', 'stock', 'users', 'settings'
+    'services', 'employees', 'stock', 'users', 'settings',
+    'purchases', 'stocks' // Aliases for frontend compatibility
 ];
+
+// Map frontend names to actual database collection names
+const COLLECTION_MAPPING = {
+    'purchases': 'purchaseorders',
+    'stocks': 'stock',
+    'quotations': 'quotations',
+    'invoices': 'invoices',
+    'waybills': 'waybills',
+    'services': 'services',
+    'employees': 'employees',
+    'users': 'users',
+    'settings': 'settings'
+};
 
 // Validation middleware for collection names
 const validateCollection = (req, res, next) => {
@@ -76,16 +90,18 @@ const validateCollection = (req, res, next) => {
     }
     
     // Sanitize and validate collection name
-    const sanitizedCollection = collection.replace(/[^a-zA-Z0-9_-]/g, '');
+    const sanitizedCollection = collection.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase();
     
-    if (!ALLOWED_COLLECTIONS.includes(sanitizedCollection.toLowerCase())) {
+    if (!ALLOWED_COLLECTIONS.includes(sanitizedCollection)) {
         return res.status(400).json({ 
             success: false, 
             message: "Invalid collection name" 
         });
     }
     
-    req.sanitizedCollection = sanitizedCollection;
+    // Map to actual collection name
+    req.sanitizedCollection = COLLECTION_MAPPING[sanitizedCollection] || sanitizedCollection;
+    req.displayName = sanitizedCollection; // Keep original name for display
     next();
 };
 
@@ -635,6 +651,278 @@ router.get("/backup/status", asyncHandler(async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to check backup tools status',
+            error: error.message
+        });
+    }
+}));
+
+// ==================== SYSTEM SETTINGS MANAGEMENT ====================
+
+const { Settings, Admin } = require('./database');
+const mongoose = require('mongoose');
+
+// Get system settings
+router.get("/preferences", asyncHandler(async (req, res) => {
+    try {
+        let settings = await Settings.findOne();
+        
+        // Create default settings if none exist
+        if (!settings) {
+            settings = new Settings({});
+            await settings.save();
+        }
+        
+        res.json({
+            success: true,
+            settings: settings
+        });
+    } catch (error) {
+        log.error('Error fetching settings:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch settings',
+            error: error.message
+        });
+    }
+}));
+
+// Update system settings (partial update)
+router.patch("/preferences", asyncHandler(async (req, res) => {
+    try {
+        const updates = req.body;
+        
+        let settings = await Settings.findOne();
+        if (!settings) {
+            settings = new Settings({});
+        }
+        
+        // Update only provided fields
+        Object.keys(updates).forEach(key => {
+            if (settings[key] && typeof settings[key] === 'object') {
+                settings[key] = { ...settings[key].toObject(), ...updates[key] };
+            } else {
+                settings[key] = updates[key];
+            }
+        });
+        
+        settings.updatedAt = new Date();
+        await settings.save();
+        
+        log.info('Settings updated successfully');
+        res.json({
+            success: true,
+            message: 'Settings updated successfully',
+            settings: settings
+        });
+    } catch (error) {
+        log.error('Error updating settings:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update settings',
+            error: error.message
+        });
+    }
+}));
+
+// Update admin/company information
+router.put("/company-info", asyncHandler(async (req, res) => {
+    try {
+        const updates = req.body;
+        
+        const admin = await Admin.findOne();
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin record not found'
+            });
+        }
+        
+        // Update allowed fields
+        const allowedFields = ['company', 'address', 'state', 'phone', 'email', 'website', 'GSTIN', 'bank_details'];
+        allowedFields.forEach(field => {
+            if (updates[field] !== undefined) {
+                admin[field] = updates[field];
+            }
+        });
+        
+        await admin.save();
+        
+        log.info('Company information updated successfully');
+        res.json({
+            success: true,
+            message: 'Company information updated successfully',
+            admin: admin
+        });
+    } catch (error) {
+        log.error('Error updating company info:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update company information',
+            error: error.message
+        });
+    }
+}));
+
+// Get database statistics
+router.get("/database/stats", asyncHandler(async (req, res) => {
+    try {
+        const db = mongoose.connection.db;
+        
+        // Get database stats
+        const stats = await db.stats();
+        
+        // Get collection counts
+        const collections = await db.listCollections().toArray();
+        const collectionCounts = {};
+        
+        for (const coll of collections) {
+            const count = await db.collection(coll.name).countDocuments();
+            collectionCounts[coll.name] = count;
+        }
+        
+        // Get settings for last backup info
+        const settings = await Settings.findOne();
+        
+        res.json({
+            success: true,
+            stats: {
+                database_size: stats.dataSize,
+                database_size_mb: (stats.dataSize / (1024 * 1024)).toFixed(2),
+                storage_size: stats.storageSize,
+                storage_size_mb: (stats.storageSize / (1024 * 1024)).toFixed(2),
+                index_size: stats.indexSize,
+                index_size_mb: (stats.indexSize / (1024 * 1024)).toFixed(2),
+                total_documents: Object.values(collectionCounts).reduce((a, b) => a + b, 0),
+                collections: collectionCounts,
+                last_backup: settings?.backup?.last_backup || null
+            }
+        });
+    } catch (error) {
+        log.error('Error fetching database stats:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch database statistics',
+            error: error.message
+        });
+    }
+}));
+
+// Update last backup timestamp
+router.post("/database/backup-completed", asyncHandler(async (req, res) => {
+    try {
+        let settings = await Settings.findOne();
+        if (!settings) {
+            settings = new Settings({});
+        }
+        
+        settings.backup.last_backup = new Date();
+        await settings.save();
+        
+        res.json({
+            success: true,
+            message: 'Backup timestamp updated',
+            last_backup: settings.backup.last_backup
+        });
+    } catch (error) {
+        log.error('Error updating backup timestamp:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update backup timestamp',
+            error: error.message
+        });
+    }
+}));
+
+// Logo upload configuration
+const logoStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const logoDir = path.join(__dirname, "../public/assets/");
+        cb(null, logoDir);
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `company-logo${ext}`);
+    }
+});
+
+const logoUpload = multer({
+    storage: logoStorage,
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['.png', '.jpg', '.jpeg', '.svg'];
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (allowedTypes.includes(ext)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only PNG, JPG, and SVG are allowed.'));
+        }
+    },
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    }
+});
+
+// Upload company logo
+router.post("/logo/upload", logoUpload.single("logo"), asyncHandler(async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'No file uploaded'
+            });
+        }
+        
+        const logoPath = `/assets/${req.file.filename}`;
+        
+        // Update settings with logo path
+        let settings = await Settings.findOne();
+        if (!settings) {
+            settings = new Settings({});
+        }
+        
+        settings.branding.logo_path = logoPath;
+        settings.updatedAt = new Date();
+        await settings.save();
+        
+        log.info('Company logo uploaded successfully:', logoPath);
+        res.json({
+            success: true,
+            message: 'Logo uploaded successfully',
+            logo_path: logoPath
+        });
+    } catch (error) {
+        log.error('Error uploading logo:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to upload logo',
+            error: error.message
+        });
+    }
+}));
+
+// Get system information
+router.get("/system-info", asyncHandler(async (req, res) => {
+    try {
+        const package = require('../package.json');
+        const os = require('os');
+        
+        res.json({
+            success: true,
+            system: {
+                app_name: package.name || 'Shresht Systems Management',
+                app_version: package.version || '1.0.0',
+                node_version: process.version,
+                platform: os.platform(),
+                arch: os.arch(),
+                total_memory: (os.totalmem() / (1024 ** 3)).toFixed(2) + ' GB',
+                free_memory: (os.freemem() / (1024 ** 3)).toFixed(2) + ' GB',
+                uptime: Math.floor(process.uptime()) + ' seconds'
+            }
+        });
+    } catch (error) {
+        log.error('Error fetching system info:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch system information',
             error: error.message
         });
     }
