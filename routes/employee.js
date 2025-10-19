@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Employee, AttendenceBook } = require('./database');
+const { Employee, AttendenceBook } = require('../src/models');
 const log = require("electron-log"); // Import electron-log in the preload process
 
 

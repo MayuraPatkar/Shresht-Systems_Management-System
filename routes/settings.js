@@ -658,7 +658,7 @@ router.get("/backup/status", asyncHandler(async (req, res) => {
 
 // ==================== SYSTEM SETTINGS MANAGEMENT ====================
 
-const { Settings, Admin } = require('./database');
+const { Settings, Admin } = require('../src/models');
 const mongoose = require('mongoose');
 
 // Get system settings

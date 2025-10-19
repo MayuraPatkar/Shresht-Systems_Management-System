@@ -1,6 +1,6 @@
 const express = require('express');
 const router  = express.Router();
-const { Invoices, Quotations, Purchases } = require('./database');
+const { Invoices, Quotations, Purchases } = require('../src/models');
 const log = require('electron-log');          // preload‑side logger
 
 router.get('/overview', async (req, res) => {

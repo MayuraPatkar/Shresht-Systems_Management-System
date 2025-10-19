@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { Quotations } = require('./database');
-const log = require("electron-log");
+const { Quotations } = require('../src/models');
+const logger = require('../src/utils/logger');
+const { asyncHandler } = require('../src/middleware/errorHandler');
 
 // Function to generate a unique ID for each quotation
 function generateUniqueId() {
@@ -34,7 +35,7 @@ router.get("/all", async (req, res) => {
         const quotations = await Quotations.find().sort({ createdAt: -1 });
         return res.status(200).json(quotations);
     } catch (error) {
-        log.error("Error fetching quotations:", error);
+        logger.error("Error fetching quotations:", error);
         return res.status(500).json({ error: "Internal Server Error" });
     }
 });
@@ -152,7 +153,7 @@ router.post("/save-quotation", async (req, res) => {
             quotation: savedQuotation,
         });
     } catch (error) {
-        log.error('Error saving data:', error);
+        logger.error('Error saving data:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -170,7 +171,7 @@ router.get("/recent-quotations", async (req, res) => {
             quotation: recentQuotations,
         });
     } catch (error) {
-        log.error("Error retrieving recent quotations:", error);
+        logger.error("Error retrieving recent quotations:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -198,7 +199,7 @@ router.get("/:quotationId", async (req, res) => {
         });
 
     } catch (error) {
-        log.error("Error retrieving quotation:", error);
+        logger.error("Error retrieving quotation:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -224,7 +225,7 @@ router.delete("/:quotationId", async (req, res) => {
 
         res.status(200).json({ message: 'Quotation deleted successfully' });
     } catch (error) {
-        log.error("Error deleting quotation:", error);
+        logger.error("Error deleting quotation:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -256,7 +257,7 @@ router.get('/search/:query', async (req, res) => {
             return res.status(200).json({ quotation: quotations });
         }
     } catch (err) {
-        log.error(err);
+        logger.error(err);
         return res.status(500).send('Failed to fetch quotations.');
     }
 });

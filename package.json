@@ -11,7 +11,9 @@
     "backup": "node utils/backup.js",
     "clean": "rm -rf dist/ logs/ uploads/ backups/",
     "build-css": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
-    "build-css-prod": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify"
+    "build-css-prod": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
+    "migrate": "node src/utils/migrate.js",
+    "logs": "tail -f logs/app.log"
   },
   "keywords": [],
   "author": "Mayura Patkar",
@@ -26,11 +28,13 @@
     "electron-reload": "^2.0.0-alpha.1",
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
+    "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
     "moment": "^2.30.1",
     "mongoose": "^8.18.2",
     "morgan": "^1.10.1",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "winston": "^3.18.3"
   },
   "repository": {
     "type": "git",

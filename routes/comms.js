@@ -1,5 +1,5 @@
 const express = require('express');
-const { Quotations, Invoices } = require('./database');
+const { Quotations, Invoices } = require('../src/models');
 const router = express.Router();
 const axios = require('axios');
 

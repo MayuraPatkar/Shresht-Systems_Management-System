@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const { Admin } = require('./database');
-const log = require("electron-log"); // Import electron-log in the preload process
+const { Admin } = require('../src/models');
+const logger = require('../src/utils/logger');
+const { asyncHandler } = require('../src/middleware/errorHandler');
+const validators = require('../src/middleware/validators');
 
 // Login endpoint
 router.post('/login', async (req, res) => {
@@ -17,13 +19,13 @@ router.post('/login', async (req, res) => {
         // Use bcrypt to compare hashed passwords
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
-            log.warn('Authentication failed due to invalid password');
+            logger.warn('Authentication failed due to invalid password');
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
         const role = user.role; // Fixed: added const declaration
 
-        log.info(`Login successful for ${role}: ${user.username}`);
+        logger.info(`Login successful for ${role}: ${user.username}`);
         res.status(200).json({
             success: true,
             message: 'Login successful',
@@ -31,7 +33,7 @@ router.post('/login', async (req, res) => {
             username: user.username
         });
     } catch (error) {
-        log.error('Error during login:', error);
+        logger.error('Error during login:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
@@ -44,7 +46,7 @@ router.get("/admin-info", async (req, res) => {
         }
         res.json(admin);
     } catch (error) {
-        log.error("Error fetching admin info:", error);
+        logger.error("Error fetching admin info:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -61,7 +63,7 @@ router.post("/change-username", async (req, res) => {
         await admin.save();
         res.json({ message: "Username updated successfully" });
     } catch (error) {
-        log.error("Error changing username:", error);
+        logger.error("Error changing username:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -87,7 +89,7 @@ router.post("/change-password", async (req, res) => {
         await admin.save();
         res.json({ message: "Password updated successfully" });
     } catch (error) {
-        log.error("Error changing password:", error);
+        logger.error("Error changing password:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -116,7 +118,7 @@ router.get("/export-data", async (req, res) => {
         res.setHeader("Content-Disposition", `attachment; filename=admin_data.${format}`);
         res.send(data);
     } catch (error) {
-        log.error("Error exporting data:", error);
+        logger.error("Error exporting data:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });

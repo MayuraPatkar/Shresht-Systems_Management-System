@@ -3,10 +3,10 @@
  * Seeds the database with default admin users from json/info.json if they don't exist
  */
 
-const { Admin } = require('../routes/database');
+const { Admin } = require('../src/models');
 const fs = require('fs');
 const path = require('path');
-const log = require("electron-log");
+const logger = require("../src/utils/logger");
 
 async function initializeDatabase() {
     try {
@@ -14,7 +14,7 @@ async function initializeDatabase() {
         const existingAdmins = await Admin.countDocuments();
         
         if (existingAdmins > 0) {
-            log.info('Admin users already exist in database, skipping initialization');
+            logger.info('Admin users already exist in database, skipping initialization');
             return;
         }
 
@@ -25,10 +25,10 @@ async function initializeDatabase() {
 
         // Insert default admin users into database
         await Admin.insertMany(defaultAdmins);
-        log.info(`✓ Initialized database with ${defaultAdmins.length} default admin users`);
+        logger.info(`✓ Initialized database with ${defaultAdmins.length} default admin users`);
         
     } catch (error) {
-        log.error('Error initializing database:', error);
+        logger.error('Error initializing database:', error);
         throw error;
     }
 }

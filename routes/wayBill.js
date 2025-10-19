@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { wayBills } = require('./database');
+const { wayBills } = require('../src/models');
 const log = require("electron-log"); // Import electron-log in the preload process
 
 // Route to get all waybills
