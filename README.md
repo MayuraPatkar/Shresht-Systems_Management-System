@@ -604,15 +604,6 @@ npm install
 
 ---
 
-## Acknowledgments
-
-- Built with ❤️ for Shresht Systems
-- Powered by [Electron](https://www.electronjs.org/), [Express](https://expressjs.com/), and [MongoDB](https://www.mongodb.com/)
-- UI styled with [Tailwind CSS](https://tailwindcss.com/)
-- Icons from [Font Awesome](https://fontawesome.com/)
-
----
-
 ## License
 
 This project is licensed under the **ISC License**.
@@ -640,16 +631,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ## Contact & Support
 
 - 🌐 **Website:** [https://shreshtsystems.com](https://shreshtsystems.com)
-- 📧 **Email:** support@shreshtsystems.com
+- 📧 **Email:** shreshtsystems@gmail.com.com
 - 🐛 **Issues:** [GitHub Issues](https://github.com/MayuraPatkar/Shresht-Systems_Management-System/issues)
 - 📦 **Repository:** [GitHub](https://github.com/MayuraPatkar/Shresht-Systems_Management-System)
 
 ---
-
-<div align="center">
-
-**Made with ❤️ by [Mayura Patkar](https://github.com/MayuraPatkar) for Shresht Systems**
-
-⭐ **Star this repo if you find it helpful!** ⭐
-
-</div>
