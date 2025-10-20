@@ -13,10 +13,23 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            /* Prevent body scroll */
         }
 
         .sidebar {
             width: 280px;
+            height: 100vh;
+            overflow-y: auto;
+            /* Enable sidebar scroll */
+            overflow-x: hidden;
+        }
+
+        /* Main content scrolling */
+        main {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         /* Custom scrollbar styling */
@@ -175,7 +188,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-[280px] pt-24 p-8 content-section">
+    <main class="ml-[280px] pt-24 mt-6 p-8 content-section">
         
         <!-- Admin Information Section -->
         <section id="admin-info-section" class="space-y-6 mb-8">

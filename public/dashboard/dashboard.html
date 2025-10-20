@@ -13,6 +13,8 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            /* Prevent body scroll */
         }
 
         .fade-in {
@@ -33,6 +35,10 @@
 
         .sidebar {
             width: 280px;
+            height: 100vh;
+            overflow-y: auto;
+            /* Enable sidebar scroll */
+            overflow-x: hidden;
         }
 
         /* Card hover effects */
@@ -43,6 +49,13 @@
         .stat-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Main content scrolling */
+        main {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         /* Custom scrollbar styling */
@@ -143,7 +156,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-[280px] pt-24 p-8 no-select">
+    <main class="ml-[280px] pt-24 mt-6 p-8 no-select">
         
         <!-- Date & Time Banner -->
         <section class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg shadow-md p-6 mb-6 fade-in">
