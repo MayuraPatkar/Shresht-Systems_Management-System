@@ -131,8 +131,7 @@ exServer.get('/health', async (req, res) => {
     }
 });
 
-// Using routes middleware
-exServer.use('/', viewRoutes);
+// Using routes middleware - API routes BEFORE view routes to prevent conflicts
 exServer.use('/admin', authRoutes);
 exServer.use('/stock', stockRoutes);
 exServer.use('/invoice', invoiceRoutes);
@@ -144,6 +143,9 @@ exServer.use('/employee', employeeRoute);
 exServer.use('/analytics', analyticsRoutes);
 exServer.use('/comms', commsRouter);
 exServer.use('/settings', settingsRoutes);
+
+// View routes LAST (to avoid catching API routes)
+exServer.use('/', viewRoutes);
 
 // Apply API rate limiter to specific routes if needed
 // exServer.use('/api', apiLimiter);

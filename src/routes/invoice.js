@@ -4,7 +4,6 @@ const { Invoices, Stock } = require('../models');
 const logger = require('../utils/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
 
-
 // Function to generate a unique ID for each Invoice
 function generateUniqueId() {
     const now = new Date();
@@ -29,6 +28,11 @@ router.get("/generate-id", async (req, res) => {
     }
 
     res.status(200).json({ invoice_id: invoice_id });
+});
+
+// Test route to verify invoice routes are working
+router.get("/test", (req, res) => {
+    res.status(200).json({ message: "Invoice routes are working!" });
 });
 
 router.get("/get-all", async (req, res) => {
@@ -229,6 +233,25 @@ router.get("/recent-invoices", async (req, res) => {
         });
     } catch (error) {
         logger.error("Error retrieving recent invoices:", error);
+        res.status(500).json({
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+});
+
+// Get count of unpaid invoices
+router.get('/unpaid-count', async (req, res) => {
+    logger.info('Unpaid count route accessed');
+    try {
+        const count = await Invoices.countDocuments({
+            payment_status: { $in: ['Unpaid', 'Partial'] }
+        });
+        
+        logger.info(`Unpaid invoices count: ${count}`);
+        res.status(200).json({ count });
+    } catch (error) {
+        logger.error("Error getting unpaid count:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
