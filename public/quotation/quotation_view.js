@@ -119,7 +119,7 @@ function generateViewPreviewHTML(quotation, viewType) {
     const itemsPageHTML = itemPages.map((pageHTML, index) => {
         const isLastItemsPage = index === itemPages.length - 1;
         return `
-        <div class="preview-container">
+        <div class="preview-container doc-quotation">
             <div class="header">
                 <div class="logo"><img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo"></div>
                 <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
@@ -157,7 +157,7 @@ function generateViewPreviewHTML(quotation, viewType) {
 
     // --- FINAL HTML ASSEMBLY ---
     document.getElementById("view-preview-content").innerHTML = `
-    <div class="preview-container">
+    <div class="preview-container doc-quotation">
         <div class="header">
             <div class="logo"><img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo"></div>
             <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
@@ -178,7 +178,7 @@ function generateViewPreviewHTML(quotation, viewType) {
         <footer><p>This is a computer-generated quotation.</p></footer>
     </div>
     ${itemsPageHTML}
-    <div class="preview-container">
+    <div class="preview-container doc-quotation">
         <div class="header">
             <div class="logo"><img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo"></div>
             <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
