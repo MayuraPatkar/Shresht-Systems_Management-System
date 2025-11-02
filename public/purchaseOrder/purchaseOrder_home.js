@@ -212,12 +212,5 @@ async function handleSearch() {
     }
 }
 
-// Utility: format date as yyyy-mm-dd for input fields
-function formatDate(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
+// NOTE: formatDate has been moved to public/js/shared/utils.js
+// It is now available globally via window.formatDate

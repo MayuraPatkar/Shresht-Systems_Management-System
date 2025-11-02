@@ -131,60 +131,20 @@ function updateNavigation() {
   document.getElementById("next-btn").disabled = currentStep === totalSteps;
 }
 
-// Function to convert number to words (Indian numbering system)
-function numberToWords(num) {
-  num = Math.round(num);
-  const a = [
-    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
-  ];
-  const b = [
-    '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'
-  ];
-
-  const numToWords = (n) => {
-    if (n < 20) return a[n];
-    if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
-    if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' and ' + numToWords(n % 100) : '');
-    return '';
-  };
-
-  if (num === 0) return 'Zero';
-
-  const crore = Math.floor(num / 10000000);
-  const lakh = Math.floor((num % 10000000) / 100000);
-  const thousand = Math.floor((num % 100000) / 1000);
-  const remainder = num % 1000;
-
-  let result = [];
-
-  if (crore) result.push(numToWords(crore) + ' Crore');
-  if (lakh) result.push(numToWords(lakh) + ' Lakh');
-  if (thousand) result.push(numToWords(thousand) + ' Thousand');
-  if (remainder) result.push(numToWords(remainder));
-  return result.join(' ').trim();
-}
-
-function formatIndian(num, fractionDigits = 0) {
-  return num.toLocaleString('en-IN', {
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  });
-}
-
-// Function to format date to YYYY-MM-DD
-function formatDate(dateString) {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "";
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+// NOTE: Utility functions (numberToWords, formatIndian, formatDate) 
+// have been moved to public/js/shared/utils.js
 
 // Event listener for the "Add Item" button
-document.getElementById('add-item-btn').addEventListener('click', addItem);
-document.getElementById('add-non-item-btn').addEventListener('click', addNonItem);
+const addItemBtnEl = document.getElementById('add-item-btn');
+const addNonItemBtnEl = document.getElementById('add-non-item-btn');
+
+if (addItemBtnEl) {
+  addItemBtnEl.addEventListener('click', addItem);
+}
+
+if (addNonItemBtnEl) {
+  addNonItemBtnEl.addEventListener('click', addNonItem);
+}
 
 let selectedIndex = -1;
 let data = [];
