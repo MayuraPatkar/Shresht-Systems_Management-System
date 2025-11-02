@@ -10,6 +10,88 @@ document.getElementById("view-preview").addEventListener("click", () => {
     generatePreview();
 });
 
+// Open a quotation for editing
+async function openQuotation(quotationId) {
+    try {
+        const response = await fetch(`/quotation/${quotationId}`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch quotation");
+        }
+
+        const data = await response.json();
+        const quotation = data.quotation;
+
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('new').style.display = 'block';
+        document.getElementById('new-quotation').style.display = 'none';
+        document.getElementById('view-preview').style.display = 'block';
+        if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
+            document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+        }
+
+        document.getElementById('id').value = quotation.quotation_id;
+        document.getElementById('project-name').value = quotation.project_name;
+        document.getElementById('quotation-date').value = formatDate(quotation.quotation_date);
+        document.getElementById('buyer-name').value = quotation.customer_name;
+        document.getElementById('buyer-address').value = quotation.customer_address;
+        document.getElementById('buyer-phone').value = quotation.customer_phone;
+        document.getElementById('buyer-email').value = quotation.customer_email;
+
+        const itemsTableBody = document.querySelector("#items-table tbody");
+        const nonItemsTableBody = document.querySelector("#non-items-table tbody");
+        const itemsSpecificationsTableBody = document.querySelector("#items-specifications-table tbody");
+        itemsTableBody.innerHTML = "";
+        nonItemsTableBody.innerHTML = "";
+        itemsSpecificationsTableBody.innerHTML = "";
+
+        (quotation.items || []).forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${itemsTableBody.children.length + 1}</td>
+                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
+                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" required></td>
+                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
+                <td><button type="button" class="remove-item-btn">Remove</button></td>
+            `;
+            itemsTableBody.appendChild(row);
+        });
+
+        (quotation.non_items || []).forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${nonItemsTableBody.children.length + 1}</td>
+                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
+                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><button type="button" class="remove-item-btn">Remove</button></td>
+            `;
+            nonItemsTableBody.appendChild(row);
+        });
+
+        // Combine items and non_items for specifications table
+        const allItemsForSpecs = [
+            ...(quotation.items || []).map(item => ({ ...item, type: 'item' })),
+            ...(quotation.non_items || []).map(item => ({ ...item, type: 'non_item' }))
+        ];
+
+        allItemsForSpecs.forEach((item, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.description || ''}</td>
+                <td><input type="text" value="${item.specification || ''}" required></td>
+            `;
+            itemsSpecificationsTableBody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error("Error fetching quotation:", error);
+        window.electronAPI.showAlert1("Failed to fetch quotation. Please try again later.");
+    }
+}
+
 // Function to get the quotation id
 async function getId() {
     try {
@@ -664,46 +746,6 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
         window.electronAPI.showAlert1("Print functionality is not available.");
     }
 });
-
-// const fileInput = document.getElementById('files');
-// const previewContainer = document.getElementById('image-preview-container');
-
-// fileInput.addEventListener('change', function () {
-//     previewContainer.innerHTML = ''; // Clear previous previews
-
-//     Array.from(this.files).forEach(file => {
-//         if (!file.type.startsWith('image/')) return;
-
-//         const reader = new FileReader();
-//         reader.onload = function (e) {
-//             const wrapper = document.createElement('div');
-//             wrapper.style.display = 'flex';
-//             wrapper.style.flexDirection = 'column';
-//             wrapper.style.alignItems = 'center';
-//             wrapper.style.width = '200px';
-
-//             const img = document.createElement('img');
-//             img.src = e.target.result;
-//             img.style.width = '200px';
-//             img.style.height = '150px';
-//             img.style.objectFit = 'cover';
-//             img.style.border = '1px solid #ccc';
-//             img.style.borderRadius = '4px';
-
-//             const name = document.createElement('span');
-//             name.textContent = file.name;
-//             name.style.fontSize = '12px';
-//             name.style.marginTop = '5px';
-//             name.style.textAlign = 'center';
-//             name.style.wordBreak = 'break-word';
-
-//             wrapper.appendChild(img);
-//             wrapper.appendChild(name);
-//             previewContainer.appendChild(wrapper);
-//         };
-//         reader.readAsDataURL(file);
-//     });
-// });
 
 
 // Function to collect form data

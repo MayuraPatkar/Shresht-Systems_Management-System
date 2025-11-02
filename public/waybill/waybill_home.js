@@ -415,64 +415,6 @@ function handleWayBillAction(select, wayBillId) {
     select.selectedIndex = 0; // Reset to default
 }
 
-// Open a way bill for editing
-async function openWayBill(wayBillId) {
-    try {
-        const response = await fetch(`/wayBill/${wayBillId}`);
-        if (!response.ok) {
-            throw new Error("Failed to fetch way bill");
-        }
-        const data = await response.json();
-        const wayBill = data.wayBill;
-
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'block';
-        document.getElementById('new-waybill-btn').style.display = 'none';
-        document.getElementById('view-preview-btn').style.display = 'block';
-
-        if (currentStep === 1) {
-            changeStep(2);
-        }
-
-        document.getElementById('waybill-id').value = wayBill.waybill_id;
-        document.getElementById('project-name').value = wayBill.project_name;
-        document.getElementById('buyer-name').value = wayBill.customer_name;
-        document.getElementById('buyer-address').value = wayBill.customer_address;
-        document.getElementById('buyer-phone').value = wayBill.customer_phone;
-        document.getElementById('buyer-email').value = wayBill.customer_email || "";
-        document.getElementById('transport-mode').value = wayBill.transport_mode;
-        document.getElementById('vehicle-number').value = wayBill.vehicle_number;
-        document.getElementById('place-supply').value = wayBill.place_supply;
-
-        const itemsTableBody = document.querySelector("#items-table tbody");
-        itemsTableBody.innerHTML = "";
-        let sno = 0;
-
-        (wayBill.items || []).forEach(item => {
-            const row = document.createElement("tr");
-            row.className = "border-b border-gray-200 hover:bg-gray-50";
-            row.innerHTML = `
-                <td class="border border-gray-300 px-4 py-3 text-center text-base">${++sno}</td>
-                <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description}" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC}" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity}" min="1" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.unit_price}" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.rate}" required></td>
-                <td class="border border-gray-300 px-2 py-2 text-center">
-                    <button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
-            itemsTableBody.appendChild(row);
-        });
-
-    } catch (error) {
-        console.error("Error fetching way bill:", error);
-        window.electronAPI.showAlert1("Failed to fetch way bill. Please try again later.");
-    }
-}
-
 // Delete a way bill
 async function deleteWayBill(wayBillId) {
     try {
