@@ -33,7 +33,9 @@ function loadPreferences() {
                 document.getElementById("pref-quotation-start").value = s.numbering?.quotation_start || 1;
                 
                 // Theme
-                document.getElementById("pref-theme").value = s.branding?.theme || 'light';
+                const theme = s.branding?.theme || 'light';
+                document.getElementById("pref-theme").value = theme;
+                applyTheme(theme); // Apply the saved theme
                 
                 // Backup settings
                 document.getElementById("backup-auto-enabled").checked = s.backup?.auto_backup_enabled || false;
@@ -63,6 +65,11 @@ function loadPreferences() {
  * Saves preference settings to the server
  */
 function savePreferences() {
+    const saveButton = document.getElementById("save-preferences-button");
+    const originalContent = saveButton.innerHTML;
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
     const preferences = {
         preferences: {
             currency: document.getElementById("pref-currency").value,
@@ -101,6 +108,8 @@ function savePreferences() {
         .then(data => {
             if (data.success) {
                 window.electronAPI.showAlert1("Preferences saved successfully!");
+                // Apply theme if changed
+                applyTheme(preferences.branding.theme);
             } else {
                 window.electronAPI.showAlert1(`Failed to save: ${data.message}`);
             }
@@ -108,6 +117,10 @@ function savePreferences() {
         .catch(err => {
             console.error('Failed to save preferences:', err);
             window.electronAPI.showAlert1("Failed to save preferences. Please try again.");
+        })
+        .finally(() => {
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalContent;
         });
 }
 
@@ -118,8 +131,31 @@ function handleLogoUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
     
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+        window.electronAPI.showAlert1("Invalid file type. Only PNG, JPG, and SVG are allowed.");
+        e.target.value = ''; // Clear the input
+        return;
+    }
+    
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+        window.electronAPI.showAlert1("File size exceeds 5MB limit.");
+        e.target.value = ''; // Clear the input
+        return;
+    }
+    
     const formData = new FormData();
     formData.append("logo", file);
+    
+    // Show loading state
+    const uploadButton = e.target.closest('.flex')?.querySelector('button');
+    const originalText = uploadButton?.textContent;
+    if (uploadButton) {
+        uploadButton.disabled = true;
+        uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+    }
     
     fetch('/settings/logo/upload', {
         method: 'POST',
@@ -132,11 +168,20 @@ function handleLogoUpload(e) {
                 window.electronAPI.showAlert1("Logo uploaded successfully!");
             } else {
                 window.electronAPI.showAlert1(`Upload failed: ${data.message}`);
+                e.target.value = ''; // Clear the input on error
             }
         })
         .catch(err => {
             console.error('Failed to upload logo:', err);
             window.electronAPI.showAlert1("Failed to upload logo. Please try again.");
+            e.target.value = ''; // Clear the input on error
+        })
+        .finally(() => {
+            // Restore button state
+            if (uploadButton) {
+                uploadButton.disabled = false;
+                uploadButton.textContent = originalText;
+            }
         });
 }
 
@@ -171,6 +216,11 @@ function loadSecuritySettings() {
  * Saves security settings to the server
  */
 function saveSecuritySettings() {
+    const saveButton = document.getElementById("save-security-button");
+    const originalContent = saveButton.innerHTML;
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
     const security = {
         security: {
             session_timeout: parseInt(document.getElementById("security-session-timeout").value),
@@ -200,6 +250,10 @@ function saveSecuritySettings() {
         .catch(err => {
             console.error('Failed to save security settings:', err);
             window.electronAPI.showAlert1("Failed to save security settings. Please try again.");
+        })
+        .finally(() => {
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalContent;
         });
 }
 
@@ -233,6 +287,11 @@ function loadNotificationSettings() {
  * Saves notification settings to the server
  */
 function saveNotificationSettings() {
+    const saveButton = document.getElementById("save-notifications-button");
+    const originalContent = saveButton.innerHTML;
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
     const notifications = {
         notifications: {
             enable_stock_alerts: document.getElementById("notif-stock-enabled").checked,
@@ -261,7 +320,27 @@ function saveNotificationSettings() {
         .catch(err => {
             console.error('Failed to save notification settings:', err);
             window.electronAPI.showAlert1("Failed to save notification settings. Please try again.");
+        })
+        .finally(() => {
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalContent;
         });
+}
+
+// --- THEME MANAGEMENT ---
+
+/**
+ * Applies the selected theme to the application
+ * @param {string} theme - The theme to apply ('light' or 'dark')
+ */
+function applyTheme(theme) {
+    if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+    }
 }
 
 // --- EVENT LISTENERS ---
@@ -273,6 +352,11 @@ function initPreferencesModule() {
     // Preferences
     document.getElementById("save-preferences-button")?.addEventListener("click", savePreferences);
     document.getElementById("logo-upload")?.addEventListener("change", handleLogoUpload);
+    
+    // Theme preview
+    document.getElementById("pref-theme")?.addEventListener("change", (e) => {
+        applyTheme(e.target.value);
+    });
     
     // Security
     document.getElementById("save-security-button")?.addEventListener("click", saveSecuritySettings);

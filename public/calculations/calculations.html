@@ -147,34 +147,98 @@
     <!-- Main Content -->
     <main class="ml-[280px] pt-24 mt-6 p-8 content-section">
         
+        <!-- Quick Actions Bar -->
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-4 mb-6 fade-in">
+            <div class="flex items-center justify-between text-white">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-info-circle text-2xl"></i>
+                    <div>
+                        <h3 class="font-semibold text-lg">Quick Tips</h3>
+                        <p class="text-sm opacity-90">All converters update automatically as you type. Press Enter for calculations.</p>
+                    </div>
+                </div>
+                <button id="clearAllBtn" 
+                    class="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2">
+                    <i class="fas fa-eraser"></i>
+                    Clear All
+                </button>
+            </div>
+        </div>
+        
         <!-- GST Calculator Section -->
         <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6 fade-in">
             <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                 <i class="fas fa-percentage text-indigo-600 text-2xl"></i>
                 <h2 class="text-xl font-semibold text-gray-800">GST Calculator</h2>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label for="gstAmount" class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>Amount
                     </label>
-                    <input type="number" id="gstAmount" min="0" placeholder="Enter amount"
+                    <input type="number" id="gstAmount" min="0" step="0.01" placeholder="Enter amount"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                 </div>
                 <div>
                     <label for="gstRate" class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-percent text-gray-500 mr-1"></i>GST Rate
+                        <i class="fas fa-percent text-gray-500 mr-1"></i>GST Rate (%)
                     </label>
-                    <input type="number" id="gstRate" placeholder="Enter GST rate (%)"
+                    <select id="gstRate"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <option value="">Custom</option>
+                        <option value="0">0%</option>
+                        <option value="5">5%</option>
+                        <option value="12">12%</option>
+                        <option value="18">18%</option>
+                        <option value="28">28%</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="gstRateCustom" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-edit text-gray-500 mr-1"></i>Custom Rate (%)
+                    </label>
+                    <input type="number" id="gstRateCustom" min="0" max="100" step="0.01" placeholder="Or enter custom %"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                 </div>
             </div>
-            <button onclick="calculateGST()"
-                class="mt-6 bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 flex items-center gap-2">
+            <button id="calculateGSTBtn"
+                class="mt-6 bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center gap-2">
                 <i class="fas fa-calculator"></i>
                 Calculate GST
             </button>
-            <div id="gstResult" class="mt-4 text-lg font-semibold text-green-600"></div>
+            <div id="gstResult" class="mt-4"></div>
+        </section>
+
+        <!-- Discount Calculator Section -->
+        <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6 fade-in">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                <i class="fas fa-tags text-pink-600 text-2xl"></i>
+                <h2 class="text-xl font-semibold text-gray-800">Discount Calculator</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label for="discountOriginal" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>Original Price
+                    </label>
+                    <input type="number" id="discountOriginal" min="0" step="0.01" placeholder="Enter original price"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label for="discountPercent" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-percent text-gray-500 mr-1"></i>Discount (%)
+                    </label>
+                    <input type="number" id="discountPercent" min="0" max="100" step="0.01" placeholder="Enter discount %"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label for="discountFinal" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-tag text-gray-500 mr-1"></i>Final Price
+                    </label>
+                    <input type="number" id="discountFinal" readonly
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed font-semibold">
+                </div>
+            </div>
+            <div id="discountResult" class="mt-4"></div>
         </section>
 
         <!-- Converters Section -->
@@ -190,7 +254,7 @@
                         <label for="lengthValue" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-arrow-right text-gray-500 mr-1"></i>Value
                         </label>
-                        <input type="number" id="lengthValue" min="0" placeholder="Enter value"
+                        <input type="number" id="lengthValue" min="0" step="any" placeholder="Enter value"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
@@ -201,8 +265,11 @@
                                 <option value="m">Meter</option>
                                 <option value="cm">Centimeter</option>
                                 <option value="mm">Millimeter</option>
+                                <option value="km">Kilometer</option>
                                 <option value="ft">Feet</option>
                                 <option value="in">Inch</option>
+                                <option value="yd">Yard</option>
+                                <option value="mi">Mile</option>
                             </select>
                         </div>
                         <div>
@@ -212,13 +279,16 @@
                                 <option value="m">Meter</option>
                                 <option value="cm">Centimeter</option>
                                 <option value="mm">Millimeter</option>
+                                <option value="km">Kilometer</option>
                                 <option value="ft">Feet</option>
                                 <option value="in">Inch</option>
+                                <option value="yd">Yard</option>
+                                <option value="mi">Mile</option>
                             </select>
                         </div>
                     </div>
-                    <button onclick="convertLength()"
-                        class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2">
+                    <button id="convertLengthBtn"
+                        class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
                         <i class="fas fa-exchange-alt"></i>
                         Convert
                     </button>
@@ -237,7 +307,7 @@
                         <label for="areaValue" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-arrow-right text-gray-500 mr-1"></i>Value
                         </label>
-                        <input type="number" id="areaValue" min="0" placeholder="Enter value"
+                        <input type="number" id="areaValue" min="0" step="any" placeholder="Enter value"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
@@ -247,6 +317,7 @@
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                                 <option value="sqm">Sq. Meter</option>
                                 <option value="sqft">Sq. Feet</option>
+                                <option value="sqkm">Sq. Kilometer</option>
                                 <option value="acre">Acre</option>
                                 <option value="hectare">Hectare</option>
                             </select>
@@ -257,17 +328,116 @@
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                                 <option value="sqm">Sq. Meter</option>
                                 <option value="sqft">Sq. Feet</option>
+                                <option value="sqkm">Sq. Kilometer</option>
                                 <option value="acre">Acre</option>
                                 <option value="hectare">Hectare</option>
                             </select>
                         </div>
                     </div>
-                    <button onclick="convertArea()"
-                        class="w-full bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 flex items-center justify-center gap-2">
+                    <button id="convertAreaBtn"
+                        class="w-full bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2">
                         <i class="fas fa-exchange-alt"></i>
                         Convert
                     </button>
                     <div id="areaResult" class="text-lg font-semibold text-green-600"></div>
+                </div>
+            </section>
+
+            <!-- Weight/Mass Converter -->
+            <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                    <i class="fas fa-weight text-teal-600 text-2xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Weight/Mass Converter</h2>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label for="weightValue" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-arrow-right text-gray-500 mr-1"></i>Value
+                        </label>
+                        <input type="number" id="weightValue" min="0" step="any" placeholder="Enter value"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="weightFrom" class="block text-sm font-medium text-gray-700 mb-2">From</label>
+                            <select id="weightFrom"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                                <option value="kg">Kilogram</option>
+                                <option value="g">Gram</option>
+                                <option value="mg">Milligram</option>
+                                <option value="ton">Metric Ton</option>
+                                <option value="lb">Pound</option>
+                                <option value="oz">Ounce</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="weightTo" class="block text-sm font-medium text-gray-700 mb-2">To</label>
+                            <select id="weightTo"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                                <option value="kg">Kilogram</option>
+                                <option value="g">Gram</option>
+                                <option value="mg">Milligram</option>
+                                <option value="ton">Metric Ton</option>
+                                <option value="lb">Pound</option>
+                                <option value="oz">Ounce</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="convertWeightBtn"
+                        class="w-full bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-exchange-alt"></i>
+                        Convert
+                    </button>
+                    <div id="weightResult" class="text-lg font-semibold text-green-600"></div>
+                </div>
+            </section>
+
+            <!-- Volume Converter -->
+            <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                    <i class="fas fa-flask text-cyan-600 text-2xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Volume Converter</h2>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label for="volumeValue" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-arrow-right text-gray-500 mr-1"></i>Value
+                        </label>
+                        <input type="number" id="volumeValue" min="0" step="any" placeholder="Enter value"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="volumeFrom" class="block text-sm font-medium text-gray-700 mb-2">From</label>
+                            <select id="volumeFrom"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+                                <option value="l">Liter</option>
+                                <option value="ml">Milliliter</option>
+                                <option value="m3">Cubic Meter</option>
+                                <option value="gal">Gallon (US)</option>
+                                <option value="qt">Quart</option>
+                                <option value="pt">Pint</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="volumeTo" class="block text-sm font-medium text-gray-700 mb-2">To</label>
+                            <select id="volumeTo"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+                                <option value="l">Liter</option>
+                                <option value="ml">Milliliter</option>
+                                <option value="m3">Cubic Meter</option>
+                                <option value="gal">Gallon (US)</option>
+                                <option value="qt">Quart</option>
+                                <option value="pt">Pint</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="convertVolumeBtn"
+                        class="w-full bg-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-cyan-700 transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-exchange-alt"></i>
+                        Convert
+                    </button>
+                    <div id="volumeResult" class="text-lg font-semibold text-green-600"></div>
                 </div>
             </section>
         </div>

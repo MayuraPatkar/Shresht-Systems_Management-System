@@ -22,9 +22,18 @@ const pages = [
     { route: '/settings', file: 'settings/settings.html' },
 ];
 
+// Serve HTML pages - exact route only (not sub-paths)
 pages.forEach(({ route, file }) => {
-    router.get(route, (req, res) => {
-        res.sendFile(path.join(__dirname, '../../public', file));
+    router.get(route, (req, res, next) => {
+        // Check if this is exactly the route (not a sub-path like /invoice/something)
+        // req.baseUrl + req.path gives the full matched path
+        const fullPath = req.baseUrl + req.path;
+        
+        if (fullPath === route || fullPath === route + '/') {
+            res.sendFile(path.join(__dirname, '../../public', file));
+        } else {
+            next(); // Let other routes handle sub-paths
+        }
     });
 });
 
