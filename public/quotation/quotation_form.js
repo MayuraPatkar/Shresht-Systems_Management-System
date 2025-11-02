@@ -12,22 +12,18 @@ document.getElementById("view-preview").addEventListener("click", () => {
 
 // Open a quotation for editing
 async function openQuotation(quotationId) {
-    try {
-        const response = await fetch(`/quotation/${quotationId}`);
-        if (!response.ok) {
-            throw new Error("Failed to fetch quotation");
-        }
+    const data = await fetchDocumentById('quotation', quotationId);
+    if (!data) return;
+    
+    const quotation = data.quotation;
 
-        const data = await response.json();
-        const quotation = data.quotation;
-
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'block';
-        document.getElementById('new-quotation').style.display = 'none';
-        document.getElementById('view-preview').style.display = 'block';
-        if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
-            document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-        }
+    document.getElementById('home').style.display = 'none';
+    document.getElementById('new').style.display = 'block';
+    document.getElementById('new-quotation').style.display = 'none';
+    document.getElementById('view-preview').style.display = 'block';
+    if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
+        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+    }
 
         document.getElementById('id').value = quotation.quotation_id;
         document.getElementById('project-name').value = quotation.project_name;
@@ -85,11 +81,6 @@ async function openQuotation(quotationId) {
             `;
             itemsSpecificationsTableBody.appendChild(row);
         });
-
-    } catch (error) {
-        console.error("Error fetching quotation:", error);
-        window.electronAPI.showAlert1("Failed to fetch quotation. Please try again later.");
-    }
 }
 
 // Function to get the quotation id
@@ -693,25 +684,7 @@ async function generatePreview() {
 
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
-    try {
-        const response = await fetch("/quotation/save-quotation", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        const responseData = await response.json();
-
-        if (!response.ok) {
-            window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
-            return false;
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        window.electronAPI.showAlert1("Failed to connect to server.");
-    }
-
-    return true;
+    return await sendDocumentToServer("/quotation/save-quotation", data);
 }
 
 // Event listener for the "Save" button

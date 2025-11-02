@@ -479,24 +479,7 @@ function generatePreview() {
 
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
-    try {
-        const response = await fetch("/invoice/save-invoice", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        const responseData = await response.json();
-
-        if (!response.ok) {
-            window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
-        } else {
-            return true;
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        window.electronAPI.showAlert1("Failed to connect to server.");
-    }
+    return await sendDocumentToServer("/invoice/save-invoice", data);
 }
 
 // Event listener for the "Save" button

@@ -140,61 +140,25 @@ function handleQuotationAction(select, quotationId) {
 
 // Delete a quotation
 async function deleteQuotation(quotationId) {
-    try {
-        const response = await fetch(`/quotation/${quotationId}`, {
-            method: "DELETE",
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to delete quotation");
-        }
-
-        window.electronAPI.showAlert1("Quotation deleted successfully");
-        loadRecentQuotations();
-    } catch (error) {
-        console.error("Error deleting quotation:", error);
-        window.electronAPI.showAlert1("Failed to delete quotation. Please try again later.");
-    }
+    await deleteDocument('quotation', quotationId, 'Quotation', loadRecentQuotations);
 }
 
 // Show the new quotation form
 function showNewQuotationForm() {
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'block';
-    document.getElementById('new-quotation').style.display = 'none';
-    document.getElementById('view-preview').style.display = 'block';
-    document.getElementById('view').style.display = 'none';
-
-    if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
-        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-    }
+    showNewDocumentForm({
+        homeId: 'home',
+        formId: 'new',
+        newButtonId: 'new-quotation',
+        previewButtonId: 'view-preview',
+        viewId: 'view',
+        stepIndicatorId: 'step-indicator',
+        currentStep: typeof currentStep !== 'undefined' ? currentStep : undefined,
+        totalSteps: typeof totalSteps !== 'undefined' ? totalSteps : undefined
+    });
 }
 
 // Handle search functionality
 async function handleSearch() {
     const query = document.getElementById('search-input').value;
-    if (!query) {
-        window.electronAPI.showAlert1("Please enter a search query");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/quotation/search/${query}`);
-        if (!response.ok) {
-            const errorText = await response.text();
-            quotationListDiv.innerHTML = `<h1>${errorText}</h1>`;
-            return;
-        }
-
-        const data = await response.json();
-        const quotations = data.quotation;
-        quotationListDiv.innerHTML = "";
-        (quotations || []).forEach(quotation => {
-            const quotationCard = createQuotationCard(quotation);
-            quotationListDiv.appendChild(quotationCard);
-        });
-    } catch (error) {
-        console.error("Error fetching quotation:", error);
-        window.electronAPI.showAlert1("Failed to fetch quotation. Please try again later.");
-    }
+    await searchDocuments('quotation', query, quotationListDiv, createQuotationCard, 'No quotation found');
 }

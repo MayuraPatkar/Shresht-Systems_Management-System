@@ -9,14 +9,10 @@ document.getElementById("view-preview").addEventListener("click", () => {
 
 // Open a purchase order for editing
 async function openPurchaseOrder(purchaseOrderId) {
-    try {
-        const response = await fetch(`/purchaseOrder/${purchaseOrderId}`);
-        if (!response.ok) {
-            throw new Error("Failed to fetch purchase order");
-        }
+    const data = await fetchDocumentById('purchaseOrder', purchaseOrderId);
+    if (!data) return;
 
-        const data = await response.json();
-        const purchaseOrder = data.purchaseOrder;
+    const purchaseOrder = data.purchaseOrder;
 
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
@@ -52,11 +48,6 @@ async function openPurchaseOrder(purchaseOrderId) {
             `;
             itemsTableBody.appendChild(row);
         });
-
-    } catch (error) {
-        console.error("Error fetching purchase order:", error);
-        window.electronAPI.showAlert1("Failed to fetch purchase order. Please try again later.");
-    }
 }
 
 // fuction to get the quotation id
@@ -288,24 +279,7 @@ function generatePreview() {
 
 // Function to collect form data and send to server
 async function sendToServer(data) {
-    try {
-        const response = await fetch("/purchaseOrder/save-purchase-order", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        const responseData = await response.json();
-
-        if (!response.ok) {
-            window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
-        } else {
-            return true;
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        window.electronAPI.showAlert1("Failed to connect to server.");
-    }
+    return await sendDocumentToServer("/purchaseOrder/save-purchase-order", data);
 }
 
 // Function to collect form data

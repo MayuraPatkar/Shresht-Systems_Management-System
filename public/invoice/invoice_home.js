@@ -148,62 +148,29 @@ function handleInvoiceAction(select, invoiceId) {
 
 // Delete an invoice
 async function deleteInvoice(invoiceId) {
-    try {
-        const response = await fetch(`/invoice/${invoiceId}`, {
-            method: "DELETE",
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to delete invoice");
-        }
-
-        window.electronAPI.showAlert1("Invoice deleted successfully");
-        loadRecentInvoices();
-    } catch (error) {
-        console.error("Error deleting invoice:", error);
-        window.electronAPI.showAlert1("Failed to delete invoice. Please try again later.");
-    }
+    await deleteDocument('invoice', invoiceId, 'Invoice', loadRecentInvoices);
 }
 
 // Show the new invoice form
 function showNewInvoiceForm() {
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'block';
-    document.getElementById('new-invoice').style.display = 'none';
-    document.getElementById('view').style.display = 'none';
-    sessionStorage.setItem('update-invoice', 'original');
-
-    if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
-        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-    }
+    showNewDocumentForm({
+        homeId: 'home',
+        formId: 'new',
+        newButtonId: 'new-invoice',
+        viewId: 'view',
+        stepIndicatorId: 'step-indicator',
+        currentStep: typeof currentStep !== 'undefined' ? currentStep : undefined,
+        totalSteps: typeof totalSteps !== 'undefined' ? totalSteps : undefined,
+        additionalSetup: () => {
+            sessionStorage.setItem('update-invoice', 'original');
+        }
+    });
 }
 
 // Handle search functionality
 async function handleSearch() {
     const query = document.getElementById('search-input').value;
-    if (!query) {
-        window.electronAPI.showAlert1("Please enter a search query");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/invoice/search/${query}`);
-        if (!response.ok) {
-            invoicesListDiv.innerHTML = `<h1>No invoice found</h1>`;
-            return;
-        }
-
-        const data = await response.json();
-        const invoices = data.invoices;
-        invoicesListDiv.innerHTML = "";
-        invoices.forEach(invoice => {
-            const invoiceDiv = createInvoiceCard(invoice);
-            invoicesListDiv.appendChild(invoiceDiv);
-        });
-    } catch (error) {
-        console.error("Error fetching invoices:", error);
-        window.electronAPI.showAlert1("Failed to fetch invoices. Please try again later.");
-    }
+    await searchDocuments('invoice', query, invoicesListDiv, createInvoiceCard, 'No invoice found');
 }
 
 // Payment functionality

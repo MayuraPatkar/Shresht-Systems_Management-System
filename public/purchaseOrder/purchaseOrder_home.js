@@ -107,57 +107,22 @@ function handleAction(select, purchaseOrderId) {
 
 // Delete a purchase order
 async function deletePurchaseOrder(purchaseOrderId) {
-    try {
-        const response = await fetch(`/purchaseOrder/${purchaseOrderId}`, {
-            method: "DELETE",
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to delete purchase order");
-        }
-
-        window.electronAPI.showAlert1("Purchase order deleted successfully");
-        loadRecentPurchaseOrders();
-    } catch (error) {
-        console.error("Error deleting purchase order:", error);
-        window.electronAPI.showAlert1("Failed to delete purchase order. Please try again later.");
-    }
+    await deleteDocument('purchaseOrder', purchaseOrderId, 'Purchase Order', loadRecentPurchaseOrders);
 }
 
 // Show the new purchase order form
 function showNewPurchaseForm() {
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'block';
-    document.getElementById('new-purchase').style.display = 'none';
+    showNewDocumentForm({
+        homeId: 'home',
+        formId: 'new',
+        newButtonId: 'new-purchase'
+    });
 }
 
 // Handle search functionality
 async function handleSearch() {
     const query = document.getElementById('search-input').value;
-    if (!query) {
-        window.electronAPI.showAlert1("Please enter a search query");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/purchaseOrder/search/${query}`);
-        if (!response.ok) {
-            const errorText = await response.text();
-            purchaseOrderListDiv.innerHTML = `<h1>${errorText}</h1>`;
-            return;
-        }
-
-        const data = await response.json();
-        const purchaseOrders = data.purchaseOrder;
-        purchaseOrderListDiv.innerHTML = "";
-        (purchaseOrders || []).forEach(purchaseOrder => {
-            const purchaseOrderDiv = createPurchaseOrderDiv(purchaseOrder);
-            purchaseOrderListDiv.appendChild(purchaseOrderDiv);
-        });
-    } catch (error) {
-        console.error("Error fetching purchase order:", error);
-        window.electronAPI.showAlert1("Failed to fetch purchase order. Please try again later.");
-    }
+    await searchDocuments('purchaseOrder', query, purchaseOrderListDiv, createPurchaseOrderDiv, 'No purchase order found');
 }
 
 // NOTE: formatDate has been moved to public/js/shared/utils.js

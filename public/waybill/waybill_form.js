@@ -1,12 +1,9 @@
 // Open a way bill for editing
 async function openWayBill(wayBillId) {
-    try {
-        const response = await fetch(`/wayBill/${wayBillId}`);
-        if (!response.ok) {
-            throw new Error("Failed to fetch way bill");
-        }
-        const data = await response.json();
-        const wayBill = data.wayBill;
+    const data = await fetchDocumentById('wayBill', wayBillId);
+    if (!data) return;
+    
+    const wayBill = data.wayBill;
 
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
@@ -49,11 +46,6 @@ async function openWayBill(wayBillId) {
             `;
             itemsTableBody.appendChild(row);
         });
-
-    } catch (error) {
-        console.error("Error fetching way bill:", error);
-        window.electronAPI.showAlert1("Failed to fetch way bill. Please try again later.");
-    }
 }
 
 // Event listener for the "Next" button
@@ -236,22 +228,7 @@ function generatePreview() {
 
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
-    try {
-        const response = await fetch("/wayBill/save-way-bill", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        const responseData = await response.json();
-
-        if (!response.ok) {
-            window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        window.electronAPI.showAlert1("Failed to connect to server.");
-    }
+    return await sendDocumentToServer("/wayBill/save-way-bill", data);
 }
 
 // Event listener for the "Save" button
