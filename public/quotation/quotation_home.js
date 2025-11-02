@@ -34,7 +34,13 @@ async function loadRecentQuotations() {
 function renderQuotations(quotations) {
     quotationListDiv.innerHTML = "";
     if (!quotations || quotations.length === 0) {
-        quotationListDiv.innerHTML = "<h1>No quotations found</h1>";
+        quotationListDiv.innerHTML = `
+            <div class="bg-white rounded-lg shadow-md p-12 text-center border border-gray-200">
+                <i class="fas fa-file-alt text-6xl text-gray-300 mb-4"></i>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Quotations Found</h2>
+                <p class="text-gray-500">Create your first quotation to get started</p>
+            </div>
+        `;
         return;
     }
     quotations.forEach(quotation => {
@@ -48,65 +54,89 @@ document.getElementById('home-btn').addEventListener('click', () => {
     window.location = '/quotation';
 });
 
+// Global toast function
+function showToast(message) {
+    const existingToast = document.getElementById('global-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    const toast = document.createElement('div');
+    toast.id = 'global-toast';
+    toast.textContent = message;
+    toast.style.cssText = 'display:none;position:fixed;bottom:20px;right:20px;background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;';
+    document.body.appendChild(toast);
+    toast.style.display = 'block';
+    setTimeout(() => {
+        toast.style.display = 'none';
+        toast.remove();
+    }, 2000);
+}
+
 // Create a quotation card element
 function createQuotationCard(quotation) {
     const quotationCard = document.createElement("div");
-    quotationCard.className = "record-item no-select";
+    quotationCard.className = "bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-200 fade-in";
+    
     quotationCard.innerHTML = `
-        <div class="paid-icon">
-            <img src="../assets/quotation.png" alt="Quotation Icon">
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                    <i class="fas fa-file-alt text-2xl text-purple-600"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">${quotation.project_name}</h3>
+                    <p class="text-sm text-gray-500 cursor-pointer hover:text-blue-600 copy-text transition-colors" title="Click to copy">
+                        <i class="fas fa-copy mr-1"></i>${quotation.quotation_id}
+                    </p>
+                </div>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
+                Quotation
+            </span>
         </div>
-        <div class="record-item-details" >
-            <div class="record-item-info-1">
-                <h1>${quotation.project_name}</h1>
-                <h4 class="copy-text">${quotation.quotation_id}</h4>
-                <div id="toast" style="display:none;position:absolute;bottom:20px;left:275px;background:#333;color:#fff;padding:10px 20px;border-radius:5px;">Copied!</div>
-            </div>   
-        </div>
-        <div class="record-item-details">
-            <div class="record-item-info-2">
-                <h2>Customer</h2>
-                <p>${quotation.customer_name}</p>
-                <p>${quotation.customer_address}</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="space-y-2">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Customer</p>
+                    <p class="text-sm font-medium text-gray-900">${quotation.customer_name}</p>
+                    <p class="text-xs text-gray-600">${quotation.customer_address}</p>
+                </div>
+            </div>
+            
+            <div class="space-y-2">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Amount</p>
+                    <p class="text-lg font-bold text-purple-600">₹ ${formatIndian(quotation.total_amount_tax, 2)}</p>
+                </div>
             </div>
         </div>
-        <div class="record-item-details">
-            <div class="record-item-info-3">
-                <h2>Amount</h2>
-                <p>₹${formatIndian(quotation.total_amount_tax, 2)}</p>
-            </div>
+
+        <div class="pt-4 border-t border-gray-200">
+            <select class="quotation-actions-select w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer hover:border-purple-400 transition-colors" data-quotation-id="${quotation.quotation_id}">
+                <option value="" disabled selected><i class="fas fa-ellipsis-v"></i> Actions</option>
+                <option value="view">👁️ View</option>
+                <option value="viewWTax">💰 View With TAX</option>
+                <option value="compactView">📋 Compact View</option>
+                <option value="update">✏️ Update</option>
+                <option value="delete">🗑️ Delete</option>
+            </select>
         </div>
-        <select class="actions">
-            <option value="" disabled selected>Actions</option>
-            <option value="view">View</option>
-            <option value="viewWTax">View With TAX</option>
-            <option value="compactView">Compact View</option>
-            <option value="update">Update</option>
-            <option value="delete">Delete</option>
-        </select>
     `;
 
     const copyElement = quotationCard.querySelector('.copy-text');
 
-    function showToast(message) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', 500);
-    }
-
     copyElement.addEventListener('click', async () => {
         try {
-            await navigator.clipboard.writeText(copyElement.textContent.trim());
+            await navigator.clipboard.writeText(quotation.quotation_id);
             showToast('Copied!');
         } catch (err) {
             console.error('Copy failed', err);
         }
     });
 
-
     // Attach event listener in JS, not inline
-    quotationCard.querySelector('.actions').addEventListener('change', function () {
+    quotationCard.querySelector('.quotation-actions-select').addEventListener('change', function () {
         handleQuotationAction(this, quotation.quotation_id);
     });
 
