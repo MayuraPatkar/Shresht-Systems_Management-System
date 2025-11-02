@@ -162,114 +162,157 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
             <p>₹ ${formatIndian(finalTotal, 2)}</p>
         </div>`;
 
-    document.getElementById("view-preview-content").innerHTML = `
-    <div class="preview-container">
-        <div class="first-section">
-            <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo" />
-            </div>
-            <div class="company-details">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-            </div>
-        </div>
+    // Split items into rows for pagination
+    const itemRows = itemsHTML.split('</tr>').filter(row => row.trim().length > 0).map(row => row + '</tr>');
+    
+    const ITEMS_PER_PAGE = 15;
+    const SUMMARY_SECTION_ROW_COUNT = 8;
+    
+    const itemPages = [];
+    let currentPageItemsHTML = '';
+    let currentPageRowCount = 0;
 
-        <div class="second-section">
-            <p>INVOICE-${invoice.invoice_id}</p>
-        </div>
+    itemRows.forEach((row, index) => {
+        const isLastItem = index === itemRows.length - 1;
+        const itemSpace = 1; // Each row takes 1 line
+        const requiredSpaceForLastItem = itemSpace + SUMMARY_SECTION_ROW_COUNT;
 
-        <div class="third-section">
-            <div class="buyer-details">
-                <p><strong>Bill To:</strong></p>
-                <p>${invoice.customer_name}</p>
-                <p>${invoice.customer_address}</p>
-                <p>Ph. ${invoice.customer_phone}</p>
-            </div>
-            <div class="info-section">
-                <p><strong>Project:</strong> ${invoice.project_name}</p>
-                <p><strong>P.O No:</strong> ${invoice.po_number}</p>
-                <p><strong>D.C No:</strong> ${invoice.dc_number}</p>
-                <p><strong>E-Way Bill:</strong> ${invoice.Waybill_id}</p>
-            </div>
-        </div>
+        if (currentPageRowCount > 0 &&
+            ((!isLastItem && currentPageRowCount + itemSpace > ITEMS_PER_PAGE) ||
+                (isLastItem && currentPageRowCount + requiredSpaceForLastItem > ITEMS_PER_PAGE))) {
+            itemPages.push(currentPageItemsHTML);
+            currentPageItemsHTML = '';
+            currentPageRowCount = 0;
+        }
 
-        <div class="fourth-section">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Sr. No.</th>
-                        <th>Description</th>
-                        <th>HSN/SAC</th>
-                        <th>Qty</th>
-                        <th>Unit Price</th>
-                        ${hasTax ? `
-                        <th>Taxable Value (₹)</th>
-                        <th>Tax Rate (%)</th> ` : ""}
-                        <th>Total Price (₹)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsHTML}
-                </tbody>
-            </table>
-        </div>
+        currentPageItemsHTML += row;
+        currentPageRowCount += itemSpace;
+    });
 
-        <div class="fifth-section">
-            <div class="fifth-section-sub1">
-                <div class="fifth-section-sub2">
-                    <div class="fifth-section-sub3">
-                        <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
-                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(finalTotal)} Only.</span></p>
-                    </div>
-                    <h3>Payment Details:</h3>
-                    <div class="bank-details">
-                        <div class="QR-code bank-details-sub1">
-                            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
-                                alt="qr-code" />
-                        </div>
-                        <div class="bank-details-sub2">
-                            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                            <p><strong>Bank Name: </strong>Canara Bank</p>
-                            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                            <p><strong>Account No: </strong>120002152652</p>
-                            <p><strong>IFSC Code: </strong>CNRB0010261</p>
-                        </div>
-                    </div>
+    if (currentPageItemsHTML !== '') {
+        itemPages.push(currentPageItemsHTML);
+    }
+
+    // Generate pages
+    const pagesHTML = itemPages.map((pageHTML, index) => {
+        const isLastPage = index === itemPages.length - 1;
+        return `
+        <div class="preview-container">
+            <div class="first-section">
+                <div class="logo">
+                    <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo" />
                 </div>
-                <div class="totals-section">
-                    ${totalsHTML}
+                <div class="company-details">
+                    <h1>SHRESHT SYSTEMS</h1>
+                    <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+                    <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                    <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
                 </div>
             </div>
-        </div>
 
-        <div class="sixth-section">
-            <div class="declaration" contenteditable="true">
-                <p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+            <div class="second-section">
+                <p>INVOICE-${invoice.invoice_id}</p>
+            </div>
+
+            ${index === 0 ? `
+            <div class="third-section">
+                <div class="buyer-details">
+                    <p><strong>Bill To:</strong></p>
+                    <p>${invoice.customer_name}</p>
+                    <p>${invoice.customer_address}</p>
+                    <p>Ph. ${invoice.customer_phone}</p>
+                </div>
+                <div class="info-section">
+                    <p><strong>Project:</strong> ${invoice.project_name}</p>
+                    <p><strong>P.O No:</strong> ${invoice.po_number}</p>
+                    <p><strong>D.C No:</strong> ${invoice.dc_number}</p>
+                    <p><strong>E-Way Bill:</strong> ${invoice.Waybill_id}</p>
+                </div>
+            </div>
+            ` : ''}
+
+            <div class="fourth-section">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sr. No.</th>
+                            <th>Description</th>
+                            <th>HSN/SAC</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            ${hasTax ? `
+                            <th>Taxable Value (₹)</th>
+                            <th>Tax Rate (%)</th> ` : ""}
+                            <th>Total Price (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pageHTML}
+                    </tbody>
+                </table>
+            </div>
+
+            ${!isLastPage ? `<div class="continuation-text" style="text-align: center; margin: 20px 0; font-style: italic; color: #666;">Continued on next page...</div>` : ''}
+
+            ${isLastPage ? `
+            <div class="fifth-section">
+                <div class="fifth-section-sub1">
+                    <div class="fifth-section-sub2">
+                        <div class="fifth-section-sub3">
+                            <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(finalTotal)} Only.</span></p>
+                        </div>
+                        <h3>Payment Details:</h3>
+                        <div class="bank-details">
+                            <div class="QR-code bank-details-sub1">
+                                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                    alt="qr-code" />
+                            </div>
+                            <div class="bank-details-sub2">
+                                <p><strong>Account Holder Name: </strong>Shresht Systems</p>
+                                <p><strong>Bank Name: </strong>Canara Bank</p>
+                                <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
+                                <p><strong>Account No: </strong>120002152652</p>
+                                <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="totals-section">
+                        ${totalsHTML}
+                    </div>
+                </div>
+            </div>
+
+            <div class="sixth-section">
+                <div class="declaration" contenteditable="true">
+                    <p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+                </div>
+            </div>
+
+            <div class="seventh-section">
+                <div class="terms-section" contenteditable="true">
+                    <h3>Terms & Conditions:</h3>
+                    <p>1. Payment should be made within 15 days from the date of invoice.</p>
+                    <p>2. Interest @ 18% per annum will be charged for the delayed payment.</p>
+                    <p>3. Goods once sold will not be taken back.</p>
+                </div>
+            </div>
+
+            <div class="eighth-section">
+                <p>For SHRESHT SYSTEMS</p>
+                <div class="eighth-section-space"></div>
+                <p><strong>Authorized Signatory</strong></p>
+            </div>
+            ` : ''}
+
+            <div class="ninth-section">
+                <p>This is a computer-generated invoice.</p>
             </div>
         </div>
+        `;
+    }).join('');
 
-        <div class="seventh-section">
-            <div class="terms-section" contenteditable="true">
-                <h3>Terms & Conditions:</h3>
-                <p>1. Payment should be made within 15 days from the date of invoice.</p>
-                <p>2. Interest @ 18% per annum will be charged for the delayed payment.</p>
-                <p>3. Goods once sold will not be taken back.</p>
-            </div>
-        </div>
-
-        <div class="eighth-section">
-            <p>For SHRESHT SYSTEMS</p>
-            <div class="eighth-section-space"></div>
-            <p><strong>Authorized Signatory</strong></p>
-        </div>
-
-        <div class="ninth-section">
-            <p>This is a computer-generated invoice.</p>
-        </div>
-    </div>
-    `;
+    document.getElementById("view-preview-content").innerHTML = pagesHTML;
 }
 
 async function viewInvoice(invoiceId, userRole) {
