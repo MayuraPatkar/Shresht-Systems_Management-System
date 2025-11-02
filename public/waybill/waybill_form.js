@@ -139,91 +139,51 @@ function generatePreview() {
     const transportMode = document.getElementById("transport-mode").value || "";
     const vehicleNumber = document.getElementById("vehicle-number").value || "";
     const placeSupply = document.getElementById("place-supply").value || "";
-    const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
+    
+    // Collect items from table
+    const items = Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
+        description: row.cells[1].querySelector("input").value || "-",
+        HSN_SAC: row.cells[2].querySelector("input").value || "-",
+        quantity: row.cells[3].querySelector("input").value || "0",
+        unit_price: row.cells[4].querySelector("input").value || "0",
+        rate: row.cells[5].querySelector("input").value || "0"
+    }));
 
-    let itemsHTML = "";
-    let sno = 0;
-    for (let row of itemsTable.rows) {
-        const description = row.cells[1].querySelector("input").value || "-";
-        const hsnCode = row.cells[2].querySelector("input").value || "-";
-        const qty = row.cells[3].querySelector("input").value || "0";
-        const unitPrice = row.cells[4].querySelector("input").value || "0";
-        const rate = row.cells[5].querySelector("input").value || "0";
-        const total = (qty * unitPrice).toFixed(2);
+    // Use CalculationEngine for simple calculation
+    const calculator = new CalculationEngine(items, []);
+    const { itemsHTML } = calculator.calculateSimple();
 
-        itemsHTML += `<tr>
-            <td>${++sno}</td>
-            <td>${description}</td>
-            <td>${hsnCode}</td>
-            <td>${qty}</td>
-            <td>${unitPrice}</td>
-            <td>${rate}</td>
-            <td>${total}</td>
-        </tr>`;
-    }
+    // Use SectionRenderers to build the document
+    const buyerInfoHTML = `
+        <div class="buyer-details">
+            <h3>Buyer Details</h3>
+            <p>${buyerName}</p>
+            <p>${buyerAddress}</p>
+            <p>${buyerPhone}</p>
+            ${buyerEmail ? `<p>${buyerEmail}</p>` : ''}
+        </div>`;
 
-    document.getElementById("preview-content").innerHTML = `
-    <div class="preview-container">
-        <div class="first-section">
-            <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
-                    alt="Shresht Logo">
-            </div>
-            <div class="company-details">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-            </div>
-        </div>
+    const infoSectionHTML = SectionRenderers.renderInfoSection([
+        { label: 'Project Name', value: projectName },
+        { label: 'Transportation Mode', value: transportMode },
+        { label: 'Vehicle Number', value: vehicleNumber },
+        { label: 'Place to Supply', value: placeSupply }
+    ]);
 
-        <div class="second-section">
-            <p>WAY BILL-${waybillId}</p>
-        </div>
+    const itemColumns = ['Sl. No', 'Description', 'HSN Code', 'Qty', 'Unit Price', 'Tax Rate', 'Total'];
 
-        <div class="third-section">
-            <div class="buyer-details">
-                <h3>Buyer Details</h3>
-                <p>${buyerName}</p>
-                <p>${buyerAddress}</p>
-                <p>${buyerPhone}</p>
-                <p>${buyerEmail}</p>
-            </div>
-            <div class="info-section">
-                <p><strong>Project Name:</strong> ${projectName}</p>
-                <p><strong>Transportation Mode:</strong> ${transportMode}</p>
-                <p><strong>Vehicle Number:</strong> ${vehicleNumber}</p>
-                <p><strong>Place to Supply:</strong> ${placeSupply}</p>
-            </div>  
-        </div>
-        <div class="fourth-section">
-        <table>
-            <thead>
-                <tr>
-                    <th>Sl. No</th>
-                    <th>Description</th>
-                    <th>HSN Code</th>
-                    <th>Qty</th>
-                    <th>Unit Price</th>
-                    <th>Tax Rate</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${itemsHTML}
-            </tbody>
-        </table>
-        </div>
-        <br>
-        <div class="eighth-section">
-            <p>For SHRESHT SYSTEMS</p>
-            <div class="eighth-section-space"></div>
-            <p><strong>Authorized Signatory</strong></p>
-        </div>
-        <div class="ninth-section">
-            <p>This is a computer-generated way bill</p>
-        </div>
-    </div>`;
+    // Build the complete document
+    const documentHTML = buildSimpleDocument({
+        documentId: waybillId,
+        documentType: 'WAY BILL',
+        buyerInfo: buyerInfoHTML,
+        infoSection: infoSectionHTML,
+        itemsHTML: itemsHTML,
+        itemColumns: itemColumns,
+        footerMessage: 'This is a computer-generated way bill'
+    });
+
+    document.getElementById("preview-content").innerHTML = documentHTML;
 }
 
 // Function to collect form data and send to server
@@ -232,32 +192,36 @@ async function sendToServer(data, shouldPrint) {
 }
 
 // Event listener for the "Save" button
-document.getElementById("save-btn").addEventListener("click", () => {
+document.getElementById("save-btn").addEventListener("click", async () => {
     const wayBillData = collectFormData();
-    sendToServer(wayBillData, false);
-    window.electronAPI.showAlert1("Way Bill saved successfully!");
+    const ok = await sendToServer(wayBillData, false);
+    if (ok) window.electronAPI.showAlert1("Way Bill saved successfully!");
 });
 
 // Event listener for the "Print" button
-document.getElementById("print-btn").addEventListener("click", () => {
+document.getElementById("print-btn").addEventListener("click", async () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const wayBillData = collectFormData();
-        sendToServer(wayBillData, true);
-        window.electronAPI.handlePrintEvent(previewContent, "print");
+        const ok = await sendToServer(wayBillData, true);
+        if (ok) {
+            window.electronAPI.handlePrintEvent(previewContent, "print");
+        }
     } else {
         window.electronAPI.showAlert1("Print functionality is not available.");
     }
 });
 
 // Event listener for the "Save as PDF" button
-document.getElementById("save-pdf-btn").addEventListener("click", () => {
+document.getElementById("save-pdf-btn").addEventListener("click", async () => {
     const previewContent = document.getElementById("preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const wayBillData = collectFormData();
-        sendToServer(wayBillData, true);
-        let name = `WayBill-${wayBillData.waybill_id}`;
-        window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+        const ok = await sendToServer(wayBillData, true);
+        if (ok) {
+            let name = `WayBill-${wayBillData.waybill_id}`;
+            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+        }
     } else {
         window.electronAPI.showAlert1("Print functionality is not available.");
     }

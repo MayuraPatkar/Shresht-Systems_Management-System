@@ -86,9 +86,31 @@ function generateViewPreviewHTML(quotation, viewType) {
     if (viewType === 2) {
         const totalCGST = totalTax / 2;
         const totalSGST = totalTax / 2;
-        totalsHTML = `<div class="totals-labels"><p><strong>Taxable Value:</strong></p><p><strong>Total CGST:</strong></p><p><strong>Total SGST:</strong></p><p class="grand-total-label"><strong>Grand Total:</strong></p></div><div class="totals-values"><p>₹ ${formatIndian(totalTaxableValue, 2)}</p><p>₹ ${formatIndian(totalCGST, 2)}</p><p>₹ ${formatIndian(totalSGST, 2)}</p><p class="grand-total-value">₹ ${formatIndian(grandTotal, 2)}</p></div>`;
+        totalsHTML = `
+        <div style="display: flex; width: 100%;">
+            <div class="totals-section-sub1" style="width: 50%;">
+                <p>Taxable Value:</p>
+                <p>Total CGST:</p>
+                <p>Total SGST:</p>
+                <p>Grand Total:</p>
+            </div>
+            <div class="totals-section-sub2" style="width: 50%;">
+                <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+                <p>₹ ${formatIndian(totalCGST, 2)}</p>
+                <p>₹ ${formatIndian(totalSGST, 2)}</p>
+                <p>₹ ${formatIndian(grandTotal, 2)}</p>
+            </div>
+        </div>`;
     } else {
-        totalsHTML = `<div class="totals-labels"><p class="grand-total-label"><strong>Grand Total: </strong></p></div><div class="totals-values"><p class="grand-total-value">₹ ${formatIndian(grandTotal, 2)}</p></div>`;
+        totalsHTML = `
+        <div style="display: flex; width: 100%;">
+            <div class="totals-section-sub1" style="width: 50%;">
+                <p>Grand Total:</p>
+            </div>
+            <div class="totals-section-sub2" style="width: 50%;">
+                <p>₹ ${formatIndian(grandTotal, 2)}</p>
+            </div>
+        </div>`;
     }
 
     const ITEMS_PER_PAGE = 15;
