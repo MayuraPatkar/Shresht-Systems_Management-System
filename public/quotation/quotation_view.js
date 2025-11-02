@@ -163,8 +163,11 @@ function generateViewPreviewHTML(quotation, viewType) {
             <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
         </div>
         <div class="title">Quotation-${quotation.quotation_id}</div>
-        <div class="info-section">
-            <p><strong>To:</strong></p>${quotation.customer_name}<br>${quotation.customer_address}<br>${quotation.customer_phone}<br>
+        <div class="quotation-letter-date">
+            <p><strong>Date:</strong> ${formatDate(quotation.quotation_date)}</p>
+        </div>
+        <div class="quotation-letter-content">
+            <p><strong>To:</strong><br>${quotation.customer_name}<br>${quotation.customer_address}<br>${quotation.customer_phone}</p>
             <p><strong>Subject:</strong> ${quotation.subject || ''}</p>
             <p>Dear ${quotation.customer_name},</p>
             <p>${quotation.letter_1 || ''}</p>

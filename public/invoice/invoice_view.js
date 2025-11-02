@@ -224,7 +224,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                     <p>${invoice.customer_address}</p>
                     <p>Ph. ${invoice.customer_phone}</p>
                 </div>
-                <div class="info-section">
+                <div class="order-info">
                     <p><strong>Project:</strong> ${invoice.project_name}</p>
                     <p><strong>P.O No:</strong> ${invoice.po_number}</p>
                     <p><strong>D.C No:</strong> ${invoice.dc_number}</p>
