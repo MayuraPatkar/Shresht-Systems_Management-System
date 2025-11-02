@@ -95,12 +95,16 @@ router.post("/save-invoice", async (req, res) => {
 
         let items_original = existingInvoice?.items_original || [];
         let items_duplicate = existingInvoice?.items_duplicate || [];
+        let non_items_original = existingInvoice?.non_items_original || [];
+        let non_items_duplicate = existingInvoice?.non_items_duplicate || [];
 
         if (type === 'original') {
             items_original = items;                // overwrite originals
+            non_items_original = non_items;        // overwrite non_items originals
             // leave duplicate untouched
         } else if (type === 'duplicate') {
             items_duplicate = items;               // overwrite duplicates
+            non_items_duplicate = non_items;       // overwrite non_items duplicates
             // originals stay as‐is
         } else {
             return res.status(400).json({ message: 'type must be "original" or "duplicate"' });
@@ -151,8 +155,8 @@ router.post("/save-invoice", async (req, res) => {
                 consignee_address: consigneeAddress,
                 items_original: items_original,
                 items_duplicate: items_duplicate,
-                non_items_original: non_items,
-                non_items_duplicate: non_items,
+                non_items_original: non_items_original,
+                non_items_duplicate: non_items_duplicate,
                 total_amount_original: total_amount_original,
                 total_amount_duplicate: total_amount_duplicate,
                 total_tax_original: total_tax_original,
@@ -319,11 +323,9 @@ router.get('/search/:query', async (req, res) => {
     }
     let invoices = [];
     try {
-        if (query === 'unpaid') {
+        if (query.toLowerCase() === 'unpaid') {
             invoices = await Invoices.find({
-                $or: [
-                    { paymentStatus: { $regex: query, $options: 'i' } }
-                ]
+                payment_status: { $regex: 'unpaid', $options: 'i' }
             });
         } else {
             invoices = await Invoices.find({

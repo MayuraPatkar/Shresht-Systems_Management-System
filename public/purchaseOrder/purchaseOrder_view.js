@@ -190,7 +190,7 @@ async function viewPurchaseOrder(purchaseOrderId) {
         // Hide other sections, show view section
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'none';
-        document.getElementById('view').style.display = 'flex';
+        document.getElementById('view').style.display = 'block';
 
         // Fill Supplier Details
         document.getElementById('view-purchase-invoice-iD').textContent = purchaseOrder.purchase_invoice_id || '-';
@@ -208,13 +208,14 @@ async function viewPurchaseOrder(purchaseOrderId) {
 
         (purchaseOrder.items || []).forEach(item => {
             const row = document.createElement("tr");
+            row.className = "border-b border-gray-200 hover:bg-gray-50";
             row.innerHTML = `
-                <td>${++sno}</td>
-                <td>${item.description || '-'}</td>
-                <td>${item.HSN_SAC || item.hsn_sac || '-'}</td>
-                <td>${item.quantity || '-'}</td>
-                <td>${formatIndian(item.unit_price, 2) || '-'}</td>
-                <td>${item.rate || '-'}%</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${item.description || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || item.hsn_sac || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${item.rate || '-'}%</td>
             `;
             viewItemsTableBody.appendChild(row);
         });

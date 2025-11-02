@@ -38,6 +38,7 @@ const invoiceSchema = new mongoose.Schema({
     items_duplicate: [
         {
             description: { type: String },
+            HSN_SAC: { type: String },
             quantity: { type: Number },
             unit_price: { type: Number },
             rate: { type: Number },

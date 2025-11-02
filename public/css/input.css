@@ -10,6 +10,17 @@
     --danger: #dc3545;
     --success: #267746;
   }
+
+  /* Prevent selection of UI elements - global */
+  button, label, h1, h2, h3, h4, h5, h6, 
+  header, nav, aside, img, svg, i,
+  [role="button"], [role="navigation"], [role="banner"],
+  .no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
 }
 
 @layer components {
@@ -23,5 +34,16 @@
   
   .table-row {
     @apply hover:bg-gray-50 transition-colors;
+  }
+
+  /* Prevent selection for common UI patterns */
+  .sidebar, .navbar, .header,
+  .card-header, .badge, .chip, .tag,
+  .icon, .logo, .avatar,
+  [class*="btn-"], [class*="badge-"], [class*="icon-"] {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
 }
