@@ -35,16 +35,16 @@ async function openPurchaseOrder(purchaseOrderId) {
         (purchaseOrder.items || []).forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${++sno}</td>
-                <td><input type="text" value="${item.description}" required></td>
-                <td><input type="text" value="${item.HSN_SAC}" required></td>
-                <td><input type="text" value="${item.company || ''}"></td>
-                <td><input type="text" value="${item.type || ''}"></td>
-                <td><input type="text" value="${item.category || ''}"></td>
-                <td><input type="number" value="${item.quantity}" min="1" required></td>
-                <td><input type="number" value="${item.unit_price}" required></td>
-                <td><input type="number" value="${item.rate}" min="0.01" step="0.01" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
+                <td class="text-center">${++sno}</td>
+                <td><input type="text" value="${item.description}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                <td><input type="text" value="${item.HSN_SAC}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                <td><input type="text" value="${item.company || ''}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                <td><input type="text" value="${item.type || ''}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                <td><input type="text" value="${item.category || ''}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                <td><input type="number" value="${item.quantity}" min="1" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                <td><input type="number" value="${item.unit_price}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                <td><input type="number" value="${item.rate}" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                <td><button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button></td>
             `;
             itemsTableBody.appendChild(row);
         });
@@ -306,3 +306,25 @@ function collectFormData() {
         totalAmount: totalAmount
     };
 }
+
+// Override the global addItem function with purchase order specific implementation
+document.getElementById('add-item-btn')?.addEventListener('click', function() {
+    const tableBody = document.querySelector("#items-table tbody");
+    const row = document.createElement("tr");
+    const rowNumber = tableBody.children.length + 1;
+
+    row.innerHTML = `
+        <td class="text-center">${rowNumber}</td>
+        <td><input type="text" placeholder="Item Description" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+        <td><input type="text" placeholder="HSN/SAC" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+        <td><input type="text" placeholder="Company" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+        <td><input type="text" placeholder="Type" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+        <td><input type="text" placeholder="Category" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+        <td><input type="number" placeholder="Qty" min="1" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+        <td><input type="number" placeholder="Unit Price" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+        <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+        <td><button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button></td>
+    `;
+
+    tableBody.appendChild(row);
+});

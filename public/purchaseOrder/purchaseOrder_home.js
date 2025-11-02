@@ -3,6 +3,9 @@ const purchaseOrderListDiv = document.querySelector(".records");
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentPurchaseOrders();
     document.getElementById('new-purchase').addEventListener('click', showNewPurchaseForm);
+    document.getElementById('home-btn')?.addEventListener('click', () => {
+        window.location = '/purchaseOrder';
+    });
     document.getElementById('search-input').addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
@@ -16,7 +19,7 @@ async function loadRecentPurchaseOrders() {
     try {
         const response = await fetch(`/purchaseOrder/recent-purchase-orders`);
         if (!response.ok) {
-            purchaseOrderListDiv.innerHTML = "<p>No Purchase Orders Found.</p>";
+            purchaseOrderListDiv.innerHTML = "<div class='text-center py-12'><i class='fas fa-inbox text-gray-400 text-6xl mb-4'></i><p class='text-gray-500 text-lg'>No Purchase Orders Found.</p></div>";
             return;
         }
 
@@ -24,7 +27,7 @@ async function loadRecentPurchaseOrders() {
         renderPurchaseOrders(data.purchaseOrder);
     } catch (error) {
         console.error("Error loading purchase orders:", error);
-        purchaseOrderListDiv.innerHTML = "<p>Failed to load purchase orders. Please try again later.</p>";
+        purchaseOrderListDiv.innerHTML = "<div class='text-center py-12'><i class='fas fa-exclamation-triangle text-red-400 text-6xl mb-4'></i><p class='text-red-500 text-lg'>Failed to load purchase orders. Please try again later.</p></div>";
     }
 }
 
@@ -32,7 +35,7 @@ async function loadRecentPurchaseOrders() {
 function renderPurchaseOrders(purchaseOrders) {
     purchaseOrderListDiv.innerHTML = "";
     if (!purchaseOrders || purchaseOrders.length === 0) {
-        purchaseOrderListDiv.innerHTML = "<h1>No Purchase Orders Found</h1>";
+        purchaseOrderListDiv.innerHTML = "<div class='text-center py-12'><i class='fas fa-inbox text-gray-400 text-6xl mb-4'></i><h1 class='text-gray-500 text-2xl'>No Purchase Orders Found</h1></div>";
         return;
     }
     purchaseOrders.forEach(purchaseOrder => {
@@ -44,38 +47,43 @@ function renderPurchaseOrders(purchaseOrders) {
 // Create a purchase order div element
 function createPurchaseOrderDiv(purchaseOrder) {
     const purchaseOrderDiv = document.createElement("div");
-    purchaseOrderDiv.className = "record-item";
+    purchaseOrderDiv.className = "bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow fade-in";
     purchaseOrderDiv.innerHTML = `
-    <div class="paid-icon">
-        <img src="../assets/economy-forecast.png" alt="Icon">
-    </div>
-    <div class="record-item-details">
-        <div class="record-item-info-2">
-            <h2>Supplier</h2>
-            <p>${purchaseOrder.supplier_name}</p>
-            <p>${purchaseOrder.purchase_order_id}</p>
-        </div>
-    </div>
-        <div class="record-item-details">
-            <div class="record-item-info-2">
-            <h2>About</h2>
-            <p>${formatDate(purchaseOrder.purchase_date)}</p>
-            <p>${purchaseOrder.supplier_address}</p>
-        </div>
-    </div>
-    <div class="record-item-details">
-            <div class="record-item-info-2">
-            <h2>Amount</h2>
-                 <p>₹ ${formatIndian(purchaseOrder.total_amount, 2)}</p>
+        <div class="flex items-start justify-between">
+            <div class="flex items-start gap-4 flex-1">
+                <div class="bg-purple-100 p-3 rounded-lg">
+                    <i class="fas fa-shopping-cart text-purple-600 text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-1">${purchaseOrder.supplier_name}</h3>
+                            <p class="text-sm text-gray-500 font-mono">${purchaseOrder.purchase_order_id}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 mb-1">Purchase Date</p>
+                            <p class="text-sm font-semibold text-gray-700">${formatDate(purchaseOrder.purchase_date)}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 mb-1">Address</p>
+                            <p class="text-sm text-gray-700">${purchaseOrder.supplier_address}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 mb-1">Total Amount</p>
+                            <p class="text-lg font-bold text-green-600">₹ ${formatIndian(purchaseOrder.total_amount, 2)}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
+            <select class="ml-4 px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer actions">
+                <option value="" disabled selected>Actions</option>
+                <option value="view">👁️ View</option>
+                <option value="update">✏️ Update</option>
+                <option value="delete">🗑️ Delete</option>
+            </select>
         </div>
-        </div>
-    <select class="actions">
-        <option value="" disabled selected>Actions</option>
-        <option value="view">View</option>
-        <option value="update">Update</option>
-        <option value="delete">Delete</option>
-    </select>
     `;
 
     // Attach event handler for actions

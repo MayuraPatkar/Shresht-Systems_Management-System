@@ -12,52 +12,53 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-document.getElementById('dashboard').addEventListener('click', () => {
+// Sidebar navigation - add null checks for elements that may not exist on all pages
+document.getElementById('dashboard')?.addEventListener('click', () => {
   window.location = '/dashboard';
   sessionStorage.setItem('currentTab', 'dashboard');
 })
 
-document.getElementById('quotation').addEventListener('click', () => {
+document.getElementById('quotation')?.addEventListener('click', () => {
   window.location = '/quotation';
   sessionStorage.setItem('currentTab', 'quotation');
 })
 
-document.getElementById('postOrder').addEventListener('click', () => {
+document.getElementById('postOrder')?.addEventListener('click', () => {
   window.location = '/purchaseorder';
   sessionStorage.setItem('currentTab', 'purchaseorder');
 })
 
-document.getElementById('wayBill').addEventListener('click', () => {
+document.getElementById('wayBill')?.addEventListener('click', () => {
   window.location = '/wayBill';
   sessionStorage.setItem('currentTab', 'wayBill');
 })
 
-document.getElementById('invoice').addEventListener('click', () => {
+document.getElementById('invoice')?.addEventListener('click', () => {
   window.location = '/invoice';
   sessionStorage.setItem('currentTab', 'invoice');
 })
 
-document.getElementById('service').addEventListener('click', () => {
+document.getElementById('service')?.addEventListener('click', () => {
   window.location = '/service';
   sessionStorage.setItem('currentTab', 'service');
 })
 
-document.getElementById('stock').addEventListener('click', () => {
+document.getElementById('stock')?.addEventListener('click', () => {
   window.location = '/stock';
   sessionStorage.setItem('currentTab', 'stock');
 })
 
-document.getElementById('comms').addEventListener('click', () => {
+document.getElementById('comms')?.addEventListener('click', () => {
   window.location = '/comms';
   sessionStorage.setItem('currentTab', 'comms');
 })
 
-document.getElementById('calculations').addEventListener('click', () => {
+document.getElementById('calculations')?.addEventListener('click', () => {
   window.location = '/calculations';
   sessionStorage.setItem('currentTab', 'calculations');
 })
 
-document.getElementById('settings').addEventListener('click', () => {
+document.getElementById('settings')?.addEventListener('click', () => {
   window.location = '/settings';
   sessionStorage.setItem('currentTab', 'settings');
 })
@@ -65,7 +66,8 @@ document.getElementById('settings').addEventListener('click', () => {
 let currentStep = 1;
 
 function moveNext() {
-  document.getElementById('next-btn').click();
+  const nextBtn = document.getElementById('next-btn');
+  if (nextBtn) nextBtn.click();
 }
 
 document.addEventListener("keydown", function (event) {
@@ -96,39 +98,53 @@ document.addEventListener("keydown", function (event) {
 });
 
 // Event listener for the "Next" button
-document.getElementById("next-btn").addEventListener("click", () => {
-  if (currentStep < totalSteps) {
-    changeStep(currentStep + 1);
-    if (currentStep === totalSteps && !document.getElementById('id').value) getId();
-    else if (currentStep === totalSteps && document.getElementById('id').value) generatePreview();
-  }
+const nextBtn = document.getElementById("next-btn");
+if (nextBtn) {
+  nextBtn.addEventListener("click", () => {
+    if (currentStep < totalSteps) {
+      changeStep(currentStep + 1);
+      const idInput = document.getElementById('id');
+      if (currentStep === totalSteps && !idInput?.value) getId();
+      else if (currentStep === totalSteps && idInput?.value) generatePreview();
+    }
 
-  if (currentStep === 5 && sessionStorage.getItem('currentTab') === 'quotation') {
-    // Use the new updateSpecificationsTable function that fetches from stock
-    updateSpecificationsTable();
-  }
-});
+    if (currentStep === 5 && sessionStorage.getItem('currentTab') === 'quotation') {
+      // Use the new updateSpecificationsTable function that fetches from stock
+      updateSpecificationsTable();
+    }
+  });
+}
 
 // Event listener for the "Previous" button
-document.getElementById("prev-btn").addEventListener("click", () => {
-  if (currentStep > 1) {
-    changeStep(currentStep - 1);
-  }
-});
+const prevBtn = document.getElementById("prev-btn");
+if (prevBtn) {
+  prevBtn.addEventListener("click", () => {
+    if (currentStep > 1) {
+      changeStep(currentStep - 1);
+    }
+  });
+}
 
 // Function to change the current step
 function changeStep(step) {
-  document.getElementById(`step-${currentStep}`).classList.remove("active");
+  const currentStepEl = document.getElementById(`step-${currentStep}`);
+  const nextStepEl = document.getElementById(`step-${step}`);
+  const stepIndicator = document.getElementById("step-indicator");
+  
+  if (currentStepEl) currentStepEl.classList.remove("active");
   currentStep = step;
-  document.getElementById(`step-${currentStep}`).classList.add("active");
+  if (nextStepEl) nextStepEl.classList.add("active");
   updateNavigation();
-  document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+  if (stepIndicator) stepIndicator.textContent = `Step ${currentStep} of ${totalSteps}`;
 }
 
 // Function to update the navigation buttons
 function updateNavigation() {
-  document.getElementById("prev-btn").disabled = currentStep === 1;
-  document.getElementById("next-btn").disabled = currentStep === totalSteps;
+  const prevBtn = document.getElementById("prev-btn");
+  const nextBtn = document.getElementById("next-btn");
+  
+  if (prevBtn) prevBtn.disabled = currentStep === 1;
+  if (nextBtn) nextBtn.disabled = currentStep === totalSteps;
 }
 
 // NOTE: Utility functions (numberToWords, formatIndian, formatDate) 
@@ -307,7 +323,7 @@ function handleKeyboardNavigation(event, input, suggestionsList) {
 }
 
 // Event listener for the "Remove Item" button
-document.querySelector("#items-table").addEventListener("click", (event) => {
+document.querySelector("#items-table")?.addEventListener("click", (event) => {
   if (event.target.classList.contains('remove-item-btn')) {
     event.target.closest('tr').remove();
     // Update specifications table after removing item
@@ -315,20 +331,26 @@ document.querySelector("#items-table").addEventListener("click", (event) => {
   }
 });
 
-document.querySelector("#non-items-table").addEventListener("click", (event) => {
-  if (event.target.classList.contains('remove-item-btn')) {
-    event.target.closest('tr').remove();
-    // Update specifications table after removing item
-    setTimeout(() => updateSpecificationsTable(), 100);
-  }
-});
-
-if (sessionStorage.getItem('currentTab') === 'quotation'  ) {
-  document.querySelector("#items-specifications-table").addEventListener("click", (event) => {
+const nonItemsTable = document.querySelector("#non-items-table");
+if (nonItemsTable) {
+  nonItemsTable.addEventListener("click", (event) => {
     if (event.target.classList.contains('remove-item-btn')) {
       event.target.closest('tr').remove();
+      // Update specifications table after removing item
+      setTimeout(() => updateSpecificationsTable(), 100);
     }
   });
+}
+
+if (sessionStorage.getItem('currentTab') === 'quotation') {
+  const itemsSpecTable = document.querySelector("#items-specifications-table");
+  if (itemsSpecTable) {
+    itemsSpecTable.addEventListener("click", (event) => {
+      if (event.target.classList.contains('remove-item-btn')) {
+        event.target.closest('tr').remove();
+      }
+    });
+  }
 }
 
 // Fetch stock data from the backend
@@ -420,25 +442,31 @@ async function updateSpecificationsTable() {
 }
 
 // Event listener for item description input
-document.querySelector("#items-table").addEventListener("input", async (event) => {
-  const row = event.target.closest("tr");
+const itemsTableInput = document.querySelector("#items-table");
+if (itemsTableInput) {
+  itemsTableInput.addEventListener("input", async (event) => {
+    const row = event.target.closest("tr");
 
-  if (event.target.placeholder === "Item Description" || event.target.placeholder === "HSN/SAC") {
-    const itemName = row.querySelector("input[placeholder='Item Description']").value.trim();
-    if (itemName.length > 2) { // Avoid unnecessary API calls for short inputs
-      fill(itemName, row);
+    if (event.target.placeholder === "Item Description" || event.target.placeholder === "HSN/SAC") {
+      const itemName = row.querySelector("input[placeholder='Item Description']").value.trim();
+      if (itemName.length > 2) { // Avoid unnecessary API calls for short inputs
+        fill(itemName, row);
+      }
     }
-  }
-});
+  });
+}
 
 // Event listener for non-item description input
-document.querySelector("#non-items-table").addEventListener("input", async (event) => {
-  const row = event.target.closest("tr");
+const nonItemsTableInput = document.querySelector("#non-items-table");
+if (nonItemsTableInput) {
+  nonItemsTableInput.addEventListener("input", async (event) => {
+    const row = event.target.closest("tr");
 
-  if (event.target.placeholder === "Item Description") {
-    const itemName = row.querySelector("input[placeholder='Item Description']").value.trim();
-    if (itemName.length > 2) { // Avoid unnecessary API calls for short inputs
-      fill(itemName, row);
+    if (event.target.placeholder === "Item Description") {
+      const itemName = row.querySelector("input[placeholder='Item Description']").value.trim();
+      if (itemName.length > 2) { // Avoid unnecessary API calls for short inputs
+        fill(itemName, row);
+      }
     }
-  }
-});
+  });
+}
