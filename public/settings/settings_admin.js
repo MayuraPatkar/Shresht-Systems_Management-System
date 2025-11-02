@@ -113,6 +113,11 @@ function exitEditMode() {
  * Saves the edited company information to the server
  */
 function saveCompanyInfo() {
+    const saveButton = document.getElementById("save-company-info-button");
+    const originalContent = saveButton.innerHTML;
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
     const updatedData = {
         company: document.getElementById("edit-company").value.trim(),
         address: document.getElementById("edit-address").value.trim(),
@@ -136,6 +141,17 @@ function saveCompanyInfo() {
     // Validate required fields
     if (!updatedData.company || !updatedData.address || !updatedData.phone.ph1 || !updatedData.email) {
         window.electronAPI.showAlert1("Please fill in all required fields (Company, Address, Phone 1, Email)");
+        saveButton.disabled = false;
+        saveButton.innerHTML = originalContent;
+        return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(updatedData.email)) {
+        window.electronAPI.showAlert1("Please enter a valid email address");
+        saveButton.disabled = false;
+        saveButton.innerHTML = originalContent;
         return;
     }
     
@@ -158,6 +174,10 @@ function saveCompanyInfo() {
         .catch(error => {
             console.error("Error updating company info:", error);
             window.electronAPI.showAlert1("Failed to update company information. Please try again.");
+        })
+        .finally(() => {
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalContent;
         });
 }
 
@@ -173,6 +193,18 @@ function handleChangeUsername() {
         window.electronAPI.showAlert1("Username cannot be empty.");
         return;
     }
+    
+    // Validate username (alphanumeric and underscore only, 3-20 chars)
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+        window.electronAPI.showAlert1("Username must be 3-20 characters and contain only letters, numbers, and underscores.");
+        return;
+    }
+
+    const changeButton = document.getElementById("change-username-button");
+    const originalContent = changeButton.innerHTML;
+    changeButton.disabled = true;
+    changeButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
 
     fetch("/admin/change-username", {
         method: "POST",
@@ -180,10 +212,16 @@ function handleChangeUsername() {
         body: JSON.stringify({ username }),
     })
         .then(response => response.json())
-        .then(data => window.electronAPI.showAlert1(data.message))
+        .then(data => {
+            window.electronAPI.showAlert1(data.message);
+        })
         .catch((error) => {
             console.error("Error changing username:", error);
             window.electronAPI.showAlert1("Failed to change username. Please try again.");
+        })
+        .finally(() => {
+            changeButton.disabled = false;
+            changeButton.innerHTML = originalContent;
         });
 }
 
@@ -204,6 +242,17 @@ function handleChangePassword() {
         window.electronAPI.showAlert1("New password and confirm password do not match.");
         return;
     }
+    
+    // Basic password strength validation
+    if (newPassword.length < 8) {
+        window.electronAPI.showAlert1("New password must be at least 8 characters long.");
+        return;
+    }
+
+    const changeButton = document.getElementById("change-password-button");
+    const originalContent = changeButton.innerHTML;
+    changeButton.disabled = true;
+    changeButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
 
     fetch("/admin/change-password", {
         method: "POST",
@@ -211,10 +260,22 @@ function handleChangePassword() {
         body: JSON.stringify({ oldPassword, newPassword }),
     })
         .then(response => response.json())
-        .then(data => window.electronAPI.showAlert1(data.message))
+        .then(data => {
+            window.electronAPI.showAlert1(data.message);
+            if (data.message.includes("success")) {
+                // Clear password fields on success
+                document.getElementById("old-password").value = "";
+                document.getElementById("new-password").value = "";
+                document.getElementById("confirm-password").value = "";
+            }
+        })
         .catch((error) => {
             console.error("Error changing password:", error);
             window.electronAPI.showAlert1("Failed to change password. Please try again.");
+        })
+        .finally(() => {
+            changeButton.disabled = false;
+            changeButton.innerHTML = originalContent;
         });
 }
 

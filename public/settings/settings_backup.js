@@ -42,6 +42,7 @@ function checkBackupToolsStatus() {
 function handleExportData() {
     const selectedElement = document.querySelector('input[name="export-data"]:checked');
     const statusElement = document.getElementById("backup-status");
+    const exportButton = document.getElementById("export-data-button");
     
     if (!selectedElement) {
         window.electronAPI.showAlert1("Please select a data type to export.");
@@ -49,6 +50,10 @@ function handleExportData() {
     }
     
     const selected = selectedElement.value;
+    const originalContent = exportButton.innerHTML;
+    exportButton.disabled = true;
+    exportButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+    
     statusElement.innerText = `Exporting ${selected} data...`;
     statusElement.className = "text-blue-700 font-medium";
 
@@ -75,6 +80,10 @@ function handleExportData() {
             statusElement.className = "text-red-700 font-medium";
             statusElement.innerText = `Export failed: ${err.message}`;
             console.error('Export error:', err);
+        })
+        .finally(() => {
+            exportButton.disabled = false;
+            exportButton.innerHTML = originalContent;
         });
 }
 
@@ -112,7 +121,7 @@ function handleRestoreCollection() {
 
     // Validate collection selection
     const collectionSelect = document.getElementById("collection-select");
-    if (!collectionSelect || !collectionSelect.value) {
+    if (!collectionSelect || !collectionSelect.value || collectionSelect.value === "Choose collection") {
         window.electronAPI.showAlert1("Please select a collection to restore.");
         return;
     }
@@ -121,6 +130,11 @@ function handleRestoreCollection() {
     const formData = new FormData();
     formData.append("backupFile", fileInput.files[0]);
     formData.append("collection", collectionSelect.value);
+
+    const restoreButton = document.getElementById("restore-collection-button");
+    const originalContent = restoreButton.innerHTML;
+    restoreButton.disabled = true;
+    restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
 
     statusElement.innerText = "Restoring collection...";
     statusElement.className = "text-blue-700 font-medium";
@@ -152,6 +166,10 @@ function handleRestoreCollection() {
             statusElement.className = "text-red-700 font-medium";
             statusElement.innerText = `Restore failed: ${err.message}`;
             console.error('Restore error:', err);
+        })
+        .finally(() => {
+            restoreButton.disabled = false;
+            restoreButton.innerHTML = originalContent;
         });
 }
 
@@ -187,8 +205,23 @@ function handleRestoreDatabase() {
         return;
     }
 
+    // Confirm action with user
+    window.electronAPI.showAlert2(
+        "Are you sure you want to restore the entire database? This will replace ALL existing data!",
+        (response) => {
+            if (response === 'Yes' || response === true) {
+                performDatabaseRestore(file, statusElement);
+            }
+        }
+    );
+}
+
+/**
+ * Performs the actual database restore operation
+ */
+function performDatabaseRestore(file, statusElement) {
     const formData = new FormData();
-    formData.append("backupFile", fileInput.files[0]);
+    formData.append("backupFile", file);
 
     statusElement.innerText = "Restoring database...";
     statusElement.className = "text-blue-700 font-medium";
@@ -213,7 +246,7 @@ function handleRestoreDatabase() {
                 if (data.fileSize) {
                     statusElement.innerText += ` (${(data.fileSize / 1024).toFixed(2)} KB processed)`;
                 }
-                fileInput.value = "";
+                document.getElementById("restore-database-file").value = "";
             } else {
                 statusElement.className = "text-red-700 font-medium";
                 statusElement.innerText = `Database restore failed: ${data.message}`;

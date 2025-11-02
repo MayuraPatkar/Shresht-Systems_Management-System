@@ -148,6 +148,37 @@ document.addEventListener('DOMContentLoaded', function() {
     const discountOriginal = document.getElementById('discountOriginal');
     const discountPercent = document.getElementById('discountPercent');
     
+    // Button click event listeners
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', clearAllFields);
+    }
+    
+    const calculateGSTBtn = document.getElementById('calculateGSTBtn');
+    if (calculateGSTBtn) {
+        calculateGSTBtn.addEventListener('click', calculateGST);
+    }
+    
+    const convertLengthBtn = document.getElementById('convertLengthBtn');
+    if (convertLengthBtn) {
+        convertLengthBtn.addEventListener('click', convertLength);
+    }
+    
+    const convertAreaBtn = document.getElementById('convertAreaBtn');
+    if (convertAreaBtn) {
+        convertAreaBtn.addEventListener('click', convertArea);
+    }
+    
+    const convertWeightBtn = document.getElementById('convertWeightBtn');
+    if (convertWeightBtn) {
+        convertWeightBtn.addEventListener('click', convertWeight);
+    }
+    
+    const convertVolumeBtn = document.getElementById('convertVolumeBtn');
+    if (convertVolumeBtn) {
+        convertVolumeBtn.addEventListener('click', convertVolume);
+    }
+    
     // GST Calculator listeners
     if (gstAmount && gstRate && gstRateCustom) {
         [gstAmount, gstRateCustom].forEach(input => {
