@@ -21,7 +21,7 @@ function generateViewPreviewHTML(wayBill) {
     });
 
     document.getElementById("view-preview-content").innerHTML = `
-    <div class="preview-container">
+    <div class="preview-container doc-standard doc-waybill">
         <div class="first-section">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo">

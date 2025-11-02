@@ -146,20 +146,22 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
     const roundOff = Math.round(grandTotal) - grandTotal;
     const finalTotal = totalPrice + roundOff;
 
-    let totalsHTML = ` 
-        <div class="totals-section-sub1">
-            ${hasTax ? `
-            <p><strong>Taxable Value: </strong></p>
-            <p><strong>Total CGST: </strong></p>
-            <p><strong>Total SGST: </strong></p>` : ""}
-            <p><strong>Grand Total: </strong></p>
-        </div>
-        <div class="totals-section-sub2">
-            ${hasTax ? `
-            <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
-            <p>₹ ${formatIndian(totalCGST, 2)}</p>
-            <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-            <p>₹ ${formatIndian(finalTotal, 2)}</p>
+    let totalsHTML = `
+        <div style="display: flex; width: 100%;">
+            <div class="totals-section-sub1" style="width: 50%;">
+                ${hasTax ? `
+                <p>Taxable Value:</p>
+                <p>Total CGST:</p>
+                <p>Total SGST:</p>` : ""}
+                <p>Grand Total:</p>
+            </div>
+            <div class="totals-section-sub2" style="width: 50%;">
+                ${hasTax ? `
+                <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+                <p>₹ ${formatIndian(totalCGST, 2)}</p>
+                <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
+                <p>₹ ${formatIndian(finalTotal, 2)}</p>
+            </div>
         </div>`;
 
     // Split items into rows for pagination
@@ -197,7 +199,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
     const pagesHTML = itemPages.map((pageHTML, index) => {
         const isLastPage = index === itemPages.length - 1;
         return `
-        <div class="preview-container">
+        <div class="preview-container doc-standard doc-invoice">
             <div class="first-section">
                 <div class="logo">
                     <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo" />

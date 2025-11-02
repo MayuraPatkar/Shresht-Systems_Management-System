@@ -78,7 +78,7 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
     `;
 
     document.getElementById("view-preview-content").innerHTML = `
-    <div class="preview-container">
+    <div class="preview-container doc-standard doc-purchase-order">
         <div class="first-section">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
