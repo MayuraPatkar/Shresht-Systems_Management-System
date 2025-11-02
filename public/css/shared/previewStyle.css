@@ -1,3 +1,4 @@
+/* Print and Preview Styles - Shared across Invoice, Waybill, Purchase Order */
 @page {
     size: A4;
     margin: 10mm;
@@ -145,7 +146,7 @@
     justify-content: center;
 }
 
-.fifth-section .fifth-section-sub2 p{
+.fifth-section .fifth-section-sub2 p {
     margin: 0;
 }
 
@@ -180,10 +181,7 @@
     height: 100%;
 }
 
-.fifth-section .bank-details-sub2 p {
-    margin: 0;
-}
-
+.fifth-section .bank-details-sub2 p,
 .fifth-section .bank-details-sub2 h4 {
     margin: 0;
 }
@@ -217,7 +215,6 @@
 }
 
 .eighth-section {
-    /* height: 4%; */
     text-align: left;
     display: flex;
     flex-direction: column;
@@ -226,7 +223,6 @@
 
 .eighth-section p {
     margin: 0;
-    /* margintop: 0; */
 }
 
 .eighth-section-space {
