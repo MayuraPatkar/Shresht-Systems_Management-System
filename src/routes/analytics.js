@@ -13,35 +13,38 @@ router.get('/overview', async (req, res) => {
     /* ────────────────────────── Simple document counts ────────────────────── */
     const totalProjects   = await Invoices.countDocuments();
     const totalQuotations = await Quotations.countDocuments();
-    const totalUnpaid     = await Invoices.countDocuments({ paymentStatus: 'Unpaid' });
+    const totalUnpaid     = await Invoices.countDocuments({ payment_status: 'Unpaid' });
 
     /* ────────────────────── Monthly invoice earnings (Paid) ───────────────── */
     const [{ total: totalEarned = 0 } = {}] = await Invoices.aggregate([
       {
         $match: {
           createdAt: { $gte: startOfMonth, $lt: startNextMon },
-          paymentStatus: 'Paid',
+          payment_status: 'Paid',
         },
       },
-      { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+      { $group: { _id: null, total: { $sum: '$total_amount_original' } } },
     ]);
 
     /* ─────────────────────── Monthly purchase expenditure ─────────────────── */
+    // Use $or to match either purchase_date or createdAt within current month
     const [{ total: totalExpenditure = 0 } = {}] = await Purchases.aggregate([
       {
         $match: {
-          createdAt: { $gte: startOfMonth, $lt: startNextMon },
+          $or: [
+            { purchase_date: { $gte: startOfMonth, $lt: startNextMon } },
+            { createdAt: { $gte: startOfMonth, $lt: startNextMon } },
+          ],
         },
       },
-      { $group: { _id: null, total: { $sum: '$total_amount' } } }, // field name → adapt if different
+      { $group: { _id: null, total: { $sum: '$total_amount' } } },
     ]);
 
     /* ────────────────────── Remaining service months (invoices) ───────────── */
-    // Assuming each invoice has `service_month` > 0 while service is still pending.
-    const [{ total: remainingServices = 0 } = {}] = await Invoices.aggregate([
-      { $match: { service_month: { $gt: 0 } } },
-      { $group: { _id: null, total: { $sum: '$service_month' } } },
-    ]);
+    // Count invoices with service_month > 0 (active services)
+    const remainingServices = await Invoices.countDocuments({ 
+      service_month: { $gt: 0 } 
+    });
 
     /* ────────────────────────────── Response ──────────────────────────────── */
     res.json({
@@ -76,10 +79,10 @@ router.get('/comparison', async (req, res) => {
       {
         $match: {
           createdAt: { $gte: currentMonthStart, $lt: currentMonthEnd },
-          paymentStatus: 'Paid',
+          payment_status: 'Paid',
         },
       },
-      { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+      { $group: { _id: null, total: { $sum: '$total_amount_original' } } },
     ]);
 
     // Previous month revenue
@@ -87,10 +90,10 @@ router.get('/comparison', async (req, res) => {
       {
         $match: {
           createdAt: { $gte: previousMonthStart, $lt: previousMonthEnd },
-          paymentStatus: 'Paid',
+          payment_status: 'Paid',
         },
       },
-      { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+      { $group: { _id: null, total: { $sum: '$total_amount_original' } } },
     ]);
 
     // Current month projects

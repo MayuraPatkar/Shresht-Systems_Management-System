@@ -2,11 +2,43 @@
 // NOTE: formatIndian has been moved to public/js/shared/utils.js
 // It is now available globally via window.formatIndian
 
+// Retry helper function for API calls
+async function fetchWithRetry(url, options = {}, retries = 3, delay = 1000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            if (i === retries - 1) throw error;
+            console.warn(`Fetch attempt ${i + 1} failed, retrying...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+}
+
+// Show error message helper
+function showErrorMessage(containerId, message) {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.innerHTML = `
+            <div class="text-center text-red-500 py-8">
+                <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+                <p>${message}</p>
+                <button onclick="window.location.reload()" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Retry
+                </button>
+            </div>
+        `;
+    }
+}
+
 // ---------------------- Load Dashboard Data on Page Load ----------------------
 document.addEventListener("DOMContentLoaded", () => {
     // Fetch and populate overview data
-    fetch('/analytics/overview')
-        .then(res => res.json())
+    fetchWithRetry('/analytics/overview')
         .then(data => {
             animateCounter("project-count", data.totalProjects);
             animateCounter("quotation-count", data.totalQuotations);
@@ -17,6 +49,12 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .catch(err => {
             console.error("Error fetching analytics:", err);
+            // Set all counters to 0 on error
+            ['project-count', 'quotation-count', 'earned-count', 'unpaid-count', 'expenditure-count', 'remaining-services-count'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '0';
+            });
+            showAlert('Failed to load dashboard statistics. Please refresh the page.');
         });
     
     // Load all dashboard sections
@@ -71,62 +109,62 @@ updateDateTime();
 // ---------------------- Recent Activity ----------------------
 function loadRecentActivity() {
     Promise.all([
-        fetch('/quotation/all').then(res => res.json()).catch(() => []),
-        fetch('/invoice/all').then(res => res.json()).catch(() => []),
-        fetch('/waybill/all').then(res => res.json()).catch(() => []),
-        fetch('/service/all').then(res => res.json()).catch(() => [])
+        fetchWithRetry('/quotation/all').catch(() => []),
+        fetchWithRetry('/invoice/all').catch(() => []),
+        fetchWithRetry('/waybill/all').catch(() => []),
+        fetchWithRetry('/service/all').catch(() => [])
     ])
     .then(([quotations, invoices, waybills, services]) => {
         const activities = [];
         
         // Process quotations
-        quotations.slice(0, 5).forEach(q => {
+        (quotations || []).slice(0, 5).forEach(q => {
             activities.push({
                 type: 'quotation',
                 icon: 'fa-file-alt',
                 color: 'blue',
                 title: `Quotation #${q.quotation_id || 'N/A'}`,
                 description: q.project_name || 'No project name',
-                time: q.created_at || q.date,
+                time: q.created_at || q.date || new Date(),
                 link: '../quotation/quotation.html'
             });
         });
 
         // Process invoices
-        invoices.slice(0, 5).forEach(i => {
+        (invoices || []).slice(0, 5).forEach(i => {
             activities.push({
                 type: 'invoice',
                 icon: 'fa-file-invoice',
                 color: 'green',
                 title: `Invoice #${i.invoice_id || 'N/A'}`,
                 description: i.project_name || 'No project name',
-                time: i.created_at || i.date,
+                time: i.created_at || i.date || new Date(),
                 link: '../invoice/invoice.html'
             });
         });
 
         // Process waybills
-        waybills.slice(0, 5).forEach(w => {
+        (waybills || []).slice(0, 5).forEach(w => {
             activities.push({
                 type: 'waybill',
                 icon: 'fa-truck',
                 color: 'purple',
                 title: `Waybill #${w.waybill_id || 'N/A'}`,
                 description: w.project_name || 'No project name',
-                time: w.created_at || w.date,
+                time: w.created_at || w.date || new Date(),
                 link: '../waybill/wayBill.html'
             });
         });
 
         // Process services
-        services.slice(0, 5).forEach(s => {
+        (services || []).slice(0, 5).forEach(s => {
             activities.push({
                 type: 'service',
                 icon: 'fa-wrench',
                 color: 'teal',
                 title: `Service #${s.service_id || 'N/A'}`,
                 description: s.project_name || s.customer_name || 'No description',
-                time: s.created_at || s.date,
+                time: s.created_at || s.date || new Date(),
                 link: '../service/service.html'
             });
         });
@@ -139,12 +177,7 @@ function loadRecentActivity() {
     })
     .catch(err => {
         console.error('Error loading recent activity:', err);
-        document.getElementById('recent-activity').innerHTML = `
-            <div class="text-center text-red-500 py-8">
-                <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
-                <p>Failed to load recent activity</p>
-            </div>
-        `;
+        showErrorMessage('recent-activity', 'Failed to load recent activity');
     });
 }
 
@@ -161,10 +194,19 @@ function displayRecentActivity(activities) {
         return;
     }
 
-    container.innerHTML = activities.map(activity => `
-        <div class="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors border-l-4 border-${activity.color}-500">
-            <div class="bg-${activity.color}-100 p-2 rounded-lg">
-                <i class="fas ${activity.icon} text-${activity.color}-600"></i>
+    const colorMap = {
+        blue: { bg: 'bg-blue-100', text: 'text-blue-600', border: 'border-blue-500' },
+        green: { bg: 'bg-green-100', text: 'text-green-600', border: 'border-green-500' },
+        purple: { bg: 'bg-purple-100', text: 'text-purple-600', border: 'border-purple-500' },
+        teal: { bg: 'bg-teal-100', text: 'text-teal-600', border: 'border-teal-500' }
+    };
+
+    container.innerHTML = activities.map(activity => {
+        const colors = colorMap[activity.color] || colorMap.blue;
+        return `
+        <div class="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors border-l-4 ${colors.border}">
+            <div class="${colors.bg} p-2 rounded-lg">
+                <i class="fas ${activity.icon} ${colors.text}"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <a href="${activity.link}" class="font-medium text-gray-800 hover:text-blue-600">${activity.title}</a>
@@ -174,7 +216,7 @@ function displayRecentActivity(activities) {
                 </p>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function formatTimeAgo(date) {
@@ -192,10 +234,9 @@ function formatTimeAgo(date) {
 
 // ---------------------- Stock Alerts ----------------------
 function loadStockAlerts() {
-    fetch('/stock/all')
-        .then(res => res.json())
+    fetchWithRetry('/stock/all')
         .then(items => {
-            const lowStock = items.filter(item => {
+            const lowStock = (items || []).filter(item => {
                 const qty = parseInt(item.quantity) || 0;
                 const minQty = parseInt(item.min_quantity) || 0;
                 return qty <= minQty;
@@ -205,12 +246,7 @@ function loadStockAlerts() {
         })
         .catch(err => {
             console.error('Error loading stock alerts:', err);
-            document.getElementById('stock-alerts').innerHTML = `
-                <div class="text-center text-red-500 py-8">
-                    <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
-                    <p>Failed to load stock alerts</p>
-                </div>
-            `;
+            showErrorMessage('stock-alerts', 'Failed to load stock alerts');
         });
 }
 
@@ -230,40 +266,59 @@ function displayStockAlerts(items) {
     container.innerHTML = items.map(item => {
         const qty = parseInt(item.quantity) || 0;
         const isOutOfStock = qty === 0;
-        const alertColor = isOutOfStock ? 'red' : 'yellow';
         
-        return `
-            <div class="flex items-center justify-between p-3 bg-${alertColor}-50 border border-${alertColor}-200 rounded-lg">
-                <div class="flex items-center gap-3">
-                    <div class="bg-${alertColor}-100 p-2 rounded-lg">
-                        <i class="fas ${isOutOfStock ? 'fa-times-circle' : 'fa-exclamation-triangle'} text-${alertColor}-600"></i>
+        if (isOutOfStock) {
+            return `
+                <div class="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-red-100 p-2 rounded-lg">
+                            <i class="fas fa-times-circle text-red-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-800">${item.item_name || 'Unknown Item'}</p>
+                            <p class="text-sm text-gray-600">
+                                <span class="text-red-600 font-semibold">Out of Stock</span>
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <p class="font-medium text-gray-800">${item.item_name || 'Unknown Item'}</p>
-                        <p class="text-sm text-gray-600">
-                            ${isOutOfStock ? '<span class="text-red-600 font-semibold">Out of Stock</span>' : `Only ${qty} left`}
-                        </p>
-                    </div>
+                    <a href="../stock/stock.html" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        Restock →
+                    </a>
                 </div>
-                <a href="../stock/stock.html" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                    Restock →
-                </a>
-            </div>
-        `;
+            `;
+        } else {
+            return `
+                <div class="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-yellow-100 p-2 rounded-lg">
+                            <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-800">${item.item_name || 'Unknown Item'}</p>
+                            <p class="text-sm text-gray-600">Only ${qty} left</p>
+                        </div>
+                    </div>
+                    <a href="../stock/stock.html" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        Restock →
+                    </a>
+                </div>
+            `;
+        }
     }).join('');
 }
 
 // ---------------------- Pending Tasks ----------------------
 function loadPendingTasks() {
     Promise.all([
-        fetch('/invoice/all').then(res => res.json()).catch(() => []),
-        fetch('/service/all').then(res => res.json()).catch(() => [])
+        fetchWithRetry('/invoice/all').catch(() => []),
+        fetchWithRetry('/service/all').catch(() => []),
+        fetchWithRetry('/stock/all').catch(() => [])
     ])
-    .then(([invoices, services]) => {
+    .then(([invoices, services, stockItems]) => {
         const tasks = [];
 
         // Unpaid invoices
-        const unpaidInvoices = invoices.filter(i => i.payment_status !== 'Paid').length;
+        const unpaidInvoices = (invoices || []).filter(i => i.payment_status !== 'Paid').length;
         if (unpaidInvoices > 0) {
             tasks.push({
                 icon: 'fa-rupee-sign',
@@ -276,7 +331,7 @@ function loadPendingTasks() {
         }
 
         // Pending services
-        const pendingServices = services.filter(s => s.status !== 'Completed').length;
+        const pendingServices = (services || []).filter(s => s.status !== 'Completed').length;
         if (pendingServices > 0) {
             tasks.push({
                 icon: 'fa-tools',
@@ -289,37 +344,28 @@ function loadPendingTasks() {
         }
 
         // Low stock count
-        fetch('/stock/all')
-            .then(res => res.json())
-            .then(stockItems => {
-                const lowStockCount = stockItems.filter(item => {
-                    const qty = parseInt(item.quantity) || 0;
-                    const minQty = parseInt(item.min_quantity) || 0;
-                    return qty <= minQty;
-                }).length;
+        const lowStockCount = (stockItems || []).filter(item => {
+            const qty = parseInt(item.quantity) || 0;
+            const minQty = parseInt(item.min_quantity) || 0;
+            return qty <= minQty;
+        }).length;
 
-                if (lowStockCount > 0) {
-                    tasks.push({
-                        icon: 'fa-box',
-                        color: 'yellow',
-                        title: 'Low Stock Items',
-                        count: lowStockCount,
-                        description: `${lowStockCount} item${lowStockCount > 1 ? 's' : ''} need restocking`,
-                        link: '../stock/stock.html'
-                    });
-                }
-
-                displayPendingTasks(tasks);
+        if (lowStockCount > 0) {
+            tasks.push({
+                icon: 'fa-box',
+                color: 'yellow',
+                title: 'Low Stock Items',
+                count: lowStockCount,
+                description: `${lowStockCount} item${lowStockCount > 1 ? 's' : ''} need restocking`,
+                link: '../stock/stock.html'
             });
+        }
+
+        displayPendingTasks(tasks);
     })
     .catch(err => {
         console.error('Error loading pending tasks:', err);
-        document.getElementById('pending-tasks').innerHTML = `
-            <div class="col-span-3 text-center text-red-500 py-8">
-                <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
-                <p>Failed to load pending tasks</p>
-            </div>
-        `;
+        showErrorMessage('pending-tasks', 'Failed to load pending tasks');
     });
 }
 
@@ -336,42 +382,57 @@ function displayPendingTasks(tasks) {
         return;
     }
 
-    container.innerHTML = tasks.map(task => `
-        <a href="${task.link}" class="block p-4 bg-${task.color}-50 border-l-4 border-${task.color}-500 rounded-lg hover:bg-${task.color}-100 transition-colors">
+    const colorMap = {
+        red: { bg: 'bg-red-50', bgHover: 'hover:bg-red-100', border: 'border-red-500', iconBg: 'bg-red-100', iconText: 'text-red-600' },
+        orange: { bg: 'bg-orange-50', bgHover: 'hover:bg-orange-100', border: 'border-orange-500', iconBg: 'bg-orange-100', iconText: 'text-orange-600' },
+        yellow: { bg: 'bg-yellow-50', bgHover: 'hover:bg-yellow-100', border: 'border-yellow-500', iconBg: 'bg-yellow-100', iconText: 'text-yellow-600' }
+    };
+
+    container.innerHTML = tasks.map(task => {
+        const colors = colorMap[task.color] || colorMap.red;
+        return `
+        <a href="${task.link}" class="block p-4 ${colors.bg} border-l-4 ${colors.border} rounded-lg ${colors.bgHover} transition-colors">
             <div class="flex items-center gap-3 mb-2">
-                <div class="bg-${task.color}-100 p-2 rounded-lg">
-                    <i class="fas ${task.icon} text-${task.color}-600 text-xl"></i>
+                <div class="${colors.iconBg} p-2 rounded-lg">
+                    <i class="fas ${task.icon} ${colors.iconText} text-xl"></i>
                 </div>
                 <span class="text-2xl font-bold text-gray-800">${task.count}</span>
             </div>
             <p class="font-semibold text-gray-800 mb-1">${task.title}</p>
             <p class="text-sm text-gray-600">${task.description}</p>
         </a>
-    `).join('');
+    `}).join('');
 }
 
 // ---------------------- Performance Metrics ----------------------
 function loadPerformanceMetrics() {
-    fetch('/analytics/comparison')
-        .then(res => res.json())
+    fetchWithRetry('/analytics/comparison')
         .then(data => {
             // Update revenue
-            updateMetric('revenue', data.revenue);
+            updateMetric('revenue', data.revenue || { current: 0, previous: 0 });
             
             // Update projects
-            updateMetric('projects', data.projects);
+            updateMetric('projects', data.projects || { current: 0, previous: 0 });
             
             // Update quotations
-            updateMetric('quotations', data.quotations);
+            updateMetric('quotations', data.quotations || { current: 0, previous: 0 });
             
             // Update conversion rate
-            const conversionRate = data.quotations.current > 0 
-                ? Math.round((data.projects.current / data.quotations.current) * 100)
+            const quotationsCurrent = data.quotations?.current || 0;
+            const projectsCurrent = data.projects?.current || 0;
+            const conversionRate = quotationsCurrent > 0 
+                ? Math.round((projectsCurrent / quotationsCurrent) * 100)
                 : 0;
             document.getElementById('conversion-rate').textContent = `${conversionRate}%`;
         })
         .catch(err => {
             console.error('Error loading performance metrics:', err);
+            // Set default values on error
+            ['revenue', 'projects', 'quotations'].forEach(type => {
+                updateMetric(type, { current: 0, previous: 0 });
+            });
+            const conversionEl = document.getElementById('conversion-rate');
+            if (conversionEl) conversionEl.textContent = '0%';
         });
 }
 
@@ -416,3 +477,52 @@ function refreshTasks() {
     `;
     loadPendingTasks();
 }
+
+// ---------------------- Auto-refresh ----------------------
+// Auto-refresh dashboard data every 5 minutes
+let refreshInterval;
+
+function startAutoRefresh() {
+    // Clear any existing interval
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+    
+    // Refresh every 5 minutes (300000 ms)
+    refreshInterval = setInterval(() => {
+        console.log('Auto-refreshing dashboard data...');
+        loadRecentActivity();
+        loadStockAlerts();
+        loadPendingTasks();
+        loadPerformanceMetrics();
+        
+        // Refresh overview statistics
+        fetchWithRetry('/analytics/overview')
+            .then(data => {
+                animateCounter("project-count", data.totalProjects);
+                animateCounter("quotation-count", data.totalQuotations);
+                animateCounter("earned-count", data.totalEarned, true);
+                animateCounter("unpaid-count", data.totalUnpaid);
+                animateCounter("expenditure-count", data.totalExpenditure, true);
+                animateCounter("remaining-services-count", data.remainingServices);
+            })
+            .catch(err => console.error("Error auto-refreshing analytics:", err));
+    }, 300000); // 5 minutes
+}
+
+// Start auto-refresh when page loads
+document.addEventListener("DOMContentLoaded", () => {
+    startAutoRefresh();
+});
+
+// Stop auto-refresh when page is hidden (save resources)
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+    } else {
+        startAutoRefresh();
+    }
+});
