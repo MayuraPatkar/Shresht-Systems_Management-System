@@ -11,12 +11,8 @@ function hideModal(modalId) {
     if (el) el.classList.add('hidden');
 }
 
-function formatIndian(num, fractionDigits = 0) {
-    return num.toLocaleString('en-IN', {
-        minimumFractionDigits: fractionDigits,
-        maximumFractionDigits: fractionDigits,
-    });
-}
+// NOTE: formatIndian has been moved to public/js/shared/utils.js
+// It is now available globally via window.formatIndian
 
 // Fetch and render
 async function fetchStockData() {

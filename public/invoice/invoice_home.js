@@ -148,63 +148,134 @@ function handleInvoiceAction(select, invoiceId) {
 
 // Delete an invoice
 async function deleteInvoice(invoiceId) {
-    try {
-        const response = await fetch(`/invoice/${invoiceId}`, {
-            method: "DELETE",
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to delete invoice");
-        }
-
-        window.electronAPI.showAlert1("Invoice deleted successfully");
-        loadRecentInvoices();
-    } catch (error) {
-        console.error("Error deleting invoice:", error);
-        window.electronAPI.showAlert1("Failed to delete invoice. Please try again later.");
-    }
+    await deleteDocument('invoice', invoiceId, 'Invoice', loadRecentInvoices);
 }
 
 // Show the new invoice form
 function showNewInvoiceForm() {
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'block';
-    document.getElementById('new-invoice').style.display = 'none';
-    document.getElementById('view').style.display = 'none';
-    sessionStorage.setItem('update-invoice', 'original');
-
-    if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
-        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-    }
+    showNewDocumentForm({
+        homeId: 'home',
+        formId: 'new',
+        newButtonId: 'new-invoice',
+        viewId: 'view',
+        stepIndicatorId: 'step-indicator',
+        currentStep: typeof currentStep !== 'undefined' ? currentStep : undefined,
+        totalSteps: typeof totalSteps !== 'undefined' ? totalSteps : undefined,
+        additionalSetup: () => {
+            sessionStorage.setItem('update-invoice', 'original');
+        }
+    });
 }
 
 // Handle search functionality
 async function handleSearch() {
     const query = document.getElementById('search-input').value;
-    if (!query) {
-        window.electronAPI.showAlert1("Please enter a search query");
-        return;
+    await searchDocuments('invoice', query, invoicesListDiv, createInvoiceCard, 'No invoice found');
+}
+
+// Payment functionality
+function payment(id) {
+    const invoiceId = id;
+    document.getElementById('view-preview').style.display = 'none';
+    document.getElementById('home').style.display = 'none';
+    document.getElementById('new').style.display = 'none';
+    document.getElementById('view').style.display = 'none';
+    document.getElementById('payment-container').style.display = 'block';
+    
+    // Store invoiceId for payment form submission
+    window.currentPaymentInvoiceId = invoiceId;
+}
+
+// Payment mode change handler
+document.getElementById('payment-mode')?.addEventListener('change', function () {
+    const mode = this.value;
+    let extraField = document.getElementById('payment-extra-field');
+    if (!extraField) {
+        extraField = document.createElement('div');
+        extraField.id = 'payment-extra-field';
+        extraField.className = 'form-group';
+        this.parentNode.parentNode.appendChild(extraField);
     }
+    extraField.innerHTML = ''; // Clear previous
+
+    if (mode === 'Cash') {
+        extraField.innerHTML = `
+            <label for="cash-location">Cash Location</label>
+            <input type="text" id="cash-location" placeholder="Enter cash location">
+        `;
+    } else if (mode === 'UPI') {
+        extraField.innerHTML = `
+            <label for="upi-transaction-id">UPI Transaction ID</label>
+            <input type="text" id="upi-transaction-id" placeholder="Enter UPI transaction ID">
+        `;
+    } else if (mode === 'Cheque') {
+        extraField.innerHTML = `
+            <label for="cheque-number">Cheque Number</label>
+            <input type="text" id="cheque-number" placeholder="Enter cheque number">
+        `;
+    } else if (mode === 'Bank Transfer') {
+        extraField.innerHTML = `
+            <label for="bank-details">Bank Details</label>
+            <input type="text" id="bank-details" placeholder="Enter bank details">
+        `;
+    }
+});
+
+// Payment form submission handler
+document.getElementById('payment-btn')?.addEventListener('click', async () => {
+    const paymentStatus = document.querySelector('input[name="payment-question"]:checked')?.value;
+    const paidAmount = parseInt(document.getElementById("paid-amount").value);
+    const paymentDate = document.getElementById("payment-date").value;
+    const paymentMode = document.getElementById("payment-mode").value;
+
+    // Get extra field value
+    let extraInfo = '';
+    if (paymentMode === 'Cash') {
+        extraInfo = document.getElementById('cash-location')?.value || '';
+    } else if (paymentMode === 'UPI') {
+        extraInfo = document.getElementById('upi-transaction-id')?.value || '';
+    } else if (paymentMode === 'Cheque') {
+        extraInfo = document.getElementById('cheque-number')?.value || '';
+    } else if (paymentMode === 'Bank Transfer') {
+        extraInfo = document.getElementById('bank-details')?.value || '';
+    }
+
+    const data = {
+        invoiceId: window.currentPaymentInvoiceId,
+        paymentStatus: paymentStatus,
+        paidAmount: paidAmount,
+        paymentDate: paymentDate,
+        paymentMode: paymentMode,
+        paymentExtra: extraInfo,
+    };
 
     try {
-        const response = await fetch(`/invoice/search/${query}`);
-        if (!response.ok) {
-            invoicesListDiv.innerHTML = `<h1>No invoice found</h1>`;
-            return;
-        }
-
-        const data = await response.json();
-        const invoices = data.invoices;
-        invoicesListDiv.innerHTML = "";
-        invoices.forEach(invoice => {
-            const invoiceDiv = createInvoiceCard(invoice);
-            invoicesListDiv.appendChild(invoiceDiv);
+        const response = await fetch("/invoice/save-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
         });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+            window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
+        } else {
+            window.electronAPI.showAlert1("Payment Saved!");
+            document.getElementById("paid-amount").value = '';
+            document.getElementById("payment-date").value = '';
+            document.getElementById("payment-mode").value = '';
+            if (document.getElementById('payment-extra-field')) {
+                document.getElementById('payment-extra-field').innerHTML = '';
+            }
+            // Reload invoices to reflect updated payment status
+            loadRecentInvoices();
+        }
     } catch (error) {
-        console.error("Error fetching invoices:", error);
-        window.electronAPI.showAlert1("Failed to fetch invoices. Please try again later.");
+        console.error("Error:", error);
+        window.electronAPI.showAlert1("Failed to connect to server.");
     }
-}
+});
 
 // Expose the action handler globally for the select element
 window.handleInvoiceAction = handleInvoiceAction;

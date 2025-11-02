@@ -17,17 +17,6 @@ async function fetchUnpaidProjects() {
     }
 }
 
-// Send automated payment reminders
-// document.getElementById('send-automated-reminders').onclick = async () => {
-//     try {
-//         const res = await fetch('/api/comms/send-automated-reminders', { method: 'POST' });
-//         const data = await res.json();
-//         showStatus(data.message || 'Automated reminders sent!');
-//     } catch (err) {
-//         showStatus('Failed to send automated reminders.', true);
-//     }
-// };
-
 // Manual payment reminder
 document.getElementById('manual-reminder-form').onsubmit = async (e) => {
     e.preventDefault();
@@ -47,45 +36,3 @@ document.getElementById('manual-reminder-form').onsubmit = async (e) => {
         showStatus('Failed to send manual reminder.', true);
     }
 };
-
-// Send invoice
-// document.getElementById('send-invoice-form').onsubmit = async (e) => {
-//     e.preventDefault();
-//     const phone = document.getElementById('invoice-phone').value.trim();
-//     const invoiceId = document.getElementById('invoice-id').value.trim();
-//     if (!phone || !invoiceId) return showStatus('Fill all fields.', true);
-
-//     try {
-//         const res = await fetch('/api/comms/send-invoice', {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify({ phone, invoiceId })
-//         });
-//         const data = await res.json();
-//         showStatus(data.message || 'Invoice sent!');
-//     } catch (err) {
-//         showStatus('Failed to send invoice.', true);
-//     }
-// };
-
-// Send quotation
-// document.getElementById('send-quotation-form').onsubmit = async (e) => {
-//     e.preventDefault();
-//     const phone = document.getElementById('quotation-phone').value.trim();
-//     const quotationId = document.getElementById('quotation-id').value.trim();
-//     if (!phone || !quotationId) return showStatus('Fill all fields.', true);
-
-//     try {
-//         const res = await fetch('/api/comms/send-quotation', {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify({ phone, quotationId })
-//         });
-//         const data = await res.json();
-//         showStatus(data.message || 'Quotation sent!');
-//     } catch (err) {
-//         showStatus('Failed to send quotation.', true);
-//     }
-// };
-
-// Initial load

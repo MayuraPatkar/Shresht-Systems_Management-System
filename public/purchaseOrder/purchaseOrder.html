@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../global/root.css">
-    <link rel="stylesheet" href="../global/globalStyle.css">
-    <link rel="stylesheet" href="../global/formStyle.css">
-    <link rel="stylesheet" href="../global/previewStyle.css">
-    <link rel="stylesheet" href="../global/viewStyle.css">
+    <link rel="stylesheet" href="../css/shared/root.css">
+    <link rel="stylesheet" href="../css/shared/globalStyle.css">
+    <link rel="stylesheet" href="../css/shared/formStyle.css">
+    <link rel="stylesheet" href="../css/shared/previewStyle.css">
+    <link rel="stylesheet" href="../css/shared/viewStyle.css">
     <title>Purchase Order</title>
 </head>
 
@@ -234,7 +234,17 @@
             </div>
         </div>
     </div>
-    <script src="../global/globalScript.js"></script>
+    <!-- Scripts -->
+    <!-- Shared utilities -->
+    <script src="../js/shared/utils.js"></script>
+    <script src="../js/shared/calculations.js"></script>
+    <script src="../js/shared/ipc.js"></script>
+    <script src="../js/shared/documentManager.js"></script>
+    
+    <!-- Shared scripts -->
+    <script src="../js/shared/globalScript.js"></script>
+    
+    <!-- Module-specific scripts -->
     <script src="../purchaseOrder/purchaseOrder_home.js"></script>
     <script src="../purchaseOrder/purchaseOrder_view.js"></script>
     <script src="../purchaseOrder/purchaseOrder_form.js"></script>

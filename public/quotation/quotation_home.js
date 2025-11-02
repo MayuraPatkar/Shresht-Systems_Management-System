@@ -138,145 +138,27 @@ function handleQuotationAction(select, quotationId) {
     select.selectedIndex = 0; // Reset to default
 }
 
-// Open a quotation for editing
-async function openQuotation(quotationId) {
-    try {
-        const response = await fetch(`/quotation/${quotationId}`);
-        if (!response.ok) {
-            throw new Error("Failed to fetch quotation");
-        }
-
-        const data = await response.json();
-        const quotation = data.quotation;
-
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'block';
-        document.getElementById('new-quotation').style.display = 'none';
-        document.getElementById('view-preview').style.display = 'block';
-        if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
-            document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-        }
-
-        document.getElementById('id').value = quotation.quotation_id;
-        document.getElementById('project-name').value = quotation.project_name;
-        document.getElementById('quotation-date').value = formatDate(quotation.quotation_date);
-        document.getElementById('buyer-name').value = quotation.customer_name;
-        document.getElementById('buyer-address').value = quotation.customer_address;
-        document.getElementById('buyer-phone').value = quotation.customer_phone;
-        document.getElementById('buyer-email').value = quotation.customer_email;
-
-        const itemsTableBody = document.querySelector("#items-table tbody");
-        const nonItemsTableBody = document.querySelector("#non-items-table tbody");
-        const itemsSpecificationsTableBody = document.querySelector("#items-specifications-table tbody");
-        itemsTableBody.innerHTML = "";
-        nonItemsTableBody.innerHTML = "";
-        itemsSpecificationsTableBody.innerHTML = "";
-
-        (quotation.items || []).forEach(item => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${itemsTableBody.children.length + 1}</td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
-                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
-                <td><input type="number" value="${item.unit_price || ''}" required></td>
-                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
-            `;
-            itemsTableBody.appendChild(row);
-        });
-
-        (quotation.non_items || []).forEach(item => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${nonItemsTableBody.children.length + 1}</td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
-                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
-            `;
-            nonItemsTableBody.appendChild(row);
-        });
-
-        // Combine items and non_items for specifications table
-        const allItemsForSpecs = [
-            ...(quotation.items || []).map(item => ({ ...item, type: 'item' })),
-            ...(quotation.non_items || []).map(item => ({ ...item, type: 'non_item' }))
-        ];
-
-        allItemsForSpecs.forEach((item, index) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${item.description || ''}</td>
-                <td><input type="text" value="${item.specification || ''}" required></td>
-            `;
-            itemsSpecificationsTableBody.appendChild(row);
-        });
-
-    } catch (error) {
-        console.error("Error fetching quotation:", error);
-        window.electronAPI.showAlert1("Failed to fetch quotation. Please try again later.");
-    }
-}
-
 // Delete a quotation
 async function deleteQuotation(quotationId) {
-    try {
-        const response = await fetch(`/quotation/${quotationId}`, {
-            method: "DELETE",
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to delete quotation");
-        }
-
-        window.electronAPI.showAlert1("Quotation deleted successfully");
-        loadRecentQuotations();
-    } catch (error) {
-        console.error("Error deleting quotation:", error);
-        window.electronAPI.showAlert1("Failed to delete quotation. Please try again later.");
-    }
+    await deleteDocument('quotation', quotationId, 'Quotation', loadRecentQuotations);
 }
 
 // Show the new quotation form
 function showNewQuotationForm() {
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'block';
-    document.getElementById('new-quotation').style.display = 'none';
-    document.getElementById('view-preview').style.display = 'block';
-    document.getElementById('view').style.display = 'none';
-
-    if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
-        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-    }
+    showNewDocumentForm({
+        homeId: 'home',
+        formId: 'new',
+        newButtonId: 'new-quotation',
+        previewButtonId: 'view-preview',
+        viewId: 'view',
+        stepIndicatorId: 'step-indicator',
+        currentStep: typeof currentStep !== 'undefined' ? currentStep : undefined,
+        totalSteps: typeof totalSteps !== 'undefined' ? totalSteps : undefined
+    });
 }
 
 // Handle search functionality
 async function handleSearch() {
     const query = document.getElementById('search-input').value;
-    if (!query) {
-        window.electronAPI.showAlert1("Please enter a search query");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/quotation/search/${query}`);
-        if (!response.ok) {
-            const errorText = await response.text();
-            quotationListDiv.innerHTML = `<h1>${errorText}</h1>`;
-            return;
-        }
-
-        const data = await response.json();
-        const quotations = data.quotation;
-        quotationListDiv.innerHTML = "";
-        (quotations || []).forEach(quotation => {
-            const quotationCard = createQuotationCard(quotation);
-            quotationListDiv.appendChild(quotationCard);
-        });
-    } catch (error) {
-        console.error("Error fetching quotation:", error);
-        window.electronAPI.showAlert1("Failed to fetch quotation. Please try again later.");
-    }
+    await searchDocuments('quotation', query, quotationListDiv, createQuotationCard, 'No quotation found');
 }

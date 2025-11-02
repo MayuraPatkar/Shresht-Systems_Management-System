@@ -415,149 +415,55 @@ function handleWayBillAction(select, wayBillId) {
     select.selectedIndex = 0; // Reset to default
 }
 
-// Open a way bill for editing
-async function openWayBill(wayBillId) {
-    try {
-        const response = await fetch(`/wayBill/${wayBillId}`);
-        if (!response.ok) {
-            throw new Error("Failed to fetch way bill");
-        }
-        const data = await response.json();
-        const wayBill = data.wayBill;
-
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'block';
-        document.getElementById('new-waybill-btn').style.display = 'none';
-        document.getElementById('view-preview-btn').style.display = 'block';
-
-        if (currentStep === 1) {
-            changeStep(2);
-        }
-
-        document.getElementById('waybill-id').value = wayBill.waybill_id;
-        document.getElementById('project-name').value = wayBill.project_name;
-        document.getElementById('buyer-name').value = wayBill.customer_name;
-        document.getElementById('buyer-address').value = wayBill.customer_address;
-        document.getElementById('buyer-phone').value = wayBill.customer_phone;
-        document.getElementById('buyer-email').value = wayBill.customer_email || "";
-        document.getElementById('transport-mode').value = wayBill.transport_mode;
-        document.getElementById('vehicle-number').value = wayBill.vehicle_number;
-        document.getElementById('place-supply').value = wayBill.place_supply;
-
-        const itemsTableBody = document.querySelector("#items-table tbody");
-        itemsTableBody.innerHTML = "";
-        let sno = 0;
-
-        (wayBill.items || []).forEach(item => {
-            const row = document.createElement("tr");
-            row.className = "border-b border-gray-200 hover:bg-gray-50";
-            row.innerHTML = `
-                <td class="border border-gray-300 px-4 py-3 text-center text-base">${++sno}</td>
-                <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description}" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC}" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity}" min="1" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.unit_price}" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.rate}" required></td>
-                <td class="border border-gray-300 px-2 py-2 text-center">
-                    <button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
-            itemsTableBody.appendChild(row);
-        });
-
-    } catch (error) {
-        console.error("Error fetching way bill:", error);
-        window.electronAPI.showAlert1("Failed to fetch way bill. Please try again later.");
-    }
-}
-
 // Delete a way bill
 async function deleteWayBill(wayBillId) {
-    try {
-        const response = await fetch(`/wayBill/${wayBillId}`, {
-            method: "DELETE",
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to delete way bill");
-        }
-
-        window.electronAPI.showAlert1("Way bill deleted successfully");
-        loadRecentWayBills();
-    } catch (error) {
-        console.error("Error deleting way bill:", error);
-        window.electronAPI.showAlert1("Failed to delete way bill. Please try again later.");
-    }
+    await deleteDocument('wayBill', wayBillId, 'Way Bill', loadRecentWayBills);
 }
 
 // Show the new way bill form
 function showNewWayBillForm() {
-    // Hide other sections
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'block';
-    document.getElementById('view').style.display = 'none';
-
-    // Update header buttons
-    document.getElementById('new-waybill-btn').style.display = 'none';
-    document.getElementById('view-preview-btn').style.display = 'block';
-
-    // Reset form
-    document.getElementById('waybill-form').reset();
-
-    // Clear items table
-    const itemsTableBody = document.querySelector("#items-table tbody");
-    if (itemsTableBody) {
-        itemsTableBody.innerHTML = "";
-    }
-
-    // Reset to step 1
-    document.querySelectorAll('.steps').forEach(step => step.classList.remove('active'));
-    document.getElementById('step-1').classList.add('active');
-    currentStep = 1;
-    updateNavigation();
-    document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+    showNewDocumentForm({
+        homeId: 'home',
+        formId: 'new',
+        newButtonId: 'new-waybill-btn',
+        previewButtonId: 'view-preview-btn',
+        viewId: 'view',
+        stepIndicatorId: 'step-indicator',
+        currentStep: 1,
+        totalSteps: totalSteps,
+        additionalSetup: () => {
+            // Reset form
+            document.getElementById('waybill-form').reset();
+            
+            // Clear items table
+            const itemsTableBody = document.querySelector("#items-table tbody");
+            if (itemsTableBody) {
+                itemsTableBody.innerHTML = "";
+            }
+            
+            // Reset to step 1
+            document.querySelectorAll('.steps').forEach(step => step.classList.remove('active'));
+            document.getElementById('step-1').classList.add('active');
+            currentStep = 1;
+            updateNavigation();
+        }
+    });
 }
 
 // Handle search functionality
 async function handleSearch() {
     const query = document.getElementById('search-input').value;
-    if (!query) {
-        window.electronAPI.showAlert1("Please enter a search query");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/wayBill/search/${query}`);
-        if (!response.ok) {
-            const errorText = await response.text();
-            wayBillsListDiv.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-16 fade-in">
-                    <div class="bg-yellow-100 rounded-full p-8 mb-4">
-                        <i class="fas fa-search text-yellow-500 text-6xl"></i>
-                    </div>
-                    <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-                    <p class="text-gray-500 mb-2">No way bills match "${query}"</p>
-                    <button onclick="document.getElementById('search-input').value=''; loadRecentWayBills();" 
-                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium mt-4">
-                        <i class="fas fa-list"></i>
-                        Show All Way Bills
-                    </button>
-                </div>
-            `;
-            return;
-        }
-
-        const data = await response.json();
-        const wayBills = data.wayBills;
-        wayBillsListDiv.innerHTML = "";
-        (wayBills || []).forEach(wayBill => {
-            const wayBillDiv = createWayBillCard(wayBill);
-            wayBillsListDiv.appendChild(wayBillDiv);
-        });
-    } catch (error) {
-        console.error("Error fetching way bills:", error);
-        window.electronAPI.showAlert1("Failed to fetch way bills. Please try again later.");
-    }
+    await searchDocuments('wayBill', query, wayBillsListDiv, createWayBillCard, 
+        `<div class="flex flex-col items-center justify-center py-16 fade-in">
+            <div class="bg-yellow-100 rounded-full p-8 mb-4">
+                <i class="fas fa-search text-yellow-500 text-6xl"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
+            <p class="text-gray-500 mb-2">No way bills match your search</p>
+            <button onclick="document.getElementById('search-input').value=''; loadRecentWayBills();" 
+                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium mt-4">
+                <i class="fas fa-list"></i>
+                Show All Way Bills
+            </button>
+        </div>`);
 }

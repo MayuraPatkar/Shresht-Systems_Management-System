@@ -105,119 +105,25 @@ function handleAction(select, purchaseOrderId) {
     select.selectedIndex = 0; // Reset to default
 }
 
-// Open a purchase order for editing
-async function openPurchaseOrder(purchaseOrderId) {
-    try {
-        const response = await fetch(`/purchaseOrder/${purchaseOrderId}`);
-        if (!response.ok) {
-            throw new Error("Failed to fetch purchase order");
-        }
-
-        const data = await response.json();
-        const purchaseOrder = data.purchaseOrder;
-
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'block';
-        document.getElementById('new-purchase').style.display = 'none';
-        document.getElementById('view-preview').style.display = 'block';
-        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-
-        document.getElementById('id').value = purchaseOrder.purchase_order_id;
-        document.getElementById('purchase-invoice-id').value = purchaseOrder.purchase_invoice_id;
-        document.getElementById('purchase-date').value = formatDate(purchaseOrder.purchase_date);
-        document.getElementById('supplier-name').value = purchaseOrder.supplier_name;
-        document.getElementById('supplier-address').value = purchaseOrder.supplier_address;
-        document.getElementById('supplier-phone').value = purchaseOrder.supplier_phone;
-        document.getElementById('supplier-email').value = purchaseOrder.supplier_email;
-        document.getElementById('supplier-GSTIN').value = purchaseOrder.supplier_GSTIN;
-
-        const itemsTableBody = document.querySelector("#items-table tbody");
-        itemsTableBody.innerHTML = "";
-        let sno = 0;
-        (purchaseOrder.items || []).forEach(item => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${++sno}</td>
-                <td><input type="text" value="${item.description}" required></td>
-                <td><input type="text" value="${item.HSN_SAC}" required></td>
-                <td><input type="text" value="${item.company || ''}"></td>
-                <td><input type="text" value="${item.type || ''}"></td>
-                <td><input type="text" value="${item.category || ''}"></td>
-                <td><input type="number" value="${item.quantity}" min="1" required></td>
-                <td><input type="number" value="${item.unit_price}" required></td>
-                <td><input type="number" value="${item.rate}" min="0.01" step="0.01" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
-            `;
-            itemsTableBody.appendChild(row);
-        });
-
-    } catch (error) {
-        console.error("Error fetching purchase order:", error);
-        window.electronAPI.showAlert1("Failed to fetch purchase order. Please try again later.");
-    }
-}
-
 // Delete a purchase order
 async function deletePurchaseOrder(purchaseOrderId) {
-    try {
-        const response = await fetch(`/purchaseOrder/${purchaseOrderId}`, {
-            method: "DELETE",
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to delete purchase order");
-        }
-
-        window.electronAPI.showAlert1("Purchase order deleted successfully");
-        loadRecentPurchaseOrders();
-    } catch (error) {
-        console.error("Error deleting purchase order:", error);
-        window.electronAPI.showAlert1("Failed to delete purchase order. Please try again later.");
-    }
+    await deleteDocument('purchaseOrder', purchaseOrderId, 'Purchase Order', loadRecentPurchaseOrders);
 }
 
 // Show the new purchase order form
 function showNewPurchaseForm() {
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'block';
-    document.getElementById('new-purchase').style.display = 'none';
+    showNewDocumentForm({
+        homeId: 'home',
+        formId: 'new',
+        newButtonId: 'new-purchase'
+    });
 }
 
 // Handle search functionality
 async function handleSearch() {
     const query = document.getElementById('search-input').value;
-    if (!query) {
-        window.electronAPI.showAlert1("Please enter a search query");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/purchaseOrder/search/${query}`);
-        if (!response.ok) {
-            const errorText = await response.text();
-            purchaseOrderListDiv.innerHTML = `<h1>${errorText}</h1>`;
-            return;
-        }
-
-        const data = await response.json();
-        const purchaseOrders = data.purchaseOrder;
-        purchaseOrderListDiv.innerHTML = "";
-        (purchaseOrders || []).forEach(purchaseOrder => {
-            const purchaseOrderDiv = createPurchaseOrderDiv(purchaseOrder);
-            purchaseOrderListDiv.appendChild(purchaseOrderDiv);
-        });
-    } catch (error) {
-        console.error("Error fetching purchase order:", error);
-        window.electronAPI.showAlert1("Failed to fetch purchase order. Please try again later.");
-    }
+    await searchDocuments('purchaseOrder', query, purchaseOrderListDiv, createPurchaseOrderDiv, 'No purchase order found');
 }
 
-// Utility: format date as yyyy-mm-dd for input fields
-function formatDate(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
+// NOTE: formatDate has been moved to public/js/shared/utils.js
+// It is now available globally via window.formatDate

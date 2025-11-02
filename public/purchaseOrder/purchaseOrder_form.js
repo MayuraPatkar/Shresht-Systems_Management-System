@@ -7,6 +7,49 @@ document.getElementById("view-preview").addEventListener("click", () => {
     generatePreview();
 });
 
+// Open a purchase order for editing
+async function openPurchaseOrder(purchaseOrderId) {
+    const data = await fetchDocumentById('purchaseOrder', purchaseOrderId);
+    if (!data) return;
+
+    const purchaseOrder = data.purchaseOrder;
+
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('new').style.display = 'block';
+        document.getElementById('new-purchase').style.display = 'none';
+        document.getElementById('view-preview').style.display = 'block';
+        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+
+        document.getElementById('id').value = purchaseOrder.purchase_order_id;
+        document.getElementById('purchase-invoice-id').value = purchaseOrder.purchase_invoice_id;
+        document.getElementById('purchase-date').value = formatDate(purchaseOrder.purchase_date);
+        document.getElementById('supplier-name').value = purchaseOrder.supplier_name;
+        document.getElementById('supplier-address').value = purchaseOrder.supplier_address;
+        document.getElementById('supplier-phone').value = purchaseOrder.supplier_phone;
+        document.getElementById('supplier-email').value = purchaseOrder.supplier_email;
+        document.getElementById('supplier-GSTIN').value = purchaseOrder.supplier_GSTIN;
+
+        const itemsTableBody = document.querySelector("#items-table tbody");
+        itemsTableBody.innerHTML = "";
+        let sno = 0;
+        (purchaseOrder.items || []).forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${++sno}</td>
+                <td><input type="text" value="${item.description}" required></td>
+                <td><input type="text" value="${item.HSN_SAC}" required></td>
+                <td><input type="text" value="${item.company || ''}"></td>
+                <td><input type="text" value="${item.type || ''}"></td>
+                <td><input type="text" value="${item.category || ''}"></td>
+                <td><input type="number" value="${item.quantity}" min="1" required></td>
+                <td><input type="number" value="${item.unit_price}" required></td>
+                <td><input type="number" value="${item.rate}" min="0.01" step="0.01" required></td>
+                <td><button type="button" class="remove-item-btn">Remove</button></td>
+            `;
+            itemsTableBody.appendChild(row);
+        });
+}
+
 // fuction to get the quotation id
 async function getId() {
     try {
@@ -236,24 +279,7 @@ function generatePreview() {
 
 // Function to collect form data and send to server
 async function sendToServer(data) {
-    try {
-        const response = await fetch("/purchaseOrder/save-purchase-order", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        const responseData = await response.json();
-
-        if (!response.ok) {
-            window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
-        } else {
-            return true;
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        window.electronAPI.showAlert1("Failed to connect to server.");
-    }
+    return await sendDocumentToServer("/purchaseOrder/save-purchase-order", data);
 }
 
 // Function to collect form data
