@@ -70,6 +70,62 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                 `;
             }
         });
+
+        // Process non_items based on type
+        let non_items = [];
+        if (type == 'original') {
+            non_items = invoice.non_items_original || [];
+        } else {
+            non_items = invoice.non_items_duplicate || [];
+        }
+
+        non_items.forEach(item => {
+            const description = item.description || "-";
+            const price = parseFloat(item.price || 0);
+            const rate = parseFloat(item.rate || 0);
+
+            totalTaxableValue += price;
+
+            if (hasTax) {
+                const cgstPercent = rate / 2;
+                const sgstPercent = rate / 2;
+                const cgstValue = (price * cgstPercent) / 100;
+                const sgstValue = (price * sgstPercent) / 100;
+                const rowTotal = price + cgstValue + sgstValue;
+
+                totalCGST += cgstValue;
+                totalSGST += sgstValue;
+                totalPrice += rowTotal;
+                totalTax += cgstValue + sgstValue;
+
+                itemsHTML += `
+                    <tr>
+                        <td>${sno++}</td>
+                        <td>${description}</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>${formatIndian(price, 2)}</td>
+                        <td>${formatIndian(price, 2)}</td>
+                        <td>${rate.toFixed(2)}</td>
+                        <td>${formatIndian(rowTotal, 2)}</td>
+                    </tr>
+                `;
+            } else {
+                const rowTotal = price;
+                totalPrice += rowTotal;
+
+                itemsHTML += `
+                    <tr>
+                        <td>${sno++}</td>
+                        <td>${description}</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>${formatIndian(price, 2)}</td>
+                        <td>${formatIndian(rowTotal, 2)}</td>
+                    </tr>
+                `;
+            }
+        });
     } else {
         // Fallback to DOM table (edit mode)
         const itemsTable = document.getElementById("detail-items-table")?.getElementsByTagName("tbody")[0];
@@ -133,9 +189,9 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
             </div>
             <div class="info-section">
                 <p><strong>Project:</strong> ${invoice.project_name}</p>
-                <p><strong>P.O No:</strong> ${invoice.po_Number}</p>
-                <p><strong>D.C No:</strong> ${invoice.po_Number}</p>
-                <p><strong>E-Way Bill:</strong> ${invoice.waybill_number}</p>
+                <p><strong>P.O No:</strong> ${invoice.po_number}</p>
+                <p><strong>D.C No:</strong> ${invoice.dc_number}</p>
+                <p><strong>E-Way Bill:</strong> ${invoice.Waybill_id}</p>
             </div>
         </div>
 
@@ -245,7 +301,8 @@ async function viewInvoice(invoiceId, userRole) {
         document.getElementById('view-service-months').textContent = invoice.service_month || '-';
 
         document.getElementById('view-payment-status').textContent = invoice.payment_status || '-';
-        document.getElementById('view-balance-due').textContent = invoice.total_amount_duplicate - invoice.total_paid_amount || '0';
+        const balanceDue = (invoice.total_amount_duplicate || 0) - (invoice.total_paid_amount || 0);
+        document.getElementById('view-balance-due').textContent = `₹ ${formatIndian(balanceDue, 2)}`;
 
         // Buyer & Consignee
         document.getElementById('view-buyer-name').textContent = invoice.customer_name || '-';
@@ -271,10 +328,11 @@ async function viewInvoice(invoiceId, userRole) {
         detailPaymentsTableBody.innerHTML = "";
         (invoice.payments || []).forEach(item => {
             const row = document.createElement("tr");
+            row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
             row.innerHTML = `
-                    <td>${formatDate(item.payment_date) || '-'}</td>
-                    <td>${item.payment_mode || '-'}</td>
-                    <td>₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${formatDate(item.payment_date) || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
                 `;
             detailPaymentsTableBody.appendChild(row);
         });
@@ -286,13 +344,14 @@ async function viewInvoice(invoiceId, userRole) {
         if (type === 'original') {
             (invoice.items_original || []).forEach(item => {
                 const row = document.createElement("tr");
+                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                 row.innerHTML = `
-                    <td>${++sno}</td>
-                    <td>${item.description || ''}</td>
-                    <td>${item.HSN_SAC || ''}</td>
-                    <td>${item.quantity || ''}</td>
-                    <td>₹ ${formatIndian(item.unit_price, 2) || ''}</td>
-                    <td>${item.rate ? item.rate + '%' : ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
                 `;
                 detailItemsTableBody.appendChild(row);
             });
@@ -300,13 +359,14 @@ async function viewInvoice(invoiceId, userRole) {
         else {
             (invoice.items_duplicate || []).forEach(item => {
                 const row = document.createElement("tr");
+                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                 row.innerHTML = `
-                    <td>${++sno}</td>
-                    <td>${item.description || ''}</td>
-                    <td>${item.HSN_SAC || ''}</td>
-                    <td>${item.quantity || ''}</td>
-                    <td>₹ ${formatIndian(item.unit_price, 2) || ''}</td>
-                    <td>${item.rate ? item.rate + '%' : ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
                 `;
                 detailItemsTableBody.appendChild(row);
             });
@@ -318,11 +378,12 @@ async function viewInvoice(invoiceId, userRole) {
         if (type === 'original') {
             (invoice.non_items_original || []).forEach(item => {
                 const row = document.createElement("tr");
+                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                 row.innerHTML = `
-                    <td>${++sno}</td>
-                    <td>${item.description || ''}</td>
-                    <td>₹ ${formatIndian(item.price, 2) || ''}</td>
-                    <td>${item.rate ? item.rate + '%' : ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
                 `;
                 detailNonItemsTableBody.appendChild(row);
             });
@@ -330,11 +391,12 @@ async function viewInvoice(invoiceId, userRole) {
         else {
             (invoice.non_items_duplicate || []).forEach(item => {
                 const row = document.createElement("tr");
+                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                 row.innerHTML = `
-                    <td>${++sno}</td>
-                    <td>${item.description || ''}</td>
-                    <td>₹ ${formatIndian(item.price, 2) || ''}</td>
-                    <td>${item.rate ? item.rate + '%' : ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
                 `;
                 detailNonItemsTableBody.appendChild(row);
             });

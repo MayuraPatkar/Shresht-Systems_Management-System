@@ -282,7 +282,7 @@ function calculateInvoice(itemsTable) {
             <tr>
                 <td>${sno++}</td>
                 <td>${description}</td>
-                <td>${hsnSac}</td>
+                <td>-</td>
                 <td>-</td>
                 <td>${unitPrice.toFixed(2)}</td>
                 <td>${rowTotal.toFixed(2)}</td>
@@ -299,10 +299,10 @@ function calculateInvoice(itemsTable) {
     let type = sessionStorage.getItem('update-invoice');
     if (type === 'original') {
         totalAmountOriginal = Number(finalTotal.toFixed(2));
-        totalTaxOriginal = totalCGST + totalSGST;
+        totalTaxOriginal = Number((totalCGST + totalSGST).toFixed(2));
     } else if (type === 'duplicate') {
-        totalAmountDuplicate = finalTotal.toFixed(2);
-        totalTaxDuplicate = totalCGST + totalSGST;
+        totalAmountDuplicate = Number(finalTotal.toFixed(2));
+        totalTaxDuplicate = Number((totalCGST + totalSGST).toFixed(2));
     }
 
     const totalsHTML = `
@@ -341,6 +341,7 @@ function generatePreview() {
     if (!invoiceId) invoiceId = document.getElementById('id').value;
     const projectName = document.getElementById("project-name").value;
     const poNumber = document.getElementById("purchase-order-number").value;
+    const dcNumber = document.getElementById("delivery-challan-number").value;
     const wayBillNumber = document.getElementById("waybill-number").value;
     const buyerName = document.getElementById("buyer-name").value;
     const buyerAddress = document.getElementById("buyer-address").value;
@@ -394,7 +395,7 @@ function generatePreview() {
             <div class="info-section">
                 <p><strong>Project:</strong> ${projectName}</p>
                 <p><strong>P.O No:</strong> ${poNumber}</p>
-                <p><strong>D.C No:</strong> ${poNumber}</p>
+                <p><strong>D.C No:</strong> ${dcNumber}</p>
                 <p><strong>E-Way Bill:</strong> ${wayBillNumber}</p>
             </div>
         </div>

@@ -103,9 +103,18 @@ function showNewDocumentForm(options) {
     const formElement = document.getElementById(formId);
     const viewElement = document.getElementById(viewId);
     
-    if (homeElement) homeElement.style.display = 'none';
-    if (formElement) formElement.style.display = 'block';
-    if (viewElement) viewElement.style.display = 'none';
+    if (homeElement) {
+        homeElement.style.display = 'none';
+        homeElement.style.visibility = 'hidden';
+    }
+    if (formElement) {
+        formElement.style.display = 'block';
+        formElement.style.visibility = 'visible';
+    }
+    if (viewElement) {
+        viewElement.style.display = 'none';
+        viewElement.style.visibility = 'hidden';
+    }
 
     // Toggle buttons
     if (newButtonId) {
