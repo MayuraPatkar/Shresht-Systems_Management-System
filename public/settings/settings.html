@@ -566,49 +566,6 @@
         <!-- System Preferences Section -->
         <section id="preferences-section" class="space-y-6 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                <!-- General Settings Card -->
-                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                        <i class="fas fa-cog text-indigo-600 text-2xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">General Settings</h2>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Currency Symbol</label>
-                                <input type="text" id="pref-currency" maxlength="3"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="₹">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Decimal Places</label>
-                                <input type="number" id="pref-decimal" min="0" max="4"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="2">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
-                                <select id="pref-date-format"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Time Format</label>
-                                <select id="pref-time-format"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <option value="12h">12 Hour</option>
-                                    <option value="24h">24 Hour</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Tax Settings Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -668,33 +625,6 @@
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                     placeholder="1">
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Branding & Theme Card -->
-                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                        <i class="fas fa-palette text-pink-600 text-2xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Branding & Theme</h2>
-                    </div>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
-                            <div class="flex items-center gap-3">
-                                <img id="logo-preview" src="../assets/icon.png" alt="Logo" class="h-16 w-16 object-contain border rounded">
-                                <input type="file" id="logo-upload" accept="image/png,image/jpeg,image/jpg,image/svg+xml"
-                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Max 5MB. PNG, JPG, or SVG</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Theme</label>
-                            <select id="pref-theme"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
-                                <option value="light">Light</option>
-                                <option value="dark">Dark</option>
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -846,27 +776,6 @@
         <!-- Notifications Section -->
         <section id="notifications-section" class="space-y-6 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                <!-- Stock Alerts Card -->
-                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                        <i class="fas fa-box text-yellow-600 text-2xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Stock Alerts</h2>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="notif-stock-enabled" class="w-4 h-4 text-yellow-600 focus:ring-yellow-500 rounded">
-                            <label for="notif-stock-enabled" class="text-sm text-gray-700">Enable Stock Alerts</label>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Low Stock Threshold</label>
-                            <input type="number" id="notif-stock-threshold" min="0"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                placeholder="10">
-                            <p class="text-xs text-gray-500 mt-1">Alert when quantity falls below this number</p>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Invoice Reminders Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -907,21 +816,6 @@
                                 placeholder="3">
                             <p class="text-xs text-gray-500 mt-1">Alert N days before service due date</p>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Email Notifications Card -->
-                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                        <i class="fas fa-envelope text-purple-600 text-2xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Email Notifications</h2>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="notif-email-enabled" class="w-4 h-4 text-purple-600 focus:ring-purple-500 rounded">
-                            <label for="notif-email-enabled" class="text-sm text-gray-700">Enable Email Notifications</label>
-                        </div>
-                        <p class="text-xs text-gray-500">Configure email settings in SMTP section below</p>
                     </div>
                 </div>
 
@@ -1070,13 +964,8 @@
                     <div class="space-y-3">
                         <p class="text-gray-700">
                             <strong>© 2025 Shresht Systems Management System</strong><br>
-                            All rights reserved. This software is proprietary and confidential.
+                            All rights reserved. This software is open source.
                         </p>
-                        <div class="pt-4 border-t border-gray-200">
-                            <p class="text-sm text-gray-600">For support and inquiries:</p>
-                            <p class="text-sm text-gray-800">Email: shreshtsystems@gmail.com</p>
-                            <p class="text-sm text-gray-800">Website: www.shreshtsystems.com</p>
-                        </div>
                     </div>
                 </div>
             </div>

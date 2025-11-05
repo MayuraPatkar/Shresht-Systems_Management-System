@@ -15,12 +15,7 @@ function loadPreferences() {
             if (data.success && data.settings) {
                 const s = data.settings;
                 
-                // General settings
-                document.getElementById("pref-currency").value = s.preferences?.currency || '₹';
-                document.getElementById("pref-decimal").value = s.preferences?.decimal_places || 2;
-                document.getElementById("pref-date-format").value = s.preferences?.date_format || 'DD/MM/YYYY';
-                document.getElementById("pref-time-format").value = s.preferences?.time_format || '12h';
-                
+            
                 // Tax settings
                 document.getElementById("pref-gst-rate").value = s.tax?.default_gst_rate || 18;
                 document.getElementById("pref-tax-included").checked = s.tax?.tax_included || false;
@@ -32,10 +27,6 @@ function loadPreferences() {
                 document.getElementById("pref-quotation-prefix").value = s.numbering?.quotation_prefix || 'QUO';
                 document.getElementById("pref-quotation-start").value = s.numbering?.quotation_start || 1;
                 
-                // Theme
-                const theme = s.branding?.theme || 'light';
-                document.getElementById("pref-theme").value = theme;
-                applyTheme(theme); // Apply the saved theme
                 
                 // Backup settings
                 document.getElementById("backup-auto-enabled").checked = s.backup?.auto_backup_enabled || false;
@@ -48,11 +39,6 @@ function loadPreferences() {
                     document.getElementById("last-backup-time").textContent = lastBackup;
                 } else {
                     document.getElementById("last-backup-time").textContent = "Never";
-                }
-                
-                // Update logo preview if exists
-                if (s.branding?.logo_path) {
-                    document.getElementById("logo-preview").src = s.branding.logo_path;
                 }
             }
         })
@@ -71,12 +57,6 @@ function savePreferences() {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
     
     const preferences = {
-        preferences: {
-            currency: document.getElementById("pref-currency").value,
-            decimal_places: parseInt(document.getElementById("pref-decimal").value),
-            date_format: document.getElementById("pref-date-format").value,
-            time_format: document.getElementById("pref-time-format").value
-        },
         tax: {
             default_gst_rate: parseFloat(document.getElementById("pref-gst-rate").value),
             tax_included: document.getElementById("pref-tax-included").checked,
@@ -87,9 +67,6 @@ function savePreferences() {
             invoice_start: parseInt(document.getElementById("pref-invoice-start").value),
             quotation_prefix: document.getElementById("pref-quotation-prefix").value,
             quotation_start: parseInt(document.getElementById("pref-quotation-start").value)
-        },
-        branding: {
-            theme: document.getElementById("pref-theme").value
         },
         backup: {
             auto_backup_enabled: document.getElementById("backup-auto-enabled").checked,
@@ -121,67 +98,6 @@ function savePreferences() {
         .finally(() => {
             saveButton.disabled = false;
             saveButton.innerHTML = originalContent;
-        });
-}
-
-/**
- * Handles logo upload
- */
-function handleLogoUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Validate file type
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
-    if (!allowedTypes.includes(file.type)) {
-        window.electronAPI.showAlert1("Invalid file type. Only PNG, JPG, and SVG are allowed.");
-        e.target.value = ''; // Clear the input
-        return;
-    }
-    
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-        window.electronAPI.showAlert1("File size exceeds 5MB limit.");
-        e.target.value = ''; // Clear the input
-        return;
-    }
-    
-    const formData = new FormData();
-    formData.append("logo", file);
-    
-    // Show loading state
-    const uploadButton = e.target.closest('.flex')?.querySelector('button');
-    const originalText = uploadButton?.textContent;
-    if (uploadButton) {
-        uploadButton.disabled = true;
-        uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-    }
-    
-    fetch('/settings/logo/upload', {
-        method: 'POST',
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById("logo-preview").src = data.logo_path + '?t=' + Date.now();
-                window.electronAPI.showAlert1("Logo uploaded successfully!");
-            } else {
-                window.electronAPI.showAlert1(`Upload failed: ${data.message}`);
-                e.target.value = ''; // Clear the input on error
-            }
-        })
-        .catch(err => {
-            console.error('Failed to upload logo:', err);
-            window.electronAPI.showAlert1("Failed to upload logo. Please try again.");
-            e.target.value = ''; // Clear the input on error
-        })
-        .finally(() => {
-            // Restore button state
-            if (uploadButton) {
-                uploadButton.disabled = false;
-                uploadButton.textContent = originalText;
-            }
         });
 }
 
@@ -269,13 +185,10 @@ function loadNotificationSettings() {
             if (data.success && data.settings) {
                 const n = data.settings.notifications || {};
                 
-                document.getElementById("notif-stock-enabled").checked = n.enable_stock_alerts !== false;
-                document.getElementById("notif-stock-threshold").value = n.low_stock_threshold || 10;
                 document.getElementById("notif-invoice-enabled").checked = n.enable_invoice_reminders !== false;
                 document.getElementById("notif-invoice-days").value = n.invoice_reminder_days || 7;
                 document.getElementById("notif-service-enabled").checked = n.enable_service_reminders !== false;
                 document.getElementById("notif-service-days").value = n.service_reminder_days || 3;
-                document.getElementById("notif-email-enabled").checked = n.enable_email_notifications || false;
             }
         })
         .catch(err => {
@@ -325,22 +238,6 @@ function saveNotificationSettings() {
             saveButton.disabled = false;
             saveButton.innerHTML = originalContent;
         });
-}
-
-// --- THEME MANAGEMENT ---
-
-/**
- * Applies the selected theme to the application
- * @param {string} theme - The theme to apply ('light' or 'dark')
- */
-function applyTheme(theme) {
-    if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-    } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-    }
 }
 
 // --- EVENT LISTENERS ---
