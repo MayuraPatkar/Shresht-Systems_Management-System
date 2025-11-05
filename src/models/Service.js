@@ -6,6 +6,35 @@ const serviceSchema = new mongoose.Schema({
     fee_amount: { type: Number },
     service_date: { type: Date, default: Date.now },
     service_stage: { type: Number, default: 0 },
+    
+    // Service items
+    items: [
+        {
+            description: { type: String },
+            HSN_SAC: { type: String },
+            quantity: { type: Number },
+            unit_price: { type: Number },
+            rate: { type: Number },
+        },
+    ],
+    
+    // Non-items (charges, installation, etc.)
+    non_items: [
+        {
+            description: { type: String },
+            price: { type: Number },
+            rate: { type: Number },
+        },
+    ],
+    
+    // Totals
+    total_tax: { type: Number, default: 0 },
+    total_amount_no_tax: { type: Number, default: 0 },
+    total_amount_with_tax: { type: Number, default: 0 },
+    
+    // Notes and remarks
+    notes: { type: String },
+    
     createdAt: { type: Date, default: Date.now, index: true },
     updatedAt: { type: Date, default: Date.now },
 });

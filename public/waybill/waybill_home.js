@@ -102,40 +102,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// Step navigation
-let currentStep = 1;
-const totalSteps = 6;
-
-document.getElementById("next-btn").addEventListener("click", () => {
-    if (currentStep < totalSteps) {
-        document.getElementById(`step-${currentStep}`).classList.remove("active");
-        currentStep++;
-        document.getElementById(`step-${currentStep}`).classList.add("active");
-        updateNavigation();
-        if (currentStep === totalSteps) generatePreview();
-        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-    }
-});
-
-document.getElementById("prev-btn").addEventListener("click", () => {
-    if (currentStep > 1) {
-        document.getElementById(`step-${currentStep}`).classList.remove("active");
-        currentStep--;
-        document.getElementById(`step-${currentStep}`).classList.add("active");
-        updateNavigation();
-        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-    }
-});
-
-function updateNavigation() {
-    document.getElementById("prev-btn").disabled = currentStep === 1;
-    document.getElementById("next-btn").disabled = currentStep === totalSteps;
-}
-
-// Keyboard navigation
-function moveNext() {
-    document.getElementById('next-btn').click();
-}
+// These variables and functions are now in waybill_form.js to avoid duplication
+// currentStep, totalSteps, updateNavigation, and navigation event listeners moved to form file
 
 // Comprehensive keyboard shortcuts
 document.addEventListener("keydown", function (event) {
@@ -150,14 +118,18 @@ document.addEventListener("keydown", function (event) {
     // Enter key - move to next step (only when not typing)
     if (event.key === "Enter" && !isTyping) {
         event.preventDefault();
-        moveNext();
+        const nextBtn = document.getElementById('next-btn');
+        if (nextBtn && !nextBtn.disabled) {
+            nextBtn.click();
+        }
     }
 
     // Backspace - go to previous step (only when not typing)
     if (event.key === "Backspace" && !isTyping) {
         event.preventDefault();
-        if (currentStep > 1) {
-            changeStep(currentStep - 1);
+        const prevBtn = document.getElementById('prev-btn');
+        if (prevBtn && !prevBtn.disabled) {
+            prevBtn.click();
         }
     }
 
@@ -189,7 +161,7 @@ document.addEventListener("keydown", function (event) {
     if ((event.ctrlKey || event.metaKey) && event.key === 's') {
         event.preventDefault();
         const saveBtn = document.getElementById('save-btn');
-        if (saveBtn && currentStep === totalSteps) {
+        if (saveBtn) {
             saveBtn.click();
         }
     }
@@ -198,7 +170,7 @@ document.addEventListener("keydown", function (event) {
     if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'P') {
         event.preventDefault();
         const printBtn = document.getElementById('print-btn');
-        if (printBtn && currentStep === totalSteps) {
+        if (printBtn) {
             printBtn.click();
         }
     }
@@ -206,33 +178,36 @@ document.addEventListener("keydown", function (event) {
     // Ctrl/Cmd + I - Add Item (when on items step)
     if ((event.ctrlKey || event.metaKey) && event.key === 'i') {
         event.preventDefault();
-        if (currentStep === 5) {
-            document.getElementById('add-item-btn').click();
+        const addBtn = document.getElementById('add-item-btn');
+        if (addBtn) {
+            addBtn.click();
         }
     }
 
     // Arrow Right - Next step
     if (event.key === "ArrowRight" && !isTyping) {
         event.preventDefault();
-        if (currentStep < totalSteps) {
-            document.getElementById('next-btn').click();
+        const nextBtn = document.getElementById('next-btn');
+        if (nextBtn && !nextBtn.disabled) {
+            nextBtn.click();
         }
     }
 
     // Arrow Left - Previous step
     if (event.key === "ArrowLeft" && !isTyping) {
         event.preventDefault();
-        if (currentStep > 1) {
-            document.getElementById('prev-btn').click();
+        const prevBtn = document.getElementById('prev-btn');
+        if (prevBtn && !prevBtn.disabled) {
+            prevBtn.click();
         }
     }
 
-    // Number keys 1-6 - Jump to specific step
+    // Number keys 1-6 - Jump to specific step (uses window.changeStep from waybill_form.js)
     if (!isTyping && event.key >= '1' && event.key <= '6') {
         const stepNum = parseInt(event.key);
-        if (stepNum <= totalSteps) {
+        if (stepNum <= 6 && typeof window.changeStep === 'function') {
             event.preventDefault();
-            changeStep(stepNum);
+            window.changeStep(stepNum);
         }
     }
 
@@ -273,15 +248,6 @@ document.addEventListener("keydown", function (event) {
         }
     }
 });
-
-// Change step function
-function changeStep(step) {
-    document.getElementById(`step-${currentStep}`).classList.remove("active");
-    currentStep = step;
-    document.getElementById(`step-${currentStep}`).classList.add("active");
-    updateNavigation();
-    document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
-}
 
 // Load recent way bills from the server
 async function loadRecentWayBills() {
@@ -475,7 +441,7 @@ function showNewWayBillForm() {
         viewId: 'view',
         stepIndicatorId: 'step-indicator',
         currentStep: 1,
-        totalSteps: totalSteps,
+        totalSteps: 6,
         additionalSetup: () => {
             // Reset form
             document.getElementById('waybill-form').reset();
@@ -486,11 +452,19 @@ function showNewWayBillForm() {
                 itemsTableBody.innerHTML = "";
             }
             
-            // Reset to step 1
-            document.querySelectorAll('.steps').forEach(step => step.classList.remove('active'));
-            document.getElementById('step-1').classList.add('active');
-            currentStep = 1;
-            updateNavigation();
+            // Clear items container
+            const itemsContainer = document.getElementById("items-container");
+            if (itemsContainer) {
+                itemsContainer.innerHTML = "";
+            }
+            
+            // Reset to step 1 (use window.changeStep from waybill_form.js)
+            if (typeof window.changeStep === 'function') {
+                window.changeStep(1);
+            } else {
+                document.querySelectorAll('.steps').forEach(step => step.classList.remove('active'));
+                document.getElementById('step-1').classList.add('active');
+            }
         }
     });
 }

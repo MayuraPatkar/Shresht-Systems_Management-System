@@ -93,6 +93,29 @@ async function openQuotation(quotationId) {
                 `;
                 itemsContainer.appendChild(card);
                 
+                // Setup autocomplete for loaded items
+                const cardInput = card.querySelector(".item_name");
+                const cardSuggestions = card.querySelector(".suggestions");
+                
+                if (cardInput && cardSuggestions) {
+                    cardInput.addEventListener("input", function () {
+                        showSuggestions(cardInput, cardSuggestions);
+                        // Update specifications table when item description changes (with debounce)
+                        clearTimeout(cardInput.specUpdateTimeout);
+                        cardInput.specUpdateTimeout = setTimeout(() => {
+                            if (cardInput.value.trim()) {
+                                updateSpecificationsTable();
+                            }
+                        }, 500);
+                    });
+
+                    cardInput.addEventListener("keydown", function (event) {
+                        handleKeyboardNavigation(event, cardInput, cardSuggestions);
+                    });
+
+                    // Close suggestions handled by global listener
+                }
+                
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');

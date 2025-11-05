@@ -101,7 +101,13 @@ router.post('/save-service', async (req, res) => {
             invoice_id,
             fee_amount,
             service_date,
-            service_stage
+            service_stage,
+            items,
+            non_items,
+            total_tax,
+            total_amount_no_tax,
+            total_amount_with_tax,
+            notes
         } = req.body;
 
         // 1. Save service entry in the service collection
@@ -111,7 +117,13 @@ router.post('/save-service', async (req, res) => {
             invoice_id,
             fee_amount,
             service_date,
-            service_stage
+            service_stage,
+            items: items || [],
+            non_items: non_items || [],
+            total_tax: total_tax || 0,
+            total_amount_no_tax: total_amount_no_tax || 0,
+            total_amount_with_tax: total_amount_with_tax || 0,
+            notes: notes || ''
         });
 
         // 2. Update only service_stage in the invoice
@@ -128,6 +140,39 @@ router.post('/save-service', async (req, res) => {
         res.json({ message: "Service saved and invoice service_stage updated successfully" });
     } catch (error) {
         log.error("Error saving service info:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// Search services by customer name, project name, or invoice ID
+router.get('/search/:query', async (req, res) => {
+    try {
+        const query = req.params.query;
+        const currentDate = moment();
+        
+        // Search in invoices where service_month is not zero
+        const projects = await Invoices.find({
+            service_month: { $ne: 0 },
+            $or: [
+                { customer_name: { $regex: query, $options: 'i' } },
+                { project_name: { $regex: query, $options: 'i' } },
+                { invoice_id: { $regex: query, $options: 'i' } }
+            ]
+        });
+
+        // Filter based on service due date
+        const filteredProjects = projects.filter(project => {
+            if (!project.createdAt && !project.invoice_date) return false;
+            if (!project.service_month) return false;
+
+            const createdDate = moment(project.invoice_date || project.createdAt);
+            const targetDate = createdDate.clone().add(project.service_month, 'months');
+            return currentDate.isSameOrAfter(targetDate, 'day');
+        });
+
+        res.json({ service: filteredProjects });
+    } catch (error) {
+        log.error("Error searching services:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });

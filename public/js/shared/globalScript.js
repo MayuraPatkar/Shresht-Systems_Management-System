@@ -258,11 +258,32 @@ function addItem() {
     handleKeyboardNavigation(event, cardInput, cardSuggestions);
   });
 
-  document.addEventListener("click", function (event) {
-    if (!cardInput.contains(event.target) && !cardSuggestions.contains(event.target)) {
-      cardSuggestions.style.display = "none";
-    }
-  });
+  // Close suggestions when clicking outside (handled by global listener below)
+  
+  // Also setup autocomplete for the table row input (backward compatibility)
+  const tableInput = row.querySelector(".item_name");
+  const tableSuggestions = row.querySelector(".suggestions");
+  
+  if (tableInput && tableSuggestions) {
+    tableInput.addEventListener("input", function () {
+      showSuggestions(tableInput, tableSuggestions);
+      // Sync with card input
+      if (cardInput) {
+        cardInput.value = tableInput.value;
+      }
+      // Update specifications table when item description changes (with debounce)
+      clearTimeout(tableInput.specUpdateTimeout);
+      tableInput.specUpdateTimeout = setTimeout(() => {
+        if (tableInput.value.trim()) {
+          updateSpecificationsTable();
+        }
+      }, 500);
+    });
+
+    tableInput.addEventListener("keydown", function (event) {
+      handleKeyboardNavigation(event, tableInput, tableSuggestions);
+    });
+  }
   
   // Sync all inputs from card to table
   const cardInputs = card.querySelectorAll("input");
@@ -411,7 +432,7 @@ function updateNonItemNumbers() {
 function showSuggestions(input, suggestionsList) {
   const query = input.value.toLowerCase();
   suggestionsList.innerHTML = ""; // Clear old suggestions
-  selectedIndex = -1; // Reset index
+  selectedIndex = -1; // Reset index when showing new suggestions
 
   if (query.length === 0) {
     suggestionsList.style.display = "none";
@@ -430,42 +451,74 @@ function showSuggestions(input, suggestionsList) {
   filtered.forEach((item, index) => {
     let li = document.createElement("li");
     li.textContent = item;
-    li.onclick = function () {
+    li.onclick = async function () {
       input.value = item;
+      // Trigger input event to sync description with table
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      
       const parent = input.closest('.item-card') || input.closest('tr');
-      fill(item, parent);
+      await fill(item, parent);
       suggestionsList.style.display = "none";
+      // Update specifications table after selecting item
+      if (sessionStorage.getItem('currentTab') === 'quotation') {
+        setTimeout(() => updateSpecificationsTable(), 100);
+      }
+      // Reset selected index
+      selectedIndex = -1;
     };
     suggestionsList.appendChild(li);
   });
 }
 
 // Function to handle arrow key navigation
-function handleKeyboardNavigation(event, input, suggestionsList) {
+async function handleKeyboardNavigation(event, input, suggestionsList) {
   const items = suggestionsList.querySelectorAll("li");
   if (items.length === 0) return;
 
   if (event.key === "ArrowDown") {
+    event.preventDefault(); // Prevent cursor movement and scrolling
     selectedIndex = (selectedIndex + 1) % items.length;
     input.value = items[selectedIndex].textContent;
-    const parent = input.closest('.item-card') || input.closest('tr');
-    fill(items[selectedIndex].textContent, parent);
+    
+    // Update visual selection
+    items.forEach((item, index) => {
+      item.classList.toggle("selected", index === selectedIndex);
+    });
   } else if (event.key === "ArrowUp") {
+    event.preventDefault(); // Prevent cursor movement and scrolling
     selectedIndex = (selectedIndex - 1 + items.length) % items.length;
     input.value = items[selectedIndex].textContent;
-    const parent = input.closest('.item-card') || input.closest('tr');
-    fill(items[selectedIndex].textContent, parent);
+    
+    // Update visual selection
+    items.forEach((item, index) => {
+      item.classList.toggle("selected", index === selectedIndex);
+    });
   } else if (event.key === "Enter") {
+    event.preventDefault();
     event.stopPropagation();
-    if (selectedIndex >= 0) {
+    
+    if (selectedIndex >= 0 && items[selectedIndex]) {
+      const selectedItem = items[selectedIndex].textContent;
+      input.value = selectedItem;
       suggestionsList.style.display = "none";
+      
+      // Trigger input event to sync description with table
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      // Fill other fields from stock data
+      const parent = input.closest('.item-card') || input.closest('tr');
+      await fill(selectedItem, parent);
+      
+      // Update specifications table after selection
+      if (sessionStorage.getItem('currentTab') === 'quotation') {
+        setTimeout(() => updateSpecificationsTable(), 100);
+      }
+      
+      // Reset selected index
+      selectedIndex = -1;
     }
     return;
   }
-
-  items.forEach((item, index) => {
-    item.classList.toggle("selected", index === selectedIndex);
-  });
 }
 
 // Event listener for the "Remove Item" button
@@ -524,6 +577,11 @@ async function fill(itemName, element) {
       inputs[3].value = stockData.unitPrice || 0; // Unit Price
       inputs[4].value = stockData.GST || 0; // Rate
       
+      // Trigger input events to sync with table
+      inputs[1].dispatchEvent(new Event('input', { bubbles: true }));
+      inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
+      inputs[4].dispatchEvent(new Event('input', { bubbles: true }));
+      
       // Also update corresponding table row
       const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
       const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
@@ -540,7 +598,9 @@ async function fill(itemName, element) {
     }
     
     // Update specifications table when item is filled
-    updateSpecificationsTable();
+    if (sessionStorage.getItem('currentTab') === 'quotation') {
+      setTimeout(() => updateSpecificationsTable(), 100);
+    }
   }
 }
 
@@ -690,3 +750,20 @@ if (nonItemsTableInput) {
     }
   });
 }
+
+// Global click handler to close all suggestion dropdowns when clicking outside
+document.addEventListener("click", function (event) {
+  // Check if click is outside any suggestion list or input
+  const allSuggestions = document.querySelectorAll('.suggestions');
+  allSuggestions.forEach(suggestionsList => {
+    const parentInput = suggestionsList.previousElementSibling || 
+                       suggestionsList.parentElement?.querySelector('input.item_name');
+    
+    // Hide suggestions if click is outside both the input and suggestions list
+    if (parentInput && 
+        !parentInput.contains(event.target) && 
+        !suggestionsList.contains(event.target)) {
+      suggestionsList.style.display = "none";
+    }
+  });
+});
