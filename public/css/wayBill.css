@@ -82,3 +82,130 @@ main {
 #shortcuts-btn:hover {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Waybill Items: 6-field layout (Description, HSN, Qty, Unit Price, Tax Rate, Action) */
+
+/* Items header grid layout */
+#new .items-header {
+    display: grid;
+    grid-template-columns: 40px 2fr 0.8fr 0.6fr 0.8fr 0.8fr 50px;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+/* Header fields */
+#new .items-header .header-field {
+    flex: none;
+    min-width: 0;
+}
+
+#new .items-header .header-number {
+    text-align: center;
+}
+
+#new .items-header .header-action {
+    text-align: center;
+}
+
+/* Item card grid layout */
+#new .item-card {
+    display: grid;
+    grid-template-columns: 40px 2fr 0.8fr 0.6fr 0.8fr 0.8fr 50px;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s;
+}
+
+#new .item-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+/* Item number */
+#new .item-card .item-number {
+    text-align: center;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* Item fields */
+#new .item-card .item-field {
+    flex: none;
+    min-width: 0;
+}
+
+/* Description field - wider */
+#new .item-card .item-field.description {
+    min-width: 200px;
+}
+
+/* Other fields */
+#new .item-card .item-field.hsn,
+#new .item-card .item-field.qty,
+#new .item-card .item-field.rate {
+    min-width: 80px;
+}
+
+/* Input styles within item cards */
+#new .item-card input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+#new .item-card input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Remove button in card */
+#new .item-card .remove-item-btn {
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+}
+
+#new .item-card .remove-item-btn:hover {
+    background: #fecaca;
+    transform: scale(1.05);
+}
+
+/* Items container */
+#items-container {
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Hide the table (used for data collection only) */
+#items-table {
+    display: none;
+}
+

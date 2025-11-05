@@ -1,3 +1,49 @@
+// Step navigation variables (global so accessible from waybill_home.js keyboard shortcuts)
+window.currentStep = 1;
+window.totalSteps = 6;
+
+// Change step function - made global for keyboard shortcuts
+window.changeStep = function(step) {
+    document.getElementById(`step-${window.currentStep}`).classList.remove("active");
+    window.currentStep = step;
+    document.getElementById(`step-${window.currentStep}`).classList.add("active");
+    updateNavigation();
+    document.getElementById("step-indicator").textContent = `Step ${window.currentStep} of ${window.totalSteps}`;
+    
+    // Generate preview when reaching the last step
+    if (window.currentStep === window.totalSteps) {
+        generatePreview();
+    }
+};
+
+function updateNavigation() {
+    document.getElementById("prev-btn").disabled = window.currentStep === 1;
+    document.getElementById("next-btn").disabled = window.currentStep === window.totalSteps;
+}
+
+// Setup navigation button listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Next button
+    const nextBtn = document.getElementById("next-btn");
+    if (nextBtn) {
+        nextBtn.addEventListener("click", () => {
+            if (window.currentStep < window.totalSteps) {
+                window.changeStep(window.currentStep + 1);
+            }
+        });
+    }
+    
+    // Previous button
+    const prevBtn = document.getElementById("prev-btn");
+    if (prevBtn) {
+        prevBtn.addEventListener("click", () => {
+            if (window.currentStep > 1) {
+                window.changeStep(window.currentStep - 1);
+            }
+        });
+    }
+});
+
 // Open a way bill for editing
 async function openWayBill(wayBillId) {
     const data = await fetchDocumentById('wayBill', wayBillId);
@@ -10,8 +56,8 @@ async function openWayBill(wayBillId) {
         document.getElementById('new-waybill-btn').style.display = 'none';
         document.getElementById('view-preview-btn').style.display = 'block';
 
-        if (currentStep === 1) {
-            changeStep(2);
+        if (window.currentStep === 1) {
+            window.changeStep(2);
         }
 
         document.getElementById('waybill-id').value = wayBill.waybill_id;
@@ -31,204 +77,170 @@ async function openWayBill(wayBillId) {
         let sno = 1;
 
         (wayBill.items || []).forEach(item => {
-            // Create card
-            const card = document.createElement("div");
-            card.className = "item-card";
-            card.innerHTML = `
-                <div class="item-number">${sno}</div>
-                <div class="item-field description">
-                    <div style="position: relative;">
-                        <input type="text" value="${item.description}" placeholder="Description" required>
-                        <ul class="suggestions"></ul>
-                    </div>
-                </div>
-                <div class="item-field hsn">
-                    <input type="text" value="${item.HSN_SAC}" placeholder="HSN Code" required>
-                </div>
-                <div class="item-field qty">
-                    <input type="number" value="${item.quantity}" placeholder="Qty" min="1" required>
-                </div>
-                <div class="item-field rate">
-                    <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
-                </div>
-                <div class="item-field rate">
-                    <input type="number" value="${item.rate}" placeholder="Tax Rate" required>
-                </div>
-                <button type="button" class="remove-item-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            itemsContainer.appendChild(card);
-            
-            // Create hidden table row
-            const row = document.createElement("tr");
-            row.className = "border-b border-gray-200 hover:bg-gray-50";
-            row.innerHTML = `
-                <td class="border border-gray-300 px-4 py-3 text-center text-base">${sno}</td>
-                <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description}" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC}" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity}" min="1" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.unit_price}" required></td>
-                <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.rate}" required></td>
-                <td class="border border-gray-300 px-2 py-2 text-center">
-                    <button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
-            itemsTableBody.appendChild(row);
-            
-            // Sync card inputs with table inputs
-            const cardInputs = card.querySelectorAll('input');
-            const rowInputs = row.querySelectorAll('input');
-            cardInputs.forEach((input, index) => {
-                input.addEventListener('input', () => {
-                    rowInputs[index].value = input.value;
-                });
-            });
-            
-            // Add remove button event listener
-            const removeBtn = card.querySelector(".remove-item-btn");
-            removeBtn.addEventListener("click", function() {
-                card.remove();
-                row.remove();
-            });
-            
+            addItemFromData(item, sno);
             sno++;
         });
 }
 
-// Event listener for the "Next" button
-document.getElementById("next-btn").addEventListener("click", () => {
-    if (currentStep === 2 && !document.getElementById("waybill-id").value) {
-        const quotationId = document.getElementById("quotation-id").value;
+// Event listener for the "Next" button - fetch quotation data on step 2
+document.addEventListener('DOMContentLoaded', function() {
+    const nextBtn = document.getElementById("next-btn");
+    if (nextBtn) {
+        nextBtn.addEventListener("click", () => {
+            if (window.currentStep === 2 && !document.getElementById("waybill-id").value) {
+                const quotationId = document.getElementById("quotation-id").value;
 
-        let sno = 0;
-        if (quotationId) {
-            fetch(`/quotation/${quotationId}`)
-                .then(response => response.json())
-                .then(data => {
-                    const quotation = data.quotation;
-                    document.getElementById("project-name").value = quotation.project_name;
-                    document.getElementById("buyer-name").value = quotation.customer_name;
-                    document.getElementById("buyer-address").value = quotation.customer_address;
-                    document.getElementById("buyer-phone").value = quotation.customer_phone;
-                    const itemsTableBody = document.querySelector("#items-table tbody");
-                    itemsTableBody.innerHTML = "";
-                    const itemsContainer = document.getElementById("items-container");
-                    itemsContainer.innerHTML = "";
-                    let itemSno = 1;
+                if (quotationId) {
+                    fetch(`/quotation/${quotationId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const quotation = data.quotation;
+                            document.getElementById("project-name").value = quotation.project_name;
+                            document.getElementById("buyer-name").value = quotation.customer_name;
+                            document.getElementById("buyer-address").value = quotation.customer_address;
+                            document.getElementById("buyer-phone").value = quotation.customer_phone;
+                            const itemsTableBody = document.querySelector("#items-table tbody");
+                            itemsTableBody.innerHTML = "";
+                            const itemsContainer = document.getElementById("items-container");
+                            itemsContainer.innerHTML = "";
+                            let itemSno = 1;
 
-                    quotation.items.forEach(item => {
-                        // Create card
-                        const card = document.createElement("div");
-                        card.className = "item-card";
-                        card.innerHTML = `
-                            <div class="item-number">${itemSno}</div>
-                            <div class="item-field description">
-                                <div style="position: relative;">
-                                    <input type="text" value="${item.description}" placeholder="Description" required>
-                                    <ul class="suggestions"></ul>
-                                </div>
-                            </div>
-                            <div class="item-field hsn">
-                                <input type="text" value="${item.HSN_SAC}" placeholder="HSN Code" required>
-                            </div>
-                            <div class="item-field qty">
-                                <input type="number" value="${item.quantity}" placeholder="Qty" min="1" required>
-                            </div>
-                            <div class="item-field rate">
-                                <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
-                            </div>
-                            <div class="item-field rate">
-                                <input type="number" value="${item.rate}" placeholder="Tax Rate" required>
-                            </div>
-                            <button type="button" class="remove-item-btn">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `;
-                        itemsContainer.appendChild(card);
-                        
-                        // Create hidden table row
-                        const row = document.createElement("tr");
-                        row.className = "border-b border-gray-200 hover:bg-gray-50";
-                        row.innerHTML = `
-                            <td class="border border-gray-300 px-4 py-3 text-center text-base">${itemSno}</td>
-                            <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description}" required></td>
-                            <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC}" required></td>
-                            <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity}" min="1" required></td>
-                            <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.unit_price}" required></td>
-                            <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.rate}" required></td>
-                            <td class="border border-gray-300 px-2 py-2 text-center">
-                                <button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        `;
-                        itemsTableBody.appendChild(row);
-                        
-                        // Sync card inputs with table inputs
-                        const cardInputs = card.querySelectorAll('input');
-                        const rowInputs = row.querySelectorAll('input');
-                        cardInputs.forEach((input, index) => {
-                            input.addEventListener('input', () => {
-                                rowInputs[index].value = input.value;
+                            quotation.items.forEach(item => {
+                                addItemFromData(item, itemSno);
+                                itemSno++;
                             });
+                        })
+                        .catch(error => {
+                            console.error("Error:", error);
+                            window.electronAPI.showAlert1("Failed to fetch quotation.");
                         });
-                        
-                        // Add remove button event listener
-                        const removeBtn = card.querySelector(".remove-item-btn");
-                        removeBtn.addEventListener("click", function() {
-                            card.remove();
-                            row.remove();
-                        });
-                        
-                        itemSno++;
-                    });
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    window.electronAPI.showAlert1("Failed to fetch quotation.");
-                });
-        }
+                }
+            }
+        });
     }
 });
 
-document.getElementById('add-item-btn').addEventListener('click', addItem);
+// Setup add item button listener after DOM loads
+document.addEventListener('DOMContentLoaded', function() {
+    const addItemBtn = document.getElementById('add-item-btn');
+    if (addItemBtn) {
+        addItemBtn.addEventListener('click', addItem);
+    } else {
+        console.error('add-item-btn not found in DOM');
+    }
+});
 
-function addItem() {
-    const tableBody = document.querySelector("#items-table tbody");
+// Helper function to add item with data (used by openWayBill and quotation fetch)
+function addItemFromData(item, itemSno) {
+    const itemsContainer = document.getElementById("items-container");
+    const itemsTableBody = document.querySelector("#items-table tbody");
+    
+    // Create card
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.innerHTML = `
+        <div class="item-number">${itemSno}</div>
+        <div class="item-field description">
+            <div style="position: relative;">
+                <input type="text" value="${item.description || ''}" placeholder="Description" required>
+                <ul class="suggestions"></ul>
+            </div>
+        </div>
+        <div class="item-field hsn">
+            <input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN Code" required>
+        </div>
+        <div class="item-field qty">
+            <input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required>
+        </div>
+        <div class="item-field rate">
+            <input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required>
+        </div>
+        <div class="item-field rate">
+            <input type="number" value="${item.rate || ''}" placeholder="Tax Rate" required>
+        </div>
+        <button type="button" class="remove-item-btn">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    itemsContainer.appendChild(card);
+    
+    // Create hidden table row
     const row = document.createElement("tr");
-    const rowCount = tableBody.rows.length + 1;
-
     row.className = "border-b border-gray-200 hover:bg-gray-50";
     row.innerHTML = `
-        <td class="border border-gray-300 px-4 py-3 text-center text-base">${rowCount}</td>
-        <td class="border border-gray-300 px-2 py-2"><input type="text" placeholder="Item Description" required></td>
-        <td class="border border-gray-300 px-2 py-2"><input type="text" placeholder="HSN Code" required></td>
-        <td class="border border-gray-300 px-2 py-2"><input type="number" placeholder="Qty" min="1" required></td>
-        <td class="border border-gray-300 px-2 py-2"><input type="number" placeholder="Unit Price" required></td>
-        <td class="border border-gray-300 px-2 py-2"><input type="number" placeholder="Tax Rate" required></td>
+        <td class="border border-gray-300 px-4 py-3 text-center text-base">${itemSno}</td>
+        <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description || ''}" required></td>
+        <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC || ''}" required></td>
+        <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity || ''}" min="1" required></td>
+        <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.unit_price || ''}" required></td>
+        <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.rate || ''}" required></td>
         <td class="border border-gray-300 px-2 py-2 text-center">
-            <button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm" onclick="removeItem(this)">
+            <button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">
                 <i class="fas fa-trash"></i>
             </button>
         </td>
     `;
-
-    tableBody.appendChild(row);
+    itemsTableBody.appendChild(row);
+    
+    // Sync card inputs with table inputs
+    const cardInputs = card.querySelectorAll('input');
+    const rowInputs = row.querySelectorAll('input');
+    cardInputs.forEach((input, index) => {
+        input.addEventListener('input', () => {
+            rowInputs[index].value = input.value;
+        });
+    });
+    
+    // Add remove button event listeners (both card and table)
+    const cardRemoveBtn = card.querySelector(".remove-item-btn");
+    const tableRemoveBtn = row.querySelector(".remove-item-btn");
+    
+    cardRemoveBtn.addEventListener("click", function() {
+        card.remove();
+        row.remove();
+        renumberItems();
+    });
+    
+    tableRemoveBtn.addEventListener("click", function() {
+        card.remove();
+        row.remove();
+        renumberItems();
+    });
 }
 
-function removeItem(button) {
-    button.parentElement.parentElement.remove();
+// Add a new empty item
+function addItem() {
+    const itemsTableBody = document.querySelector("#items-table tbody");
+    const itemSno = itemsTableBody.rows.length + 1;
+    
+    addItemFromData({
+        description: '',
+        HSN_SAC: '',
+        quantity: '',
+        unit_price: '',
+        rate: ''
+    }, itemSno);
 }
 
-// Event listener for the "Remove Item" button
-document.querySelector("#items-table").addEventListener("click", (event) => {
-    if (event.target.classList.contains('remove-item-btn')) {
-        event.target.closest('tr').remove();
-    }
-});
+// Renumber items after deletion
+function renumberItems() {
+    const cards = document.querySelectorAll("#items-container .item-card");
+    const rows = document.querySelectorAll("#items-table tbody tr");
+    
+    cards.forEach((card, index) => {
+        const numberDiv = card.querySelector('.item-number');
+        if (numberDiv) {
+            numberDiv.textContent = index + 1;
+        }
+    });
+    
+    rows.forEach((row, index) => {
+        const numberCell = row.querySelector('td:first-child');
+        if (numberCell) {
+            numberCell.textContent = index + 1;
+        }
+    });
+}
 
 function generatePreview() {
     const projectName = document.getElementById("project-name").value || "";
