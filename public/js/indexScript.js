@@ -1,8 +1,7 @@
 // Show login form
 document.getElementById('show-login').addEventListener('click', () => {
-    // document.getElementById('auth-container').classList.add('hidden');
-    // document.getElementById('login-container').classList.remove('hidden');
-    window.location = '/dashboard';
+    document.getElementById('auth-container').classList.add('hidden');
+    document.getElementById('login-container').classList.remove('hidden');
     // Focus on username field
     setTimeout(() => document.getElementById('username').focus(), 100);
 });
