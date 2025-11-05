@@ -1,0 +1,198 @@
+/* Service Module Styles */
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.sidebar {
+    width: 280px;
+}
+
+/* Custom scrollbar */
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #2563eb;
+    border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #1d4ed8;
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hide non-active sections */
+#new {
+    display: none;
+}
+
+/* Step visibility */
+.steps {
+    display: none;
+}
+
+.steps.active {
+    display: block;
+}
+
+/* Pulse animation for shortcuts button */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+#shortcuts-btn:hover {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+/* Smooth modal transitions */
+#shortcuts-modal {
+    transition: opacity 0.3s ease-in-out;
+}
+
+#shortcuts-modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#shortcuts-modal:not(.hidden) {
+    opacity: 1;
+}
+
+/* Service card hover effect */
+.service-card {
+    transition: all 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Preview container styling */
+.preview-container {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.preview-container .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.preview-container .logo img {
+    max-width: 120px;
+    height: auto;
+}
+
+.preview-container .company-details {
+    text-align: right;
+}
+
+.preview-container .company-details h1 {
+    font-size: 24px;
+    color: #2563eb;
+    margin: 0 0 8px 0;
+}
+
+.preview-container .company-details p {
+    margin: 4px 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.preview-container .title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #1f2937;
+    text-align: center;
+    margin: 20px 0 30px 0;
+    padding: 15px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-radius: 8px;
+}
+
+.preview-container .first-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 30px;
+}
+
+.preview-container .buyer-details,
+.preview-container .info-section {
+    flex: 1;
+}
+
+.preview-container .buyer-details p,
+.preview-container .info-section p {
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.preview-container .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.preview-container .items-table th,
+.preview-container .items-table td {
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.preview-container .items-table thead {
+    background-color: #f3f4f6;
+}
+
+.preview-container .signature {
+    margin-top: 60px;
+    text-align: right;
+}
+
+.preview-container .signature-space {
+    height: 60px;
+}
+
+.preview-container footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    color: #6b7280;
+    font-size: 12px;
+}
