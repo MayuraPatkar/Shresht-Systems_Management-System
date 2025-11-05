@@ -330,16 +330,14 @@ function renderWayBills(wayBills) {
     wayBillsListDiv.innerHTML = "";
     if (!wayBills || wayBills.length === 0) {
         wayBillsListDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 fade-in">
-                <div class="bg-gray-100 rounded-full p-8 mb-4">
-                    <i class="fas fa-inbox text-gray-400 text-6xl"></i>
+            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-route text-4xl text-blue-500"></i>
                 </div>
-                <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Waybills Found</h2>
-                <p class="text-gray-500 mb-6">Get started by creating your first way bill</p>
-                <button onclick="document.getElementById('new-waybill-btn').click()" 
-                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
-                    <i class="fas fa-plus"></i>
-                    Create Way Bill
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">No Waybills Found</h2>
+                <p class="text-gray-600 mb-6">Start creating waybills for your deliveries</p>
+                <button onclick="document.getElementById('new-waybill-btn').click()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg font-semibold">
+                    <i class="fas fa-plus mr-2"></i>Create First Waybill
                 </button>
             </div>
         `;
@@ -354,65 +352,112 @@ function renderWayBills(wayBills) {
 // Create a way bill card element
 function createWayBillCard(wayBill) {
     const wayBillDiv = document.createElement("div");
-    wayBillDiv.className = "bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow fade-in";
+    wayBillDiv.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
+    
     wayBillDiv.innerHTML = `
-        <div class="flex items-start justify-between">
-            <div class="flex items-start gap-4 flex-1">
-                <div class="bg-blue-100 p-3 rounded-lg">
-                    <i class="fas fa-route text-blue-600 text-2xl"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-start justify-between mb-3">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-800 mb-1">${wayBill.project_name}</h3>
-                            <p class="text-sm text-gray-500 font-mono">${wayBill.waybill_id}</p>
+        <!-- Left Border Accent -->
+        <div class="flex">
+            <div class="w-1.5 bg-gradient-to-b from-blue-500 to-cyan-600"></div>
+            
+            <div class="flex-1 p-6">
+                <!-- Main Content Row -->
+                <div class="flex items-center justify-between gap-6">
+                    
+                    <!-- Left Section: Icon + Project Info -->
+                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
+                            <i class="fas fa-route text-2xl text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-lg font-bold text-gray-900 mb-1 truncate">${wayBill.project_name}</h3>
+                            <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
+                                <i class="fas fa-hashtag text-xs"></i>
+                                <span>${wayBill.waybill_id}</span>
+                                <i class="fas fa-copy text-xs ml-1"></i>
+                            </p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div>
-                            <p class="text-xs font-medium text-gray-500 mb-1">Customer</p>
-                            <p class="text-sm font-semibold text-gray-700">${wayBill.customer_name}</p>
-                            <p class="text-xs text-gray-500 mt-1">${wayBill.customer_address}</p>
+
+                    <!-- Middle Section: Customer Info -->
+                    <div class="flex items-center gap-3 flex-1 min-w-0 px-6 border-l border-r border-gray-200">
+                        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user text-blue-600"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Customer</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate">${wayBill.customer_name}</p>
+                            <p class="text-xs text-gray-600 truncate">${wayBill.customer_address}</p>
+                        </div>
+                    </div>
+
+                    <!-- Destination Section -->
+                    <div class="flex items-center gap-3 px-6 border-r border-gray-200">
+                        <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-map-marker-alt text-orange-600"></i>
                         </div>
                         <div>
-                            <p class="text-xs font-medium text-gray-500 mb-1">Destination</p>
-                            <p class="text-sm font-semibold text-gray-700">${wayBill.place_supply}</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Destination</p>
+                            <p class="text-sm font-bold text-gray-900">${wayBill.place_supply}</p>
                         </div>
+                    </div>
+
+                    <!-- Actions Section -->
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
                 </div>
             </div>
-            <select class="ml-4 px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                <option value="" disabled selected>Actions</option>
-                <option value="view">👁️ View</option>
-                <option value="update">✏️ Update</option>
-                <option value="delete">🗑️ Delete</option>
-            </select>
         </div>
     `;
-    wayBillDiv.querySelector('select').addEventListener('change', function () {
-        handleWayBillAction(this, wayBill.waybill_id);
-    });
-    return wayBillDiv;
-}
 
-// Handle actions from the actions dropdown
-function handleWayBillAction(select, wayBillId) {
-    const action = select.value;
-    if (action === "view") {
-        viewWayBill(wayBillId);
-    } else if (action === "update") {
-        openWayBill(wayBillId);
-    } else if (action === "delete") {
+    const copyElement = wayBillDiv.querySelector('.copy-text');
+    const viewBtn = wayBillDiv.querySelector('.view-btn');
+    const editBtn = wayBillDiv.querySelector('.edit-btn');
+    const deleteBtn = wayBillDiv.querySelector('.delete-btn');
+
+    // Copy ID functionality
+    copyElement.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(wayBill.waybill_id);
+            const toast = document.createElement('div');
+            toast.textContent = 'ID Copied to Clipboard!';
+            toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        } catch (err) {
+            console.error('Copy failed', err);
+        }
+    });
+
+    // Action button handlers
+    viewBtn.addEventListener('click', () => {
+        viewWayBill(wayBill.waybill_id);
+    });
+
+    editBtn.addEventListener('click', () => {
+        openWayBill(wayBill.waybill_id);
+    });
+
+    deleteBtn.addEventListener('click', () => {
         window.electronAPI.showAlert2('Are you sure you want to delete this way bill?');
         if (window.electronAPI) {
             window.electronAPI.receiveAlertResponse((response) => {
                 if (response === "Yes") {
-                    deleteWayBill(wayBillId);
+                    deleteWayBill(wayBill.waybill_id);
                 }
             });
         }
-    }
-    select.selectedIndex = 0; // Reset to default
+    });
+
+    return wayBillDiv;
 }
 
 // Delete a way bill
