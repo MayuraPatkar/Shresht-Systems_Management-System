@@ -12,7 +12,7 @@ const stockSchema = new mongoose.Schema({
     min_quantity: { type: Number, default: 5 },
     type: { type: String, required: true, index: true },
     category: { type: String, index: true },
-    createdAt: { type: Date, default: Date.now },
+    createdAt: { type: Date, default: Date.now, index: true },
     updatedAt: { type: Date, default: Date.now },
 });
 

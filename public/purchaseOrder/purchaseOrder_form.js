@@ -75,6 +75,7 @@ async function openPurchaseOrder(purchaseOrderId) {
             
             // Create hidden table row
             const row = document.createElement("tr");
+            row.dataset.specification = item.specification || ''; // Store specification
             row.innerHTML = `
                 <td class="text-center">${sno}</td>
                 <td><input type="text" value="${item.description}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
