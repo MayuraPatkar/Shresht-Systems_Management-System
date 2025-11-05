@@ -110,21 +110,29 @@ router.post("/save-purchase-order", async (req, res) => {
             let stockItem = await Stock.findOne({ item_name: item.description });
 
             if (stockItem) {
-                // Update quantity and GST/unitPrice if needed
+                // Update existing stock item
                 stockItem.quantity = Number(stockItem.quantity || 0) + Number(item.quantity || 0);
                 stockItem.unit_price = Number(item.unit_price) || stockItem.unit_price;
                 stockItem.GST = Number(item.rate) || stockItem.GST;
+                stockItem.specifications = item.specification || stockItem.specifications;
+                stockItem.company = item.company || stockItem.company;
+                stockItem.category = item.category || stockItem.category;
+                stockItem.type = item.type || stockItem.type;
                 stockItem.updatedAt = new Date();
                 await stockItem.save();
             } else {
+                // Create new stock item
                 await Stock.create({
                     item_name: item.description,
                     HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
+                    specifications: item.specification || "",
+                    company: item.company || "",
+                    category: item.category || "",
                     unit_price: Number(item.unit_price) || 0,
                     GST: Number(item.rate) || 0,
                     margin: 0,
                     quantity: Number(item.quantity) || 0,
-                    type: 'material',
+                    type: item.type || 'material',
                     createdAt: new Date(),
                     updatedAt: new Date()
                 });

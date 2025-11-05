@@ -1,4 +1,4 @@
-const totalSteps = 3;
+const totalSteps = 4;
 let purchaseOrderId = '';
 let totalAmount = 0;
 
@@ -75,6 +75,7 @@ async function openPurchaseOrder(purchaseOrderId) {
             
             // Create hidden table row
             const row = document.createElement("tr");
+            row.dataset.specification = item.specification || ''; // Store specification
             row.innerHTML = `
                 <td class="text-center">${sno}</td>
                 <td><input type="text" value="${item.description}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
@@ -352,19 +353,70 @@ function collectFormData() {
         supplierPhone: document.getElementById("supplier-phone").value,
         supplierEmail: document.getElementById("supplier-email").value,
         supplierGSTIN: document.getElementById("supplier-GSTIN").value,
-        items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
-            description: row.querySelector("td:nth-child(2) input").value,
-            HSN_SAC: row.querySelector("td:nth-child(3) input").value,
-            company: row.querySelector("td:nth-child(4) input").value,
-            type: row.querySelector("td:nth-child(5) input").value,
-            category: row.querySelector("td:nth-child(6) input").value,
-            quantity: row.querySelector("td:nth-child(7) input").value,
-            unit_price: row.querySelector("td:nth-child(8) input").value,
-            rate: row.querySelector("td:nth-child(9) input").value,
-        })),
+        items: Array.from(document.querySelectorAll("#items-table tbody tr")).map((row, index) => {
+            const specRow = document.querySelector(`#items-specifications-table tbody tr:nth-child(${index + 1})`);
+            return {
+                description: row.querySelector("td:nth-child(2) input").value,
+                HSN_SAC: row.querySelector("td:nth-child(3) input").value,
+                company: row.querySelector("td:nth-child(4) input").value,
+                type: row.querySelector("td:nth-child(5) input").value,
+                category: row.querySelector("td:nth-child(6) input").value,
+                quantity: row.querySelector("td:nth-child(7) input").value,
+                unit_price: row.querySelector("td:nth-child(8) input").value,
+                rate: row.querySelector("td:nth-child(9) input").value,
+                specification: specRow ? specRow.querySelector("td:nth-child(3) input").value : ''
+            };
+        }),
         totalAmount: totalAmount
     };
 }
+
+// Function to populate specifications step
+function populateSpecifications() {
+    const itemsTableBody = document.querySelector("#items-table tbody");
+    const specificationsContainer = document.getElementById("specifications-container");
+    const specificationsTableBody = document.querySelector("#items-specifications-table tbody");
+    specificationsContainer.innerHTML = "";
+    specificationsTableBody.innerHTML = "";
+
+    Array.from(itemsTableBody.rows).forEach((row, index) => {
+        const description = row.cells[1].querySelector("input").value;
+        const existingSpecification = row.dataset.specification || '';
+
+        // Create card
+        const card = document.createElement("div");
+        card.className = "spec-card";
+        card.innerHTML = `
+            <div class="item-number">${index + 1}</div>
+            <div class="spec-field description">
+                <input type="text" value="${description}" readonly>
+            </div>
+            <div class="spec-field specification">
+                <input type="text" placeholder="Enter specifications" value="${existingSpecification}">
+            </div>
+        `;
+        specificationsContainer.appendChild(card);
+
+        // Create hidden table row
+        const specRow = document.createElement("tr");
+        specRow.innerHTML = `
+            <td>${index + 1}</td>
+            <td><input type="text" value="${description}" readonly></td>
+            <td><input type="text" placeholder="Enter specifications" value="${existingSpecification}"></td>
+        `;
+        specificationsTableBody.appendChild(specRow);
+
+        // Sync card input with table input
+        const cardInput = card.querySelector('.specification input');
+        const rowInput = specRow.querySelector('td:nth-child(3) input');
+        cardInput.addEventListener('input', () => {
+            rowInput.value = cardInput.value;
+            row.dataset.specification = cardInput.value;
+        });
+    });
+}
+
+
 
 // Override the global addItem function with purchase order specific implementation
 const addItemBtn = document.getElementById('add-item-btn');
@@ -470,3 +522,34 @@ if (addItemBtn) {
     });
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const nextBtn = document.getElementById('next-btn');
+    if (nextBtn) {
+        // Clone the button to remove any existing event listeners (like the one from globalScript.js)
+        const newNextBtn = nextBtn.cloneNode(true);
+        nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+
+        newNextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps) {
+                // When moving from step 2 (Item Details) to step 3 (Add Specifications)
+                if (currentStep === 2) {
+                    populateSpecifications();
+                }
+                changeStep(currentStep + 1);
+            }
+            // When on the last step, generate the preview
+            if (currentStep === totalSteps) {
+                const idInput = document.getElementById('id');
+                if (!idInput?.value) {
+                    getId(); // This will also trigger generatePreview
+                } else {
+                    generatePreview();
+                }
+            }
+        });
+    }
+});
+
+
+

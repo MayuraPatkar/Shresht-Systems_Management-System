@@ -212,6 +212,7 @@ async function viewPurchaseOrder(purchaseOrderId) {
             row.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.description || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${item.specification || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || item.hsn_sac || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
