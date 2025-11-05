@@ -179,87 +179,230 @@ fetchData(); // Load data at startup
 
 // Function to add a new item row to the table
 function addItem() {
+  const container = document.getElementById("items-container");
   const tableBody = document.querySelector("#items-table tbody");
+  const itemNumber = tableBody.children.length + 1;
+  
+  // Create card element
+  const card = document.createElement("div");
+  card.className = "item-card";
+  
+  card.innerHTML = `
+    <div class="item-number">${itemNumber}</div>
+    
+    <div class="item-field description">
+      <div style="position: relative;">
+        <input type="text" placeholder="Enter item description" class="item_name" required>
+        <ul class="suggestions"></ul>
+      </div>
+    </div>
+    
+    <div class="item-field hsn">
+      <input type="text" placeholder="Code" required>
+    </div>
+    
+    <div class="item-field qty">
+      <input type="number" placeholder="0" min="1" required>
+    </div>
+    
+    <div class="item-field price">
+      <input type="number" placeholder="0.00" step="0.01" required>
+    </div>
+    
+    <div class="item-field rate">
+      <input type="number" placeholder="0" min="0" step="0.01">
+    </div>
+    
+    <button type="button" class="remove-item-btn" title="Remove Item">
+      <i class="fas fa-trash-alt"></i>
+    </button>
+  `;
+  
+  // Append card to container
+  if (container) {
+    container.appendChild(card);
+  }
+  
+  // Also add to hidden table for backward compatibility
   const row = document.createElement("tr");
-
   row.innerHTML = `
-        <td>${tableBody.children.length + 1}</td>
-        <td>
-            <input type="text" placeholder="Item Description" class="item_name" required>
-            <ul class="suggestions"></ul> <!-- Changed from id to class -->
-        </td>
-        <td><input type="text" placeholder="HSN/SAC" required></td>
-        <td><input type="number" placeholder="Qty" min="1" required></td>
-        <td><input type="number" placeholder="Unit Price" required></td>
-        <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
-        <td><button type="button" class="remove-item-btn">Remove</button></td>
-    `;
-
+    <td>${itemNumber}</td>
+    <td>
+      <input type="text" placeholder="Item Description" class="item_name" required>
+      <ul class="suggestions"></ul>
+    </td>
+    <td><input type="text" placeholder="HSN/SAC" required></td>
+    <td><input type="number" placeholder="Qty" min="1" required></td>
+    <td><input type="number" placeholder="Unit Price" required></td>
+    <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
+    <td><button type="button" class="remove-item-btn">Remove</button></td>
+  `;
   tableBody.appendChild(row);
 
-  const input = row.querySelector(".item_name");
-  const suggestionsList = row.querySelector(".suggestions");
-
-  input.addEventListener("input", function () {
-    showSuggestions(input, suggestionsList);
+  // Setup autocomplete for the card
+  const cardInput = card.querySelector(".item_name");
+  const cardSuggestions = card.querySelector(".suggestions");
+  
+  cardInput.addEventListener("input", function () {
+    showSuggestions(cardInput, cardSuggestions);
     // Update specifications table when item description changes (with debounce)
-    clearTimeout(input.specUpdateTimeout);
-    input.specUpdateTimeout = setTimeout(() => {
-      if (input.value.trim()) {
+    clearTimeout(cardInput.specUpdateTimeout);
+    cardInput.specUpdateTimeout = setTimeout(() => {
+      if (cardInput.value.trim()) {
         updateSpecificationsTable();
       }
     }, 500);
   });
 
-  input.addEventListener("keydown", function (event) {
-    handleKeyboardNavigation(event, input, suggestionsList);
+  cardInput.addEventListener("keydown", function (event) {
+    handleKeyboardNavigation(event, cardInput, cardSuggestions);
   });
 
   document.addEventListener("click", function (event) {
-    if (!input.contains(event.target) && !suggestionsList.contains(event.target)) {
-      suggestionsList.style.display = "none";
+    if (!cardInput.contains(event.target) && !cardSuggestions.contains(event.target)) {
+      cardSuggestions.style.display = "none";
     }
+  });
+  
+  // Sync all inputs from card to table
+  const cardInputs = card.querySelectorAll("input");
+  const tableInputs = row.querySelectorAll("input");
+  
+  cardInputs.forEach((input, index) => {
+    input.addEventListener("input", () => {
+      if (tableInputs[index]) {
+        tableInputs[index].value = input.value;
+      }
+    });
+  });
+  
+  // Handle remove button
+  const removeBtn = card.querySelector(".remove-item-btn");
+  removeBtn.addEventListener("click", function() {
+    card.remove();
+    row.remove();
+    updateItemNumbers();
+    updateSpecificationsTable();
   });
 }
 
 function addNonItem() {
+  const container = document.getElementById("non-items-container");
   const tableBody = document.querySelector("#non-items-table tbody");
+  const itemNumber = tableBody.children.length + 1;
+  
+  // Create card element
+  const card = document.createElement("div");
+  card.className = "non-item-card";
+  
+  card.innerHTML = `
+    <div class="item-number">${itemNumber}</div>
+    
+    <div class="non-item-field description">
+      <input type="text" placeholder="e.g., Installation Charges, Shipping" required>
+    </div>
+    
+    <div class="non-item-field price">
+      <input type="number" placeholder="0.00" step="0.01" required>
+    </div>
+    
+    <div class="non-item-field rate">
+      <input type="number" placeholder="0" min="0" step="0.01">
+    </div>
+    
+    <button type="button" class="remove-item-btn" title="Remove Item">
+      <i class="fas fa-trash-alt"></i>
+    </button>
+  `;
+  
+  // Append card to container
+  if (container) {
+    container.appendChild(card);
+  }
+  
+  // Also add to hidden table for backward compatibility
   const row = document.createElement("tr");
-
   row.innerHTML = `
-        <td>${tableBody.children.length + 1}</td>
-        <td>
-            <input type="text" placeholder="Item Description" class="item_name" required>
-            <ul class="suggestions"></ul> <!-- Changed from id to class -->
-        </td>
-        <td><input type="number" placeholder="Price" required></td>
-        <td><input type="number" placeholder="Rate"></td>
-        <td><button type="button" class="remove-item-btn">Remove</button></td>
-    `;
-
+    <td>${itemNumber}</td>
+    <td>
+      <input type="text" placeholder="Item Description" class="item_name" required>
+      <ul class="suggestions"></ul>
+    </td>
+    <td><input type="number" placeholder="Price" required></td>
+    <td><input type="number" placeholder="Rate"></td>
+    <td><button type="button" class="remove-item-btn">Remove</button></td>
+  `;
   tableBody.appendChild(row);
 
-  const input = row.querySelector(".item_name");
-  const suggestionsList = row.querySelector(".suggestions");
-
-  input.addEventListener("input", function () {
-    showSuggestions(input, suggestionsList);
+  // Setup input for the card
+  const cardInput = card.querySelector("input[placeholder*='Installation']");
+  
+  cardInput.addEventListener("input", function () {
     // Update specifications table when item description changes (with debounce)
-    clearTimeout(input.specUpdateTimeout);
-    input.specUpdateTimeout = setTimeout(() => {
-      if (input.value.trim()) {
+    clearTimeout(cardInput.specUpdateTimeout);
+    cardInput.specUpdateTimeout = setTimeout(() => {
+      if (cardInput.value.trim()) {
         updateSpecificationsTable();
       }
     }, 500);
   });
+  
+  // Sync inputs from card to table
+  const cardInputs = card.querySelectorAll("input");
+  const tableInputs = row.querySelectorAll("input");
+  
+  cardInputs.forEach((input, index) => {
+    input.addEventListener("input", () => {
+      if (tableInputs[index]) {
+        tableInputs[index].value = input.value;
+      }
+    });
+  });
+  
+  // Handle remove button
+  const removeBtn = card.querySelector(".remove-item-btn");
+  removeBtn.addEventListener("click", function() {
+    card.remove();
+    row.remove();
+    updateNonItemNumbers();
+    updateSpecificationsTable();
+  });
+}
 
-  input.addEventListener("keydown", function (event) {
-    handleKeyboardNavigation(event, input, suggestionsList);
+// Helper function to update item numbers after removal
+function updateItemNumbers() {
+  const itemCards = document.querySelectorAll("#items-container .item-card");
+  itemCards.forEach((card, index) => {
+    const itemNumberElement = card.querySelector(".item-number");
+    if (itemNumberElement) {
+      itemNumberElement.textContent = index + 1;
+    }
   });
 
-  document.addEventListener("click", function (event) {
-    if (!input.contains(event.target) && !suggestionsList.contains(event.target)) {
-      suggestionsList.style.display = "none";
+  const tableRows = document.querySelectorAll("#items-table tbody tr");
+  tableRows.forEach((row, index) => {
+    const cell = row.querySelector("td:first-child");
+    if (cell) {
+      cell.textContent = index + 1;
+    }
+  });
+}
+
+// Helper function to update non-item numbers after removal
+function updateNonItemNumbers() {
+  const nonItemCards = document.querySelectorAll("#non-items-container .non-item-card");
+  nonItemCards.forEach((card, index) => {
+    const itemNumberElement = card.querySelector(".item-number");
+    if (itemNumberElement) {
+      itemNumberElement.textContent = index + 1;
+    }
+  });
+
+  const tableRows = document.querySelectorAll("#non-items-table tbody tr");
+  tableRows.forEach((row, index) => {
+    const cell = row.querySelector("td:first-child");
+    if (cell) {
+      cell.textContent = index + 1;
     }
   });
 }
@@ -289,7 +432,8 @@ function showSuggestions(input, suggestionsList) {
     li.textContent = item;
     li.onclick = function () {
       input.value = item;
-      fill(item, input.closest("tr"));
+      const parent = input.closest('.item-card') || input.closest('tr');
+      fill(item, parent);
       suggestionsList.style.display = "none";
     };
     suggestionsList.appendChild(li);
@@ -304,11 +448,13 @@ function handleKeyboardNavigation(event, input, suggestionsList) {
   if (event.key === "ArrowDown") {
     selectedIndex = (selectedIndex + 1) % items.length;
     input.value = items[selectedIndex].textContent;
-    fill(items[selectedIndex].textContent, input.closest("tr"));
+    const parent = input.closest('.item-card') || input.closest('tr');
+    fill(items[selectedIndex].textContent, parent);
   } else if (event.key === "ArrowUp") {
     selectedIndex = (selectedIndex - 1 + items.length) % items.length;
     input.value = items[selectedIndex].textContent;
-    fill(items[selectedIndex].textContent, input.closest("tr"));
+    const parent = input.closest('.item-card') || input.closest('tr');
+    fill(items[selectedIndex].textContent, parent);
   } else if (event.key === "Enter") {
     event.stopPropagation();
     if (selectedIndex >= 0) {
@@ -365,12 +511,33 @@ async function fetchStockData(itemName) {
 }
 
 // Function to autofill row data
-async function fill(itemName, row) {
+async function fill(itemName, element) {
+  // Check if element is a card or a table row
+  const isCard = element.classList.contains('item-card');
+  
   const stockData = await fetchStockData(itemName);
   if (stockData) {
-    row.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
-    row.querySelector("input[placeholder='Unit Price']").value = stockData.unitPrice || 0;
-    row.querySelector("input[placeholder='Rate']").value = stockData.GST || 0;
+    if (isCard) {
+      // Fill card inputs
+      const inputs = element.querySelectorAll('input');
+      inputs[1].value = stockData.HSN_SAC || ""; // HSN/SAC
+      inputs[3].value = stockData.unitPrice || 0; // Unit Price
+      inputs[4].value = stockData.GST || 0; // Rate
+      
+      // Also update corresponding table row
+      const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
+      const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
+      if (tableRow) {
+        tableRow.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
+        tableRow.querySelector("input[placeholder='Unit Price']").value = stockData.unitPrice || 0;
+        tableRow.querySelector("input[placeholder='Rate']").value = stockData.GST || 0;
+      }
+    } else {
+      // Fill table row (backward compatibility)
+      element.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
+      element.querySelector("input[placeholder='Unit Price']").value = stockData.unitPrice || 0;
+      element.querySelector("input[placeholder='Rate']").value = stockData.GST || 0;
+    }
     
     // Update specifications table when item is filled
     updateSpecificationsTable();
@@ -381,19 +548,22 @@ async function fill(itemName, row) {
 async function updateSpecificationsTable() {
   const itemsTable = document.querySelector('#items-table tbody');
   const nonItemsTable = document.querySelector('#non-items-table tbody');
+  const specificationsContainer = document.getElementById('specifications-container');
   const itemsSpecificationTable = document.querySelector('#items-specifications-table tbody');
   
-  if (!itemsSpecificationTable) return; // Not on quotation page
+  if (!itemsSpecificationTable && !specificationsContainer) return; // Not on quotation page
   
   // Store existing manually entered specifications to preserve them
   const existingSpecs = {};
-  itemsSpecificationTable.querySelectorAll('tr').forEach(row => {
-    const description = row.cells[1].textContent.trim();
-    const specInput = row.querySelector('input[placeholder="Specifications"], input[type="text"]');
-    if (specInput && description) {
-      existingSpecs[description] = specInput.value;
-    }
-  });
+  if (itemsSpecificationTable) {
+    itemsSpecificationTable.querySelectorAll('tr').forEach(row => {
+      const description = row.cells[1].textContent.trim();
+      const specInput = row.querySelector('input[placeholder="Specifications"], input[type="text"]');
+      if (specInput && description) {
+        existingSpecs[description] = specInput.value;
+      }
+    });
+  }
   
   // Get all current items from both tables
   const allItems = [
@@ -407,8 +577,13 @@ async function updateSpecificationsTable() {
     }))
   ];
   
-  // Clear and rebuild the specifications table
-  itemsSpecificationTable.innerHTML = '';
+  // Clear and rebuild the specifications container and table
+  if (specificationsContainer) {
+    specificationsContainer.innerHTML = '';
+  }
+  if (itemsSpecificationTable) {
+    itemsSpecificationTable.innerHTML = '';
+  }
   
   for (let i = 0; i < allItems.length; i++) {
     const item = allItems[i];
@@ -431,13 +606,58 @@ async function updateSpecificationsTable() {
       }
     }
     
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${item.description}</td>
-      <td><input type="text" placeholder="Specifications" value="${specification}" required></td>
-    `;
-    itemsSpecificationTable.appendChild(row);
+    // Create card for specifications
+    if (specificationsContainer) {
+      const card = document.createElement('div');
+      card.className = 'spec-card';
+      card.innerHTML = `
+        <div class="item-number">${i + 1}</div>
+        
+        <div class="spec-field description">
+          <input type="text" value="${item.description}" readonly style="background: #f9fafb; cursor: not-allowed;">
+        </div>
+        
+        <div class="spec-field specification">
+          <input type="text" placeholder="Enter specifications" value="${specification}" required>
+        </div>
+      `;
+      specificationsContainer.appendChild(card);
+      
+      // Sync specification input with table
+      const specInput = card.querySelector('.spec-field.specification input');
+      const tableRow = document.querySelector(`#items-specifications-table tbody tr:nth-child(${i + 1})`);
+      if (specInput && tableRow) {
+        specInput.addEventListener('input', () => {
+          const tableSpecInput = tableRow.querySelector('input');
+          if (tableSpecInput) {
+            tableSpecInput.value = specInput.value;
+          }
+        });
+      }
+    }
+    
+    // Also create hidden table row for backward compatibility
+    if (itemsSpecificationTable) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${item.description}</td>
+        <td><input type="text" placeholder="Specifications" value="${specification}" required></td>
+      `;
+      itemsSpecificationTable.appendChild(row);
+      
+      // Sync table input with card
+      const tableSpecInput = row.querySelector('input');
+      const card = specificationsContainer?.querySelector(`.spec-card:nth-child(${i + 1})`);
+      if (tableSpecInput && card) {
+        tableSpecInput.addEventListener('input', () => {
+          const cardSpecInput = card.querySelector('.spec-field.specification input');
+          if (cardSpecInput) {
+            cardSpecInput.value = tableSpecInput.value;
+          }
+        });
+      }
+    }
   }
 }
 

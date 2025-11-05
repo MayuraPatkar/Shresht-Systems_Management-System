@@ -33,17 +33,69 @@ async function openQuotation(quotationId) {
         document.getElementById('buyer-phone').value = quotation.customer_phone;
         document.getElementById('buyer-email').value = quotation.customer_email;
 
+        const itemsContainer = document.getElementById("items-container");
+        const nonItemsContainer = document.getElementById("non-items-container");
+        const specificationsContainer = document.getElementById("specifications-container");
         const itemsTableBody = document.querySelector("#items-table tbody");
         const nonItemsTableBody = document.querySelector("#non-items-table tbody");
         const itemsSpecificationsTableBody = document.querySelector("#items-specifications-table tbody");
+        
+        // Clear existing content
+        if (itemsContainer) itemsContainer.innerHTML = "";
+        if (nonItemsContainer) nonItemsContainer.innerHTML = "";
+        if (specificationsContainer) specificationsContainer.innerHTML = "";
         itemsTableBody.innerHTML = "";
         nonItemsTableBody.innerHTML = "";
         itemsSpecificationsTableBody.innerHTML = "";
 
-        (quotation.items || []).forEach(item => {
+        // Load items
+        (quotation.items || []).forEach((item, index) => {
+            // Create card
+            if (itemsContainer) {
+                const card = document.createElement("div");
+                card.className = "item-card";
+                card.innerHTML = `
+                    <div class="item-number">${index + 1}</div>
+                    <div class="item-field description">
+                        <div style="position: relative;">
+                            <input type="text" placeholder="Enter item description" class="item_name" value="${item.description || ''}" required>
+                            <ul class="suggestions"></ul>
+                        </div>
+                    </div>
+                    <div class="item-field hsn">
+                        <input type="text" placeholder="Code" value="${item.HSN_SAC || ''}" required>
+                    </div>
+                    <div class="item-field qty">
+                        <input type="number" placeholder="0" min="1" value="${item.quantity || ''}" required>
+                    </div>
+                    <div class="item-field price">
+                        <input type="number" placeholder="0.00" step="0.01" value="${item.unit_price || ''}" required>
+                    </div>
+                    <div class="item-field rate">
+                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                    </div>
+                    <button type="button" class="remove-item-btn" title="Remove Item">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                itemsContainer.appendChild(card);
+                
+                // Add event listeners
+                const removeBtn = card.querySelector(".remove-item-btn");
+                removeBtn.addEventListener("click", function() {
+                    card.remove();
+                    const rowIndex = Array.from(itemsContainer.children).indexOf(card);
+                    const tableRow = itemsTableBody.querySelectorAll('tr')[rowIndex];
+                    if (tableRow) tableRow.remove();
+                    updateItemNumbers();
+                    updateSpecificationsTable();
+                });
+            }
+            
+            // Also create table row for backward compatibility
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${itemsTableBody.children.length + 1}</td>
+                <td>${index + 1}</td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
                 <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
                 <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
@@ -54,10 +106,45 @@ async function openQuotation(quotationId) {
             itemsTableBody.appendChild(row);
         });
 
-        (quotation.non_items || []).forEach(item => {
+        // Load non-items
+        (quotation.non_items || []).forEach((item, index) => {
+            // Create card
+            if (nonItemsContainer) {
+                const card = document.createElement("div");
+                card.className = "non-item-card";
+                card.innerHTML = `
+                    <div class="item-number">${index + 1}</div>
+                    <div class="non-item-field description">
+                        <input type="text" placeholder="e.g., Installation Charges" value="${item.description || ''}" required>
+                    </div>
+                    <div class="non-item-field price">
+                        <input type="number" placeholder="0.00" step="0.01" value="${item.price || ''}" required>
+                    </div>
+                    <div class="non-item-field rate">
+                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                    </div>
+                    <button type="button" class="remove-item-btn" title="Remove Item">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                nonItemsContainer.appendChild(card);
+                
+                // Add event listeners
+                const removeBtn = card.querySelector(".remove-item-btn");
+                removeBtn.addEventListener("click", function() {
+                    card.remove();
+                    const rowIndex = Array.from(nonItemsContainer.children).indexOf(card);
+                    const tableRow = nonItemsTableBody.querySelectorAll('tr')[rowIndex];
+                    if (tableRow) tableRow.remove();
+                    updateNonItemNumbers();
+                    updateSpecificationsTable();
+                });
+            }
+            
+            // Also create table row
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${nonItemsTableBody.children.length + 1}</td>
+                <td>${index + 1}</td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
                 <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
                 <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
@@ -66,13 +153,30 @@ async function openQuotation(quotationId) {
             nonItemsTableBody.appendChild(row);
         });
 
-        // Combine items and non_items for specifications table
+        // Combine items and non_items for specifications
         const allItemsForSpecs = [
             ...(quotation.items || []).map(item => ({ ...item, type: 'item' })),
             ...(quotation.non_items || []).map(item => ({ ...item, type: 'non_item' }))
         ];
 
         allItemsForSpecs.forEach((item, index) => {
+            // Create specification card
+            if (specificationsContainer) {
+                const card = document.createElement('div');
+                card.className = 'spec-card';
+                card.innerHTML = `
+                    <div class="item-number">${index + 1}</div>
+                    <div class="spec-field description">
+                        <input type="text" value="${item.description || ''}" readonly style="background: #f9fafb; cursor: not-allowed;">
+                    </div>
+                    <div class="spec-field specification">
+                        <input type="text" placeholder="Enter specifications" value="${item.specification || ''}" required>
+                    </div>
+                `;
+                specificationsContainer.appendChild(card);
+            }
+            
+            // Also create table row
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${index + 1}</td>
