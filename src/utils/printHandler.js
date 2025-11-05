@@ -40,7 +40,11 @@ function handlePrintEvent(mainWindow) {
                 printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
                 <html>
                 <head>
+                <meta charset="UTF-8">
                 <style>
+                * {
+                    font-family: Arial, Helvetica, sans-serif !important;
+                }
                 ${cssContent}
             </style>
             </head>
@@ -49,6 +53,9 @@ function handlePrintEvent(mainWindow) {
             </body>
             </html>
         `)}`);
+
+            // Wait for content to fully load before printing
+            await printWindow.webContents.executeJavaScript('document.fonts.ready');
 
             if (mode === "print") {
                 printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
@@ -67,9 +74,11 @@ function handlePrintEvent(mainWindow) {
                 if (filePath) {
                     try {
                         const data = await printWindow.webContents.printToPDF({
-                            printBackground: true, pageSize: 'A4',
+                            printBackground: true, 
+                            pageSize: 'A4',
                             marginsType: 0,
                             landscape: false,
+                            preferCSSPageSize: true,
                         });
                         await fs.promises.writeFile(filePath, data);
                         event.sender.send("PDFSaved", { success: true, path: filePath });
@@ -106,7 +115,11 @@ function handlePrintEvent(mainWindow) {
                 printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
             <html>
             <head>
+            <meta charset="UTF-8">
             <style>
+                * {
+                    font-family: Arial, Helvetica, sans-serif !important;
+                }
                 ${cssContent}
             </style>
             </head>
@@ -115,6 +128,9 @@ function handlePrintEvent(mainWindow) {
             </body>
         </html>
         `)}`);
+
+            // Wait for content to fully load before printing
+            await printWindow.webContents.executeJavaScript('document.fonts.ready');
 
             if (mode === "print") {
                 printWindow.webContents.print({ silent: false, printBackground: true }, (success, errorType) => {
@@ -133,7 +149,13 @@ function handlePrintEvent(mainWindow) {
 
                 if (filePath) {
                     try {
-                        const data = await printWindow.webContents.printToPDF({ printBackground: true });
+                        const data = await printWindow.webContents.printToPDF({ 
+                            printBackground: true,
+                            pageSize: 'A4',
+                            marginsType: 0,
+                            landscape: false,
+                            preferCSSPageSize: true,
+                        });
                         await fs.promises.writeFile(filePath, data);
                         event.sender.send("PDFSaved", { success: true, path: filePath });
                     } catch (error) {

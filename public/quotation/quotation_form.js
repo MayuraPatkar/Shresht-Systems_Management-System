@@ -113,7 +113,7 @@ async function generateFilePages(files) {
         const imagePath = await getFilePath(file);
 
         return `
-            <div class="preview-container">
+            <div class="preview-container doc-quotation">
                 <div class="header">
                     <div class="logo">
                         <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
@@ -244,19 +244,21 @@ async function generatePreview() {
     totalAmountTax = (totalPrice + roundOff).toFixed(2);
 
     const totalsHTML = `
-        <div class="totals-section-sub1">
-            ${hasTax ? `
-            <p><strong>Taxable Value: </strong></p>
-            <p><strong>Total CGST: </strong></p>
-            <p><strong>Total SGST: </strong></p>` : ""}
-            <p><strong>Grand Total: </strong></p>
-        </div>
-        <div class="totals-section-sub2">
-            ${hasTax ? `
-            <h3>₹ ${formatIndian(totalTaxableValue, 2)}</h3>
-            <h3>₹ ${formatIndian(totalCGST, 2)}</h3>
-            <h3>₹ ${formatIndian(totalSGST, 2)}</h3>` : ""}
-            <h3>₹ ${formatIndian(totalPrice, 2)}</h3>
+        <div style="display: flex; width: 100%;">
+            <div class="totals-section-sub1" style="width: 50%;">
+                ${hasTax ? `
+                <p>Taxable Value:</p>
+                <p>Total CGST:</p>
+                <p>Total SGST:</p>` : ""}
+                <p>Grand Total:</p>
+            </div>
+            <div class="totals-section-sub2" style="width: 50%;">
+                ${hasTax ? `
+                <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+                <p>₹ ${formatIndian(totalCGST, 2)}</p>
+                <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
+                <p>₹ ${formatIndian(totalPrice, 2)}</p>
+            </div>
         </div>
     `;
 
@@ -301,7 +303,7 @@ async function generatePreview() {
     const itemsPageHTML = itemPages.map((pageHTML, index) => {
         const isLastItemsPage = index === itemPages.length - 1;
         return `
-        <div class="preview-container">
+        <div class="preview-container doc-quotation">
             <div class="header">
                 <div class="logo">
                     <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
@@ -392,7 +394,7 @@ async function generatePreview() {
     // const files = document.getElementById('files');
     if (sessionStorage.getItem('currentTab-status') != 'update') {
         document.getElementById("preview-content").innerHTML = `
-    <div class="preview-container">
+    <div class="preview-container doc-quotation">
         <div class="header">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
@@ -407,7 +409,7 @@ async function generatePreview() {
         </div>
 
         <div class="title">Quotation-${quotationId}</div>
-        <div class="info-section" >
+        <div class="quotation-letter-content" >
             <p><strong>To:</strong></p>
               ${buyerName}<br>
               ${buyerAddress}<br>
@@ -446,7 +448,7 @@ async function generatePreview() {
 
     ${summaryPageHTML}
 
-    <div class="preview-container">
+    <div class="preview-container doc-quotation">
         <div class="header">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
@@ -510,7 +512,7 @@ async function generatePreview() {
             const itemsPageHTML = itemPages.map((pageHTML, index) => {
         const isLastItemsPage = index === itemPages.length - 1;
         return `
-        <div class="preview-container">
+        <div class="preview-container doc-quotation">
             <div class="header">
                 <div class="logo">
                     <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
@@ -591,7 +593,7 @@ async function generatePreview() {
     }).join('');
 
         document.getElementById("preview-content").innerHTML = `
-    <div class="preview-container">
+    <div class="preview-container doc-quotation">
         <div class="header">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
@@ -606,7 +608,7 @@ async function generatePreview() {
         </div>
 
         <div class="title">Quotation-${quotationId}</div>
-        <div class="info-section" >
+        <div class="quotation-letter-content" >
             <p><strong>To:</strong></p>
               ${buyerName}<br>
               ${buyerAddress}<br>
@@ -642,7 +644,7 @@ async function generatePreview() {
 
     ${summaryPageHTML}
 
-    <div class="preview-container">
+    <div class="preview-container doc-quotation">
         <div class="header">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
@@ -762,10 +764,10 @@ function collectFormData() {
         totalAmountTax: totalAmountTax,
 
 
-        subject: document.querySelector(".info-section p[contenteditable]").innerText.replace("Subject:", "").trim(),
-        letter_1: document.querySelectorAll(".info-section p[contenteditable]")[1].innerText.trim(),
-        letter_2: Array.from(document.querySelectorAll(".info-section ul[contenteditable] li")).map(li => li.innerText.trim()),
-        letter_3: document.querySelectorAll(".info-section p[contenteditable]")[2].innerText.trim(),
+        subject: document.querySelector(".quotation-letter-content p[contenteditable]").innerText.replace("Subject:", "").trim(),
+        letter_1: document.querySelectorAll(".quotation-letter-content p[contenteditable]")[1].innerText.trim(),
+        letter_2: Array.from(document.querySelectorAll(".quotation-letter-content ul[contenteditable] li")).map(li => li.innerText.trim()),
+        letter_3: document.querySelectorAll(".quotation-letter-content p[contenteditable]")[2].innerText.trim(),
         notes: Array.from(document.querySelector(".notes-section ul").querySelectorAll("li")).map(li => li.innerText.trim()),
         termsAndConditions: document.querySelector(".terms-section").innerHTML.trim(),
         headline: document.querySelector(".headline-section p[contenteditable]")?.innerText.trim() || ''
@@ -843,11 +845,11 @@ async function loadQuotationForEditing(id) {
         // Inject the saved editable content into the newly generated preview
         const previewContent = document.getElementById('preview-content');
         previewContent.querySelector(".headline-section p[contenteditable]").innerHTML = `<u>${quotation.headline || ''}</u>`;
-        previewContent.querySelector(".info-section p[contenteditable]").innerHTML = `<strong>Subject:</strong> ${quotation.subject || ''}`;
-        previewContent.querySelectorAll(".info-section p[contenteditable]")[1].innerText = quotation.letter_1 || '';
-        const letter2List = previewContent.querySelector(".info-section ul[contenteditable]");
+        previewContent.querySelector(".quotation-letter-content p[contenteditable]").innerHTML = `<strong>Subject:</strong> ${quotation.subject || ''}`;
+        previewContent.querySelectorAll(".quotation-letter-content p[contenteditable]")[1].innerText = quotation.letter_1 || '';
+        const letter2List = previewContent.querySelector(".quotation-letter-content ul[contenteditable]");
         letter2List.innerHTML = (quotation.letter_2 || []).map(li => `<li>${li}</li>`).join('');
-        previewContent.querySelectorAll(".info-section p[contenteditable]")[2].innerText = quotation.letter_3 || '';
+        previewContent.querySelectorAll(".quotation-letter-content p[contenteditable]")[2].innerText = quotation.letter_3 || '';
         previewContent.querySelector(".notes-section ul").innerHTML = (quotation.notes || []).map(li => `<li>${li}</li>`).join('');
         previewContent.querySelector(".terms-section").innerHTML = quotation.termsAndConditions || '';
 
