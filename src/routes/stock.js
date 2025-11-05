@@ -197,6 +197,9 @@ router.get("/get-stock-item", async (req, res) => {
             itemName: stockItem.item_name,
             HSN_SAC: stockItem.HSN_SAC,
             specifications: stockItem.specifications,
+            company: stockItem.company,
+            type: stockItem.type,
+            category: stockItem.category,
             unitPrice: stockItem.unit_price,
             GST: stockItem.GST
         });
