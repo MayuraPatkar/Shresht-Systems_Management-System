@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadRecentPurchaseOrders();
     document.getElementById('new-purchase').addEventListener('click', showNewPurchaseForm);
     document.getElementById('home-btn')?.addEventListener('click', () => {
-        window.location = '/purchaseOrder';
+        window.location = '/purchaseorder';
     });
     document.getElementById('search-input').addEventListener('keydown', function (event) {
         if (event.key === "Enter") {

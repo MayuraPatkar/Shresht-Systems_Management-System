@@ -129,3 +129,69 @@ main {
     padding-bottom: 0.5rem;
 }
 
+/* Specification Step Layout */
+.spec-header {
+    display: grid;
+    grid-template-columns: 40px 1fr 2fr;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    color: #4b5563;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.spec-header .header-number {
+    text-align: center;
+}
+
+.spec-card {
+    display: grid;
+    grid-template-columns: 40px 1fr 2fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    margin-bottom: 0.75rem;
+    background-color: #fff;
+}
+
+.spec-card .item-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+
+.spec-card .spec-field input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    transition: border-color 0.2s;
+}
+
+.spec-card .spec-field input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.spec-card .spec-field input[readonly] {
+    background-color: #f9fafb;
+    cursor: not-allowed;
+    border-color: #e5e7eb;
+}
+

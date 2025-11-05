@@ -12,6 +12,7 @@ const purchaseSchema = new mongoose.Schema({
     items: [
         {
             description: { type: String },
+            specification: { type: String },
             HSN_SAC: { type: String },
             company: { type: String },
             type: { type: String },

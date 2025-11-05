@@ -271,8 +271,45 @@
                     </div>
                 </div>
 
-                <!-- Step 3: Preview -->
+                <!-- Step 3: Specifications -->
                 <div class="steps" id="step-3">
+                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <i class="fas fa-clipboard-list text-blue-600 text-2xl"></i>
+                            <h2 class="text-2xl font-semibold text-gray-800">Add Specifications</h2>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Provide detailed specifications for each item.</p>
+                        
+                        <!-- Column Headers -->
+                        <div class="spec-header">
+                            <div class="header-number">#</div>
+                            <div class="header-item">ITEM</div>
+                            <div class="header-spec">SPECIFICATIONS</div>
+                        </div>
+                        
+                        <!-- Specifications Container (Card-based) -->
+                        <div id="specifications-container">
+                            <!-- Specifications will be dynamically populated here as cards -->
+                        </div>
+                        
+                        <!-- Hidden table for backward compatibility -->
+                        <table id="items-specifications-table" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>S. No</th>
+                                    <th>Description</th>
+                                    <th>Specifications</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Specifications will be synced here for data collection -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Step 4: Preview -->
+                <div class="steps" id="step-4">
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                             <i class="fas fa-eye text-purple-600 text-2xl"></i>
@@ -372,6 +409,7 @@
                                 <tr>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Sl. No</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Specification</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
