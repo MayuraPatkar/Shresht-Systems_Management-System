@@ -58,48 +58,77 @@ function getId(){
 // Create service card
 function createServiceDiv(service) {
     const div = document.createElement("div");
-    div.className = "service-card bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-all";
+    div.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
     
     const serviceDate = service.service_date ? new Date(service.service_date).toLocaleDateString() : 'N/A';
     const feeAmount = service.fee_amount ? `₹${parseFloat(service.fee_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : 'N/A';
     
     div.innerHTML = `
-        <div class="flex items-start justify-between">
-            <div class="flex items-center gap-4 flex-1">
-                <div class="bg-blue-100 rounded-full p-3">
-                    <i class="fas fa-wrench text-blue-600 text-xl"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                        <h3 class="text-lg font-semibold text-gray-800">${service.project_name || 'Unnamed Project'}</h3>
-                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">#${service.invoice_id}${service.service_stage + 1}</span>
-                    </div>
-                    <div class="space-y-1">
-                        <p class="text-sm text-gray-600">
-                            <i class="fas fa-user text-gray-400 mr-1"></i>
-                            ${service.customer_name || 'N/A'}
-                        </p>
-                        <p class="text-sm text-gray-600">
-                            <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i>
-                            ${service.customer_address || 'N/A'}
-                        </p>
-                        <div class="flex gap-4 mt-2">
-                            <p class="text-sm text-gray-600">
-                                <i class="fas fa-calendar text-gray-400 mr-1"></i>
-                                ${serviceDate}
-                            </p>
-                            <p class="text-sm text-gray-600">
-                                <i class="fas fa-rupee-sign text-gray-400 mr-1"></i>
-                                ${feeAmount}
-                            </p>
+        <!-- Left Border Accent -->
+        <div class="flex">
+            <div class="w-1.5 bg-gradient-to-b from-blue-500 to-cyan-600"></div>
+            
+            <div class="flex-1 p-6">
+                <!-- Main Content Row -->
+                <div class="flex items-center justify-between gap-6">
+                    
+                    <!-- Left Section: Icon + Project Info -->
+                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
+                            <i class="fas fa-wrench text-2xl text-white"></i>
                         </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="text-lg font-bold text-gray-900 truncate">${service.project_name || 'Unnamed Project'}</h3>
+                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-700">
+                                    #${service.invoice_id}${service.service_stage + 1}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-600">${service.customer_name || 'N/A'}</p>
+                        </div>
+                    </div>
+
+                    <!-- Middle Section: Address -->
+                    <div class="flex items-center gap-3 flex-1 min-w-0 px-6 border-l border-r border-gray-200">
+                        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-map-marker-alt text-blue-600"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Address</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate">${service.customer_address || 'N/A'}</p>
+                        </div>
+                    </div>
+
+                    <!-- Date Section -->
+                    <div class="flex items-center gap-3 px-6 border-r border-gray-200">
+                        <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-calendar text-orange-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Date</p>
+                            <p class="text-sm font-bold text-gray-900">${serviceDate}</p>
+                        </div>
+                    </div>
+
+                    <!-- Fee Section -->
+                    <div class="flex items-center gap-3 px-6 border-r border-gray-200">
+                        <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-rupee-sign text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Fee</p>
+                            <p class="text-lg font-bold text-green-600">${feeAmount}</p>
+                        </div>
+                    </div>
+
+                    <!-- Actions Section -->
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <button class="open-service px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400 font-medium" data-id="${service.invoice_id}" title="Open Service">
+                            <i class="fas fa-folder-open mr-2"></i>Open
+                        </button>
                     </div>
                 </div>
             </div>
-            <button class="open-service bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors" data-id="${service.invoice_id}">
-                <i class="fas fa-folder-open"></i>
-                Open
-            </button>
         </div>
     `;
     return div;
@@ -123,10 +152,12 @@ async function loadService() {
 
         if (!services.projects || services.projects.length === 0) {
             serviceListDiv.innerHTML = `
-                <div class="col-span-full flex flex-col items-center justify-center py-12">
-                    <i class="fas fa-wrench text-gray-300 text-6xl mb-4"></i>
-                    <h2 class="text-xl font-semibold text-gray-600 mb-2">No services available</h2>
-                    <p class="text-gray-500">Services will appear here once created</p>
+                <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-wrench text-4xl text-blue-500"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">No Services Found</h2>
+                    <p class="text-gray-600">Services will appear here once created</p>
                 </div>
             `;
             return;
@@ -166,10 +197,12 @@ async function handleSearch() {
 
         if (services.length === 0) {
             serviceListDiv.innerHTML = `
-                <div class="col-span-full flex flex-col items-center justify-center py-12">
-                    <i class="fas fa-search text-gray-300 text-6xl mb-4"></i>
-                    <h2 class="text-xl font-semibold text-gray-600 mb-2">No results found</h2>
-                    <p class="text-gray-500">No services found for "${query}"</p>
+                <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
+                        <i class="fas fa-search text-4xl text-yellow-500"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">No Results Found</h2>
+                    <p class="text-gray-600">No services found for "${query}"</p>
                 </div>
             `;
             return;

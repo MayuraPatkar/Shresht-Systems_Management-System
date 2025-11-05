@@ -35,7 +35,18 @@ async function loadRecentPurchaseOrders() {
 function renderPurchaseOrders(purchaseOrders) {
     purchaseOrderListDiv.innerHTML = "";
     if (!purchaseOrders || purchaseOrders.length === 0) {
-        purchaseOrderListDiv.innerHTML = "<div class='text-center py-12'><i class='fas fa-inbox text-gray-400 text-6xl mb-4'></i><h1 class='text-gray-500 text-2xl'>No Purchase Orders Found</h1></div>";
+        purchaseOrderListDiv.innerHTML = `
+            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
+                    <i class="fas fa-shopping-cart text-4xl text-purple-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">No Purchase Orders Found</h2>
+                <p class="text-gray-600 mb-6">Start creating purchase orders for your suppliers</p>
+                <button onclick="document.getElementById('new-purchase').click()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-semibold">
+                    <i class="fas fa-plus mr-2"></i>Create First Purchase Order
+                </button>
+            </div>
+        `;
         return;
     }
     purchaseOrders.forEach(purchaseOrder => {
@@ -47,70 +58,111 @@ function renderPurchaseOrders(purchaseOrders) {
 // Create a purchase order div element
 function createPurchaseOrderDiv(purchaseOrder) {
     const purchaseOrderDiv = document.createElement("div");
-    purchaseOrderDiv.className = "bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow fade-in";
+    purchaseOrderDiv.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-400 overflow-hidden fade-in";
+    
     purchaseOrderDiv.innerHTML = `
-        <div class="flex items-start justify-between">
-            <div class="flex items-start gap-4 flex-1">
-                <div class="bg-purple-100 p-3 rounded-lg">
-                    <i class="fas fa-shopping-cart text-purple-600 text-2xl"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-start justify-between mb-3">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-800 mb-1">${purchaseOrder.supplier_name}</h3>
-                            <p class="text-sm text-gray-500 font-mono">${purchaseOrder.purchase_order_id}</p>
+        <!-- Left Border Accent -->
+        <div class="flex">
+            <div class="w-1.5 bg-gradient-to-b from-purple-500 to-indigo-600"></div>
+            
+            <div class="flex-1 p-6">
+                <!-- Main Content Row -->
+                <div class="flex items-center justify-between gap-6">
+                    
+                    <!-- Left Section: Icon + Supplier Info -->
+                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md flex-shrink-0">
+                            <i class="fas fa-shopping-cart text-2xl text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-lg font-bold text-gray-900 mb-1 truncate">${purchaseOrder.supplier_name}</h3>
+                            <p class="text-sm text-gray-600 cursor-pointer hover:text-purple-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
+                                <i class="fas fa-hashtag text-xs"></i>
+                                <span>${purchaseOrder.purchase_order_id}</span>
+                                <i class="fas fa-copy text-xs ml-1"></i>
+                            </p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div>
-                            <p class="text-xs font-medium text-gray-500 mb-1">Purchase Date</p>
-                            <p class="text-sm font-semibold text-gray-700">${formatDate(purchaseOrder.purchase_date)}</p>
+
+                    <!-- Middle Section: Address -->
+                    <div class="flex items-center gap-3 flex-1 min-w-0 px-6 border-l border-r border-gray-200">
+                        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-map-marker-alt text-blue-600"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Address</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate">${purchaseOrder.supplier_address}</p>
+                        </div>
+                    </div>
+
+                    <!-- Amount Section -->
+                    <div class="flex items-center gap-3 px-6 border-r border-gray-200">
+                        <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-rupee-sign text-green-600"></i>
                         </div>
                         <div>
-                            <p class="text-xs font-medium text-gray-500 mb-1">Address</p>
-                            <p class="text-sm text-gray-700">${purchaseOrder.supplier_address}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-medium text-gray-500 mb-1">Total Amount</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Amount</p>
                             <p class="text-lg font-bold text-green-600">₹ ${formatIndian(purchaseOrder.total_amount, 2)}</p>
                         </div>
                     </div>
+
+                    <!-- Actions Section -->
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <select class="ml-4 px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer actions">
-                <option value="" disabled selected>Actions</option>
-                <option value="view">👁️ View</option>
-                <option value="update">✏️ Update</option>
-                <option value="delete">🗑️ Delete</option>
-            </select>
         </div>
     `;
 
-    // Attach event handler for actions
-    purchaseOrderDiv.querySelector('.actions').addEventListener('change', function () {
-        handleAction(this, purchaseOrder.purchase_order_id);
+    const copyElement = purchaseOrderDiv.querySelector('.copy-text');
+    const viewBtn = purchaseOrderDiv.querySelector('.view-btn');
+    const editBtn = purchaseOrderDiv.querySelector('.edit-btn');
+    const deleteBtn = purchaseOrderDiv.querySelector('.delete-btn');
+
+    // Copy ID functionality
+    copyElement.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(purchaseOrder.purchase_order_id);
+            const toast = document.createElement('div');
+            toast.textContent = 'ID Copied to Clipboard!';
+            toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        } catch (err) {
+            console.error('Copy failed', err);
+        }
     });
 
-    return purchaseOrderDiv;
-}
+    // Action button handlers
+    viewBtn.addEventListener('click', () => {
+        viewPurchaseOrder(purchaseOrder.purchase_order_id);
+    });
 
-function handleAction(select, purchaseOrderId) {
-    const action = select.value;
-    if (action === "view") {
-        viewPurchaseOrder(purchaseOrderId);
-    } else if (action === "update") {
-        openPurchaseOrder(purchaseOrderId);
-    } else if (action === "delete") {
+    editBtn.addEventListener('click', () => {
+        openPurchaseOrder(purchaseOrder.purchase_order_id);
+    });
+
+    deleteBtn.addEventListener('click', () => {
         window.electronAPI.showAlert2('Are you sure you want to delete this purchase order?');
         if (window.electronAPI) {
             window.electronAPI.receiveAlertResponse((response) => {
                 if (response === "Yes") {
-                    deletePurchaseOrder(purchaseOrderId);
+                    deletePurchaseOrder(purchaseOrder.purchase_order_id);
                 }
             });
         }
-    }
-    select.selectedIndex = 0; // Reset to default
+    });
+
+    return purchaseOrderDiv;
 }
 
 // Delete a purchase order

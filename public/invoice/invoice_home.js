@@ -88,7 +88,18 @@ async function loadRecentInvoices() {
 function renderInvoices(invoices) {
     invoicesListDiv.innerHTML = "";
     if (!invoices || invoices.length === 0) {
-        invoicesListDiv.innerHTML = "<h1>No Invoices Found</h1>";
+        invoicesListDiv.innerHTML = `
+            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-file-invoice-dollar text-4xl text-blue-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">No Invoices Found</h2>
+                <p class="text-gray-600 mb-6">Start creating invoices for your clients</p>
+                <button onclick="document.getElementById('new-invoice').click()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg font-semibold">
+                    <i class="fas fa-plus mr-2"></i>Create First Invoice
+                </button>
+            </div>
+        `;
         return;
     }
     invoices.forEach(invoice => {
@@ -101,125 +112,188 @@ function renderInvoices(invoices) {
 function createInvoiceCard(invoice) {
     const userRole = sessionStorage.getItem('userRole');
     const invoiceCard = document.createElement("div");
-    invoiceCard.className = "bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-200 fade-in";
+    invoiceCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
     
     const isPaid = invoice.payment_status === 'Paid';
     const dueAmount = invoice.total_amount_duplicate - invoice.total_paid_amount;
     
     invoiceCard.innerHTML = `
-        <div class="flex items-start justify-between mb-4">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full ${isPaid ? 'bg-green-100' : 'bg-orange-100'} flex items-center justify-center">
-                    <i class="fas fa-${isPaid ? 'check-circle' : 'clock'} text-2xl ${isPaid ? 'text-green-600' : 'text-orange-600'}"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-1">${invoice.project_name}</h3>
-                    <p class="text-sm text-gray-500 cursor-pointer hover:text-blue-600 copy-text transition-colors" title="Click to copy">
-                        <i class="fas fa-copy mr-1"></i>${invoice.invoice_id}
-                    </p>
-                </div>
-            </div>
-            <span class="px-3 py-1 rounded-full text-xs font-semibold ${isPaid ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">
-                ${isPaid ? 'Paid' : 'Pending'}
-            </span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div class="space-y-2">
-                <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Customer</p>
-                    <p class="text-sm font-medium text-gray-900">${invoice.customer_name}</p>
-                    <p class="text-xs text-gray-600">${invoice.customer_address}</p>
-                </div>
-            </div>
+        <!-- Left Border Accent -->
+        <div class="flex">
+            <div class="w-1.5 bg-gradient-to-b ${isPaid ? 'from-green-500 to-emerald-600' : 'from-orange-500 to-amber-600'}"></div>
             
-            ${userRole === 'admin' ? `
-            <div class="space-y-2">
-                <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Amount</p>
-                    <p class="text-lg font-bold text-blue-600">₹ ${formatIndian(invoice.total_amount_duplicate, 2)}</p>
-                </div>
-                ${dueAmount > 0 ? `
-                <div>
-                    <p class="text-xs text-red-500 uppercase tracking-wide mb-1">Due Amount</p>
-                    <p class="text-lg font-bold text-red-600">₹ ${formatIndian(dueAmount, 2)}</p>
-                </div>
-                ` : ''}
-            </div>
-            ` : ''}
-        </div>
+            <div class="flex-1 p-6">
+                <!-- Main Content Row -->
+                <div class="flex flex-wrap items-center gap-4">
+                    
+                    <!-- Left Section: Icon + Project Info -->
+                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
+                            <i class="fas fa-file-invoice-dollar text-2xl text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="text-lg font-bold text-gray-900 truncate">${invoice.project_name}</h3>
+                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold ${isPaid ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">
+                                    ${isPaid ? 'PAID' : 'PENDING'}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
+                                <i class="fas fa-hashtag text-xs"></i>
+                                <span>${invoice.invoice_id}</span>
+                                <i class="fas fa-copy text-xs ml-1"></i>
+                            </p>
+                        </div>
+                    </div>
 
-        <div class="pt-4 border-t border-gray-200">
-            <select class="invoice-actions-select w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-blue-400 transition-colors" data-invoice-id="${invoice.invoice_id}">
-                <option value="" disabled selected><i class="fas fa-ellipsis-v"></i> Actions</option>
-                ${userRole === 'admin' ? `
-                    <option data-id="${invoice.invoice_id}" value="view">👁️ View</option>
-                    <option class="edit-invoice" data-id="${invoice.invoice_id}" value="update">✏️ Update</option>
-                    <option data-id="${invoice.invoice_id}" value="view-original">📄 View Original</option>
-                    <option data-id="${invoice.invoice_id}" value="update-original">📝 Update Original</option>
-                    <option data-id="${invoice.invoice_id}" value="payment">💳 Payment</option>
-                    <option class="delete-invoice" data-id="${invoice.invoice_id}" value="delete">🗑️ Delete</option>
-                ` : ""}
-                ${userRole === 'manager' ? `
-                    <option data-id="${invoice.invoice_id}" value="view">👁️ View</option>
-                    <option class="edit-invoice" data-id="${invoice.invoice_id}" value="update">✏️ Update</option>
-                    <option data-id="${invoice.invoice_id}" value="payment">💳 Payment</option>
-                    <option class="delete-invoice" data-id="${invoice.invoice_id}" value="delete">🗑️ Delete</option>
-                ` : ""}
-            </select>
+                    <!-- Middle Section: Customer Info -->
+                    <div class="flex items-center gap-3 flex-1 min-w-[250px] px-6 border-l border-r border-gray-200">
+                        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user text-blue-600"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Customer</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate">${invoice.customer_name}</p>
+                            <p class="text-xs text-gray-600 truncate">${invoice.customer_address}</p>
+                        </div>
+                    </div>
+
+                    <!-- Amount Section -->
+                    ${userRole === 'admin' ? `
+                    <div class="flex items-center gap-4 px-6 border-r border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg ${isPaid ? 'bg-green-50' : 'bg-blue-50'} flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-rupee-sign ${isPaid ? 'text-green-600' : 'text-blue-600'}"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Total</p>
+                                <p class="text-lg font-bold ${isPaid ? 'text-green-600' : 'text-blue-600'}">₹ ${formatIndian(invoice.total_amount_duplicate, 2)}</p>
+                            </div>
+                        </div>
+                        ${dueAmount > 0 ? `
+                        <div class="flex items-center gap-3 pl-4 border-l border-gray-300">
+                            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-exclamation-circle text-red-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Due</p>
+                                <p class="text-lg font-bold text-red-600">₹ ${formatIndian(dueAmount, 2)}</p>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ` : `
+                    <div class="px-6 border-r border-gray-200"></div>
+                    `}
+
+                    <!-- Actions Section - Will wrap to new line if needed -->
+                    <div class="flex items-center gap-2 flex-wrap min-w-fit">
+                        ${userRole === 'admin' ? `
+                            <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn view-original-btn px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all border border-indigo-200 hover:border-indigo-400" title="View Original">
+                                <i class="fas fa-file-alt"></i>
+                            </button>
+                            <button class="action-btn edit-original-btn px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all border border-teal-200 hover:border-teal-400" title="Edit Original">
+                                <i class="fas fa-file-signature"></i>
+                            </button>
+                            <button class="action-btn payment-btn px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" title="Payment">
+                                <i class="fas fa-credit-card"></i>
+                            </button>
+                            <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        ` : userRole === 'manager' ? `
+                            <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn payment-btn px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" title="Payment">
+                                <i class="fas fa-credit-card"></i>
+                            </button>
+                            <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
         </div>
     `;
     
     const copyElement = invoiceCard.querySelector('.copy-text');
+    const viewBtn = invoiceCard.querySelector('.view-btn');
+    const editBtn = invoiceCard.querySelector('.edit-btn');
+    const viewOriginalBtn = invoiceCard.querySelector('.view-original-btn');
+    const editOriginalBtn = invoiceCard.querySelector('.edit-original-btn');
+    const paymentBtn = invoiceCard.querySelector('.payment-btn');
+    const deleteBtn = invoiceCard.querySelector('.delete-btn');
 
+    // Copy ID functionality
     copyElement.addEventListener('click', async () => {
         try {
             await navigator.clipboard.writeText(invoice.invoice_id);
-            showToast('Copied!');
+            showToast('ID Copied to Clipboard!');
         } catch (err) {
             console.error('Copy failed', err);
         }
     });
 
-    // Add event listener for actions dropdown
-    const selectElement = invoiceCard.querySelector('.invoice-actions-select');
-    selectElement.addEventListener('change', function() {
-        handleInvoiceAction(this, this.dataset.invoiceId);
-    });
+    // Action button handlers
+    if (viewBtn) {
+        viewBtn.addEventListener('click', () => {
+            sessionStorage.setItem('view-invoice', 'duplicate');
+            viewInvoice(invoice.invoice_id, userRole);
+        });
+    }
+
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
+            sessionStorage.setItem('update-invoice', 'duplicate');
+            openInvoice(invoice.invoice_id);
+        });
+    }
+
+    if (viewOriginalBtn) {
+        viewOriginalBtn.addEventListener('click', () => {
+            sessionStorage.setItem('view-invoice', 'original');
+            viewInvoice(invoice.invoice_id, userRole);
+        });
+    }
+
+    if (editOriginalBtn) {
+        editOriginalBtn.addEventListener('click', () => {
+            sessionStorage.setItem('update-invoice', 'original');
+            openInvoice(invoice.invoice_id);
+        });
+    }
+
+    if (paymentBtn) {
+        paymentBtn.addEventListener('click', () => {
+            payment(invoice.invoice_id);
+        });
+    }
+
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+            window.electronAPI.showAlert2('Are you sure you want to delete this invoice?');
+            if (window.electronAPI) {
+                window.electronAPI.receiveAlertResponse((response) => {
+                    if (response === "Yes") {
+                        deleteInvoice(invoice.invoice_id);
+                    }
+                });
+            }
+        });
+    }
 
     return invoiceCard;
-}
-
-// Handle actions from the actions dropdown
-function handleInvoiceAction(select, invoiceId) {
-    const userRole = sessionStorage.getItem('userRole');
-    const action = select.value;
-    if (action === "view") {
-        sessionStorage.setItem('view-invoice', 'duplicate');
-        viewInvoice(invoiceId, userRole);
-    } else if (action === "update") {
-        sessionStorage.setItem('update-invoice', 'duplicate');
-        openInvoice(invoiceId);
-    } else if (action === "view-original") {
-        sessionStorage.setItem('view-invoice', 'original');
-        viewInvoice(invoiceId, userRole);
-    } else if (action === "update-original") {
-        sessionStorage.setItem('update-invoice', 'original');
-        openInvoice(invoiceId);
-    } else if (action === 'payment') {
-        payment(invoiceId);
-    }
-    else if (action === "delete") {
-        window.electronAPI.showAlert2("Are you sure you want to delete this invoice?");
-        if (window.electronAPI) {
-            window.electronAPI.receiveAlertResponse((response) => {
-                if (response === "Yes") {
-                    deleteInvoice(invoiceId);
-                }
-            });
-        }
-    }
-    select.selectedIndex = 0; // Reset to default
 }
 
 // Delete an invoice
@@ -378,6 +452,3 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
         window.electronAPI.showAlert1("Failed to connect to server.");
     }
 });
-
-// Expose the action handler globally for the select element
-window.handleInvoiceAction = handleInvoiceAction;
