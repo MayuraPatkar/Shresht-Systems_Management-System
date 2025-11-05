@@ -58,10 +58,16 @@ main {
 
 .steps {
     display: none;
+    overflow: visible;
 }
 
 .steps.active {
     display: block;
+    overflow: visible;
+}
+
+.steps .bg-white {
+    overflow: visible;
 }
 
 #view-items-table td {
@@ -83,6 +89,52 @@ main {
 }
 
 /* Purchase Order Specific: 9-field layout adjustments */
+
+/* Fix z-index for suggestions in table */
+#items-table td {
+    position: relative;
+}
+
+#items-table td > div {
+    position: relative;
+}
+
+#items-table .suggestions {
+    position: absolute;
+    z-index: 9999;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    min-width: 250px;
+    list-style: none;
+    padding: 0;
+}
+
+#items-table .suggestions li {
+    padding: 0.625rem 0.875rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+#items-table .suggestions li:last-child {
+    border-bottom: none;
+}
+
+#items-table .suggestions li:hover {
+    background: #f3f4f6;
+}
+
+#items-table .suggestions li.selected {
+    background: #eff6ff;
+    color: #3b82f6;
+}
 
 /* Adjust items header for 9 fields */
 #new .items-header {
@@ -125,8 +177,13 @@ main {
 
 /* Prevent horizontal overflow */
 #items-container {
-    overflow-x: auto;
+    overflow-x: visible;
+    overflow-y: visible;
     padding-bottom: 0.5rem;
+}
+
+#items-container .item-card {
+    overflow: visible;
 }
 
 /* Specification Step Layout */

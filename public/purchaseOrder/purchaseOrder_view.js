@@ -6,6 +6,7 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
     let totalSGST = 0;
     let totalTax = 0;
     let totalPrice = 0;
+    let sno = 0;
 
     // Detect if any item has tax
     let hasTax = (purchaseOrder.items || []).some(item => Number(item.rate) > 0);
@@ -15,7 +16,6 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
         const hsnSac = item.HSN_SAC || item.hsn_sac || "-";
         const qty = parseFloat(item.quantity || "0");
         const unitPrice = parseFloat(item.unit_price || "0");
-        let sno = 0;
         const rate = parseFloat(item.rate || "0");
 
         const taxableValue = qty * unitPrice;
@@ -63,7 +63,7 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
     });
 
     let totalsHTML = `
-    <div class="totals-section-sub1">
+        <div class="totals-section-sub1">
             ${hasTax ? `
             <p><strong>Taxable Value: </strong></p>
             <p><strong>Total Tax: </strong></p>` : ""}
@@ -72,12 +72,46 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
         <div class="totals-section-sub2">
         ${hasTax ? `
         <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
-        <p>₹ ${formatIndian(totalTax, 2)}</p>` : "-"}
+        <p>₹ ${formatIndian(totalTax, 2)}</p>` : ""}
         <p>₹ ${formatIndian(totalPrice, 2)}</p>
         </div>
     `;
 
-    document.getElementById("view-preview-content").innerHTML = `
+    // Split items into rows for pagination
+    const itemRows = itemsHTML.split('</tr>').filter(row => row.trim().length > 0).map(row => row + '</tr>');
+    
+    const ITEMS_PER_PAGE = 15;
+    const SUMMARY_SECTION_ROW_COUNT = 8;
+    
+    const itemPages = [];
+    let currentPageItemsHTML = '';
+    let currentPageRowCount = 0;
+
+    itemRows.forEach((row, index) => {
+        const isLastItem = index === itemRows.length - 1;
+        const itemSpace = 1;
+        const requiredSpaceForLastItem = itemSpace + SUMMARY_SECTION_ROW_COUNT;
+
+        if (currentPageRowCount > 0 &&
+            ((!isLastItem && currentPageRowCount + itemSpace > ITEMS_PER_PAGE) ||
+                (isLastItem && currentPageRowCount + requiredSpaceForLastItem > ITEMS_PER_PAGE))) {
+            itemPages.push(currentPageItemsHTML);
+            currentPageItemsHTML = '';
+            currentPageRowCount = 0;
+        }
+
+        currentPageItemsHTML += row;
+        currentPageRowCount += itemSpace;
+    });
+
+    if (currentPageItemsHTML !== '') {
+        itemPages.push(currentPageItemsHTML);
+    }
+
+    // Generate pages
+    const pagesHTML = itemPages.map((pageHTML, index) => {
+        const isLastPage = index === itemPages.length - 1;
+        return `
     <div class="preview-container doc-standard doc-purchase-order">
         <div class="first-section">
             <div class="logo">
@@ -96,24 +130,27 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
             <p>Purchase Order-${purchaseOrder.purchase_order_id || purchaseOrder.Id || ""}</p>
         </div>
 
+        ${index === 0 ? `
         <div class="third-section">
             <div class="buyer-details">
-                <p><strong>To:</strong></p>
+                <p><strong>Purchase From:</strong></p>
                 <p>${purchaseOrder.supplier_name || ""}</p>
                 <p>${purchaseOrder.supplier_address || ""}</p>
                 <p>Ph: ${purchaseOrder.supplier_phone || ""}</p>
                 <p>GSTIN: ${purchaseOrder.supplier_GSTIN || ""}</p>
             </div>
             <div class="info-section">
+                <p><strong>Purchase Invoice ID:</strong> ${purchaseOrder.purchase_invoice_id || ""}</p>
                 <p><strong>Date:</strong> ${formatDate(purchaseOrder.purchase_date) || new Date().toLocaleDateString()}</p>
             </div>
         </div>
+        ` : ''}
 
         <div class="fourth-section">
         <table>
         <thead>
             <tr>
-                <th>S. No.</th>
+                <th>S.No</th>
                 <th>Description</th>
                 <th>HSN/SAC</th>
                 <th>Qty</th>
@@ -125,22 +162,54 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
             </tr>
         </thead>
         <tbody>
-            ${itemsHTML}
+            ${pageHTML}
         </tbody>
         </table>
         </div>
 
+        ${!isLastPage ? `<div class="continuation-text" style="text-align: center; margin: 20px 0; font-style: italic; color: #666;">Continued on next page...</div>` : ''}
+
+        ${isLastPage ? `
         <div class="fifth-section">
             <div class="fifth-section-sub1">
                 <div class="fifth-section-sub2">
-                    <div>
-                        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(purchaseOrder.total_amount)} Only</span></p>
+                    <div class="fifth-section-sub3">
+                        <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(purchaseOrder.total_amount || totalPrice)} Only</span></p>
                     </div>
-                    <div class="bank-details"></div>
+                    <h3>Payment Details</h3>
+                    <div class="bank-details">
+                        <div class="QR-code bank-details-sub1">
+                            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                alt="qr-code" />
+                        </div>
+                        <div class="bank-details-sub2">
+                            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
+                            <p><strong>Bank Name: </strong>Canara Bank</p>
+                            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
+                            <p><strong>Account No: </strong>120002152652</p>
+                            <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="totals-section">
+                    ${totalsHTML}
                 </div>
             </div>
-            <div class="totals-section">
-                ${totalsHTML}
+        </div>
+
+        <div class="sixth-section">
+            <div class="declaration">
+                <p>We declare that this purchase order shows the actual price of the goods described and that all particulars are true and correct.</p>
+            </div>
+        </div>
+
+        <div class="seventh-section">
+            <div class="terms-section">
+                <h4>Terms & Conditions:</h4>
+                <p>1. Goods should be delivered within the stipulated time period.</p>
+                <p>2. Quality of goods should match the specifications mentioned.</p>
+                <p>3. Payment terms as per mutual agreement.</p>
             </div>
         </div>
 
@@ -149,11 +218,16 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
             <div class="eighth-section-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
+        ` : ''}
 
         <div class="ninth-section">
-            <p>This is a computer-generated purchase order</p>
+            <p>This is a computer-generated purchase order.</p>
         </div>
-    </div>`;
+    </div>
+    `;
+    }).join('');
+
+    document.getElementById("view-preview-content").innerHTML = pagesHTML;
 }
 
 // Print and Save as PDF handlers (match HTML IDs)

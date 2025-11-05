@@ -2,6 +2,181 @@ const totalSteps = 4;
 let purchaseOrderId = '';
 let totalAmount = 0;
 
+// Note: selectedIndex, data, fetchData, fetchStockData, showSuggestions, and handleKeyboardNavigation
+// are already defined in globalScript.js
+
+// Override showSuggestions for purchase order to use fillPurchaseOrderItem
+function showSuggestionsPO(input, suggestionsList) {
+    const query = input.value.toLowerCase();
+    suggestionsList.innerHTML = ""; // Clear old suggestions
+    selectedIndex = -1; // Reset index when showing new suggestions
+
+    if (query.length === 0) {
+        suggestionsList.style.display = "none";
+        return;
+    }
+
+    const filtered = data.filter(item => item.toLowerCase().includes(query));
+
+    if (filtered.length === 0) {
+        suggestionsList.style.display = "none";
+        return;
+    }
+
+    suggestionsList.style.display = "block";
+
+    filtered.forEach((item, index) => {
+        let li = document.createElement("li");
+        li.textContent = item;
+        li.onclick = async function () {
+            input.value = item;
+            // Trigger input event to sync description with table
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            const parent = input.closest('.item-card') || input.closest('tr');
+            await fillPurchaseOrderItem(item, parent);
+            suggestionsList.style.display = "none";
+            // Reset selected index
+            selectedIndex = -1;
+        };
+        suggestionsList.appendChild(li);
+    });
+}
+
+// Override handleKeyboardNavigation for purchase order
+async function handleKeyboardNavigationPO(event, input, suggestionsList) {
+    const items = suggestionsList.querySelectorAll("li");
+    if (items.length === 0) return;
+
+    if (event.key === "ArrowDown") {
+        event.preventDefault(); // Prevent cursor movement and scrolling
+        selectedIndex = (selectedIndex + 1) % items.length;
+        input.value = items[selectedIndex].textContent;
+        
+        // Update visual selection
+        items.forEach((item, index) => {
+            item.classList.toggle("selected", index === selectedIndex);
+        });
+    } else if (event.key === "ArrowUp") {
+        event.preventDefault(); // Prevent cursor movement and scrolling
+        selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+        input.value = items[selectedIndex].textContent;
+        
+        // Update visual selection
+        items.forEach((item, index) => {
+            item.classList.toggle("selected", index === selectedIndex);
+        });
+    } else if (event.key === "Enter") {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        if (selectedIndex >= 0 && items[selectedIndex]) {
+            const selectedItem = items[selectedIndex].textContent;
+            input.value = selectedItem;
+            suggestionsList.style.display = "none";
+            
+            // Trigger input event to sync description with table
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Fill other fields from stock data
+            const parent = input.closest('.item-card') || input.closest('tr');
+            await fillPurchaseOrderItem(selectedItem, parent);
+            
+            // Reset selected index
+            selectedIndex = -1;
+        }
+        return;
+    }
+}
+
+// Function to autofill row data for purchase order
+async function fillPurchaseOrderItem(itemName, element) {
+    // Check if element is a card or a table row
+    const isCard = element.classList.contains('item-card');
+    
+    const stockData = await fetchStockData(itemName);
+    if (stockData) {
+        if (isCard) {
+            // Fill card inputs
+            const inputs = element.querySelectorAll('input');
+            inputs[1].value = stockData.HSN_SAC || ""; // HSN/SAC
+            inputs[2].value = stockData.company || ""; // Company
+            inputs[3].value = stockData.type || ""; // Type
+            inputs[4].value = stockData.category || ""; // Category
+            // Leave qty blank (user needs to enter)
+            inputs[6].value = stockData.unitPrice || 0; // Unit Price
+            inputs[7].value = stockData.GST || 0; // Rate
+            
+            // Trigger input events to sync with table
+            inputs.forEach(input => {
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+            
+            // Also update corresponding table row
+            const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
+            const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
+            if (tableRow) {
+                // Get inputs from each cell
+                const cells = tableRow.querySelectorAll('td');
+                const descInput = cells[1]?.querySelector('input');
+                const hsnInput = cells[2]?.querySelector('input');
+                const companyInput = cells[3]?.querySelector('input');
+                const typeInput = cells[4]?.querySelector('input');
+                const categoryInput = cells[5]?.querySelector('input');
+                const qtyInput = cells[6]?.querySelector('input');
+                const priceInput = cells[7]?.querySelector('input');
+                const rateInput = cells[8]?.querySelector('input');
+                
+                if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
+                if (companyInput) companyInput.value = stockData.company || "";
+                if (typeInput) typeInput.value = stockData.type || "";
+                if (categoryInput) categoryInput.value = stockData.category || "";
+                if (priceInput) priceInput.value = stockData.unitPrice || 0;
+                if (rateInput) rateInput.value = stockData.GST || 0;
+                
+                // Store specification in row dataset
+                tableRow.dataset.specification = stockData.specifications || '';
+            }
+        } else {
+            // Fill table row - get inputs from each cell
+            const cells = element.querySelectorAll('td');
+            const descInput = cells[1]?.querySelector('input');
+            const hsnInput = cells[2]?.querySelector('input');
+            const companyInput = cells[3]?.querySelector('input');
+            const typeInput = cells[4]?.querySelector('input');
+            const categoryInput = cells[5]?.querySelector('input');
+            const qtyInput = cells[6]?.querySelector('input');
+            const priceInput = cells[7]?.querySelector('input');
+            const rateInput = cells[8]?.querySelector('input');
+            
+            if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
+            if (companyInput) companyInput.value = stockData.company || "";
+            if (typeInput) typeInput.value = stockData.type || "";
+            if (categoryInput) categoryInput.value = stockData.category || "";
+            if (priceInput) priceInput.value = stockData.unitPrice || 0;
+            if (rateInput) rateInput.value = stockData.GST || 0;
+            
+            // Store specification in row dataset
+            element.dataset.specification = stockData.specifications || '';
+            
+            // Also sync with card if it exists
+            const rowIndex = Array.from(element.parentElement.children).indexOf(element);
+            const card = document.querySelector(`#items-container .item-card:nth-child(${rowIndex + 1})`);
+            if (card) {
+                const cardInputs = card.querySelectorAll('input');
+                if (cardInputs[1]) cardInputs[1].value = stockData.HSN_SAC || "";
+                if (cardInputs[2]) cardInputs[2].value = stockData.company || "";
+                if (cardInputs[3]) cardInputs[3].value = stockData.type || "";
+                if (cardInputs[4]) cardInputs[4].value = stockData.category || "";
+                if (cardInputs[6]) cardInputs[6].value = stockData.unitPrice || 0;
+                if (cardInputs[7]) cardInputs[7].value = stockData.GST || 0;
+            }
+        }
+    }
+}
+
+// Note: Global click handler for closing suggestions is already defined in globalScript.js
+
 document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
     generatePreview();
@@ -42,7 +217,7 @@ async function openPurchaseOrder(purchaseOrderId) {
                 <div class="item-number">${sno}</div>
                 <div class="item-field description">
                     <div style="position: relative;">
-                        <input type="text" value="${item.description}" placeholder="Description" required>
+                        <input type="text" value="${item.description}" placeholder="Description" class="item_name" required>
                         <ul class="suggestions"></ul>
                     </div>
                 </div>
@@ -72,6 +247,20 @@ async function openPurchaseOrder(purchaseOrderId) {
                 </button>
             `;
             itemsContainer.appendChild(card);
+            
+            // Setup autocomplete for loaded items
+            const cardInput = card.querySelector(".item_name");
+            const cardSuggestions = card.querySelector(".suggestions");
+            
+            if (cardInput && cardSuggestions) {
+                cardInput.addEventListener("input", function () {
+                    showSuggestionsPO(cardInput, cardSuggestions);
+                });
+
+                cardInput.addEventListener("keydown", function (event) {
+                    handleKeyboardNavigationPO(event, cardInput, cardSuggestions);
+                });
+            }
             
             // Create hidden table row
             const row = document.createElement("tr");
@@ -176,20 +365,20 @@ function generatePreview() {
     let totalTax = 0;
     let totalTaxableValue = 0;
     let roundOff = 0;
+    let sno = 0;
 
     let itemsHTML = "";
-    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[4].querySelector("input").value) > 0);
+    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[8].querySelector("input").value) > 0);
 
     for (const row of itemsTable.rows) {
-        const description = row.cells[1].querySelector("input").value || "-";
-        const hsnSac = row.cells[2].querySelector("input").value || "-";
-        const company = row.cells[3].querySelector("input").value || "-";
-        const type = row.cells[4].querySelector("input").value || "-";
-        const category = row.cells[5].querySelector("input").value || "-";
-        const qty = parseFloat(row.cells[6].querySelector("input").value || "0");
-        const unitPrice = parseFloat(row.cells[7].querySelector("input").value || "0");
-        const rate = parseFloat(row.cells[8].querySelector("input").value || "0");
-        let sno = 0;
+        const description = row.cells[1]?.querySelector("input")?.value || "-";
+        const hsnSac = row.cells[2]?.querySelector("input")?.value || "-";
+        const company = row.cells[3]?.querySelector("input")?.value || "-";
+        const type = row.cells[4]?.querySelector("input")?.value || "-";
+        const category = row.cells[5]?.querySelector("input")?.value || "-";
+        const qty = parseFloat(row.cells[6]?.querySelector("input")?.value || "0");
+        const unitPrice = parseFloat(row.cells[7]?.querySelector("input")?.value || "0");
+        const rate = parseFloat(row.cells[8]?.querySelector("input")?.value || "0");
 
         const taxableValue = qty * unitPrice;
         totalTaxableValue += taxableValue;
@@ -248,16 +437,48 @@ function generatePreview() {
         </div>
         <div class="totals-section-sub2">
         ${hasTax ? `
-        <p>₹ ${totalTaxableValue.toFixed(2)}</p>
-        <p>₹ ${totalTax.toFixed(2)}</p>` : ""}
-        <p>₹ ${(grandTotal + roundOff).toFixed(2)}</p>
+        <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+        <p>₹ ${formatIndian(totalTax, 2)}</p>` : ""}
+        <p>₹ ${formatIndian(grandTotal + roundOff, 2)}</p>
         </div>
     `;
 
+    // Split items into rows for pagination
+    const itemRows = itemsHTML.split('</tr>').filter(row => row.trim().length > 0).map(row => row + '</tr>');
+    
+    const ITEMS_PER_PAGE = 15;
+    const SUMMARY_SECTION_ROW_COUNT = 8;
+    
+    const itemPages = [];
+    let currentPageItemsHTML = '';
+    let currentPageRowCount = 0;
 
+    itemRows.forEach((row, index) => {
+        const isLastItem = index === itemRows.length - 1;
+        const itemSpace = 1; // Each row takes 1 line
+        const requiredSpaceForLastItem = itemSpace + SUMMARY_SECTION_ROW_COUNT;
 
-    document.getElementById("preview-content").innerHTML = `
-    <div class="preview-container">
+        if (currentPageRowCount > 0 &&
+            ((!isLastItem && currentPageRowCount + itemSpace > ITEMS_PER_PAGE) ||
+                (isLastItem && currentPageRowCount + requiredSpaceForLastItem > ITEMS_PER_PAGE))) {
+            itemPages.push(currentPageItemsHTML);
+            currentPageItemsHTML = '';
+            currentPageRowCount = 0;
+        }
+
+        currentPageItemsHTML += row;
+        currentPageRowCount += itemSpace;
+    });
+
+    if (currentPageItemsHTML !== '') {
+        itemPages.push(currentPageItemsHTML);
+    }
+
+    // Generate pages
+    const pagesHTML = itemPages.map((pageHTML, index) => {
+        const isLastPage = index === itemPages.length - 1;
+        return `
+    <div class="preview-container doc-standard">
         <div class="first-section">
             <div class="logo">
                 <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
@@ -272,10 +493,10 @@ function generatePreview() {
         </div>
 
         <div class="second-section">
-            <p>Purchase Order-${purchaseOrderId}
-            </p>
+            <p>Purchase Order-${purchaseOrderId}</p>
         </div>
 
+        ${index === 0 ? `
         <div class="third-section">
             <div class="buyer-details">
                 <p><strong>Purchase From:</strong></p>
@@ -284,11 +505,12 @@ function generatePreview() {
                 <p>Ph: ${supplierPhone}</p>
                 <p>GSTIN: ${GSTIN}</p>
             </div>
-            <div class="info-section">
+            <div class="order-info">
                 <p><strong>Purchase Invoice ID:</strong> ${purchaseInvoiceId}</p>
                 <p><strong>Date:</strong> ${purchaseDate}</p>
             </div>
         </div>
+        ` : ''}
 
         <div class="fourth-section">
         <table>
@@ -306,22 +528,54 @@ function generatePreview() {
             </tr>
         </thead>
         <tbody>
-            ${itemsHTML}
+            ${pageHTML}
         </tbody>
         </table>
         </div>
 
+        ${!isLastPage ? `<div class="continuation-text" style="text-align: center; margin: 20px 0; font-style: italic; color: #666;">Continued on next page...</div>` : ''}
+
+        ${isLastPage ? `
         <div class="fifth-section">
             <div class="fifth-section-sub1">
                 <div class="fifth-section-sub2">
-                    <div>
-                        <p><strong>Total Amount in Words:</strong> <span id="totalInWords">${numberToWords(grandTotal + roundOff)} Only</span></p>
+                    <div class="fifth-section-sub3">
+                        <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                        <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(grandTotal + roundOff)} Only</span></p>
                     </div>
-                    <div class="bank-details"></div>
+                    <h3>Payment Details</h3>
+                    <div class="bank-details">
+                        <div class="QR-code bank-details-sub1">
+                            <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                alt="qr-code" />
+                        </div>
+                        <div class="bank-details-sub2">
+                            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
+                            <p><strong>Bank Name: </strong>Canara Bank</p>
+                            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
+                            <p><strong>Account No: </strong>120002152652</p>
+                            <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="totals-section">
+                    ${totalsHTML}
                 </div>
             </div>
-            <div class="totals-section">
-                ${totalsHTML}
+        </div>
+
+        <div class="sixth-section">
+            <div class="declaration" contenteditable="true">
+                <p>We declare that this purchase order shows the actual price of the goods described and that all particulars are true and correct.</p>
+            </div>
+        </div>
+
+        <div class="seventh-section">
+            <div class="terms-section" contenteditable="true">
+                <h4>Terms & Conditions:</h4>
+                <p>1. Goods should be delivered within the stipulated time period.</p>
+                <p>2. Quality of goods should match the specifications mentioned.</p>
+                <p>3. Payment terms as per mutual agreement.</p>
             </div>
         </div>
 
@@ -330,11 +584,16 @@ function generatePreview() {
             <div class="eighth-section-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
+        ` : ''}
 
         <div class="ninth-section">
-            <p>This is a computer-generated purchase order</p>
+            <p>This is a computer-generated purchase order.</p>
         </div>
-    </div>`;
+    </div>
+    `;
+    }).join('');
+
+    document.getElementById("preview-content").innerHTML = pagesHTML;
 }
 
 // Function to collect form data and send to server
@@ -372,16 +631,32 @@ function collectFormData() {
 }
 
 // Function to populate specifications step
-function populateSpecifications() {
+async function populateSpecifications() {
     const itemsTableBody = document.querySelector("#items-table tbody");
     const specificationsContainer = document.getElementById("specifications-container");
     const specificationsTableBody = document.querySelector("#items-specifications-table tbody");
     specificationsContainer.innerHTML = "";
     specificationsTableBody.innerHTML = "";
 
-    Array.from(itemsTableBody.rows).forEach((row, index) => {
+    const rows = Array.from(itemsTableBody.rows);
+    
+    for (let index = 0; index < rows.length; index++) {
+        const row = rows[index];
         const description = row.cells[1].querySelector("input").value;
-        const existingSpecification = row.dataset.specification || '';
+        let existingSpecification = row.dataset.specification || '';
+        
+        // Try to fetch specification from stock if not already present
+        if (!existingSpecification && description.trim()) {
+            try {
+                const stockData = await fetchStockData(description);
+                if (stockData && stockData.specifications) {
+                    existingSpecification = stockData.specifications;
+                    row.dataset.specification = existingSpecification;
+                }
+            } catch (error) {
+                console.log("No stock data found for:", description);
+            }
+        }
 
         // Create card
         const card = document.createElement("div");
@@ -413,7 +688,7 @@ function populateSpecifications() {
             rowInput.value = cardInput.value;
             row.dataset.specification = cardInput.value;
         });
-    });
+    }
 }
 
 
@@ -443,7 +718,7 @@ if (addItemBtn) {
         
         <div class="item-field description">
             <div style="position: relative;">
-                <input type="text" placeholder="Enter item description" required>
+                <input type="text" placeholder="Enter item description" class="item_name" required>
                 <ul class="suggestions"></ul>
             </div>
         </div>
@@ -486,11 +761,28 @@ if (addItemBtn) {
         container.appendChild(card);
     }
     
+    // Setup autocomplete for the card
+    const cardInput = card.querySelector(".item_name");
+    const cardSuggestions = card.querySelector(".suggestions");
+    
+    cardInput.addEventListener("input", function () {
+        showSuggestionsPO(cardInput, cardSuggestions);
+    });
+
+    cardInput.addEventListener("keydown", function (event) {
+        handleKeyboardNavigationPO(event, cardInput, cardSuggestions);
+    });
+    
     // Also add to hidden table for backward compatibility
     const row = document.createElement("tr");
     row.innerHTML = `
         <td class="text-center">${itemNumber}</td>
-        <td><input type="text" placeholder="Item Description" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+        <td>
+            <div style="position: relative;">
+                <input type="text" placeholder="Item Description" class="item_name w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500" required>
+                <ul class="suggestions"></ul>
+            </div>
+        </td>
         <td><input type="text" placeholder="HSN/SAC" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><input type="text" placeholder="Company" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><input type="text" placeholder="Type" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
@@ -501,6 +793,24 @@ if (addItemBtn) {
         <td><button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button></td>
     `;
     tableBody.appendChild(row);
+    
+    // Setup autocomplete for the table input
+    const tableInput = row.querySelector(".item_name");
+    const tableSuggestions = row.querySelector(".suggestions");
+    
+    if (tableInput && tableSuggestions) {
+        tableInput.addEventListener("input", function () {
+            showSuggestionsPO(tableInput, tableSuggestions);
+            // Sync with card input
+            if (cardInput) {
+                cardInput.value = tableInput.value;
+            }
+        });
+
+        tableInput.addEventListener("keydown", function (event) {
+            handleKeyboardNavigationPO(event, tableInput, tableSuggestions);
+        });
+    }
     
     // Sync all inputs from card to table
     const cardInputs = card.querySelectorAll("input");
@@ -530,11 +840,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const newNextBtn = nextBtn.cloneNode(true);
         nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
 
-        newNextBtn.addEventListener('click', () => {
+        newNextBtn.addEventListener('click', async () => {
             if (currentStep < totalSteps) {
                 // When moving from step 2 (Item Details) to step 3 (Add Specifications)
                 if (currentStep === 2) {
-                    populateSpecifications();
+                    await populateSpecifications();
                 }
                 changeStep(currentStep + 1);
             }
