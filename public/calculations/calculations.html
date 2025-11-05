@@ -91,42 +91,42 @@
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
                 <a href="../dashboard/dashboard.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
                 </a>
                 <a href="../quotation/quotation.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
                 </a>
                 <a href="../invoice/invoice.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
                     <span>Bill / Invoice</span>
                 </a>
                 <a href="../waybill/wayBill.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-route w-8 text-center"></i>
                     <span>Way Bill</span>
                 </a>
                 <a href="../service/service.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-shopping-cart w-8 text-center"></i>
                     <span>Purchase Bill</span>
                 </a>
                 <a href="../stock/stock.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-box w-8 text-center"></i>
                     <span>Stock</span>
                 </a>
                 <a href="../comms/comms.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-comments w-8 text-center"></i>
                     <span>Comms</span>
                 </a>
@@ -136,7 +136,7 @@
                     <span>Calculations</span>
                 </a>
                 <a href="../settings/settings.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-medium">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-cog w-8 text-center"></i>
                     <span>Settings</span>
                 </a>
@@ -157,11 +157,18 @@
                         <p class="text-sm opacity-90">All converters update automatically as you type. Press Enter for calculations.</p>
                     </div>
                 </div>
-                <button id="clearAllBtn" 
-                    class="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2">
-                    <i class="fas fa-eraser"></i>
-                    Clear All
-                </button>
+                <div class="flex gap-3">
+                    <button id="generateDataWorksheetBtn" 
+                        class="bg-yellow-400 text-gray-900 px-6 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition-colors flex items-center gap-2">
+                        <i class="fas fa-file-alt"></i>
+                        Generate Data Worksheet
+                    </button>
+                    <button id="clearAllBtn" 
+                        class="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2">
+                        <i class="fas fa-eraser"></i>
+                        Clear All
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -511,6 +518,7 @@
     
     <!-- Module-specific scripts -->
     <script src="./calculations.js"></script>
+    <script src="./dataWorksheet.js"></script>
 </body>
 
 </html>

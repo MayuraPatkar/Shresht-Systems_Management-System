@@ -154,6 +154,12 @@ document.addEventListener('DOMContentLoaded', function() {
         clearAllBtn.addEventListener('click', clearAllFields);
     }
     
+    // Data Worksheet button
+    const generateDataWorksheetBtn = document.getElementById('generateDataWorksheetBtn');
+    if (generateDataWorksheetBtn) {
+        generateDataWorksheetBtn.addEventListener('click', openDataWorksheetModal);
+    }
+    
     const calculateGSTBtn = document.getElementById('calculateGSTBtn');
     if (calculateGSTBtn) {
         calculateGSTBtn.addEventListener('click', calculateGST);
