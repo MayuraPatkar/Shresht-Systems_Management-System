@@ -50,6 +50,19 @@ async function openQuotation(quotationId) {
 
         // Load items
         (quotation.items || []).forEach((item, index) => {
+            // Create table row first
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
+                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" required></td>
+                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
+                <td><button type="button" class="remove-item-btn">Remove</button></td>
+            `;
+            itemsTableBody.appendChild(row);
+            
             // Create card
             if (itemsContainer) {
                 const card = document.createElement("div");
@@ -80,34 +93,41 @@ async function openQuotation(quotationId) {
                 `;
                 itemsContainer.appendChild(card);
                 
-                // Add event listeners
+                // Sync card inputs with table inputs
+                const cardInputs = card.querySelectorAll('input');
+                const rowInputs = row.querySelectorAll('input');
+                cardInputs.forEach((input, idx) => {
+                    input.addEventListener('input', () => {
+                        if (rowInputs[idx]) {
+                            rowInputs[idx].value = input.value;
+                        }
+                    });
+                });
+                
+                // Add remove button event listener
                 const removeBtn = card.querySelector(".remove-item-btn");
                 removeBtn.addEventListener("click", function() {
                     card.remove();
-                    const rowIndex = Array.from(itemsContainer.children).indexOf(card);
-                    const tableRow = itemsTableBody.querySelectorAll('tr')[rowIndex];
-                    if (tableRow) tableRow.remove();
+                    row.remove();
                     updateItemNumbers();
                     updateSpecificationsTable();
                 });
             }
-            
-            // Also create table row for backward compatibility
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
-                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
-                <td><input type="number" value="${item.unit_price || ''}" required></td>
-                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
-            `;
-            itemsTableBody.appendChild(row);
         });
 
         // Load non-items
         (quotation.non_items || []).forEach((item, index) => {
+            // Create table row first
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
+                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><button type="button" class="remove-item-btn">Remove</button></td>
+            `;
+            nonItemsTableBody.appendChild(row);
+            
             // Create card
             if (nonItemsContainer) {
                 const card = document.createElement("div");
@@ -129,28 +149,26 @@ async function openQuotation(quotationId) {
                 `;
                 nonItemsContainer.appendChild(card);
                 
-                // Add event listeners
+                // Sync card inputs with table inputs
+                const cardInputs = card.querySelectorAll('input');
+                const rowInputs = row.querySelectorAll('input');
+                cardInputs.forEach((input, idx) => {
+                    input.addEventListener('input', () => {
+                        if (rowInputs[idx]) {
+                            rowInputs[idx].value = input.value;
+                        }
+                    });
+                });
+                
+                // Add remove button event listener
                 const removeBtn = card.querySelector(".remove-item-btn");
                 removeBtn.addEventListener("click", function() {
                     card.remove();
-                    const rowIndex = Array.from(nonItemsContainer.children).indexOf(card);
-                    const tableRow = nonItemsTableBody.querySelectorAll('tr')[rowIndex];
-                    if (tableRow) tableRow.remove();
+                    row.remove();
                     updateNonItemNumbers();
                     updateSpecificationsTable();
                 });
             }
-            
-            // Also create table row
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
-                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
-            `;
-            nonItemsTableBody.appendChild(row);
         });
 
         // Combine items and non_items for specifications

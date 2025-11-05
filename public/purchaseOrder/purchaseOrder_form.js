@@ -31,11 +31,52 @@ async function openPurchaseOrder(purchaseOrderId) {
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
-        let sno = 0;
+        const itemsContainer = document.getElementById("items-container");
+        itemsContainer.innerHTML = "";
+        let sno = 1;
         (purchaseOrder.items || []).forEach(item => {
+            // Create card
+            const card = document.createElement("div");
+            card.className = "item-card";
+            card.innerHTML = `
+                <div class="item-number">${sno}</div>
+                <div class="item-field description">
+                    <div style="position: relative;">
+                        <input type="text" value="${item.description}" placeholder="Description" required>
+                        <ul class="suggestions"></ul>
+                    </div>
+                </div>
+                <div class="item-field hsn">
+                    <input type="text" value="${item.HSN_SAC}" placeholder="HSN/SAC" required>
+                </div>
+                <div class="item-field hsn">
+                    <input type="text" value="${item.company || ''}" placeholder="Company">
+                </div>
+                <div class="item-field hsn">
+                    <input type="text" value="${item.type || ''}" placeholder="Type">
+                </div>
+                <div class="item-field hsn">
+                    <input type="text" value="${item.category || ''}" placeholder="Category">
+                </div>
+                <div class="item-field qty">
+                    <input type="number" value="${item.quantity}" placeholder="Qty" min="1" required>
+                </div>
+                <div class="item-field rate">
+                    <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
+                </div>
+                <div class="item-field rate">
+                    <input type="number" value="${item.rate}" placeholder="Rate" min="0.01" step="0.01" required>
+                </div>
+                <button type="button" class="remove-item-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            itemsContainer.appendChild(card);
+            
+            // Create hidden table row
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td class="text-center">${++sno}</td>
+                <td class="text-center">${sno}</td>
                 <td><input type="text" value="${item.description}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="text" value="${item.HSN_SAC}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="text" value="${item.company || ''}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
@@ -47,6 +88,24 @@ async function openPurchaseOrder(purchaseOrderId) {
                 <td><button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button></td>
             `;
             itemsTableBody.appendChild(row);
+            
+            // Sync card inputs with table inputs
+            const cardInputs = card.querySelectorAll('input');
+            const rowInputs = row.querySelectorAll('input');
+            cardInputs.forEach((input, index) => {
+                input.addEventListener('input', () => {
+                    rowInputs[index].value = input.value;
+                });
+            });
+            
+            // Add remove button event listener
+            const removeBtn = card.querySelector(".remove-item-btn");
+            removeBtn.addEventListener("click", function() {
+                card.remove();
+                row.remove();
+            });
+            
+            sno++;
         });
 }
 
@@ -308,13 +367,77 @@ function collectFormData() {
 }
 
 // Override the global addItem function with purchase order specific implementation
-document.getElementById('add-item-btn')?.addEventListener('click', function() {
-    const tableBody = document.querySelector("#items-table tbody");
+const addItemBtn = document.getElementById('add-item-btn');
+if (addItemBtn) {
+    // Remove the global listener first to prevent double-adding
+    const newAddItemBtn = addItemBtn.cloneNode(true);
+    addItemBtn.parentNode.replaceChild(newAddItemBtn, addItemBtn);
+    
+    // Add Purchase Order specific listener
+    newAddItemBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const container = document.getElementById("items-container");
+        const tableBody = document.querySelector("#items-table tbody");
+        const itemNumber = tableBody.children.length + 1;
+    
+    // Create card element
+    const card = document.createElement("div");
+    card.className = "item-card";
+    
+    card.innerHTML = `
+        <div class="item-number">${itemNumber}</div>
+        
+        <div class="item-field description">
+            <div style="position: relative;">
+                <input type="text" placeholder="Enter item description" required>
+                <ul class="suggestions"></ul>
+            </div>
+        </div>
+        
+        <div class="item-field hsn">
+            <input type="text" placeholder="HSN/SAC" required>
+        </div>
+        
+        <div class="item-field hsn">
+            <input type="text" placeholder="Company">
+        </div>
+        
+        <div class="item-field hsn">
+            <input type="text" placeholder="Type">
+        </div>
+        
+        <div class="item-field hsn">
+            <input type="text" placeholder="Category">
+        </div>
+        
+        <div class="item-field qty">
+            <input type="number" placeholder="Qty" min="1" required>
+        </div>
+        
+        <div class="item-field rate">
+            <input type="number" placeholder="Unit Price" step="0.01" required>
+        </div>
+        
+        <div class="item-field rate">
+            <input type="number" placeholder="Rate" min="0" step="0.01">
+        </div>
+        
+        <button type="button" class="remove-item-btn" title="Remove Item">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    `;
+    
+    // Append card to container
+    if (container) {
+        container.appendChild(card);
+    }
+    
+    // Also add to hidden table for backward compatibility
     const row = document.createElement("tr");
-    const rowNumber = tableBody.children.length + 1;
-
     row.innerHTML = `
-        <td class="text-center">${rowNumber}</td>
+        <td class="text-center">${itemNumber}</td>
         <td><input type="text" placeholder="Item Description" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><input type="text" placeholder="HSN/SAC" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><input type="text" placeholder="Company" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
@@ -325,6 +448,25 @@ document.getElementById('add-item-btn')?.addEventListener('click', function() {
         <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button></td>
     `;
-
     tableBody.appendChild(row);
-});
+    
+    // Sync all inputs from card to table
+    const cardInputs = card.querySelectorAll("input");
+    const tableInputs = row.querySelectorAll("input");
+    
+    cardInputs.forEach((input, index) => {
+        input.addEventListener("input", () => {
+            if (tableInputs[index]) {
+                tableInputs[index].value = input.value;
+            }
+        });
+    });
+    
+    // Handle remove button
+    const removeBtn = card.querySelector(".remove-item-btn");
+    removeBtn.addEventListener("click", function() {
+        card.remove();
+        row.remove();
+    });
+    });
+}
