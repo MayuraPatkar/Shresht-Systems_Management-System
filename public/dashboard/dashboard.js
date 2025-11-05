@@ -50,9 +50,14 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch(err => {
             console.error("Error fetching analytics:", err);
             // Set all counters to 0 on error
-            ['project-count', 'quotation-count', 'earned-count', 'unpaid-count', 'expenditure-count', 'remaining-services-count'].forEach(id => {
+            ['project-count', 'quotation-count', 'unpaid-count', 'expenditure-count', 'remaining-services-count'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = '0';
+            });
+            // Set currency fields with proper formatting
+            ['earned-count', 'expenditure-count'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '₹0';
             });
             showAlert('Failed to load dashboard statistics. Please refresh the page.');
         });
@@ -73,8 +78,23 @@ function animateCounter(
   delay = 10
 ) {
   const el = document.getElementById(id);
+  if (!el) {
+    console.error(`animateCounter: Element with id "${id}" not found`);
+    return;
+  }
+
+  // Handle undefined, null, or NaN values
+  if (end === undefined || end === null || isNaN(end)) {
+    console.warn(`animateCounter: Invalid value for ${id}:`, end);
+    end = 0;
+  }
+
+  // Convert to number if string
+  end = Number(end);
+  
   if (end === 0) {
     el.textContent = isCurrency ? `₹${formatIndian(0)}` : formatIndian(0);
+    console.log(`animateCounter: Set ${id} to zero: "${el.textContent}"`);
     return;
   }
 

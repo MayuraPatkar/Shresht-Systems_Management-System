@@ -16,15 +16,17 @@ router.get('/overview', async (req, res) => {
     const totalUnpaid     = await Invoices.countDocuments({ payment_status: 'Unpaid' });
 
     /* ────────────────────── Monthly invoice earnings (Paid) ───────────────── */
-    const [{ total: totalEarned = 0 } = {}] = await Invoices.aggregate([
+    // Sum payments received in current month (not just invoices created this month)
+    const totalEarnedResult = await Invoices.aggregate([
+      { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
       {
         $match: {
-          createdAt: { $gte: startOfMonth, $lt: startNextMon },
-          payment_status: 'Paid',
+          'payments.payment_date': { $gte: startOfMonth, $lt: startNextMon },
         },
       },
-      { $group: { _id: null, total: { $sum: '$total_amount_original' } } },
+      { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
     ]);
+    const totalEarned = totalEarnedResult.length > 0 ? totalEarnedResult[0].total : 0;
 
     /* ─────────────────────── Monthly purchase expenditure ─────────────────── */
     // Use $or to match either purchase_date or createdAt within current month
@@ -74,27 +76,29 @@ router.get('/comparison', async (req, res) => {
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Current month revenue (Paid invoices)
-    const [{ total: currentRevenue = 0 } = {}] = await Invoices.aggregate([
+    // Current month revenue (Payments received this month)
+    const currentRevenueResult = await Invoices.aggregate([
+      { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
       {
         $match: {
-          createdAt: { $gte: currentMonthStart, $lt: currentMonthEnd },
-          payment_status: 'Paid',
+          'payments.payment_date': { $gte: currentMonthStart, $lt: currentMonthEnd },
         },
       },
-      { $group: { _id: null, total: { $sum: '$total_amount_original' } } },
+      { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
     ]);
+    const currentRevenue = currentRevenueResult.length > 0 ? currentRevenueResult[0].total : 0;
 
     // Previous month revenue
-    const [{ total: previousRevenue = 0 } = {}] = await Invoices.aggregate([
+    const previousRevenueResult = await Invoices.aggregate([
+      { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
       {
         $match: {
-          createdAt: { $gte: previousMonthStart, $lt: previousMonthEnd },
-          payment_status: 'Paid',
+          'payments.payment_date': { $gte: previousMonthStart, $lt: previousMonthEnd },
         },
       },
-      { $group: { _id: null, total: { $sum: '$total_amount_original' } } },
+      { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
     ]);
+    const previousRevenue = previousRevenueResult.length > 0 ? previousRevenueResult[0].total : 0;
 
     // Current month projects
     const currentProjects = await Invoices.countDocuments({

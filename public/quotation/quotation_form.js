@@ -27,7 +27,7 @@ async function openQuotation(quotationId) {
 
         document.getElementById('id').value = quotation.quotation_id;
         document.getElementById('project-name').value = quotation.project_name;
-        document.getElementById('quotation-date').value = formatDate(quotation.quotation_date);
+        document.getElementById('quotation-date').value = await formatDate(quotation.quotation_date);
         document.getElementById('buyer-name').value = quotation.customer_name;
         document.getElementById('buyer-address').value = quotation.customer_address;
         document.getElementById('buyer-phone').value = quotation.customer_phone;

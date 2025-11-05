@@ -341,7 +341,7 @@ async function viewInvoice(invoiceId, userRole) {
         document.getElementById('view-project-id').textContent = invoice.invoice_id || '-';
         document.getElementById('view-purchase-order-number').textContent = invoice.po_number || '-';
         document.getElementById('view-delivery-challan-number').textContent = invoice.dc_number || '-';
-        document.getElementById('view-delivery-challan-date').textContent = invoice.dc_date ? formatDate(invoice.dc_date) : '-';
+        document.getElementById('view-delivery-challan-date').textContent = invoice.dc_date ? await formatDate(invoice.dc_date) : '-';
         document.getElementById('view-waybill-number').textContent = invoice.Waybill_id || '-';
         document.getElementById('view-service-months').textContent = invoice.service_month || '-';
 
@@ -368,19 +368,19 @@ async function viewInvoice(invoiceId, userRole) {
             document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate - invoice.total_tax_duplicate, 2)}` || '-';
         }
 
-        // payments List
-        const detailPaymentsTableBody = document.querySelector("#view-payment-table tbody");
+        // Payment History
+        const detailPaymentsTableBody = document.querySelector("#view-payments-table tbody");
         detailPaymentsTableBody.innerHTML = "";
-        (invoice.payments || []).forEach(item => {
+        for (const item of (invoice.payments || [])) {
             const row = document.createElement("tr");
             row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
             row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-900">${formatDate(item.payment_date) || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${await formatDate(item.payment_date) || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
                 `;
             detailPaymentsTableBody.appendChild(row);
-        });
+        }
 
 
         // Item List

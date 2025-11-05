@@ -1,5 +1,5 @@
 // Generate the purchase order preview (for view block)
-function generatePurchaseOrderViewPreview(purchaseOrder) {
+async function generatePurchaseOrderViewPreview(purchaseOrder) {
     let itemsHTML = "";
     let totalTaxableValue = 0;
     let totalCGST = 0;
@@ -7,6 +7,9 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
     let totalTax = 0;
     let totalPrice = 0;
     let sno = 0;
+
+    // Format the date before using it in template
+    const formattedDate = await formatDate(purchaseOrder.purchase_date);
 
     // Detect if any item has tax
     let hasTax = (purchaseOrder.items || []).some(item => Number(item.rate) > 0);
@@ -141,7 +144,7 @@ function generatePurchaseOrderViewPreview(purchaseOrder) {
             </div>
             <div class="info-section">
                 <p><strong>Purchase Invoice ID:</strong> ${purchaseOrder.purchase_invoice_id || ""}</p>
-                <p><strong>Date:</strong> ${formatDate(purchaseOrder.purchase_date) || new Date().toLocaleDateString()}</p>
+                <p><strong>Date:</strong> ${formattedDate || new Date().toLocaleDateString()}</p>
             </div>
         </div>
         ` : ''}
@@ -268,7 +271,7 @@ async function viewPurchaseOrder(purchaseOrderId) {
 
         // Fill Supplier Details
         document.getElementById('view-purchase-invoice-iD').textContent = purchaseOrder.purchase_invoice_id || '-';
-        document.getElementById('view-purchase-date').textContent = formatDate(purchaseOrder.purchase_date) || '-';
+        document.getElementById('view-purchase-date').textContent = await formatDate(purchaseOrder.purchase_date) || '-';
         document.getElementById('view-supplier-name').textContent = purchaseOrder.supplier_name || '-';
         document.getElementById('view-supplier-address').textContent = purchaseOrder.supplier_address || '-';
         document.getElementById('view-supplier-phone').textContent = purchaseOrder.supplier_phone || '-';
@@ -296,7 +299,7 @@ async function viewPurchaseOrder(purchaseOrderId) {
         });
 
         // Generate the preview for print/PDF
-        generatePurchaseOrderViewPreview(purchaseOrder);
+        await generatePurchaseOrderViewPreview(purchaseOrder);
 
     } catch (error) {
         console.error("Error fetching purchase order:", error);

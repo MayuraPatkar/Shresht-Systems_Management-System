@@ -2,7 +2,7 @@
  * Generate and display the preview for the quotation in view-preview-content.
  * This works for both withTax and withoutTax view modes.
  */
-function generateViewPreviewHTML(quotation, viewType) {
+async function generateViewPreviewHTML(quotation, viewType) {
     let totalTaxableValue = 0;
     let totalTax = 0;
     let totalPrice = 0;
@@ -70,6 +70,9 @@ function generateViewPreviewHTML(quotation, viewType) {
 
     // Grand totals
     let grandTotal = totalPrice + totalNonItemsPrice;
+
+    // Format the date before using it in template
+    const formattedDate = await formatDate(quotation.quotation_date);
 
     // Table headers
     let tableHead = "";
@@ -186,7 +189,7 @@ function generateViewPreviewHTML(quotation, viewType) {
         </div>
         <div class="title">Quotation-${quotation.quotation_id}</div>
         <div class="quotation-letter-date">
-            <p><strong>Date:</strong> ${formatDate(quotation.quotation_date)}</p>
+            <p><strong>Date:</strong> ${formattedDate}</p>
         </div>
         <div class="quotation-letter-content">
             <p><strong>To:</strong><br>${quotation.customer_name}<br>${quotation.customer_address}<br>${quotation.customer_phone}</p>
@@ -238,7 +241,7 @@ async function viewQuotation(quotationId, viewType) {
         // Fill Project Details
         document.getElementById('view-project-name').textContent = quotation.project_name || '-';
         document.getElementById('view-project-id').textContent = quotation.quotation_id || '-';
-        document.getElementById('view-quotation-date').textContent = formatDate(quotation.quotation_date) || '-';
+        document.getElementById('view-quotation-date').textContent = await formatDate(quotation.quotation_date) || '-';
 
         // Buyer Details
         document.getElementById('view-buyer-name').textContent = quotation.customer_name || '-';
@@ -403,7 +406,7 @@ async function viewQuotation(quotationId, viewType) {
         }
 
         // Show the preview in view-preview-content
-        generateViewPreviewHTML(quotation, viewType);
+        await generateViewPreviewHTML(quotation, viewType);
 
         // Print and Save as PDF handlers
         document.getElementById('printProject').onclick = () => {
