@@ -902,7 +902,7 @@ router.post("/logo/upload", logoUpload.single("logo"), asyncHandler(async (req, 
 // Get system information
 router.get("/system-info", asyncHandler(async (req, res) => {
     try {
-        const package = require('../package.json');
+        const package = require('../../package.json');
         const os = require('os');
         
         res.json({
