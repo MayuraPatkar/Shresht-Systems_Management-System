@@ -10,104 +10,10 @@
         integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="../css/shared/documentStyles.css">
+    <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
+    <link rel="stylesheet" href="../css/wayBill.css">
     <title>Way Bill</title>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            /* Prevent body scroll */
-        }
-
-        .sidebar {
-            width: 280px;
-            height: 100vh;
-            overflow-y: auto;
-            /* Enable sidebar scroll */
-            overflow-x: hidden;
-        }
-
-        /* Main content scrolling */
-        main {
-            height: 100vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        /* Custom scrollbar */
-        *::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        *::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-
-        *::-webkit-scrollbar-thumb {
-            background: #2563eb;
-            border-radius: 4px;
-        }
-
-        *::-webkit-scrollbar-thumb:hover {
-            background: #1d4ed8;
-        }
-
-        .fade-in {
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Hide non-active sections */
-        #new, #view {
-            display: none;
-        }
-
-        /* Step visibility */
-        .steps {
-            display: none;
-        }
-
-        .steps.active {
-            display: block;
-        }
-
-        /* Items table styling */
-        #items-table input {
-            width: 100%;
-            padding: 0.625rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            font-size: 0.95rem;
-        }
-
-        #items-table input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        #view-items-table td {
-            padding: 1rem 1.25rem;
-            font-size: 0.95rem;
-        }
-
-        #items-table td {
-            padding: 0.625rem;
-        }
-
-        /* Pulse animation for shortcuts button */
-        @keyframes pulse {
+</head>
             0%, 100% {
                 opacity: 1;
             }
@@ -376,6 +282,21 @@
                             <i class="fas fa-list text-teal-600 text-2xl"></i>
                             <h2 class="text-2xl font-semibold text-gray-800">Item List</h2>
                         </div>
+                        
+                        <!-- Column Headers -->
+                        <div class="items-header">
+                            <div class="header-number">#</div>
+                            <div class="header-field description">Description</div>
+                            <div class="header-field hsn">HSN Code</div>
+                            <div class="header-field qty">Qty</div>
+                            <div class="header-field rate">Unit Price</div>
+                            <div class="header-field rate">Tax Rate</div>
+                            <div class="header-action"></div>
+                        </div>
+                        
+                        <!-- Items Container for Cards -->
+                        <div id="items-container"></div>
+                        
                         <div class="overflow-x-auto">
                             <table id="items-table" class="w-full border-collapse">
                                 <thead>

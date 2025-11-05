@@ -26,13 +26,45 @@ async function openWayBill(wayBillId) {
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
-        let sno = 0;
+        const itemsContainer = document.getElementById("items-container");
+        itemsContainer.innerHTML = "";
+        let sno = 1;
 
         (wayBill.items || []).forEach(item => {
+            // Create card
+            const card = document.createElement("div");
+            card.className = "item-card";
+            card.innerHTML = `
+                <div class="item-number">${sno}</div>
+                <div class="item-field description">
+                    <div style="position: relative;">
+                        <input type="text" value="${item.description}" placeholder="Description" required>
+                        <ul class="suggestions"></ul>
+                    </div>
+                </div>
+                <div class="item-field hsn">
+                    <input type="text" value="${item.HSN_SAC}" placeholder="HSN Code" required>
+                </div>
+                <div class="item-field qty">
+                    <input type="number" value="${item.quantity}" placeholder="Qty" min="1" required>
+                </div>
+                <div class="item-field rate">
+                    <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
+                </div>
+                <div class="item-field rate">
+                    <input type="number" value="${item.rate}" placeholder="Tax Rate" required>
+                </div>
+                <button type="button" class="remove-item-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            itemsContainer.appendChild(card);
+            
+            // Create hidden table row
             const row = document.createElement("tr");
             row.className = "border-b border-gray-200 hover:bg-gray-50";
             row.innerHTML = `
-                <td class="border border-gray-300 px-4 py-3 text-center text-base">${++sno}</td>
+                <td class="border border-gray-300 px-4 py-3 text-center text-base">${sno}</td>
                 <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description}" required></td>
                 <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC}" required></td>
                 <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity}" min="1" required></td>
@@ -45,6 +77,24 @@ async function openWayBill(wayBillId) {
                 </td>
             `;
             itemsTableBody.appendChild(row);
+            
+            // Sync card inputs with table inputs
+            const cardInputs = card.querySelectorAll('input');
+            const rowInputs = row.querySelectorAll('input');
+            cardInputs.forEach((input, index) => {
+                input.addEventListener('input', () => {
+                    rowInputs[index].value = input.value;
+                });
+            });
+            
+            // Add remove button event listener
+            const removeBtn = card.querySelector(".remove-item-btn");
+            removeBtn.addEventListener("click", function() {
+                card.remove();
+                row.remove();
+            });
+            
+            sno++;
         });
 }
 
@@ -65,12 +115,45 @@ document.getElementById("next-btn").addEventListener("click", () => {
                     document.getElementById("buyer-phone").value = quotation.customer_phone;
                     const itemsTableBody = document.querySelector("#items-table tbody");
                     itemsTableBody.innerHTML = "";
+                    const itemsContainer = document.getElementById("items-container");
+                    itemsContainer.innerHTML = "";
+                    let itemSno = 1;
 
                     quotation.items.forEach(item => {
+                        // Create card
+                        const card = document.createElement("div");
+                        card.className = "item-card";
+                        card.innerHTML = `
+                            <div class="item-number">${itemSno}</div>
+                            <div class="item-field description">
+                                <div style="position: relative;">
+                                    <input type="text" value="${item.description}" placeholder="Description" required>
+                                    <ul class="suggestions"></ul>
+                                </div>
+                            </div>
+                            <div class="item-field hsn">
+                                <input type="text" value="${item.HSN_SAC}" placeholder="HSN Code" required>
+                            </div>
+                            <div class="item-field qty">
+                                <input type="number" value="${item.quantity}" placeholder="Qty" min="1" required>
+                            </div>
+                            <div class="item-field rate">
+                                <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
+                            </div>
+                            <div class="item-field rate">
+                                <input type="number" value="${item.rate}" placeholder="Tax Rate" required>
+                            </div>
+                            <button type="button" class="remove-item-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        itemsContainer.appendChild(card);
+                        
+                        // Create hidden table row
                         const row = document.createElement("tr");
                         row.className = "border-b border-gray-200 hover:bg-gray-50";
                         row.innerHTML = `
-                            <td class="border border-gray-300 px-4 py-3 text-center text-base">${++sno}</td>
+                            <td class="border border-gray-300 px-4 py-3 text-center text-base">${itemSno}</td>
                             <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description}" required></td>
                             <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC}" required></td>
                             <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity}" min="1" required></td>
@@ -83,6 +166,24 @@ document.getElementById("next-btn").addEventListener("click", () => {
                             </td>
                         `;
                         itemsTableBody.appendChild(row);
+                        
+                        // Sync card inputs with table inputs
+                        const cardInputs = card.querySelectorAll('input');
+                        const rowInputs = row.querySelectorAll('input');
+                        cardInputs.forEach((input, index) => {
+                            input.addEventListener('input', () => {
+                                rowInputs[index].value = input.value;
+                            });
+                        });
+                        
+                        // Add remove button event listener
+                        const removeBtn = card.querySelector(".remove-item-btn");
+                        removeBtn.addEventListener("click", function() {
+                            card.remove();
+                            row.remove();
+                        });
+                        
+                        itemSno++;
                     });
                 })
                 .catch(error => {

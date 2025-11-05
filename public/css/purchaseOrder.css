@@ -1,0 +1,131 @@
+/* Purchase Order Module Specific Styles */
+
+body {
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 280px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+main {
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #2563eb;
+    border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #1d4ed8;
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#new, #view {
+    display: none;
+}
+
+.steps {
+    display: none;
+}
+
+.steps.active {
+    display: block;
+}
+
+#view-items-table td {
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+#shortcuts-btn:hover {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Purchase Order Specific: 9-field layout adjustments */
+
+/* Adjust items header for 9 fields */
+#new .items-header {
+    display: grid;
+    grid-template-columns: 40px 2fr 0.8fr 0.8fr 0.8fr 0.8fr 0.6fr 0.7fr 0.7fr 40px;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+/* Adjust item cards for 9 fields */
+#new .item-card {
+    display: grid;
+    grid-template-columns: 40px 2fr 0.8fr 0.8fr 0.8fr 0.8fr 0.6fr 0.7fr 0.7fr 40px;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+/* Ensure header fields and card fields don't have conflicting flex */
+#new .items-header .header-field,
+#new .item-card .item-field {
+    flex: none;
+    min-width: 0;
+}
+
+/* First field (description) should be wider */
+#new .items-header .header-field.description,
+#new .item-card .item-field.description {
+    min-width: 200px;
+}
+
+/* Other fields should fit their grid column */
+#new .items-header .header-field.hsn,
+#new .item-card .item-field.hsn,
+#new .items-header .header-field.qty,
+#new .item-card .item-field.qty,
+#new .items-header .header-field.rate,
+#new .item-card .item-field.rate {
+    min-width: 80px;
+}
+
+/* Prevent horizontal overflow */
+#items-container {
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
