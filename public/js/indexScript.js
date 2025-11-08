@@ -110,6 +110,9 @@ document.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
             performLogin();
+        } else if (event.key === "Escape") {
+            event.preventDefault();
+            document.getElementById('back-btn').click();
         }
     }
 });
