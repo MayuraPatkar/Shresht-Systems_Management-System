@@ -571,7 +571,7 @@ function generatePreview() {
         <div class="preview-container">
             <div class="first-section">
                 <div class="logo">
-                    <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo" />
+                    <img src="../assets/logo.png" alt="Shresht Logo" />
                 </div>
                 <div class="company-details">
                     <h1>SHRESHT SYSTEMS</h1>
@@ -637,7 +637,7 @@ function generatePreview() {
                         <h3>Payment Details</h3>
                         <div class="bank-details">
                             <div class="QR-code bank-details-sub1">
-                                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                <img src="../assets/shresht-systems-payment-QR-code.jpg"
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">

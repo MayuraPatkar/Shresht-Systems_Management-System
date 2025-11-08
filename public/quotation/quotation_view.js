@@ -146,7 +146,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
         return `
         <div class="preview-container doc-quotation">
             <div class="header">
-                <div class="logo"><img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo"></div>
+                <div class="logo"><img src="../assets/logo.png" alt="Shresht Logo"></div>
                 <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
             </div>
             <div class="title">Quotation-${quotation.quotation_id}</div>
@@ -162,7 +162,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
                         <div class="fifth-section-sub3"><p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p><p class="fifth-section-sub3-2"><span>${numberToWords(grandTotal)} Only</span></p></div>
                         <h3>Payment Details:</h3>
                         <div class="bank-details">
-                            <div class="QR-code bank-details-sub1"><img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg" alt="qr-code" /></div>
+                            <div class="QR-code bank-details-sub1"><img src="../assets/shresht-systems-payment-QR-code.jpg" alt="qr-code" /></div>
                             <div class="bank-details-sub2"><p><strong>Account Holder Name: </strong>Shresht Systems</p><p><strong>Bank Name: </strong>Canara Bank</p><p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p><p><strong>Account No: </strong>120002152652</p><p><strong>IFSC Code: </strong>CNRB0010261</p></div>
                         </div>
                     </div>
@@ -184,7 +184,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
     document.getElementById("view-preview-content").innerHTML = `
     <div class="preview-container doc-quotation">
         <div class="header">
-            <div class="logo"><img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo"></div>
+            <div class="logo"><img src="../assets/logo.png" alt="Shresht Logo"></div>
             <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
         </div>
         <div class="title">Quotation-${quotation.quotation_id}</div>
@@ -208,7 +208,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
     ${itemsPageHTML}
     <div class="preview-container doc-quotation">
         <div class="header">
-            <div class="logo"><img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo"></div>
+            <div class="logo"><img src="../assets/logo.png" alt="Shresht Logo"></div>
             <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
         </div>
         <div class="title">Quotation-${quotation.quotation_id}</div>

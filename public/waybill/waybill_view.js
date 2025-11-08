@@ -24,7 +24,7 @@ function generateViewPreviewHTML(wayBill) {
     <div class="preview-container doc-standard doc-waybill">
         <div class="first-section">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo">
+                <img src="../assets/logo.png" alt="Shresht Logo" />
             </div>
             <div class="company-details">
                 <h1>SHRESHT SYSTEMS</h1>

@@ -59,6 +59,13 @@
             window.close();
         }
 
+        // Add keyboard listener for Enter and Escape keys
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === 'Escape') {
+                closeWindow();
+            }
+        });
+
         // Access `ipcRenderer` safely via preload script
         if (window.electronAPI) {
             window.electronAPI.receiveMessage((message) => {
