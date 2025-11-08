@@ -1,187 +1,209 @@
 [
   {
-    "purchase_order_id": "PO-2025-101",
-    "purchase_invoice_id": "INV-SCD-4590",
-    "supplier_name": "SecureCam Distributors",
-    "supplier_address": "42, Nehru Place, New Delhi, Delhi 110019",
-    "supplier_phone": "9811122233",
-    "supplier_email": "sales@securecamdist.in",
-    "supplier_GSTIN": "07AAPCS1234A1Z5",
-    "purchase_date": "2025-09-22T00:00:00.000Z",
+    "purchase_order_id": "PO-SOL-2025-101",
+    "purchase_invoice_id": "INV-SS-45001",
+    "supplier_name": "Surya Solar Solutions",
+    "supplier_address": "Plot 42, Peenya Industrial Area, Bangalore, 560058",
+    "supplier_phone": "080-22334455",
+    "supplier_email": "sales@suryasolar.com",
+    "supplier_GSTIN": "29AAAAA1111A1Z9",
+    "purchase_date": "2025-10-15T00:00:00Z",
     "items": [
       {
-        "description": "2MP Dome Camera (Model: SCD-DM2)",
-        "HSN_SAC": "8525",
-        "company": "SecureCam",
-        "type": "Security",
-        "category": "Camera",
-        "quantity": 50,
-        "unit_price": 1200,
-        "rate": 18
-      },
-      {
-        "description": "2MP Bullet Camera (Model: SCD-BL2)",
-        "HSN_SAC": "8525",
-        "company": "SecureCam",
-        "type": "Security",
-        "category": "Camera",
-        "quantity": 50,
-        "unit_price": 1350,
-        "rate": 18
-      },
-      {
-        "description": "16-Channel DVR (Model: SCD-DVR16)",
-        "HSN_SAC": "8521",
-        "company": "SecureCam",
-        "type": "Security",
-        "category": "DVR",
-        "quantity": 10,
-        "unit_price": 3800,
-        "rate": 18
-      }
-    ],
-    "total_amount": 165500,
-    "createdAt": "2025-09-22T00:00:00.000Z",
-    "updatedAt": "2025-09-22T00:00:00.000Z"
-  },
-  {
-    "purchase_order_id": "PO-2025-102",
-    "purchase_invoice_id": "SS-INV-2025-781",
-    "supplier_name": "Surya Solar Components",
-    "supplier_address": "Plot 15, Electronic City, Bengaluru, Karnataka 560100",
-    "supplier_phone": "9900112233",
-    "supplier_email": "contact@suryasolar.co.in",
-    "supplier_GSTIN": "29AABCS5678B1Z9",
-    "purchase_date": "2025-09-24T00:00:00.000Z",
-    "items": [
-      {
-        "description": "380W Monocrystalline Solar Panel",
+        "description": "Solar Panel 550W Mono PERC",
+        "specification": "144 Cells, 12-year warranty",
         "HSN_SAC": "8541",
-        "company": "Surya Solar",
+        "company": "Waaree",
         "type": "Solar",
         "category": "Panel",
         "quantity": 20,
-        "unit_price": 4200,
-        "rate": 12
+        "unit_price": 11500,
+        "rate": 230000
       },
       {
-        "description": "150Ah Tall Tubular Battery",
-        "HSN_SAC": "8507",
-        "company": "Surya Solar",
-        "type": "Solar",
-        "category": "Battery",
-        "quantity": 20,
-        "unit_price": 7500,
-        "rate": 28
-      }
-    ],
-    "total_amount": 234000,
-    "createdAt": "2025-09-24T00:00:00.000Z",
-    "updatedAt": "2025-09-24T00:00:00.000Z"
-  },
-  {
-    "purchase_order_id": "PO-2025-103",
-    "purchase_invoice_id": "ECI-5512",
-    "supplier_name": "ElectroCables India",
-    "supplier_address": "A-110, MIDC, Andheri East, Mumbai, Maharashtra 400093",
-    "supplier_phone": "9820098200",
-    "supplier_email": "sales.mumbai@electrocables.com",
-    "supplier_GSTIN": "27AACCE9876G1Z2",
-    "purchase_date": "2025-09-25T00:00:00.000Z",
-    "items": [
-      {
-        "description": "4-Core Copper CCTV Cable (90m Roll)",
-        "HSN_SAC": "8544",
-        "company": "ElectroCables",
-        "type": "Security",
-        "category": "Cable",
-        "quantity": 5,
-        "unit_price": 900,
-        "rate": 18
-      },
-      {
-        "description": "6 sq. mm Solar DC Wire (100m Roll)",
-        "HSN_SAC": "8544",
-        "company": "ElectroCables",
-        "type": "Solar",
-        "category": "Cable",
-        "quantity": 2,
-        "unit_price": 1500,
-        "rate": 18
-      }
-    ],
-    "total_amount": 7500,
-    "createdAt": "2025-09-25T00:00:00.000Z",
-    "updatedAt": "2025-09-25T00:00:00.000Z"
-  },
-  {
-    "purchase_order_id": "PO-2025-104",
-    "purchase_invoice_id": "GSI-INV-1102",
-    "supplier_name": "GridSol Inverters Pvt. Ltd.",
-    "supplier_address": "8-2-293/82/A, Road No. 36, Jubilee Hills, Hyderabad, Telangana 500033",
-    "supplier_phone": "9100081000",
-    "supplier_email": "support@gridsol.in",
-    "supplier_GSTIN": "36ABCDG1122H1Z4",
-    "purchase_date": "2025-09-28T00:00:00.000Z",
-    "items": [
-      {
-        "description": "1kW Solar PCU (Inverter)",
+        "description": "5kW Grid-Tie Inverter",
+        "specification": "Single Phase, Dual MPPT, Wi-Fi",
         "HSN_SAC": "8504",
-        "company": "GridSol",
+        "company": "Solis",
         "type": "Solar",
         "category": "Inverter",
-        "quantity": 100,
-        "unit_price": 800,
-        "rate": 18
-      },
-      {
-        "description": "2TB Surveillance HDD",
-        "HSN_SAC": "8471",
-        "company": "GridSol",
-        "type": "Security",
-        "category": "Storage",
-        "quantity": 20,
-        "unit_price": 2800,
-        "rate": 18
+        "quantity": 5,
+        "unit_price": 38000,
+        "rate": 190000
       }
     ],
-    "total_amount": 136000,
-    "createdAt": "2025-09-28T00:00:00.000Z",
-    "updatedAt": "2025-09-28T00:00:00.000Z"
+    "total_amount": 420000,
+    "createdAt": "2025-10-15T00:00:00Z",
+    "updatedAt": "2025-10-15T00:00:00Z"
   },
   {
-    "purchase_order_id": "PO-2025-105",
-    "purchase_invoice_id": "PST-Q2-034",
-    "supplier_name": "PowerSecure Tech",
-    "supplier_address": "C-5, SIPCOT IT Park, Siruseri, Chennai, Tamil Nadu 603103",
-    "supplier_phone": "9840012345",
-    "supplier_email": "chennai.sales@powersecure.com",
-    "supplier_GSTIN": "33AFFCP4321K1Z7",
-    "purchase_date": "2025-09-30T00:00:00.000Z",
+    "purchase_order_id": "PO-CCTV-2025-102",
+    "purchase_invoice_id": "VT-INV-908",
+    "supplier_name": "VisionTech Security",
+    "supplier_address": "Unit 12, Andheri East, Mumbai, 400069",
+    "supplier_phone": "022-98765432",
+    "supplier_email": "orders@visiontech.co.in",
+    "supplier_GSTIN": "27BBBBB2222B1Z8",
+    "purchase_date": "2025-10-18T00:00:00Z",
     "items": [
       {
-        "description": "Solar Fence Energizer Unit",
-        "HSN_SAC": "8543",
-        "company": "PowerSecure",
-        "type": "Security",
-        "category": "Accessory",
-        "quantity": 15,
-        "unit_price": 11000,
-        "rate": 18
+        "description": "4MP Bullet Camera",
+        "specification": "IP67, 30m IR, H.265+",
+        "HSN_SAC": "8525",
+        "company": "Hikvision",
+        "type": "CCTV",
+        "category": "Camera",
+        "quantity": 50,
+        "unit_price": 2800,
+        "rate": 140000
       },
       {
-        "description": "5MP PTZ Solar Camera",
-        "HSN_SAC": "8525",
-        "company": "PowerSecure",
-        "type": "Security",
-        "category": "Camera",
-        "quantity": 15,
-        "unit_price": 7200,
-        "rate": 18
+        "description": "8-Channel NVR",
+        "specification": "1 SATA, 8 PoE Ports",
+        "HSN_SAC": "8521",
+        "company": "Hikvision",
+        "type": "CCTV",
+        "category": "Recorder",
+        "quantity": 10,
+        "unit_price": 7500,
+        "rate": 75000
+      },
+      {
+        "description": "1TB Surveillance HDD",
+        "specification": "SATA 6Gb/s",
+        "HSN_SAC": "8471",
+        "company": "Seagate",
+        "type": "CCTV",
+        "category": "Storage",
+        "quantity": 10,
+        "unit_price": 2900,
+        "rate": 29000
       }
     ],
-    "total_amount": 273000,
-    "createdAt": "2025-09-30T00:00:00.000Z",
-    "updatedAt": "2025-09-30T00:00:00.000Z"
+    "total_amount": 244000,
+    "createdAt": "2025-10-18T00:00:00Z",
+    "updatedAt": "2025-10-18T00:00:00Z"
+  },
+  {
+    "purchase_order_id": "PO-MIX-2025-103",
+    "purchase_invoice_id": "ELT-25-26-881",
+    "supplier_name": "ElectroLink Traders",
+    "supplier_address": "15, Ritchie Street, Chennai, 600002",
+    "supplier_phone": "044-55667788",
+    "supplier_email": "sales@electrolink.com",
+    "supplier_GSTIN": "33CCCCC3333C1Z7",
+    "purchase_date": "2025-10-20T00:00:00Z",
+    "items": [
+      {
+        "description": "Solar DC Wire 4 sq.mm Red",
+        "specification": "TUV Certified, 100m bundle",
+        "HSN_SAC": "8544",
+        "company": "Polycab",
+        "type": "Solar",
+        "category": "Wire",
+        "quantity": 10,
+        "unit_price": 3200,
+        "rate": 32000
+      },
+      {
+        "description": "CAT6 Cable Box",
+        "specification": "305m (1000ft), Solid Copper",
+        "HSN_SAC": "8544",
+        "company": "D-Link",
+        "type": "CCTV",
+        "category": "Wire",
+        "quantity": 5,
+        "unit_price": 4500,
+        "rate": 22500
+      },
+      {
+        "description": "MC4 Connectors (Pair)",
+        "specification": "IP67 Waterproof",
+        "HSN_SAC": "8536",
+        "company": "Generic",
+        "type": "Solar",
+        "category": "Accessory",
+        "quantity": 100,
+        "unit_price": 40,
+        "rate": 4000
+      }
+    ],
+    "total_amount": 58500,
+    "createdAt": "2025-10-20T00:00:00Z",
+    "updatedAt": "2025-10-20T00:00:00Z"
+  },
+  {
+    "purchase_order_id": "PO-SOL-2025-104",
+    "purchase_invoice_id": "INV-SS-45099",
+    "supplier_name": "Surya Solar Solutions",
+    "supplier_address": "Plot 42, Peenya Industrial Area, Bangalore, 560058",
+    "supplier_phone": "080-22334455",
+    "supplier_email": "sales@suryasolar.com",
+    "supplier_GSTIN": "29AAAAA1111A1Z9",
+    "purchase_date": "2025-10-22T00:00:00Z",
+    "items": [
+      {
+        "description": "150Ah Solar Battery",
+        "specification": "C10 Tubular, 5-year warranty",
+        "HSN_SAC": "8507",
+        "company": "Luminous",
+        "type": "Solar",
+        "category": "Battery",
+        "quantity": 10,
+        "unit_price": 11000,
+        "rate": 110000
+      },
+      {
+        "description": "GI Earthing Kit",
+        "specification": "1m rod, 20kg Earthing Compound",
+        "HSN_SAC": "8535",
+        "company": "Generic",
+        "type": "Solar",
+        "category": "Accessory",
+        "quantity": 15,
+        "unit_price": 2200,
+        "rate": 33000
+      }
+    ],
+    "total_amount": 143000,
+    "createdAt": "2025-10-22T00:00:00Z",
+    "updatedAt": "2025-10-22T00:00:00Z"
+  },
+  {
+    "purchase_order_id": "PO-CCTV-2025-105",
+    "purchase_invoice_id": "VT-INV-945",
+    "supplier_name": "VisionTech Security",
+    "supplier_address": "Unit 12, Andheri East, Mumbai, 400069",
+    "supplier_phone": "022-98765432",
+    "supplier_email": "orders@visiontech.co.in",
+    "supplier_GSTIN": "27BBBBB2222B1Z8",
+    "purchase_date": "2025-10-25T00:00:00Z",
+    "items": [
+      {
+        "description": "2MP Dome Camera",
+        "specification": "Full HD, 20m IR, DWDR",
+        "HSN_SAC": "8525",
+        "company": "CP Plus",
+        "type": "CCTV",
+        "category": "Camera",
+        "quantity": 30,
+        "unit_price": 1100,
+        "rate": 33000
+      },
+      {
+        "description": "4-Channel PoE Switch",
+        "specification": "4 PoE ports + 2 Uplink, 60W",
+        "HSN_SAC": "8517",
+        "company": "TP-Link",
+        "type": "CCTV",
+        "category": "Accessory",
+        "quantity": 10,
+        "unit_price": 2100,
+        "rate": 21000
+      }
+    ],
+    "total_amount": 54000,
+    "createdAt": "2025-10-25T00:00:00Z",
+    "updatedAt": "2025-10-25T00:00:00Z"
   }
 ]

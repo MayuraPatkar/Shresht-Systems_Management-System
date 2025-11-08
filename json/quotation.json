@@ -1,444 +1,350 @@
 [
-    {
-        "quotation_id": "QUO-SOL-2025-015",
-        "quotation_date": "2025-09-22T11:00:00.000Z",
-        "project_name": "10kW On-Grid Rooftop Solar for Residential Society",
-        "customer_name": "Mr. Arjun Desai",
-        "customer_address": "A-Wing, Harmony Apartments, Powai, Mumbai, 400076",
-        "customer_phone": "9820098200",
-        "customer_email": "arjun.desai@email.com",
-        "items": [
-            {
-                "description": "Monocrystalline PERC Solar Panels",
-                "specification": "545 Wp, 144 Half-Cut Cells",
-                "HSN_SAC": "8541",
-                "quantity": 19,
-                "unit_price": 15500,
-                "rate": 12
-            },
-            {
-                "description": "On-Grid String Inverter",
-                "specification": "10kW, 3 Phase, Wi-Fi enabled",
-                "HSN_SAC": "8504",
-                "quantity": 1,
-                "unit_price": 85000,
-                "rate": 12
-            },
-            {
-                "description": "Galvanized Iron Mounting Structure",
-                "specification": "Elevated structure for 10kW capacity",
-                "HSN_SAC": "7308",
-                "quantity": 1,
-                "unit_price": 45000,
-                "rate": 18
-            },
-            {
-                "description": "AC Distribution Box (ACDB)",
-                "specification": "IP65, with SPD and 3-Phase MCB",
-                "HSN_SAC": "8537",
-                "quantity": 1,
-                "unit_price": 9500,
-                "rate": 18
-            },
-            {
-                "description": "DC Distribution Box (DCDB)",
-                "specification": "4-in-1-out, with SPD and DC Fuses",
-                "HSN_SAC": "8537",
-                "quantity": 1,
-                "unit_price": 8000,
-                "rate": 18
-            },
-            {
-                "description": "Solar DC Cable",
-                "specification": "6 sq. mm, TUV Certified, Red & Black",
-                "HSN_SAC": "8544",
-                "quantity": 200,
-                "unit_price": 90,
-                "rate": 18
-            }
-        ],
-        "non_items": [
-            {
-                "description": "Installation, Commissioning & Net Metering",
-                "specification": "Includes all labor and liaisoning with DISCOM",
-                "price": 60000,
-                "rate": 18
-            }
-        ],
-        "total_tax": 75751,
-        "total_amount_no_tax": 519000,
-        "total_amount_tax": 594751,
-        "createdAt": "2025-09-22T11:05:21.000Z",
-        "updatedAt": "2025-09-22T11:05:21.000Z"
-    },
-    {
-        "quotation_id": "QUO-SEC-2025-016",
-        "quotation_date": "2025-09-23T14:20:00.000Z",
-        "project_name": "Warehouse Comprehensive Security System",
-        "customer_name": "Global Logistics Pvt. Ltd.",
-        "customer_address": "Plot 42, Industrial Area, Phase 2, Gurgaon, 122001",
-        "customer_phone": "9910099100",
-        "customer_email": "procurement@globallogistics.com",
-        "items": [
-            {
-                "description": "4MP IP Bullet Camera",
-                "specification": "H.265+, 30m IR, IP67 Weatherproof",
-                "HSN_SAC": "8525",
-                "quantity": 16,
-                "unit_price": 4500,
-                "rate": 18
-            },
-            {
-                "description": "4MP IP Dome Camera",
-                "specification": "Vandal-proof IK10, Indoor Use",
-                "HSN_SAC": "8525",
-                "quantity": 8,
-                "unit_price": 4200,
-                "rate": 18
-            },
-            {
-                "description": "32-Channel Network Video Recorder (NVR)",
-                "specification": "Supports up to 8MP, 4K HDMI Output",
-                "HSN_SAC": "8521",
-                "quantity": 1,
-                "unit_price": 28000,
-                "rate": 18
-            },
-            {
-                "description": "Surveillance Hard Disk Drive",
-                "specification": "8 TB, 24/7 Operation Optimized",
-                "HSN_SAC": "8471",
-                "quantity": 2,
-                "unit_price": 16000,
-                "rate": 18
-            },
-            {
-                "description": "24-Port Gigabit PoE Switch",
-                "specification": "250W Power Budget, Rack-mountable",
-                "HSN_SAC": "8517",
-                "quantity": 1,
-                "unit_price": 19500,
-                "rate": 18
-            },
-            {
-                "description": "CAT6 Networking Cable Roll",
-                "specification": "Pure Copper, 305 meters",
-                "HSN_SAC": "8544",
-                "quantity": 3,
-                "unit_price": 8500,
-                "rate": 18
-            }
-        ],
-        "non_items": [
-            {
-                "description": "Installation and Configuration Services",
-                "specification": "Camera mounting, cabling, NVR setup, and remote view config",
-                "price": 45000,
-                "rate": 18
-            }
-        ],
-        "total_tax": 45828,
-        "total_amount_no_tax": 254600,
-        "total_amount_tax": 300428,
-        "createdAt": "2025-09-23T14:21:45.000Z",
-        "updatedAt": "2025-09-23T14:21:45.000Z"
-    },
-    {
-        "quotation_id": "QUO-HYB-2025-017",
-        "quotation_date": "2025-09-24T10:00:00.000Z",
-        "project_name": "50kW Hybrid Solar Plant for a Factory",
-        "customer_name": "Precision Engineering Works",
-        "customer_address": "B-105, Peenya Industrial Estate, Bengaluru, 560058",
-        "customer_phone": "8049980499",
-        "customer_email": "director@precisionengg.com",
-        "items": [
-            {
-                "description": "Bifacial Solar Panels",
-                "specification": "540 Wp, Mono PERC Technology",
-                "HSN_SAC": "8541",
-                "quantity": 92,
-                "unit_price": 16000,
-                "rate": 12
-            },
-            {
-                "description": "Hybrid Solar Inverter",
-                "specification": "50kW, 3 Phase, with Battery Charging",
-                "HSN_SAC": "8504",
-                "quantity": 1,
-                "unit_price": 450000,
-                "rate": 12
-            },
-            {
-                "description": "Lithium-Ion (LFP) Battery Bank",
-                "specification": "48V, 100kWh capacity",
-                "HSN_SAC": "8507",
-                "quantity": 1,
-                "unit_price": 800000,
-                "rate": 18
-            },
-            {
-                "description": "Inverter & Battery Synchronization Panel",
-                "specification": "Custom panel for hybrid operation",
-                "HSN_SAC": "8537",
-                "quantity": 1,
-                "unit_price": 75000,
-                "rate": 18
-            },
-            {
-                "description": "Earthing and Lightning Arrester Kit",
-                "specification": "Chemical earthing with copper strips and LA",
-                "HSN_SAC": "8535",
-                "quantity": 4,
-                "unit_price": 12000,
-                "rate": 18
-            }
-        ],
-        "non_items": [
-            {
-                "description": "Civil Foundation & Structure Work",
-                "specification": "RCC foundation for panel mounting structures",
-                "price": 120000,
-                "rate": 18
-            },
-            {
-                "description": "System Design & Project Management",
-                "specification": "End-to-end project execution and supervision",
-                "price": 150000,
-                "rate": 18
-            }
-        ],
-        "total_tax": 435134.4,
-        "total_amount_no_tax": 3115000,
-        "total_amount_tax": 3550134.4,
-        "createdAt": "2025-09-24T10:04:18.000Z",
-        "updatedAt": "2025-09-24T10:04:18.000Z"
-    },
-    {
-        "quotation_id": "QUO-ACS-2025-018",
-        "quotation_date": "2025-09-25T16:45:00.000Z",
-        "project_name": "Office Access Control & Attendance System",
-        "customer_name": "Innovate Solutions Inc.",
-        "customer_address": "5th Floor, Cyber Towers, Hitec City, Hyderabad, 500081",
-        "customer_phone": "9100091000",
-        "customer_email": "admin@innovatesol.com",
-        "items": [
-            {
-                "description": "Biometric Fingerprint & RFID Reader",
-                "specification": "TCP/IP, Wi-Fi, 3000 user capacity",
-                "HSN_SAC": "8543",
-                "quantity": 4,
-                "unit_price": 8900,
-                "rate": 18
-            },
-            {
-                "description": "4-Door Access Control Panel",
-                "specification": "Wiegand Interface, supports 8 readers",
-                "HSN_SAC": "8543",
-                "quantity": 1,
-                "unit_price": 12500,
-                "rate": 18
-            },
-            {
-                "description": "Electromagnetic Lock (EM Lock)",
-                "specification": "600 lbs holding force, with ZL bracket",
-                "HSN_SAC": "8301",
-                "quantity": 4,
-                "unit_price": 3200,
-                "rate": 18
-            },
-            {
-                "description": "Exit Switch",
-                "specification": "No-touch, Infrared sensor based",
-                "HSN_SAC": "8536",
-                "quantity": 4,
-                "unit_price": 950,
-                "rate": 18
-            },
-            {
-                "description": "RFID Proximity Cards",
-                "specification": "125kHz, Clamshell type",
-                "HSN_SAC": "8523",
-                "quantity": 100,
-                "unit_price": 40,
-                "rate": 18
-            },
-            {
-                "description": "Power Supply with Battery Backup",
-                "specification": "12V 5A, metal casing",
-                "HSN_SAC": "8504",
-                "quantity": 1,
-                "unit_price": 3500,
-                "rate": 18
-            }
-        ],
-        "non_items": [
-            {
-                "description": "Software Installation & System Integration",
-                "specification": "Setup of attendance software and access rules",
-                "price": 20000,
-                "rate": 18
-            }
-        ],
-        "total_tax": 16596,
-        "total_amount_no_tax": 92200,
-        "total_amount_tax": 108796,
-        "createdAt": "2025-09-25T16:46:11.000Z",
-        "updatedAt": "2025-09-25T16:46:11.000Z"
-    },
-    {
-        "quotation_id": "QUO-COM-2025-019",
-        "quotation_date": "2025-09-26T12:00:00.000Z",
-        "project_name": "Gated Community Solar & Security Upgrade",
-        "customer_name": "Greenwood Enclave RWA",
-        "customer_address": "Greenwood Enclave, Sarjapur Road, Bengaluru, 560035",
-        "customer_phone": "9845098450",
-        "customer_email": "rwa.greenwood@gmail.com",
-        "items": [
-            {
-                "description": "All-in-One Solar Street Lights",
-                "specification": "30W LED, with inbuilt battery and panel",
-                "HSN_SAC": "9405",
-                "quantity": 25,
-                "unit_price": 14000,
-                "rate": 18
-            },
-            {
-                "description": "CCTV PTZ (Pan-Tilt-Zoom) Camera",
-                "specification": "2MP, 25x Optical Zoom, for perimeter",
-                "HSN_SAC": "8525",
-                "quantity": 4,
-                "unit_price": 22000,
-                "rate": 18
-            },
-            {
-                "description": "Boom Barrier Gate",
-                "specification": "6-meter arm, RFID compatible, for Main Gate",
-                "HSN_SAC": "8479",
-                "quantity": 2,
-                "unit_price": 75000,
-                "rate": 18
-            },
-            {
-                "description": "Long-Range UHF RFID Reader",
-                "specification": "12m read range for vehicle access",
-                "HSN_SAC": "8543",
-                "quantity": 2,
-                "unit_price": 35000,
-                "rate": 18
-            },
-            {
-                "description": "Video Door Phone System",
-                "specification": "7-inch display, for main entrance security cabin",
-                "HSN_SAC": "8517",
-                "quantity": 1,
-                "unit_price": 18000,
-                "rate": 18
-            }
-        ],
-        "non_items": [
-            {
-                "description": "Trenching and Cabling Work",
-                "specification": "For laying power and data cables across the property",
-                "price": 85000,
-                "rate": 18
-            },
-            {
-                "description": "Centralized Control Room Setup",
-                "specification": "Includes display monitors and operator console",
-                "price": 120000,
-                "rate": 18
-            }
-        ],
-        "total_tax": 158580,
-        "total_amount_no_tax": 881000,
-        "total_amount_tax": 1039580,
-        "createdAt": "2025-09-26T12:05:00.000Z",
-        "updatedAt": "2025-09-26T12:05:00.000Z"
-    },
-    {
-        "quotation_id": "QUO-WAT-2025-020",
-        "quotation_date": "2025-10-11T10:15:00.000Z",
-        "project_name": "Automated Drip Irrigation System for Farm",
-        "customer_name": "Sunrise Agro Farms",
-        "customer_address": "H.D. Kote Road, Mysuru, Karnataka, 570008",
-        "customer_phone": "9980099800",
-        "customer_email": "manager.sunriseagro@email.com",
-        "items": [
-            {
-                "description": "Smart Water Pump Controller",
-                "specification": "3-Phase, IoT Enabled, with Mobile App",
-                "HSN_SAC": "8537",
-                "quantity": 1,
-                "unit_price": 25000,
-                "rate": 18
-            },
-            {
-                "description": "Solenoid Valves",
-                "specification": "2-inch, 24V AC, Weatherproof",
-                "HSN_SAC": "8481",
-                "quantity": 12,
-                "unit_price": 3500,
-                "rate": 18
-            },
-            {
-                "description": "Soil Moisture Sensors",
-                "specification": "Capacitive, with 10m cable",
-                "HSN_SAC": "9031",
-                "quantity": 12,
-                "unit_price": 2200,
-                "rate": 18
-            },
-            {
-                "description": "HDPE Mainline Drip Tubing",
-                "specification": "16mm, 500m Roll",
-                "HSN_SAC": "3917",
-                "quantity": 4,
-                "unit_price": 4500,
-                "rate": 18
-            },
-            {
-                "description": "Pressure Compensating Drip Emitters",
-                "specification": "4 Liters Per Hour (LPH)",
-                "HSN_SAC": "8424",
-                "quantity": 5000,
-                "unit_price": 5,
-                "rate": 18
-            },
-            {
-                "description": "Venturi Fertilizer Injector",
-                "specification": "1.5 inch inlet/outlet",
-                "HSN_SAC": "8424",
-                "quantity": 1,
-                "unit_price": 7500,
-                "rate": 18
-            },
-            {
-                "description": "Disc Filter for Irrigation",
-                "specification": "120 Mesh, 2 inch connection",
-                "HSN_SAC": "8421",
-                "quantity": 1,
-                "unit_price": 6000,
-                "rate": 18
-            }
-        ],
-        "non_items": [
-            {
-                "description": "System Installation & Trenching",
-                "specification": "Includes pipe laying, valve installation, and sensor placement",
-                "price": 75000,
-                "rate": 18
-            },
-            {
-                "description": "Automation Programming & Commissioning",
-                "specification": "Configuration of watering schedules based on sensor data",
-                "price": 20000,
-                "rate": 18
-            }
-        ],
-        "total_tax": 44082,
-        "total_amount_no_tax": 244900,
-        "total_amount_tax": 288982,
-        "createdAt": "2025-10-11T10:16:30.000Z",
-        "updatedAt": "2025-10-11T10:16:30.000Z"
-    }
+  {
+    "quotation_id": "QT-SOL-2025-001",
+    "quotation_date": "2025-11-01T10:00:00Z",
+    "project_name": "3kW Rooftop Solar System",
+    "customer_name": "Ravi Sharma",
+    "customer_address": "123, MG Road, Bangalore, 560001",
+    "customer_phone": "9876543210",
+    "customer_email": "ravi.sharma@example.com",
+    "items": [
+      {
+        "description": "Solar Panel 550W Mono PERC",
+        "specification": "144 Cells, 10-year product warranty",
+        "HSN_SAC": "8541",
+        "quantity": 6,
+        "unit_price": 13500,
+        "rate": 81000
+      },
+      {
+        "description": "3kW Grid-Tie Inverter",
+        "specification": "Single Phase, Wi-Fi Enabled",
+        "HSN_SAC": "8504",
+        "quantity": 1,
+        "unit_price": 22000,
+        "rate": 22000
+      },
+      {
+        "description": "Solar DC Wire 4 sq.mm Red",
+        "specification": "TUV Certified, 100m bundle",
+        "HSN_SAC": "8544",
+        "quantity": 1,
+        "unit_price": 3800,
+        "rate": 3800
+      }
+    ],
+    "non_items": [
+      {
+        "description": "Installation & Commissioning",
+        "specification": "Includes mounting structure, earthing, and labor",
+        "price": 15000,
+        "rate": 15000
+      }
+    ],
+    "total_tax": 21924,
+    "total_amount_no_tax": 121800,
+    "total_amount_tax": 143724,
+    "subject": "Proposal for the Supply, Installation, and Commissioning of 3kW Rooftop Solar System",
+    "letter_1": "We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of 3kW Rooftop Solar System. At Shresht Systems, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.",
+    "letter_2": [
+      "Cutting-edge technology and premium-grade equipment",
+      "Expert installation by certified professionals",
+      "Comprehensive commissioning and quality assurance",
+      "Reliable after-sales support and service"
+    ],
+    "letter_3": "We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.",
+    "headline": "3kW Rooftop Solar System",
+    "notes": [
+      "All prices are exclusive of taxes unless stated otherwise.",
+      "Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation.",
+      "Delivery and installation will be completed within the stipulated timeline as per mutual agreement.",
+      "All equipment supplied is covered under the manufacturer's standard warranty."
+    ],
+    "termsAndConditions": "Lead Time: Delivery and installation will be completed within the stipulated timeline as per mutual agreement. Payment Terms: 50% advance upon order confirmation. 40% before dispatch of materials. 10% after successful installation and commissioning. Warranty: All equipment supplied is covered under the manufacturer's standard warranty. Quote Validity: 30 days from the date of issue.",
+    "createdAt": "2025-11-01T10:00:00Z",
+    "updatedAt": "2025-11-01T10:00:00Z"
+  },
+  {
+    "quotation_id": "QT-CCTV-2025-002",
+    "quotation_date": "2025-11-02T11:30:00Z",
+    "project_name": "Office Security Camera Setup",
+    "customer_name": "Priya Fernandes",
+    "customer_address": "45, Colaba, Mumbai, 400005",
+    "customer_phone": "9988776655",
+    "customer_email": "priya.f@example.com",
+    "items": [
+      {
+        "description": "Wi-Fi Smart Camera 2MP",
+        "specification": "Indoor Dome, PTZ",
+        "HSN_SAC": "8525",
+        "quantity": 4,
+        "unit_price": 2400,
+        "rate": 9600
+      },
+      {
+        "description": "4MP Bullet Camera",
+        "specification": "Outdoor, IP66, 30m IR",
+        "HSN_SAC": "8525",
+        "quantity": 2,
+        "unit_price": 3500,
+        "rate": 7000
+      },
+      {
+        "description": "8-Channel NVR",
+        "specification": "H.265+ Compression, 1 SATA",
+        "HSN_SAC": "8521",
+        "quantity": 1,
+        "unit_price": 6000,
+        "rate": 6000
+      },
+      {
+        "description": "1TB Surveillance HDD",
+        "specification": "WD Purple",
+        "HSN_SAC": "8471",
+        "quantity": 1,
+        "unit_price": 3200,
+        "rate": 3200
+      }
+    ],
+    "non_items": [
+      {
+        "description": "Installation & Configuration",
+        "specification": "Includes wiring, setup, and mobile app configuration",
+        "price": 5000,
+        "rate": 5000
+      }
+    ],
+    "total_tax": 5544,
+    "total_amount_no_tax": 30800,
+    "total_amount_tax": 36344,
+    "subject": "Proposal for the Supply, Installation, and Commissioning of Office Security Camera Setup",
+    "letter_1": "We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of Office Security Camera Setup. At Shresht Systems, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.",
+    "letter_2": [
+      "Cutting-edge technology and premium-grade equipment",
+      "Expert installation by certified professionals",
+      "Comprehensive commissioning and quality assurance"
+    ],
+    "letter_3": "We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.",
+    "headline": "Office Security Camera Setup",
+    "notes": [
+      "All prices are exclusive of taxes unless stated otherwise.",
+      "Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation.",
+      "All equipment supplied is covered under the manufacturer's standard warranty."
+    ],
+    "termsAndConditions": "Lead Time: Delivery and installation will be completed within the stipulated timeline as per mutual agreement. Payment Terms: 50% advance upon order confirmation. 40% before dispatch of materials. 10% after successful installation and commissioning. Warranty: All equipment supplied is covered under the manufacturer's standard warranty. Quote Validity: 30 days from the date of issue.",
+    "createdAt": "2025-11-02T11:30:00Z",
+    "updatedAt": "2025-11-02T11:30:00Z"
+  },
+  {
+    "quotation_id": "QT-HYB-2025-003",
+    "quotation_date": "2025-11-03T09:00:00Z",
+    "project_name": "Farmhouse Solar & Security",
+    "customer_name": "Arjun Reddy",
+    "customer_address": "22, Jubilee Hills, Hyderabad, 500033",
+    "customer_phone": "9123456789",
+    "customer_email": "arjun.reddy@example.com",
+    "items": [
+      {
+        "description": "Solar Panel 550W Mono PERC",
+        "specification": "High Efficiency",
+        "HSN_SAC": "8541",
+        "quantity": 4,
+        "unit_price": 13500,
+        "rate": 54000
+      },
+      {
+        "description": "2kW Off-Grid Inverter",
+        "specification": "MPPT Charge Controller",
+        "HSN_SAC": "8504",
+        "quantity": 1,
+        "unit_price": 18000,
+        "rate": 18000
+      },
+      {
+        "description": "150Ah Solar Battery",
+        "specification": "C10 Tubular, 5-year warranty",
+        "HSN_SAC": "8507",
+        "quantity": 2,
+        "unit_price": 14000,
+        "rate": 28000
+      },
+      {
+        "description": "Wi-Fi Smart Camera 2MP",
+        "specification": "Outdoor, Solar Compatible",
+        "HSN_SAC": "8525",
+        "quantity": 3,
+        "unit_price": 2400,
+        "rate": 7200
+      }
+    ],
+    "non_items": [
+      {
+        "description": "System Integration Service",
+        "specification": "Connecting solar and CCTV systems",
+        "price": 10000,
+        "rate": 10000
+      }
+    ],
+    "total_tax": 21096,
+    "total_amount_no_tax": 117200,
+    "total_amount_tax": 138296,
+    "subject": "Proposal for the Supply, Installation, and Commissioning of Farmhouse Solar & Security",
+    "letter_1": "We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of Farmhouse Solar & Security. At Shresht Systems, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.",
+    "letter_2": [
+      "Cutting-edge technology and premium-grade equipment",
+      "Expert installation by certified professionals",
+      "Comprehensive commissioning and quality assurance",
+      "Reliable after-sales support and service"
+    ],
+    "letter_3": "We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.",
+    "headline": "Farmhouse Solar & Security",
+    "notes": [
+      "All prices are exclusive of taxes unless stated otherwise.",
+      "Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation."
+    ],
+    "termsAndConditions": "Lead Time: Delivery and installation will be completed within the stipulated timeline as per mutual agreement. Payment Terms: 50% advance upon order confirmation. 40% before dispatch of materials. 10% after successful installation and commissioning. Warranty: All equipment supplied is covered under the manufacturer's standard warranty. Quote Validity: 30 days from the date of issue.",
+    "createdAt": "2025-11-03T09:00:00Z",
+    "updatedAt": "2025-11-03T09:00:00Z"
+  },
+  {
+    "quotation_id": "QT-SOL-2025-004",
+    "quotation_date": "2025-11-04T14:00:00Z",
+    "project_name": "10kW Commercial Solar Plant",
+    "customer_name": "Mehta Enterprises",
+    "customer_address": "77, GIDC, Vapi, Gujarat, 396195",
+    "customer_phone": "9898989898",
+    "customer_email": "accounts@mehtaent.com",
+    "items": [
+      {
+        "description": "Solar Panel 550W Mono PERC",
+        "specification": "Bulk Order, 18 units",
+        "HSN_SAC": "8541",
+        "quantity": 18,
+        "unit_price": 13200,
+        "rate": 237600
+      },
+      {
+        "description": "10kW Grid-Tie Inverter",
+        "specification": "Three Phase, Dual MPPT",
+        "HSN_SAC": "8504",
+        "quantity": 1,
+        "unit_price": 75000,
+        "rate": 75000
+      },
+      {
+        "description": "AC/DC Distribution Box",
+        "specification": "With SPD and Fuses",
+        "HSN_SAC": "8537",
+        "quantity": 1,
+        "unit_price": 12000,
+        "rate": 12000
+      },
+      {
+        "description": "Solar DC Wire 4 sq.mm Black",
+        "specification": "TUV Certified, 200m",
+        "HSN_SAC": "8544",
+        "quantity": 2,
+        "unit_price": 3800,
+        "rate": 7600
+      }
+    ],
+    "non_items": [
+      {
+        "description": "Installation & Commissioning",
+        "specification": "Full commercial setup and labor",
+        "price": 45000,
+        "rate": 45000
+      },
+      {
+        "description": "Liasioning & Net-Metering",
+        "specification": "Government approval charges",
+        "price": 8000,
+        "rate": 8000
+      }
+    ],
+    "total_tax": 69678,
+    "total_amount_no_tax": 385200,
+    "total_amount_tax": 454878,
+    "subject": "Proposal for the Supply, Installation, and Commissioning of 10kW Commercial Solar Plant",
+    "letter_1": "We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of 10kW Commercial Solar Plant. At Shresht Systems, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.",
+    "letter_2": [
+      "Cutting-edge technology and premium-grade equipment",
+      "Expert installation by certified professionals",
+      "Comprehensive commissioning and quality assurance",
+      "Reliable after-sales support and service"
+    ],
+    "letter_3": "We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.",
+    "headline": "10kW Commercial Solar Plant",
+    "notes": [
+      "All prices are exclusive of taxes unless stated otherwise.",
+      "Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation.",
+      "Delivery and installation will be completed within the stipulated timeline as per mutual agreement.",
+      "All equipment supplied is covered under the manufacturer's standard warranty."
+    ],
+    "termsAndConditions": "Lead Time: Delivery and installation will be completed within the stipulated timeline as per mutual agreement. Payment Terms: 50% advance upon order confirmation. 40% before dispatch of materials. 10% after successful installation and commissioning. Warranty: All equipment supplied is covered under the manufacturer's standard warranty. Quote Validity: 30 days from the date of issue.",
+    "createdAt": "2025-11-04T14:00:00Z",
+    "updatedAt": "2025-11-04T14:00:00Z"
+  },
+  {
+    "quotation_id": "QT-CCTV-2025-005",
+    "quotation_date": "2025-11-05T16:30:00Z",
+    "project_name": "Home CCTV System Upgrade",
+    "customer_name": "Sunita Rao",
+    "customer_address": "8, Anna Nagar, Chennai, 600040",
+    "customer_phone": "9765432109",
+    "customer_email": "sunitarao@example.com",
+    "items": [
+      {
+        "description": "4MP ColorVu Dome Camera",
+        "specification": "24/7 Color Imaging, Built-in Mic",
+        "HSN_SAC": "8525",
+        "quantity": 4,
+        "unit_price": 4200,
+        "rate": 16800
+      },
+      {
+        "description": "8-Channel DVR",
+        "specification": "AcuSense Technology, H.265+",
+        "HSN_SAC": "8521",
+        "quantity": 1,
+        "unit_price": 5500,
+        "rate": 5500
+      },
+      {
+        "description": "2TB Surveillance HDD",
+        "specification": "Seagate SkyHawk",
+        "HSN_SAC": "8471",
+        "quantity": 1,
+        "unit_price": 4800,
+        "rate": 4800
+      }
+    ],
+    "non_items": [
+      {
+        "description": "Old System Removal & New Installation",
+        "specification": "Includes removal of old cameras and wiring check",
+        "price": 3500,
+        "rate": 3500
+      }
+    ],
+    "total_tax": 5508,
+    "total_amount_no_tax": 30600,
+    "total_amount_tax": 36108,
+    "subject": "Proposal for the Supply, Installation, and Commissioning of Home CCTV System Upgrade",
+    "letter_1": "We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of Home CCTV System Upgrade. At Shresht Systems, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.",
+    "letter_2": [
+      "Cutting-edge technology and premium-grade equipment",
+      "Expert installation by certified professionals"
+    ],
+    "letter_3": "We are confident that our offering will add significant value to your operations. Please find the detailed quotation enclosed for your review. Should you require any further information or modifications, feel free to contact us.",
+    "headline": "Home CCTV System Upgrade",
+    "notes": [
+      "All prices are exclusive of taxes unless stated otherwise.",
+      "Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation.",
+      "All equipment supplied is covered under the manufacturer's standard warranty."
+    ],
+    "termsAndConditions": "Lead Time: Delivery and installation will be completed within the stipulated timeline as per mutual agreement. Payment Terms: 50% advance upon order confirmation. 40% before dispatch of materials. 10% after successful installation and commissioning. Warranty: All equipment supplied is covered under the manufacturer's standard warranty. Quote Validity: 30 days from the date of issue.",
+    "createdAt": "2025-11-05T16:30:00Z",
+    "updatedAt": "2025-11-05T16:30:00Z"
+  }
 ]
