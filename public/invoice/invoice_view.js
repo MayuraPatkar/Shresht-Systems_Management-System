@@ -384,72 +384,77 @@ async function viewInvoice(invoiceId, userRole) {
                     <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
                 `;
-            detailPaymentsTableBody.appendChild(row);
+                detailPaymentsTableBody.appendChild(row);
+            }
         }
 
 
         // Item List
         const detailItemsTableBody = document.querySelector("#view-items-table tbody");
-        detailItemsTableBody.innerHTML = "";
-        if (type === 'original') {
-            (invoice.items_original || []).forEach(item => {
-                const row = document.createElement("tr");
-                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
-                `;
-                detailItemsTableBody.appendChild(row);
-            });
-        }
-        else {
-            (invoice.items_duplicate || []).forEach(item => {
-                const row = document.createElement("tr");
-                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
-                `;
-                detailItemsTableBody.appendChild(row);
-            });
+        if (detailItemsTableBody) {
+            detailItemsTableBody.innerHTML = "";
+            if (type === 'original') {
+                (invoice.items_original || []).forEach(item => {
+                    const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                    `;
+                    detailItemsTableBody.appendChild(row);
+                });
+            }
+            else {
+                (invoice.items_duplicate || []).forEach(item => {
+                    const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                    `;
+                    detailItemsTableBody.appendChild(row);
+                });
+            }
         }
 
         // Item List
         const detailNonItemsTableBody = document.querySelector("#view-non-items-table tbody");
-        detailNonItemsTableBody.innerHTML = "";
-        if (type === 'original') {
-            (invoice.non_items_original || []).forEach(item => {
-                const row = document.createElement("tr");
-                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
-                `;
-                detailNonItemsTableBody.appendChild(row);
-            });
-        }
-        else {
-            (invoice.non_items_duplicate || []).forEach(item => {
-                const row = document.createElement("tr");
-                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
-                `;
-                detailNonItemsTableBody.appendChild(row);
-            });
+        if (detailNonItemsTableBody) {
+            detailNonItemsTableBody.innerHTML = "";
+            if (type === 'original') {
+                (invoice.non_items_original || []).forEach(item => {
+                    const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                    `;
+                    detailNonItemsTableBody.appendChild(row);
+                });
+            }
+            else {
+                (invoice.non_items_duplicate || []).forEach(item => {
+                    const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                    `;
+                    detailNonItemsTableBody.appendChild(row);
+                });
+            }
         }
 
 

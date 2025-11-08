@@ -1,19 +1,25 @@
 const express = require('express');
-const router  = express.Router();
+const router = express.Router();
 const { Invoices, Quotations, Purchases } = require('../models');
 const log = require('electron-log');          // preload‑side logger
 
 router.get('/overview', async (req, res) => {
   try {
     /* ───────────────────────── Common date helpers ────────────────────────── */
-    const now          = new Date();
+    const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startNextMon = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
     /* ────────────────────────── Simple document counts ────────────────────── */
-    const totalProjects   = await Invoices.countDocuments();
+    const totalProjects = await Invoices.countDocuments();
     const totalQuotations = await Quotations.countDocuments();
-    const totalUnpaid     = await Invoices.countDocuments({ payment_status: 'Unpaid' });
+
+    // Count distinct projects with unpaid invoices (not invoice documents)
+    const unpaidProjectsResult = await Invoices.aggregate([
+      { $match: { payment_status: { $in: ['Unpaid', 'Partial'] } } },
+      { $group: { _id: '$project_name' } }
+    ]);
+    const totalUnpaid = unpaidProjectsResult.length;
 
     /* ────────────────────── Monthly invoice earnings (Paid) ───────────────── */
     // Calculate total earned: Sum of total_paid_amount for all invoices
@@ -55,8 +61,8 @@ router.get('/overview', async (req, res) => {
 
     /* ────────────────────── Remaining service months (invoices) ───────────── */
     // Count invoices with service_month > 0 (active services)
-    const remainingServices = await Invoices.countDocuments({ 
-      service_month: { $gt: 0 } 
+    const remainingServices = await Invoices.countDocuments({
+      service_month: { $gt: 0 }
     });
 
     /* ────────────────────────────── Response ──────────────────────────────── */
@@ -78,11 +84,11 @@ router.get('/overview', async (req, res) => {
 router.get('/comparison', async (req, res) => {
   try {
     const now = new Date();
-    
+
     // Current month dates
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    
+
     // Previous month dates
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
