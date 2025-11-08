@@ -319,7 +319,12 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
 
 async function viewInvoice(invoiceId, userRole) {
     try {
-        const type = sessionStorage.getItem('view-invoice');
+        // Ensure userRole is set, default to 'user' if not provided
+        if (!userRole) {
+            userRole = sessionStorage.getItem('userRole') || 'user';
+        }
+        
+        const type = sessionStorage.getItem('view-invoice') || 'duplicate';
         const response = await fetch(`/invoice/${invoiceId}`);
         if (!response.ok) {
             throw new Error("Failed to fetch invoice");
@@ -331,120 +336,137 @@ async function viewInvoice(invoiceId, userRole) {
 
 
         // Hide other sections, show view section
-        document.getElementById('view-preview').style.display = 'none';
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'none';
-        document.getElementById('view').style.display = 'flex';
+        const viewPreview = document.getElementById('view-preview');
+        const home = document.getElementById('home');
+        const newSection = document.getElementById('new');
+        const view = document.getElementById('view');
+        
+        if (viewPreview) viewPreview.style.display = 'none';
+        if (home) home.style.display = 'none';
+        if (newSection) newSection.style.display = 'none';
+        if (view) view.style.display = 'flex';
 
-        // Fill Project Details
-        document.getElementById('view-project-name').textContent = invoice.project_name || '-';
-        document.getElementById('view-project-id').textContent = invoice.invoice_id || '-';
-        document.getElementById('view-purchase-order-number').textContent = invoice.po_number || '-';
-        document.getElementById('view-delivery-challan-number').textContent = invoice.dc_number || '-';
-        document.getElementById('view-delivery-challan-date').textContent = invoice.dc_date ? await formatDate(invoice.dc_date) : '-';
-        document.getElementById('view-waybill-number').textContent = invoice.Waybill_id || '-';
-        document.getElementById('view-service-months').textContent = invoice.service_month || '-';
+        // Fill Project Details with null checks
+        const setTextContent = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value || '-';
+        };
 
-        document.getElementById('view-payment-status').textContent = invoice.payment_status || '-';
+        setTextContent('view-project-name', invoice.project_name);
+        setTextContent('view-project-id', invoice.invoice_id);
+        setTextContent('view-purchase-order-number', invoice.po_number);
+        setTextContent('view-delivery-challan-number', invoice.dc_number);
+        setTextContent('view-delivery-challan-date', invoice.dc_date ? await formatDate(invoice.dc_date) : null);
+        setTextContent('view-waybill-number', invoice.Waybill_id);
+        setTextContent('view-service-months', invoice.service_month);
+        setTextContent('view-payment-status', invoice.payment_status);
+        
         const balanceDue = (invoice.total_amount_duplicate || 0) - (invoice.total_paid_amount || 0);
-        document.getElementById('view-balance-due').textContent = `₹ ${formatIndian(balanceDue, 2)}`;
+        setTextContent('view-balance-due', `₹ ${formatIndian(balanceDue, 2)}`);
 
         // Buyer & Consignee
-        document.getElementById('view-buyer-name').textContent = invoice.customer_name || '-';
-        document.getElementById('view-buyer-address').textContent = invoice.customer_address || '-';
-        document.getElementById('view-buyer-phone').textContent = invoice.customer_phone || '-';
-        document.getElementById('view-buyer-email').textContent = invoice.customer_email || '-';
-        document.getElementById('view-consignee-name').textContent = invoice.consignee_name || '-';
-        document.getElementById('view-consignee-address').textContent = invoice.consignee_address || '-';
+        setTextContent('view-buyer-name', invoice.customer_name);
+        setTextContent('view-buyer-address', invoice.customer_address);
+        setTextContent('view-buyer-phone', invoice.customer_phone);
+        setTextContent('view-buyer-email', invoice.customer_email);
+        setTextContent('view-consignee-name', invoice.consignee_name);
+        setTextContent('view-consignee-address', invoice.consignee_address);
+        
         if (userRole == 'admin' && type == 'original') {
-            document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(invoice.total_amount_original, 2)}` || '-';
-            document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(invoice.total_tax_original, 2)}` || '-';
-            document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(invoice.total_amount_original, 2)}` || '-';
-            document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(invoice.total_amount_original - invoice.total_tax_original, 2)}` || '-';
+            setTextContent('view-total-amount', `₹ ${formatIndian(invoice.total_amount_original, 2)}`);
+            setTextContent('view-total-tax', `₹ ${formatIndian(invoice.total_tax_original, 2)}`);
+            setTextContent('view-total-with-tax', `₹ ${formatIndian(invoice.total_amount_original, 2)}`);
+            setTextContent('view-total-without-tax', `₹ ${formatIndian(invoice.total_amount_original - invoice.total_tax_original, 2)}`);
         } else {
-            document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}` || '-';
-            document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(invoice.total_tax_duplicate, 2)}` || '-';
-            document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}` || '-';
-            document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate - invoice.total_tax_duplicate, 2)}` || '-';
+            setTextContent('view-total-amount', `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}`);
+            setTextContent('view-total-tax', `₹ ${formatIndian(invoice.total_tax_duplicate, 2)}`);
+            setTextContent('view-total-with-tax', `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}`);
+            setTextContent('view-total-without-tax', `₹ ${formatIndian(invoice.total_amount_duplicate - invoice.total_tax_duplicate, 2)}`);
         }
 
         // Payment History
         const detailPaymentsTableBody = document.querySelector("#view-payments-table tbody");
-        detailPaymentsTableBody.innerHTML = "";
-        for (const item of (invoice.payments || [])) {
-            const row = document.createElement("tr");
-            row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-            row.innerHTML = `
+        if (detailPaymentsTableBody) {
+            detailPaymentsTableBody.innerHTML = "";
+            for (const item of (invoice.payments || [])) {
+                const row = document.createElement("tr");
+                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                row.innerHTML = `
                     <td class="px-4 py-3 text-sm text-gray-900">${await formatDate(item.payment_date) || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
                 `;
-            detailPaymentsTableBody.appendChild(row);
+                detailPaymentsTableBody.appendChild(row);
+            }
         }
 
 
         // Item List
         const detailItemsTableBody = document.querySelector("#view-items-table tbody");
-        detailItemsTableBody.innerHTML = "";
-        if (type === 'original') {
-            (invoice.items_original || []).forEach(item => {
-                const row = document.createElement("tr");
-                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
-                `;
-                detailItemsTableBody.appendChild(row);
-            });
-        }
-        else {
-            (invoice.items_duplicate || []).forEach(item => {
-                const row = document.createElement("tr");
-                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
-                `;
-                detailItemsTableBody.appendChild(row);
-            });
+        if (detailItemsTableBody) {
+            detailItemsTableBody.innerHTML = "";
+            if (type === 'original') {
+                (invoice.items_original || []).forEach(item => {
+                    const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                    `;
+                    detailItemsTableBody.appendChild(row);
+                });
+            }
+            else {
+                (invoice.items_duplicate || []).forEach(item => {
+                    const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                    `;
+                    detailItemsTableBody.appendChild(row);
+                });
+            }
         }
 
         // Item List
         const detailNonItemsTableBody = document.querySelector("#view-non-items-table tbody");
-        detailNonItemsTableBody.innerHTML = "";
-        if (type === 'original') {
-            (invoice.non_items_original || []).forEach(item => {
-                const row = document.createElement("tr");
-                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
-                `;
-                detailNonItemsTableBody.appendChild(row);
-            });
-        }
-        else {
-            (invoice.non_items_duplicate || []).forEach(item => {
-                const row = document.createElement("tr");
-                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-                row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
-                `;
-                detailNonItemsTableBody.appendChild(row);
-            });
+        if (detailNonItemsTableBody) {
+            detailNonItemsTableBody.innerHTML = "";
+            if (type === 'original') {
+                (invoice.non_items_original || []).forEach(item => {
+                    const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                    `;
+                    detailNonItemsTableBody.appendChild(row);
+                });
+            }
+            else {
+                (invoice.non_items_duplicate || []).forEach(item => {
+                    const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                    `;
+                    detailNonItemsTableBody.appendChild(row);
+                });
+            }
         }
 
 

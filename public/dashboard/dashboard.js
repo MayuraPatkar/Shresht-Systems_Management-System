@@ -146,7 +146,7 @@ function loadRecentActivity() {
                 title: `Quotation #${q.quotation_id || 'N/A'}`,
                 description: q.project_name || 'No project name',
                 time: q.created_at || q.date || new Date(),
-                link: '../quotation/quotation.html'
+                link: `../quotation/quotation.html?view=${encodeURIComponent(q.quotation_id || '')}`
             });
         });
 
@@ -159,7 +159,7 @@ function loadRecentActivity() {
                 title: `Invoice #${i.invoice_id || 'N/A'}`,
                 description: i.project_name || 'No project name',
                 time: i.created_at || i.date || new Date(),
-                link: '../invoice/invoice.html'
+                link: `../invoice/invoice.html?view=${encodeURIComponent(i.invoice_id || '')}`
             });
         });
 
@@ -172,7 +172,7 @@ function loadRecentActivity() {
                 title: `Waybill #${w.waybill_id || 'N/A'}`,
                 description: w.project_name || 'No project name',
                 time: w.created_at || w.date || new Date(),
-                link: '../waybill/wayBill.html'
+                link: `../waybill/wayBill.html?view=${encodeURIComponent(w.waybill_id || '')}`
             });
         });
 
@@ -185,7 +185,7 @@ function loadRecentActivity() {
                 title: `Service #${s.service_id || 'N/A'}`,
                 description: s.project_name || s.customer_name || 'No description',
                 time: s.created_at || s.date || new Date(),
-                link: '../service/service.html'
+                link: `../service/service.html?view=${encodeURIComponent(s.service_id || '')}`
             });
         });
 
@@ -286,6 +286,7 @@ function displayStockAlerts(items) {
     container.innerHTML = items.map(item => {
         const qty = parseInt(item.quantity) || 0;
         const isOutOfStock = qty === 0;
+        const itemName = item.item_name || 'Unknown Item';
         
         if (isOutOfStock) {
             return `
@@ -295,13 +296,13 @@ function displayStockAlerts(items) {
                             <i class="fas fa-times-circle text-red-600"></i>
                         </div>
                         <div>
-                            <p class="font-medium text-gray-800">${item.item_name || 'Unknown Item'}</p>
+                            <p class="font-medium text-gray-800">${itemName}</p>
                             <p class="text-sm text-gray-600">
                                 <span class="text-red-600 font-semibold">Out of Stock</span>
                             </p>
                         </div>
                     </div>
-                    <a href="../stock/stock.html" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                    <a href="../stock/stock.html?item=${encodeURIComponent(itemName)}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                         Restock →
                     </a>
                 </div>
@@ -314,11 +315,11 @@ function displayStockAlerts(items) {
                             <i class="fas fa-exclamation-triangle text-yellow-600"></i>
                         </div>
                         <div>
-                            <p class="font-medium text-gray-800">${item.item_name || 'Unknown Item'}</p>
+                            <p class="font-medium text-gray-800">${itemName}</p>
                             <p class="text-sm text-gray-600">Only ${qty} left</p>
                         </div>
                     </div>
-                    <a href="../stock/stock.html" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                    <a href="../stock/stock.html?item=${encodeURIComponent(itemName)}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                         Restock →
                     </a>
                 </div>
