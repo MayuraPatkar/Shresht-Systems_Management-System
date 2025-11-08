@@ -1,0 +1,414 @@
+[
+  {
+    "quotation_id": "QT-SOL-2025-001",
+    "invoice_id": "INV-2526-001",
+    "project_name": "3kW Rooftop Solar System",
+    "invoice_date": "2025-11-05T10:00:00Z",
+    "po_number": "PO-RSharma-001",
+    "po_date": "2025-11-01T00:00:00Z",
+    "Waybill_id": "WB-2526-001",
+    "customer_name": "Ravi Sharma",
+    "customer_address": "123, MG Road, Bangalore, 560001",
+    "customer_phone": "9876543210",
+    "customer_email": "ravi.sharma@example.com",
+    "consignee_name": "Ravi Sharma",
+    "consignee_address": "123, MG Road, Bangalore, 560001",
+    "items_original": [
+      {
+        "description": "Solar Panel 550W Mono PERC",
+        "HSN_SAC": "8541",
+        "quantity": 6,
+        "unit_price": 13500,
+        "rate": 81000
+      },
+      {
+        "description": "3kW Grid-Tie Inverter",
+        "HSN_SAC": "8504",
+        "quantity": 1,
+        "unit_price": 22000,
+        "rate": 22000
+      }
+    ],
+    "items_duplicate": [
+      {
+        "description": "Solar Panel 550W Mono PERC",
+        "HSN_SAC": "8541",
+        "quantity": 6,
+        "unit_price": 13500,
+        "rate": 81000
+      },
+      {
+        "description": "3kW Grid-Tie Inverter",
+        "HSN_SAC": "8504",
+        "quantity": 1,
+        "unit_price": 22000,
+        "rate": 22000
+      }
+    ],
+    "non_items_original": [
+      {
+        "description": "Installation & Commissioning",
+        "price": 15000,
+        "rate": 15000
+      }
+    ],
+    "non_items_duplicate": [
+      {
+        "description": "Installation & Commissioning",
+        "price": 15000,
+        "rate": 15000
+      }
+    ],
+    "total_amount_original": 133460,
+    "total_amount_duplicate": 133460,
+    "total_tax_original": 15460,
+    "total_tax_duplicate": 15460,
+    "total_paid_amount": 133460,
+    "payments": [
+      {
+        "payment_date": "2025-11-01T00:00:00Z",
+        "paid_amount": 66730,
+        "payment_mode": "Bank Transfer",
+        "extra_details": "NEFT: SBIN0001234 - 50% Advance"
+      },
+      {
+        "payment_date": "2025-11-05T00:00:00Z",
+        "paid_amount": 66730,
+        "payment_mode": "UPI",
+        "extra_details": "UPI ID: ravi.sharma@okbank - Final Payment"
+      }
+    ],
+    "payment_status": "Paid",
+    "createdAt": "2025-11-05T10:00:00Z",
+    "updatedAt": "2025-11-05T10:00:00Z"
+  },
+  {
+    "quotation_id": "QT-CCTV-2025-002",
+    "invoice_id": "INV-2526-002",
+    "project_name": "Office Security Camera Setup",
+    "invoice_date": "2025-11-06T11:00:00Z",
+    "Waybill_id": "WB-2526-002",
+    "customer_name": "Priya Fernandes",
+    "customer_address": "45, Colaba, Mumbai, 400005",
+    "customer_phone": "9988776655",
+    "customer_email": "priya.f@example.com",
+    "consignee_name": "Priya Fernandes",
+    "consignee_address": "45, Colaba, Mumbai, 400005",
+    "items_original": [
+      {
+        "description": "Wi-Fi Smart Camera 2MP",
+        "HSN_SAC": "8525",
+        "quantity": 4,
+        "unit_price": 2400,
+        "rate": 9600
+      },
+      {
+        "description": "8-Channel NVR",
+        "HSN_SAC": "8521",
+        "quantity": 1,
+        "unit_price": 6000,
+        "rate": 6000
+      },
+      {
+        "description": "1TB Surveillance HDD",
+        "HSN_SAC": "8471",
+        "quantity": 1,
+        "unit_price": 3200,
+        "rate": 3200
+      }
+    ],
+    "items_duplicate": [
+      {
+        "description": "Wi-Fi Smart Camera 2MP",
+        "HSN_SAC": "8525",
+        "quantity": 4,
+        "unit_price": 2400,
+        "rate": 9600
+      },
+      {
+        "description": "8-Channel NVR",
+        "HSN_SAC": "8521",
+        "quantity": 1,
+        "unit_price": 6000,
+        "rate": 6000
+      },
+      {
+        "description": "1TB Surveillance HDD",
+        "HSN_SAC": "8471",
+        "quantity": 1,
+        "unit_price": 3200,
+        "rate": 3200
+      }
+    ],
+    "non_items_original": [
+      {
+        "description": "Installation & Configuration",
+        "price": 5000,
+        "rate": 5000
+      }
+    ],
+    "non_items_duplicate": [
+      {
+        "description": "Installation & Configuration",
+        "price": 5000,
+        "rate": 5000
+      }
+    ],
+    "total_amount_original": 28084,
+    "total_amount_duplicate": 28084,
+    "total_tax_original": 4284,
+    "total_tax_duplicate": 4284,
+    "total_paid_amount": 14042,
+    "payments": [
+      {
+        "payment_date": "2025-11-04T00:00:00Z",
+        "paid_amount": 14042,
+        "payment_mode": "Bank Transfer",
+        "extra_details": "IMPS: 50% Advance"
+      }
+    ],
+    "payment_status": "Partial",
+    "createdAt": "2025-11-06T11:00:00Z",
+    "updatedAt": "2025-11-06T11:00:00Z"
+  },
+  {
+    "quotation_id": "QT-HYB-2025-003",
+    "invoice_id": "INV-2526-003",
+    "project_name": "Farmhouse Solar & Security",
+    "invoice_date": "2025-11-07T14:00:00Z",
+    "Waybill_id": "WB-2526-003",
+    "customer_name": "Arjun Reddy",
+    "customer_address": "22, Jubilee Hills, Hyderabad, 500033",
+    "customer_phone": "9123456789",
+    "customer_email": "arjun.reddy@example.com",
+    "consignee_name": "Arjun Reddy",
+    "consignee_address": "22, Jubilee Hills, Hyderabad, 500033",
+    "items_original": [
+      {
+        "description": "Solar Panel 550W Mono PERC",
+        "HSN_SAC": "8541",
+        "quantity": 4,
+        "unit_price": 13500,
+        "rate": 54000
+      },
+      {
+        "description": "150Ah Solar Battery",
+        "HSN_SAC": "8507",
+        "quantity": 2,
+        "unit_price": 14000,
+        "rate": 28000
+      },
+      {
+        "description": "Wi-Fi Smart Camera 2MP",
+        "HSN_SAC": "8525",
+        "quantity": 3,
+        "unit_price": 2400,
+        "rate": 7200
+      }
+    ],
+    "items_duplicate": [
+      {
+        "description": "Solar Panel 550W Mono PERC",
+        "HSN_SAC": "8541",
+        "quantity": 4,
+        "unit_price": 13500,
+        "rate": 54000
+      },
+      {
+        "description": "150Ah Solar Battery",
+        "HSN_SAC": "8507",
+        "quantity": 2,
+        "unit_price": 14000,
+        "rate": 28000
+      },
+      {
+        "description": "Wi-Fi Smart Camera 2MP",
+        "HSN_SAC": "8525",
+        "quantity": 3,
+        "unit_price": 2400,
+        "rate": 7200
+      }
+    ],
+    "non_items_original": [
+      {
+        "description": "System Integration Service",
+        "price": 10000,
+        "rate": 10000
+      }
+    ],
+    "non_items_duplicate": [
+      {
+        "description": "System Integration Service",
+        "price": 10000,
+        "rate": 10000
+      }
+    ],
+    "total_amount_original": 116616,
+    "total_amount_duplicate": 116616,
+    "total_tax_original": 17416,
+    "total_tax_duplicate": 17416,
+    "total_paid_amount": 0,
+    "payments": [],
+    "payment_status": "Unpaid",
+    "createdAt": "2025-11-07T14:00:00Z",
+    "updatedAt": "2025-11-07T14:00:00Z"
+  },
+  {
+    "quotation_id": "QT-SOL-2025-004",
+    "invoice_id": "INV-2526-004",
+    "project_name": "10kW Commercial Solar Plant",
+    "invoice_date": "2025-11-08T09:00:00Z",
+    "po_number": "ME-PO-10045",
+    "po_date": "2025-10-30T00:00:00Z",
+    "Waybill_id": "WB-2526-004",
+    "customer_name": "Mehta Enterprises",
+    "customer_address": "77, GIDC, Vapi, Gujarat, 396195",
+    "customer_phone": "9898989898",
+    "customer_email": "accounts@mehtaent.com",
+    "consignee_name": "Mehta Enterprises",
+    "consignee_address": "77, GIDC, Vapi, Gujarat, 396195",
+    "items_original": [
+      {
+        "description": "Solar Panel 550W Mono PERC",
+        "HSN_SAC": "8541",
+        "quantity": 18,
+        "unit_price": 13200,
+        "rate": 237600
+      },
+      {
+        "description": "10kW Grid-Tie Inverter",
+        "HSN_SAC": "8504",
+        "quantity": 1,
+        "unit_price": 75000,
+        "rate": 75000
+      }
+    ],
+    "items_duplicate": [
+      {
+        "description": "Solar Panel 550W Mono PERC",
+        "HSN_SAC": "8541",
+        "quantity": 18,
+        "unit_price": 13200,
+        "rate": 237600
+      },
+      {
+        "description": "10kW Grid-Tie Inverter",
+        "HSN_SAC": "8504",
+        "quantity": 1,
+        "unit_price": 75000,
+        "rate": 75000
+      }
+    ],
+    "non_items_original": [
+      {
+        "description": "Installation & Liasioning",
+        "price": 53000,
+        "rate": 53000
+      }
+    ],
+    "non_items_duplicate": [
+      {
+        "description": "Installation & Liasioning",
+        "price": 53000,
+        "rate": 53000
+      }
+    ],
+    "total_amount_original": 412652,
+    "total_amount_duplicate": 412652,
+    "total_tax_original": 47052,
+    "total_tax_duplicate": 47052,
+    "total_paid_amount": 412652,
+    "payments": [
+      {
+        "payment_date": "2025-10-31T00:00:00Z",
+        "paid_amount": 206326,
+        "payment_mode": "Bank Transfer",
+        "extra_details": "RTGS: HDFC0000123 - 50% Advance"
+      },
+      {
+        "payment_date": "2025-11-08T00:00:00Z",
+        "paid_amount": 206326,
+        "payment_mode": "Bank Transfer",
+        "extra_details": "RTGS: HDFC0000123 - 50% Final"
+      }
+    ],
+    "payment_status": "Paid",
+    "createdAt": "2025-11-08T09:00:00Z",
+    "updatedAt": "2025-11-08T09:00:00Z"
+  },
+  {
+    "quotation_id": "QT-CCTV-2025-005",
+    "invoice_id": "INV-2526-005",
+    "project_name": "Home CCTV System Upgrade",
+    "invoice_date": "2025-11-08T11:00:00Z",
+    "Waybill_id": "WB-2526-005",
+    "customer_name": "Sunita Rao",
+    "customer_address": "8, Anna Nagar, Chennai, 600040",
+    "customer_phone": "9765432109",
+    "customer_email": "sunitarao@example.com",
+    "consignee_name": "Sunita Rao",
+    "consignee_address": "8, Anna Nagar, Chennai, 600040",
+    "items_original": [
+      {
+        "description": "4MP ColorVu Dome Camera",
+        "HSN_SAC": "8525",
+        "quantity": 4,
+        "unit_price": 4200,
+        "rate": 16800
+      },
+      {
+        "description": "8-Channel DVR",
+        "HSN_SAC": "8521",
+        "quantity": 1,
+        "unit_price": 5500,
+        "rate": 5500
+      }
+    ],
+    "items_duplicate": [
+      {
+        "description": "4MP ColorVu Dome Camera",
+        "HSN_SAC": "8525",
+        "quantity": 4,
+        "unit_price": 4200,
+        "rate": 16800
+      },
+      {
+        "description": "8-Channel DVR",
+        "HSN_SAC": "8521",
+        "quantity": 1,
+        "unit_price": 5500,
+        "rate": 5500
+      }
+    ],
+    "non_items_original": [
+      {
+        "description": "Installation Service",
+        "price": 3500,
+        "rate": 3500
+      }
+    ],
+    "non_items_duplicate": [
+      {
+        "description": "Installation Service",
+        "price": 3500,
+        "rate": 3500
+      }
+    ],
+    "total_amount_original": 30444,
+    "total_amount_duplicate": 30444,
+    "total_tax_original": 4644,
+    "total_tax_duplicate": 4644,
+    "total_paid_amount": 10000,
+    "payments": [
+      {
+        "payment_date": "2025-11-05T00:00:00Z",
+        "paid_amount": 10000,
+        "payment_mode": "GPay",
+        "extra_details": "Advance for materials"
+      }
+    ],
+    "payment_status": "Partial",
+    "createdAt": "2025-11-08T11:00:00Z",
+    "updatedAt": "2025-11-08T11:00:00Z"
+  }
+]
