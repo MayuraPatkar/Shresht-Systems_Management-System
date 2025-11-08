@@ -16,21 +16,21 @@
         "HSN_SAC": "8541",
         "quantity": 6,
         "unit_price": 13500,
-        "rate": 81000
+        "rate": 12
       },
       {
         "description": "3kW Grid-Tie Inverter",
         "HSN_SAC": "8504",
         "quantity": 1,
         "unit_price": 22000,
-        "rate": 22000
+        "rate": 12
       },
       {
         "description": "Solar DC Wire 4 sq.mm Red",
         "HSN_SAC": "8544",
         "quantity": 1,
         "unit_price": 3800,
-        "rate": 3800
+        "rate": 18
       }
     ],
     "createdAt": "2025-11-03T00:00:00Z",
@@ -53,28 +53,28 @@
         "HSN_SAC": "8525",
         "quantity": 4,
         "unit_price": 2400,
-        "rate": 9600
+        "rate": 18
       },
       {
         "description": "4MP Bullet Camera",
         "HSN_SAC": "8525",
         "quantity": 2,
         "unit_price": 3500,
-        "rate": 7000
+        "rate": 18
       },
       {
         "description": "8-Channel NVR",
         "HSN_SAC": "8521",
         "quantity": 1,
         "unit_price": 6000,
-        "rate": 6000
+        "rate": 18
       },
       {
         "description": "1TB Surveillance HDD",
         "HSN_SAC": "8471",
         "quantity": 1,
         "unit_price": 3200,
-        "rate": 3200
+        "rate": 18
       }
     ],
     "createdAt": "2025-11-04T00:00:00Z",
@@ -97,21 +97,21 @@
         "HSN_SAC": "8541",
         "quantity": 4,
         "unit_price": 13500,
-        "rate": 54000
+        "rate": 12
       },
       {
         "description": "150Ah Solar Battery",
         "HSN_SAC": "8507",
         "quantity": 2,
         "unit_price": 14000,
-        "rate": 28000
+        "rate": 18
       },
       {
         "description": "Wi-Fi Smart Camera 2MP",
         "HSN_SAC": "8525",
         "quantity": 3,
         "unit_price": 2400,
-        "rate": 7200
+        "rate": 18
       }
     ],
     "createdAt": "2025-11-05T00:00:00Z",
@@ -134,14 +134,14 @@
         "HSN_SAC": "8541",
         "quantity": 18,
         "unit_price": 13200,
-        "rate": 237600
+        "rate": 12
       },
       {
         "description": "10kW Grid-Tie Inverter",
         "HSN_SAC": "8504",
         "quantity": 1,
         "unit_price": 75000,
-        "rate": 75000
+        "rate": 12
       }
     ],
     "createdAt": "2025-11-06T00:00:00Z",
@@ -164,24 +164,24 @@
         "HSN_SAC": "8525",
         "quantity": 4,
         "unit_price": 4200,
-        "rate": 16800
+        "rate": 18
       },
       {
         "description": "8-Channel DVR",
         "HSN_SAC": "8521",
         "quantity": 1,
         "unit_price": 5500,
-        "rate": 5500
+        "rate": 18
       },
       {
         "description": "2TB Surveillance HDD",
         "HSN_SAC": "8471",
         "quantity": 1,
         "unit_price": 4800,
-        "rate": 4800
+        "rate": 18
       }
     ],
     "createdAt": "2025-11-07T00:00:00Z",
-    "updatedAt": "2025-1F-07T00:00:00Z"
+    "updatedAt": "2025-11-07T00:00:00Z"
   }
 ]

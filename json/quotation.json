@@ -14,7 +14,7 @@
         "HSN_SAC": "8541",
         "quantity": 6,
         "unit_price": 13500,
-        "rate": 81000
+        "rate": 12
       },
       {
         "description": "3kW Grid-Tie Inverter",
@@ -22,7 +22,7 @@
         "HSN_SAC": "8504",
         "quantity": 1,
         "unit_price": 22000,
-        "rate": 22000
+        "rate": 12
       },
       {
         "description": "Solar DC Wire 4 sq.mm Red",
@@ -30,7 +30,7 @@
         "HSN_SAC": "8544",
         "quantity": 1,
         "unit_price": 3800,
-        "rate": 3800
+        "rate": 18
       }
     ],
     "non_items": [
@@ -38,12 +38,12 @@
         "description": "Installation & Commissioning",
         "specification": "Includes mounting structure, earthing, and labor",
         "price": 15000,
-        "rate": 15000
+        "rate": 18
       }
     ],
-    "total_tax": 21924,
+    "total_tax": 15744,
     "total_amount_no_tax": 121800,
-    "total_amount_tax": 143724,
+    "total_amount_tax": 137544,
     "subject": "Proposal for the Supply, Installation, and Commissioning of 3kW Rooftop Solar System",
     "letter_1": "We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of 3kW Rooftop Solar System. At Shresht Systems, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.",
     "letter_2": [
@@ -79,7 +79,7 @@
         "HSN_SAC": "8525",
         "quantity": 4,
         "unit_price": 2400,
-        "rate": 9600
+        "rate": 18
       },
       {
         "description": "4MP Bullet Camera",
@@ -87,7 +87,7 @@
         "HSN_SAC": "8525",
         "quantity": 2,
         "unit_price": 3500,
-        "rate": 7000
+        "rate": 18
       },
       {
         "description": "8-Channel NVR",
@@ -95,7 +95,7 @@
         "HSN_SAC": "8521",
         "quantity": 1,
         "unit_price": 6000,
-        "rate": 6000
+        "rate": 18
       },
       {
         "description": "1TB Surveillance HDD",
@@ -103,7 +103,7 @@
         "HSN_SAC": "8471",
         "quantity": 1,
         "unit_price": 3200,
-        "rate": 3200
+        "rate": 18
       }
     ],
     "non_items": [
@@ -111,7 +111,7 @@
         "description": "Installation & Configuration",
         "specification": "Includes wiring, setup, and mobile app configuration",
         "price": 5000,
-        "rate": 5000
+        "rate": 18
       }
     ],
     "total_tax": 5544,
@@ -150,7 +150,7 @@
         "HSN_SAC": "8541",
         "quantity": 4,
         "unit_price": 13500,
-        "rate": 54000
+        "rate": 12
       },
       {
         "description": "2kW Off-Grid Inverter",
@@ -158,7 +158,7 @@
         "HSN_SAC": "8504",
         "quantity": 1,
         "unit_price": 18000,
-        "rate": 18000
+        "rate": 12
       },
       {
         "description": "150Ah Solar Battery",
@@ -166,7 +166,7 @@
         "HSN_SAC": "8507",
         "quantity": 2,
         "unit_price": 14000,
-        "rate": 28000
+        "rate": 18
       },
       {
         "description": "Wi-Fi Smart Camera 2MP",
@@ -174,7 +174,7 @@
         "HSN_SAC": "8525",
         "quantity": 3,
         "unit_price": 2400,
-        "rate": 7200
+        "rate": 18
       }
     ],
     "non_items": [
@@ -182,12 +182,12 @@
         "description": "System Integration Service",
         "specification": "Connecting solar and CCTV systems",
         "price": 10000,
-        "rate": 10000
+        "rate": 18
       }
     ],
-    "total_tax": 21096,
+    "total_tax": 16776,
     "total_amount_no_tax": 117200,
-    "total_amount_tax": 138296,
+    "total_amount_tax": 133976,
     "subject": "Proposal for the Supply, Installation, and Commissioning of Farmhouse Solar & Security",
     "letter_1": "We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of Farmhouse Solar & Security. At Shresht Systems, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.",
     "letter_2": [
@@ -221,7 +221,7 @@
         "HSN_SAC": "8541",
         "quantity": 18,
         "unit_price": 13200,
-        "rate": 237600
+        "rate": 12
       },
       {
         "description": "10kW Grid-Tie Inverter",
@@ -229,7 +229,7 @@
         "HSN_SAC": "8504",
         "quantity": 1,
         "unit_price": 75000,
-        "rate": 75000
+        "rate": 12
       },
       {
         "description": "AC/DC Distribution Box",
@@ -237,7 +237,7 @@
         "HSN_SAC": "8537",
         "quantity": 1,
         "unit_price": 12000,
-        "rate": 12000
+        "rate": 18
       },
       {
         "description": "Solar DC Wire 4 sq.mm Black",
@@ -245,7 +245,7 @@
         "HSN_SAC": "8544",
         "quantity": 2,
         "unit_price": 3800,
-        "rate": 7600
+        "rate": 18
       }
     ],
     "non_items": [
@@ -253,18 +253,18 @@
         "description": "Installation & Commissioning",
         "specification": "Full commercial setup and labor",
         "price": 45000,
-        "rate": 45000
+        "rate": 18
       },
       {
         "description": "Liasioning & Net-Metering",
         "specification": "Government approval charges",
         "price": 8000,
-        "rate": 8000
+        "rate": 18
       }
     ],
-    "total_tax": 69678,
+    "total_tax": 50580,
     "total_amount_no_tax": 385200,
-    "total_amount_tax": 454878,
+    "total_amount_tax": 435780,
     "subject": "Proposal for the Supply, Installation, and Commissioning of 10kW Commercial Solar Plant",
     "letter_1": "We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of 10kW Commercial Solar Plant. At Shresht Systems, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.",
     "letter_2": [
@@ -300,7 +300,7 @@
         "HSN_SAC": "8525",
         "quantity": 4,
         "unit_price": 4200,
-        "rate": 16800
+        "rate": 18
       },
       {
         "description": "8-Channel DVR",
@@ -308,7 +308,7 @@
         "HSN_SAC": "8521",
         "quantity": 1,
         "unit_price": 5500,
-        "rate": 5500
+        "rate": 18
       },
       {
         "description": "2TB Surveillance HDD",
@@ -316,7 +316,7 @@
         "HSN_SAC": "8471",
         "quantity": 1,
         "unit_price": 4800,
-        "rate": 4800
+        "rate": 18
       }
     ],
     "non_items": [
@@ -324,7 +324,7 @@
         "description": "Old System Removal & New Installation",
         "specification": "Includes removal of old cameras and wiring check",
         "price": 3500,
-        "rate": 3500
+        "rate": 18
       }
     ],
     "total_tax": 5508,
