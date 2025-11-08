@@ -81,13 +81,24 @@ async function openInvoice(id) {
 
         if (currentStep === 1) changeStep(2);
 
+        // Helper function to format date to YYYY-MM-DD for input fields
+        const formatDateForInput = (dateString) => {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "";
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
         document.getElementById('id').value = invoice.invoice_id;
-        document.getElementById('invoice-date').value = invoice.invoice_date ? await formatDate(invoice.invoice_date) : '';
+        document.getElementById('invoice-date').value = formatDateForInput(invoice.invoice_date);
         document.getElementById('project-name').value = invoice.project_name || '';
         document.getElementById('purchase-order-number').value = invoice.po_number || '';
-        document.getElementById('purchase-order-date').value = invoice.po_date ? await formatDate(invoice.po_date) : '';
+        document.getElementById('purchase-order-date').value = formatDateForInput(invoice.po_date);
         document.getElementById('delivery-challan-number').value = invoice.dc_number || '';
-        document.getElementById('delivery-challan-date').value = invoice.dc_date ? await formatDate(invoice.dc_date) : '';
+        document.getElementById('delivery-challan-date').value = formatDateForInput(invoice.dc_date);
         document.getElementById('service-months').value = invoice.service_month || 0;
         document.getElementById('waybill-number').value = invoice.Waybill_id || '';
         document.getElementById('buyer-name').value = invoice.customer_name || '';
