@@ -767,3 +767,74 @@ document.addEventListener("click", function (event) {
     }
   });
 });
+
+// If the URL contains ?new=1 or hash #new, automatically open the "new" form (if available)
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const searchParams = new URLSearchParams(window.location.search);
+    const isNewQuery = searchParams.has('new') || window.location.hash === '#new';
+    const viewId = searchParams.get('view') || searchParams.get('id') || null;
+
+    if ((isNewQuery || window.location.hash === '#new') && typeof window.showNewDocumentForm === 'function') {
+      // Set a sensible currentTab value based on pathname so shared UI can reflect active module
+      const path = window.location.pathname.toLowerCase();
+      let formOptions = { homeId: 'home', formId: 'new', viewId: 'view' };
+      
+      if (path.includes('/quotation')) {
+        sessionStorage.setItem('currentTab', 'quotation');
+        formOptions.newButtonId = 'new-quotation';
+        formOptions.previewButtonId = 'view-preview';
+      } else if (path.includes('/invoice')) {
+        sessionStorage.setItem('currentTab', 'invoice');
+        formOptions.newButtonId = 'new-invoice';
+        formOptions.previewButtonId = 'view-preview';
+      } else if (path.includes('/purchaseorder')) {
+        sessionStorage.setItem('currentTab', 'purchaseorder');
+        formOptions.newButtonId = 'new-purchaseOrder';
+        formOptions.previewButtonId = 'view-preview';
+      } else if (path.includes('/service')) {
+        sessionStorage.setItem('currentTab', 'service');
+        formOptions.newButtonId = 'new-service';
+        formOptions.previewButtonId = 'view-preview';
+      } else if (path.includes('/stock')) {
+        sessionStorage.setItem('currentTab', 'stock');
+        formOptions.newButtonId = 'new-stock';
+        // Stock doesn't have preview button
+      }
+
+      // Call the generic form opener with proper options
+      try {
+        window.showNewDocumentForm(formOptions);
+      } catch (err) {
+        // If the generic call fails, attempt a safe fallback by clicking the module's new button
+        const newBtn = document.querySelector('[id^="new-"]');
+        if (newBtn) newBtn.click();
+      }
+    }
+
+    // If a view id is present, attempt to call the appropriate view function for the module
+    if (viewId) {
+      const path = window.location.pathname.toLowerCase();
+      try {
+        if (path.includes('/quotation') && typeof window.viewQuotation === 'function') {
+          window.viewQuotation(viewId, 1);
+        } else if (path.includes('/invoice') && typeof window.viewInvoice === 'function') {
+          // Get user role from sessionStorage or default to 'user'
+          const userRole = sessionStorage.getItem('userRole') || 'user';
+          window.viewInvoice(viewId, userRole);
+        } else if (path.includes('/service') && typeof window.viewService === 'function') {
+          window.viewService(viewId);
+        } else {
+          // Fallback: try to find a global view function with a common name
+          const fallbackFnNames = [`view${viewId}`, `view${path.split('/').pop()}`];
+          // Nothing more to do here; module scripts usually expose their own view functions
+        }
+      } catch (err) {
+        console.error('Error calling view function:', err);
+        // Ignore — module may not expose view function at this time
+      }
+    }
+  } catch (e) {
+    console.error('Auto-open new form handler failed:', e);
+  }
+});
