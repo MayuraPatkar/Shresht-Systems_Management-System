@@ -130,7 +130,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
         // Fallback to DOM table (edit mode)
         const itemsTable = document.getElementById("detail-items-table")?.getElementsByTagName("tbody")[0];
         if (!itemsTable) {
-            document.getElementById("detail-preview-content").innerHTML = "<p>No items to preview.</p>";
+            document.getElementById("view-preview-content").innerHTML = "<p>No items to preview.</p>";
             return;
         }
         const calc = calculateInvoice(itemsTable);
@@ -339,11 +339,16 @@ async function viewInvoice(invoiceId, userRole) {
         // Fill Project Details
         document.getElementById('view-project-name').textContent = invoice.project_name || '-';
         document.getElementById('view-project-id').textContent = invoice.invoice_id || '-';
-        document.getElementById('view-purchase-order-number').textContent = invoice.po_number || '-';
-        document.getElementById('view-delivery-challan-number').textContent = invoice.dc_number || '-';
+        document.getElementById('view-quotation-id').textContent = invoice.quotation_id || '-';
+        document.getElementById('view-invoice-date').textContent = invoice.invoice_date ? await formatDate(invoice.invoice_date) : '-';
+        document.getElementById('view-purchase-order-number').textContent = (invoice.po_number && invoice.po_number !== 'undefined') ? invoice.po_number : '-';
+        document.getElementById('view-purchase-order-date').textContent = invoice.po_date ? await formatDate(invoice.po_date) : '-';
+        document.getElementById('view-delivery-challan-number').textContent = (invoice.dc_number && invoice.dc_number !== 'undefined') ? invoice.dc_number : '-';
         document.getElementById('view-delivery-challan-date').textContent = invoice.dc_date ? await formatDate(invoice.dc_date) : '-';
         document.getElementById('view-waybill-number').textContent = invoice.Waybill_id || '-';
-        document.getElementById('view-service-months').textContent = invoice.service_month || '-';
+        document.getElementById('view-service-months').textContent = (invoice.service_month !== undefined && invoice.service_month !== null) ? invoice.service_month : '-';
+        document.getElementById('view-service-stage').textContent = (invoice.service_stage !== undefined && invoice.service_stage !== null) ? invoice.service_stage : '-';
+        document.getElementById('view-margin').textContent = (invoice.margin !== undefined && invoice.margin !== null && invoice.margin !== 0) ? `${invoice.margin}%` : '-';
 
         document.getElementById('view-payment-status').textContent = invoice.payment_status || '-';
         const balanceDue = (invoice.total_amount_duplicate || 0) - (invoice.total_paid_amount || 0);
@@ -369,13 +374,12 @@ async function viewInvoice(invoiceId, userRole) {
         }
 
         // Payment History
-        const detailPaymentsTableBody = document.querySelector("#view-payments-table tbody");
-        if (detailPaymentsTableBody) {
-            detailPaymentsTableBody.innerHTML = "";
-            for (const item of (invoice.payments || [])) {
-                const row = document.createElement("tr");
-                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-                row.innerHTML = `
+        const detailPaymentsTableBody = document.querySelector("#view-payment-table tbody");
+        detailPaymentsTableBody.innerHTML = "";
+        for (const item of (invoice.payments || [])) {
+            const row = document.createElement("tr");
+            row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+            row.innerHTML = `
                     <td class="px-4 py-3 text-sm text-gray-900">${await formatDate(item.payment_date) || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
