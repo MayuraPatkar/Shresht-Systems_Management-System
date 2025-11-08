@@ -283,11 +283,14 @@ function handleChangePassword() {
  * Handles user logout
  */
 function handleLogout() {
-    sessionStorage.clear();
-    window.location.href = '/';
+    window.electronAPI.showAlert2('Are you sure you want to log out?');
+    window.electronAPI.receiveAlertResponse((response) => {
+        if (response === 'Yes') {
+            sessionStorage.clear();
+            window.location.href = '/';
+        }
+    });
 }
-
-// --- EVENT LISTENERS ---
 
 /**
  * Initialize admin module event listeners
