@@ -261,7 +261,7 @@ async function generateFilePages(files) {
             <div class="preview-container doc-quotation">
                 <div class="header">
                     <div class="logo">
-                        <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                        <img src="../assets/logo.png"
                             alt="Shresht Logo">
                     </div>
                     <div class="company-details">
@@ -451,7 +451,7 @@ async function generatePreview() {
         <div class="preview-container doc-quotation">
             <div class="header">
                 <div class="logo">
-                    <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                    <img src="../assets/logo.png"
                         alt="Shresht Logo">
                 </div>
                 <div class="company-details">
@@ -497,7 +497,7 @@ async function generatePreview() {
                         <h3>Payment Details</h3>
                         <div class="bank-details">
                             <div class="QR-code bank-details-sub1">
-                                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                <img src="../assets/shresht-systems-payment-QR-code.jpg"
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
@@ -542,7 +542,7 @@ async function generatePreview() {
     <div class="preview-container doc-quotation">
         <div class="header">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                <img src="../assets/logo.png"
                     alt="Shresht Logo">
             </div>
             <div class="company-details">
@@ -596,7 +596,7 @@ async function generatePreview() {
     <div class="preview-container doc-quotation">
         <div class="header">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                <img src="../assets/logo.png"
                     alt="Shresht Logo">
             </div>
             <div class="company-details">
@@ -660,7 +660,7 @@ async function generatePreview() {
         <div class="preview-container doc-quotation">
             <div class="header">
                 <div class="logo">
-                    <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                    <img src="../assets/logo.png"
                         alt="Shresht Logo">
                 </div>
                 <div class="company-details">
@@ -706,7 +706,7 @@ async function generatePreview() {
                         <h3>Payment Details</h3>
                         <div class="bank-details">
                             <div class="QR-code bank-details-sub1">
-                                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                <img src="../assets/shresht-systems-payment-QR-code.jpg"
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
@@ -741,7 +741,7 @@ async function generatePreview() {
     <div class="preview-container doc-quotation">
         <div class="header">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                <img src="../assets/logo.png"
                     alt="Shresht Logo">
             </div>
             <div class="company-details">
@@ -792,7 +792,7 @@ async function generatePreview() {
     <div class="preview-container doc-quotation">
         <div class="header">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                <img src="../assets/logo.png"
                     alt="Shresht Logo">
             </div>
             <div class="company-details">
@@ -966,9 +966,9 @@ async function loadQuotationForEditing(id) {
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description"></td>
                 <td><input type="number" value="${item.price || 0}" placeholder="Price"></td>
                 <td><input type="number" value="${item.rate || 0}" placeholder="Rate" step="0.01"></td>
-                <td><button class="remove-non-item-btn">Remove</button></td>
+                <td><button class="remove-item-btn">Remove</button></td>
             `;
-            row.querySelector(".remove-non-item-btn").addEventListener("click", () => row.remove());
+            row.querySelector(".remove-item-btn").addEventListener("click", () => row.remove());
         });
 
         // Populate specifications table

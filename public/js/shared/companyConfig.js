@@ -139,7 +139,7 @@ async function getCompanyHeaderHTML() {
     return `
         <div class="header">
             <div class="logo">
-                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png"
+                <img src="../assets/logo.png"
                     alt="${company.company} Logo">
             </div>
             <div class="company-details">

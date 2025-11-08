@@ -7,8 +7,12 @@ function handlePrintEvent(mainWindow) {
     // Read unified CSS from external file (single source of truth for all document types)
     const documentStylesPath = path.join(__dirname, '../../public/css/shared/documentStyles.css');
     const iconPath = path.join(__dirname, '../../public/assets/icon2.png');
+    const logoPath = path.join(__dirname, '../../public/assets/logo.png');
+    const qrCodePath = path.join(__dirname, '../../public/assets/shresht-systems-payment-QR-code.jpg');
     
     let cssContent = '';
+    let logoBase64 = '';
+    let qrCodeBase64 = '';
     
     try {
         cssContent = fs.readFileSync(documentStylesPath, 'utf-8');
@@ -20,15 +24,21 @@ function handlePrintEvent(mainWindow) {
         
         cssContent = cssContent.replace('url("../../assets/icon2.png")', `url("${iconDataUri}")`);
 
-        log.info('Successfully loaded and processed documentStyles.css for print handler');
+        // Convert logo and QR code to Base64 for embedding in HTML
+        const logoBuffer = fs.readFileSync(logoPath);
+        logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+
+        const qrCodeBuffer = fs.readFileSync(qrCodePath);
+        qrCodeBase64 = `data:image/jpeg;base64,${qrCodeBuffer.toString('base64')}`;
+
+        log.info('Successfully loaded and processed documentStyles.css and image assets for print handler');
     } catch (error) {
-        log.error('Error reading documentStyles.css or icon.png:', error);
+        log.error('Error reading documentStyles.css or image assets:', error);
         // Fallback to basic styles if CSS file can't be read
         cssContent = `
             @page { size: A4; margin: 0; }
-            body { font-family: Arial, sans-serif; margin: 0; padding: 15px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+            body { font-family: Arial, sans-serif; }
+            .preview-container { padding: 20px; }
         `;
     }
     
