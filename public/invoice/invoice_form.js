@@ -82,19 +82,20 @@ async function openInvoice(id) {
         if (currentStep === 1) changeStep(2);
 
         document.getElementById('id').value = invoice.invoice_id;
-        document.getElementById('invoice-date').value = formatDate(invoice.invoice_date);
-        document.getElementById('project-name').value = invoice.project_name;
-        document.getElementById('buyer-name').value = invoice.customer_name;
-        document.getElementById('buyer-address').value = invoice.customer_address;
-        document.getElementById('buyer-phone').value = invoice.customer_phone;
-        document.getElementById('buyer-email').value = invoice.customer_email;
-        document.getElementById('consignee-name').value = invoice.consignee_name;
-        document.getElementById('consignee-address').value = invoice.consignee_address;
-        document.getElementById('purchase-order-number').value = invoice.po_number;
-        document.getElementById('delivery-challan-number').value = invoice.dc_number;
-        document.getElementById('delivery-challan-date').value = formatDate(invoice.dc_date);
-        document.getElementById('service-months').value = invoice.service_month;
-        document.getElementById('waybill-number').value = invoice.Waybill_id;
+        document.getElementById('invoice-date').value = invoice.invoice_date ? await formatDate(invoice.invoice_date) : '';
+        document.getElementById('project-name').value = invoice.project_name || '';
+        document.getElementById('purchase-order-number').value = invoice.po_number || '';
+        document.getElementById('purchase-order-date').value = invoice.po_date ? await formatDate(invoice.po_date) : '';
+        document.getElementById('delivery-challan-number').value = invoice.dc_number || '';
+        document.getElementById('delivery-challan-date').value = invoice.dc_date ? await formatDate(invoice.dc_date) : '';
+        document.getElementById('service-months').value = invoice.service_month || 0;
+        document.getElementById('waybill-number').value = invoice.Waybill_id || '';
+        document.getElementById('buyer-name').value = invoice.customer_name || '';
+        document.getElementById('buyer-address').value = invoice.customer_address || '';
+        document.getElementById('buyer-phone').value = invoice.customer_phone || '';
+        document.getElementById('buyer-email').value = invoice.customer_email || '';
+        document.getElementById('consignee-name').value = invoice.consignee_name || '';
+        document.getElementById('consignee-address').value = invoice.consignee_address || '';
 
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
@@ -518,9 +519,9 @@ function calculateInvoice(itemsTable) {
 function generatePreview() {
     if (!invoiceId) invoiceId = document.getElementById('id').value;
     const projectName = document.getElementById("project-name").value;
-    const poNumber = document.getElementById("purchase-order-number").value;
-    const dcNumber = document.getElementById("delivery-challan-number").value;
-    const wayBillNumber = document.getElementById("waybill-number").value;
+    const poNumber = document.getElementById("purchase-order-number").value || '';
+    const dcNumber = document.getElementById("delivery-challan-number").value || '';
+    const wayBillNumber = document.getElementById("waybill-number").value || '';
     const buyerName = document.getElementById("buyer-name").value;
     const buyerAddress = document.getElementById("buyer-address").value;
     const buyerPhone = document.getElementById("buyer-phone").value;
@@ -594,10 +595,10 @@ function generatePreview() {
                     <p>Ph. ${buyerPhone}</p>
                 </div>
                 <div class="info-section">
-                    <p><strong>Project:</strong> ${projectName}</p>
-                    <p><strong>P.O No:</strong> ${poNumber}</p>
-                    <p><strong>D.C No:</strong> ${dcNumber}</p>
-                    <p><strong>E-Way Bill:</strong> ${wayBillNumber}</p>
+                    <p><strong>Project:</strong> ${projectName || '-'}</p>
+                    <p><strong>P.O No:</strong> ${poNumber || '-'}</p>
+                    <p><strong>D.C No:</strong> ${dcNumber || '-'}</p>
+                    <p><strong>E-Way Bill:</strong> ${wayBillNumber || '-'}</p>
                 </div>
             </div>
             ` : ''}
@@ -745,8 +746,9 @@ function collectFormData() {
         projectName: document.getElementById("project-name").value,
         invoiceId: document.getElementById("id").value,
         invoiceDate: document.getElementById("invoice-date").value,
-        poNumber: document.getElementById("purchase-order-number").value,
-        dcNumber: document.getElementById("delivery-challan-number").value,
+        poNumber: document.getElementById("purchase-order-number").value || '',
+        poDate: document.getElementById("purchase-order-date").value || null,
+        dcNumber: document.getElementById("delivery-challan-number").value || '',
         dcDate: document.getElementById("delivery-challan-date").value,
         serviceMonth: document.getElementById("service-months").value,
         wayBillNumber: document.getElementById("waybill-number").value,
