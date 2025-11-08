@@ -6,14 +6,23 @@ const log = require("electron-log");
 function handlePrintEvent(mainWindow) {
     // Read unified CSS from external file (single source of truth for all document types)
     const documentStylesPath = path.join(__dirname, '../../public/css/shared/documentStyles.css');
+    const iconPath = path.join(__dirname, '../../public/assets/icon2.png');
     
     let cssContent = '';
     
     try {
         cssContent = fs.readFileSync(documentStylesPath, 'utf-8');
-        log.info('Successfully loaded documentStyles.css for print handler');
+        
+        // Convert local image path in CSS to a Base64 data URI for printing
+        const iconBuffer = fs.readFileSync(iconPath);
+        const iconBase64 = iconBuffer.toString('base64');
+        const iconDataUri = `data:image/png;base64,${iconBase64}`;
+        
+        cssContent = cssContent.replace('url("../../assets/icon2.png")', `url("${iconDataUri}")`);
+
+        log.info('Successfully loaded and processed documentStyles.css for print handler');
     } catch (error) {
-        log.error('Error reading documentStyles.css:', error);
+        log.error('Error reading documentStyles.css or icon.png:', error);
         // Fallback to basic styles if CSS file can't be read
         cssContent = `
             @page { size: A4; margin: 0; }
