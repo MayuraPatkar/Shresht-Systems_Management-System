@@ -202,7 +202,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
         <div class="preview-container doc-standard doc-invoice">
             <div class="first-section">
                 <div class="logo">
-                    <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/logo.png" alt="Shresht Logo" />
+                    <img src="../assets/logo.png" alt="Shresht Logo" />
                 </div>
                 <div class="company-details">
                     <h1>SHRESHT SYSTEMS</h1>
@@ -267,7 +267,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                         <h3>Payment Details:</h3>
                         <div class="bank-details">
                             <div class="QR-code bank-details-sub1">
-                                <img src="https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/shresht%20systems%20payment%20QR-code.jpg"
+                                <img src="../assets/shresht-systems-payment-QR-code.jpg"
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
@@ -319,7 +319,12 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
 
 async function viewInvoice(invoiceId, userRole) {
     try {
-        const type = sessionStorage.getItem('view-invoice');
+        // Ensure userRole is set, default to 'user' if not provided
+        if (!userRole) {
+            userRole = sessionStorage.getItem('userRole') || 'user';
+        }
+        
+        const type = sessionStorage.getItem('view-invoice') || 'duplicate';
         const response = await fetch(`/invoice/${invoiceId}`);
         if (!response.ok) {
             throw new Error("Failed to fetch invoice");
@@ -351,26 +356,52 @@ async function viewInvoice(invoiceId, userRole) {
         document.getElementById('view-margin').textContent = (invoice.margin !== undefined && invoice.margin !== null && invoice.margin !== 0) ? `${invoice.margin}%` : '-';
 
         document.getElementById('view-payment-status').textContent = invoice.payment_status || '-';
+        const viewPreview = document.getElementById('view-preview');
+        const home = document.getElementById('home');
+        const newSection = document.getElementById('new');
+        const view = document.getElementById('view');
+        
+        if (viewPreview) viewPreview.style.display = 'none';
+        if (home) home.style.display = 'none';
+        if (newSection) newSection.style.display = 'none';
+        if (view) view.style.display = 'flex';
+
+        // Fill Project Details with null checks
+        const setTextContent = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value || '-';
+        };
+
+        setTextContent('view-project-name', invoice.project_name);
+        setTextContent('view-project-id', invoice.invoice_id);
+        setTextContent('view-purchase-order-number', invoice.po_number);
+        setTextContent('view-delivery-challan-number', invoice.dc_number);
+        setTextContent('view-delivery-challan-date', invoice.dc_date ? await formatDate(invoice.dc_date) : null);
+        setTextContent('view-waybill-number', invoice.Waybill_id);
+        setTextContent('view-service-months', invoice.service_month);
+        setTextContent('view-payment-status', invoice.payment_status);
+        
         const balanceDue = (invoice.total_amount_duplicate || 0) - (invoice.total_paid_amount || 0);
-        document.getElementById('view-balance-due').textContent = `₹ ${formatIndian(balanceDue, 2)}`;
+        setTextContent('view-balance-due', `₹ ${formatIndian(balanceDue, 2)}`);
 
         // Buyer & Consignee
-        document.getElementById('view-buyer-name').textContent = invoice.customer_name || '-';
-        document.getElementById('view-buyer-address').textContent = invoice.customer_address || '-';
-        document.getElementById('view-buyer-phone').textContent = invoice.customer_phone || '-';
-        document.getElementById('view-buyer-email').textContent = invoice.customer_email || '-';
-        document.getElementById('view-consignee-name').textContent = invoice.consignee_name || '-';
-        document.getElementById('view-consignee-address').textContent = invoice.consignee_address || '-';
+        setTextContent('view-buyer-name', invoice.customer_name);
+        setTextContent('view-buyer-address', invoice.customer_address);
+        setTextContent('view-buyer-phone', invoice.customer_phone);
+        setTextContent('view-buyer-email', invoice.customer_email);
+        setTextContent('view-consignee-name', invoice.consignee_name);
+        setTextContent('view-consignee-address', invoice.consignee_address);
+        
         if (userRole == 'admin' && type == 'original') {
-            document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(invoice.total_amount_original, 2)}` || '-';
-            document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(invoice.total_tax_original, 2)}` || '-';
-            document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(invoice.total_amount_original, 2)}` || '-';
-            document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(invoice.total_amount_original - invoice.total_tax_original, 2)}` || '-';
+            setTextContent('view-total-amount', `₹ ${formatIndian(invoice.total_amount_original, 2)}`);
+            setTextContent('view-total-tax', `₹ ${formatIndian(invoice.total_tax_original, 2)}`);
+            setTextContent('view-total-with-tax', `₹ ${formatIndian(invoice.total_amount_original, 2)}`);
+            setTextContent('view-total-without-tax', `₹ ${formatIndian(invoice.total_amount_original - invoice.total_tax_original, 2)}`);
         } else {
-            document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}` || '-';
-            document.getElementById('view-total-tax').textContent = `₹ ${formatIndian(invoice.total_tax_duplicate, 2)}` || '-';
-            document.getElementById('view-total-with-tax').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}` || '-';
-            document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(invoice.total_amount_duplicate - invoice.total_tax_duplicate, 2)}` || '-';
+            setTextContent('view-total-amount', `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}`);
+            setTextContent('view-total-tax', `₹ ${formatIndian(invoice.total_tax_duplicate, 2)}`);
+            setTextContent('view-total-with-tax', `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}`);
+            setTextContent('view-total-without-tax', `₹ ${formatIndian(invoice.total_amount_duplicate - invoice.total_tax_duplicate, 2)}`);
         }
 
         // Payment History
@@ -384,7 +415,8 @@ async function viewInvoice(invoiceId, userRole) {
                     <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
                 `;
-            detailPaymentsTableBody.appendChild(row);
+                detailPaymentsTableBody.appendChild(row);
+            }
         }
 
 

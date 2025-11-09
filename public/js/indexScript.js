@@ -2,6 +2,7 @@
 document.getElementById('show-login').addEventListener('click', () => {
     document.getElementById('auth-container').classList.add('hidden');
     document.getElementById('login-container').classList.remove('hidden');
+    // window.location = '/dashboard';
     // Focus on username field
     setTimeout(() => document.getElementById('username').focus(), 100);
 });
@@ -93,11 +94,25 @@ function performLogin() {
 
 // Enter key handler for login
 document.addEventListener("keydown", function (event) {
-    // Only trigger on login screen
-    if (!document.getElementById('login-container').classList.contains('hidden')) {
+    // Check if the auth container is visible
+    const authContainer = document.getElementById('auth-container');
+    if (authContainer && !authContainer.classList.contains('hidden')) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            document.getElementById('show-login').click();
+        }
+        return; // Stop further execution if we are on the auth screen
+    }
+
+    // Check if the login container is visible
+    const loginContainer = document.getElementById('login-container');
+    if (loginContainer && !loginContainer.classList.contains('hidden')) {
         if (event.key === "Enter") {
             event.preventDefault();
             performLogin();
+        } else if (event.key === "Escape") {
+            event.preventDefault();
+            document.getElementById('back-btn').click();
         }
     }
 });

@@ -764,3 +764,52 @@ function sortData(data, field, direction) {
 addTooltips();
 setupSorting();
 fetchStockData();
+
+// Auto-open add quantity modal if ?item=<name> is in URL
+document.addEventListener('DOMContentLoaded', () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const itemName = searchParams.get('item');
+    
+    if (itemName) {
+        // Wait for table to render and data to load, then open add modal for the item
+        setTimeout(() => {
+            // Find the item in currentStockData
+            const stockItem = currentStockData.find(item => 
+                normalizeField(item, ['item_name', 'itemName']).trim() === itemName.trim()
+            );
+            
+            if (stockItem) {
+                const itemId = normalizeField(stockItem, ['_id', 'id']);
+                const itemNameFromData = normalizeField(stockItem, ['item_name', 'itemName']);
+                
+                // Scroll to the item first
+                const rows = document.querySelectorAll('#stock-table tbody tr');
+                rows.forEach(row => {
+                    const nameCell = row.querySelector('td:first-child .font-medium');
+                    if (nameCell && nameCell.textContent.trim() === itemName.trim()) {
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Brief highlight
+                        row.style.backgroundColor = '#fef3cd';
+                        setTimeout(() => {
+                            row.style.backgroundColor = '';
+                            const qty = parseInt(row.querySelector('td:nth-child(3)')?.textContent.replace(/[^0-9]/g, '')) || 0;
+                            const minQty = Number(normalizeField(stockItem, ['min_quantity', 'minQuantity'])) || 0;
+                            if (qty < minQty) row.classList.add('low-stock');
+                            if (qty <= 0) row.classList.add('out-of-stock');
+                        }, 800);
+                    }
+                });
+                
+                // Open the "Add Quantity" modal after a brief delay
+                setTimeout(() => {
+                    showQuantityModal('add', itemId, itemNameFromData);
+                }, 600);
+                
+            } else {
+                // Item not found in stock data
+                showErrorMessage(`Item "${itemName}" not found in stock list.`);
+            }
+        }, 800);
+    }
+});

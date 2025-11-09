@@ -17,7 +17,7 @@ body {
 
 /* Base Container */
 .preview-container {
-    background: #ffffff url("https://raw.githubusercontent.com/ShreshtSystems/ShreshtSystems.github.io/main/assets/icon2.png") no-repeat center/40%;
+    background: #ffffff url("../../assets/icon2.png") no-repeat center/40%;
     margin: 30px auto;
     padding: 30px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);

@@ -486,3 +486,29 @@ async function handleSearch() {
             </button>
         </div>`);
 }
+
+// Auto-open new form or view based on URL parameters
+document.addEventListener('DOMContentLoaded', () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const isNewQuery = searchParams.has('new');
+    const viewId = searchParams.get('view') || searchParams.get('id');
+
+    // Auto-open new form if ?new=1 parameter is present
+    if (isNewQuery) {
+        sessionStorage.setItem('currentTab', 'wayBill');
+        setTimeout(() => {
+            const newBtn = document.getElementById('new-waybill-btn');
+            if (newBtn) {
+                newBtn.click();
+            }
+        }, 100);
+    }
+
+    // Auto-open view if ?view=<id> parameter is present
+    if (viewId && typeof window.viewWayBill === 'function') {
+        sessionStorage.setItem('currentTab', 'wayBill');
+        setTimeout(() => {
+            window.viewWayBill(viewId);
+        }, 100);
+    }
+});
