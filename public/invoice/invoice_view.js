@@ -384,8 +384,7 @@ async function viewInvoice(invoiceId, userRole) {
                     <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
                 `;
-                detailPaymentsTableBody.appendChild(row);
-            }
+            detailPaymentsTableBody.appendChild(row);
         }
 
 
