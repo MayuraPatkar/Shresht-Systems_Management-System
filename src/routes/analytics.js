@@ -1,23 +1,35 @@
 const express = require('express');
-const router  = express.Router();
+const router = express.Router();
 const { Invoices, Quotations, Purchases } = require('../models');
 const log = require('electron-log');          // preload‑side logger
 
 router.get('/overview', async (req, res) => {
   try {
     /* ───────────────────────── Common date helpers ────────────────────────── */
-    const now          = new Date();
+    const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startNextMon = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
     /* ────────────────────────── Simple document counts ────────────────────── */
-    const totalProjects   = await Invoices.countDocuments();
+    const totalProjects = await Invoices.countDocuments();
     const totalQuotations = await Quotations.countDocuments();
-    const totalUnpaid     = await Invoices.countDocuments({ payment_status: 'Unpaid' });
+
+    // Count distinct projects with unpaid invoices (not invoice documents)
+    const unpaidProjectsResult = await Invoices.aggregate([
+      { $match: { payment_status: { $in: ['Unpaid', 'Partial'] } } },
+      { $group: { _id: '$project_name' } }
+    ]);
+    const totalUnpaid = unpaidProjectsResult.length;
 
     /* ────────────────────── Monthly invoice earnings (Paid) ───────────────── */
-    // Sum payments received in current month (not just invoices created this month)
-    const totalEarnedResult = await Invoices.aggregate([
+    // Calculate total earned: Sum of total_paid_amount for all invoices
+    // This shows total revenue collected to date (not just this month)
+    const totalEarnedAllTime = await Invoices.aggregate([
+      { $group: { _id: null, total: { $sum: '$total_paid_amount' } } },
+    ]);
+    
+    // Alternative: Sum payments received in current month only
+    const totalEarnedThisMonthResult = await Invoices.aggregate([
       { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
       {
         $match: {
@@ -26,7 +38,12 @@ router.get('/overview', async (req, res) => {
       },
       { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
     ]);
-    const totalEarned = totalEarnedResult.length > 0 ? totalEarnedResult[0].total : 0;
+    
+    // Use all-time earnings (more useful for dashboard)
+    const totalEarned = totalEarnedAllTime.length > 0 ? totalEarnedAllTime[0].total : 0;
+    
+    // Optional: log for debugging
+    log.info(`Analytics Overview - Total Earned All Time: ${totalEarned}, This Month: ${totalEarnedThisMonthResult.length > 0 ? totalEarnedThisMonthResult[0].total : 0}`);
 
     /* ─────────────────────── Monthly purchase expenditure ─────────────────── */
     // Use $or to match either purchase_date or createdAt within current month
@@ -44,8 +61,8 @@ router.get('/overview', async (req, res) => {
 
     /* ────────────────────── Remaining service months (invoices) ───────────── */
     // Count invoices with service_month > 0 (active services)
-    const remainingServices = await Invoices.countDocuments({ 
-      service_month: { $gt: 0 } 
+    const remainingServices = await Invoices.countDocuments({
+      service_month: { $gt: 0 }
     });
 
     /* ────────────────────────────── Response ──────────────────────────────── */
@@ -67,11 +84,11 @@ router.get('/overview', async (req, res) => {
 router.get('/comparison', async (req, res) => {
   try {
     const now = new Date();
-    
+
     // Current month dates
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    
+
     // Previous month dates
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);

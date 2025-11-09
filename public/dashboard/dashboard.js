@@ -94,7 +94,6 @@ function animateCounter(
   
   if (end === 0) {
     el.textContent = isCurrency ? `₹${formatIndian(0)}` : formatIndian(0);
-    console.log(`animateCounter: Set ${id} to zero: "${el.textContent}"`);
     return;
   }
 
