@@ -6,7 +6,10 @@ const log = require("electron-log"); // Import electron-log in the preload proce
 // Route to get all stock items
 router.get('/all', async (req, res) => {
     try {
-        const stockData = await Stock.find().sort({ item_name: 1 });
+        // Use lean() for better performance when no Mongoose methods needed
+        const stockData = await Stock.find()
+            .sort({ item_name: 1 })
+            .lean();
         res.status(200).json(stockData);
     } catch (error) {
         log.error('Error fetching stock data:', error);
@@ -211,7 +214,10 @@ router.get("/get-stock-item", async (req, res) => {
 
 router.get("/get-names", async (req, res) => {
     try {
-        const stockItems = await Stock.find({}, { item_name: 1 });
+        // Only select item_name field and use lean() for better performance
+        const stockItems = await Stock.find({})
+            .select('item_name')
+            .lean();
         res.json(stockItems.map(item => item.item_name));
     } catch (error) {
         log.error("Error fetching stock item names:", error);

@@ -17,16 +17,22 @@ function generateUniqueId() {
 // Route to generate a new purchaseOrder ID
 router.get("/generate-id", async (req, res) => {
     let purchase_order_id;
-    let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 10;
 
-    while (!isUnique) {
+    // Try up to 10 times before adding more randomness
+    while (attempts < maxAttempts) {
         purchase_order_id = generateUniqueId();
-        const existingpurchaseOrder = await Purchases.findOne({ purchase_order_id: purchase_order_id });
-        if (!existingpurchaseOrder) {
-            isUnique = true;
+        // Use exists() for faster query
+        const exists = await Purchases.exists({ purchase_order_id: purchase_order_id });
+        if (!exists) {
+            return res.status(200).json({ purchase_order_id: purchase_order_id });
         }
+        attempts++;
     }
 
+    // If still not unique after 10 attempts, add timestamp milliseconds
+    purchase_order_id = generateUniqueId() + Date.now().toString().slice(-3);
     res.status(200).json({ purchase_order_id: purchase_order_id });
 });
 
@@ -88,38 +94,47 @@ router.post("/save-purchase-order", async (req, res) => {
         }
 
         // --- STOCK MANAGEMENT LOGIC START ---
+        const bulkOps = [];
 
         // If updating, first revert previous items from stock
         if (previousItems.length > 0) {
             for (const prevItem of previousItems) {
                 if (!prevItem.description) continue;
-                let stockItem = await Stock.findOne({ item_name: prevItem.description });
-                if (stockItem) {
-                    stockItem.quantity = Number(stockItem.quantity || 0) - Number(prevItem.quantity || 0);
-                    // // Prevent negative stock
-                    // if (stockItem.quantity < 0) stockItem.quantity = 0;
-                    await stockItem.save();
-                }
+                bulkOps.push({
+                    updateOne: {
+                        filter: { item_name: prevItem.description },
+                        update: { $inc: { quantity: -(Number(prevItem.quantity || 0)) } }
+                    }
+                });
             }
         }
 
-        // Now add new items to stock
+        // Now add new items to stock with bulk operations
         for (const item of items) {
             if (!item.description) continue;
 
-            let stockItem = await Stock.findOne({ item_name: item.description });
+            // Check if stock item exists to determine if we update or create
+            const stockExists = await Stock.exists({ item_name: item.description });
 
-            if (stockItem) {
+            if (stockExists) {
                 // Update existing stock item
-                stockItem.quantity = Number(stockItem.quantity || 0) + Number(item.quantity || 0);
-                stockItem.unit_price = Number(item.unit_price) || stockItem.unit_price;
-                stockItem.GST = Number(item.rate) || stockItem.GST;
-                stockItem.specifications = item.specification || stockItem.specifications;
-                stockItem.company = item.company || stockItem.company;
-                stockItem.category = item.category || stockItem.category;
-                stockItem.type = item.type || stockItem.type;
-                stockItem.updatedAt = new Date();
-                await stockItem.save();
+                bulkOps.push({
+                    updateOne: {
+                        filter: { item_name: item.description },
+                        update: {
+                            $inc: { quantity: Number(item.quantity || 0) },
+                            $set: {
+                                unit_price: Number(item.unit_price) || 0,
+                                GST: Number(item.rate) || 0,
+                                specifications: item.specification || "",
+                                company: item.company || "",
+                                category: item.category || "",
+                                type: item.type || 'material',
+                                updatedAt: new Date()
+                            }
+                        }
+                    }
+                });
             } else {
                 // Create new stock item
                 await Stock.create({
@@ -137,6 +152,11 @@ router.post("/save-purchase-order", async (req, res) => {
                     updatedAt: new Date()
                 });
             }
+        }
+
+        // Execute all bulk operations at once
+        if (bulkOps.length > 0) {
+            await Stock.bulkWrite(bulkOps);
         }
         // --- STOCK MANAGEMENT LOGIC END ---
 
