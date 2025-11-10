@@ -113,14 +113,18 @@ router.post("/save-purchase-order", async (req, res) => {
         for (const item of items) {
             if (!item.description) continue;
 
+            // Sanitize item description to prevent any potential injection
+            const sanitizedDescription = String(item.description).trim();
+            if (!sanitizedDescription) continue;
+
             // Check if stock item exists to determine if we update or create
-            const stockExists = await Stock.exists({ item_name: item.description });
+            const stockExists = await Stock.exists({ item_name: sanitizedDescription });
 
             if (stockExists) {
                 // Update existing stock item
                 bulkOps.push({
                     updateOne: {
-                        filter: { item_name: item.description },
+                        filter: { item_name: sanitizedDescription },
                         update: {
                             $inc: { quantity: Number(item.quantity || 0) },
                             $set: {
@@ -138,7 +142,7 @@ router.post("/save-purchase-order", async (req, res) => {
             } else {
                 // Create new stock item
                 await Stock.create({
-                    item_name: item.description,
+                    item_name: sanitizedDescription,
                     HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
                     specifications: item.specification || "",
                     company: item.company || "",
