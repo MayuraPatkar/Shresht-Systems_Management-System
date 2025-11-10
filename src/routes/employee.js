@@ -33,7 +33,10 @@ router.post('/addEmp', async (req, res) => {
 // Route to get all employees
 router.get('/getEmployees', async (req, res) => {
     try {
-        const employees = await Employee.find();
+        // Use lean() for better performance when no Mongoose methods needed
+        const employees = await Employee.find()
+            .select('emp_id name address phone email join_date salary')
+            .lean();
         res.status(200).json({ employees });
     } catch (error) {
         log.error('Error fetching employees:', error);
