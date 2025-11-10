@@ -104,5 +104,16 @@ invoiceSchema.methods.updatePaymentStatus = function() {
 // Index for faster queries
 invoiceSchema.index({ invoice_id: 1, createdAt: -1 });
 invoiceSchema.index({ payment_status: 1, createdAt: -1 });
+// Text index for search functionality
+invoiceSchema.index({ 
+    invoice_id: 'text', 
+    project_name: 'text', 
+    customer_name: 'text', 
+    customer_phone: 'text', 
+    customer_email: 'text' 
+});
+// Additional indexes for common queries
+invoiceSchema.index({ customer_name: 1 });
+invoiceSchema.index({ customer_phone: 1 });
 
 module.exports = mongoose.model('invoice', invoiceSchema);

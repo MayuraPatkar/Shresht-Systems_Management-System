@@ -33,7 +33,7 @@ router.post('/addEmp', async (req, res) => {
 // Route to get all employees
 router.get('/getEmployees', async (req, res) => {
     try {
-        const employees = await Employee.find();
+        const employees = await Employee.find().lean();
         res.status(200).json({ employees });
     } catch (error) {
         log.error('Error fetching employees:', error);

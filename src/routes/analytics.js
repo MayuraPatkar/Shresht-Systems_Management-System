@@ -93,49 +93,60 @@ router.get('/comparison', async (req, res) => {
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Current month revenue (Payments received this month)
-    const currentRevenueResult = await Invoices.aggregate([
-      { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
-      {
-        $match: {
-          'payments.payment_date': { $gte: currentMonthStart, $lt: currentMonthEnd },
+    // Run all queries in parallel for better performance
+    const [
+      currentRevenueResult,
+      previousRevenueResult,
+      currentProjects,
+      previousProjects,
+      currentQuotations,
+      previousQuotations
+    ] = await Promise.all([
+      // Current month revenue (Payments received this month)
+      Invoices.aggregate([
+        { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
+        {
+          $match: {
+            'payments.payment_date': { $gte: currentMonthStart, $lt: currentMonthEnd },
+          },
         },
-      },
-      { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
+        { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
+      ]),
+      
+      // Previous month revenue
+      Invoices.aggregate([
+        { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
+        {
+          $match: {
+            'payments.payment_date': { $gte: previousMonthStart, $lt: previousMonthEnd },
+          },
+        },
+        { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
+      ]),
+      
+      // Current month projects
+      Invoices.countDocuments({
+        createdAt: { $gte: currentMonthStart, $lt: currentMonthEnd },
+      }),
+      
+      // Previous month projects
+      Invoices.countDocuments({
+        createdAt: { $gte: previousMonthStart, $lt: previousMonthEnd },
+      }),
+      
+      // Current month quotations
+      Quotations.countDocuments({
+        createdAt: { $gte: currentMonthStart, $lt: currentMonthEnd },
+      }),
+      
+      // Previous month quotations
+      Quotations.countDocuments({
+        createdAt: { $gte: previousMonthStart, $lt: previousMonthEnd },
+      })
     ]);
+
     const currentRevenue = currentRevenueResult.length > 0 ? currentRevenueResult[0].total : 0;
-
-    // Previous month revenue
-    const previousRevenueResult = await Invoices.aggregate([
-      { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
-      {
-        $match: {
-          'payments.payment_date': { $gte: previousMonthStart, $lt: previousMonthEnd },
-        },
-      },
-      { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
-    ]);
     const previousRevenue = previousRevenueResult.length > 0 ? previousRevenueResult[0].total : 0;
-
-    // Current month projects
-    const currentProjects = await Invoices.countDocuments({
-      createdAt: { $gte: currentMonthStart, $lt: currentMonthEnd },
-    });
-
-    // Previous month projects
-    const previousProjects = await Invoices.countDocuments({
-      createdAt: { $gte: previousMonthStart, $lt: previousMonthEnd },
-    });
-
-    // Current month quotations
-    const currentQuotations = await Quotations.countDocuments({
-      createdAt: { $gte: currentMonthStart, $lt: currentMonthEnd },
-    });
-
-    // Previous month quotations
-    const previousQuotations = await Quotations.countDocuments({
-      createdAt: { $gte: previousMonthStart, $lt: previousMonthEnd },
-    });
 
     res.json({
       revenue: {

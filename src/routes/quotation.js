@@ -10,29 +10,40 @@ function generateUniqueId() {
     const year = now.getFullYear().toString().slice(-2);
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
-    const randomNum = Math.floor(Math.random() * 10);
-    return `${year}${month}${day}${randomNum}`;
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+    const randomNum = Math.floor(Math.random() * 100).toString().padStart(2, '0'); // 2-digit random number
+    return `${year}${month}${day}${hours}${minutes}${seconds}${randomNum}`;
 }
 
 // Route to generate a new quotation ID
 router.get("/generate-id", async (req, res) => {
     let quotationId;
     let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 10;
 
-    while (!isUnique) {
+    while (!isUnique && attempts < maxAttempts) {
         quotationId = generateUniqueId();
-        const existingQuotation = await Quotations.findOne({ quotation_id: quotationId });
+        const existingQuotation = await Quotations.findOne({ quotation_id: quotationId }).select('_id').lean();
         if (!existingQuotation) {
             isUnique = true;
         }
+        attempts++;
     }
+    
+    if (!isUnique) {
+        return res.status(500).json({ error: "Failed to generate unique ID after multiple attempts" });
+    }
+    
     res.status(200).json({ quotation_id: quotationId });
 });
 
 // Route to get all quotations
 router.get("/all", async (req, res) => {
     try {
-        const quotations = await Quotations.find().sort({ createdAt: -1 });
+        const quotations = await Quotations.find().sort({ createdAt: -1 }).lean();
         return res.status(200).json(quotations);
     } catch (error) {
         logger.error("Error fetching quotations:", error);
@@ -164,7 +175,8 @@ router.get("/recent-quotations", async (req, res) => {
         const recentQuotations = await Quotations.find()
             .sort({ createdAt: -1 })
             .limit(5)
-            .select("project_name quotation_id customer_name customer_address total_amount_tax");
+            .select("project_name quotation_id customer_name customer_address total_amount_tax")
+            .lean();
 
         res.status(200).json({
             message: "Recent quotations retrieved successfully",

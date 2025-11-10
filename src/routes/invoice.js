@@ -10,21 +10,31 @@ function generateUniqueId() {
     const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
     const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month (0-based, so add 1)
     const day = now.getDate().toString().padStart(2, '0'); // Day of the month
-    const randomNum = Math.floor(Math.random() * 10); // Random single-digit number
-    return `${year}${month}${day}${randomNum}`;
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+    const randomNum = Math.floor(Math.random() * 100).toString().padStart(2, '0'); // 2-digit random number
+    return `${year}${month}${day}${hours}${minutes}${seconds}${randomNum}`;
 }
 
 // Route to generate a new Invoice ID
 router.get("/generate-id", async (req, res) => {
     let invoice_id;
     let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 10;
 
-    while (!isUnique) {
+    while (!isUnique && attempts < maxAttempts) {
         invoice_id = generateUniqueId();
-        const existingInvoice = await Invoices.findOne({ invoice_id: invoice_id });
+        const existingInvoice = await Invoices.findOne({ invoice_id: invoice_id }).select('_id').lean();
         if (!existingInvoice) {
             isUnique = true;
         }
+        attempts++;
+    }
+
+    if (!isUnique) {
+        return res.status(500).json({ error: "Failed to generate unique ID after multiple attempts" });
     }
 
     res.status(200).json({ invoice_id: invoice_id });
@@ -37,7 +47,7 @@ router.get("/test", (req, res) => {
 
 router.get("/get-all", async (req, res) => {
     try {
-        const invoices = await Invoices.find();
+        const invoices = await Invoices.find().lean();
         return res.status(200).json({ invoices });
     } catch (error) {
         logger.error("Error fetching invoices:", error);
@@ -48,7 +58,7 @@ router.get("/get-all", async (req, res) => {
 // Alias for dashboard compatibility
 router.get("/all", async (req, res) => {
     try {
-        const invoices = await Invoices.find().sort({ createdAt: -1 });
+        const invoices = await Invoices.find().sort({ createdAt: -1 }).lean();
         return res.status(200).json(invoices);
     } catch (error) {
         logger.error("Error fetching invoices:", error);
@@ -131,13 +141,32 @@ router.post("/save-invoice", async (req, res) => {
         }
 
         if (existingInvoice) {
-            // Update stock: revert previous items
+            // Update stock: revert previous items and deduct new items using bulkWrite for better performance
+            const stockOperations = [];
+            
+            // Revert previous items
             for (let prev of existingInvoice.items_original) {
-                await Stock.updateOne({ item_name: prev.description }, { $inc: { quantity: prev.quantity } });
+                stockOperations.push({
+                    updateOne: {
+                        filter: { item_name: prev.description },
+                        update: { $inc: { quantity: prev.quantity } }
+                    }
+                });
             }
-            // Update stock: deduct new items (allow negative)
+            
+            // Deduct new items (allow negative)
             for (let cur of items_original) {
-                await Stock.updateOne({ item_name: cur.description }, { $inc: { quantity: -cur.quantity } });
+                stockOperations.push({
+                    updateOne: {
+                        filter: { item_name: cur.description },
+                        update: { $inc: { quantity: -cur.quantity } }
+                    }
+                });
+            }
+            
+            // Execute all stock updates in a single batch operation
+            if (stockOperations.length > 0) {
+                await Stock.bulkWrite(stockOperations);
             }
 
             // Update the invoice
@@ -170,13 +199,16 @@ router.post("/save-invoice", async (req, res) => {
             const updatedInvoice = await existingInvoice.save();
             return res.status(200).json({ message: 'Invoice updated successfully', invoice: updatedInvoice });
         } else {
-            // Deduct stock for new invoice (allow negative)
-            for (let item of items_original) {
-                const stockItem = await Stock.findOne({ item_name: item.description });
-                if (stockItem) {
-                    stockItem.quantity -= item.quantity;
-                    await stockItem.save();
+            // Deduct stock for new invoice using bulkWrite for better performance
+            const stockOperations = items_original.map(item => ({
+                updateOne: {
+                    filter: { item_name: item.description },
+                    update: { $inc: { quantity: -item.quantity } }
                 }
+            }));
+            
+            if (stockOperations.length > 0) {
+                await Stock.bulkWrite(stockOperations);
             }
 
             // Create a new invoice
@@ -220,11 +252,12 @@ router.post("/save-invoice", async (req, res) => {
 // Route to get the 10 most recent invoices
 router.get("/recent-invoices", async (req, res) => {
     try {
-        // Fetch the 5 most recent invoices, sorted by creation date
+        // Fetch the 10 most recent invoices, sorted by creation date
         const recentInvoices = await Invoices.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("project_name invoice_id customer_name customer_phone customer_address payment_status total_amount_duplicate total_paid_amount");
+            .select("project_name invoice_id customer_name customer_phone customer_address payment_status total_amount_duplicate total_paid_amount")
+            .lean();
 
         // Respond with the fetched invoices
         res.status(200).json({

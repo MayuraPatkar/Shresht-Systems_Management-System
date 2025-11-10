@@ -6,7 +6,7 @@ const log = require("electron-log"); // Import electron-log in the preload proce
 // Route to get all stock items
 router.get('/all', async (req, res) => {
     try {
-        const stockData = await Stock.find().sort({ item_name: 1 });
+        const stockData = await Stock.find().sort({ item_name: 1 }).lean();
         res.status(200).json(stockData);
     } catch (error) {
         log.error('Error fetching stock data:', error);
@@ -17,7 +17,7 @@ router.get('/all', async (req, res) => {
 // Route to Get Stock Data
 router.get('/getStock', async (req, res) => {
     try {
-        const stockData = await Stock.find();
+        const stockData = await Stock.find().lean();
         res.status(200).json(stockData);
     } catch (error) {
         log.error('Error fetching stock data:', error);
@@ -211,7 +211,7 @@ router.get("/get-stock-item", async (req, res) => {
 
 router.get("/get-names", async (req, res) => {
     try {
-        const stockItems = await Stock.find({}, { item_name: 1 });
+        const stockItems = await Stock.find({}, { item_name: 1 }).lean();
         res.json(stockItems.map(item => item.item_name));
     } catch (error) {
         log.error("Error fetching stock item names:", error);

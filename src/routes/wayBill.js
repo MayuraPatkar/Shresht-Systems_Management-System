@@ -6,7 +6,7 @@ const log = require("electron-log"); // Import electron-log in the preload proce
 // Route to get all waybills
 router.get("/all", async (req, res) => {
     try {
-        const allWayBills = await wayBills.find().sort({ createdAt: -1 });
+        const allWayBills = await wayBills.find().sort({ createdAt: -1 }).lean();
         return res.status(200).json(allWayBills);
     } catch (error) {
         log.error("Error fetching waybills:", error);
@@ -87,7 +87,8 @@ router.get("/recent-way-bills", async (req, res) => {
         const recentWayBills = await wayBills.find()
             .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
             .limit(5)
-            .select("project_name waybill_id customer_name customer_address place_supply");
+            .select("project_name waybill_id customer_name customer_address place_supply")
+            .lean();
 
         // Respond with the fetched way bills
         res.status(200).json({
