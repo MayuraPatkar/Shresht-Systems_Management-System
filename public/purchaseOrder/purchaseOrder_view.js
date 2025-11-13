@@ -298,6 +298,28 @@ async function viewPurchaseOrder(purchaseOrderId) {
             viewItemsTableBody.appendChild(row);
         });
 
+        // Calculate and set totals (professional 3-box layout)
+        let subtotal = 0;
+        let totalTax = 0;
+        
+        (purchaseOrder.items || []).forEach(item => {
+            const qty = parseFloat(item.quantity || 0);
+            const unitPrice = parseFloat(item.unit_price || 0);
+            const rate = parseFloat(item.rate || 0);
+            const taxableValue = qty * unitPrice;
+            const cgst = (taxableValue * rate / 2) / 100;
+            const sgst = (taxableValue * rate / 2) / 100;
+            
+            subtotal += taxableValue;
+            totalTax += (cgst + sgst);
+        });
+        
+        const grandTotal = subtotal + totalTax;
+        
+        document.getElementById('view-subtotal').textContent = `₹ ${formatIndian(subtotal, 2)}`;
+        document.getElementById('view-tax').textContent = totalTax > 0 ? `₹ ${formatIndian(totalTax, 2)}` : 'No Tax';
+        document.getElementById('view-grand-total').textContent = `₹ ${formatIndian(grandTotal, 2)}`;
+
         // Generate the preview for print/PDF
         await generatePurchaseOrderViewPreview(purchaseOrder);
 

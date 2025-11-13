@@ -368,11 +368,14 @@ async function viewQuotation(quotationId, viewType) {
             itemNumber++;
         });
 
-        // Set totals
-        document.getElementById('view-total-amount').textContent = `₹ ${formatIndian(grandTotal, 2) || '-'}`;
-        document.getElementById('view-total-tax').textContent = viewType === 2 ? `₹ ${formatIndian(totalTax, 2) || '-'}` : 'No Tax';
-        document.getElementById('view-total-with-tax').textContent = viewType === 2 ? `₹ ${formatIndian(grandTotal, 2) || '-'}` : 'No Tax';
-        document.getElementById('view-total-without-tax').textContent = `₹ ${formatIndian(totalTaxable, 2) || '-'}`;
+        // Set totals (professional 3-box layout)
+        const subtotal = totalTaxable;
+        const tax = totalTax;
+        const total = grandTotal;
+        
+        document.getElementById('view-subtotal').textContent = `₹ ${formatIndian(subtotal, 2) || '-'}`;
+        document.getElementById('view-tax').textContent = viewType === 2 ? `₹ ${formatIndian(tax, 2) || '-'}` : 'No Tax';
+        document.getElementById('view-grand-total').textContent = `₹ ${formatIndian(total, 2) || '-'}`;
 
         // Update table header based on view type
         const tableHead = document.querySelector("#view-items-table thead tr");

@@ -423,6 +423,28 @@
                     </div>
                 </section>
 
+                <!-- Totals Card -->
+                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                        <i class="fas fa-calculator text-green-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Totals</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="block text-sm font-medium text-gray-600 mb-1">Subtotal</span>
+                            <span class="text-gray-900 font-bold text-lg" id="view-subtotal">-</span>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="block text-sm font-medium text-gray-600 mb-1">Tax (GST)</span>
+                            <span class="text-gray-900 font-bold text-lg" id="view-tax">-</span>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+                            <span class="block text-sm font-medium text-green-600 mb-1">Total Amount Due</span>
+                            <span class="text-green-900 font-bold text-xl" id="view-grand-total">-</span>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Preview & Actions Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
