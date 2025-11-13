@@ -1,5 +1,34 @@
 const invoicesListDiv = document.querySelector(".records");
 
+const INVOICE_SHORTCUT_GROUPS = [
+    {
+        title: 'Navigation',
+        icon: 'fas fa-arrows-alt text-blue-600',
+        items: [
+            { label: 'Next Step', keys: ['Enter'] },
+            { label: 'Previous Step', keys: ['Backspace'] },
+            { label: 'Exit/Cancel', keys: ['Esc'] }
+        ]
+    },
+    {
+        title: 'Actions',
+        icon: 'fas fa-bolt text-yellow-600',
+        items: [
+            { label: 'New Invoice', keys: ['Ctrl', 'N'] },
+            { label: 'Save Invoice', keys: ['Ctrl', 'S'] },
+            { label: 'View Preview', keys: ['Ctrl', 'P'] },
+            { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
+            { label: 'Add Item', keys: ['Ctrl', 'I'] },
+            { label: 'Go Home', keys: ['Ctrl', 'H'] },
+            { label: 'Focus Search', keys: ['Ctrl', 'F'] }
+        ]
+    }
+];
+
+let shortcutsModalRef = null;
+
+const isMac = navigator.userAgent.toLowerCase().includes('mac');
+
 // Global toast notification function
 function showToast(message) {
     let toast = document.getElementById('global-toast');
@@ -65,6 +94,9 @@ document.addEventListener("DOMContentLoaded", () => {
             handleSearch();
         }
     });
+
+    initShortcutsModal();
+    document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
 });
 
 // Load recent invoices from the server
@@ -452,3 +484,308 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
         window.electronAPI.showAlert1("Failed to connect to server.");
     }
 });
+
+function initShortcutsModal() {
+    shortcutsModalRef = document.getElementById('shortcuts-modal');
+    const shortcutsBtn = document.getElementById('shortcuts-btn');
+    const closeBtn = document.getElementById('close-shortcuts');
+    const contentContainer = document.getElementById('shortcuts-content');
+
+    if (!shortcutsModalRef || !shortcutsBtn || !closeBtn || !contentContainer) {
+        return;
+    }
+
+    contentContainer.innerHTML = INVOICE_SHORTCUT_GROUPS.map(renderShortcutSection).join('');
+
+    shortcutsBtn.addEventListener('click', () => {
+        showShortcutsModal();
+    });
+
+    closeBtn.addEventListener('click', () => {
+        hideShortcutsModal();
+    });
+
+    shortcutsModalRef.addEventListener('click', (event) => {
+        if (event.target === shortcutsModalRef) {
+            hideShortcutsModal();
+        }
+    });
+}
+
+function renderShortcutSection(section) {
+    const sectionHeader = `
+        <div class="shortcuts-section">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <i class="${section.icon}"></i>
+                ${section.title}
+            </h3>
+            <div class="space-y-2">
+                ${section.items.map(renderShortcutRow).join('')}
+            </div>
+        </div>
+    `;
+    return sectionHeader;
+}
+
+function renderShortcutRow(item) {
+    return `
+        <div class="shortcut-row">
+            <span class="text-gray-700">${item.label}</span>
+            ${renderShortcutKeys(item.keys)}
+        </div>
+    `;
+}
+
+function renderShortcutKeys(keys) {
+    const keyCaps = keys.map((key, index) => {
+        const displayKey = key === 'Ctrl' && isMac ? 'Cmd' : key;
+        const separator = index > 0 ? '<span>+</span>' : '';
+        return `${separator}<kbd>${displayKey}</kbd>`;
+    }).join('');
+    return `<div class="shortcut-keys">${keyCaps}</div>`;
+}
+
+function showShortcutsModal() {
+    if (!shortcutsModalRef) return;
+    shortcutsModalRef.classList.remove('hidden');
+}
+
+function hideShortcutsModal() {
+    if (!shortcutsModalRef) return;
+    shortcutsModalRef.classList.add('hidden');
+}
+
+function isSectionVisible(sectionId) {
+    const el = document.getElementById(sectionId);
+    if (!el) return false;
+    return window.getComputedStyle(el).display !== 'none';
+}
+
+function isFormActive() {
+    return isSectionVisible('new');
+}
+
+function isPreviewStepActive() {
+    if (typeof currentStep === 'undefined' || typeof totalSteps === 'undefined') {
+        return false;
+    }
+    return currentStep === totalSteps;
+}
+
+function runOnPreviewStep(callback) {
+    if (typeof callback !== 'function') {
+        return;
+    }
+
+    if (!isFormActive()) {
+        return;
+    }
+
+    const switchToPreview = () => {
+        if (typeof changeStep === 'function' && typeof totalSteps !== 'undefined') {
+            changeStep(totalSteps);
+        }
+        if (typeof generatePreview === 'function') {
+            generatePreview();
+        }
+    };
+
+    if (!isPreviewStepActive()) {
+        switchToPreview();
+    } else if (typeof generatePreview === 'function') {
+        generatePreview();
+    }
+
+    setTimeout(() => {
+        callback();
+    }, 0);
+}
+
+function isItemsStepActive() {
+    if (typeof currentStep === 'undefined') {
+        return false;
+    }
+    return currentStep === 5;
+}
+
+function isHomeScreenActive() {
+    const homeSectionVisible = isSectionVisible('home');
+    return homeSectionVisible && !isFormActive() && !isSectionVisible('view');
+}
+
+function triggerAddEntry() {
+    if (!isFormActive()) {
+        return false;
+    }
+
+    const itemsBtn = document.getElementById('add-item-btn');
+    if (itemsBtn && isItemsStepActive()) {
+        itemsBtn.click();
+        return true;
+    }
+
+    const nonItemBtn = document.getElementById('add-non-item-btn');
+    if (nonItemBtn && typeof currentStep !== 'undefined' && currentStep === 6) {
+        nonItemBtn.click();
+        return true;
+    }
+
+    return false;
+}
+
+function triggerPrintAction() {
+    const formPrintBtn = document.getElementById('print-btn');
+    if (formPrintBtn && isFormActive()) {
+        runOnPreviewStep(() => formPrintBtn.click());
+        return true;
+    }
+
+    const viewPrintBtn = document.getElementById('printProject');
+    if (viewPrintBtn && isSectionVisible('view')) {
+        viewPrintBtn.click();
+        return true;
+    }
+
+    return false;
+}
+
+function isTypingContext() {
+    const active = document.activeElement;
+    if (!active) return false;
+    const tagName = active.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' || active.isContentEditable || tagName === 'SELECT';
+}
+
+function handleQuotationKeyboardShortcuts(event) {
+    const keyLower = event.key.toLowerCase();
+    const isModifierPressed = event.ctrlKey || event.metaKey;
+    const homeButton = document.getElementById('home-btn');
+
+    if (!shortcutsModalRef) {
+        shortcutsModalRef = document.getElementById('shortcuts-modal');
+    }
+
+    if (!event.altKey && isModifierPressed) {
+        switch (keyLower) {
+            case 'n': {
+                const newBtn = document.getElementById('new-invoice');
+                if (newBtn && window.getComputedStyle(newBtn).display !== 'none') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    newBtn.click();
+                }
+                break;
+            }
+            case 's': {
+                const saveBtn = document.getElementById('save-btn');
+                if (saveBtn && isFormActive()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    runOnPreviewStep(() => saveBtn.click());
+                }
+                break;
+            }
+            case 'p': {
+                const isShift = event.shiftKey;
+                if (isShift) {
+                    if (triggerPrintAction()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                } else {
+                    const previewBtn = document.getElementById('view-preview');
+                    if (previewBtn && window.getComputedStyle(previewBtn).display !== 'none') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        previewBtn.click();
+                    }
+                }
+                break;
+            }
+            case 'i': {
+                if (triggerAddEntry()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                break;
+            }
+            case 'h': {
+                if (homeButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    homeButton.click();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 150);
+                }
+                break;
+            }
+            case 'f': {
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+                break;
+            }
+            default:
+                break;
+        }
+        return;
+    }
+
+    if (event.altKey) {
+        return;
+    }
+
+    if (event.key === 'Escape') {
+        if (shortcutsModalRef && !shortcutsModalRef.classList.contains('hidden')) {
+            event.preventDefault();
+            event.stopPropagation();
+            hideShortcutsModal();
+            return;
+        }
+
+        if (isHomeScreenActive()) {
+            event.preventDefault();
+            event.stopPropagation();
+            window.location = '/dashboard';
+            return;
+        }
+
+        event.stopPropagation();
+        return;
+    }
+
+    if (event.key === '?' && !isTypingContext()) {
+        event.preventDefault();
+        event.stopPropagation();
+        showShortcutsModal();
+        return;
+    }
+
+    if (isTypingContext()) {
+        return;
+    }
+
+    if (event.key === 'Enter' && isFormActive()) {
+        const nextBtn = document.getElementById('next-btn');
+        if (nextBtn && !nextBtn.disabled) {
+            event.preventDefault();
+            event.stopPropagation();
+            nextBtn.click();
+        }
+        return;
+    }
+
+    if (event.key === 'Backspace' && isFormActive()) {
+        const prevBtn = document.getElementById('prev-btn');
+        if (prevBtn && !prevBtn.disabled) {
+            event.preventDefault();
+            event.stopPropagation();
+            prevBtn.click();
+        }
+    }
+}
