@@ -338,63 +338,418 @@ function generateWorksheetHTML(calc, data, customerName, date, systemSize, month
     const formattedDate = date ? formatDateIndian(date) : new Date().toLocaleDateString('en-IN');
     
     return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Data Worksheet - ${systemSize} KW Solar Installation</title>
-        <link rel="stylesheet" href="../css/dataWorksheet.css">
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Worksheet - ${systemSize} KW Solar Installation</title>
+    <style>
+        /* 1. Global Resets & Body */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 20px;
+        }
+
+        /* 2. Main Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* 3. Headers */
+        .company-header {
+            padding: 20px 25px;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .company-header h2 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .company-header p {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.5;
+            margin: 0;
+        }
+        .company-header .contact-info {
+            text-align: right;
+            font-size: 12px;
+        }
+
+        .report-header {
+            text-align: center;
+            padding: 30px 25px;
+            border-bottom: 1px solid #eee;
+        }
+        .report-header h1 {
+            font-size: 24px;
+            color: #111;
+            margin-bottom: 8px;
+        }
+        .report-header p {
+            font-size: 16px;
+            color: #777;
+        }
+
+        /* 4. Customer Info Grid */
+        .customer-info {
+            padding: 20px 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .info-item {
+            background: #fdfdfd;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+        .info-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .info-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* 5. Content Sections */
+        .section {
+            padding: 20px 25px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #10b981; /* Green accent */
+        }
+        .subsection-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        /* 6. Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .data-table thead th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .data-table tbody tr:hover {
+            background-color: #fcfcfc;
+        }
+        .data-table tfoot tr {
+            background-color: #f5f5f5;
+        }
+        .data-table tfoot td {
+            font-weight: 700;
+            color: #222;
+            border-top: 2px solid #ddd;
+        }
+
+        /* 7. Calculation & Result Boxes */
+        .calc-box {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+        .calc-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .calc-row:first-child {
+            padding-top: 0;
+        }
+        .calc-row span:first-child {
+            color: #555;
+        }
+        .calc-row span:last-child {
+            font-weight: 600;
+            color: #111;
+        }
+        .calc-row.total {
+            padding-top: 10px;
+            margin-top: 5px;
+            border-top: 2px solid #ccc;
+        }
+        .calc-row.total span {
+            font-size: 17px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .result-box {
+            background-color: #e6f7ff; /* Light blue */
+            border: 1px solid #b3e0f2;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+        }
+        .result-box h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: #02567c;
+            margin-bottom: 8px;
+        }
+        .result-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #02567c;
+        }
+
+        /* 8. Subsidy Comparison Grid */
+        .subsidy-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .subsidy-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+        .subsidy-card h4 {
+            padding: 15px 20px;
+            font-size: 16px;
+            color: #fff;
+            margin: 0;
+        }
+        .subsidy-card.with-sgy h4 {
+            background-color: #10b981; /* Green */
+        }
+        .subsidy-card.without-sgy h4 {
+            background-color: #f59e0b; /* Orange */
+        }
+        .subsidy-card .card-content {
+            padding: 20px;
+        }
+        /* Re-using calc-box for subsidy details */
+        .subsidy-card .calc-box {
+            background-color: #fff;
+            padding: 0;
+            border: none;
+            margin-top: 15px;
+        }
+        .subsidy-card .calc-row span:first-child {
+            font-size: 14px;
+        }
+        .subsidy-card .calc-row span:last-child {
+            font-size: 15px;
+        }
+        .subsidy-card .calc-row.details {
+            font-size: 12px;
+            color: #777;
+            padding-top: 2px;
+            padding-bottom: 8px;
+            border: none;
+        }
+        .subsidy-card .calc-row.details span {
+            color: #777;
+            font-weight: 400;
+        }
+        .subsidy-card .calc-row.total {
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+        .subsidy-card .calc-row.final-saving span {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .subsidy-card.with-sgy .calc-row.final-saving span {
+            color: #10b981;
+        }
+        .subsidy-card.without-sgy .calc-row.final-saving span {
+            color: #f59e0b;
+        }
+
+        /* 9. Note Section */
+        .note-section {
+            background-color: #fffbeb; /* Light yellow */
+            border: 1px solid #fde68a;
+            border-left: 4px solid #f59e0b; /* Orange */
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .note-section h4 {
+            color: #92400e;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .note-section p {
+            color: #92400e;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        /* Style for the subsidy table in notes */
+        .note-section .data-table thead th {
+            background-color: #f59e0b;
+            color: white;
+            font-size: 13px;
+        }
+        .note-section .data-table tr:nth-child(even) {
+            background-color: #fef9c3; /* Lighter yellow stripe */
+        }
+        .note-section .data-table td {
+            text-align: center;
+        }
+
+        /* 10. Footer */
+        .footer {
+            padding: 30px 25px;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+        }
+        .footer p {
+            margin: 0 0 10px 0;
+        }
+        .footer .footer-contact {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        /* 11. Responsive */
+        @media (max-width: 768px) {
             body {
-                font-family: 'Arial', sans-serif;
-                padding: 20px;
-                background: #f5f5f5;
+                padding: 10px;
             }
-        </style>
-    </head>
-    <body>
-        <div class="dw-container">
-            <!-- Company Header -->
-            <div class="dw-company-info">
+            .company-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .company-header .contact-info {
+                text-align: left;
+                width: 100%;
+            }
+            .section {
+                padding: 15px;
+            }
+            .subsidy-grid {
+                grid-template-columns: 1fr;
+            }
+            .footer-contact {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+        @media (max-width: 480px) {
+            .customer-info {
+                grid-template-columns: 1fr;
+            }
+            .report-header h1 {
+                font-size: 20px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="company-header">
+            <div>
                 <h2>SHRESHT SYSTEMS</h2>
                 <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | Email: shreshtsystems@gmail.com</p>
-                <p>GSTIN: 29AGCPN4093N1ZS | Website: www.shreshtsystems.com</p>
+                <p>GSTIN: 29AGCPN4093N1ZS</p>
             </div>
-            
-            <div class="dw-header">
-                <h1>DATA WorkSheet for ${systemSize} KW String Solar Installation</h1>
-                <p>Solar Energy Analysis & Savings Calculation</p>
+            <div class="contact-info">
+                <p>Ph: 7204657707 / 9901730305</p>
+                <p>Email: shreshtsystems@gmail.com</p>
+                <p>Website: www.shreshtsystems.com</p>
             </div>
-            
-            <div class="dw-info-section">
-                <div class="dw-info-item">
-                    <span class="dw-info-label">Customer Name</span>
-                    <span class="dw-info-value">${customerName}</span>
-                </div>
-                <div class="dw-info-item">
-                    <span class="dw-info-label">System Size</span>
-                    <span class="dw-info-value">${systemSize} KW</span>
-                </div>
-                <div class="dw-info-item">
-                    <span class="dw-info-label">Month</span>
-                    <span class="dw-info-value">${month}</span>
-                </div>
-                <div class="dw-info-item">
-                    <span class="dw-info-label">Date</span>
-                    <span class="dw-info-value">${formattedDate}</span>
-                </div>
-            </div>
+        </header>
+        
+        <div class="report-header">
+            <h1>DATA WorkSheet for ${systemSize} KW String Solar Installation</h1>
+            <p>Solar Energy Analysis & Savings Calculation</p>
+        </div>
 
-            <!-- Consumption Table -->
-            <table class="dw-table main-table">
+        <div class="customer-info">
+            <div class="info-item">
+                <span class="info-label">Customer Name</span>
+                <span class="info-value">${customerName}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">System Size</span>
+                <span class="info-value">${systemSize} KW</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Month</span>
+                <span class="info-value">${month}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Date</span>
+                <span class="info-value">${formattedDate}</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">Monthly Consumption Details</h3>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>S.No</th>
@@ -412,226 +767,261 @@ function generateWorksheetHTML(calc, data, customerName, date, systemSize, month
                         <td>${calc.fuelCharges.toFixed(2)}</td>
                         <td>${calc.tax.toFixed(2)}</td>
                     </tr>
-                    <tr class="dw-highlight-row">
+                </tbody>
+                <tfoot>
+                    <tr>
                         <td colspan="2"><strong>Total</strong></td>
                         <td><strong>${calc.consumptionUnits}</strong></td>
                         <td><strong>${calc.fuelCharges.toFixed(2)}</strong></td>
                         <td><strong>${calc.tax.toFixed(2)}</strong></td>
                     </tr>
-                    <tr class="dw-highlight-row">
+                    <tr>
                         <td colspan="2"><strong>Average</strong></td>
                         <td><strong>${calc.consumptionUnits}</strong></td>
                         <td><strong>${calc.fuelCharges.toFixed(2)}</strong></td>
                         <td><strong>${calc.tax.toFixed(2)}</strong></td>
                     </tr>
-                </tbody>
+                </tfoot>
             </table>
 
-            <!-- Demand Charges -->
-            <div class="dw-section-title">Demand Charges</div>
-            <table class="dw-table main-table">
+            <h3 class="section-title">Demand Charges</h3>
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Demand Charges</th>
-                        <th>Sanctioned Load ${systemSize} KW</th>
-                        <th>Rs.${(calc.demandCharge / data.sanctionedLoad).toFixed(2)}/KW</th>
-                        <th>${systemSize}*${(calc.demandCharge / data.sanctionedLoad).toFixed(2)}</th>
-                        <th>${calc.additionalCharges.toFixed(2)}</th>
+                        <th>Description</th>
+                        <th>Sanctioned Load</th>
+                        <th>Rate/KW</th>
+                        <th>Calculation</th>
+                        <th>Total</th>
                     </tr>
                 </thead>
-            </table>
-
-            <!-- Monthly Fixed Bill -->
-            <div class="dw-section-title">Monthly Fixed Bill</div>
-            <div class="dw-calculation-box">
-                <div class="dw-calculation-row">
-                    <span>Demand Charge:</span>
-                    <span>₹ ${calc.demandCharge.toFixed(2)}</span>
-                </div>
-                <div class="dw-calculation-row">
-                    <span>Average Fuel Charges:</span>
-                    <span>₹ ${calc.avgFuelCharges.toFixed(2)}</span>
-                </div>
-                <div class="dw-calculation-row">
-                    <span>Average Tax:</span>
-                    <span>₹ ${calc.avgTax.toFixed(2)}</span>
-                </div>
-                <div class="dw-calculation-row">
-                    <span><strong>Total:</strong></span>
-                    <span><strong>₹ ${calc.monthlyFixedBill.toFixed(2)}</strong></span>
-                </div>
-            </div>
-
-            <!-- 1 Month Average Consumption -->
-            <div class="dw-section-title">1 Months Average Consumption of Units ${(calc.oneMonthConsumption / calc.consumptionUnits).toFixed(2)}*${calc.consumptionUnits}</div>
-            <div class="dw-result-box">
-                <h3>Total</h3>
-                <div class="dw-result-value">₹ ${calc.oneMonthConsumption.toFixed(2)}</div>
-            </div>
-
-            <!-- Total Electricity Bill -->
-            <div class="dw-subsection-title">Total Electricity Bill = Monthly Fixed Bill + Consumption</div>
-            <div class="dw-result-box">
-                <h3>(${calc.monthlyFixedBill.toFixed(2)}+${calc.oneMonthConsumption.toFixed(2)})</h3>
-                <div class="dw-result-value">₹ ${calc.totalElectricityBill.toFixed(2)}</div>
-            </div>
-
-            <!-- Solar Production Details -->
-            <div class="dw-section-title">Solar Production Details in ${systemSize} KW</div>
-            <table class="dw-table main-table">
                 <tbody>
                     <tr>
-                        <td colspan="2">${systemSize} KW*${data.unitsPerDay} units = ${calc.dailyProduction} units/day (1KW Generates ${data.unitsPerDay})</td>
-                        <td colspan="2" rowspan="2"><strong>Total</strong><br>${calc.monthlyProduction} units/month</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">28*30=${calc.monthlyProduction} units/month</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">Solar Generation Units - Consumption of Units</td>
-                        <td colspan="2">${calc.solarMinusConsumption} ${calc.solarMinusConsumption > 0 ? 'Exceed units' : 'Deficit units'}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">i.e; ${calc.monthlyProduction}-${calc.consumptionUnits}</td>
-                        <td colspan="2"></td>
+                        <td>Demand Charges</td>
+                        <td>${systemSize} KW</td>
+                        <td>Rs.${(calc.demandCharge / data.sanctionedLoad).toFixed(2)}/KW</td>
+                        <td>${systemSize}*${(calc.demandCharge / data.sanctionedLoad).toFixed(2)}</td>
+                        <td>${calc.additionalCharges.toFixed(2)}</td>
                     </tr>
                 </tbody>
             </table>
 
-            <!-- PM SGY Comparison -->
-            <div class="dw-section-title">PM SGY Subsidy Comparison</div>
-            
-            <div class="dw-subsidy-grid">
-                <!-- With SGY -->
-                <div class="dw-subsidy-card with-sgy">
-                    <h4>PM SGY With</h4>
-                    <table style="width:100%; margin-top:10px;">
-                        <tr style="background: #10b981; color: white;">
-                            <th style="padding: 8px; font-size: 12px;">Rate/unit</th>
-                            <th style="padding: 8px; font-size: 12px;">Exceed Unit</th>
-                            <th style="padding: 8px; font-size: 12px;">Exceed Unit Rate</th>
-                        </tr>
-                        <tr>
-                            <td style="padding: 6px; font-size: 12px;">With</td>
-                            <td style="padding: 6px; font-size: 12px;">${data.sgyWithRate.toFixed(2)}</td>
-                            <td style="padding: 6px; font-size: 12px;">${calc.sgyWithExceedUnitTotal}</td>
-                            <td style="padding: 6px; font-size: 12px;">${calc.sgyWithExceedUnitRate.toFixed(2)}</td>
-                        </tr>
-                    </table>
-                    <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 6px;">
-                        <div class="dw-subsidy-row">
-                            <span>Exceed Unit Rate - Fixed Bill:</span>
-                            <span>₹ ${calc.sgyWithFixedBill.toFixed(2)}</span>
+            <div class="subsidy-grid"> <div>
+                    <h3 class="section-title">Monthly Fixed Bill</h3>
+                    <div class="calc-box">
+                        <div class="calc-row">
+                            <span>Demand Charge:</span>
+                            <span>₹ ${calc.demandCharge.toFixed(2)}</span>
                         </div>
-                        <div class="dw-subsidy-row">
-                            <span style="font-size: 11px;">(${calc.sgyWithExceedUnitRate.toFixed(2)}-${calc.monthlyFixedBill.toFixed(2)})</span>
-                            <span></span>
+                        <div class="calc-row">
+                            <span>Average Fuel Charges:</span>
+                            <span>₹ ${calc.avgFuelCharges.toFixed(2)}</span>
                         </div>
-                        <div class="dw-subsidy-row">
-                            <span>Actual Bill + MESCOM pay to Customer:</span>
-                            <span>₹ ${calc.sgyWithActualBill.toFixed(2)}</span>
+                        <div class="calc-row">
+                            <span>Average Tax:</span>
+                            <span>₹ ${calc.avgTax.toFixed(2)}</span>
                         </div>
-                        <div class="dw-subsidy-row">
-                            <span style="font-size: 11px;">(${calc.oneMonthConsumption.toFixed(2)}+${calc.monthlyFixedBill.toFixed(2)})</span>
-                            <span></span>
-                        </div>
-                        <div class="dw-subsidy-row total">
-                            <span>MESCOM pay to Customer:</span>
-                            <span>₹ ${calc.sgyWithMESCOMPay.toFixed(2)}</span>
-                        </div>
-                        <div class="dw-subsidy-row total" style="color: #10b981;">
-                            <span>Solar Saved per Month:</span>
-                            <span>₹ ${calc.sgyWithSolarSaved.toFixed(2)}</span>
+                        <div class="calc-row total">
+                            <span><strong>Total Fixed Bill:</strong></span>
+                            <span><strong>₹ ${calc.monthlyFixedBill.toFixed(2)}</strong></span>
                         </div>
                     </div>
                 </div>
-
-                <!-- Without SGY -->
-                <div class="dw-subsidy-card without-sgy">
-                    <h4>PM SGY With Out</h4>
-                    <table style="width:100%; margin-top:10px;">
-                        <tr style="background: #f59e0b; color: white;">
-                            <th style="padding: 8px; font-size: 12px;">Rate/unit</th>
-                            <th style="padding: 8px; font-size: 12px;">Exceed Unit</th>
-                            <th style="padding: 8px; font-size: 12px;">Exceed Unit Rate</th>
-                        </tr>
-                        <tr>
-                            <td style="padding: 6px; font-size: 12px;">With Out</td>
-                            <td style="padding: 6px; font-size: 12px;">${data.sgyWithoutRate.toFixed(2)}</td>
-                            <td style="padding: 6px; font-size: 12px;">${calc.sgyWithoutExceedUnitTotal}</td>
-                            <td style="padding: 6px; font-size: 12px;">${calc.sgyWithoutExceedUnitRate.toFixed(2)}</td>
-                        </tr>
-                    </table>
-                    <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 6px;">
-                        <div class="dw-subsidy-row">
-                            <span>Exceed Unit Rate - Fixed Bill:</span>
-                            <span>₹ ${calc.sgyWithoutFixedBill.toFixed(2)}</span>
+                <div>
+                    <h3 class="section-title">Monthly Consumption Bill</h3>
+                    <div class="calc-box">
+                        <div class="calc-row">
+                            <span>1 Month Avg. Consumption:</span>
+                            <span>${(calc.oneMonthConsumption / calc.consumptionUnits).toFixed(2)}*${calc.consumptionUnits}</span>
                         </div>
-                        <div class="dw-subsidy-row">
-                            <span style="font-size: 11px;">(${calc.sgyWithoutExceedUnitRate.toFixed(2)}-${calc.monthlyFixedBill.toFixed(2)})</span>
-                            <span></span>
-                        </div>
-                        <div class="dw-subsidy-row">
-                            <span>Actual Bill + MESCOM pay to Customer:</span>
-                            <span>₹ ${calc.sgyWithoutActualBill.toFixed(2)}</span>
-                        </div>
-                        <div class="dw-subsidy-row">
-                            <span style="font-size: 11px;">(${calc.oneMonthConsumption.toFixed(2)}+${calc.monthlyFixedBill.toFixed(2)})</span>
-                            <span></span>
-                        </div>
-                        <div class="dw-subsidy-row total">
-                            <span>MESCOM pay to Customer:</span>
-                            <span>₹ ${calc.sgyWithoutMESCOMPay.toFixed(2)}</span>
-                        </div>
-                        <div class="dw-subsidy-row total" style="color: #f59e0b;">
-                            <span>Solar Saved per Month:</span>
-                            <span>₹ ${calc.sgyWithoutSolarSaved.toFixed(2)}</span>
+                        <div class="calc-row total">
+                            <span><strong>Total Consumption:</strong></span>
+                            <span><strong>₹ ${calc.oneMonthConsumption.toFixed(2)}</strong></span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Note Section -->
-            <div class="dw-note-section">
-                <h4 style="color: #92400e; margin-bottom: 10px; font-size: 16px;">NOTE:</h4>
-                <p style="color: #92400e; font-size: 14px; font-weight: bold; margin-bottom: 8px;">PM SGY Subsidy Details</p>
-                <table class="dw-subsidy-table">
-                    <tr style="background: #f59e0b; color: white;">
-                        <th style="padding: 8px;">KW</th>
-                        <th style="padding: 8px;">Subsidy Amount</th>
-                        <th style="padding: 8px;">Unit Rate</th>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; text-align: center;">1-2 KW</td>
-                        <td style="padding: 8px; text-align: center;">30000/- to 60000/-</td>
-                        <td style="padding: 8px; text-align: center;">2.3</td>
-                    </tr>
-                    <tr style="background: #fef3c7;">
-                        <td style="padding: 8px; text-align: center;">2-3 KW</td>
-                        <td style="padding: 8px; text-align: center;">60000/- to 78000/-</td>
-                        <td style="padding: 8px; text-align: center;">2.48</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; text-align: center;">Above 3 KW</td>
-                        <td style="padding: 8px; text-align: center;">78000/-</td>
-                        <td style="padding: 8px; text-align: center;">2.93</td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- Footer -->
-            <div class="dw-footer">
-                <p><strong>For Shresht Systems</strong></p>
-                <div class="dw-footer-contact">
-                    <div>📞 9901730305 / 7204657707</div>
-                    <div>✉️ shreshtsystems@gmail.com</div>
-                    <div>🌐 www.shreshtsystems.com</div>
-                </div>
-                <p style="margin-top: 15px; font-style: italic;">Thank you for choosing solar energy with Shresht Systems</p>
+            <h3 class="subsection-title">Total Electricity Bill = Monthly Fixed Bill + Consumption</h3>
+            <div class="result-box">
+                <h3>(${calc.monthlyFixedBill.toFixed(2)} + ${calc.oneMonthConsumption.toFixed(2)})</h3>
+                <div class="result-value">₹ ${calc.totalElectricityBill.toFixed(2)}</div>
             </div>
         </div>
-    </body>
-    </html>
+
+        <div class="section">
+            <h3 class="section-title">Solar Production Details in ${systemSize} KW</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Calculation</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Daily Production (1KW Generates ${data.unitsPerDay})</td>
+                        <td>${systemSize} KW * ${data.unitsPerDay} units = <strong>${calc.dailyProduction} units/day</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Monthly Production</td>
+                        <td>${calc.dailyProduction} units/day * 30 days = <strong>${calc.monthlyProduction} units/month</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Solar Generation vs Consumption</td>
+                        <td>${calc.monthlyProduction} - ${calc.consumptionUnits} = <strong>${calc.solarMinusConsumption} ${calc.solarMinusConsumption > 0 ? 'Exceed units' : 'Deficit units'}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">PM SGY Subsidy Comparison</h3>
+            
+            <div class="subsidy-grid">
+                <div class="subsidy-card with-sgy">
+                    <h4>PM SGY (With)</h4>
+                    <div class="card-content">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Rate/unit</th>
+                                    <th>Exceed Unit</th>
+                                    <th>Exceed Unit Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>${data.sgyWithRate.toFixed(2)}</td>
+                                    <td>${calc.sgyWithExceedUnitTotal}</td>
+                                    <td>${calc.sgyWithExceedUnitRate.toFixed(2)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="calc-box">
+                            <div class="calc-row">
+                                <span>Exceed Unit Rate - Fixed Bill:</span>
+                                <span>₹ ${calc.sgyWithFixedBill.toFixed(2)}</span>
+                            </div>
+                            <div class="calc-row details">
+                                <span>(${calc.sgyWithExceedUnitRate.toFixed(2)} - ${calc.monthlyFixedBill.toFixed(2)})</span>
+                                <span></span>
+                            </div>
+                            <div class="calc-row">
+                                <span>Actual Bill:</span>
+                                <span>₹ ${calc.sgyWithActualBill.toFixed(2)}</span>
+                            </div>
+                            <div class="calc-row details">
+                                <span>(${calc.oneMonthConsumption.toFixed(2)} + ${calc.monthlyFixedBill.toFixed(2)})</span>
+                                <span></span>
+                            </div>
+                            <div class="calc-row total">
+                                <span>MESCOM pay to Customer:</span>
+                                <span>₹ ${calc.sgyWithMESCOMPay.toFixed(2)}</span>
+                            </div>
+                            <div class="calc-row total final-saving">
+                                <span>Solar Saved per Month:</span>
+                                <span>₹ ${calc.sgyWithSolarSaved.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsidy-card without-sgy">
+                    <h4>PM SGY (Without)</h4>
+                    <div class="card-content">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Rate/unit</th>
+                                    <th>Exceed Unit</th>
+                                    <th>Exceed Unit Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>${data.sgyWithoutRate.toFixed(2)}</td>
+                                    <td>${calc.sgyWithoutExceedUnitTotal}</td>
+                                    <td>${calc.sgyWithoutExceedUnitRate.toFixed(2)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="calc-box">
+                            <div class="calc-row">
+                                <span>Exceed Unit Rate - Fixed Bill:</span>
+                                <span>₹ ${calc.sgyWithoutFixedBill.toFixed(2)}</span>
+                            </div>
+                            <div class="calc-row details">
+                                <span>(${calc.sgyWithoutExceedUnitRate.toFixed(2)} - ${calc.monthlyFixedBill.toFixed(2)})</span>
+                                <span></span>
+                            </div>
+                            <div class="calc-row">
+                                <span>Actual Bill:</span>
+                                <span>₹ ${calc.sgyWithoutActualBill.toFixed(2)}</span>
+                            </div>
+                            <div class="calc-row details">
+                                <span>(${calc.oneMonthConsumption.toFixed(2)} + ${calc.monthlyFixedBill.toFixed(2)})</span>
+                                <span></span>
+                            </div>
+                            <div class="calc-row total">
+                                <span>MESCOM pay to Customer:</span>
+                                <span>₹ ${calc.sgyWithoutMESCOMPay.toFixed(2)}</span>
+                            </div>
+                            <div class="calc-row total final-saving">
+                                <span>Solar Saved per Month:</span>
+                                <span>₹ ${calc.sgyWithoutSolarSaved.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="note-section">
+                <h4>NOTE:</h4>
+                <p>PM SGY Subsidy Details</p>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>KW</th>
+                            <th>Subsidy Amount</th>
+                            <th>Unit Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1-2 KW</td>
+                            <td>30000/- to 60000/-</td>
+                            <td>2.3</td>
+                        </tr>
+                        <tr>
+                            <td>2-3 KW</td>
+                            <td>60000/- to 78000/-</td>
+                            <td>2.48</td>
+                        </tr>
+                        <tr>
+                            <td>Above 3 KW</td>
+                            <td>78000/-</td>
+                            <td>2.93</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p><strong>For Shresht Systems</strong></p>
+            <div class="footer-contact">
+                <div>9901730305 / 7204657707</div>
+                <div>shreshtsystems@gmail.com</div>
+                <div>www.shreshtsystems.com</div>
+            </div>
+            <p style="margin-top: 15px; font-style: italic;">Thank you for choosing solar energy with Shresht Systems</p>
+        </footer>
+    </div>
+</body>
+</html>
     `;
 }
 
