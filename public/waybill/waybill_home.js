@@ -65,6 +65,35 @@ document.getElementById('home-btn').addEventListener('click', () => {
 // Main content references
 const wayBillsListDiv = document.querySelector(".records");
 
+const INVOICE_SHORTCUT_GROUPS = [
+    {
+        title: 'Navigation',
+        icon: 'fas fa-arrows-alt text-blue-600',
+        items: [
+            { label: 'Next Step', keys: ['Enter'] },
+            { label: 'Previous Step', keys: ['Backspace'] },
+            { label: 'Exit/Cancel', keys: ['Esc'] }
+        ]
+    },
+    {
+        title: 'Actions',
+        icon: 'fas fa-bolt text-yellow-600',
+        items: [
+            { label: 'New Invoice', keys: ['Ctrl', 'N'] },
+            { label: 'Save Invoice', keys: ['Ctrl', 'S'] },
+            { label: 'View Preview', keys: ['Ctrl', 'P'] },
+            { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
+            { label: 'Add Item', keys: ['Ctrl', 'I'] },
+            { label: 'Go Home', keys: ['Ctrl', 'H'] },
+            { label: 'Focus Search', keys: ['Ctrl', 'F'] }
+        ]
+    }
+];
+
+let shortcutsModalRef = null;
+
+const isMac = navigator.userAgent.toLowerCase().includes('mac');
+
 // Header buttons
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentWayBills();
@@ -100,154 +129,312 @@ document.addEventListener("DOMContentLoaded", () => {
             shortcutsModal.classList.add('hidden');
         }
     });
+
+    initShortcutsModal();
+    document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
 });
 
 // These variables and functions are now in waybill_form.js to avoid duplication
 // currentStep, totalSteps, updateNavigation, and navigation event listeners moved to form file
 
-// Comprehensive keyboard shortcuts
-document.addEventListener("keydown", function (event) {
+function initShortcutsModal() {
+    shortcutsModalRef = document.getElementById('shortcuts-modal');
+    const shortcutsBtn = document.getElementById('shortcuts-btn');
+    const closeBtn = document.getElementById('close-shortcuts');
+    const contentContainer = document.getElementById('shortcuts-content');
+
+    if (!shortcutsModalRef || !shortcutsBtn || !closeBtn || !contentContainer) {
+        return;
+    }
+
+    contentContainer.innerHTML = INVOICE_SHORTCUT_GROUPS.map(renderShortcutSection).join('');
+
+    shortcutsBtn.addEventListener('click', () => {
+        showShortcutsModal();
+    });
+
+    closeBtn.addEventListener('click', () => {
+        hideShortcutsModal();
+    });
+
+    shortcutsModalRef.addEventListener('click', (event) => {
+        if (event.target === shortcutsModalRef) {
+            hideShortcutsModal();
+        }
+    });
+}
+
+function renderShortcutSection(section) {
+    const sectionHeader = `
+        <div class="shortcuts-section">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <i class="${section.icon}"></i>
+                ${section.title}
+            </h3>
+            <div class="space-y-2">
+                ${section.items.map(renderShortcutRow).join('')}
+            </div>
+        </div>
+    `;
+    return sectionHeader;
+}
+
+function renderShortcutRow(item) {
+    return `
+        <div class="shortcut-row">
+            <span class="text-gray-700">${item.label}</span>
+            ${renderShortcutKeys(item.keys)}
+        </div>
+    `;
+}
+
+function renderShortcutKeys(keys) {
+    const keyCaps = keys.map((key, index) => {
+        const displayKey = key === 'Ctrl' && isMac ? 'Cmd' : key;
+        const separator = index > 0 ? '<span>+</span>' : '';
+        return `${separator}<kbd>${displayKey}</kbd>`;
+    }).join('');
+    return `<div class="shortcut-keys">${keyCaps}</div>`;
+}
+
+function showShortcutsModal() {
+    if (!shortcutsModalRef) return;
+    shortcutsModalRef.classList.remove('hidden');
+}
+
+function hideShortcutsModal() {
+    if (!shortcutsModalRef) return;
+    shortcutsModalRef.classList.add('hidden');
+}
+
+function isSectionVisible(sectionId) {
+    const el = document.getElementById(sectionId);
+    if (!el) return false;
+    return window.getComputedStyle(el).display !== 'none';
+}
+
+function isFormActive() {
+    return isSectionVisible('new');
+}
+
+function isPreviewStepActive() {
+    if (typeof currentStep === 'undefined' || typeof totalSteps === 'undefined') {
+        return false;
+    }
+    return currentStep === totalSteps;
+}
+
+function runOnPreviewStep(callback) {
+    if (typeof callback !== 'function') {
+        return;
+    }
+
+    if (!isFormActive()) {
+        return;
+    }
+
+    const switchToPreview = () => {
+        if (typeof changeStep === 'function' && typeof totalSteps !== 'undefined') {
+            changeStep(totalSteps);
+        }
+        if (typeof generatePreview === 'function') {
+            generatePreview();
+        }
+    };
+
+    if (!isPreviewStepActive()) {
+        switchToPreview();
+    } else if (typeof generatePreview === 'function') {
+        generatePreview();
+    }
+
+    setTimeout(() => {
+        callback();
+    }, 0);
+}
+
+function isItemsStepActive() {
+    if (typeof currentStep === 'undefined') {
+        return false;
+    }
+    return currentStep === 5;
+}
+
+function isHomeScreenActive() {
+    const homeSectionVisible = isSectionVisible('home');
+    return homeSectionVisible && !isFormActive() && !isSectionVisible('view');
+}
+
+function triggerAddEntry() {
+    if (!isFormActive()) {
+        return false;
+    }
+
+    const itemsBtn = document.getElementById('add-item-btn');
+    if (itemsBtn && isItemsStepActive()) {
+        itemsBtn.click();
+        return true;
+    }
+
+    return false;
+}
+
+function triggerPrintAction() {
+    const formPrintBtn = document.getElementById('print-btn');
+    if (formPrintBtn && isFormActive()) {
+        runOnPreviewStep(() => formPrintBtn.click());
+        return true;
+    }
+
+    const viewPrintBtn = document.getElementById('print-project-btn');
+    if (viewPrintBtn && isSectionVisible('view')) {
+        viewPrintBtn.click();
+        return true;
+    }
+
+    return false;
+}
+
+function isTypingContext() {
     const active = document.activeElement;
-    const isTyping = active && (
-        active.tagName === "INPUT" ||
-        active.tagName === "TEXTAREA" ||
-        active.tagName === "SELECT" ||
-        active.isContentEditable
-    );
+    if (!active) return false;
+    const tagName = active.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' || active.isContentEditable || tagName === 'SELECT';
+}
 
-    // Enter key - move to next step (only when not typing)
-    if (event.key === "Enter" && !isTyping) {
-        event.preventDefault();
-        const nextBtn = document.getElementById('next-btn');
-        if (nextBtn && !nextBtn.disabled) {
-            nextBtn.click();
+function handleQuotationKeyboardShortcuts(event) {
+    const keyLower = event.key.toLowerCase();
+    const isModifierPressed = event.ctrlKey || event.metaKey;
+    const homeButton = document.getElementById('home-btn');
+
+    if (!shortcutsModalRef) {
+        shortcutsModalRef = document.getElementById('shortcuts-modal');
+    }
+
+    if (!event.altKey && isModifierPressed) {
+        switch (keyLower) {
+            case 'n': {
+                const newBtn = document.getElementById('new-waybill-btn');
+                if (newBtn && window.getComputedStyle(newBtn).display !== 'none') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    newBtn.click();
+                }
+                break;
+            }
+            case 's': {
+                const saveBtn = document.getElementById('save-btn');
+                if (saveBtn && isFormActive()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    runOnPreviewStep(() => saveBtn.click());
+                }
+                break;
+            }
+            case 'p': {
+                const isShift = event.shiftKey;
+                if (isShift) {
+                    if (triggerPrintAction()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                } else {
+                    const previewBtn = document.getElementById('view-preview-btn');
+                    if (previewBtn && window.getComputedStyle(previewBtn).display !== 'none') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        previewBtn.click();
+                    }
+                }
+                break;
+            }
+            case 'i': {
+                if (triggerAddEntry()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                break;
+            }
+            case 'h': {
+                if (homeButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    homeButton.click();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 150);
+                }
+                break;
+            }
+            case 'f': {
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+                break;
+            }
+            default:
+                break;
         }
+        return;
     }
 
-    // Backspace - go to previous step (only when not typing)
-    if (event.key === "Backspace" && !isTyping) {
-        event.preventDefault();
-        const prevBtn = document.getElementById('prev-btn');
-        if (prevBtn && !prevBtn.disabled) {
-            prevBtn.click();
-        }
+    if (event.altKey) {
+        return;
     }
 
-    // Ctrl/Cmd + N - New Waybill
-    if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
-        event.preventDefault();
-        const newBtn = document.getElementById('new-waybill-btn');
-        if (newBtn.style.display !== 'none') {
-            newBtn.click();
-        }
-    }
-
-    // Ctrl/Cmd + H - Go Home
-    if ((event.ctrlKey || event.metaKey) && event.key === 'h') {
-        event.preventDefault();
-        window.location = '/wayBill';
-    }
-
-    // Ctrl/Cmd + P - View Preview (when in form)
-    if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
-        event.preventDefault();
-        const previewBtn = document.getElementById('view-preview-btn');
-        if (previewBtn.style.display !== 'none') {
-            previewBtn.click();
-        }
-    }
-
-    // Ctrl/Cmd + S - Save (when on preview step)
-    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-        event.preventDefault();
-        const saveBtn = document.getElementById('save-btn');
-        if (saveBtn) {
-            saveBtn.click();
-        }
-    }
-
-    // Ctrl/Cmd + Shift + P - Print (when on preview step)
-    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'P') {
-        event.preventDefault();
-        const printBtn = document.getElementById('print-btn');
-        if (printBtn) {
-            printBtn.click();
-        }
-    }
-
-    // Ctrl/Cmd + I - Add Item (when on items step)
-    if ((event.ctrlKey || event.metaKey) && event.key === 'i') {
-        event.preventDefault();
-        const addBtn = document.getElementById('add-item-btn');
-        if (addBtn) {
-            addBtn.click();
-        }
-    }
-
-    // Arrow Right - Next step
-    if (event.key === "ArrowRight" && !isTyping) {
-        event.preventDefault();
-        const nextBtn = document.getElementById('next-btn');
-        if (nextBtn && !nextBtn.disabled) {
-            nextBtn.click();
-        }
-    }
-
-    // Arrow Left - Previous step
-    if (event.key === "ArrowLeft" && !isTyping) {
-        event.preventDefault();
-        const prevBtn = document.getElementById('prev-btn');
-        if (prevBtn && !prevBtn.disabled) {
-            prevBtn.click();
-        }
-    }
-
-    // Number keys 1-6 - Jump to specific step (uses window.changeStep from waybill_form.js)
-    if (!isTyping && event.key >= '1' && event.key <= '6') {
-        const stepNum = parseInt(event.key);
-        if (stepNum <= 6 && typeof window.changeStep === 'function') {
+    if (event.key === 'Escape') {
+        if (shortcutsModalRef && !shortcutsModalRef.classList.contains('hidden')) {
             event.preventDefault();
-            window.changeStep(stepNum);
-        }
-    }
-
-    // Escape - Go back to home
-    if (event.key === "Escape") {
-        event.preventDefault();
-        const homeView = document.getElementById('home');
-        const newView = document.getElementById('new');
-        const viewSection = document.getElementById('view');
-        const shortcutsModal = document.getElementById('shortcuts-modal');
-
-        // Close shortcuts modal if open
-        if (!shortcutsModal.classList.contains('hidden')) {
-            shortcutsModal.classList.add('hidden');
+            event.stopPropagation();
+            hideShortcutsModal();
             return;
         }
 
-        // Otherwise go back to home
-        if (newView.style.display === 'block' || viewSection.style.display === 'block') {
-            window.location = '/wayBill';
+        if (isHomeScreenActive()) {
+            event.preventDefault();
+            event.stopPropagation();
+            window.location = '/dashboard';
+            return;
         }
+
+        event.stopPropagation();
+        return;
     }
 
-    // ? key - Show keyboard shortcuts
-    if (event.key === '?' && !isTyping) {
+    if (event.key === '?' && !isTypingContext()) {
         event.preventDefault();
-        const shortcutsModal = document.getElementById('shortcuts-modal');
-        shortcutsModal.classList.remove('hidden');
+        event.stopPropagation();
+        showShortcutsModal();
+        return;
     }
 
-    // Ctrl/Cmd + F - Focus on search
-    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
-        event.preventDefault();
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-            searchInput.focus();
-            searchInput.select();
+    if (isTypingContext()) {
+        return;
+    }
+
+    if (event.key === 'Enter' && isFormActive()) {
+        const nextBtn = document.getElementById('next-btn');
+        if (nextBtn && !nextBtn.disabled) {
+            event.preventDefault();
+            event.stopPropagation();
+            nextBtn.click();
+        }
+        return;
+    }
+
+    if (event.key === 'Backspace' && isFormActive()) {
+        const prevBtn = document.getElementById('prev-btn');
+        if (prevBtn && !prevBtn.disabled) {
+            event.preventDefault();
+            event.stopPropagation();
+            prevBtn.click();
         }
     }
-});
+}
 
 // Load recent way bills from the server
 async function loadRecentWayBills() {

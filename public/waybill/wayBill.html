@@ -494,140 +494,17 @@
 
     <!-- Keyboard Shortcuts Modal -->
     <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shortcuts-panel">
             <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <i class="fas fa-keyboard text-2xl"></i>
                     <h2 class="text-xl font-semibold">Keyboard Shortcuts</h2>
                 </div>
-                <button id="close-shortcuts" class="text-white hover:text-gray-200">
+                <button id="close-shortcuts" class="text-white hover:text-gray-200" aria-label="Close shortcuts modal">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            <div class="p-6">
-                <!-- Navigation Shortcuts -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-arrows-alt text-blue-600"></i>
-                        Navigation
-                    </h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Next Step</span>
-                            <div class="flex gap-2">
-                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Enter</kbd>
-                                <span class="text-gray-400">or</span>
-                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">→</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Previous Step</span>
-                            <div class="flex gap-2">
-                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Backspace</kbd>
-                                <span class="text-gray-400">or</span>
-                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">←</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Jump to Step</span>
-                            <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">1-6</kbd>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Go Back/Cancel</span>
-                            <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Esc</kbd>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Shortcuts -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-bolt text-yellow-600"></i>
-                        Actions
-                    </h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">New Way Bill</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">N</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Go Home</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">H</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">View Preview</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">P</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Save Way Bill</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">S</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Print</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Shift</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">P</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Add Item (Step 5)</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">I</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Focus Search</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">F</kbd>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Help Shortcut -->
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-question-circle text-green-600"></i>
-                        Help
-                    </h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Show This Help</span>
-                            <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">?</kbd>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p class="text-sm text-blue-800">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        <strong>Tip:</strong> Use <kbd class="px-2 py-1 bg-white border border-blue-300 rounded text-xs font-mono">Cmd</kbd> instead of <kbd class="px-2 py-1 bg-white border border-blue-300 rounded text-xs font-mono">Ctrl</kbd> on Mac
-                    </p>
-                </div>
-            </div>
+            <div id="shortcuts-content" class="p-6 space-y-6"></div>
         </div>
     </div>
 
