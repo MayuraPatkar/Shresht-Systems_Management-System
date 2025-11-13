@@ -37,62 +37,430 @@ main {
     background: #1d4ed8;
 }
 
-.fade-in {
-    animation: fadeIn 0.3s ease-in;
-}
+.fade-in { animation: fadeIn 0.3s ease-in; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* ---------- Layout Basics ---------- */
 
-/* Enhanced Card Styles */
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-clamp: 2; }
+.records { display: flex; flex-direction: column; gap: 1rem; }
+.action-btn { transition: all 0.2s ease; }
+.action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+.action-btn:active { transform: translateY(0); }
 
-.records {
+#new, #view { display: none; }
+.steps { display: none; }
+.steps.active { display: block; }
+
+#view-items-table td, #view-specifications-table td { padding: 1rem 1.25rem; font-size: 0.95rem; }
+
+/* ---------- New Form Item Cards ---------- */
+.items-header, .non-items-header, .specifications-header, .item-card, .non-item-card, .specification-card {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
 }
 
-/* Action button hover effects */
-.action-btn {
-    transition: all 0.2s ease;
+.items-header, .non-items-header, .specifications-header {
+    background-color: #f9fafb;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #4b5563;
+    border-radius: 8px 8px 0 0;
 }
 
-.action-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.item-card, .non-item-card, .specification-card {
+    background-color: #fff;
+}
+.item-card:last-child, .non-item-card:last-child, .specification-card:last-child {
+    border-bottom: 1px solid #e5e7eb;
+    border-radius: 0 0 8px 8px;
 }
 
-.action-btn:active {
-    transform: translateY(0);
+.item-number, .header-number { flex: 0 0 30px; text-align: center; color: #6b7280; }
+.header-field, .item-card input, .non-item-card input, .specification-card textarea, .spec-item-name {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    width: 100%;
+}
+.header-field { border: none; padding: 0.5rem 0.75rem; }
+.spec-item-name { border: none; background: #f9fafb; }
+
+/* FIX: Add .spec-item-name to this flex rule */
+.description, .header-field.description, .spec-item-name { flex: 3 1 0%; }
+.specification, .header-field.specification { flex: 3 1 0%; }
+.hsn, .header-field.hsn { flex: 1 1 0%; min-width: 100px; }
+.qty, .header-field.qty { flex: 0 0 80px; }
+.price, .header-field.price { flex: 1 1 0%; min-width: 120px; }
+.rate, .header-field.rate { flex: 0 0 90px; }
+.header-action, .remove-item-btn { flex: 0 0 40px; text-align: center; }
+
+.remove-item-btn {
+    border: none;
+    background: none;
+    color: #ef4444;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 0.5rem;
+    width: 36px;
+    height: 36px;
+}
+.remove-item-btn:hover { background-color: #fef2f2; color: #dc2626; }
+
+
+/* ---------- Header + Preview ---------- */
+
+.preview-container.doc-quotation {
+    background: #ffffff;
+    padding: 22px;
+    margin: 18px auto;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 6px 18px rgba(16,24,40,0.05);
+    max-width: 900px;
+    border-radius: 6px;
+    color: #111827;
+    box-sizing: border-box;
 }
 
-#new, #view {
-    display: none;
+.brand-header {
+    background: linear-gradient(90deg, #0b74ff 0%, #0a5ed6 100%);
+    color: #ffffff;
+    padding: 18px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-sizing: border-box;
 }
 
-.steps {
-    display: none;
+.brand-header .brand-logo {
+    background: #ffffff;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    min-width: 96px;
+    min-height: 64px;
+    max-width: 120px;
 }
 
-.steps.active {
-    display: block;
+.brand-header .brand-logo img { display: block; width: 100%; height: auto; object-fit: contain; }
+
+.brand-name { font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 1px; line-height: 1; }
+.header-divider { border-top: 3px solid #e6eefc; margin: 14px 0; height: 0; }
+.brand-tag { font-size: 12px; color: #ffffff; opacity: 0.95; margin-top: 4px; }
+
+.brand-contact { text-align: right; font-size: 13px; line-height: 1.45; color: #ffffff; max-width: 420px; }
+
+.title-band {
+    background: #0b74ff;
+    color: #ffffff;
+    padding: 14px 18px;
+    text-align: center;
+    font-weight: 800;
+    margin-top: 8px;
+    margin-bottom: 14px;
+    border-radius: 6px;
+    font-size: 18px;
+    letter-spacing: 1.5px;
 }
 
-#view-items-table td, #view-specifications-table td {
-    padding: 1rem 1.25rem;
-    font-size: 0.95rem;
+.doc-date { font-size: 13px; color: #374151; margin: 6px 0 8px 0; }
+.quotation-letter-content { padding: 10px 2px 30px 2px; font-size: 14px; color: #374151; line-height: 1.7; }
+
+.preview-container .title { font-size: 16px; font-weight: 700; margin-top: 12px; margin-bottom: 8px; }
+.preview-container .terms-section, .preview-container .notes-section, .preview-container .closing-section { margin-top: 18px; }
+
+.preview-container footer {
+    margin-top: 22px;
+    text-align: center;
+    font-size: 12px;
+    color: #9ca3af;
+    border-top: 1px solid rgba(15,23,42,0.03);
+    padding-top: 10px;
 }
+
+@media (max-width: 900px) {
+    .brand-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .brand-contact { text-align: left; }
+    .brand-header .brand-logo { min-width: 80px; }
+    .title-band { font-size: 16px; }
+}
+
+/* ---------- Items Table ---------- */
+
+.items-section { margin-top: 10px; width: 100%; }
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    table-layout: fixed;
+}
+
+.items-table thead th {
+    background: #1565d8;
+    color: #fff;
+    font-weight: 700;
+    padding: 12px 10px;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    font-size: 13px;
+    letter-spacing: 0.4px;
+}
+
+.items-table tbody td {
+    padding: 12px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    font-size: 14px;
+    color: #374151;
+    vertical-align: middle;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+/* --- UPDATED ALIGNMENT RULES --- */
+/* Remove the old combined rules */
+
+/* Column 1 (S.No) */
+.items-table thead th:nth-child(1) { text-align: center; }
+.items-table tbody td:nth-child(1) { text-align: center; font-weight: 600; }
+
+/* Column 2 (Description) */
+.items-table thead th:nth-child(2) { text-align: left; padding-left: 14px; }
+.items-table tbody td:nth-child(2) { text-align: left; padding-left: 14px; }
+
+/* Column 3 (HSN) */
+.items-table thead th:nth-child(3) { text-align: center; }
+.items-table tbody td:nth-child(3) { text-align: center; }
+
+/* Column 4 (Qty) */
+.items-table thead th:nth-child(4) { text-align: center; }
+.items-table tbody td:nth-child(4) { text-align: center; }
+
+/* Columns 5, 6, 7, 8 (Number Columns) */
+.items-table thead th:nth-child(5),
+.items-table thead th:nth-child(6),
+.items-table thead th:nth-child(7),
+.items-table thead th:nth-child(8) {
+    text-align: right; 
+    padding-right: 14px; 
+}
+
+.items-table tbody td:nth-child(5),
+.items-table tbody td:nth-child(6),
+.items-table tbody td:nth-child(7),
+.items-table tbody td:nth-child(8) { 
+    text-align: right; 
+    padding-right: 14px; 
+    white-space: nowrap; 
+}
+/* --- END UPDATED ALIGNMENT RULES --- */
+
+
+.items-table tbody tr:nth-child(odd) td { background: #ffffff; }
+.items-table tbody tr:nth-child(even) td { background: #f8fafc; }
+
+.currency { font-weight: 600; color: #0f172a; }
+.items-section-title { margin: 14px 0 8px 4px; font-size: 16px; font-weight: 700; color: #0f172a; }
+
+/* --- UPDATED PRINT STYLES --- */
+@media print {
+    /* Hide all UI elements */
+    body > header,
+    body > aside,
+    #step-navigation,
+    .action-btn,
+    #search-input,
+    #new-quotation,
+    #view-preview,
+    #home-btn,
+    #shortcuts-btn,
+    #toast-container {
+        display: none !important;
+    }
+
+    /* Reset main content area */
+    main {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        height: auto !important;
+    }
+
+    /* Hide all non-preview sections */
+    main > #home,
+    main > #new > form > div:not(#step-6), /* Hide all form steps except preview */
+    main > #view > #project-details-view > section:not(:last-child), /* Hide all view sections except the last one (preview) */
+    #step-6 .flex.justify-center, /* Hide buttons in form preview */
+    #view-preview-content + .flex.justify-center /* Hide buttons in view page */
+    {
+        display: none !important;
+    }
+    
+    /* Ensure the preview content wrapper is visible and reset */
+    #preview-content,
+    #view-preview-content {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Style the preview containers for print */
+    .preview-container.doc-quotation {
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        page-break-after: always;
+    }
+    .preview-container.doc-quotation:last-child {
+        page-break-after: auto;
+    }
+    
+    .items-table { table-layout: fixed; }
+    .items-table thead { display: table-header-group; }
+    .items-table tbody tr { page-break-inside: avoid; }
+}
+/* --- END UPDATED PRINT STYLES --- */
+
+.continuation-text { margin-top: 8px; font-size: 12px; color: #475569; text-align: right; }
+
+/* ---------- Payment Details & Totals (Adjusted widths + Amount in words under totals) ---------- */
+
+.payment-totals-wrapper {
+  width: 100%;
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* Make payment card a bit larger (approx 55%) */
+.payment-card {
+  flex: 0 0 55%;
+  max-width: calc(55% - 14px);
+  min-width: 380px;
+  border: 1px solid rgba(15,23,42,0.06);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.03);
+}
+
+.payment-card-inner { padding: 20px 16px; box-sizing: border-box; }
+
+.payment-head {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:10px; font-size:18px; color:#0f172a; font-weight:900;
+}
+.payment-head .scan-label { font-weight:700; font-size:13px; color:#475569; }
+
+.bank-row { display:flex; gap:16px; align-items:flex-start; justify-content:space-between; }
+
+.bank-left {
+  flex: 1 1 auto;
+  font-size: 15px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.bank-left p { margin: 8px 0; }
+.bank-left p strong { display:block; font-weight:800; margin-bottom:6px; color:#0f172a; font-size:15px; }
+
+.bank-qr {
+  width: 150px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  margin-left: 6px;
+}
+.bank-qr img {
+  width: 140px; height: 140px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.bank-qr .upi-text { font-size: 12px; color: #475569; margin-top: 4px; text-align:center; }
+.bank-qr .upi-text span { display:block; font-weight:700; color:#0f172a; margin-top:6px; word-break: break-word; }
+
+/* Totals card — make larger so total box stands out */
+.totals-card {
+  flex: 0 0 40%;
+  max-width: calc(40% - 14px);
+  min-width: 320px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid rgba(15,23,42,0.06);
+  box-shadow: 0 8px 22px rgba(16,24,40,0.04);
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.totals-row { display:flex; flex-direction:column; gap:14px; }
+
+.totals-left { padding: 12px 6px; border-bottom: 1px solid rgba(15,23,42,0.04); }
+
+.totals-line {
+  display:flex; justify-content:space-between; align-items:center;
+  font-size: 15px; color: #475569; margin-bottom:8px;
+}
+.totals-line .amount { font-weight: 800; color: #17191e; }
+
+.totals-right {
+  padding: 14px;
+  background: linear-gradient(180deg,#f1f7ff,#ffffff);
+  border-radius: 8px;
+  display:flex; flex-direction:column; gap:10px; align-items:flex-start;
+  box-shadow: inset 0 -2px 0 rgba(11,116,255,0.03);
+}
+.total-label { font-size: 14px; color: #475569; font-weight: 700; }
+.total-value {
+  align-self: flex-end;
+  font-size: 26px;
+  color: #0b74ff;
+  font-weight: 900;
+  background: #e9f4ff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  box-shadow: 0 6px 10px rgba(11,116,255,0.06);
+}
+.in-words {
+  font-size: 13px;
+  color: #000000;
+  margin-top: 6px;
+  font-weight: 800;
+}
+
+/* NEW: Area for amount-in-words below the totals-card */
+.amount-words-block {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #6b7280;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(15,23,42,0.03);
+}
+
+/* Responsive behavior: on small screens, stack columns */
+@media (max-width: 920px) {
+  .payment-totals-wrapper { flex-direction: column; gap: 18px; }
+  .totals-card, .payment-card { width: 100%; max-width: none; flex: 1 1 auto; }
+  .bank-qr img { width: 110px; height: 110px; }
+  .payment-card { padding: 16px; }
+  .total-value { font-size: 20px; padding: 8px 12px; }
+}
+
+

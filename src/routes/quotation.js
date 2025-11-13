@@ -54,22 +54,23 @@ function isValidItem(item) {
 }
 
 // Route to save a new quotation or update an existing one
+// Route to save a new quotation or update an existing one
 router.post("/save-quotation", async (req, res) => {
     try {
+        // FIX #1: This block now correctly expects snake_case for all fields
         let {
             quotation_id = '',
-            projectName,
-            quotationDate,
-            buyerName = '',
-            buyerAddress = '',
-            buyerPhone = '',
-            buyerEmail = '',
+            project_name,
+            quotation_date,
+            customer_name = '',
+            customer_address = '',
+            customer_phone = '',
+            customer_email = '',
             items = [],
             non_items = [],
-            totalTax = 0,
-            totalAmountNoTax = 0,
-            totalAmountTax = 0,
-
+            total_tax = 0,
+            total_amount_no_tax = 0,
+            total_amount_tax = 0,
             subject = '',
             letter_1 = '',
             letter_2 = [],
@@ -77,13 +78,12 @@ router.post("/save-quotation", async (req, res) => {
             headline = '',
             notes = [],
             termsAndConditions = '',
-
         } = req.body;
 
         // Validate required fields
-        if (!quotation_id || !projectName) {
+        if (!quotation_id || !project_name) {
             return res.status(400).json({
-                message: 'Missing required fields: Quotation ID, projectName',
+                message: 'Missing required fields: quotation_id, project_name',
             });
         }
 
@@ -101,17 +101,18 @@ router.post("/save-quotation", async (req, res) => {
         let quotation = await Quotations.findOne({ quotation_id: quotation_id });
         if (quotation) {
             // Update existing quotation
-            quotation.project_name = projectName;
-            quotation.quotation_date = quotationDate;
-            quotation.customer_name = buyerName;
-            quotation.customer_address = buyerAddress;
-            quotation.customer_phone = buyerPhone;
-            quotation.customer_email = buyerEmail;
+            // FIX #2: This block now correctly USES snake_case variables
+            quotation.project_name = project_name;
+            quotation.quotation_date = quotation_date;
+            quotation.customer_name = customer_name;
+            quotation.customer_address = customer_address;
+            quotation.customer_phone = customer_phone;
+            quotation.customer_email = customer_email;
             quotation.items = items;
             quotation.non_items = non_items;
-            quotation.total_tax = totalTax;
-            quotation.total_amount_no_tax = totalAmountNoTax;
-            quotation.total_amount_tax = totalAmountTax;
+            quotation.total_tax = total_tax;
+            quotation.total_amount_no_tax = total_amount_no_tax;
+            quotation.total_amount_tax = total_amount_tax;
             quotation.subject = subject;
             quotation.letter_1 = letter_1;
             quotation.letter_2 = letter_2;
@@ -123,17 +124,17 @@ router.post("/save-quotation", async (req, res) => {
             // Create a new quotation with the provided data
             quotation = new Quotations({
                 quotation_id: quotation_id,
-                project_name: projectName,
-                quotation_date: quotationDate,
-                customer_name: buyerName,
-                customer_address: buyerAddress,
-                customer_phone: buyerPhone,
-                customer_email: buyerEmail,
+                project_name: project_name,
+                quotation_date: quotation_date,
+                customer_name: customer_name,
+                customer_address: customer_address,
+                customer_phone: customer_phone,
+                customer_email: customer_email,
                 items,
                 non_items: non_items,
-                total_tax: totalTax,
-                total_amount_no_tax: totalAmountNoTax,
-                total_amount_tax: totalAmountTax,
+                total_tax: total_tax,
+                total_amount_no_tax: total_amount_no_tax,
+                total_amount_tax: total_amount_tax,
                 subject,
                 letter_1,
                 letter_2,

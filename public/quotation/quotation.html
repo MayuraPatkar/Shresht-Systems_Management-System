@@ -7,18 +7,136 @@
     <link rel="stylesheet" href="../css/tailwind.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../css/shared/documentStyles.css">
+    <link rel="stylesheet" href="../css/shared/documentStyles.css" media="all">
     <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
     <link rel="stylesheet" href="../css/quotation.css">
     <title>Quotation</title>
+
+    <style>
+      @media print {
+        
+        /* 1. Hide everything by default */
+        body > * {
+          display: none !important;
+        }
+
+        /* 2. Show the main content area and make it fill the page */
+        body > main {
+          display: block !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+        }
+        
+        /* 3. Show the active 'view' or 'new' section */
+        main > div#view,
+        main > div#new {
+          display: block !important;
+        }
+        
+        /* 4. Show the parent container for the preview card */
+        div#view #project-details-view,
+        div#new #quotation-form {
+          display: block !important;
+        }
+        
+        /* 5. Show ONLY the specific card/step containing the preview */
+        div#view #project-details-view > section:has(#view-preview-content),
+        div#new #quotation-form > #step-6 {
+          display: block !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          border: none !important;
+          box-shadow: none !important;
+          background: none !important;
+        }
+
+        /* 6. Hide the UI *within* those preview cards (titles, buttons) */
+        section:has(#view-preview-content) > div:first-child, /* Hides "Document Preview" title */
+        section:has(#view-preview-content) > div:last-child,  /* Hides print buttons */
+        #step-6 > .bg-white > .flex:first-child,               /* Hides "Preview" title */
+        #step-6 > .bg-white > .flex.gap-3.justify-center {    /* Hides save/print buttons */
+          display: none !important;
+        }
+        
+        /* 7. THE KEY FIX: Make the wrapper disappear */
+        #preview-content,
+        #view-preview-content {
+           display: contents !important; /* Promotes children */
+        }
+        
+        /* 8. Now, style the *actual pages* for printing */
+        .doc-quotation,
+        .preview-container {
+          display: block !important;
+          height: auto !important; /* Remove fixed A4 height */
+          width: 100% !important;
+          overflow: visible !important;
+          box-shadow: none !important;
+          border: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          page-break-before: always !important; /* Each is a new page */
+        }
+
+        /* 9. Don't add a break before the first page */
+        .preview-container.first-page {
+          page-break-before: auto !important;
+        }
+        
+        /* 10. Prevent sections from splitting awkwardly */
+        .brand-header, 
+        .payment-totals-wrapper,
+        .payment-card, 
+        .totals-card, 
+        .notes-section, 
+        .terms-conditions,
+        .closing-message,
+        .items-table thead {
+          page-break-inside: avoid !important;
+        }
+
+        /* 11. Repeat table headers if table splits */
+        .items-table thead {
+          display: table-header-group !important;
+        }
+
+        /* 12. Re-apply document styles that are being lost */
+        .brand-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .payment-totals-wrapper {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+        }
+        .payment-card, .totals-card {
+          flex: 1;
+          min-width: 300px;
+        }
+        .totals-row, .bank-row {
+          display: flex;
+          justify-content: space-between;
+        }
+        .totals-right {
+          text-align: right;
+        }
+        .notes-section {
+          flex-basis: 100%;
+        }
+      }
+    </style>
 </head>
 
 <body class="bg-gray-100">
 
     <!-- Fixed Header -->
     <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <!-- ... existing header content ... -->
         <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
@@ -59,6 +177,7 @@
 
     <!-- Sidebar -->
     <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
+        <!-- ... existing sidebar content ... -->
         <nav class="flex-1 p-4 overflow-y-auto">
             <div class="flex flex-col gap-2">
                 <a href="../dashboard/dashboard.html" id="dashboard"
@@ -131,6 +250,7 @@
                 
                 <!-- Step 1: Project Details -->
                 <div class="steps active" id="step-1">
+                    <!-- ... existing step 1 content ... -->
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                             <i class="fas fa-project-diagram text-green-600 text-2xl"></i>
@@ -164,6 +284,7 @@
 
                 <!-- Step 2: Recipient Details -->
                 <div class="steps" id="step-2">
+                    <!-- ... existing step 2 content ... -->
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                             <i class="fas fa-user-tag text-purple-600 text-2xl"></i>
@@ -204,6 +325,7 @@
 
                 <!-- Step 3: Item List -->
                 <div class="steps" id="step-3">
+                    <!-- ... existing step 3 content ... -->
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                             <i class="fas fa-list-ul text-green-600 text-2xl"></i>
@@ -254,6 +376,7 @@
 
                 <!-- Step 4: Non-Items -->
                 <div class="steps" id="step-4">
+                    <!-- ... existing step 4 content ... -->
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                             <i class="fas fa-plus-circle text-indigo-600 text-2xl"></i>
@@ -301,6 +424,7 @@
 
                 <!-- Step 5: Specifications -->
                 <div class="steps" id="step-5">
+                    <!-- ... existing step 5 content ... -->
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                             <i class="fas fa-clipboard-list text-blue-600 text-2xl"></i>
@@ -338,6 +462,7 @@
 
                 <!-- Step 6: Preview -->
                 <div class="steps" id="step-6">
+                    <!-- ... existing step 6 content ... -->
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                             <i class="fas fa-eye text-purple-600 text-2xl"></i>
@@ -373,7 +498,7 @@
                         <i class="fas fa-chevron-left mr-2"></i>Previous
                     </button>
                     <div id="step-indicator" class="text-gray-600 font-medium">
-                        <!-- Step indicator will be dynamically updated -->
+                        Step 1 of 6
                     </div>
                     <button type="button" id="next-btn"
                         class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
@@ -385,6 +510,7 @@
 
         <!-- View Quotation -->
         <div id="view">
+            <!-- ... existing view content ... -->
             <div id="project-details-view" class="max-w-6xl mx-auto space-y-6">
                 
                 <!-- Project Details Card -->
@@ -450,7 +576,9 @@
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Taxable Value</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Rate</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total(With Tax)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -494,17 +622,19 @@
                             <span class="text-gray-900 font-bold text-lg" id="view-total-amount">-</span>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Total Tax</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-total-tax">-</span>
-                        </div>
-                        <div class="bg-blue-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-blue-600 mb-1">Grand Total with Tax</span>
-                            <span class="text-blue-900 font-bold text-lg" id="view-total-with-tax">-</span>
-                        </div>
-                        <div class="bg-green-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-green-600 mb-1">Grand Total Without Tax</span>
-                            <span class="text-green-900 font-bold text-lg" id="view-total-without-tax">-</span>
-                        </div>
+                        <span class="block text-sm font-medium text-gray-600 mb-1">Total Tax</span>
+                        <span class="text-gray-900 font-bold text-lg" id="view-total-tax">-</span>
+                    </div>
+
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <span class="block text-sm font-medium text-green-600 mb-1">Grand Total Without Tax</span>
+                        <span class="text-green-900 font-bold text-lg" id="view-total-without-tax">-</span>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <span class="block text-sm font-medium text-blue-600 mb-1">Grand Total with Tax</span>
+                        <span class="text-blue-900 font-bold text-lg" id="view-total-with-tax">-</span>
+                    </div>
                     </div>
                 </section>
 
@@ -534,6 +664,10 @@
         </div>
     </main>
 
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+
+
     <!-- Scripts -->
     <!-- Shared utilities -->
     <script src="../js/shared/utils.js"></script>
@@ -548,6 +682,8 @@
     <script src="../js/shared/globalScript.js"></script>
     
     <!-- Module-specific scripts -->
+    <!-- ADDED: Shared utilities for this module -->
+    <script src="./quotation_utils.js"></script> 
     <script src="./quotation_home.js"></script>
     <script src="./quotation_view.js"></script>
     <script src="./quotation_form.js"></script>
