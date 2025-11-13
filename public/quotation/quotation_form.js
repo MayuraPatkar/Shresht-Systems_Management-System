@@ -461,7 +461,6 @@ async function generatePreview() {
                     <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
                 </div>
             </div>
-            <div class="title">Quotation-${quotationId}</div>
             ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>5KW Solar Systems</u></p></div>` : ''}
             <div class="items-section">
                 <table class="items-table">
@@ -606,7 +605,6 @@ async function generatePreview() {
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
         </div>
-        <div class="title">Quotation-${quotationId}</div>
         <div class="terms-section" contenteditable="true">
             <h3>Terms & Conditions</h3>
             <ul>
@@ -670,7 +668,6 @@ async function generatePreview() {
                     <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
                 </div>
             </div>
-            <div class="title">Quotation-${quotationId}</div>
             ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
             <div class="items-section">
                 <table class="items-table">
@@ -802,7 +799,6 @@ async function generatePreview() {
                 <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
         </div>
-        <div class="title">Quotation-${quotationId}</div>
         <div class="terms-section" contenteditable="true">
             ${quotation.termsAndConditions || ''}
         </div>

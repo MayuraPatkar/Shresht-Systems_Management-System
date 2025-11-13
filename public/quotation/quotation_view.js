@@ -149,7 +149,6 @@ async function generateViewPreviewHTML(quotation, viewType) {
                 <div class="logo"><img src="../assets/logo.png" alt="Shresht Logo"></div>
                 <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
             </div>
-            <div class="title">Quotation-${quotation.quotation_id}</div>
             <div class="items-section">
                 ${index === 0 ? `<div class="table headline-section"><p><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
                 <table class="items-table"><thead><tr>${tableHead}</tr></thead><tbody>${pageHTML}</tbody></table>
@@ -211,7 +210,6 @@ async function generateViewPreviewHTML(quotation, viewType) {
             <div class="logo"><img src="../assets/logo.png" alt="Shresht Logo"></div>
             <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
         </div>
-        <div class="title">Quotation-${quotation.quotation_id}</div>
         <div class="terms-section">${quotation.termsAndConditions || ''}</div>
         <div class="closing-section">
             <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
