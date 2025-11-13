@@ -392,16 +392,23 @@ async function viewInvoice(invoiceId, userRole) {
         setTextContent('view-consignee-name', invoice.consignee_name);
         setTextContent('view-consignee-address', invoice.consignee_address);
         
+        // Set the totals for the view section (professional 3-box layout)
         if (userRole == 'admin' && type == 'original') {
-            setTextContent('view-total-amount', `₹ ${formatIndian(invoice.total_amount_original, 2)}`);
-            setTextContent('view-total-tax', `₹ ${formatIndian(invoice.total_tax_original, 2)}`);
-            setTextContent('view-total-with-tax', `₹ ${formatIndian(invoice.total_amount_original, 2)}`);
-            setTextContent('view-total-without-tax', `₹ ${formatIndian(invoice.total_amount_original - invoice.total_tax_original, 2)}`);
+            const subtotal = invoice.total_amount_original - invoice.total_tax_original;
+            const tax = invoice.total_tax_original;
+            const grandTotal = invoice.total_amount_original;
+            
+            setTextContent('view-subtotal', `₹ ${formatIndian(subtotal, 2)}`);
+            setTextContent('view-tax', tax > 0 ? `₹ ${formatIndian(tax, 2)}` : 'No Tax');
+            setTextContent('view-grand-total', `₹ ${formatIndian(grandTotal, 2)}`);
         } else {
-            setTextContent('view-total-amount', `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}`);
-            setTextContent('view-total-tax', `₹ ${formatIndian(invoice.total_tax_duplicate, 2)}`);
-            setTextContent('view-total-with-tax', `₹ ${formatIndian(invoice.total_amount_duplicate, 2)}`);
-            setTextContent('view-total-without-tax', `₹ ${formatIndian(invoice.total_amount_duplicate - invoice.total_tax_duplicate, 2)}`);
+            const subtotal = invoice.total_amount_duplicate - invoice.total_tax_duplicate;
+            const tax = invoice.total_tax_duplicate;
+            const grandTotal = invoice.total_amount_duplicate;
+            
+            setTextContent('view-subtotal', `₹ ${formatIndian(subtotal, 2)}`);
+            setTextContent('view-tax', tax > 0 ? `₹ ${formatIndian(tax, 2)}` : 'No Tax');
+            setTextContent('view-grand-total', `₹ ${formatIndian(grandTotal, 2)}`);
         }
 
         // Payment History
