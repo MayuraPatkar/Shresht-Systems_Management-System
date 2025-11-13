@@ -65,8 +65,7 @@ body {
 
 
 /* ===== SHARED STYLES - BOTH STANDARD & QUOTATION ===== */
-.doc-standard .first-section,
-.doc-quotation .header {
+.doc-standard .first-section {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -75,14 +74,11 @@ body {
     border-bottom: 2px solid #007bff;
 }
 
-.doc-standard .first-section .logo img,
-.doc-quotation .header .logo img { max-width: 260px; height: auto; }
+.doc-standard .first-section .logo img { max-width: 260px; height: auto; }
 
-.doc-standard .first-section .company-details,
-.doc-quotation .header .company-details { text-align: right; line-height: 1.5; }
+.doc-standard .first-section .company-details { text-align: right; line-height: 1.5; }
 
-.doc-standard .first-section .company-details h1,
-.doc-quotation .header .company-details h1 {
+.doc-standard .first-section .company-details h1 {
     margin: 0 0 6px 0;
     font-size: 36px;
     color: #001974;
@@ -90,13 +86,79 @@ body {
     letter-spacing: 1px;
 }
 
-.doc-standard .first-section .company-details p,
-.doc-quotation .header .company-details p {
+.doc-standard .first-section .company-details p {
     margin: 3px 0;
     font-size: 12px;
     color: #1a1a1a;
     font-weight: 500;
     line-height: 1.6;
+}
+
+.doc-quotation .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    background: #0d6efd;
+    border-radius: 20px;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 10px 16px rgba(13, 110, 253, 0.12);
+}
+
+.doc-quotation .header .quotation-brand {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.doc-quotation .header .logo {
+    width: 96px;
+    height: 96px;
+    background: #ffffff;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.doc-quotation .header .logo img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.doc-quotation .header .quotation-brand-text h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 30px;
+    letter-spacing: 1px;
+    font-weight: 800;
+}
+
+.doc-quotation .header .quotation-tagline {
+    margin: 2px 0 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.doc-quotation .header .company-details {
+    margin-left: auto;
+    text-align: right;
+    line-height: 1.6;
+}
+
+.doc-quotation .header .company-details p {
+    margin: 2px 0;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 13px;
+    font-weight: 500;
 }
 
 /* Document Title */

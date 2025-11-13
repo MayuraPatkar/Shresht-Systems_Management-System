@@ -1,3 +1,27 @@
+function getQuotationHeaderHTML() {
+    if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
+        return window.SectionRenderers.renderQuotationDocumentHeader();
+    }
+    return `
+        <div class="header">
+            <div class="quotation-brand">
+                <div class="logo">
+                    <img src="../assets/icon.png" alt="Shresht Logo">
+                </div>
+                <div class="quotation-brand-text">
+                    <h1>SHRESHT SYSTEMS</h1>
+                    <p class="quotation-tagline">CCTV & Security Solutions</p>
+                </div>
+            </div>
+            <div class="company-details">
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+            </div>
+        </div>
+    `;
+}
+
 /**
  * Generate and display the preview for the quotation in view-preview-content.
  * This works for both withTax and withoutTax view modes.
@@ -10,6 +34,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
 
     const allRenderableItems = [];
     const CHARS_PER_LINE = 60; // Estimated row height for pagination
+    const headerHTML = getQuotationHeaderHTML();
 
     // Process regular items
     (quotation.items || []).forEach(item => {
@@ -145,10 +170,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
         const isLastItemsPage = index === itemPages.length - 1;
         return `
         <div class="preview-container doc-quotation">
-            <div class="header">
-                <div class="logo"><img src="../assets/logo.png" alt="Shresht Logo"></div>
-                <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
-            </div>
+            ${headerHTML}
             <div class="items-section">
                 ${index === 0 ? `<div class="table headline-section"><p><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
                 <table class="items-table"><thead><tr>${tableHead}</tr></thead><tbody>${pageHTML}</tbody></table>
@@ -182,10 +204,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
     // --- FINAL HTML ASSEMBLY ---
     document.getElementById("view-preview-content").innerHTML = `
     <div class="preview-container doc-quotation">
-        <div class="header">
-            <div class="logo"><img src="../assets/logo.png" alt="Shresht Logo"></div>
-            <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
-        </div>
+        ${headerHTML}
         <div class="title">Quotation-${quotation.quotation_id}</div>
         <div class="quotation-letter-date">
             <p><strong>Date:</strong> ${formattedDate}</p>
@@ -206,10 +225,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
     </div>
     ${itemsPageHTML}
     <div class="preview-container doc-quotation">
-        <div class="header">
-            <div class="logo"><img src="../assets/logo.png" alt="Shresht Logo"></div>
-            <div class="company-details"><h1>SHRESHT SYSTEMS</h1><p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p><p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p><p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p></div>
-        </div>
+        ${headerHTML}
         <div class="terms-section">${quotation.termsAndConditions || ''}</div>
         <div class="closing-section">
             <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>

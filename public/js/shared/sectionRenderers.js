@@ -23,6 +23,26 @@ function renderHeader() {
     </div>`;
 }
 
+function renderQuotationDocumentHeader() {
+    return `
+    <div class="header">
+        <div class="quotation-brand">
+            <div class="logo">
+                <img src="../assets/icon.png" alt="Shresht Logo">
+            </div>
+            <div class="quotation-brand-text">
+                <h1>SHRESHT SYSTEMS</h1>
+                <p class="quotation-tagline">CCTV & Security Solutions</p>
+            </div>
+        </div>
+        <div class="company-details">
+            <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+            <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+            <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+        </div>
+    </div>`;
+}
+
 /**
  * Document title section
  * @param {string} type - Document type (e.g., 'Quotation', 'Invoice', 'Purchase Order', 'WAY BILL')
@@ -348,6 +368,7 @@ function renderNotes(notes = null) {
 if (typeof window !== 'undefined') {
     window.SectionRenderers = {
         renderHeader,
+        renderQuotationDocumentHeader,
         renderTitle,
         renderBuyerDetails,
         renderInfoSection,

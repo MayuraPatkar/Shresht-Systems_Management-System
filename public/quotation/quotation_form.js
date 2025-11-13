@@ -5,6 +5,31 @@ let totalAmountTax = 0;
 let totalTax = 0;
 
 
+function getQuotationHeaderHTML() {
+    if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
+        return window.SectionRenderers.renderQuotationDocumentHeader();
+    }
+    return `
+        <div class="header">
+            <div class="quotation-brand">
+                <div class="logo">
+                    <img src="../assets/icon.png" alt="Shresht Logo">
+                </div>
+                <div class="quotation-brand-text">
+                    <h1>SHRESHT SYSTEMS</h1>
+                    <p class="quotation-tagline">CCTV & Security Solutions</p>
+                </div>
+            </div>
+            <div class="company-details">
+                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+            </div>
+        </div>
+    `;
+}
+
+
 document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
     generatePreview();
@@ -254,23 +279,14 @@ async function generateFilePages(files) {
         return filePath;
     };
 
+    const headerHTML = getQuotationHeaderHTML();
+
     const pages = await Promise.all(Array.from(files).map(async (file) => {
         const imagePath = await getFilePath(file);
 
         return `
             <div class="preview-container doc-quotation">
-                <div class="header">
-                    <div class="logo">
-                        <img src="../assets/logo.png"
-                            alt="Shresht Logo">
-                    </div>
-                    <div class="company-details">
-                        <h1>SHRESHT SYSTEMS</h1>
-                        <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                        <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                        <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-                    </div>
-                </div>
+                ${headerHTML}
 
                 <div class="files-section" style="margin: 20px 0; text-align: center;">
                     <img src="${imagePath}" alt="Uploaded File" style="max-width: 100%; max-height: 800px; object-fit: contain;">
@@ -299,6 +315,7 @@ async function generatePreview() {
     const buyerPhone = document.getElementById("buyer-phone").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
     const nonItemsTable = document.querySelector('#non-items-table tbody');
+    const headerHTML = getQuotationHeaderHTML();
 
     let totalPrice = 0;
     let totalCGST = 0;
@@ -449,18 +466,7 @@ async function generatePreview() {
         const isLastItemsPage = index === itemPages.length - 1;
         return `
         <div class="preview-container doc-quotation">
-            <div class="header">
-                <div class="logo">
-                    <img src="../assets/logo.png"
-                        alt="Shresht Logo">
-                </div>
-                <div class="company-details">
-                    <h1>SHRESHT SYSTEMS</h1>
-                    <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                    <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                    <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-                </div>
-            </div>
+            ${headerHTML}
             ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>5KW Solar Systems</u></p></div>` : ''}
             <div class="items-section">
                 <table class="items-table">
@@ -539,18 +545,7 @@ async function generatePreview() {
     if (sessionStorage.getItem('currentTab-status') != 'update') {
         document.getElementById("preview-content").innerHTML = `
     <div class="preview-container doc-quotation">
-        <div class="header">
-            <div class="logo">
-                <img src="../assets/logo.png"
-                    alt="Shresht Logo">
-            </div>
-            <div class="company-details">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-            </div>
-        </div>
+        ${headerHTML}
 
         <div class="title">Quotation-${quotationId}</div>
         <div class="quotation-letter-content" >
@@ -593,18 +588,7 @@ async function generatePreview() {
     ${summaryPageHTML}
 
     <div class="preview-container doc-quotation">
-        <div class="header">
-            <div class="logo">
-                <img src="../assets/logo.png"
-                    alt="Shresht Logo">
-            </div>
-            <div class="company-details">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-            </div>
-        </div>
+        ${headerHTML}
         <div class="terms-section" contenteditable="true">
             <h3>Terms & Conditions</h3>
             <ul>
@@ -656,18 +640,7 @@ async function generatePreview() {
         const isLastItemsPage = index === itemPages.length - 1;
         return `
         <div class="preview-container doc-quotation">
-            <div class="header">
-                <div class="logo">
-                    <img src="../assets/logo.png"
-                        alt="Shresht Logo">
-                </div>
-                <div class="company-details">
-                    <h1>SHRESHT SYSTEMS</h1>
-                    <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                    <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                    <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-                </div>
-            </div>
+            ${headerHTML}
             ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
             <div class="items-section">
                 <table class="items-table">
@@ -736,18 +709,7 @@ async function generatePreview() {
 
         document.getElementById("preview-content").innerHTML = `
     <div class="preview-container doc-quotation">
-        <div class="header">
-            <div class="logo">
-                <img src="../assets/logo.png"
-                    alt="Shresht Logo">
-            </div>
-            <div class="company-details">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-            </div>
-        </div>
+        ${headerHTML}
 
         <div class="title">Quotation-${quotationId}</div>
         <div class="quotation-letter-content" >
@@ -787,18 +749,7 @@ async function generatePreview() {
     ${summaryPageHTML}
 
     <div class="preview-container doc-quotation">
-        <div class="header">
-            <div class="logo">
-                <img src="../assets/logo.png"
-                    alt="Shresht Logo">
-            </div>
-            <div class="company-details">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-            </div>
-        </div>
+        ${headerHTML}
         <div class="terms-section" contenteditable="true">
             ${quotation.termsAndConditions || ''}
         </div>
