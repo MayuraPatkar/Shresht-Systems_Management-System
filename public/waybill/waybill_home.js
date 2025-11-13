@@ -65,7 +65,7 @@ document.getElementById('home-btn').addEventListener('click', () => {
 // Main content references
 const wayBillsListDiv = document.querySelector(".records");
 
-const INVOICE_SHORTCUT_GROUPS = [
+const WAYBILL_SHORTCUT_GROUPS = [
     {
         title: 'Navigation',
         icon: 'fas fa-arrows-alt text-blue-600',
@@ -79,8 +79,8 @@ const INVOICE_SHORTCUT_GROUPS = [
         title: 'Actions',
         icon: 'fas fa-bolt text-yellow-600',
         items: [
-            { label: 'New Invoice', keys: ['Ctrl', 'N'] },
-            { label: 'Save Invoice', keys: ['Ctrl', 'S'] },
+            { label: 'New Waybill', keys: ['Ctrl', 'N'] },
+            { label: 'Save Waybill', keys: ['Ctrl', 'S'] },
             { label: 'View Preview', keys: ['Ctrl', 'P'] },
             { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
             { label: 'Add Item', keys: ['Ctrl', 'I'] },
@@ -147,7 +147,7 @@ function initShortcutsModal() {
         return;
     }
 
-    contentContainer.innerHTML = INVOICE_SHORTCUT_GROUPS.map(renderShortcutSection).join('');
+    contentContainer.innerHTML = WAYBILL_SHORTCUT_GROUPS.map(renderShortcutSection).join('');
 
     shortcutsBtn.addEventListener('click', () => {
         showShortcutsModal();
