@@ -194,6 +194,329 @@ function escapeHtml(value) {
     return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+/**
+ * Generate formatted HTML content for stock printing
+ * @param {string} type - Type filter value
+ * @param {string} category - Category filter value
+ * @param {string} status - Status filter value
+ * @returns {string} Formatted HTML for printing
+ */
+function generateStockPrintContent(type, category, status) {
+    // Filter data based on print modal selections
+    let filteredData = currentStockData;
+    
+    // Apply type filter
+    if (type !== 'all') {
+        filteredData = filteredData.filter(item => normalizeField(item, ['type']) === type);
+    }
+    
+    // Apply category filter
+    if (category !== 'all') {
+        filteredData = filteredData.filter(item => normalizeField(item, ['category']) === category);
+    }
+    
+    // Apply status filter
+    if (status !== 'all') {
+        filteredData = filteredData.filter(item => {
+            const quantity = Number(normalizeField(item, ['quantity', 'qty'])) || 0;
+            const minQuantity = Number(normalizeField(item, ['min_quantity', 'minQuantity'])) || 0;
+            
+            if (status === 'In Stock') return quantity >= minQuantity;
+            if (status === 'Low Stock') return quantity > 0 && quantity < minQuantity;
+            if (status === 'Out of Stock') return quantity === 0;
+            return true;
+        });
+    }
+    
+    let itemsHTML = '';
+    let totalValue = 0;
+    let totalQuantity = 0;
+    
+    filteredData.forEach((item, index) => {
+        const itemName = normalizeField(item, ['item_name', 'itemName']);
+        const company = normalizeField(item, ['company']);
+        const itemCategory = normalizeField(item, ['category']);
+        const unitPrice = parseFloat(normalizeField(item, ['unit_price', 'unitPrice'])) || 0;
+        const qty = Number(normalizeField(item, ['quantity', 'qty'])) || 0;
+        const gst = normalizeField(item, ['GST', 'gstRate']) || 0;
+        const minQuantity = Number(normalizeField(item, ['min_quantity', 'minQuantity'])) || 0;
+        
+        const value = qty * unitPrice;
+        totalQuantity += qty;
+        totalValue += value;
+        
+        // Determine status
+        let statusText = 'In Stock';
+        let statusClass = 'stock-status-normal';
+        
+        if (qty === 0) {
+            statusText = 'Out of Stock';
+            statusClass = 'stock-status-out';
+        } else if (qty < minQuantity) {
+            statusText = 'Low Stock';
+            statusClass = 'stock-status-low';
+        }
+        
+        itemsHTML += `
+            <tr>
+                <td class="text-center">${index + 1}</td>
+                <td>${escapeHtml(itemName)}</td>
+                <td>${escapeHtml(company)}</td>
+                <td>${escapeHtml(itemCategory)}</td>
+                <td class="text-right">₹${formatIndian(unitPrice, 2)}</td>
+                <td class="text-center">${qty}</td>
+                <td class="text-center">${gst}%</td>
+                <td class="text-right">₹${formatIndian(value, 2)}</td>
+                <td class="text-center"><span class="${statusClass}">${escapeHtml(statusText)}</span></td>
+            </tr>
+        `;
+    });
+    
+    const currentDate = new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Stock Report</title>
+            <style>
+                @page {
+                    size: A4 portrait;
+                    margin: 15mm;
+                }
+
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+
+                body {
+                    font-family: 'Arial', 'Helvetica', sans-serif;
+                    font-size: 9pt;
+                    line-height: 1.3;
+                    color: #000;
+                }
+
+                .stock-print-container {
+                    width: 100%;
+                    max-width: 100%;
+                    overflow: hidden;
+                }
+
+                .stock-print-header {
+                    text-align: center;
+                    margin-bottom: 15px;
+                    padding-bottom: 10px;
+                    border-bottom: 2px solid #2563eb;
+                }
+
+                .stock-print-header h1 {
+                    font-size: 20pt;
+                    font-weight: bold;
+                    color: #1e40af;
+                    margin-bottom: 4px;
+                }
+
+                .stock-print-header .company-name {
+                    font-size: 12pt;
+                    color: #374151;
+                    margin-bottom: 5px;
+                }
+
+                .stock-print-header .report-date {
+                    font-size: 9pt;
+                    color: #6b7280;
+                }
+
+                .stock-print-filters {
+                    background-color: #f3f4f6;
+                    padding: 8px 12px;
+                    margin-bottom: 12px;
+                    border-radius: 3px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 8pt;
+                }
+
+                .stock-print-filters strong {
+                    color: #1f2937;
+                }
+
+                .stock-print-filters span {
+                    color: #2563eb;
+                    font-weight: 600;
+                }
+
+                .stock-print-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 15px;
+                    table-layout: fixed;
+                }
+
+                .stock-print-table thead {
+                    background-color: #2563eb;
+                    color: white;
+                }
+
+                .stock-print-table thead th {
+                    padding: 8px 4px;
+                    font-weight: 600;
+                    text-align: left;
+                    font-size: 8pt;
+                    border: 1px solid #1e40af;
+                    word-wrap: break-word;
+                }
+
+                .stock-print-table tbody td {
+                    padding: 6px 4px;
+                    border: 1px solid #d1d5db;
+                    font-size: 8pt;
+                    word-wrap: break-word;
+                    vertical-align: top;
+                }
+
+                .stock-print-table tbody tr:nth-child(even) {
+                    background-color: #f9fafb;
+                }
+
+                .stock-status-normal {
+                    display: inline-block;
+                    padding: 2px 6px;
+                    border-radius: 10px;
+                    font-size: 7pt;
+                    font-weight: 600;
+                    background-color: #dcfce7;
+                    color: #166534;
+                    white-space: nowrap;
+                }
+
+                .stock-status-low {
+                    display: inline-block;
+                    padding: 2px 6px;
+                    border-radius: 10px;
+                    font-size: 7pt;
+                    font-weight: 600;
+                    background-color: #fef3c7;
+                    color: #92400e;
+                    white-space: nowrap;
+                }
+
+                .stock-status-out {
+                    display: inline-block;
+                    padding: 2px 6px;
+                    border-radius: 10px;
+                    font-size: 7pt;
+                    font-weight: 600;
+                    background-color: #fee2e2;
+                    color: #991b1b;
+                    white-space: nowrap;
+                }
+
+                .stock-print-summary {
+                    margin-top: 15px;
+                    padding: 12px;
+                    background-color: #f3f4f6;
+                    border-radius: 3px;
+                    display: flex;
+                    justify-content: space-around;
+                }
+
+                .stock-summary-item {
+                    text-align: center;
+                }
+
+                .stock-summary-item .label {
+                    font-size: 8pt;
+                    color: #6b7280;
+                    margin-bottom: 4px;
+                }
+
+                .stock-summary-item .value {
+                    font-size: 12pt;
+                    font-weight: bold;
+                    color: #1f2937;
+                }
+
+                .stock-print-footer {
+                    margin-top: 20px;
+                    padding-top: 12px;
+                    border-top: 1px solid #e5e7eb;
+                    text-align: center;
+                    font-size: 7pt;
+                    color: #6b7280;
+                }
+
+                /* Text utilities */
+                .text-center { text-align: center; }
+                .text-left { text-align: left; }
+                .text-right { text-align: right; }
+            </style>
+        </head>
+        <body>
+            <div class="stock-print-container">
+                <div class="stock-print-header">
+                    <h1>STOCK REPORT</h1>
+                    <div class="company-name">SHRESHT SYSTEMS</div>
+                    <div class="report-date">Generated on: ${currentDate}</div>
+                </div>
+                
+                <div class="stock-print-filters">
+                    <div><strong>Type:</strong> <span>${escapeHtml(type === 'all' ? 'All Types' : type)}</span></div>
+                    <div><strong>Category:</strong> <span>${escapeHtml(category === 'all' ? 'All Categories' : category)}</span></div>
+                    <div><strong>Status:</strong> <span>${escapeHtml(status === 'all' ? 'All Status' : status)}</span></div>
+                </div>
+                
+                <table class="stock-print-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 3%;">#</th>
+                            <th style="width: 26%;">Item Name</th>
+                            <th style="width: 13%;">Company</th>
+                            <th style="width: 11%;">Category</th>
+                            <th style="width: 11%; text-align: right;">Price</th>
+                            <th style="width: 6%; text-align: center;">Qty</th>
+                            <th style="width: 6%; text-align: center;">GST</th>
+                            <th style="width: 13%; text-align: right;">Value</th>
+                            <th style="width: 11%; text-align: center;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHTML || '<tr><td colspan="9" style="text-align: center; padding: 15px; color: #6b7280;">No stock items to display</td></tr>'}
+                    </tbody>
+                </table>
+                
+                <div class="stock-print-summary">
+                    <div class="stock-summary-item">
+                        <div class="label">Total Items</div>
+                        <div class="value">${filteredData.length}</div>
+                    </div>
+                    <div class="stock-summary-item">
+                        <div class="label">Total Quantity</div>
+                        <div class="value">${totalQuantity}</div>
+                    </div>
+                    <div class="stock-summary-item">
+                        <div class="label">Total Stock Value</div>
+                        <div class="value">₹ ${formatIndian(totalValue, 2)}</div>
+                    </div>
+                </div>
+                
+                <div class="stock-print-footer">
+                    <p>This is a computer-generated stock report | Shresht Systems | Ph: 7204657707 / 9901730305</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+}
+
 function populateCategoryFilters(data) {
     const cats = new Set();
     data.forEach(i => {
@@ -461,9 +784,10 @@ document.getElementById('finalPrintBtn')?.addEventListener('click', () => {
     const type = document.getElementById('printTypeFilter')?.value || 'all';
     const category = document.getElementById('printCategoryFilter')?.value || 'all';
     const status = document.getElementById('printStatusFilter')?.value || 'all';
-    // Build a simple HTML snapshot of the table
-    const tableHtml = document.getElementById('stock-table')?.outerHTML || '';
-    const content = `<h1>Stock Report</h1><p>Type: ${escapeHtml(type)} | Category: ${escapeHtml(category)} | Status: ${escapeHtml(status)}</p>` + tableHtml;
+    
+    // Generate properly styled print content
+    const content = generateStockPrintContent(type, category, status);
+    
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         window.electronAPI.handlePrintEvent(content, 'print', 'Stock Report');
     } else if (window.electronAPI && window.electronAPI.showAlert1) {
