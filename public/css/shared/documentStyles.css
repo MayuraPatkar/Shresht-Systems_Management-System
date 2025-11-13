@@ -81,7 +81,7 @@ body {
 .doc-standard .first-section .company-details h1 {
     margin: 0 0 6px 0;
     font-size: 36px;
-    color: #001974;
+    color: #3765BC;
     font-weight: 800;
     letter-spacing: 1px;
 }
@@ -98,11 +98,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
-    padding: 24px 32px;
+    padding: 18px 26px;
     margin-bottom: 24px;
-    background: #0d6efd;
-    border-radius: 20px;
+    background: #3765BC;
+    border-radius: 10px;
     color: #ffffff;
     border: none;
     box-shadow: 0 10px 16px rgba(13, 110, 253, 0.12);
@@ -110,7 +109,7 @@ body {
 
 .doc-quotation .header .quotation-brand {
     display: flex;
-    align-items: center;
+    align-items: left;
     gap: 18px;
 }
 
@@ -118,7 +117,7 @@ body {
     width: 96px;
     height: 96px;
     background: #ffffff;
-    border-radius: 20px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -135,13 +134,15 @@ body {
 .doc-quotation .header .quotation-brand-text h1 {
     margin: 0;
     color: #ffffff;
-    font-size: 30px;
-    letter-spacing: 1px;
+    font-size: 24px;
+    letter-spacing: 0; /* remove extra space */
+    word-spacing: -2px; /* pull the words slightly closer */
     font-weight: 800;
 }
 
+
 .doc-quotation .header .quotation-tagline {
-    margin: 2px 0 0;
+    /* margin: 2px 0 0; */
     color: rgba(255, 255, 255, 0.9);
     font-size: 15px;
     font-weight: 500;
@@ -149,13 +150,14 @@ body {
 }
 
 .doc-quotation .header .company-details {
-    margin-left: auto;
+    width: 400px;    
+    /* margin-left: auto; */
     text-align: right;
     line-height: 1.6;
 }
 
 .doc-quotation .header .company-details p {
-    margin: 2px 0;
+    /* margin: 2px 0; */
     color: rgba(255, 255, 255, 0.95);
     font-size: 13px;
     font-weight: 500;
@@ -164,7 +166,7 @@ body {
 /* Document Title */
 .doc-standard .second-section,
 .doc-quotation .title {
-    background: #007bff;
+    background: #3765BC;
     padding: 12px 20px;
     margin: 0 0 20px 0;
     text-align: center;
@@ -203,18 +205,21 @@ body {
 .doc-standard .fourth-section table,
 .doc-quotation table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
     margin-top: 10px;
     background: #ffffff;
-    border: 1.5px solid #2a4d8f;
     table-layout: fixed;
+    overflow: hidden;
+    border: 0.1px solid #525252;
 }
 
 .doc-standard .fourth-section table th,
 .doc-standard .fourth-section table td,
 .doc-quotation table th,
 .doc-quotation table td {
-    border: 1px solid #2a4d8f;
+    border: 1px solid #000000;
     padding: 8px 6px;
     text-align: center;
     font-size: 12px;
@@ -225,14 +230,14 @@ body {
 
 .doc-standard .fourth-section table th,
 .doc-quotation table th {
-    background: #2a4d8f;
+    background: #3765BC;
     color: #ffffff;
     font-weight: 700;
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
     padding: 10px 6px;
-    border: 1px solid #1e3a6f;
+    border: 1px solid #000000;
 }
 
 .doc-standard .fourth-section table tbody tr:nth-child(even),
@@ -266,10 +271,11 @@ body {
 .doc-quotation .fifth-section .totals-section {
     width: 35%;
     min-width: 280px;
+    height: fit-content;
     font-size: 14px;
     background: white;
     padding: 0;
-    border: 1.5px solid #2a4d8f;
+    border: 1.5px solid #3765BC;
     border-radius: 8px;
     overflow: hidden;
     display: flex;
@@ -319,7 +325,7 @@ body {
 .doc-standard .fifth-section .totals-section .totals-section-sub2 p:last-child,
 .doc-quotation .fifth-section .totals-section .totals-section-sub1 p:last-child,
 .doc-quotation .fifth-section .totals-section .totals-section-sub2 p:last-child {
-    background: #2a4d8f;
+    background: #3765BC;
     color: white;
     font-weight: 700;
     font-size: 15px;
@@ -470,10 +476,16 @@ body {
     font-size: 15px;
     color: #1a1a1a;
     font-weight: 700;
-    border-bottom: 2px solid #2a4d8f;
+    border-bottom: 2px solid #3765BC;
     padding-bottom: 6px;
 }
-.doc-standard .seventh-section .terms-section { line-height: 1.7; }
+.doc-standard .seventh-section .terms-section { 
+    line-height: 1.7; 
+}
+
+.doc-quotation .terms-section {
+        height: fit-content;
+}
 
 .doc-standard .eighth-section {
     text-align: right;
@@ -601,9 +613,6 @@ body {
 .doc-quotation .closing-section {
     padding: 15px 18px;
     margin: 20px 0;
-    background: white;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 6px;
 }
 
 .doc-quotation .terms-section { font-size: 13px; line-height: 1.7; }
@@ -649,13 +658,24 @@ body {
     border-bottom: 1.5px solid #718096;
 }
 
+.doc-quotation {
+    position: relative;
+}
+
+.doc-quotation footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+
 .doc-quotation footer {
     text-align: center;
     font-size: 11px;
     color: #718096;
-    margin-top: 20px;
+    margin-bottom: 10px;
     padding-top: 15px;
-    border-top: 1px solid #e2e8f0;
     font-style: italic;
 }
 .doc-quotation footer p { font-size: 11px; margin: 0; }
@@ -667,7 +687,7 @@ body {
 @media print {
     .doc-standard .fourth-section table,
     .doc-quotation table {
-        border: 1.5px solid #2a4d8f;
+        border: 1.5px solid #3765BC;
         page-break-inside: avoid;
     }
     
@@ -686,7 +706,7 @@ body {
     .doc-quotation table th {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        background: #2a4d8f !important;
+        background: #3765BC !important;
         color: #ffffff !important;
     }
     
@@ -699,8 +719,9 @@ body {
     
     .doc-standard .fifth-section .totals-section,
     .doc-quotation .fifth-section .totals-section {
-        border: 1.5px solid #2a4d8f;
-        min-width: 260px;
+        border: 1.5px solid #3765BC;
+        /* relax min-width for print so totals can reflow on narrow pages */
+        min-width: 160px;
         page-break-inside: avoid;
     }
     
@@ -715,7 +736,7 @@ body {
     .doc-standard .fifth-section .totals-section .totals-section-sub2 p:last-child,
     .doc-quotation .fifth-section .totals-section .totals-section-sub1 p:last-child,
     .doc-quotation .fifth-section .totals-section .totals-section-sub2 p:last-child {
-        background: #2a4d8f !important;
+        background: #3765BC !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;

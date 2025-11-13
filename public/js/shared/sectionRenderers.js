@@ -37,8 +37,10 @@ function renderQuotationDocumentHeader() {
         </div>
         <div class="company-details">
             <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-            <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-            <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+            <p>Ph: 7204657707 / 9901730305</p>
+            <p>GSTIN: 29AGCPN4093N1ZS</p>
+            <p>Email: shreshtsystems@gmail.com</p>
+            <p>Website: www.shreshtsystems.com</p>
         </div>
     </div>`;
 }
