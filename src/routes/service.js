@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Invoices } = require('../models');
+const { Invoices, service } = require('../models');
 const moment = require('moment');
 const log = require("electron-log");
 
@@ -11,7 +11,7 @@ function generateUniqueId() {
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
     const randomNum = Math.floor(Math.random() * 10);
-    return `${year}${month}${day}${randomNum}`;
+    return `SRV-${year}${month}${day}${randomNum}`;
 }
 
 // Route to generate a new service ID
@@ -21,7 +21,7 @@ router.get("/generate-id", async (req, res) => {
 
     while (!isUnique) {
         service_id = generateUniqueId();
-        const existingService = await Invoices.findOne({ invoice_id: service_id });
+        const existingService = await service.findOne({ service_id: service_id });
         if (!existingService) {
             isUnique = true;
         }
@@ -144,6 +144,52 @@ router.post('/save-service', async (req, res) => {
     }
 });
 
+// Update existing service record (MUST be before parameterized routes like /search/:query)
+router.put('/update-service', async (req, res) => {
+    try {
+        const {
+            service_id,
+            invoice_id,
+            fee_amount,
+            service_date,
+            service_stage,
+            items,
+            non_items,
+            total_tax,
+            total_amount_no_tax,
+            total_amount_with_tax,
+            notes
+        } = req.body;
+        
+        const existingService = await service.findOne({ service_id });
+        if (!existingService) {
+            return res.status(404).json({ error: 'Service not found' });
+        }
+        
+        // Update service record
+        existingService.invoice_id = invoice_id || existingService.invoice_id;
+        existingService.fee_amount = fee_amount !== undefined ? fee_amount : existingService.fee_amount;
+        existingService.service_date = service_date || existingService.service_date;
+        existingService.service_stage = service_stage !== undefined ? service_stage : existingService.service_stage;
+        existingService.items = items || existingService.items;
+        existingService.non_items = non_items || existingService.non_items;
+        existingService.total_tax = total_tax !== undefined ? total_tax : existingService.total_tax;
+        existingService.total_amount_no_tax = total_amount_no_tax !== undefined ? total_amount_no_tax : existingService.total_amount_no_tax;
+        existingService.total_amount_with_tax = total_amount_with_tax !== undefined ? total_amount_with_tax : existingService.total_amount_with_tax;
+        existingService.notes = notes !== undefined ? notes : existingService.notes;
+        
+        await existingService.save();
+        
+        res.status(200).json({
+            message: 'Service updated successfully',
+            service: existingService
+        });
+    } catch (error) {
+        log.error('Error updating service:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Search services by customer name, project name, or invoice ID
 router.get('/search/:query', async (req, res) => {
     try {
@@ -174,6 +220,176 @@ router.get('/search/:query', async (req, res) => {
     } catch (error) {
         log.error("Error searching services:", error);
         res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// Get recent service records (last 10 completed services from Service collection)
+router.get('/recent-services', async (req, res) => {
+    try {
+        const recentServices = await service.find()
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .lean();
+        
+        // Populate invoice details for each service
+        const servicesWithInvoiceData = await Promise.all(
+            recentServices.map(async (svc) => {
+                const invoice = await Invoices.findOne({ invoice_id: svc.invoice_id })
+                    .select('customer_name customer_address customer_phone customer_gstin project_name')
+                    .lean();
+                return {
+                    ...svc,
+                    customer_name: invoice?.customer_name || 'N/A',
+                    customer_address: invoice?.customer_address || 'N/A',
+                    customer_phone: invoice?.customer_phone || 'N/A',
+                    customer_gstin: invoice?.customer_gstin || 'N/A',
+                    project_name: invoice?.project_name || 'N/A'
+                };
+            })
+        );
+        
+        res.status(200).json({
+            message: 'Recent services retrieved successfully',
+            services: servicesWithInvoiceData
+        });
+    } catch (error) {
+        log.error('Error retrieving recent services:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get individual service by service_id
+router.get('/:serviceId', async (req, res) => {
+    try {
+        const { serviceId } = req.params;
+        
+        const serviceRecord = await service.findOne({ service_id: serviceId }).lean();
+        if (!serviceRecord) {
+            return res.status(404).json({ error: 'Service not found' });
+        }
+        
+        // Populate invoice details
+        const invoice = await Invoices.findOne({ invoice_id: serviceRecord.invoice_id }).lean();
+        
+        res.status(200).json({
+            message: 'Service retrieved successfully',
+            service: {
+                ...serviceRecord,
+                invoice_details: invoice || null
+            }
+        });
+    } catch (error) {
+        log.error('Error retrieving service:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get service history for a specific invoice
+router.get('/history/:invoiceId', async (req, res) => {
+    try {
+        const { invoiceId } = req.params;
+        
+        const serviceHistory = await service.find({ invoice_id: invoiceId })
+            .sort({ service_stage: 1 })
+            .lean();
+        
+        res.status(200).json({
+            message: 'Service history retrieved successfully',
+            services: serviceHistory
+        });
+    } catch (error) {
+        log.error('Error retrieving service history:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Search service records by service_id, customer name, or invoice_id
+router.get('/search-services/:query', async (req, res) => {
+    try {
+        const query = req.params.query;
+        
+        // First, find matching services
+        const matchingServices = await service.find({
+            $or: [
+                { service_id: { $regex: query, $options: 'i' } },
+                { invoice_id: { $regex: query, $options: 'i' } }
+            ]
+        }).lean();
+        
+        // Also search by customer name in invoices
+        const matchingInvoices = await Invoices.find({
+            $or: [
+                { customer_name: { $regex: query, $options: 'i' } },
+                { project_name: { $regex: query, $options: 'i' } }
+            ]
+        }).select('invoice_id').lean();
+        
+        const invoiceIds = matchingInvoices.map(inv => inv.invoice_id);
+        const servicesByCustomer = await service.find({
+            invoice_id: { $in: invoiceIds }
+        }).lean();
+        
+        // Combine and deduplicate results
+        const allServices = [...matchingServices, ...servicesByCustomer];
+        const uniqueServices = Array.from(
+            new Map(allServices.map(s => [s.service_id, s])).values()
+        );
+        
+        // Populate invoice details
+        const servicesWithInvoiceData = await Promise.all(
+            uniqueServices.map(async (svc) => {
+                const invoice = await Invoices.findOne({ invoice_id: svc.invoice_id })
+                    .select('customer_name customer_address customer_phone customer_gstin project_name')
+                    .lean();
+                return {
+                    ...svc,
+                    customer_name: invoice?.customer_name || 'N/A',
+                    customer_address: invoice?.customer_address || 'N/A',
+                    customer_phone: invoice?.customer_phone || 'N/A',
+                    customer_gstin: invoice?.customer_gstin || 'N/A',
+                    project_name: invoice?.project_name || 'N/A'
+                };
+            })
+        );
+        
+        res.status(200).json({
+            message: 'Services found',
+            services: servicesWithInvoiceData
+        });
+    } catch (error) {
+        log.error('Error searching service records:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Delete service record and decrement invoice service_stage
+router.delete('/:serviceId', async (req, res) => {
+    try {
+        const { serviceId } = req.params;
+        
+        const serviceRecord = await service.findOne({ service_id: serviceId });
+        if (!serviceRecord) {
+            return res.status(404).json({ error: 'Service not found' });
+        }
+        
+        const invoiceId = serviceRecord.invoice_id;
+        
+        // Delete the service record
+        await service.deleteOne({ service_id: serviceId });
+        
+        // Decrement invoice service_stage
+        const invoice = await Invoices.findOne({ invoice_id: invoiceId });
+        if (invoice && invoice.service_stage > 0) {
+            invoice.service_stage -= 1;
+            await invoice.save();
+        }
+        
+        res.status(200).json({
+            message: 'Service deleted successfully and invoice service_stage decremented'
+        });
+    } catch (error) {
+        log.error('Error deleting service:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

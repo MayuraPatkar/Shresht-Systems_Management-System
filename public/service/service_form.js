@@ -198,9 +198,14 @@ function collectFormData() {
 
     const total_amount_with_tax = total_amount_no_tax + total_tax;
     const currentStage = parseInt(document.getElementById("service-stage")?.value || 0);
+    const serviceId = document.getElementById("service-id").value;
+    
+    // If editing (service_id starts with SRV-), don't increment stage
+    const isEditing = serviceId && serviceId.startsWith('SRV-');
+    const finalStage = isEditing ? currentStage : (currentStage + 1);
 
     return {
-        service_id: document.getElementById("service-id").value,
+        service_id: serviceId,
         invoice_id: document.getElementById("invoice-id").value,
         name: document.getElementById("name").value,
         address: document.getElementById("address").value,
@@ -208,7 +213,7 @@ function collectFormData() {
         email: document.getElementById("email").value || '',
         project_name: document.getElementById("project-name").value,
         date: document.getElementById("date")?.value || new Date().toISOString().slice(0, 10),
-        service_stage: currentStage + 1,  // Increment the service stage
+        service_stage: finalStage,
         items,
         non_items,
         total_amount_no_tax,
@@ -216,7 +221,7 @@ function collectFormData() {
         total_amount_with_tax,
         fee_amount: total_amount_with_tax,
         service_date: document.getElementById("date")?.value || new Date().toISOString().slice(0, 10),
-        notes: `Service stage ${currentStage + 1} completed on ${new Date(document.getElementById("date")?.value || new Date()).toLocaleDateString('en-IN')}`
+        notes: `Service stage ${finalStage} completed on ${new Date(document.getElementById("date")?.value || new Date()).toLocaleDateString('en-IN')}`
     };
 }
 
@@ -240,8 +245,13 @@ async function updateNextService(invoiceId, nextService) {
 // Send to server
 async function sendToServer(data) {
     try {
-        const response = await fetch("/service/save-service", {
-            method: "POST",
+        // Determine if this is an update or create based on whether service_id exists and is valid
+        const isUpdate = data.service_id && data.service_id.startsWith('SRV-');
+        const endpoint = isUpdate ? "/service/update-service" : "/service/save-service";
+        const method = isUpdate ? "PUT" : "POST";
+        
+        const response = await fetch(endpoint, {
+            method: method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
@@ -304,3 +314,97 @@ async function handleSavePDF() {
         window.electronAPI?.showAlert1("Print functionality is not available.");
     }
 }
+
+// Populate form with existing service data for editing
+function populateFormWithServiceData(service) {
+    // Set hidden fields
+    document.getElementById('service-id').value = service.service_id || '';
+    document.getElementById('service-stage').value = service.service_stage || 0;
+    
+    // Set basic fields
+    document.getElementById('invoice-id').value = service.invoice_id || '';
+    document.getElementById('date').value = service.service_date ? service.service_date.split('T')[0] : '';
+    
+    // If invoice details are available, populate customer info
+    if (service.invoice_details) {
+        const invoice = service.invoice_details;
+        document.getElementById('project-name').value = invoice.project_name || '';
+        document.getElementById('name').value = invoice.customer_name || '';
+        document.getElementById('address').value = invoice.customer_address || '';
+        document.getElementById('phone').value = invoice.customer_phone || '';
+        document.getElementById('email').value = invoice.customer_email || '';
+    }
+    
+    // Populate items table
+    const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
+    if (itemsTable && service.items && service.items.length > 0) {
+        // Clear existing rows
+        itemsTable.innerHTML = '';
+        
+        service.items.forEach(item => {
+            const row = itemsTable.insertRow();
+            row.innerHTML = `
+                <td class="border border-gray-300 px-4 py-2">
+                    <button type="button" class="delete-row-btn text-red-600 hover:text-red-800">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+                <td class="border border-gray-300 px-4 py-2">
+                    <input type="text" placeholder="Item Description" value="${item.description || ''}" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </td>
+                <td class="border border-gray-300 px-4 py-2">
+                    <input type="text" placeholder="HSN/SAC Code" value="${item.HSN_SAC || ''}" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </td>
+                <td class="border border-gray-300 px-4 py-2">
+                    <input type="number" placeholder="Quantity" value="${item.quantity || 0}" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </td>
+                <td class="border border-gray-300 px-4 py-2">
+                    <input type="number" placeholder="Unit Price" value="${item.unit_price || 0}" step="0.01" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </td>
+                <td class="border border-gray-300 px-4 py-2">
+                    <input type="number" placeholder="Tax Rate %" value="${item.rate || 0}" step="0.01" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </td>
+            `;
+            
+            // Add delete functionality
+            row.querySelector('.delete-row-btn').addEventListener('click', function() {
+                this.closest('tr').remove();
+            });
+        });
+    }
+    
+    // Populate non-items table
+    const nonItemsTable = document.querySelector('#non-items-table tbody');
+    if (nonItemsTable && service.non_items && service.non_items.length > 0) {
+        // Clear existing rows
+        nonItemsTable.innerHTML = '';
+        
+        service.non_items.forEach(item => {
+            const row = nonItemsTable.insertRow();
+            row.innerHTML = `
+                <td class="border border-gray-300 px-4 py-2">
+                    <button type="button" class="delete-non-item-row-btn text-red-600 hover:text-red-800">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+                <td class="border border-gray-300 px-4 py-2">
+                    <input type="text" placeholder="Item Description" value="${item.description || ''}" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </td>
+                <td class="border border-gray-300 px-4 py-2">
+                    <input type="number" placeholder="Price" value="${item.price || 0}" step="0.01" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </td>
+                <td class="border border-gray-300 px-4 py-2">
+                    <input type="number" placeholder="Rate" value="${item.rate || 0}" step="0.01" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </td>
+            `;
+            
+            // Add delete functionality
+            row.querySelector('.delete-non-item-row-btn').addEventListener('click', function() {
+                this.closest('tr').remove();
+            });
+        });
+    }
+}
+
+// Make populateFormWithServiceData globally available
+window.populateFormWithServiceData = populateFormWithServiceData;
