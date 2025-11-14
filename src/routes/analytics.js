@@ -22,13 +22,8 @@ router.get('/overview', async (req, res) => {
     const totalUnpaid = unpaidProjectsResult.length;
 
     /* ────────────────────── Monthly invoice earnings (Paid) ───────────────── */
-    // Calculate total earned: Sum of total_paid_amount for all invoices
-    // This shows total revenue collected to date (not just this month)
-    const totalEarnedAllTime = await Invoices.aggregate([
-      { $group: { _id: null, total: { $sum: '$total_paid_amount' } } },
-    ]);
-    
-    // Alternative: Sum payments received in current month only
+    // Calculate total earned: Sum of payments received in current month only
+    // This shows revenue collected this month
     const totalEarnedThisMonthResult = await Invoices.aggregate([
       { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
       {
@@ -39,11 +34,11 @@ router.get('/overview', async (req, res) => {
       { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
     ]);
     
-    // Use all-time earnings (more useful for dashboard)
-    const totalEarned = totalEarnedAllTime.length > 0 ? totalEarnedAllTime[0].total : 0;
+    // Use this month's earnings for dashboard
+    const totalEarned = totalEarnedThisMonthResult.length > 0 ? totalEarnedThisMonthResult[0].total : 0;
     
     // Optional: log for debugging
-    log.info(`Analytics Overview - Total Earned All Time: ${totalEarned}, This Month: ${totalEarnedThisMonthResult.length > 0 ? totalEarnedThisMonthResult[0].total : 0}`);
+    log.info(`Analytics Overview - Total Earned This Month: ${totalEarned}`);
 
     /* ─────────────────────── Monthly purchase expenditure ─────────────────── */
     // Use $or to match either purchase_date or createdAt within current month
