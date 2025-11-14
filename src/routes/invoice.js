@@ -17,16 +17,22 @@ function generateUniqueId() {
 // Route to generate a new Invoice ID
 router.get("/generate-id", async (req, res) => {
     let invoice_id;
-    let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 10;
 
-    while (!isUnique) {
+    // Try up to 10 times before adding more randomness
+    while (attempts < maxAttempts) {
         invoice_id = generateUniqueId();
-        const existingInvoice = await Invoices.findOne({ invoice_id: invoice_id });
-        if (!existingInvoice) {
-            isUnique = true;
+        // Use lean() for faster query and only check existence
+        const exists = await Invoices.exists({ invoice_id: invoice_id });
+        if (!exists) {
+            return res.status(200).json({ invoice_id: invoice_id });
         }
+        attempts++;
     }
 
+    // If still not unique after 10 attempts, add timestamp milliseconds
+    invoice_id = generateUniqueId() + Date.now().toString().slice(-3);
     res.status(200).json({ invoice_id: invoice_id });
 });
 
@@ -37,7 +43,10 @@ router.get("/test", (req, res) => {
 
 router.get("/get-all", async (req, res) => {
     try {
-        const invoices = await Invoices.find();
+        // Only select necessary fields to reduce data transfer
+        const invoices = await Invoices.find()
+            .select('invoice_id project_name customer_name customer_phone payment_status total_amount_duplicate createdAt')
+            .lean(); // Use lean() for better performance when no Mongoose methods needed
         return res.status(200).json({ invoices });
     } catch (error) {
         logger.error("Error fetching invoices:", error);
@@ -48,7 +57,11 @@ router.get("/get-all", async (req, res) => {
 // Alias for dashboard compatibility
 router.get("/all", async (req, res) => {
     try {
-        const invoices = await Invoices.find().sort({ createdAt: -1 });
+        // Only select fields needed for dashboard/list views
+        const invoices = await Invoices.find()
+            .select('invoice_id project_name customer_name customer_phone customer_email payment_status total_amount_duplicate total_paid_amount createdAt')
+            .sort({ createdAt: -1 })
+            .lean(); // Use lean() for better performance
         return res.status(200).json(invoices);
     } catch (error) {
         logger.error("Error fetching invoices:", error);
@@ -131,13 +144,32 @@ router.post("/save-invoice", async (req, res) => {
         }
 
         if (existingInvoice) {
-            // Update stock: revert previous items
+            // Update stock: Build bulk operations for better performance
+            const bulkOps = [];
+            
+            // Revert previous items
             for (let prev of existingInvoice.items_original) {
-                await Stock.updateOne({ item_name: prev.description }, { $inc: { quantity: prev.quantity } });
+                bulkOps.push({
+                    updateOne: {
+                        filter: { item_name: prev.description },
+                        update: { $inc: { quantity: prev.quantity } }
+                    }
+                });
             }
-            // Update stock: deduct new items (allow negative)
+            
+            // Deduct new items (allow negative)
             for (let cur of items_original) {
-                await Stock.updateOne({ item_name: cur.description }, { $inc: { quantity: -cur.quantity } });
+                bulkOps.push({
+                    updateOne: {
+                        filter: { item_name: cur.description },
+                        update: { $inc: { quantity: -cur.quantity } }
+                    }
+                });
+            }
+            
+            // Execute all stock updates in a single database operation
+            if (bulkOps.length > 0) {
+                await Stock.bulkWrite(bulkOps);
             }
 
             // Update the invoice
@@ -170,13 +202,16 @@ router.post("/save-invoice", async (req, res) => {
             const updatedInvoice = await existingInvoice.save();
             return res.status(200).json({ message: 'Invoice updated successfully', invoice: updatedInvoice });
         } else {
-            // Deduct stock for new invoice (allow negative)
-            for (let item of items_original) {
-                const stockItem = await Stock.findOne({ item_name: item.description });
-                if (stockItem) {
-                    stockItem.quantity -= item.quantity;
-                    await stockItem.save();
+            // Deduct stock for new invoice using bulk operation
+            const bulkOps = items_original.map(item => ({
+                updateOne: {
+                    filter: { item_name: item.description },
+                    update: { $inc: { quantity: -item.quantity } }
                 }
+            }));
+            
+            if (bulkOps.length > 0) {
+                await Stock.bulkWrite(bulkOps);
             }
 
             // Create a new invoice

@@ -17,22 +17,33 @@ function generateUniqueId() {
 // Route to generate a new quotation ID
 router.get("/generate-id", async (req, res) => {
     let quotationId;
-    let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 10;
 
-    while (!isUnique) {
+    // Try up to 10 times before adding more randomness
+    while (attempts < maxAttempts) {
         quotationId = generateUniqueId();
-        const existingQuotation = await Quotations.findOne({ quotation_id: quotationId });
-        if (!existingQuotation) {
-            isUnique = true;
+        // Use exists() for faster query - only checks if document exists
+        const exists = await Quotations.exists({ quotation_id: quotationId });
+        if (!exists) {
+            return res.status(200).json({ quotation_id: quotationId });
         }
+        attempts++;
     }
+
+    // If still not unique after 10 attempts, add timestamp milliseconds
+    quotationId = generateUniqueId() + Date.now().toString().slice(-3);
     res.status(200).json({ quotation_id: quotationId });
 });
 
 // Route to get all quotations
 router.get("/all", async (req, res) => {
     try {
-        const quotations = await Quotations.find().sort({ createdAt: -1 });
+        // Only select fields needed for list views to improve performance
+        const quotations = await Quotations.find()
+            .select('quotation_id project_name customer_name customer_phone customer_email total_amount_tax createdAt')
+            .sort({ createdAt: -1 })
+            .lean(); // Use lean() for better performance when no Mongoose methods needed
         return res.status(200).json(quotations);
     } catch (error) {
         logger.error("Error fetching quotations:", error);

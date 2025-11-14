@@ -17,23 +17,33 @@ function generateUniqueId() {
 // Route to generate a new service ID
 router.get("/generate-id", async (req, res) => {
     let service_id;
-    let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 10;
 
-    while (!isUnique) {
+    // Try up to 10 times before adding more randomness
+    while (attempts < maxAttempts) {
         service_id = generateUniqueId();
-        const existingService = await Invoices.findOne({ invoice_id: service_id });
-        if (!existingService) {
-            isUnique = true;
+        // Use exists() for faster query
+        const exists = await Invoices.exists({ invoice_id: service_id });
+        if (!exists) {
+            return res.status(200).json({ service_id: service_id });
         }
+        attempts++;
     }
 
+    // If still not unique after 10 attempts, add timestamp milliseconds
+    service_id = generateUniqueId() + Date.now().toString().slice(-3);
     res.status(200).json({ service_id: service_id });
 });
 
 // Route to get all services (invoices with service_month > 0)
 router.get('/all', async (req, res) => {
     try {
-        const services = await Invoices.find({ service_month: { $ne: 0 } }).sort({ createdAt: -1 });
+        // Only select necessary fields for list views
+        const services = await Invoices.find({ service_month: { $ne: 0 } })
+            .select('invoice_id project_name customer_name customer_phone customer_email service_month service_stage createdAt invoice_date')
+            .sort({ createdAt: -1 })
+            .lean(); // Use lean() for better performance
         return res.status(200).json(services);
     } catch (error) {
         log.error("Error fetching services:", error);
@@ -45,8 +55,10 @@ router.get('/all', async (req, res) => {
 router.get('/get-service', async (req, res) => {
     try {
         const currentDate = moment();
-        // Fetch invoices where service_month is not zero
-        const projects = await Invoices.find({ service_month: { $ne: 0 } });
+        // Fetch only necessary fields for better performance
+        const projects = await Invoices.find({ service_month: { $ne: 0 } })
+            .select('invoice_id project_name customer_name customer_phone customer_email service_month service_stage createdAt invoice_date')
+            .lean();
 
         // Filter invoices based on service_month and invoice_date/createdAt
         const filteredProjects = projects.filter(project => {

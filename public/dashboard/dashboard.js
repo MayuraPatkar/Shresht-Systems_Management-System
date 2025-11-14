@@ -127,6 +127,7 @@ updateDateTime();
 
 // ---------------------- Recent Activity ----------------------
 function loadRecentActivity() {
+    // Instead of 4 separate API calls, make them in parallel with Promise.all
     Promise.all([
         fetchWithRetry('/quotation/all').catch(() => []),
         fetchWithRetry('/invoice/all').catch(() => []),
@@ -136,7 +137,7 @@ function loadRecentActivity() {
     .then(([quotations, invoices, waybills, services]) => {
         const activities = [];
         
-        // Process quotations
+        // Process quotations - only take first 5 to reduce memory usage
         (quotations || []).slice(0, 5).forEach(q => {
             activities.push({
                 type: 'quotation',
@@ -144,12 +145,12 @@ function loadRecentActivity() {
                 color: 'blue',
                 title: `Quotation #${q.quotation_id || 'N/A'}`,
                 description: q.project_name || 'No project name',
-                time: q.created_at || q.date || new Date(),
+                time: q.created_at || q.createdAt || new Date(),
                 link: `../quotation/quotation.html?view=${encodeURIComponent(q.quotation_id || '')}`
             });
         });
 
-        // Process invoices
+        // Process invoices - only take first 5
         (invoices || []).slice(0, 5).forEach(i => {
             activities.push({
                 type: 'invoice',
@@ -157,12 +158,12 @@ function loadRecentActivity() {
                 color: 'green',
                 title: `Invoice #${i.invoice_id || 'N/A'}`,
                 description: i.project_name || 'No project name',
-                time: i.created_at || i.date || new Date(),
+                time: i.created_at || i.createdAt || new Date(),
                 link: `../invoice/invoice.html?view=${encodeURIComponent(i.invoice_id || '')}`
             });
         });
 
-        // Process waybills
+        // Process waybills - only take first 5
         (waybills || []).slice(0, 5).forEach(w => {
             activities.push({
                 type: 'waybill',
@@ -170,28 +171,26 @@ function loadRecentActivity() {
                 color: 'purple',
                 title: `Waybill #${w.waybill_id || 'N/A'}`,
                 description: w.project_name || 'No project name',
-                time: w.created_at || w.date || new Date(),
+                time: w.created_at || w.createdAt || new Date(),
                 link: `../waybill/wayBill.html?view=${encodeURIComponent(w.waybill_id || '')}`
             });
         });
 
-        // Process services
+        // Process services - only take first 5
         (services || []).slice(0, 5).forEach(s => {
             activities.push({
                 type: 'service',
                 icon: 'fa-wrench',
                 color: 'teal',
-                title: `Service #${s.service_id || 'N/A'}`,
+                title: `Service #${s.service_id || s.invoice_id || 'N/A'}`,
                 description: s.project_name || s.customer_name || 'No description',
-                time: s.created_at || s.date || new Date(),
-                link: `../service/service.html?view=${encodeURIComponent(s.service_id || '')}`
+                time: s.created_at || s.createdAt || new Date(),
+                link: `../service/service.html?view=${encodeURIComponent(s.service_id || s.invoice_id || '')}`
             });
         });
 
-        // Sort by time (most recent first)
+        // Sort by time (most recent first) and display only top 10
         activities.sort((a, b) => new Date(b.time) - new Date(a.time));
-
-        // Display only top 10
         displayRecentActivity(activities.slice(0, 10));
     })
     .catch(err => {
@@ -499,7 +498,7 @@ function refreshTasks() {
 }
 
 // ---------------------- Auto-refresh ----------------------
-// Auto-refresh dashboard data every 5 minutes
+// Auto-refresh dashboard data every 10 minutes instead of 5 for better performance
 let refreshInterval;
 
 function startAutoRefresh() {
@@ -508,26 +507,33 @@ function startAutoRefresh() {
         clearInterval(refreshInterval);
     }
     
-    // Refresh every 5 minutes (300000 ms)
+    // Refresh every 10 minutes (600000 ms) instead of 5 minutes for better performance
     refreshInterval = setInterval(() => {
         console.log('Auto-refreshing dashboard data...');
-        loadRecentActivity();
-        loadStockAlerts();
-        loadPendingTasks();
-        loadPerformanceMetrics();
         
-        // Refresh overview statistics
-        fetchWithRetry('/analytics/overview')
-            .then(data => {
-                animateCounter("project-count", data.totalProjects);
-                animateCounter("quotation-count", data.totalQuotations);
-                animateCounter("earned-count", data.totalEarned, true);
-                animateCounter("unpaid-count", data.totalUnpaid);
-                animateCounter("expenditure-count", data.totalExpenditure, true);
-                animateCounter("remaining-services-count", data.remainingServices);
+        // Use Promise.all to refresh all data in parallel
+        Promise.all([
+            // Refresh overview statistics
+            fetchWithRetry('/analytics/overview')
+                .then(data => {
+                    animateCounter("project-count", data.totalProjects);
+                    animateCounter("quotation-count", data.totalQuotations);
+                    animateCounter("earned-count", data.totalEarned, true);
+                    animateCounter("unpaid-count", data.totalUnpaid);
+                    animateCounter("expenditure-count", data.totalExpenditure, true);
+                    animateCounter("remaining-services-count", data.remainingServices);
+                })
+                .catch(err => console.error("Error auto-refreshing analytics:", err)),
+            
+            // Refresh other sections
+            Promise.resolve().then(() => {
+                loadRecentActivity();
+                loadStockAlerts();
+                loadPendingTasks();
+                loadPerformanceMetrics();
             })
-            .catch(err => console.error("Error auto-refreshing analytics:", err));
-    }, 300000); // 5 minutes
+        ]);
+    }, 600000); // 10 minutes instead of 5
 }
 
 // Start auto-refresh when page loads

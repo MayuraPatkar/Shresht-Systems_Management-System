@@ -13,10 +13,10 @@ const invoiceSchema = new mongoose.Schema({
     Waybill_id: { type: String },
 
     // customer and consignee
-    customer_name: { type: String, trim: true },
+    customer_name: { type: String, trim: true, index: true }, // Added index for search performance
     customer_address: { type: String, trim: true },
-    customer_phone: { type: String, trim: true },
-    customer_email: { type: String, lowercase: true, trim: true },
+    customer_phone: { type: String, trim: true, index: true }, // Added index for search performance
+    customer_email: { type: String, lowercase: true, trim: true, index: true }, // Added index for search performance
     consignee_name: { type: String, trim: true },
     consignee_address: { type: String, trim: true },
 
@@ -104,5 +104,12 @@ invoiceSchema.methods.updatePaymentStatus = function() {
 // Index for faster queries
 invoiceSchema.index({ invoice_id: 1, createdAt: -1 });
 invoiceSchema.index({ payment_status: 1, createdAt: -1 });
+// Compound text index for efficient text search across multiple fields
+invoiceSchema.index({ 
+    customer_name: 'text', 
+    customer_phone: 'text', 
+    customer_email: 'text',
+    project_name: 'text'
+});
 
 module.exports = mongoose.model('invoice', invoiceSchema);

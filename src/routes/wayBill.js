@@ -6,7 +6,11 @@ const log = require("electron-log"); // Import electron-log in the preload proce
 // Route to get all waybills
 router.get("/all", async (req, res) => {
     try {
-        const allWayBills = await wayBills.find().sort({ createdAt: -1 });
+        // Only select necessary fields for list views
+        const allWayBills = await wayBills.find()
+            .select('waybill_id project_name customer_name customer_phone customer_email transport_mode vehicle_number createdAt')
+            .sort({ createdAt: -1 })
+            .lean(); // Use lean() for better performance
         return res.status(200).json(allWayBills);
     } catch (error) {
         log.error("Error fetching waybills:", error);
