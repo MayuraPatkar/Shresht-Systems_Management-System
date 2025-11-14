@@ -90,6 +90,10 @@ function resetForm() {
     document.getElementById('date').value = new Date().toISOString().split('T')[0];
     document.getElementById('question-yes').checked = true;
     
+    // Reset is-editing flag
+    const isEditingField = document.getElementById('is-editing');
+    if (isEditingField) isEditingField.value = 'false';
+    
     // Clear items and non-items containers AND tables
     const itemsContainer = document.getElementById("items-container");
     const nonItemsContainer = document.getElementById("non-items-container");
@@ -245,10 +249,10 @@ async function updateNextService(invoiceId, nextService) {
 // Send to server
 async function sendToServer(data) {
     try {
-        // Determine if this is an update or create based on whether service_id exists and is valid
-        const isUpdate = data.service_id && data.service_id.startsWith('SRV-');
-        const endpoint = isUpdate ? "/service/update-service" : "/service/save-service";
-        const method = isUpdate ? "PUT" : "POST";
+        // Check hidden is-editing flag to determine if this is an update or create
+        const isEditingFlag = document.getElementById('is-editing')?.value === 'true';
+        const endpoint = isEditingFlag ? "/service/update-service" : "/service/save-service";
+        const method = isEditingFlag ? "PUT" : "POST";
         
         const response = await fetch(endpoint, {
             method: method,
@@ -257,23 +261,21 @@ async function sendToServer(data) {
         });
         const result = await response.json();
         if (response.ok) {
-            return true;
+            return { success: true, message: result.message };
         } else {
-            window.electronAPI?.showAlert1("Failed to save service.");
-            return false;
+            return { success: false, message: result.error || "Failed to save service." };
         }
     } catch (error) {
         console.error("Error:", error);
-        window.electronAPI?.showAlert1("Failed to connect to server.");
-        return false;
+        return { success: false, message: "Failed to connect to server." };
     }
 }
 
 // Save button handler
 async function handleSave() {
     const serviceData = collectFormData();
-    const ok = await sendToServer(serviceData);
-    if (ok) {
+    const result = await sendToServer(serviceData);
+    if (result.success) {
         // Handle next service question
         const nextServiceAnswer = document.querySelector('input[name="question"]:checked')?.value || 'yes';
         await updateNextService(document.getElementById('invoice-id').value, nextServiceAnswer);
@@ -283,7 +285,7 @@ async function handleSave() {
             showHome();
         }, 1500);
     } else {
-        window.electronAPI?.showAlert1("Failed to save service.");
+        window.electronAPI?.showAlert1(result.message || "Failed to save service.");
     }
 }
 
@@ -321,6 +323,10 @@ function populateFormWithServiceData(service) {
     document.getElementById('service-id').value = service.service_id || '';
     document.getElementById('service-stage').value = service.service_stage || 0;
     
+    // Set is-editing flag to true
+    const isEditingField = document.getElementById('is-editing');
+    if (isEditingField) isEditingField.value = 'true';
+    
     // Set basic fields
     document.getElementById('invoice-id').value = service.invoice_id || '';
     document.getElementById('date').value = service.service_date ? service.service_date.split('T')[0] : '';
@@ -335,73 +341,77 @@ function populateFormWithServiceData(service) {
         document.getElementById('email').value = invoice.customer_email || '';
     }
     
-    // Populate items table
-    const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
-    if (itemsTable && service.items && service.items.length > 0) {
-        // Clear existing rows
-        itemsTable.innerHTML = '';
-        
-        service.items.forEach(item => {
-            const row = itemsTable.insertRow();
-            row.innerHTML = `
-                <td class="border border-gray-300 px-4 py-2">
-                    <button type="button" class="delete-row-btn text-red-600 hover:text-red-800">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-                <td class="border border-gray-300 px-4 py-2">
-                    <input type="text" placeholder="Item Description" value="${item.description || ''}" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </td>
-                <td class="border border-gray-300 px-4 py-2">
-                    <input type="text" placeholder="HSN/SAC Code" value="${item.HSN_SAC || ''}" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </td>
-                <td class="border border-gray-300 px-4 py-2">
-                    <input type="number" placeholder="Quantity" value="${item.quantity || 0}" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </td>
-                <td class="border border-gray-300 px-4 py-2">
-                    <input type="number" placeholder="Unit Price" value="${item.unit_price || 0}" step="0.01" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </td>
-                <td class="border border-gray-300 px-4 py-2">
-                    <input type="number" placeholder="Tax Rate %" value="${item.rate || 0}" step="0.01" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </td>
-            `;
-            
-            // Add delete functionality
-            row.querySelector('.delete-row-btn').addEventListener('click', function() {
-                this.closest('tr').remove();
-            });
+    // Populate items using addItem() function from globalScript.js
+    if (service.items && service.items.length > 0) {
+        service.items.forEach((item, index) => {
+            // Add item row using global function
+            if (typeof addItem === 'function') {
+                addItem();
+                
+                // Get the last added card and table row
+                const itemsContainer = document.getElementById("items-container");
+                const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
+                
+                if (itemsContainer && itemsTable) {
+                    const cards = itemsContainer.querySelectorAll('.item-card');
+                    const rows = itemsTable.querySelectorAll('tr');
+                    const lastCard = cards[cards.length - 1];
+                    const lastRow = rows[rows.length - 1];
+                    
+                    if (lastCard && lastRow) {
+                        // Populate card inputs
+                        const cardInputs = lastCard.querySelectorAll('input');
+                        cardInputs[0].value = item.description || ''; // description
+                        cardInputs[1].value = item.HSN_SAC || '';      // HSN/SAC
+                        cardInputs[2].value = item.quantity || 0;      // quantity
+                        cardInputs[3].value = item.unit_price || 0;    // unit_price
+                        cardInputs[4].value = item.rate || 0;          // rate
+                        
+                        // Populate table inputs (they should sync automatically)
+                        const tableInputs = lastRow.querySelectorAll('input');
+                        tableInputs[0].value = item.description || '';
+                        tableInputs[1].value = item.HSN_SAC || '';
+                        tableInputs[2].value = item.quantity || 0;
+                        tableInputs[3].value = item.unit_price || 0;
+                        tableInputs[4].value = item.rate || 0;
+                    }
+                }
+            }
         });
     }
     
-    // Populate non-items table
-    const nonItemsTable = document.querySelector('#non-items-table tbody');
-    if (nonItemsTable && service.non_items && service.non_items.length > 0) {
-        // Clear existing rows
-        nonItemsTable.innerHTML = '';
-        
-        service.non_items.forEach(item => {
-            const row = nonItemsTable.insertRow();
-            row.innerHTML = `
-                <td class="border border-gray-300 px-4 py-2">
-                    <button type="button" class="delete-non-item-row-btn text-red-600 hover:text-red-800">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-                <td class="border border-gray-300 px-4 py-2">
-                    <input type="text" placeholder="Item Description" value="${item.description || ''}" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </td>
-                <td class="border border-gray-300 px-4 py-2">
-                    <input type="number" placeholder="Price" value="${item.price || 0}" step="0.01" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </td>
-                <td class="border border-gray-300 px-4 py-2">
-                    <input type="number" placeholder="Rate" value="${item.rate || 0}" step="0.01" class="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </td>
-            `;
-            
-            // Add delete functionality
-            row.querySelector('.delete-non-item-row-btn').addEventListener('click', function() {
-                this.closest('tr').remove();
-            });
+    // Populate non-items using addNonItem() function from globalScript.js
+    if (service.non_items && service.non_items.length > 0) {
+        service.non_items.forEach((item, index) => {
+            // Add non-item row using global function
+            if (typeof addNonItem === 'function') {
+                addNonItem();
+                
+                // Get the last added card and table row
+                const nonItemsContainer = document.getElementById("non-items-container");
+                const nonItemsTable = document.querySelector('#non-items-table tbody');
+                
+                if (nonItemsContainer && nonItemsTable) {
+                    const cards = nonItemsContainer.querySelectorAll('.non-item-card');
+                    const rows = nonItemsTable.querySelectorAll('tr');
+                    const lastCard = cards[cards.length - 1];
+                    const lastRow = rows[rows.length - 1];
+                    
+                    if (lastCard && lastRow) {
+                        // Populate card inputs
+                        const cardInputs = lastCard.querySelectorAll('input');
+                        cardInputs[0].value = item.description || ''; // description
+                        cardInputs[1].value = item.price || 0;        // price
+                        cardInputs[2].value = item.rate || 0;         // rate
+                        
+                        // Populate table inputs
+                        const tableInputs = lastRow.querySelectorAll('input');
+                        tableInputs[0].value = item.description || '';
+                        tableInputs[1].value = item.price || 0;
+                        tableInputs[2].value = item.rate || 0;
+                    }
+                }
+            }
         });
     }
 }
