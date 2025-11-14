@@ -250,7 +250,7 @@ class DocumentBuilder {
      * @returns {string} Wrapped HTML
      */
     wrapInContainer(content) {
-        return `<div class="preview-container${this.type === 'quotation' ? ' doc-quotation' : ''}">
+        return `<div class="preview-container doc-quotation">
     ${content}
 </div>`;
     }
