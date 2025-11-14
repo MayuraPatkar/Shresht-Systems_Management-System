@@ -351,7 +351,11 @@ function loadPendingTasks() {
         }
 
         // Pending services
-        const pendingServices = (services || []).filter(s => s.status !== 'Completed').length;
+        // Services are invoices with service_month > 0 (active service contracts)
+        const pendingServices = (services || []).filter(s => {
+            const serviceMonth = parseInt(s.service_month) || 0;
+            return serviceMonth > 0;
+        }).length;
         if (pendingServices > 0) {
             tasks.push({
                 icon: 'fa-tools',
