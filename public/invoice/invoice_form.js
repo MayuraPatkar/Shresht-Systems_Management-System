@@ -496,19 +496,21 @@ function calculateInvoice(itemsTable) {
     }
 
     const totalsHTML = `
-        <div class="totals-section-sub1">
-            ${hasTax ? `
-            <p><strong>Taxable Value: </strong></p>
-            <p><strong>Total CGST: </strong></p>
-            <p><strong>Total SGST: </strong></p>` : ""}
-            <p><strong>Grand Total: </strong></p>
-        </div>
-        <div class="totals-section-sub2">
-            ${hasTax ? `
-            <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
-            <p>₹ ${formatIndian(totalCGST, 2)}</p>
-            <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-            <p>₹ ${formatIndian(finalTotal, 2)}</p>
+        <div style="display: flex; width: 100%;">
+            <div class="totals-section-sub1" style="width: 50%;">
+                ${hasTax ? `
+                <p>Taxable Value:</p>
+                <p>Total CGST:</p>
+                <p>Total SGST:</p>` : ""}
+                <p>Grand Total:</p>
+            </div>
+            <div class="totals-section-sub2" style="width: 50%;">
+                ${hasTax ? `
+                <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+                <p>₹ ${formatIndian(totalCGST, 2)}</p>
+                <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
+                <p>₹ ${formatIndian(totalPrice, 2)}</p>
+            </div>
         </div>
     `;
 
@@ -580,18 +582,25 @@ function generatePreview() {
     const pagesHTML = itemPages.map((pageHTML, index) => {
         const isLastPage = index === itemPages.length - 1;
         return `
-        <div class="preview-container">
-            <div class="first-section">
-                <div class="logo">
-                    <img src="../assets/logo.png" alt="Shresht Logo" />
-                </div>
-                <div class="company-details">
-                    <h1>SHRESHT SYSTEMS</h1>
-                    <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                    <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                    <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-                </div>
+        <div class="preview-container doc-standard doc-quotation">
+            <div class="header">
+        <div class="quotation-brand">
+            <div class="logo">
+                <img src="../assets/icon.png" alt="Shresht Logo">
             </div>
+            <div class="quotation-brand-text">
+                <h1>SHRESHT SYSTEMS</h1>
+                <p class="quotation-tagline">CCTV & Security Solutions</p>
+            </div>
+        </div>
+        <div class="company-details">
+            <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+            <p>Ph: 7204657707 / 9901730305</p>
+            <p>GSTIN: 29AGCPN4093N1ZS</p>
+            <p>Email: shreshtsystems@gmail.com</p>
+            <p>Website: www.shreshtsystems.com</p>
+        </div>
+    </div>
 
             <div class="second-section">
                 <p>INVOICE-${invoiceId}</p>
