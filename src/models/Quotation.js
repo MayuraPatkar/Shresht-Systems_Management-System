@@ -55,5 +55,16 @@ quotationSchema.pre('save', function(next) {
 
 // Index for faster queries
 quotationSchema.index({ quotation_id: 1, createdAt: -1 });
+// Text index for search functionality
+quotationSchema.index({ 
+    quotation_id: 'text', 
+    project_name: 'text', 
+    customer_name: 'text', 
+    customer_phone: 'text', 
+    customer_email: 'text' 
+});
+// Additional indexes for common queries
+quotationSchema.index({ customer_name: 1 });
+quotationSchema.index({ customer_phone: 1 });
 
 module.exports = mongoose.model('Quotations', quotationSchema);
