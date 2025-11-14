@@ -387,6 +387,19 @@ async function viewInvoice(invoiceId, userRole) {
         setTextContent('view-service-months', invoice.service_month);
         setTextContent('view-payment-status', invoice.payment_status);
         
+        // Show/hide service history button based on service_month
+        const serviceHistoryBtn = document.getElementById('view-invoice-service-history-btn');
+        if (serviceHistoryBtn) {
+            if (invoice.service_month && invoice.service_month > 0) {
+                serviceHistoryBtn.style.display = 'flex';
+                serviceHistoryBtn.onclick = () => {
+                    navigateTo(`/service?history=${invoice.invoice_id}`);
+                };
+            } else {
+                serviceHistoryBtn.style.display = 'none';
+            }
+        }
+        
         const balanceDue = (invoice.total_amount_duplicate || 0) - (invoice.total_paid_amount || 0);
         setTextContent('view-balance-due', `₹ ${formatIndian(balanceDue, 2)}`);
 
