@@ -38,10 +38,24 @@ exServer.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rate limiting (general limiter)
+// Body parsing middleware
+exServer.use(express.json({ limit: '10mb' }));
+exServer.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Static files with proper caching - BEFORE rate limiting
+exServer.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0',
+    etag: true,
+    lastModified: true
+}));
+
+// Uploads directory
+exServer.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
+
+// Rate limiting AFTER static files to exclude them
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // Limit each IP to 1000 requests per windowMs
+    max: 5000, // Increased limit for development navigation
     message: {
         error: 'Too many requests from this IP, please try again later.'
     },
@@ -49,33 +63,6 @@ const limiter = rateLimit({
     legacyHeaders: false,
 });
 exServer.use(limiter);
-
-// Request logging middleware
-exServer.use((req, res, next) => {
-    const start = Date.now();
-    
-    // Log request
-    logger.info(`${req.method} ${req.originalUrl} - ${req.ip}`);
-    
-    // Log response when finished
-    res.on('finish', () => {
-        const duration = Date.now() - start;
-        logger.info(`${req.method} ${req.originalUrl} - ${res.statusCode} - ${duration}ms`);
-    });
-    
-    next();
-});
-
-// Body parsing middleware
-exServer.use(express.json({ limit: '10mb' }));
-exServer.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Static files with proper caching
-exServer.use(express.static(path.join(__dirname, 'public'), {
-    maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0',
-    etag: true,
-    lastModified: true
-}));
 
 // Set the view engine to EJS
 exServer.set('view engine', 'ejs');
