@@ -199,23 +199,29 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
     const pagesHTML = itemPages.map((pageHTML, index) => {
         const isLastPage = index === itemPages.length - 1;
         return `
-        <div class="preview-container doc-standard doc-invoice">
-            <div class="first-section">
-                <div class="logo">
-                    <img src="../assets/logo.png" alt="Shresht Logo" />
+        <div class="preview-container doc-standard doc-invoice doc-quotation">
+            <div class="header">
+                <div class="quotation-brand">
+                    <div class="logo">
+                        <img src="../assets/icon.png" alt="Shresht Logo">
+                    </div>
+                    <div class="quotation-brand-text">
+                        <h1>SHRESHT SYSTEMS</h1>
+                        <p class="quotation-tagline">CCTV & Security Solutions</p>
+                    </div>
                 </div>
                 <div class="company-details">
-                    <h1>SHRESHT SYSTEMS</h1>
                     <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                    <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                    <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
+                    <p>Ph: 7204657707 / 9901730305</p>
+                    <p>GSTIN: 29AGCPN4093N1ZS</p>
+                    <p>Email: shreshtsystems@gmail.com</p>
+                    <p>Website: www.shreshtsystems.com</p>
                 </div>
             </div>
 
             <div class="second-section">
                 <p>INVOICE-${invoice.invoice_id}</p>
             </div>
-
             ${index === 0 ? `
             <div class="third-section">
                 <div class="buyer-details">
