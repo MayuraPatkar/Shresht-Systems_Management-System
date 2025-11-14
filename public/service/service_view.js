@@ -14,7 +14,9 @@ function getServiceStageLabel(stage) {
         '9th Service',
         '10th Service'
     ];
-    return stages[stage - 1] || `${stage}th Service`;
+    // Service stage is stored as 0-based index, but displayed as 1-based
+    const displayStage = (stage || 0) + 1;
+    return stages[stage] || `${displayStage}th Service`;
 }
 
 // Helper: Format date to Indian format
@@ -519,9 +521,10 @@ async function viewServiceHistory(invoiceId) {
         // Build timeline
         const timelineHTML = services.map((service, index) => {
             const isLast = index === services.length - 1;
-            const stageLabel = getServiceStageLabel(service.service_stage);
-            const serviceDate = formatDateIndian(service.service_date);
-            const grandTotal = formatIndianCurrency(service.total_amount_with_tax);
+            const serviceStage = service.service_stage || 0;
+            const stageLabel = getServiceStageLabel(serviceStage);
+            const serviceDate = service.service_date ? formatDateIndian(service.service_date) : 'N/A';
+            const grandTotal = formatIndianCurrency(service.total_amount_with_tax || 0);
             
             const stageBadgeColors = [
                 'bg-blue-500',
@@ -530,7 +533,9 @@ async function viewServiceHistory(invoiceId) {
                 'bg-orange-500',
                 'bg-teal-500'
             ];
-            const dotColor = stageBadgeColors[(service.service_stage - 1) % stageBadgeColors.length];
+            const colorIndex = Math.max(0, (serviceStage - 1) % stageBadgeColors.length);
+            const dotColor = stageBadgeColors[colorIndex];
+            const badgeColorName = dotColor.split('-')[1] || 'blue';
             
             return `
                 <div class="flex gap-4 mb-6 ${isLast ? '' : 'pb-6 border-l-2 border-gray-200 ml-4'}">
@@ -543,9 +548,9 @@ async function viewServiceHistory(invoiceId) {
                         <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-bold text-gray-900">${stageLabel}</h3>
-                                <p class="text-sm text-gray-600">Service ID: <span class="font-semibold text-blue-600">${service.service_id}</span></p>
+                                <p class="text-sm text-gray-600">Service ID: <span class="font-semibold text-blue-600">${service.service_id || 'N/A'}</span></p>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-sm font-semibold bg-${dotColor.split('-')[1]}-100 text-${dotColor.split('-')[1]}-700">
+                            <span class="px-3 py-1 rounded-full text-sm font-semibold bg-${badgeColorName}-100 text-${badgeColorName}-700">
                                 ${stageLabel}
                             </span>
                         </div>
