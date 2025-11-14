@@ -348,7 +348,6 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 6px;
 }
 
 .doc-standard .fifth-section .bank-details-sub2 p,
@@ -446,11 +445,6 @@ body {
 .doc-standard .sixth-section,
 .doc-standard .seventh-section,
 .doc-standard .eighth-section {
-    padding: 15px 18px;
-    margin: 20px 0;
-    background: white;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 6px;
     page-break-inside: avoid;
 }
 
@@ -499,12 +493,15 @@ body {
 }
 
 .doc-standard .ninth-section {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     text-align: center;
     font-size: 11px;
     color: #718096;
-    margin-top: 20px;
+    margin-bottom: 10px;
     padding-top: 15px;
-    border-top: 1px solid #e2e8f0;
     font-style: italic;
 }
 
@@ -628,10 +625,6 @@ body {
     color: #2d3748;
     font-style: italic;
     padding: 15px 18px;
-    background: white;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 6px;
-    margin: 20px 0;
 }
 
 .doc-quotation .signature {
@@ -655,19 +648,15 @@ body {
     border-bottom: 1.5px solid #718096;
 }
 
-.doc-quotation {
+.doc-quotation, .doc-standard {
     position: relative;
 }
 
-.doc-quotation footer {
+.doc-quotation footer, .doc-standard footer {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-}
-
-
-.doc-quotation footer {
     text-align: center;
     font-size: 11px;
     color: #718096;
@@ -675,7 +664,7 @@ body {
     padding-top: 15px;
     font-style: italic;
 }
-.doc-quotation footer p { font-size: 11px; margin: 0; }
+.doc-quotationfooter, .doc-standard footer p { font-size: 11px; margin: 0; }
 
 .doc-quotation #image-preview-container { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; }
 
