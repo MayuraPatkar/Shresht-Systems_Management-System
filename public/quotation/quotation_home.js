@@ -74,7 +74,20 @@ async function loadRecentQuotations() {
         applyQuotationFilters();
     } catch (error) {
         console.error("Error loading quotations:", error);
-        quotationListDiv.innerHTML = "<p>Failed to load quotations. Please try again later.</p>";
+        quotationListDiv.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-16 fade-in">
+                <div class="bg-red-100 rounded-full p-8 mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">Failed to Load Quotations</h2>
+                <p class="text-gray-500 mb-6">Please try again later</p>
+                <button onclick="loadRecentQuotations()" 
+                    class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium">
+                    <i class="fas fa-redo"></i>
+                    Retry
+                </button>
+            </div>
+        `;
     }
 }
 
