@@ -7,10 +7,13 @@ function handlePrintEvent(mainWindow) {
     // Read unified CSS from external file (single source of truth for all document types)
     const documentStylesPath = path.join(__dirname, '../../public/css/shared/documentStyles.css');
     const iconPath = path.join(__dirname, '../../public/assets/icon2.png');
+    const iconPngPath = path.join(__dirname, '../../public/assets/icon.png');
     const logoPath = path.join(__dirname, '../../public/assets/logo.png');
     const qrCodePath = path.join(__dirname, '../../public/assets/shresht-systems-payment-QR-code.jpg');
     
     let cssContent = '';
+    let iconDataUri = '';
+    let iconPngDataUri = '';
     let logoBase64 = '';
     let qrCodeBase64 = '';
     
@@ -20,9 +23,13 @@ function handlePrintEvent(mainWindow) {
         // Convert local image path in CSS to a Base64 data URI for printing
         const iconBuffer = fs.readFileSync(iconPath);
         const iconBase64 = iconBuffer.toString('base64');
-        const iconDataUri = `data:image/png;base64,${iconBase64}`;
+        iconDataUri = `data:image/png;base64,${iconBase64}`;
         
         cssContent = cssContent.replace('url("../../assets/icon2.png")', `url("${iconDataUri}")`);
+
+        // Convert icon.png for header logo
+        const iconPngBuffer = fs.readFileSync(iconPngPath);
+        iconPngDataUri = `data:image/png;base64,${iconPngBuffer.toString('base64')}`;
 
         // Convert logo and QR code to Base64 for embedding in HTML
         const logoBuffer = fs.readFileSync(logoPath);
@@ -54,6 +61,13 @@ function handlePrintEvent(mainWindow) {
         });
 
         try {
+            // Replace relative image paths with base64 data URIs
+            let processedContent = content;
+            processedContent = processedContent.replace(/src=["']\.\.\/assets\/icon\.png["']/g, `src="${iconPngDataUri}"`);
+            processedContent = processedContent.replace(/src=["']\.\.\/assets\/icon2\.png["']/g, `src="${iconDataUri}"`);
+            processedContent = processedContent.replace(/src=["']\.\.\/assets\/logo\.png["']/g, `src="${logoBase64}"`);
+            processedContent = processedContent.replace(/src=["']\.\.\/assets\/shresht-systems-payment-QR-code\.jpg["']/g, `src="${qrCodeBase64}"`);
+            
             await
                 // Load the HTML content into the print window
                 printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
@@ -68,7 +82,7 @@ function handlePrintEvent(mainWindow) {
             </style>
             </head>
             <body>
-                ${content}
+                ${processedContent}
             </body>
             </html>
         `)}`);
@@ -129,6 +143,13 @@ function handlePrintEvent(mainWindow) {
             },
         });
         try {
+            // Replace relative image paths with base64 data URIs
+            let processedContent = content;
+            processedContent = processedContent.replace(/src=["']\.\.\/assets\/icon\.png["']/g, `src="${iconPngDataUri}"`);
+            processedContent = processedContent.replace(/src=["']\.\.\/assets\/icon2\.png["']/g, `src="${iconDataUri}"`);
+            processedContent = processedContent.replace(/src=["']\.\.\/assets\/logo\.png["']/g, `src="${logoBase64}"`);
+            processedContent = processedContent.replace(/src=["']\.\.\/assets\/shresht-systems-payment-QR-code\.jpg["']/g, `src="${qrCodeBase64}"`);
+            
             await
                 // Load the HTML content into the print window
                 printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
@@ -143,7 +164,7 @@ function handlePrintEvent(mainWindow) {
             </style>
             </head>
             <body>
-                ${content}
+                ${processedContent}
             </body>
         </html>
         `)}`);
