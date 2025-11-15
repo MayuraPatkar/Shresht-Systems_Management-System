@@ -65,6 +65,15 @@ document.getElementById('home-btn').addEventListener('click', () => {
 // Main content references
 const wayBillsListDiv = document.querySelector(".records");
 
+// Filter state
+let allWayBills = [];
+let currentFilters = {
+    dateFilter: 'all',
+    sortBy: 'date-desc',
+    customStartDate: null,
+    customEndDate: null
+};
+
 const WAYBILL_SHORTCUT_GROUPS = [
     {
         title: 'Navigation',
@@ -136,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     initShortcutsModal();
+    initWayBillFilters();
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
 });
 
@@ -463,7 +473,8 @@ async function loadRecentWayBills() {
             return;
         }
         const data = await response.json();
-        renderWayBills(data.wayBill);
+        allWayBills = data.wayBill || [];
+        applyWayBillFilters();
     } catch (error) {
         console.error("Error loading way bills:", error);
         wayBillsListDiv.innerHTML = `
@@ -480,6 +491,66 @@ async function loadRecentWayBills() {
                 </button>
             </div>
         `;
+    }
+}
+
+// Apply filters to waybills
+function applyWayBillFilters() {
+    const filtered = applyFilters(allWayBills, {
+        dateFilter: currentFilters.dateFilter,
+        sortBy: currentFilters.sortBy,
+        dateField: 'createdAt',
+        nameField: 'project_name',
+        customStartDate: currentFilters.customStartDate,
+        customEndDate: currentFilters.customEndDate
+    });
+    renderWayBills(filtered);
+}
+
+// Initialize filter event listeners
+function initWayBillFilters() {
+    const dateFilter = document.getElementById('date-filter');
+    const sortFilter = document.getElementById('sort-filter');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+
+    if (dateFilter) {
+        dateFilter.addEventListener('change', (e) => {
+            const value = e.target.value;
+            if (value === 'custom') {
+                showCustomDateModal((startDate, endDate) => {
+                    currentFilters.dateFilter = 'custom';
+                    currentFilters.customStartDate = startDate;
+                    currentFilters.customEndDate = endDate;
+                    applyWayBillFilters();
+                });
+            } else {
+                currentFilters.dateFilter = value;
+                currentFilters.customStartDate = null;
+                currentFilters.customEndDate = null;
+                applyWayBillFilters();
+            }
+        });
+    }
+
+    if (sortFilter) {
+        sortFilter.addEventListener('change', (e) => {
+            currentFilters.sortBy = e.target.value;
+            applyWayBillFilters();
+        });
+    }
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            currentFilters = {
+                dateFilter: 'all',
+                sortBy: 'date-desc',
+                customStartDate: null,
+                customEndDate: null
+            };
+            if (dateFilter) dateFilter.value = 'all';
+            if (sortFilter) sortFilter.value = 'date-desc';
+            applyWayBillFilters();
+        });
     }
 }
 

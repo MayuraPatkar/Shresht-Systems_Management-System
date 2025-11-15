@@ -1,5 +1,15 @@
 const invoicesListDiv = document.querySelector(".records");
 
+// Filter state
+let allInvoices = [];
+let currentFilters = {
+    paymentStatus: 'all',
+    dateFilter: 'all',
+    sortBy: 'date-desc',
+    customStartDate: null,
+    customEndDate: null
+};
+
 const INVOICE_SHORTCUT_GROUPS = [
     {
         title: 'Navigation',
@@ -102,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     initShortcutsModal();
+    initInvoiceFilters();
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
 });
 
@@ -115,10 +126,96 @@ async function loadRecentInvoices() {
         }
 
         const data = await response.json();
-        renderInvoices(data.invoices);
+        allInvoices = data.invoices || [];
+        applyInvoiceFilters();
     } catch (error) {
         console.error("Error loading invoices:", error);
-        invoicesListDiv.innerHTML = "<p>Failed to load invoices. Please try again later.</p>";
+        invoicesListDiv.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-16 fade-in">
+                <div class="bg-red-100 rounded-full p-8 mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">Failed to Load Invoices</h2>
+                <p class="text-gray-500 mb-6">Please try again later</p>
+                <button onclick="loadRecentInvoices()" 
+                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                    <i class="fas fa-redo"></i>
+                    Retry
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Apply filters to invoices
+function applyInvoiceFilters() {
+    const filtered = applyFilters(allInvoices, {
+        paymentStatus: currentFilters.paymentStatus,
+        dateFilter: currentFilters.dateFilter,
+        sortBy: currentFilters.sortBy,
+        dateField: 'invoice_date',
+        amountField: 'total_amount_duplicate',
+        nameField: 'project_name',
+        customStartDate: currentFilters.customStartDate,
+        customEndDate: currentFilters.customEndDate
+    });
+    renderInvoices(filtered);
+}
+
+// Initialize filter event listeners
+function initInvoiceFilters() {
+    const paymentFilter = document.getElementById('payment-status-filter');
+    const dateFilter = document.getElementById('date-filter');
+    const sortFilter = document.getElementById('sort-filter');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+
+    if (paymentFilter) {
+        paymentFilter.addEventListener('change', (e) => {
+            currentFilters.paymentStatus = e.target.value;
+            applyInvoiceFilters();
+        });
+    }
+
+    if (dateFilter) {
+        dateFilter.addEventListener('change', (e) => {
+            const value = e.target.value;
+            if (value === 'custom') {
+                showCustomDateModal((startDate, endDate) => {
+                    currentFilters.dateFilter = 'custom';
+                    currentFilters.customStartDate = startDate;
+                    currentFilters.customEndDate = endDate;
+                    applyInvoiceFilters();
+                });
+            } else {
+                currentFilters.dateFilter = value;
+                currentFilters.customStartDate = null;
+                currentFilters.customEndDate = null;
+                applyInvoiceFilters();
+            }
+        });
+    }
+
+    if (sortFilter) {
+        sortFilter.addEventListener('change', (e) => {
+            currentFilters.sortBy = e.target.value;
+            applyInvoiceFilters();
+        });
+    }
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            currentFilters = {
+                paymentStatus: 'all',
+                dateFilter: 'all',
+                sortBy: 'date-desc',
+                customStartDate: null,
+                customEndDate: null
+            };
+            if (paymentFilter) paymentFilter.value = 'all';
+            if (dateFilter) dateFilter.value = 'all';
+            if (sortFilter) sortFilter.value = 'date-desc';
+            applyInvoiceFilters();
+        });
     }
 }
 
