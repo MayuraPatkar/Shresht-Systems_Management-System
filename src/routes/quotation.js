@@ -158,12 +158,12 @@ router.post("/save-quotation", async (req, res) => {
     }
 });
 
-// Route to get the 5 most recent quotations
+// Route to get the 10 most recent quotations
 router.get("/recent-quotations", async (req, res) => {
     try {
         const recentQuotations = await Quotations.find()
             .sort({ createdAt: -1 })
-            .limit(5)
+            .limit(10)
             .select("project_name quotation_id customer_name customer_address total_amount_tax");
 
         res.status(200).json({

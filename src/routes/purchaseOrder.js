@@ -154,13 +154,13 @@ router.post("/save-purchase-order", async (req, res) => {
     }
 });
 
-// Route to get the 5 most recent purchase orders
+// Route to get the 10 most recent purchase orders
 router.get("/recent-purchase-orders", async (req, res) => {
     try {
-        // Fetch the 5 most recent purchase orders, sorted by creation date
+        // Fetch the 10 most recent purchase orders, sorted by creation date
         const recentPurchaseOrders = await Purchases.find()
             .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
-            .limit(5)
+            .limit(10)
             .select("project_name purchase_order_id supplier_name supplier_address total_amount");
 
         // Respond with the fetched purchase orders

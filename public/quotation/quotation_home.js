@@ -34,13 +34,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById('new-quotation').addEventListener('click', showNewQuotationForm);
 
-    // Attach search to Enter key only, not click
-    document.getElementById('search-input').addEventListener('keydown', function (event) {
+    // Attach search: Enter key and real-time input (debounced)
+    const qSearchInput = document.getElementById('search-input');
+    qSearchInput.addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
             handleSearch();
         }
     });
+    // Real-time search while typing (300ms debounce)
+    qSearchInput.addEventListener('input', debounce(() => {
+        handleSearch();
+    }, 300));
 
     initShortcutsModal();
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
@@ -254,8 +259,25 @@ function showNewQuotationForm() {
 
 // Handle search functionality
 async function handleSearch() {
-    const query = document.getElementById('search-input').value;
-    await searchDocuments('quotation', query, quotationListDiv, createQuotationCard, 'No quotation found');
+    const query = document.getElementById('search-input').value.trim();
+    if (!query) {
+        await loadRecentQuotations();
+        return;
+    }
+
+    await searchDocuments('quotation', query, quotationListDiv, createQuotationCard, 
+        `<div class="flex flex-col items-center justify-center py-16 fade-in">
+            <div class="bg-yellow-100 rounded-full p-8 mb-4">
+                <i class="fas fa-search text-yellow-500 text-6xl"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
+            <p class="text-gray-500 mb-2">No quotations match your search</p>
+            <button onclick="document.getElementById('search-input').value=''; loadRecentQuotations();" 
+                class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium mt-4">
+                <i class="fas fa-list"></i>
+                Show All Quotations
+            </button>
+        </div>`);
 }
 
 function initShortcutsModal() {

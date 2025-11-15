@@ -98,12 +98,17 @@ const isMac = navigator.userAgent.toLowerCase().includes('mac');
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentWayBills();
     document.getElementById('new-waybill-btn').addEventListener('click', showNewWayBillForm);
-    document.getElementById('search-input').addEventListener('keydown', function (event) {
+    const wbSearchInput = document.getElementById('search-input');
+    wbSearchInput.addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
             handleSearch();
         }
     });
+    // Real-time search while typing
+    wbSearchInput.addEventListener('input', debounce(() => {
+        handleSearch();
+    }, 300));
     document.getElementById('view-preview-btn').addEventListener('click', () => {
         changeStep(totalSteps);
         generatePreview();
@@ -658,7 +663,12 @@ function showNewWayBillForm() {
 
 // Handle search functionality
 async function handleSearch() {
-    const query = document.getElementById('search-input').value;
+    const query = document.getElementById('search-input').value.trim();
+    if (!query) {
+        await loadRecentWayBills();
+        return;
+    }
+
     await searchDocuments('wayBill', query, wayBillsListDiv, createWayBillCard, 
         `<div class="flex flex-col items-center justify-center py-16 fade-in">
             <div class="bg-yellow-100 rounded-full p-8 mb-4">

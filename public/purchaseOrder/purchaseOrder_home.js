@@ -35,12 +35,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('home-btn')?.addEventListener('click', () => {
         window.location = '/purchaseorder';
     });
-    document.getElementById('search-input').addEventListener('keydown', function (event) {
+    const poSearchInput = document.getElementById('search-input');
+    poSearchInput.addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
             handleSearch();
         }
     });
+    // Real-time search while typing (debounced)
+    poSearchInput.addEventListener('input', debounce(() => {
+        handleSearch();
+    }, 300));
 
     initShortcutsModal();
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
@@ -213,8 +218,25 @@ function showNewPurchaseForm() {
 
 // Handle search functionality
 async function handleSearch() {
-    const query = document.getElementById('search-input').value;
-    await searchDocuments('purchaseOrder', query, purchaseOrderListDiv, createPurchaseOrderDiv, 'No purchase order found');
+    const query = document.getElementById('search-input').value.trim();
+    if (!query) {
+        await loadRecentPurchaseOrders();
+        return;
+    }
+
+    await searchDocuments('purchaseOrder', query, purchaseOrderListDiv, createPurchaseOrderDiv, 
+        `<div class="flex flex-col items-center justify-center py-16 fade-in">
+            <div class="bg-yellow-100 rounded-full p-8 mb-4">
+                <i class="fas fa-search text-yellow-500 text-6xl"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
+            <p class="text-gray-500 mb-2">No purchase orders match your search</p>
+            <button onclick="document.getElementById('search-input').value=''; loadRecentPurchaseOrders();" 
+                class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium mt-4">
+                <i class="fas fa-list"></i>
+                Show All Purchase Orders
+            </button>
+        </div>`);
 }
 
 // NOTE: formatDate has been moved to public/js/shared/utils.js

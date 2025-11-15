@@ -220,7 +220,7 @@ router.post("/save-invoice", async (req, res) => {
 // Route to get the 10 most recent invoices
 router.get("/recent-invoices", async (req, res) => {
     try {
-        // Fetch the 5 most recent invoices, sorted by creation date
+        // Fetch the 10 most recent invoices, sorted by creation date
         const recentInvoices = await Invoices.find()
             .sort({ createdAt: -1 })
             .limit(10)
