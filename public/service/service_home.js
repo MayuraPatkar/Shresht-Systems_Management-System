@@ -2,6 +2,16 @@
 const pendingServicesDiv = document.getElementById("pending-services-content");
 const serviceHistoryDiv = document.getElementById("service-history-content");
 
+// Filter state
+let allPendingServices = [];
+let allServiceHistory = [];
+let currentFilters = {
+    dateFilter: 'all',
+    sortBy: 'date-desc',
+    customStartDate: null,
+    customEndDate: null
+};
+
 // Keyboard shortcuts configuration
 const SERVICE_SHORTCUT_GROUPS = [
     {
@@ -82,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Initialize keyboard shortcuts
     initShortcutsModal();
+    initServiceFilters();
     document.addEventListener('keydown', handleServiceKeyboardShortcuts, true);
     
     // Check for URL params for cross-module navigation
@@ -376,22 +387,8 @@ async function loadPendingServices() {
             return;
         }
 
-        serviceListDiv.innerHTML = "";
-
-        if (!services.projects || services.projects.length === 0) {
-            serviceListDiv.innerHTML = `
-                <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
-                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
-                        <i class="fas fa-clock text-4xl text-blue-500"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">No Pending Services</h2>
-                    <p class="text-gray-600">Invoices due for service will appear here</p>
-                </div>
-            `;
-            return;
-        }
-
-        services.projects.forEach(service => serviceListDiv.appendChild(createPendingServiceDiv(service)));
+        allPendingServices = services.projects || [];
+        applyServiceFilters('pending');
     } catch (error) {
         console.error("Error loading services:", error);
         window.electronAPI?.showAlert1("Failed to connect to server.");
@@ -405,7 +402,7 @@ async function loadServiceHistory() {
         if (!response.ok) throw new Error("Failed to fetch service history.");
 
         const data = await response.json();
-        const services = data.services || [];
+        allServiceHistory = data.services || [];
 
         const serviceListDiv = serviceHistoryDiv;
         if (!serviceListDiv) {
@@ -413,25 +410,131 @@ async function loadServiceHistory() {
             return;
         }
 
-        serviceListDiv.innerHTML = "";
-
-        if (services.length === 0) {
-            serviceListDiv.innerHTML = `
-                <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
-                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-                        <i class="fas fa-history text-4xl text-green-500"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">No Service History</h2>
-                    <p class="text-gray-600">Completed services will appear here</p>
-                </div>
-            `;
-            return;
-        }
-
-        services.forEach(service => serviceListDiv.appendChild(createServiceHistoryDiv(service)));
+        applyServiceFilters('history');
     } catch (error) {
         console.error("Error loading service history:", error);
         window.electronAPI?.showAlert1("Failed to load service history.");
+    }
+}
+
+// Apply filters to services
+function applyServiceFilters(tabType = null) {
+    const activeTab = tabType || sessionStorage.getItem('serviceActiveTab') || 'pending';
+
+    if (activeTab === 'pending') {
+        const filtered = applyFilters(allPendingServices, {
+            dateFilter: currentFilters.dateFilter,
+            sortBy: currentFilters.sortBy,
+            dateField: 'createdAt',
+            nameField: 'project_name',
+            customStartDate: currentFilters.customStartDate,
+            customEndDate: currentFilters.customEndDate
+        });
+        renderPendingServices(filtered);
+    } else if (activeTab === 'history') {
+        const filtered = applyFilters(allServiceHistory, {
+            dateFilter: currentFilters.dateFilter,
+            sortBy: currentFilters.sortBy,
+            dateField: 'service_date',
+            amountField: 'total_amount_with_tax',
+            nameField: 'project_name',
+            customStartDate: currentFilters.customStartDate,
+            customEndDate: currentFilters.customEndDate
+        });
+        renderServiceHistory(filtered);
+    }
+}
+
+// Render pending services
+function renderPendingServices(services) {
+    const serviceListDiv = pendingServicesDiv;
+    if (!serviceListDiv) return;
+
+    serviceListDiv.innerHTML = "";
+
+    if (!services || services.length === 0) {
+        serviceListDiv.innerHTML = `
+            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-clock text-4xl text-blue-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">No Pending Services</h2>
+                <p class="text-gray-600">Invoices due for service will appear here</p>
+            </div>
+        `;
+        return;
+    }
+
+    services.forEach(service => serviceListDiv.appendChild(createPendingServiceDiv(service)));
+}
+
+// Render service history
+function renderServiceHistory(services) {
+    const serviceListDiv = serviceHistoryDiv;
+    if (!serviceListDiv) return;
+
+    serviceListDiv.innerHTML = "";
+
+    if (services.length === 0) {
+        serviceListDiv.innerHTML = `
+            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                    <i class="fas fa-history text-4xl text-green-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">No Service History</h2>
+                <p class="text-gray-600">Completed services will appear here</p>
+            </div>
+        `;
+        return;
+    }
+
+    services.forEach(service => serviceListDiv.appendChild(createServiceHistoryDiv(service)));
+}
+
+// Initialize filter event listeners
+function initServiceFilters() {
+    const dateFilter = document.getElementById('date-filter');
+    const sortFilter = document.getElementById('sort-filter');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+
+    if (dateFilter) {
+        dateFilter.addEventListener('change', (e) => {
+            const value = e.target.value;
+            if (value === 'custom') {
+                showCustomDateModal((startDate, endDate) => {
+                    currentFilters.dateFilter = 'custom';
+                    currentFilters.customStartDate = startDate;
+                    currentFilters.customEndDate = endDate;
+                    applyServiceFilters();
+                });
+            } else {
+                currentFilters.dateFilter = value;
+                currentFilters.customStartDate = null;
+                currentFilters.customEndDate = null;
+                applyServiceFilters();
+            }
+        });
+    }
+
+    if (sortFilter) {
+        sortFilter.addEventListener('change', (e) => {
+            currentFilters.sortBy = e.target.value;
+            applyServiceFilters();
+        });
+    }
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            currentFilters = {
+                dateFilter: 'all',
+                sortBy: 'date-desc',
+                customStartDate: null,
+                customEndDate: null
+            };
+            if (dateFilter) dateFilter.value = 'all';
+            if (sortFilter) sortFilter.value = 'date-desc';
+            applyServiceFilters();
+        });
     }
 }
 

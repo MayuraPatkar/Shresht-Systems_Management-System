@@ -1,5 +1,14 @@
 const quotationListDiv = document.querySelector(".records");
 
+// Filter state
+let allQuotations = [];
+let currentFilters = {
+    dateFilter: 'all',
+    sortBy: 'date-desc',
+    customStartDate: null,
+    customEndDate: null
+};
+
 const QUOTATION_SHORTCUT_GROUPS = [
     {
         title: 'Navigation',
@@ -48,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 300));
 
     initShortcutsModal();
+    initQuotationFilters();
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
 });
 
@@ -60,10 +70,72 @@ async function loadRecentQuotations() {
         }
 
         const data = await response.json();
-        renderQuotations(data.quotation);
+        allQuotations = data.quotation || [];
+        applyQuotationFilters();
     } catch (error) {
         console.error("Error loading quotations:", error);
         quotationListDiv.innerHTML = "<p>Failed to load quotations. Please try again later.</p>";
+    }
+}
+
+// Apply filters to quotations
+function applyQuotationFilters() {
+    const filtered = applyFilters(allQuotations, {
+        dateFilter: currentFilters.dateFilter,
+        sortBy: currentFilters.sortBy,
+        dateField: 'quotation_date',
+        amountField: 'total_amount_tax',
+        nameField: 'project_name',
+        customStartDate: currentFilters.customStartDate,
+        customEndDate: currentFilters.customEndDate
+    });
+    renderQuotations(filtered);
+}
+
+// Initialize filter event listeners
+function initQuotationFilters() {
+    const dateFilter = document.getElementById('date-filter');
+    const sortFilter = document.getElementById('sort-filter');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+
+    if (dateFilter) {
+        dateFilter.addEventListener('change', (e) => {
+            const value = e.target.value;
+            if (value === 'custom') {
+                showCustomDateModal((startDate, endDate) => {
+                    currentFilters.dateFilter = 'custom';
+                    currentFilters.customStartDate = startDate;
+                    currentFilters.customEndDate = endDate;
+                    applyQuotationFilters();
+                });
+            } else {
+                currentFilters.dateFilter = value;
+                currentFilters.customStartDate = null;
+                currentFilters.customEndDate = null;
+                applyQuotationFilters();
+            }
+        });
+    }
+
+    if (sortFilter) {
+        sortFilter.addEventListener('change', (e) => {
+            currentFilters.sortBy = e.target.value;
+            applyQuotationFilters();
+        });
+    }
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            currentFilters = {
+                dateFilter: 'all',
+                sortBy: 'date-desc',
+                customStartDate: null,
+                customEndDate: null
+            };
+            if (dateFilter) dateFilter.value = 'all';
+            if (sortFilter) sortFilter.value = 'date-desc';
+            applyQuotationFilters();
+        });
     }
 }
 

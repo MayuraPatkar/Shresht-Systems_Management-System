@@ -1,5 +1,14 @@
 const purchaseOrderListDiv = document.querySelector(".records");
 
+// Filter state
+let allPurchaseOrders = [];
+let currentFilters = {
+    dateFilter: 'all',
+    sortBy: 'date-desc',
+    customStartDate: null,
+    customEndDate: null
+};
+
 const PURCHASEORDER_SHORTCUT_GROUPS = [
     {
         title: 'Navigation',
@@ -48,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 300));
 
     initShortcutsModal();
+    initPurchaseOrderFilters();
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
 });
 
@@ -61,10 +71,72 @@ async function loadRecentPurchaseOrders() {
         }
 
         const data = await response.json();
-        renderPurchaseOrders(data.purchaseOrder);
+        allPurchaseOrders = data.purchaseOrder || [];
+        applyPurchaseOrderFilters();
     } catch (error) {
         console.error("Error loading purchase orders:", error);
         purchaseOrderListDiv.innerHTML = "<div class='text-center py-12'><i class='fas fa-exclamation-triangle text-red-400 text-6xl mb-4'></i><p class='text-red-500 text-lg'>Failed to load purchase orders. Please try again later.</p></div>";
+    }
+}
+
+// Apply filters to purchase orders
+function applyPurchaseOrderFilters() {
+    const filtered = applyFilters(allPurchaseOrders, {
+        dateFilter: currentFilters.dateFilter,
+        sortBy: currentFilters.sortBy,
+        dateField: 'createdAt',
+        amountField: 'total_amount',
+        nameField: 'supplier_name',
+        customStartDate: currentFilters.customStartDate,
+        customEndDate: currentFilters.customEndDate
+    });
+    renderPurchaseOrders(filtered);
+}
+
+// Initialize filter event listeners
+function initPurchaseOrderFilters() {
+    const dateFilter = document.getElementById('date-filter');
+    const sortFilter = document.getElementById('sort-filter');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+
+    if (dateFilter) {
+        dateFilter.addEventListener('change', (e) => {
+            const value = e.target.value;
+            if (value === 'custom') {
+                showCustomDateModal((startDate, endDate) => {
+                    currentFilters.dateFilter = 'custom';
+                    currentFilters.customStartDate = startDate;
+                    currentFilters.customEndDate = endDate;
+                    applyPurchaseOrderFilters();
+                });
+            } else {
+                currentFilters.dateFilter = value;
+                currentFilters.customStartDate = null;
+                currentFilters.customEndDate = null;
+                applyPurchaseOrderFilters();
+            }
+        });
+    }
+
+    if (sortFilter) {
+        sortFilter.addEventListener('change', (e) => {
+            currentFilters.sortBy = e.target.value;
+            applyPurchaseOrderFilters();
+        });
+    }
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            currentFilters = {
+                dateFilter: 'all',
+                sortBy: 'date-desc',
+                customStartDate: null,
+                customEndDate: null
+            };
+            if (dateFilter) dateFilter.value = 'all';
+            if (sortFilter) sortFilter.value = 'date-desc';
+            applyPurchaseOrderFilters();
+        });
     }
 }
 

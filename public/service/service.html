@@ -24,17 +24,35 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Service</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
+            <div class="flex items-center gap-4 flex-1 max-w-4xl mx-8">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     <input type="text" id="search-input" placeholder="Search services..."
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <select id="search-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
-                    <option value="all">All</option>
-                    <option value="pending">Pending Only</option>
-                    <option value="history">History Only</option>
-                </select>
+                <div class="flex items-center gap-2">
+                    <select id="search-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                        <option value="all">All Services</option>
+                        <option value="pending">Pending Only</option>
+                        <option value="history">History Only</option>
+                    </select>
+                    <select id="date-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                        <option value="all">All Dates</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                    <select id="sort-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                        <option value="date-desc">Latest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="amount-desc">High to Low</option>
+                        <option value="amount-asc">Low to High</option>
+                    </select>
+                    <button id="clear-filters" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm" title="Clear Filters">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
             <div class="flex items-center gap-3">
                 <button id="home-btn"
@@ -695,6 +713,7 @@
     </div>
 
     <script src="../js/shared/utils.js"></script>
+    <script src="../js/shared/filterUtils.js"></script>
     <script src="../js/shared/companyConfig.js"></script>
     <script src="../js/shared/ipc.js"></script>
     <script src="./service_home.js"></script>
