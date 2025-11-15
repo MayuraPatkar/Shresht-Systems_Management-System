@@ -87,13 +87,19 @@ document.addEventListener("DOMContentLoaded", () => {
         // Reload invoices
         loadRecentInvoices();
     });
-    document.getElementById('search-input').addEventListener('click', handleSearch);
-    document.getElementById("search-input").addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
+    const invSearchInput = document.getElementById('search-input');
+    if (invSearchInput) {
+        // Click previously triggered search; keep Enter and add real-time input
+        invSearchInput.addEventListener('keydown', function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                handleSearch();
+            }
+        });
+        invSearchInput.addEventListener('input', debounce(() => {
             handleSearch();
-        }
-    });
+        }, 300));
+    }
 
     initShortcutsModal();
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
@@ -351,8 +357,25 @@ function showNewInvoiceForm() {
 
 // Handle search functionality
 async function handleSearch() {
-    const query = document.getElementById('search-input').value;
-    await searchDocuments('invoice', query, invoicesListDiv, createInvoiceCard, 'No invoice found');
+    const query = document.getElementById('search-input').value.trim();
+    if (!query) {
+        await loadRecentInvoices();
+        return;
+    }
+
+    await searchDocuments('invoice', query, invoicesListDiv, createInvoiceCard, 
+        `<div class="flex flex-col items-center justify-center py-16 fade-in">
+            <div class="bg-yellow-100 rounded-full p-8 mb-4">
+                <i class="fas fa-search text-yellow-500 text-6xl"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
+            <p class="text-gray-500 mb-2">No invoices match your search</p>
+            <button onclick="document.getElementById('search-input').value=''; loadRecentInvoices();" 
+                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium mt-4">
+                <i class="fas fa-list"></i>
+                Show All Invoices
+            </button>
+        </div>`);
 }
 
 // Payment functionality

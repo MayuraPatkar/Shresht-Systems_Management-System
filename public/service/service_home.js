@@ -57,12 +57,16 @@ document.addEventListener("DOMContentLoaded", () => {
         serviceHistoryDiv.addEventListener("click", handleServiceListClick);
     }
 
-    // Search functionality
-    document.getElementById('search-input')?.addEventListener('keydown', (event) => {
+    // Search functionality: Enter key + debounced real-time input
+    const svcSearchInput = document.getElementById('search-input');
+    svcSearchInput?.addEventListener('keydown', (event) => {
         if (event.key === "Enter") {
             handleSearch();
         }
     });
+    svcSearchInput?.addEventListener('input', debounce(() => {
+        handleSearch();
+    }, 300));
     
     // Filter dropdown change
     document.getElementById('search-filter')?.addEventListener('change', (event) => {
@@ -444,7 +448,18 @@ async function handleSearch() {
 
     const query = queryInput.value.trim();
     if (!query) {
-        window.electronAPI?.showAlert1("Please enter a search query");
+        // If query cleared, reload lists based on active tab/filter
+        if (filter === 'pending') {
+            await loadPendingServices();
+            return;
+        }
+        if (filter === 'history') {
+            await loadServiceHistory();
+            return;
+        }
+        // default: reload both
+        await loadPendingServices();
+        await loadServiceHistory();
         return;
     }
 
@@ -493,12 +508,17 @@ function displayPendingSearchResults(results, query) {
     
     if (results.length === 0) {
         pendingServicesDiv.innerHTML = `
-            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
-                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
-                    <i class="fas fa-search text-4xl text-yellow-500"></i>
+            <div class="flex flex-col items-center justify-center py-16 fade-in">
+                <div class="bg-yellow-100 rounded-full p-8 mb-4">
+                    <i class="fas fa-search text-yellow-500 text-6xl"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">No Pending Services Found</h2>
-                <p class="text-gray-600">No pending services found for "${query}"</p>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
+                <p class="text-gray-500 mb-2">No pending services found for "${query}"</p>
+                <button onclick="document.getElementById('search-input').value=''; loadPendingServices();" 
+                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium mt-4">
+                    <i class="fas fa-list"></i>
+                    Show All Pending Services
+                </button>
             </div>
         `;
         return;
@@ -515,12 +535,17 @@ function displayHistorySearchResults(results, query) {
     
     if (results.length === 0) {
         serviceHistoryDiv.innerHTML = `
-            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
-                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
-                    <i class="fas fa-search text-4xl text-yellow-500"></i>
+            <div class="flex flex-col items-center justify-center py-16 fade-in">
+                <div class="bg-yellow-100 rounded-full p-8 mb-4">
+                    <i class="fas fa-search text-yellow-500 text-6xl"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">No Service History Found</h2>
-                <p class="text-gray-600">No service history found for "${query}"</p>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
+                <p class="text-gray-500 mb-2">No service history found for "${query}"</p>
+                <button onclick="document.getElementById('search-input').value=''; loadServiceHistory();" 
+                    class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium mt-4">
+                    <i class="fas fa-list"></i>
+                    Show All Service History
+                </button>
             </div>
         `;
         return;

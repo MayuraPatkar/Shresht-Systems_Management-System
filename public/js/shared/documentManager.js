@@ -39,8 +39,8 @@ async function deleteDocument(endpoint, documentId, documentType, reloadCallback
  * @param {string} noResultsMessage - Message to show when no results found
  */
 async function searchDocuments(endpoint, query, resultsContainer, cardCreator, noResultsMessage = "No results found") {
-    if (!query) {
-        window.electronAPI.showAlert1("Please enter a search query");
+    if (!query || !String(query).trim()) {
+        // Empty query: caller should restore recent/default list.
         return;
     }
 
