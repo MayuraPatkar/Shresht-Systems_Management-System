@@ -80,13 +80,13 @@ router.post("/save-way-bill", async (req, res) => {
     }
 });
 
-// Route to get the 5 most recent way bills
+// Route to get the 10 most recent way bills
 router.get("/recent-way-bills", async (req, res) => {
     try {
-        // Fetch the 5 most recent way bills, sorted by creation date
+        // Fetch the 10 most recent way bills, sorted by creation date
         const recentWayBills = await wayBills.find()
             .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
-            .limit(5)
+            .limit(10)
             .select("project_name waybill_id customer_name customer_address place_supply");
 
         // Respond with the fetched way bills
