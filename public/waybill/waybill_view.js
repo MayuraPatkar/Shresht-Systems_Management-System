@@ -20,8 +20,8 @@ function generateViewPreviewHTML(wayBill) {
         </tr>`;
     });
 
-    document.getElementById("view-preview-content").innerHTML = `
-    <div class="preview-container doc-standard doc-quotation doc-waybill">
+    const previewHTML = `
+    <div class="preview-container doc-quotation doc-waybill">
         <div class="header">
             <div class="quotation-brand">
                 <div class="logo">
@@ -79,15 +79,23 @@ function generateViewPreviewHTML(wayBill) {
         </table>
         </div>
         <br>
-        <div class="eighth-section">
-            <p>For SHRESHT SYSTEMS</p>
-            <div class="signature-space"></div>
-            <p><strong>Authorized Signatory</strong></p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding: 0 20px;">
+            <div style="flex: 1; max-width: 60%; padding: 15px; background-color: #f7fafc; border-left: 4px solid #3765BC; border-radius: 4px;">
+                <p style="margin: 0; font-size: 11px; color: #2d3748; font-weight: 500;">We declare that this way bill shows the actual details of the goods being transported and that all particulars are true and correct.</p>
+            </div>
+            <div style="text-align: center; margin-left: 40px;">
+                <p style="margin: 0 0 10px 0; font-size: 13px; color: #2d3748;">For SHRESHT SYSTEMS</p>
+                <div style="margin: 20px 0 10px 0; width: 180px; height: 1px; background-color: #2d3748;"></div>
+                <p style="margin: 0; font-size: 12px; font-weight: 600; color: #1a1a1a;">Authorized Signatory</p>
+            </div>
         </div>
-        <div class="ninth-section">
-            <p>This is a computer-generated way bill</p>
-        </div>
+
+        <footer style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center;">
+            <p style="margin: 0; font-size: 10px; color: #718096; font-style: italic;">This is a computer-generated way bill.</p>
+        </footer>
     </div>`;
+
+    document.getElementById('view-preview-content').innerHTML = previewHTML;
 }
 
 // Print and Save as PDF handlers (match HTML IDs)

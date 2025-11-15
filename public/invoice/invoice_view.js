@@ -11,6 +11,9 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
     let hasTax = false;
     let items = []
 
+    // Format the invoice date
+    const formattedDate = invoice.date ? formatDateIndian(invoice.date) : '-';
+
     if (type == 'original') {
         items = invoice.items_original;
     } else {
@@ -199,7 +202,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
     const pagesHTML = itemPages.map((pageHTML, index) => {
         const isLastPage = index === itemPages.length - 1;
         return `
-        <div class="preview-container doc-standard doc-invoice doc-quotation">
+        <div class="preview-container doc-quotation doc-invoice">
             <div class="header">
                 <div class="quotation-brand">
                     <div class="logo">
@@ -231,6 +234,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                     <p>Ph. ${invoice.customer_phone}</p>
                 </div>
                 <div class="order-info">
+                    <p><strong>Invoice Date:</strong> ${formattedDate}</p>
                     <p><strong>Project:</strong> ${invoice.project_name}</p>
                     <p><strong>P.O No:</strong> ${invoice.po_number}</p>
                     <p><strong>D.C No:</strong> ${invoice.dc_number}</p>
@@ -291,12 +295,6 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                 </div>
             </div>
 
-            <div class="sixth-section">
-                <div class="declaration" contenteditable="true">
-                    <p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
-                </div>
-            </div>
-
             <div class="seventh-section">
                 <div class="terms-section" contenteditable="true">
                     <h3>Terms & Conditions:</h3>
@@ -305,17 +303,22 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                     <p>3. Goods once sold will not be taken back.</p>
                 </div>
             </div>
-
-            <div class="eighth-section">
-                <p>For SHRESHT SYSTEMS</p>
-                <div class="eighth-section-space"></div>
-                <p><strong>Authorized Signatory</strong></p>
-            </div>
             ` : ''}
 
-            <div class="ninth-section">
-                <p>This is a computer-generated invoice.</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding: 0 20px;">
+                <div style="flex: 1; max-width: 60%; padding: 15px; background-color: #f7fafc; border-left: 4px solid #3765BC; border-radius: 4px;">
+                    <p style="margin: 0; font-size: 11px; color: #2d3748; font-weight: 500;">We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+                </div>
+                <div style="text-align: center; margin-left: 40px;">
+                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #2d3748;">For SHRESHT SYSTEMS</p>
+                    <div style="margin: 20px 0 10px 0; width: 180px; height: 1px; background-color: #2d3748;"></div>
+                    <p style="margin: 0; font-size: 12px; font-weight: 600; color: #1a1a1a;">Authorized Signatory</p>
+                </div>
             </div>
+
+            <footer style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center;">
+                <p style="margin: 0; font-size: 10px; color: #718096; font-style: italic;">This is a computer-generated invoice.</p>
+            </footer>
         </div>
         `;
     }).join('');

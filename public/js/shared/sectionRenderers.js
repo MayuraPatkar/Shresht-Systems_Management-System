@@ -4,8 +4,35 @@
  */
 
 /**
- * Common company header section
- * @returns {string} Header HTML
+ * Standard document header (for Invoice, Purchase Order, Waybill, Service)
+ * Now uses quotation-style header for consistency
+ * @returns {string} Quotation-style header HTML
+ */
+function renderStandardHeader() {
+    return `
+    <div class="header">
+        <div class="quotation-brand">
+            <div class="logo">
+                <img src="../assets/icon.png" alt="Shresht Logo">
+            </div>
+            <div class="quotation-brand-text">
+                <h1>SHRESHT SYSTEMS</h1>
+                <p class="quotation-tagline">CCTV & Security Solutions</p>
+            </div>
+        </div>
+        <div class="company-details">
+            <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+            <p>Ph: 7204657707 / 9901730305</p>
+            <p>GSTIN: 29AGCPN4093N1ZS</p>
+            <p>Email: shreshtsystems@gmail.com</p>
+            <p>Website: www.shreshtsystems.com</p>
+        </div>
+    </div>`;
+}
+
+/**
+ * Quotation document header (blue background with logo box)
+ * @returns {string} Quotation header HTML
  */
 function renderHeader() {
     return `
