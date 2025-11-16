@@ -709,7 +709,7 @@ async function updateSpecificationsTable() {
           specification = stockData.specifications;
         }
       } catch (error) {
-        console.log("No stock data found for:", item.description);
+        // No stock data found
       }
     }
     

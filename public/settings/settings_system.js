@@ -178,12 +178,10 @@ async function checkForUpdates() {
         
         if (result.success) {
             // Check result will trigger update events via IPC
-            console.log('Update check initiated successfully');
         } else {
             // Check if it's development mode
             if (result.isDevelopment) {
                 updateStatus('Update checks are only available in packaged builds', 'warning');
-                console.log('Development mode detected:', result.error);
             } else {
                 updateStatus('Failed to check for updates: ' + result.error, 'error');
             }
@@ -219,7 +217,6 @@ function initAutoUpdate() {
     
     // Listen for update events from main process
     window.electronAPI.onUpdateAvailable((info) => {
-        console.log('Update available:', info);
         updateStatus('A new update is available and is being downloaded...', 'downloading');
         showUpdateInfo(info);
         toggleProgressBar(true, 0, 'Starting download...');
@@ -232,7 +229,6 @@ function initAutoUpdate() {
     });
     
     window.electronAPI.onUpdateNotAvailable((info) => {
-        console.log('Update not available:', info);
         updateStatus('You are running the latest version!', 'success');
         toggleProgressBar(false);
         hideUpdateInfo();
@@ -245,7 +241,6 @@ function initAutoUpdate() {
     });
     
     window.electronAPI.onUpdateDownloadProgress((progress) => {
-        console.log('Download progress:', progress);
         const percent = Math.round(progress.percent);
         const downloaded = (progress.transferred / 1024 / 1024).toFixed(2);
         const total = (progress.total / 1024 / 1024).toFixed(2);
@@ -256,7 +251,6 @@ function initAutoUpdate() {
     });
     
     window.electronAPI.onUpdateDownloaded((info) => {
-        console.log('Update downloaded:', info);
         updateStatus('Update downloaded successfully! Ready to install.', 'success');
         toggleProgressBar(false);
         

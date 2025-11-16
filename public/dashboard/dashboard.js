@@ -514,7 +514,6 @@ function startAutoRefresh() {
     
     // Refresh every 5 minutes (300000 ms)
     refreshInterval = setInterval(() => {
-        console.log('Auto-refreshing dashboard data...');
         loadRecentActivity();
         loadStockAlerts();
         loadPendingTasks();
