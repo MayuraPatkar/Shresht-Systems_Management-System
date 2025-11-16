@@ -860,6 +860,51 @@
                     </div>
                 </div>
 
+                <!-- Update Check Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-sync-alt text-purple-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Software Updates</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <!-- Update Status Display -->
+                        <div id="update-status-container" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div class="flex items-center gap-2">
+                                <i id="update-status-icon" class="fas fa-info-circle text-blue-600"></i>
+                                <p id="update-status-text" class="text-gray-700 font-medium">Ready to check for updates</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Download Progress Bar (hidden by default) -->
+                        <div id="update-progress-container" class="hidden space-y-2">
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div id="update-progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <p id="update-progress-text" class="text-sm text-gray-600 text-center">Downloading...</p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="space-y-2">
+                            <button type="button" id="check-updates-button"
+                                class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-cloud-download-alt"></i>
+                                Check for Updates
+                            </button>
+                            <button type="button" id="install-update-button"
+                                class="hidden w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center justify-center gap-2">
+                                <i class="fas fa-rocket"></i>
+                                Restart and Install Update
+                            </button>
+                        </div>
+
+                        <!-- Update Info -->
+                        <div id="update-info" class="hidden bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <p class="text-sm text-blue-700 font-medium mb-2">Update Details:</p>
+                            <div id="update-details" class="text-sm text-gray-700 space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Database Statistics Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                     <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">

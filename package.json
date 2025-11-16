@@ -13,7 +13,10 @@
     "build-css": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
     "build-css-prod": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
     "migrate": "node src/utils/migrate.js",
-    "logs": "tail -f logs/app.log"
+    "logs": "tail -f logs/app.log",
+    "build": "electron-builder --win",
+    "build:publish": "electron-builder --win --publish always",
+    "release": "npm run build-css-prod && electron-builder --win --publish always"
   },
   "keywords": [],
   "author": "Mayura Patkar",
@@ -26,6 +29,7 @@
     "ejs": "^3.1.10",
     "electron-log": "^5.4.3",
     "electron-reload": "^2.0.0-alpha.1",
+    "electron-updater": "^6.6.2",
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
     "express-validator": "^7.2.1",
@@ -48,11 +52,43 @@
     "appId": "com.app.SSMS",
     "productName": "Shresht Systems Management System",
     "win": {
-      "icon": "./public/assets/icon.ico"
-    }
+      "icon": "./public/assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "publish": [
+        {
+          "provider": "github",
+          "owner": "MayuraPatkar",
+          "repo": "Shresht-Systems_Management-System"
+        }
+      ]
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "MayuraPatkar",
+        "repo": "Shresht-Systems_Management-System",
+        "releaseType": "release"
+      }
+    ],
+    "files": [
+      "**/*",
+      "!backups/**",
+      "!logs/**",
+      "!uploads/**",
+      "!.git/**",
+      "!node_modules/**/.cache"
+    ]
   },
   "devDependencies": {
     "electron": "^38.1.2",
+    "electron-builder": "^26.0.12",
     "electron-packager": "^17.1.2",
     "tailwindcss": "^3.4.18"
   }
