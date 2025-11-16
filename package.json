@@ -1,6 +1,6 @@
 {
   "name": "shresht-systems-management-system",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Software for Shresht systems",
   "main": "main.js",
   "scripts": {
@@ -14,6 +14,7 @@
     "build-css-prod": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
     "migrate": "node src/utils/migrate.js",
     "logs": "tail -f logs/app.log",
+    "package": "electron-packager . 'Shresht Systems Management System' --platform=win32 --arch=x64 --out=dist --overwrite --icon=./public/assets/icon.ico",
     "build": "electron-builder --win",
     "build:publish": "electron-builder --win --publish always",
     "release": "npm run build-css-prod && electron-builder --win --publish always"
@@ -49,55 +50,49 @@
   },
   "homepage": "https://github.com/mayura01/shresht-systems-management-system#readme",
   "build": {
-  "appId": "com.app.SSMS",
-  "productName": "Shresht Systems Management System",
-
-  "npmRebuild": false,
-  "asarUnpack": [],
-  
-  "win": {
-    "icon": "./public/assets/icon.ico",
-    "sign": false,
-    "signAndEditExecutable": false,
-    "requestedExecutionLevel": "requireAdministrator",
-
-    "target": [
-      {
-        "target": "nsis",
-        "arch": ["x64"]
-      }
-    ],
-
+    "appId": "com.app.SSMS",
+    "productName": "Shresht Systems Management System",
+    "npmRebuild": false,
+    "asarUnpack": [],
+    "win": {
+      "icon": "./public/assets/icon.ico",
+      "signAndEditExecutable": false,
+      "requestedExecutionLevel": "requireAdministrator",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "publish": [
+        {
+          "provider": "github",
+          "owner": "MayuraPatkar",
+          "repo": "Shresht-Systems_Management-System"
+        }
+      ]
+    },
     "publish": [
       {
         "provider": "github",
         "owner": "MayuraPatkar",
-        "repo": "Shresht-Systems_Management-System"
+        "repo": "Shresht-Systems_Management-System",
+        "releaseType": "release"
       }
+    ],
+    "files": [
+      "**/*",
+      "!backups/**",
+      "!logs/**",
+      "!uploads/**",
+      "!.git/**",
+      "!node_modules/**/.cache"
     ]
   },
-
-  "publish": [
-    {
-      "provider": "github",
-      "owner": "MayuraPatkar",
-      "repo": "Shresht-Systems_Management-System",
-      "releaseType": "release"
-    }
-  ],
-
-  "files": [
-    "**/*",
-    "!backups/**",
-    "!logs/**",
-    "!uploads/**",
-    "!.git/**",
-    "!node_modules/**/.cache"
-  ]
-},
   "devDependencies": {
     "electron": "^38.1.2",
-    "electron-builder": "^26.0.12",
     "electron-packager": "^17.1.2",
     "tailwindcss": "^3.4.18"
   }
