@@ -14,7 +14,7 @@ const logger = require("./logger");
  */
 function autoBackup() {
     // 1. Set up the backup directory.
-    const backupDir = path.join(__dirname, "../../backups");
+    const backupDir = global.appPaths ? global.appPaths.backups : path.join(__dirname, "../../backups");
     if (!fs.existsSync(backupDir)) {
         fs.mkdirSync(backupDir, { recursive: true });
     }

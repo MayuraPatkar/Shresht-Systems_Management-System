@@ -258,7 +258,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
 }));
 
 // Enhanced Multer config with security
-const uploadDir = path.join(__dirname, "../../uploads/");
+const uploadDir = global.appPaths ? global.appPaths.uploads : path.join(__dirname, "../../uploads/");
 
 // Ensure upload directory exists
 const ensureUploadDir = async () => {

@@ -42,15 +42,19 @@ exServer.use(cors({
 exServer.use(express.json({ limit: '10mb' }));
 exServer.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Get paths from global or use defaults
+const uploadsPath = global.appPaths ? global.appPaths.uploads : path.join(__dirname, 'src/uploads');
+const publicPath = path.join(__dirname, 'public');
+
 // Static files with proper caching - BEFORE rate limiting
-exServer.use(express.static(path.join(__dirname, 'public'), {
+exServer.use(express.static(publicPath, {
     maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0',
     etag: true,
     lastModified: true
 }));
 
 // Uploads directory
-exServer.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
+exServer.use('/uploads', express.static(uploadsPath));
 
 // Rate limiting AFTER static files to exclude them
 const limiter = rateLimit({

@@ -107,14 +107,37 @@ app.commandLine.appendSwitch('--disable-dev-shm-usage');
 // Set secure defaults
 app.setAsDefaultProtocolClient('shresht-systems');
 
+// Define paths for data directories based on whether app is packaged
+const isPackaged = app.isPackaged;
+const userDataPath = app.getPath('userData');
+const appPath = isPackaged ? userDataPath : __dirname;
 
-const logDir = path.join(__dirname, "logs");
+// Set up directory paths
+const logDir = path.join(appPath, "logs");
+const backupDir = path.join(appPath, "backups");
+const uploadDir = path.join(appPath, "uploads");
+
+// Ensure required directories exist
+[logDir, backupDir, uploadDir].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+    } catch (err) {
+      console.error(`Failed to create directory ${dir}:`, err);
+    }
+  }
+});
+
+// Make paths globally available
+global.appPaths = {
+  logs: logDir,
+  backups: backupDir,
+  uploads: uploadDir,
+  userData: userDataPath,
+  root: appPath
+};
+
 const maxLogDays = 7; // Maximum number of log files to keep
-
-// Ensure the log directory exists
-if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir);
-}
 
 /**
  * Deletes log files older than the allowed number of days.
