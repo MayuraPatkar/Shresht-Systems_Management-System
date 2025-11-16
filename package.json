@@ -49,43 +49,52 @@
   },
   "homepage": "https://github.com/mayura01/shresht-systems-management-system#readme",
   "build": {
-    "appId": "com.app.SSMS",
-    "productName": "Shresht Systems Management System",
-    "win": {
-      "icon": "./public/assets/icon.ico",
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "publish": [
-        {
-          "provider": "github",
-          "owner": "MayuraPatkar",
-          "repo": "Shresht-Systems_Management-System"
-        }
-      ]
-    },
+  "appId": "com.app.SSMS",
+  "productName": "Shresht Systems Management System",
+
+  "npmRebuild": false,
+  "asarUnpack": [],
+  
+  "win": {
+    "icon": "./public/assets/icon.ico",
+    "sign": false,
+    "signAndEditExecutable": false,
+    "requestedExecutionLevel": "requireAdministrator",
+
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+
     "publish": [
       {
         "provider": "github",
         "owner": "MayuraPatkar",
-        "repo": "Shresht-Systems_Management-System",
-        "releaseType": "release"
+        "repo": "Shresht-Systems_Management-System"
       }
-    ],
-    "files": [
-      "**/*",
-      "!backups/**",
-      "!logs/**",
-      "!uploads/**",
-      "!.git/**",
-      "!node_modules/**/.cache"
     ]
   },
+
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "MayuraPatkar",
+      "repo": "Shresht-Systems_Management-System",
+      "releaseType": "release"
+    }
+  ],
+
+  "files": [
+    "**/*",
+    "!backups/**",
+    "!logs/**",
+    "!uploads/**",
+    "!.git/**",
+    "!node_modules/**/.cache"
+  ]
+},
   "devDependencies": {
     "electron": "^38.1.2",
     "electron-builder": "^26.0.12",
