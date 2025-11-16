@@ -167,16 +167,16 @@ log.info("---------------------------***App started***--------------------------
 
 
 // Enable hot-reload for development only
-if (process.env.NODE_ENV === "development") {
-  try {
-    require("electron-reload")(path.join(__dirname), {
-      electron: require(path.join(__dirname, "node_modules", "electron")),
-      hardResetMethod: 'exit'
-    });
-  } catch (err) {
-    log.warn("electron-reload not available:", err.message);
-  }
-}
+// if (process.env.NODE_ENV === "development") {
+//   try {
+//     require("electron-reload")(path.join(__dirname), {
+//       electron: require(path.join(__dirname, "node_modules", "electron")),
+//       hardResetMethod: 'exit'
+//     });
+//   } catch (err) {
+//     log.warn("electron-reload not available:", err.message);
+//   }
+// }
 
 let mainWindow; // Reference to the main application window
 
