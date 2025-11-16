@@ -108,9 +108,8 @@ app.commandLine.appendSwitch('--disable-dev-shm-usage');
 app.setAsDefaultProtocolClient('shresht-systems');
 
 // Define paths for data directories based on whether app is packaged
-const isPackaged = app.isPackaged;
 const userDataPath = app.getPath('userData');
-const appPath = isPackaged ? userDataPath : __dirname;
+const appPath = app.isPackaged ? userDataPath : __dirname;
 
 // Set up directory paths
 const logDir = path.join(appPath, "logs");
@@ -123,7 +122,7 @@ const uploadDir = path.join(appPath, "uploads");
     try {
       fs.mkdirSync(dir, { recursive: true });
     } catch (err) {
-      console.error(`Failed to create directory ${dir}:`, err);
+      log.error(`Failed to create directory ${dir}:`, err);
     }
   }
 });
@@ -187,19 +186,6 @@ log.transports.file.resolvePathFn = () => {
 // Clean up old logs at startup
 cleanOldLogs().catch(err => log.error("Failed to clean old logs:", err));
 log.info("---------------------------***App started***---------------------------");
-
-
-// Enable hot-reload for development only
-// if (process.env.NODE_ENV === "development") {
-//   try {
-//     require("electron-reload")(path.join(__dirname), {
-//       electron: require(path.join(__dirname, "node_modules", "electron")),
-//       hardResetMethod: 'exit'
-//     });
-//   } catch (err) {
-//     log.warn("electron-reload not available:", err.message);
-//   }
-// }
 
 let mainWindow; // Reference to the main application window
 
@@ -338,13 +324,6 @@ async function createWindow() {
     mainWindow.once('ready-to-show', () => {
       mainWindow.show();
       mainWindow.maximize();
-      
-      // Open DevTools only in development mode
-      // if (process.env.NODE_ENV === "development") {
-      //   setTimeout(() => {
-      //     mainWindow.webContents.openDevTools();
-      //   }, 1000);
-      // }
     });
 
     // Enhanced frontend loading with retry logic

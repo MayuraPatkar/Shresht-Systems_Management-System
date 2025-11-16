@@ -1,39 +1,49 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+/**
+ * Validates that a value is a non-empty string
+ * @param {*} value - Value to validate
+ * @returns {boolean} - True if valid string
+ */
+function isValidString(value) {
+    return typeof value === "string" && value.length > 0;
+}
+
+/**
+ * Validates that a callback is a function
+ * @param {*} callback - Callback to validate
+ * @returns {boolean} - True if valid function
+ */
+function isValidCallback(callback) {
+    return typeof callback === "function";
+}
+
 // Expose a subset of ipcRenderer methods to the renderer process
 contextBridge.exposeInMainWorld("electronAPI", {
-    // Trigger print event
+    // Print document event
     handlePrintEvent: (content, mode, name) => {
         if (content) {
             ipcRenderer.send("PrintDoc", { content, mode, name });
-        } else {
-            console.error("No content passed to print.");
         }
     },
 
-    // Trigger print event
+    // Print quotation event (legacy spelling maintained for compatibility)
     handlePrintEventQuatation: (content, mode, name) => {
         if (content) {
             ipcRenderer.send("PrintQuatation", { content, mode, name });
-        } else {
-            console.error("No content passed to print.");
         }
     },
 
-    // Trigger custom alert event
+    // Trigger custom alert events
     showAlert1: (message) => {
-        if (typeof message === "string") {
+        if (isValidString(message)) {
             ipcRenderer.send("show-alert1", message);
-        } else {
-            console.error("Invalid message passed to showAlert. Expected a string.");
         }
     },
 
     showAlert2: (message) => {
-        if (typeof message === "string") {
+        if (isValidString(message)) {
             ipcRenderer.send("show-alert2", message);
-        } else {
-            console.error("Invalid message passed to showAlert. Expected a string.");
         }
     },
 
@@ -41,18 +51,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
     // Listen for messages from the main process
     receiveMessage: (callback) => {
-        if (typeof callback === "function") {
+        if (isValidCallback(callback)) {
             ipcRenderer.on("set-message", (_, message) => callback(message));
-        } else {
-            console.error("Invalid callback passed to receiveMessage. Expected a function.");
         }
     },
 
     // Listen for messages from the frontend
     receiveAlertResponse: (callback) => {
-        ipcRenderer.once("receive-response", (_, message) => {
-            callback(message);
-        });
+        if (isValidCallback(callback)) {
+            ipcRenderer.once("receive-response", (_, message) => callback(message));
+        }
     },
 
     // Auto-updater APIs
@@ -61,18 +69,28 @@ contextBridge.exposeInMainWorld("electronAPI", {
     
     // Listen for auto-update events
     onUpdateAvailable: (callback) => {
-        ipcRenderer.on("update-available", (_, info) => callback(info));
+        if (isValidCallback(callback)) {
+            ipcRenderer.on("update-available", (_, info) => callback(info));
+        }
     },
     onUpdateNotAvailable: (callback) => {
-        ipcRenderer.on("update-not-available", (_, info) => callback(info));
+        if (isValidCallback(callback)) {
+            ipcRenderer.on("update-not-available", (_, info) => callback(info));
+        }
     },
     onUpdateDownloadProgress: (callback) => {
-        ipcRenderer.on("update-download-progress", (_, progress) => callback(progress));
+        if (isValidCallback(callback)) {
+            ipcRenderer.on("update-download-progress", (_, progress) => callback(progress));
+        }
     },
     onUpdateDownloaded: (callback) => {
-        ipcRenderer.on("update-downloaded", (_, info) => callback(info));
+        if (isValidCallback(callback)) {
+            ipcRenderer.on("update-downloaded", (_, info) => callback(info));
+        }
     },
     onUpdateError: (callback) => {
-        ipcRenderer.on("update-error", (_, error) => callback(error));
+        if (isValidCallback(callback)) {
+            ipcRenderer.on("update-error", (_, error) => callback(error));
+        }
     },
 });

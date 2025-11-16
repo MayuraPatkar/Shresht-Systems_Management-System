@@ -664,7 +664,7 @@ async function populateSpecifications() {
                     row.dataset.specification = existingSpecification;
                 }
             } catch (error) {
-                console.log("No stock data found for:", description);
+                // No stock data found
             }
         }
 
