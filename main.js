@@ -23,12 +23,74 @@ const { app, BrowserWindow, ipcMain, screen, dialog } = require("electron");
 const path = require("path");
 const log = require("electron-log");
 const fs = require("fs");
+const { autoUpdater } = require("electron-updater");
 const { handlePrintEvent } = require("./src/utils/printHandler");
 require('./src/utils/alertHandler');
 const EventEmitter = require("events");
 
 // Create a global event emitter for server-main communication
 global.dialogEmitter = new EventEmitter();
+
+// Configure auto-updater logging
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+autoUpdater.autoDownload = true; // Automatically download updates
+autoUpdater.autoInstallOnAppQuit = true; // Install on quit
+
+// Auto-updater event listeners
+autoUpdater.on('checking-for-update', () => {
+  log.info('Checking for updates...');
+});
+
+autoUpdater.on('update-available', (info) => {
+  log.info('Update available:', info);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-available', info);
+  }
+});
+
+autoUpdater.on('update-not-available', (info) => {
+  log.info('Update not available:', info);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-not-available', info);
+  }
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  const message = `Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`;
+  log.info(message);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-download-progress', progressObj);
+  }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  log.info('Update downloaded:', info);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-downloaded', info);
+  }
+  
+  // Show dialog to user
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: 'Update Ready',
+    message: 'A new version has been downloaded. The application will restart to install the update.',
+    buttons: ['Restart Now', 'Later'],
+    defaultId: 0
+  }).then((result) => {
+    if (result.response === 0) {
+      // Quit and install immediately
+      setImmediate(() => autoUpdater.quitAndInstall());
+    }
+  });
+});
+
+autoUpdater.on('error', (error) => {
+  log.error('Auto-updater error:', error);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-error', error.message);
+  }
+});
 
 // Security: Prevent new window creation from renderer
 app.on('web-contents-created', (event, contents) => {
@@ -177,7 +239,44 @@ function setupIPCHandlers() {
     }
   });
 
-  log.info("IPC handlers for dialogs registered successfully");
+  // Handle manual update check requests from renderer
+  ipcMain.handle('manual-check-update', async () => {
+    try {
+      log.info('Manual update check requested');
+      
+      // Check if in development mode (unpacked app)
+      if (!app.isPackaged) {
+        log.info('App is not packaged - update check skipped in development mode');
+        return { 
+          success: false, 
+          error: 'Update checks are only available in production builds. Use "npm run build" to create a packaged version.',
+          isDevelopment: true
+        };
+      }
+      
+      const result = await autoUpdater.checkForUpdates();
+      
+      // Handle null result (no updates available or error)
+      if (result && result.updateInfo) {
+        return { success: true, updateInfo: result.updateInfo };
+      } else {
+        // Update check completed but result is null (likely no update available)
+        // The update-not-available event will be triggered separately
+        return { success: true, updateInfo: null };
+      }
+    } catch (error) {
+      log.error('Manual update check failed:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Handle install update request
+  ipcMain.handle('install-update', () => {
+    log.info('Install update requested');
+    setImmediate(() => autoUpdater.quitAndInstall());
+  });
+
+  log.info("IPC handlers for dialogs and updates registered successfully");
 }
 
 /**
@@ -307,6 +406,14 @@ app.whenReady().then(async () => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     createWindow();
+    
+    // Check for updates after window is created (only in production)
+    if (process.env.NODE_ENV !== "development") {
+      log.info('Checking for updates automatically...');
+      setTimeout(() => {
+        autoUpdater.checkForUpdatesAndNotify();
+      }, 3000); // Wait 3 seconds after app start
+    }
   } catch (err) {
     log.error("Failed to start Express server:", err);
     

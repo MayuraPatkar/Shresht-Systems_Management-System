@@ -54,4 +54,25 @@ contextBridge.exposeInMainWorld("electronAPI", {
             callback(message);
         });
     },
+
+    // Auto-updater APIs
+    checkForUpdates: () => ipcRenderer.invoke("manual-check-update"),
+    installUpdate: () => ipcRenderer.invoke("install-update"),
+    
+    // Listen for auto-update events
+    onUpdateAvailable: (callback) => {
+        ipcRenderer.on("update-available", (_, info) => callback(info));
+    },
+    onUpdateNotAvailable: (callback) => {
+        ipcRenderer.on("update-not-available", (_, info) => callback(info));
+    },
+    onUpdateDownloadProgress: (callback) => {
+        ipcRenderer.on("update-download-progress", (_, progress) => callback(progress));
+    },
+    onUpdateDownloaded: (callback) => {
+        ipcRenderer.on("update-downloaded", (_, info) => callback(info));
+    },
+    onUpdateError: (callback) => {
+        ipcRenderer.on("update-error", (_, error) => callback(error));
+    },
 });
