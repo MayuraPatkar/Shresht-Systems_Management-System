@@ -29,6 +29,11 @@ function autoBackup() {
     // 4. Execute the command and log the success or failure.
     exec(cmd, (err, stdout, stderr) => {
         if (err) {
+            // Check if the error is due to missing mongodump command
+            if (stderr && (stderr.includes("not recognized") || stderr.includes("not found"))) {
+                logger.warn("Backup skipped: 'mongodump' command not found. Please install MongoDB Database Tools to enable automatic backups.");
+                return;
+            }
             logger.error("Backup failed:", stderr);
             return;
         }
