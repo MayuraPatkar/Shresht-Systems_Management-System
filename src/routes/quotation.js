@@ -164,7 +164,7 @@ router.get("/recent-quotations", async (req, res) => {
         const recentQuotations = await Quotations.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("project_name quotation_id customer_name customer_address total_amount_tax");
+            .select("project_name quotation_id quotation_date customer_name customer_address total_amount_tax");
 
         res.status(200).json({
             message: "Recent quotations retrieved successfully",

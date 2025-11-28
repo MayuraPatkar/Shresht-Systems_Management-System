@@ -48,9 +48,8 @@ const quotationSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-quotationSchema.pre('save', function(next) {
+quotationSchema.pre('save', function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 // Index for faster queries

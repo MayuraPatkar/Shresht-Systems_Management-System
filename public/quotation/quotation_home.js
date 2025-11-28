@@ -204,6 +204,9 @@ function createQuotationCard(quotation) {
     const quotationCard = document.createElement("div");
     quotationCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-400 overflow-hidden fade-in";
     
+    // Format the date for display
+    const formattedDate = quotation.quotation_date ? formatDateIndian(quotation.quotation_date) : '-';
+    
     quotationCard.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
@@ -220,11 +223,18 @@ function createQuotationCard(quotation) {
                         </div>
                         <div class="flex-1 min-w-0">
                             <h3 class="text-lg font-bold text-gray-900 mb-1 truncate">${quotation.project_name}</h3>
-                            <p class="text-sm text-gray-600 cursor-pointer hover:text-purple-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
-                                <i class="fas fa-hashtag text-xs"></i>
-                                <span>${quotation.quotation_id}</span>
-                                <i class="fas fa-copy text-xs ml-1"></i>
-                            </p>
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm text-gray-600 cursor-pointer hover:text-purple-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
+                                    <i class="fas fa-hashtag text-xs"></i>
+                                    <span>${quotation.quotation_id}</span>
+                                    <i class="fas fa-copy text-xs ml-1"></i>
+                                </p>
+                                <span class="text-gray-300">|</span>
+                                <p class="text-xs text-gray-500 inline-flex items-center gap-1">
+                                    <i class="fas fa-calendar-alt text-xs"></i>
+                                    ${formattedDate}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -235,8 +245,8 @@ function createQuotationCard(quotation) {
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Customer</p>
-                            <p class="text-sm font-semibold text-gray-900 truncate">${quotation.customer_name}</p>
-                            <p class="text-xs text-gray-600 truncate">${quotation.customer_address}</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate">${quotation.customer_name || '-'}</p>
+                            <p class="text-xs text-gray-600 truncate">${quotation.customer_address || '-'}</p>
                         </div>
                     </div>
 
@@ -247,7 +257,7 @@ function createQuotationCard(quotation) {
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Amount</p>
-                            <p class="text-lg font-bold text-purple-600">₹ ${formatIndian(quotation.total_amount_tax, 2)}</p>
+                            <p class="text-lg font-bold text-purple-600">₹ ${formatIndian(quotation.total_amount_tax || 0, 2)}</p>
                         </div>
                     </div>
 
