@@ -1,4 +1,14 @@
-node_modules
+# local env files
+.env
+.env.local
+.env.*.local
+
+# node modules and build artifacts
+node_modules/
+dist/
+logs/
+backups/
+uploads/node_modules
 package-lock.json
 .env
 dist/

@@ -1,0 +1,4 @@
+# Mark environment files for git-crypt transparent encryption
+.env filter=git-crypt diff=git-crypt
+.env.* filter=git-crypt diff=git-crypt
+.env.local filter=git-crypt diff=git-crypt
