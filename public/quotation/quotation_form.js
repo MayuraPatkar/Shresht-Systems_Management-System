@@ -4,11 +4,20 @@ let totalAmountNoTax = 0;
 let totalAmountTax = 0;
 let totalTax = 0;
 
+// Initialize the step indicator on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    const stepIndicator = document.getElementById('step-indicator');
+    if (stepIndicator) {
+        stepIndicator.textContent = `Step 1 of ${totalSteps}`;
+    }
+});
+
 
 function getQuotationHeaderHTML() {
     if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
         return window.SectionRenderers.renderQuotationDocumentHeader();
     }
+    // Fallback header if SectionRenderers not loaded
     return `
         <div class="header">
             <div class="quotation-brand">
@@ -52,7 +61,7 @@ async function openQuotation(quotationId) {
 
         document.getElementById('id').value = quotation.quotation_id;
         document.getElementById('project-name').value = quotation.project_name;
-        document.getElementById('quotation-date').value = await formatDate(quotation.quotation_date);
+        document.getElementById('quotation-date').value = formatDate(quotation.quotation_date);
         document.getElementById('buyer-name').value = quotation.customer_name;
         document.getElementById('buyer-address').value = quotation.customer_address;
         document.getElementById('buyer-phone').value = quotation.customer_phone;
@@ -393,7 +402,15 @@ async function generatePreview() {
 
         totalPrice += rowTotal; // Add the final row total to the grand total
 
-        const itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td>${hasTax ? `<td>-</td><td>-</td>` : ""}<td>${item.rate || '-'}</td><td>${formatIndian(rowTotal, 2) || '-'}</td></tr>`;
+        // Generate HTML with consistent columns: S.No, Description, HSN/SAC, Qty, Unit Price, [Taxable Value, Rate %], Total
+        let itemHTML = "";
+        if (hasTax) {
+            // With tax: 8 columns (S.No, Description, HSN/SAC, Qty, Unit Price, Taxable Value, Rate %, Total)
+            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td><td>${formatIndian(price, 2)}</td><td>${formatIndian(price, 2)}</td><td>${rate.toFixed(2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
+        } else {
+            // Without tax: 6 columns (S.No, Description, HSN/SAC, Qty, Unit Price, Total)
+            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td><td>${formatIndian(price, 2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
+        }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
         sno++;
@@ -856,12 +873,12 @@ function collectFormData() {
         totalAmountTax: totalAmountTax,
 
 
-        subject: document.querySelector(".quotation-letter-content p[contenteditable]").innerText.replace("Subject:", "").trim(),
-        letter_1: document.querySelectorAll(".quotation-letter-content p[contenteditable]")[1].innerText.trim(),
-        letter_2: Array.from(document.querySelectorAll(".quotation-letter-content ul[contenteditable] li")).map(li => li.innerText.trim()),
-        letter_3: document.querySelectorAll(".quotation-letter-content p[contenteditable]")[2].innerText.trim(),
-        notes: Array.from(document.querySelector(".notes-section ul").querySelectorAll("li")).map(li => li.innerText.trim()),
-        termsAndConditions: document.querySelector(".terms-section").innerHTML.trim(),
+        subject: document.querySelector(".quotation-letter-content p[contenteditable]")?.innerText.replace("Subject:", "").trim() || '',
+        letter_1: document.querySelectorAll(".quotation-letter-content p[contenteditable]")[1]?.innerText.trim() || '',
+        letter_2: Array.from(document.querySelectorAll(".quotation-letter-content ul[contenteditable] li") || []).map(li => li.innerText.trim()),
+        letter_3: document.querySelectorAll(".quotation-letter-content p[contenteditable]")[2]?.innerText.trim() || '',
+        notes: Array.from(document.querySelector(".notes-section ul")?.querySelectorAll("li") || []).map(li => li.innerText.trim()),
+        termsAndConditions: document.querySelector(".terms-section")?.innerHTML.trim() || '',
         headline: document.querySelector(".headline-section p[contenteditable]")?.innerText.trim() || ''
     };
 }
@@ -880,7 +897,7 @@ async function loadQuotationForEditing(id) {
         document.getElementById('id').value = quotation.quotation_id;
         quotationId = quotation.quotation_id;
         document.getElementById('project-name').value = quotation.project_name || '';
-        document.getElementById('quotation-date').value = quotation.quotation_date ? new Date(quotation.quotation_date).toISOString().split('T')[0] : '';
+        document.getElementById('quotation-date').value = formatDate(quotation.quotation_date);
         document.getElementById('buyer-name').value = quotation.customer_name || '';
         document.getElementById('buyer-address').value = quotation.customer_address || '';
         document.getElementById('buyer-phone').value = quotation.customer_phone || '';

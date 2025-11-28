@@ -2,6 +2,7 @@ function getQuotationHeaderHTML() {
     if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
         return window.SectionRenderers.renderQuotationDocumentHeader();
     }
+    // Fallback header if SectionRenderers not loaded
     return `
         <div class="header">
             <div class="quotation-brand">
@@ -9,17 +10,14 @@ function getQuotationHeaderHTML() {
                     <img src="../assets/icon.png" alt="Shresht Logo">
                 </div>
                 <div class="quotation-brand-text">
-                    <h1>SHRESHT</h1>
-                    <h1>SYSTEMS</h1>
+                    <h1>SHRESHT SYSTEMS</h1>
                     <p class="quotation-tagline">CCTV & Security Solutions</p>
                 </div>
             </div>
             <div class="company-details">
                 <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305</p>
-                <p>GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com</p>
-                <p>Website: www.shreshtsystems.com</p>
+                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
+                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
             </div>
         </div>
     `;
@@ -29,7 +27,7 @@ function getQuotationHeaderHTML() {
  * Generate and display the preview for the quotation in view-preview-content.
  * This works for both withTax and withoutTax view modes.
  */
-async function generateViewPreviewHTML(quotation, viewType) {
+function generateViewPreviewHTML(quotation, viewType) {
     let totalTaxableValue = 0;
     let totalTax = 0;
     let totalPrice = 0;
@@ -99,8 +97,8 @@ async function generateViewPreviewHTML(quotation, viewType) {
     // Grand totals
     let grandTotal = totalPrice + totalNonItemsPrice;
 
-    // Format the date before using it in template
-    const formattedDate = await formatDate(quotation.quotation_date);
+    // Format the date for display (DD/MM/YYYY format)
+    const formattedDate = formatDateIndian(quotation.quotation_date);
 
     // Table headers
     let tableHead = "";
@@ -253,12 +251,12 @@ async function viewQuotation(quotationId, viewType) {
         document.getElementById('view-preview').style.display = 'none';
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'none';
-        document.getElementById('view').style.display = 'flex';
+        document.getElementById('view').style.display = 'block';
 
         // Fill Project Details
         document.getElementById('view-project-name').textContent = quotation.project_name || '-';
         document.getElementById('view-project-id').textContent = quotation.quotation_id || '-';
-        document.getElementById('view-quotation-date').textContent = await formatDate(quotation.quotation_date) || '-';
+        document.getElementById('view-quotation-date').textContent = formatDateIndian(quotation.quotation_date) || '-';
 
         // Buyer Details
         document.getElementById('view-buyer-name').textContent = quotation.customer_name || '-';
@@ -426,7 +424,7 @@ async function viewQuotation(quotationId, viewType) {
         }
 
         // Show the preview in view-preview-content
-        await generateViewPreviewHTML(quotation, viewType);
+        generateViewPreviewHTML(quotation, viewType);
 
         // Print and Save as PDF handlers
         document.getElementById('printProject').onclick = () => {

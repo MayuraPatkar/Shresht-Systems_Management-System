@@ -682,7 +682,7 @@ async function updateSpecificationsTable() {
       description: row.querySelector('input[placeholder="Item Description"]')?.value.trim() || '',
       type: 'non_item'
     }))
-  ];
+  ].filter(item => item.description); // Filter out empty descriptions
 
   // Clear and rebuild the specifications container and table
   if (specificationsContainer) {
@@ -692,10 +692,26 @@ async function updateSpecificationsTable() {
     itemsSpecificationTable.innerHTML = '';
   }
 
+  // Show empty state if no items
+  if (allItems.length === 0) {
+    if (specificationsContainer) {
+      specificationsContainer.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-clipboard-list"></i>
+          <p>No items to add specifications for</p>
+          <p class="text-sm text-gray-400">Add items in the previous steps first</p>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  let specIndex = 0;
   for (let i = 0; i < allItems.length; i++) {
     const item = allItems[i];
     if (!item.description) continue;
 
+    specIndex++;
     let specification = '';
 
     // First check if user has manually entered specification
@@ -718,7 +734,7 @@ async function updateSpecificationsTable() {
       const card = document.createElement('div');
       card.className = 'spec-card';
       card.innerHTML = `
-        <div class="item-number">${i + 1}</div>
+        <div class="item-number">${specIndex}</div>
         
         <div class="spec-field description">
           <input type="text" value="${item.description}" readonly style="background: #f9fafb; cursor: not-allowed;">
@@ -732,7 +748,7 @@ async function updateSpecificationsTable() {
 
       // Sync specification input with table
       const specInput = card.querySelector('.spec-field.specification input');
-      const tableRow = document.querySelector(`#items-specifications-table tbody tr:nth-child(${i + 1})`);
+      const tableRow = document.querySelector(`#items-specifications-table tbody tr:nth-child(${specIndex})`);
       if (specInput && tableRow) {
         specInput.addEventListener('input', () => {
           const tableSpecInput = tableRow.querySelector('input');
@@ -747,7 +763,7 @@ async function updateSpecificationsTable() {
     if (itemsSpecificationTable) {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${i + 1}</td>
+        <td>${specIndex}</td>
         <td>${item.description}</td>
         <td><input type="text" placeholder="Specifications" value="${specification}" required></td>
       `;
@@ -755,7 +771,7 @@ async function updateSpecificationsTable() {
 
       // Sync table input with card
       const tableSpecInput = row.querySelector('input');
-      const card = specificationsContainer?.querySelector(`.spec-card:nth-child(${i + 1})`);
+      const card = specificationsContainer?.querySelector(`.spec-card:nth-child(${specIndex})`);
       if (tableSpecInput && card) {
         tableSpecInput.addEventListener('input', () => {
           const cardSpecInput = card.querySelector('.spec-field.specification input');
