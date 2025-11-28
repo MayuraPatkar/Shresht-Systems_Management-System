@@ -14,7 +14,6 @@
     "build-css-prod": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
     "migrate": "node src/utils/migrate.js",
     "logs": "tail -f logs/app.log",
-    "package": "electron-packager . SSMS --platform=win32 --arch=x64 --out=dist --overwrite --icon=./public/assets/icon.ico",
     "build": "electron-builder --win",
     "build:publish": "electron-builder --win --publish always",
     "release": "npm run build-css-prod && electron-builder --win --publish always"
@@ -86,6 +85,13 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "resources/bin",
+        "to": "bin",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
@@ -110,7 +116,6 @@
     "@tailwindcss/cli": "^4.1.17",
     "electron": "^39.2.4",
     "electron-builder": "^26.0.12",
-    "electron-packager": "^17.1.2",
     "tailwindcss": "^4.1.17"
   }
 }

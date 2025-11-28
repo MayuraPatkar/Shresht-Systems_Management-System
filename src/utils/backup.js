@@ -23,12 +23,43 @@ function autoBackup() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const backupPath = path.join(backupDir, `backup-${timestamp}.gz`);
 
-    // 3. Construct the mongodump command to create a compressed archive.
-    const cmd = `mongodump --uri="mongodb://127.0.0.1:27017/shreshtSystems" --archive="${backupPath}" --gzip`;
+    // 3. Resolve mongodump path
+    const config = require("../config/config");
+    let mongoDumpExec = config.mongoDumpPath || 'mongodump';
+
+    // If default or not absolute, check for bundled binary
+    if (mongoDumpExec === 'mongodump') {
+        const isWin = process.platform === "win32";
+        const binName = isWin ? "mongodump.exe" : "mongodump";
+
+        // Check Electron resources path (Production)
+        if (process.resourcesPath) {
+            const prodPath = path.join(process.resourcesPath, "bin", binName);
+            if (fs.existsSync(prodPath)) {
+                mongoDumpExec = prodPath;
+            }
+        }
+
+        // Check local development path if not found yet
+        if (mongoDumpExec === 'mongodump') {
+            const devPath = path.join(__dirname, "../../resources/bin", binName);
+            if (fs.existsSync(devPath)) {
+                mongoDumpExec = devPath;
+            }
+        }
+    }
+
+    // Construct the mongodump command
+    const cmd = `"${mongoDumpExec}" --uri="mongodb://127.0.0.1:27017/shreshtSystems" --archive="${backupPath}" --gzip`;
 
     // 4. Execute the command and log the success or failure.
     exec(cmd, (err, stdout, stderr) => {
         if (err) {
+            // Check if the error is due to missing mongodump command
+            if (stderr && (stderr.includes("not recognized") || stderr.includes("not found"))) {
+                logger.warn("Backup skipped: 'mongodump' command not found. Please install MongoDB Database Tools to enable automatic backups.");
+                return;
+            }
             logger.error("Backup failed:", stderr);
             return;
         }
