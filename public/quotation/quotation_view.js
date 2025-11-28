@@ -144,7 +144,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
         </div>`;
     }
 
-    const ITEMS_PER_PAGE = 15;
+    const ITEMS_PER_PAGE = 20;
     const SUMMARY_SECTION_ROW_COUNT = 8;
 
     const itemPages = [];
@@ -274,7 +274,7 @@ async function viewQuotation(quotationId, viewType) {
         const viewSpecificationsTableBody = document.querySelector("#view-specifications-table tbody");
         viewItemsTableBody.innerHTML = "";
         viewSpecificationsTableBody.innerHTML = "";
-        
+
         let itemNumber = 1;
 
         // Process regular items
@@ -320,7 +320,7 @@ async function viewQuotation(quotationId, viewType) {
                 `;
             }
             viewItemsTableBody.appendChild(row);
-            
+
             // Add to specifications table
             const specRow = document.createElement("tr");
             specRow.innerHTML = `
@@ -373,7 +373,7 @@ async function viewQuotation(quotationId, viewType) {
                 `;
             }
             viewItemsTableBody.appendChild(row);
-            
+
             // Add to specifications table
             const specRow = document.createElement("tr");
             specRow.innerHTML = `
@@ -389,7 +389,7 @@ async function viewQuotation(quotationId, viewType) {
         const subtotal = totalTaxable;
         const tax = totalTax;
         const total = grandTotal;
-        
+
         document.getElementById('view-subtotal').textContent = `₹ ${formatIndian(subtotal, 2) || '-'}`;
         document.getElementById('view-tax').textContent = viewType === 2 ? `₹ ${formatIndian(tax, 2) || '-'}` : 'No Tax';
         document.getElementById('view-grand-total').textContent = `₹ ${formatIndian(total, 2) || '-'}`;

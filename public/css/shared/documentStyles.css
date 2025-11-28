@@ -1,18 +1,26 @@
 /* ====================================================================
-   UNIFIED DOCUMENT STYLES - Optimized
-   Single source for Invoice, Waybill, Purchase Order, Quotation
+   STANDARD DOCUMENT STYLES - Optimized
+   For Invoice, Waybill, Purchase Order
    ==================================================================== */
 
 /* ===== GLOBAL & BASE ===== */
-@page { size: A4; margin: 0; }
-* { 
-    box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
+@page {
+    size: A4;
+    margin: 0;
 }
-body { 
-    margin: 0; 
+
+* {
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    margin: 0;
     padding: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #1e293b;
+    /* Slate 800 */
+    line-height: 1.5;
 }
 
 /* Base Container */
@@ -20,15 +28,13 @@ body {
     background: #ffffff url("../../assets/icon2.png") no-repeat center/40%;
     margin: 30px auto;
     padding: 30px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+    /* Slate 200 */
+    border-radius: 8px;
     width: 210mm;
     max-width: 210mm;
     min-height: 297mm;
-    font-family: Arial, Helvetica, sans-serif;
-    color: #1a1a1a;
-    line-height: 1.5;
     position: relative;
 }
 
@@ -37,19 +43,29 @@ body {
     text-align: center;
     margin: 20px 0;
     font-style: italic;
-    font-size: 13px;
-    color: #4a5568;
-    padding: 10px;
-    background: #f0f6ff;
+    font-size: 12px;
+    color: #64748b;
+    /* Slate 500 */
+    padding: 8px;
+    background: #f8fafc;
+    /* Slate 50 */
     border-radius: 4px;
-    border: 1px solid #007bff;
+    border: 1px dashed #cbd5e1;
+    /* Slate 300 */
     font-weight: 500;
 }
 
 /* ===== PRINT MODE - GLOBAL ===== */
 @media print {
-    @page { margin: 0; }
-    body { margin: 0; padding: 0; }
+    @page {
+        margin: 0;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
     .preview-container {
         margin: 0;
         padding: 30px;
@@ -60,166 +76,124 @@ body {
         width: 100%;
         max-width: 100%;
     }
-    .continuation-text { background: none; border: none; color: #666; }
+
+    .continuation-text {
+        background: none;
+        border: none;
+        color: #64748b;
+    }
 }
 
 
-/* ===== SHARED STYLES - BOTH STANDARD & QUOTATION ===== */
+/* ===== STANDARD DOCUMENT STYLES ===== */
 .doc-standard .first-section {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-bottom: 15px;
     margin-bottom: 20px;
-    border-bottom: 2px solid #007bff;
+    border-bottom: 2px solid #1a365d;
+    /* Brand Navy */
 }
 
-.doc-standard .first-section .logo img { max-width: 260px; height: auto; }
+.doc-standard .first-section .logo img {
+    max-width: 260px;
+    height: auto;
+}
 
-.doc-standard .first-section .company-details { text-align: right; line-height: 1.5; }
+.doc-standard .first-section .company-details {
+    text-align: right;
+    line-height: 1.5;
+}
 
 .doc-standard .first-section .company-details h1 {
-    margin: 0 0 6px 0;
-    font-size: 36px;
-    color: #3765BC;
+    margin: 0 0 4px 0;
+    font-size: 32px;
+    color: #1a365d;
     font-weight: 800;
-    letter-spacing: 1px;
+    letter-spacing: -0.5px;
 }
 
 .doc-standard .first-section .company-details p {
-    margin: 3px 0;
+    margin: 2px 0;
     font-size: 12px;
-    color: #1a1a1a;
-    font-weight: 500;
-    line-height: 1.6;
-}
-
-.doc-quotation .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 26px;
-    margin-bottom: 24px;
-    background: #3765BC;
-    border-radius: 10px;
-    color: #ffffff;
-    border: none;
-    box-shadow: 0 10px 16px rgba(13, 110, 253, 0.12);
-}
-
-.doc-quotation .header .quotation-brand {
-    display: flex;
-    align-items: left;
-    gap: 18px;
-}
-
-.doc-quotation .header .logo {
-    width: 96px;
-    height: 96px;
-    background: #ffffff;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-}
-
-.doc-quotation .header .logo img {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-}
-
-.doc-quotation .header .quotation-brand-text h1 {
-    margin: 0;
-    color: #ffffff;
-    font-size: 24px;
-    letter-spacing: 0; /* remove extra space */
-    word-spacing: -2px; /* pull the words slightly closer */
-    font-weight: 800;
-}
-
-
-.doc-quotation .header .quotation-tagline {
-    /* margin: 2px 0 0; */
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 15px;
-    font-weight: 500;
-    letter-spacing: 0.3px;
-}
-
-.doc-quotation .header .company-details {
-    width: 400px;    
-    /* margin-left: auto; */
-    text-align: right;
-    line-height: 1.6;
-}
-
-.doc-quotation .header .company-details p {
-    /* margin: 2px 0; */
-    color: rgba(255, 255, 255, 0.95);
-    font-size: 13px;
+    color: #475569;
+    /* Slate 600 */
     font-weight: 500;
 }
 
 /* Document Title */
-.doc-standard .second-section,
-.doc-quotation .title {
-    background: #3765BC;
+.doc-standard .second-section {
+    background: #f8fafc;
+    /* Slate 50 */
     padding: 12px 20px;
     text-align: center;
-    font-size: 20px;
-    color: #ffffff;
+    font-size: 18px;
+    color: #1a365d;
+    /* Brand Navy */
     font-weight: 700;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     text-transform: uppercase;
-    border-radius: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
 }
 
 /* Bill To / Info Section */
-.doc-standard .third-section,
-.doc-quotation .first-section {
+.doc-standard .third-section {
     display: flex;
     justify-content: space-between;
-    gap: 20px;
-    margin-bottom: 20px;
+    gap: 30px;
+    margin-bottom: 24px;
+    padding: 0 10px;
 }
 
 .doc-standard .third-section .order-info,
-.doc-standard .third-section .buyer-details,
-.doc-quotation .buyer-details {
+.doc-standard .third-section .buyer-details {
     padding: 0;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.6;
     width: 48%;
 }
 
-.doc-standard .third-section p,
-.doc-quotation .buyer-details p { margin: 5px 0; }
+.doc-standard .third-section p {
+    margin: 4px 0;
+    color: #334155;
+    /* Slate 700 */
+}
 
-.doc-standard .third-section strong { color: #1a1a1a; font-weight: 600; }
+.doc-standard .third-section strong {
+    color: #0f172a;
+    /* Slate 900 */
+    font-weight: 600;
+}
 
-/* ===== TABLE STYLES - SHARED ===== */
-.doc-standard .fourth-section table,
-.doc-quotation table {
+/* ===== TABLE STYLES - STANDARD ===== */
+.doc-standard .fourth-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.doc-standard .fourth-section table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    border-radius: 10px;
+    border-radius: 8px;
     margin-top: 10px;
     background: #ffffff;
     table-layout: auto;
     overflow: hidden;
-    border: 1.5px solid #1b315a;
+    border: 1px solid #e2e8f0;
 }
 
 .doc-standard .fourth-section table th,
-.doc-standard .fourth-section table td,
-.doc-quotation table th,
-.doc-quotation table td {
-    border: 1.5px solid #1b315a;
-    padding: 8px 6px;
+.doc-standard .fourth-section table td {
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+    padding: 10px 12px;
     text-align: center;
     font-size: 12px;
     word-wrap: break-word;
@@ -227,253 +201,294 @@ body {
     line-height: 1.4;
 }
 
-.doc-standard .fourth-section table th,
-.doc-quotation table th {
-    background: #3765BC;
-    color: #ffffff;
-    font-weight: 700;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    padding: 10px 6px;
-    border: 1.5px solid #1b315a;
+.doc-standard .fourth-section table th:last-child,
+.doc-standard .fourth-section table td:last-child {
+    border-right: none;
 }
 
-.doc-standard .fourth-section table tbody tr:nth-child(even),
-.doc-quotation table tbody tr:nth-child(even) { background-color: #f8fbff; }
+.doc-standard .fourth-section table tr:last-child td {
+    border-bottom: none;
+}
 
-.doc-standard .fourth-section table td,
-.doc-quotation table td {
-    color: #1a1a1a;
+.doc-standard .fourth-section table th {
+    background: #1a365d;
+    /* Brand Navy */
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 10px;
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.doc-standard .fourth-section table th:last-child {
+    border-right: none;
+}
+
+.doc-standard .fourth-section table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+    /* Slate 50 */
+}
+
+.doc-standard .fourth-section table td {
+    color: #334155;
+    /* Slate 700 */
     vertical-align: middle;
-    font-size: 12px;
     font-weight: 500;
 }
 
-/* ===== TOTALS SECTION - SHARED ===== */
-.doc-standard .fifth-section,
-.doc-quotation .fifth-section {
+.doc-standard .fourth-section table td:first-child {
+    text-align: center;
+    font-weight: 600;
+    width: 6%;
+}
+
+.doc-standard .fourth-section table td:nth-child(2) {
+    text-align: left;
+    padding-left: 10px;
+    width: 30%;
+}
+
+.doc-standard .fourth-section table td:nth-child(3) {
+    width: 10%;
+}
+
+.doc-standard .fourth-section table td:nth-child(4) {
+    width: 8%;
+}
+
+.doc-standard .fourth-section table td:nth-child(5),
+.doc-standard .fourth-section table td:nth-child(6),
+.doc-standard .fourth-section table td:nth-child(7),
+.doc-standard .fourth-section table td:nth-child(8) {
+    text-align: right;
+    padding-right: 10px;
+    font-weight: 600;
+    width: 11.5%;
+}
+
+.doc-standard .fourth-section table td:last-child {
+    font-weight: 700;
+}
+
+/* ===== TOTALS SECTION - STANDARD ===== */
+.doc-standard .fifth-section {
     display: flex;
     justify-content: space-between;
     gap: 20px;
     page-break-inside: avoid;
+    margin-top: 24px;
 }
 
-.doc-standard .fifth-section-sub1,
-.doc-quotation .fifth-section-sub1 { width: 100%; display: flex; gap: 20px; }
+.doc-standard .fifth-section-sub1 {
+    width: 100%;
+    display: flex;
+    gap: 20px;
+}
 
-.doc-standard .fifth-section-sub2,
-.doc-quotation .fifth-section-sub2 { display: flex; flex-direction: column; width: 65%; gap: 15px; }
+.doc-standard .fifth-section-sub2 {
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    gap: 15px;
+}
 
-.doc-standard .fifth-section .totals-section,
-.doc-quotation .fifth-section .totals-section {
-    width: 35%;
-    min-width: 280px;
+.doc-standard .fifth-section .totals-section {
+    width: 40%;
+    min-width: 200px;
     height: fit-content;
-    font-size: 14px;
+    font-size: 13px;
     background: white;
     padding: 0;
-    border: 1.5px solid #3765BC;
+    border: 1px solid #e2e8f0;
     border-radius: 8px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
-.doc-standard .fifth-section .totals-section > div,
-.doc-quotation .fifth-section .totals-section > div { display: flex; width: 100%; }
+.doc-standard .fifth-section .totals-section>div {
+    display: flex;
+    width: 100%;
+}
 
 .doc-standard .fifth-section .totals-section .totals-section-sub1,
-.doc-standard .fifth-section .totals-section .totals-section-sub2,
-.doc-quotation .fifth-section .totals-section .totals-section-sub1,
-.doc-quotation .fifth-section .totals-section .totals-section-sub2 {
+.doc-standard .fifth-section .totals-section .totals-section-sub2 {
     display: flex;
     flex-direction: column;
     width: 50%;
 }
 
 .doc-standard .fifth-section .totals-section .totals-section-sub1 p,
-.doc-standard .fifth-section .totals-section .totals-section-sub2 p,
-.doc-quotation .fifth-section .totals-section .totals-section-sub1 p,
-.doc-quotation .fifth-section .totals-section .totals-section-sub2 p {
+.doc-standard .fifth-section .totals-section .totals-section-sub2 p {
     margin: 0;
-    padding: 11px 12px;
+    padding: 12px 15px;
     font-size: 13px;
-    border-bottom: 1px solid #cbd5e0;
-    font-weight: 600;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 500;
     line-height: 1.4;
 }
 
-.doc-standard .fifth-section .totals-section .totals-section-sub1 p,
-.doc-quotation .fifth-section .totals-section .totals-section-sub1 p {
-    background: #f0f4fa;
-    color: #1a1a1a;
+.doc-standard .fifth-section .totals-section .totals-section-sub1 p {
+    background: #f8fafc;
+    color: #64748b;
     text-align: left;
-    border-right: 1px solid #cbd5e0;
+    border-right: 1px solid #e2e8f0;
 }
 
-.doc-standard .fifth-section .totals-section .totals-section-sub2 p,
-.doc-quotation .fifth-section .totals-section .totals-section-sub2 p {
+.doc-standard .fifth-section .totals-section .totals-section-sub2 p {
     background: white;
-    color: #1a1a1a;
+    color: #1e293b;
     text-align: right;
+    font-weight: 600;
 }
 
 .doc-standard .fifth-section .totals-section .totals-section-sub1 p:last-child,
-.doc-standard .fifth-section .totals-section .totals-section-sub2 p:last-child,
-.doc-quotation .fifth-section .totals-section .totals-section-sub1 p:last-child,
-.doc-quotation .fifth-section .totals-section .totals-section-sub2 p:last-child {
-    background: #3765BC;
+.doc-standard .fifth-section .totals-section .totals-section-sub2 p:last-child {
+    background: #1a365d;
     color: white;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 14px;
     border-bottom: none;
-    padding: 13px 12px;
+    padding: 15px;
+}
+
+.doc-standard .fifth-section .fifth-section-sub2 p {
+    margin: 5px 0;
 }
 
 /* Bank Details & Payment Info */
-.doc-standard .fifth-section .bank-details,
-.doc-quotation .fifth-section .bank-details {
-    font-size: 14px;
+.doc-standard .fifth-section .bank-details {
+    font-size: 13px;
     display: flex;
-    gap: 15px;
-    background: white;
-    padding: 18px;
+    gap: 20px;
+    background: #f8fafc;
+    padding: 20px;
     border-radius: 8px;
-    border: 1.5px solid #e2e8f0;
+    border: 1px solid #e2e8f0;
 }
 
-.doc-standard .fifth-section .bank-details-sub2,
-.doc-quotation .fifth-section .bank-details-sub2 {
+.doc-standard .fifth-section .bank-details-sub2 {
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
-.doc-standard .fifth-section .bank-details-sub2 p,
-.doc-quotation .fifth-section .bank-details-sub2 p {
-    color: #2d3748;
+.doc-standard .fifth-section .bank-details-sub2 p {
+    color: #475569;
     font-size: 13px;
-    line-height: 1.5;
+    line-height: 1.6;
+    margin: 2px 0;
 }
 
-.doc-standard .fifth-section .bank-details-sub2 strong,
-.doc-quotation .fifth-section .bank-details-sub2 strong { color: #1a1a1a; font-weight: 600; }
-
-.doc-quotation .fifth-section .bank-details-sub2 h4 {
-    margin: 0 0 6px 0;
-    color: #1a1a1a;
-    font-size: 15px;
+.doc-standard .fifth-section .bank-details-sub2 strong {
+    color: #1e293b;
+    font-weight: 600;
 }
 
-.doc-standard .fifth-section-sub3,
-.doc-quotation .fifth-section-sub3 {
+.doc-standard .fifth-section-sub3 {
     display: flex;
-    font-size: 14px;
-    padding: 15px 18px;
-    background: white;
+    font-size: 13px;
+    padding: 12px 15px;
+    background: #f8fafc;
     border-radius: 8px;
-    border: 1.5px solid #e2e8f0;
+    border: 1px solid #e2e8f0;
     gap: 10px;
     align-items: center;
+    margin-bottom: 10px;
 }
 
-.doc-standard .fifth-section-sub3-1,
-.doc-quotation .fifth-section-sub3-1 { width: 30%; font-weight: 700; color: #1a1a1a; }
+.doc-standard .fifth-section-sub3-1 {
+    width: 30%;
+    font-weight: 600;
+    color: #64748b;
+}
 
-.doc-standard .fifth-section-sub3-2,
-.doc-quotation .fifth-section-sub3-2 {
+.doc-standard .fifth-section-sub3-2 {
     width: 70%;
-    color: #1a1a1a;
+    color: #1e293b;
     font-weight: 600;
     text-transform: capitalize;
 }
 
-.doc-standard .fifth-section .fifth-section-sub2 h3,
-.doc-quotation .fifth-section .fifth-section-sub2 h3 {
-    font-size: 17px;
-    color: #1a1a1a;
+.doc-standard .fifth-section .fifth-section-sub2 h3 {
+    font-size: 16px;
+    color: #1a365d;
     font-weight: 700;
-    border-bottom: 3px solid #007bff;
+    border-bottom: 2px solid #1a365d;
     padding-bottom: 8px;
+    margin-bottom: 5px;
 }
 
-.doc-standard .fifth-section .QR-code,
-.doc-quotation .fifth-section .QR-code {
-    width: 120px;
-    height: 120px;
+.doc-standard .fifth-section .QR-code {
+    width: 100px;
+    height: 100px;
     display: flex;
     justify-content: center;
     align-items: center;
     margin: 0;
     padding: 8px;
     background: white;
-    border: 1.5px solid #e2e8f0;
+    border: 1px solid #e2e8f0;
     border-radius: 8px;
     flex-shrink: 0;
 }
 
-.doc-standard .fifth-section .QR-code img,
-.doc-quotation .fifth-section .QR-code img { width: 100%; height: 100%; object-fit: contain; }
-
-/* ===== STANDARD DOCUMENTS SPECIFIC ===== */
-.doc-standard .fourth-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    margin-bottom: 25px;
+.doc-standard .fifth-section .QR-code img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
-.doc-standard .fourth-section table td:first-child { text-align: center; font-weight: 600; width: 6%; }
-.doc-standard .fourth-section table td:nth-child(2) { text-align: left; padding-left: 6px; width: 30%; }
-.doc-standard .fourth-section table td:nth-child(3) { width: 10%; }
-.doc-standard .fourth-section table td:nth-child(4) { width: 8%; }
-.doc-standard .fourth-section table td:nth-child(5),
-.doc-standard .fourth-section table td:nth-child(6),
-.doc-standard .fourth-section table td:nth-child(7),
-.doc-standard .fourth-section table td:nth-child(8) {
-    text-align: right;
-    padding-right: 6px;
-    font-weight: 600;
-    width: 11.5%;
-}
-.doc-standard .fourth-section table td:last-child { font-weight: 700; }
-
-.doc-standard .fifth-section .fifth-section-sub2 p { margin: 5px 0; }
-
+/* ===== ADDITIONAL SECTIONS ===== */
 .doc-standard .sixth-section,
 .doc-standard .seventh-section,
 .doc-standard .eighth-section {
     page-break-inside: avoid;
+    margin: 15px 0;
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
 }
 
 .doc-standard .sixth-section .declaration {
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.6;
-    color: #2d3748;
+    color: #475569;
     font-style: italic;
 }
 
 .doc-standard .sixth-section .declaration p,
-.doc-standard .sixth-section p { margin: 0; line-height: 1.6; }
+.doc-standard .sixth-section p {
+    margin: 0;
+    line-height: 1.6;
+}
 
-.doc-standard .seventh-section { font-size: 13px; line-height: 1.6; }
-.doc-standard .seventh-section p { margin: 6px 0; color: #2d3748; }
+.doc-standard .seventh-section {
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.doc-standard .seventh-section p {
+    margin: 6px 0;
+    color: #475569;
+}
+
 .doc-standard .seventh-section h3 {
     margin: 0 0 10px 0;
-    font-size: 15px;
-    color: #1a1a1a;
+    font-size: 14px;
+    color: #1a365d;
     font-weight: 700;
-    border-bottom: 2px solid #3765BC;
+    border-bottom: 2px solid #1a365d;
     padding-bottom: 6px;
 }
-.doc-standard .seventh-section .terms-section { 
-    line-height: 1.7; 
-}
 
-.doc-quotation .terms-section {
-        height: fit-content;
+.doc-standard .seventh-section .terms-section {
+    line-height: 1.7;
 }
 
 .doc-standard .eighth-section {
@@ -481,15 +496,28 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    margin-top: 25px;
+    margin-top: 30px;
+    background: transparent;
+    border: none;
+    padding: 0;
 }
-.doc-standard .eighth-section p { margin: 5px 0; font-size: 14px; color: #2d3748; }
-.doc-standard .eighth-section strong { color: #1a1a1a; font-weight: 600; }
+
+.doc-standard .eighth-section p {
+    margin: 4px 0;
+    font-size: 13px;
+    color: #475569;
+}
+
+.doc-standard .eighth-section strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
 .doc-standard .eighth-section-space {
-    margin: 15px 0;
-    width: 180px;
-    height: 50px;
-    border-bottom: 1.5px solid #718096;
+    margin: 10px 0;
+    width: 200px;
+    height: 40px;
+    border-bottom: 1px solid #94a3b8;
 }
 
 .doc-standard .ninth-section {
@@ -499,304 +527,76 @@ body {
     width: 100%;
     text-align: center;
     font-size: 11px;
-    color: #718096;
-    margin-bottom: 10px;
+    color: #94a3b8;
+    margin-bottom: 15px;
     padding-top: 15px;
     font-style: italic;
 }
 
-
-/* ===== QUOTATION SPECIFIC ===== */
-.doc-quotation { display: flex; flex-direction: column; }
-.doc-quotation .items-section { margin-bottom: 25px; }
-.doc-quotation .headline-section {
-    font-size: 15px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 10px;
-}
-
-/* Quotation letter date field */
-.doc-quotation .quotation-letter-date {
-    text-align: right;
-    margin: 15px 0;
-    padding-right: 10px;
-}
-
-.doc-quotation .quotation-letter-date p {
-    margin: 0;
-    font-size: 13px;
-    color: #1a1a1a;
-    font-weight: 500;
-}
-
-/* Quotation letter content - Formal Business Letter Format */
-.doc-quotation .quotation-letter-content {
-    font-size: 13px;
-    line-height: 1.6;
-    color: #1a1a1a;
-    margin: 25px 0;
-    padding: 0 10px;
-    text-align: justify;
-}
-
-/* Recipient address block at top */
-.doc-quotation .quotation-letter-content p:first-child {
-    margin: 0 0 20px 0;
-    line-height: 1.5;
-    font-weight: 500;
-}
-
-/* Subject line */
-.doc-quotation .quotation-letter-content p:nth-child(2) {
-    margin: 0 0 15px 0;
-    font-weight: 600;
-    text-decoration: underline;
-}
-
-/* Salutation (Dear...) */
-.doc-quotation .quotation-letter-content p:nth-child(3) {
-    margin: 0 0 15px 0;
-}
-
-/* Body paragraphs */
-.doc-quotation .quotation-letter-content p {
-    margin: 12px 0;
-    line-height: 1.7;
-    text-align: justify;
-}
-
-.doc-quotation .quotation-letter-content strong {
-    color: #1a1a1a;
-    font-weight: 600;
-}
-
-/* Proposal list */
-.doc-quotation .quotation-letter-content ul {
-    margin: 10px 0 15px 0;
-    padding-left: 30px;
-    list-style-type: disc;
-}
-
-.doc-quotation .quotation-letter-content ul li {
-    margin: 6px 0;
-    line-height: 1.6;
-}
-
-/* Closing paragraphs (after list) - "We look forward..." and "Best regards," */
-.doc-quotation .quotation-letter-content p:nth-last-child(2),
-.doc-quotation .quotation-letter-content p:nth-last-child(1) {
-    margin-top: 15px;
-}
-
-/* Signature block (last paragraph) */
-.doc-quotation .quotation-letter-content p:last-child {
-    margin-top: 40px;
-    line-height: 1.8;
-}
-
-.doc-quotation table td:nth-child(1),
-.doc-quotation table td:nth-child(2) { text-align: left; padding-left: 6px; }
-.doc-quotation table td:nth-child(3) { text-align: center; }
-.doc-quotation table td:first-child { text-align: center; font-weight: 600; }
-.doc-quotation table td:nth-child(5) { text-align: right; font-weight: 600; }
-.doc-quotation table td:nth-child(6) { text-align: right; font-weight: 600; }
-.doc-quotation table td:nth-child(8) { text-align: right; font-weight: 600; }
-
-.doc-quotation .terms-section,
-.doc-quotation .notes-section,
-.doc-quotation .closing-section {
-    padding: 15px 18px;
-}
-
-.doc-quotation .terms-section { font-size: 13px; line-height: 1.7; }
-.doc-quotation .notes-section { font-size: 13px; line-height: 1.6; }
-.doc-quotation .notes-section p { margin: 0 0 6px 0; font-weight: 600; }
-.doc-quotation .notes-section ul { margin: 6px 0; padding-left: 20px; }
-.doc-quotation .notes-section li { margin: 3px 0; color: #2d3748; }
-
-.doc-quotation .closing-section { font-size: 14px; line-height: 1.6; }
-.doc-quotation .closing-section p { margin: 5px 0; color: #2d3748; }
-.doc-quotation .closing-section strong { color: #1a1a1a; font-weight: 600; }
-
-.doc-quotation .declaration {
-    font-size: 13px;
-    line-height: 1.6;
-    color: #2d3748;
-    font-style: italic;
-    padding: 15px 18px;
-}
-
-.doc-quotation .signature {
-    text-align: right;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-top: 25px;
-    padding: 15px 18px;
-    background: white;
-    border-radius: 6px;
-    border: 1.5px solid #e2e8f0;
-    page-break-inside: avoid;
-}
-.doc-quotation .signature p { margin: 5px 0; font-size: 14px; color: #2d3748; }
-.doc-quotation .signature strong { color: #1a1a1a; font-weight: 600; }
-.doc-quotation .signature-space {
-    margin: 15px 0;
-    width: 180px;
-    height: 50px;
-    border-bottom: 1.5px solid #718096;
-}
-
-.doc-quotation, .doc-standard {
+/* ===== FOOTER ===== */
+.doc-standard {
     position: relative;
 }
 
-.doc-quotation footer, .doc-standard footer {
+.doc-standard footer {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
     text-align: center;
     font-size: 11px;
-    color: #718096;
-    margin-bottom: 10px;
+    color: #94a3b8;
+    margin-bottom: 15px;
     padding-top: 15px;
     font-style: italic;
 }
-.doc-quotationfooter, .doc-standard footer p { font-size: 11px; margin: 0; }
 
-.doc-quotation #image-preview-container { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; }
+.doc-standard footer p {
+    font-size: 11px;
+    margin: 0;
+}
 
 
-/* ===== PRINT OPTIMIZATION ===== */
+/* ===== PRINT OPTIMIZATION - STANDARD ===== */
 @media print {
-    .doc-standard .fourth-section table,
-    .doc-quotation table {
-        border: 1.5px solid #3765BC;
+
+    .doc-standard .fourth-section table {
+        border: 1px solid #e2e8f0;
         page-break-inside: avoid;
     }
-    
-    .doc-standard .fourth-section table th,
-    .doc-standard .fourth-section table td,
-    .doc-quotation table th,
-    .doc-quotation table td {
-        padding: 7px 5px;
-        font-size: 11px;
-        line-height: 1.3;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-    
-    .doc-standard .fourth-section table th,
-    .doc-quotation table th {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        background: #3765BC !important;
+
+    .doc-standard .fourth-section table th {
+        background: #1a365d !important;
         color: #ffffff !important;
-    }
-    
-    .doc-standard .fourth-section table tbody tr:nth-child(even),
-    .doc-quotation table tbody tr:nth-child(even) {
-        background-color: #f8fbff !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
-    
-    .doc-standard .fifth-section .totals-section,
-    .doc-quotation .fifth-section .totals-section {
-        border: 1.5px solid #3765BC;
-        /* relax min-width for print so totals can reflow on narrow pages */
-        min-width: 160px;
-        page-break-inside: avoid;
-    }
-    
-    .doc-standard .fifth-section .totals-section .totals-section-sub1 p,
-    .doc-quotation .fifth-section .totals-section .totals-section-sub1 p {
-        background: #f0f4fa !important;
+
+    .doc-standard .fourth-section table tbody tr:nth-child(even) {
+        background-color: #f8fafc !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
-    
+
+    .doc-standard .fifth-section .totals-section .totals-section-sub1 p {
+        background: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
     .doc-standard .fifth-section .totals-section .totals-section-sub1 p:last-child,
-    .doc-standard .fifth-section .totals-section .totals-section-sub2 p:last-child,
-    .doc-quotation .fifth-section .totals-section .totals-section-sub1 p:last-child,
-    .doc-quotation .fifth-section .totals-section .totals-section-sub2 p:last-child {
-        background: #3765BC !important;
+    .doc-standard .fifth-section .totals-section .totals-section-sub2 p:last-child {
+        background: #1a365d !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        font-size: 14px;
-        padding: 12px;
     }
-    
-    .doc-standard .first-section,
-    .doc-quotation .header { margin-bottom: 10px; padding-bottom: 10px; }
-    
-    .doc-standard .second-section,
-    .doc-quotation .title {
-        margin-bottom: 10px;
-        padding: 10px 15px;
+
+    .doc-standard .second-section {
+        background: #f8fafc !important;
+        color: #1a365d !important;
+        border: 1px solid #e2e8f0 !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        background: #007bff !important;
-        color: #ffffff !important;
     }
-    
-    .doc-standard .third-section,
-    .doc-quotation .first-section { margin-bottom: 10px; }
-    
-    .doc-standard .fourth-section,
-    .doc-quotation .items-section { margin-bottom: 15px; }
-    
-    .doc-standard .fifth-section,
-    .doc-quotation .fifth-section { margin-top: 15px; gap: 15px; }
-    
-    .doc-standard .fifth-section-sub1,
-    .doc-quotation .fifth-section-sub1 { gap: 15px; }
-    
-    .doc-standard .fifth-section-sub2,
-    .doc-quotation .fifth-section-sub2 { gap: 10px; }
-    
-    .doc-standard .fifth-section-sub3,
-    .doc-quotation .fifth-section-sub3 { margin-bottom: 8px; padding: 10px 12px; }
-    
-    .doc-standard .fifth-section .QR-code,
-    .doc-quotation .fifth-section .QR-code { width: 90px; height: 90px; padding: 5px; }
-    
-    .doc-standard .sixth-section,
-    .doc-standard .seventh-section,
-    .doc-standard .eighth-section,
-    .doc-quotation .terms-section,
-    .doc-quotation .notes-section,
-    .doc-quotation .closing-section,
-    .doc-quotation .signature {
-        margin: 10px 0;
-        padding: 12px 15px;
-        page-break-inside: avoid;
-        border: 1.5px solid #e2e8f0;
-    }
-    
-    .doc-standard .fifth-section .bank-details,
-    .doc-quotation .fifth-section .bank-details {
-        border: 1.5px solid #e2e8f0;
-        padding: 15px;
-        page-break-inside: avoid;
-    }
-    
-    .doc-standard .fifth-section-sub3,
-    .doc-quotation .fifth-section-sub3 {
-        margin-bottom: 8px;
-        padding: 12px 15px;
-        border: 1.5px solid #e2e8f0;
-    }
-    
-    .doc-standard .fifth-section .QR-code,
-    .doc-quotation .fifth-section .QR-code { width: 100px; height: 100px; padding: 5px; }
-    
-    .doc-standard .eighth-section-space,
-    .doc-quotation .signature-space { margin: 8px 0; height: 30px; }
-    
-    .doc-standard .ninth-section,
-    .doc-quotation footer { margin-top: 10px; padding-top: 8px; }
 }

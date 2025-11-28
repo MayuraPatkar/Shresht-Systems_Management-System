@@ -424,7 +424,7 @@ async function generatePreview() {
         </div>
     `;
 
-    const ITEMS_PER_PAGE = 15; // Represents available lines on a page for items.
+    const ITEMS_PER_PAGE = 20; // Represents available lines on a page for items.
     const SUMMARY_SECTION_ROW_COUNT = 8; // Estimated height of totals, payment, and notes sections.
 
     // Build pages with the new logic

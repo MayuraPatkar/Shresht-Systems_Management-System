@@ -1,0 +1,628 @@
+/* ====================================================================
+   QUOTATION DOCUMENT STYLES
+   Extracted from unified documentStyles.css
+   ==================================================================== */
+
+/* ===== QUOTATION HEADER ===== */
+.doc-quotation .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 30px;
+    margin-bottom: 24px;
+    background: #1a365d;
+    /* Brand Navy */
+    border-radius: 12px;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.doc-quotation .header .quotation-brand {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.doc-quotation .header .logo {
+    width: 80px;
+    height: 80px;
+    background: #ffffff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.doc-quotation .header .logo img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.doc-quotation .header .quotation-brand-text h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+
+.doc-quotation .header .quotation-tagline {
+    margin-top: 4px;
+    color: #e2e8f0;
+    /* Slate 200 */
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.doc-quotation .header .company-details {
+    text-align: right;
+    line-height: 1.6;
+}
+
+.doc-quotation .header .company-details p {
+    margin: 0;
+    color: #f1f5f9;
+    /* Slate 100 */
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ===== QUOTATION TITLE ===== */
+.doc-quotation .title {
+    background: #f8fafc;
+    /* Slate 50 */
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 18px;
+    color: #1a365d;
+    /* Brand Navy */
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+/* ===== QUOTATION INFO SECTION ===== */
+.doc-quotation .first-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 24px;
+    padding: 0 10px;
+}
+
+.doc-quotation .buyer-details {
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    width: 48%;
+}
+
+.doc-quotation .buyer-details p {
+    margin: 4px 0;
+    color: #334155;
+    /* Slate 700 */
+}
+
+.doc-quotation .buyer-details strong {
+    color: #0f172a;
+    /* Slate 900 */
+    font-weight: 600;
+}
+
+/* ===== QUOTATION LETTER DATE ===== */
+.doc-quotation .quotation-letter-date {
+    text-align: right;
+    margin: 20px 0;
+    padding-right: 10px;
+}
+
+.doc-quotation .quotation-letter-date p {
+    margin: 0;
+    font-size: 13px;
+    color: #1e293b;
+    font-weight: 500;
+}
+
+/* ===== QUOTATION LETTER CONTENT - FORMAL BUSINESS LETTER FORMAT ===== */
+.doc-quotation .quotation-letter-content {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #334155;
+    margin: 30px 0;
+    padding: 0 10px;
+    text-align: justify;
+}
+
+/* Recipient address block at top */
+.doc-quotation .quotation-letter-content p:first-child {
+    margin: 0 0 24px 0;
+    line-height: 1.6;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+/* Subject line */
+.doc-quotation .quotation-letter-content p:nth-child(2) {
+    margin: 0 0 20px 0;
+    font-weight: 700;
+    text-decoration: underline;
+    color: #1a365d;
+}
+
+/* Salutation (Dear...) */
+.doc-quotation .quotation-letter-content p:nth-child(3) {
+    margin: 0 0 15px 0;
+    font-weight: 500;
+}
+
+/* Body paragraphs */
+.doc-quotation .quotation-letter-content p {
+    margin: 12px 0;
+    line-height: 1.7;
+    text-align: justify;
+}
+
+.doc-quotation .quotation-letter-content strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+/* Proposal list */
+.doc-quotation .quotation-letter-content ul {
+    margin: 12px 0 20px 0;
+    padding-left: 30px;
+    list-style-type: disc;
+}
+
+.doc-quotation .quotation-letter-content ul li {
+    margin: 8px 0;
+    line-height: 1.6;
+    color: #334155;
+}
+
+/* Closing paragraphs (after list) - "We look forward..." and "Best regards," */
+.doc-quotation .quotation-letter-content p:nth-last-child(2),
+.doc-quotation .quotation-letter-content p:nth-last-child(1) {
+    margin-top: 20px;
+}
+
+/* Signature block (last paragraph) */
+.doc-quotation .quotation-letter-content p:last-child {
+    margin-top: 50px;
+    line-height: 1.8;
+    color: #1e293b;
+}
+
+/* ===== QUOTATION ITEMS SECTION ===== */
+.doc-quotation {
+    display: flex;
+    flex-direction: column;
+}
+
+.doc-quotation .items-section {
+    margin-bottom: 20px;
+}
+
+.doc-quotation .headline-section {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ===== QUOTATION TABLE STYLES ===== */
+.doc-quotation table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    margin-top: 10px;
+    background: #ffffff;
+    table-layout: auto;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.doc-quotation table th,
+.doc-quotation table td {
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.4;
+}
+
+.doc-quotation table th:last-child,
+.doc-quotation table td:last-child {
+    border-right: none;
+}
+
+.doc-quotation table tr:last-child td {
+    border-bottom: none;
+}
+
+.doc-quotation table th {
+    background: #1a365d;
+    /* Brand Navy */
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 10px;
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.doc-quotation table th:last-child {
+    border-right: none;
+}
+
+.doc-quotation table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+    /* Slate 50 */
+}
+
+.doc-quotation table td {
+    color: #334155;
+    /* Slate 700 */
+    vertical-align: middle;
+    font-weight: 500;
+}
+
+.doc-quotation table td:nth-child(1),
+.doc-quotation table td:nth-child(2) {
+    text-align: left;
+    padding-left: 10px;
+}
+
+.doc-quotation table td:nth-child(3) {
+    text-align: center;
+}
+
+.doc-quotation table td:first-child {
+    text-align: center;
+    font-weight: 600;
+}
+
+.doc-quotation table td:nth-child(5) {
+    text-align: right;
+    font-weight: 600;
+}
+
+.doc-quotation table td:nth-child(6) {
+    text-align: right;
+    font-weight: 600;
+}
+
+.doc-quotation table td:nth-child(8) {
+    text-align: right;
+    font-weight: 600;
+}
+
+/* ===== QUOTATION TOTALS SECTION ===== */
+.doc-quotation .fifth-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    page-break-inside: avoid;
+    margin-top: 24px;
+}
+
+.doc-quotation .fifth-section-sub1 {
+    width: 100%;
+    display: flex;
+    gap: 20px;
+}
+
+.doc-quotation .fifth-section-sub2 {
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    gap: 15px;
+}
+
+.doc-quotation .fifth-section .totals-section {
+    width: 40%;
+    min-width: 200px;
+    height: fit-content;
+    font-size: 13px;
+    background: white;
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.doc-quotation .fifth-section .totals-section>div {
+    display: flex;
+    width: 100%;
+}
+
+.doc-quotation .fifth-section .totals-section .totals-section-sub1,
+.doc-quotation .fifth-section .totals-section .totals-section-sub2 {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+}
+
+.doc-quotation .fifth-section .totals-section .totals-section-sub1 p,
+.doc-quotation .fifth-section .totals-section .totals-section-sub2 p {
+    margin: 0;
+    padding: 12px 15px;
+    font-size: 13px;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.doc-quotation .fifth-section .totals-section .totals-section-sub1 p {
+    background: #f8fafc;
+    color: #64748b;
+    text-align: left;
+    border-right: 1px solid #e2e8f0;
+}
+
+.doc-quotation .fifth-section .totals-section .totals-section-sub2 p {
+    background: white;
+    color: #1e293b;
+    text-align: right;
+    font-weight: 600;
+}
+
+.doc-quotation .fifth-section .totals-section .totals-section-sub1 p:last-child,
+.doc-quotation .fifth-section .totals-section .totals-section-sub2 p:last-child {
+    background: #1a365d;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    border-bottom: none;
+    padding: 15px;
+}
+
+/* ===== QUOTATION BANK DETAILS ===== */
+.doc-quotation .fifth-section .bank-details {
+    font-size: 13px;
+    display: flex;
+    gap: 20px;
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.doc-quotation .fifth-section .bank-details-sub2 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.doc-quotation .fifth-section .bank-details-sub2 p {
+    color: #000000;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 2px 0;
+}
+
+.doc-quotation .fifth-section .bank-details-sub2 strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.doc-quotation .fifth-section .bank-details-sub2 h4 {
+    margin: 0 0 8px 0;
+    color: #1a365d;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.doc-quotation .fifth-section-sub3 {
+    display: flex;
+    font-size: 13px;
+    padding: 12px 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.doc-quotation .fifth-section-sub3-1 {
+    width: 30%;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.doc-quotation .fifth-section-sub3-2 {
+    width: 70%;
+    color: #1e293b;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.doc-quotation .fifth-section .fifth-section-sub2 h3 {
+    font-size: 16px;
+    color: #1a365d;
+    font-weight: 700;
+    border-bottom: 2px solid #1a365d;
+    padding-bottom: 8px;
+    margin-bottom: 5px;
+}
+
+.doc-quotation .fifth-section .QR-code {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 8px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.doc-quotation .fifth-section .QR-code img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* ===== QUOTATION TERMS, NOTES, CLOSING SECTIONS ===== */
+.doc-quotation .terms-section,
+.doc-quotation .notes-section,
+.doc-quotation .closing-section {
+    padding: 15px 20px;
+    margin: 15px 0;
+    /* border: 1px solid #e2e8f0; */
+    /* border-radius: 8px; */
+    /* background: #f8fafc; */
+}
+
+.doc-quotation .terms-section {
+    height: fit-content;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #000000;
+}
+
+.doc-quotation .notes-section {
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.doc-quotation .notes-section p {
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    color: #1a365d;
+}
+
+.doc-quotation .notes-section ul {
+    margin: 6px 0;
+    padding-left: 20px;
+}
+
+.doc-quotation .notes-section li {
+    margin: 4px 0;
+    color: #000000;
+}
+
+.doc-quotation .closing-section {
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.doc-quotation .closing-section p {
+    margin: 6px 0;
+    color: #334155;
+}
+
+.doc-quotation .closing-section strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+/* ===== QUOTATION DECLARATION ===== */
+.doc-quotation .declaration {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #64748b;
+    font-style: italic;
+    padding: 15px 20px;
+}
+
+/* ===== QUOTATION FOOTER ===== */
+.doc-quotation {
+    position: relative;
+}
+
+.doc-quotation footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 15px;
+    padding-top: 15px;
+    font-style: italic;
+}
+
+.doc-quotationfooter p {
+    font-size: 11px;
+    margin: 0;
+}
+
+.doc-quotation #image-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+/* ===== PRINT OPTIMIZATION FOR QUOTATION ===== */
+@media print {
+    .doc-quotation table {
+        border: 1px solid #e2e8f0;
+        page-break-inside: avoid;
+    }
+
+    .doc-quotation table th {
+        background: #1a365d !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .doc-quotation table tbody tr:nth-child(even) {
+        background-color: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .doc-quotation .fifth-section .totals-section .totals-section-sub1 p {
+        background: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .doc-quotation .fifth-section .totals-section .totals-section-sub1 p:last-child,
+    .doc-quotation .fifth-section .totals-section .totals-section-sub2 p:last-child {
+        background: #1a365d !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .doc-quotation .title {
+        background: #f8fafc !important;
+        color: #1a365d !important;
+        border: 1px solid #e2e8f0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
