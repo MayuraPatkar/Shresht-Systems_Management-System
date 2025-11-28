@@ -144,7 +144,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
         </div>`;
     }
 
-    const ITEMS_PER_PAGE = 15;
+    const ITEMS_PER_PAGE = 20;
     const SUMMARY_SECTION_ROW_COUNT = 8;
 
     const itemPages = [];

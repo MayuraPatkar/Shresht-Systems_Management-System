@@ -150,7 +150,7 @@ if (nextBtn) {
   nextBtn.addEventListener("click", () => {
     if (currentStep < totalSteps) {
       changeStep(currentStep + 1);
-      ntById('id') || document.getElementById('service-id'); const idInput = document.getEleme
+      const idInput = document.getElementById('id') || document.getElementById('service-id');
       if (currentStep === totalSteps && !idInput?.value) getId();
       else if (currentStep === totalSteps && idInput?.value) generatePreview();
     }

@@ -417,7 +417,7 @@
 }
 
 .doc-quotation .fifth-section .bank-details-sub2 p {
-    color: #475569;
+    color: #000000;
     font-size: 13px;
     line-height: 1.6;
     margin: 2px 0;
@@ -497,16 +497,16 @@
 .doc-quotation .closing-section {
     padding: 15px 20px;
     margin: 15px 0;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background: #f8fafc;
+    /* border: 1px solid #e2e8f0; */
+    /* border-radius: 8px; */
+    /* background: #f8fafc; */
 }
 
 .doc-quotation .terms-section {
     height: fit-content;
     font-size: 12px;
     line-height: 1.7;
-    color: #475569;
+    color: #000000;
 }
 
 .doc-quotation .notes-section {
@@ -527,7 +527,7 @@
 
 .doc-quotation .notes-section li {
     margin: 4px 0;
-    color: #475569;
+    color: #000000;
 }
 
 .doc-quotation .closing-section {
