@@ -221,25 +221,6 @@ ${processedQuotationStyles}
                             page-break-inside: avoid;
                         }
                         
-                        /* Footer positioning - always at bottom for fixed pages */
-                        .preview-container:has(.quotation-letter-content) footer,
-                        .preview-container:has(.terms-section):not(:has(.items-section)) footer {
-                            position: absolute !important;
-                            bottom: 15px !important;
-                            left: 0 !important;
-                            right: 0 !important;
-                            width: 100% !important;
-                            margin: 0 !important;
-                            padding: 0 30px !important;
-                        }
-                        
-                        /* Footer for items pages - relative positioning */
-                        .preview-container:has(.items-section) footer {
-                            position: relative !important;
-                            margin-top: 20px !important;
-                            padding: 0 !important;
-                        }
-                        
                         /* Letter content page - ensure content fits */
                         .doc-quotation .quotation-letter-content {
                             font-size: 12px !important;
@@ -262,12 +243,6 @@ ${processedQuotationStyles}
                         .doc-quotation .quotation-letter-content ul li {
                             margin: 5px 0 !important;
                             line-height: 1.4 !important;
-                        }
-                        
-                        /* Signature block at end of letter */
-                        .doc-quotation .quotation-letter-content p:last-child {
-                            margin-top: 20px !important;
-                            line-height: 1.6 !important;
                         }
                         
                         /* Terms section - compact for fitting */
@@ -467,7 +442,6 @@ ${processedQuotationStyles}
                         
                         /* Notes and terms sections */
                         .notes-section, .terms-section {
-                            background: #f8fafc !important;
                             -webkit-print-color-adjust: exact !important;
                             print-color-adjust: exact !important;
                         }
@@ -626,24 +600,6 @@ ${processedQuotationStyles}
                             max-height: none !important;
                             overflow: visible !important;
                             display: block !important;
-                        }
-                        
-                        /* Footer for fixed pages */
-                        .preview-container:has(.quotation-letter-content) footer,
-                        .preview-container:has(.terms-section):not(:has(.items-section)) footer {
-                            position: absolute !important;
-                            bottom: 15px !important;
-                            left: 0 !important;
-                            right: 0 !important;
-                            width: 100% !important;
-                            margin: 0 !important;
-                            padding: 0 30px !important;
-                        }
-                        
-                        /* Footer for items pages */
-                        .preview-container:has(.items-section) footer {
-                            position: relative !important;
-                            margin-top: 20px !important;
                         }
                         
                         /* Items section - no extra space */
