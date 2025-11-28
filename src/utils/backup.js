@@ -24,7 +24,8 @@ function autoBackup() {
     const backupPath = path.join(backupDir, `backup-${timestamp}.gz`);
 
     // 3. Construct the mongodump command to create a compressed archive.
-    const cmd = `mongodump --uri="mongodb://127.0.0.1:27017/shreshtSystems" --archive="${backupPath}" --gzip`;
+    const config = require("../config/config");
+    const cmd = `"${config.mongoDumpPath}" --uri="mongodb://127.0.0.1:27017/shreshtSystems" --archive="${backupPath}" --gzip`;
 
     // 4. Execute the command and log the success or failure.
     exec(cmd, (err, stdout, stderr) => {
