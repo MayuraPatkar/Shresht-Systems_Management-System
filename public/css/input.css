@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* Your custom CSS can go here */
 @layer base {
@@ -12,9 +10,23 @@
   }
 
   /* Prevent selection of UI elements - global */
-  button, label, h1, h2, h3, h4, h5, h6, 
-  header, nav, aside, img, svg, i,
-  [role="button"], [role="navigation"], [role="banner"],
+  button,
+  label,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  header,
+  nav,
+  aside,
+  img,
+  svg,
+  i,
+  [role="button"],
+  [role="navigation"],
+  [role="banner"],
   .no-select {
     user-select: none;
     -webkit-user-select: none;
@@ -27,20 +39,29 @@
   .btn {
     @apply px-4 py-2 rounded font-medium transition-colors;
   }
-  
+
   .btn-primary {
     @apply bg-blue-600 text-white hover:bg-blue-700;
   }
-  
+
   .table-row {
     @apply hover:bg-gray-50 transition-colors;
   }
 
   /* Prevent selection for common UI patterns */
-  .sidebar, .navbar, .header,
-  .card-header, .badge, .chip, .tag,
-  .icon, .logo, .avatar,
-  [class*="btn-"], [class*="badge-"], [class*="icon-"] {
+  .sidebar,
+  .navbar,
+  .header,
+  .card-header,
+  .badge,
+  .chip,
+  .tag,
+  .icon,
+  .logo,
+  .avatar,
+  [class*="btn-"],
+  [class*="badge-"],
+  [class*="icon-"] {
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
