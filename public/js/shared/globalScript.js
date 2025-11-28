@@ -16,7 +16,7 @@ document.addEventListener("keydown", function (event) {
 document.addEventListener("keydown", function (event) {
   if (event.ctrlKey && event.key === "Tab") {
     event.preventDefault(); // Prevent default browser tab switching
-    
+
     // Define the navigation order matching the server routes exactly
     const navigationOrder = [
       '/dashboard',
@@ -30,30 +30,30 @@ document.addEventListener("keydown", function (event) {
       '/calculations',
       '/settings'
     ];
-    
+
     // Get current path
     const currentPath = window.location.pathname;
-    
+
     // Find current index - match exactly
     let currentIndex = navigationOrder.findIndex(route => currentPath === route);
-    
+
     // If not found, try to find partial match
     if (currentIndex === -1) {
-      currentIndex = navigationOrder.findIndex(route => 
+      currentIndex = navigationOrder.findIndex(route =>
         currentPath.toLowerCase().includes(route.toLowerCase())
       );
     }
-    
+
     // If still not found, default to first item
     if (currentIndex === -1) {
       currentIndex = 0;
     }
-    
+
     // Move to next/previous tab with wrapping
-    const nextIndex = event.shiftKey 
+    const nextIndex = event.shiftKey
       ? (currentIndex - 1 + navigationOrder.length) % navigationOrder.length
       : (currentIndex + 1) % navigationOrder.length;
-    
+
     // Navigate using window.location.replace to avoid popup blocking
     window.location.replace(navigationOrder[nextIndex]);
   }
@@ -150,7 +150,7 @@ if (nextBtn) {
   nextBtn.addEventListener("click", () => {
     if (currentStep < totalSteps) {
       changeStep(currentStep + 1);
-ntById('id') || document.getElementById('service-id');      const idInput = document.getEleme
+      ntById('id') || document.getElementById('service-id'); const idInput = document.getEleme
       if (currentStep === totalSteps && !idInput?.value) getId();
       else if (currentStep === totalSteps && idInput?.value) generatePreview();
     }
@@ -177,7 +177,7 @@ function changeStep(step) {
   const currentStepEl = document.getElementById(`step-${currentStep}`);
   const nextStepEl = document.getElementById(`step-${step}`);
   const stepIndicator = document.getElementById("step-indicator");
-  
+
   if (currentStepEl) currentStepEl.classList.remove("active");
   currentStep = step;
   if (nextStepEl) nextStepEl.classList.add("active");
@@ -189,7 +189,7 @@ function changeStep(step) {
 function updateNavigation() {
   const prevBtn = document.getElementById("prev-btn");
   const nextBtn = document.getElementById("next-btn");
-  
+
   if (prevBtn) prevBtn.disabled = currentStep === 1;
   if (nextBtn) nextBtn.disabled = currentStep === totalSteps;
 }
@@ -229,11 +229,11 @@ function addItem() {
   const container = document.getElementById("items-container");
   const tableBody = document.querySelector("#items-table tbody");
   const itemNumber = tableBody.children.length + 1;
-  
+
   // Create card element
   const card = document.createElement("div");
   card.className = "item-card";
-  
+
   card.innerHTML = `
     <div class="item-number">${itemNumber}</div>
     
@@ -264,12 +264,12 @@ function addItem() {
       <i class="fas fa-trash-alt"></i>
     </button>
   `;
-  
+
   // Append card to container
   if (container) {
     container.appendChild(card);
   }
-  
+
   // Also add to hidden table for backward compatibility
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -289,7 +289,7 @@ function addItem() {
   // Setup autocomplete for the card
   const cardInput = card.querySelector(".item_name");
   const cardSuggestions = card.querySelector(".suggestions");
-  
+
   cardInput.addEventListener("input", function () {
     showSuggestions(cardInput, cardSuggestions);
     // Update specifications table when item description changes (with debounce)
@@ -306,11 +306,11 @@ function addItem() {
   });
 
   // Close suggestions when clicking outside (handled by global listener below)
-  
+
   // Also setup autocomplete for the table row input (backward compatibility)
   const tableInput = row.querySelector(".item_name");
   const tableSuggestions = row.querySelector(".suggestions");
-  
+
   if (tableInput && tableSuggestions) {
     tableInput.addEventListener("input", function () {
       showSuggestions(tableInput, tableSuggestions);
@@ -331,11 +331,11 @@ function addItem() {
       handleKeyboardNavigation(event, tableInput, tableSuggestions);
     });
   }
-  
+
   // Sync all inputs from card to table
   const cardInputs = card.querySelectorAll("input");
   const tableInputs = row.querySelectorAll("input");
-  
+
   cardInputs.forEach((input, index) => {
     input.addEventListener("input", () => {
       if (tableInputs[index]) {
@@ -343,10 +343,10 @@ function addItem() {
       }
     });
   });
-  
+
   // Handle remove button
   const removeBtn = card.querySelector(".remove-item-btn");
-  removeBtn.addEventListener("click", function() {
+  removeBtn.addEventListener("click", function () {
     card.remove();
     row.remove();
     updateItemNumbers();
@@ -358,11 +358,11 @@ function addNonItem() {
   const container = document.getElementById("non-items-container");
   const tableBody = document.querySelector("#non-items-table tbody");
   const itemNumber = tableBody.children.length + 1;
-  
+
   // Create card element
   const card = document.createElement("div");
   card.className = "non-item-card";
-  
+
   card.innerHTML = `
     <div class="item-number">${itemNumber}</div>
     
@@ -382,12 +382,12 @@ function addNonItem() {
       <i class="fas fa-trash-alt"></i>
     </button>
   `;
-  
+
   // Append card to container
   if (container) {
     container.appendChild(card);
   }
-  
+
   // Also add to hidden table for backward compatibility
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -404,7 +404,7 @@ function addNonItem() {
 
   // Setup input for the card
   const cardInput = card.querySelector("input[placeholder*='Installation']");
-  
+
   cardInput.addEventListener("input", function () {
     // Update specifications table when item description changes (with debounce)
     clearTimeout(cardInput.specUpdateTimeout);
@@ -414,11 +414,11 @@ function addNonItem() {
       }
     }, 500);
   });
-  
+
   // Sync inputs from card to table
   const cardInputs = card.querySelectorAll("input");
   const tableInputs = row.querySelectorAll("input");
-  
+
   cardInputs.forEach((input, index) => {
     input.addEventListener("input", () => {
       if (tableInputs[index]) {
@@ -426,10 +426,10 @@ function addNonItem() {
       }
     });
   });
-  
+
   // Handle remove button
   const removeBtn = card.querySelector(".remove-item-btn");
-  removeBtn.addEventListener("click", function() {
+  removeBtn.addEventListener("click", function () {
     card.remove();
     row.remove();
     updateNonItemNumbers();
@@ -502,7 +502,7 @@ function showSuggestions(input, suggestionsList) {
       input.value = item;
       // Trigger input event to sync description with table
       input.dispatchEvent(new Event('input', { bubbles: true }));
-      
+
       const parent = input.closest('.item-card') || input.closest('tr');
       await fill(item, parent);
       suggestionsList.style.display = "none";
@@ -526,7 +526,7 @@ async function handleKeyboardNavigation(event, input, suggestionsList) {
     event.preventDefault(); // Prevent cursor movement and scrolling
     selectedIndex = (selectedIndex + 1) % items.length;
     input.value = items[selectedIndex].textContent;
-    
+
     // Update visual selection
     items.forEach((item, index) => {
       item.classList.toggle("selected", index === selectedIndex);
@@ -535,7 +535,7 @@ async function handleKeyboardNavigation(event, input, suggestionsList) {
     event.preventDefault(); // Prevent cursor movement and scrolling
     selectedIndex = (selectedIndex - 1 + items.length) % items.length;
     input.value = items[selectedIndex].textContent;
-    
+
     // Update visual selection
     items.forEach((item, index) => {
       item.classList.toggle("selected", index === selectedIndex);
@@ -543,24 +543,24 @@ async function handleKeyboardNavigation(event, input, suggestionsList) {
   } else if (event.key === "Enter") {
     event.preventDefault();
     event.stopPropagation();
-    
+
     if (selectedIndex >= 0 && items[selectedIndex]) {
       const selectedItem = items[selectedIndex].textContent;
       input.value = selectedItem;
       suggestionsList.style.display = "none";
-      
+
       // Trigger input event to sync description with table
       input.dispatchEvent(new Event('input', { bubbles: true }));
-      
+
       // Fill other fields from stock data
       const parent = input.closest('.item-card') || input.closest('tr');
       await fill(selectedItem, parent);
-      
+
       // Update specifications table after selection
       if (sessionStorage.getItem('currentTab') === 'quotation') {
         setTimeout(() => updateSpecificationsTable(), 100);
       }
-      
+
       // Reset selected index
       selectedIndex = -1;
     }
@@ -614,7 +614,7 @@ async function fetchStockData(itemName) {
 async function fill(itemName, element) {
   // Check if element is a card or a table row
   const isCard = element.classList.contains('item-card');
-  
+
   const stockData = await fetchStockData(itemName);
   if (stockData) {
     if (isCard) {
@@ -623,12 +623,12 @@ async function fill(itemName, element) {
       inputs[1].value = stockData.HSN_SAC || ""; // HSN/SAC
       inputs[3].value = stockData.unitPrice || 0; // Unit Price
       inputs[4].value = stockData.GST || 0; // Rate
-      
+
       // Trigger input events to sync with table
       inputs[1].dispatchEvent(new Event('input', { bubbles: true }));
       inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
       inputs[4].dispatchEvent(new Event('input', { bubbles: true }));
-      
+
       // Also update corresponding table row
       const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
       const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
@@ -643,7 +643,7 @@ async function fill(itemName, element) {
       element.querySelector("input[placeholder='Unit Price']").value = stockData.unitPrice || 0;
       element.querySelector("input[placeholder='Rate']").value = stockData.GST || 0;
     }
-    
+
     // Update specifications table when item is filled
     if (sessionStorage.getItem('currentTab') === 'quotation') {
       setTimeout(() => updateSpecificationsTable(), 100);
@@ -657,9 +657,9 @@ async function updateSpecificationsTable() {
   const nonItemsTable = document.querySelector('#non-items-table tbody');
   const specificationsContainer = document.getElementById('specifications-container');
   const itemsSpecificationTable = document.querySelector('#items-specifications-table tbody');
-  
+
   if (!itemsSpecificationTable && !specificationsContainer) return; // Not on quotation page
-  
+
   // Store existing manually entered specifications to preserve them
   const existingSpecs = {};
   if (itemsSpecificationTable) {
@@ -671,7 +671,7 @@ async function updateSpecificationsTable() {
       }
     });
   }
-  
+
   // Get all current items from both tables
   const allItems = [
     ...Array.from(itemsTable.querySelectorAll('tr')).map(row => ({
@@ -683,7 +683,7 @@ async function updateSpecificationsTable() {
       type: 'non_item'
     }))
   ];
-  
+
   // Clear and rebuild the specifications container and table
   if (specificationsContainer) {
     specificationsContainer.innerHTML = '';
@@ -691,13 +691,13 @@ async function updateSpecificationsTable() {
   if (itemsSpecificationTable) {
     itemsSpecificationTable.innerHTML = '';
   }
-  
+
   for (let i = 0; i < allItems.length; i++) {
     const item = allItems[i];
     if (!item.description) continue;
-    
+
     let specification = '';
-    
+
     // First check if user has manually entered specification
     if (existingSpecs[item.description]) {
       specification = existingSpecs[item.description];
@@ -712,7 +712,7 @@ async function updateSpecificationsTable() {
         // No stock data found
       }
     }
-    
+
     // Create card for specifications
     if (specificationsContainer) {
       const card = document.createElement('div');
@@ -729,7 +729,7 @@ async function updateSpecificationsTable() {
         </div>
       `;
       specificationsContainer.appendChild(card);
-      
+
       // Sync specification input with table
       const specInput = card.querySelector('.spec-field.specification input');
       const tableRow = document.querySelector(`#items-specifications-table tbody tr:nth-child(${i + 1})`);
@@ -742,7 +742,7 @@ async function updateSpecificationsTable() {
         });
       }
     }
-    
+
     // Also create hidden table row for backward compatibility
     if (itemsSpecificationTable) {
       const row = document.createElement('tr');
@@ -752,7 +752,7 @@ async function updateSpecificationsTable() {
         <td><input type="text" placeholder="Specifications" value="${specification}" required></td>
       `;
       itemsSpecificationTable.appendChild(row);
-      
+
       // Sync table input with card
       const tableSpecInput = row.querySelector('input');
       const card = specificationsContainer?.querySelector(`.spec-card:nth-child(${i + 1})`);
@@ -803,13 +803,13 @@ document.addEventListener("click", function (event) {
   // Check if click is outside any suggestion list or input
   const allSuggestions = document.querySelectorAll('.suggestions');
   allSuggestions.forEach(suggestionsList => {
-    const parentInput = suggestionsList.previousElementSibling || 
-                       suggestionsList.parentElement?.querySelector('input.item_name');
-    
+    const parentInput = suggestionsList.previousElementSibling ||
+      suggestionsList.parentElement?.querySelector('input.item_name');
+
     // Hide suggestions if click is outside both the input and suggestions list
-    if (parentInput && 
-        !parentInput.contains(event.target) && 
-        !suggestionsList.contains(event.target)) {
+    if (parentInput &&
+      !parentInput.contains(event.target) &&
+      !suggestionsList.contains(event.target)) {
       suggestionsList.style.display = "none";
     }
   });
@@ -826,7 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Set a sensible currentTab value based on pathname so shared UI can reflect active module
       const path = window.location.pathname.toLowerCase();
       let formOptions = { homeId: 'home', formId: 'new', viewId: 'view' };
-      
+
       if (path.includes('/quotation')) {
         sessionStorage.setItem('currentTab', 'quotation');
         formOptions.newButtonId = 'new-quotation';

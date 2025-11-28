@@ -39,6 +39,7 @@
     "mongoose": "^8.18.2",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "puppeteer": "^24.31.0",
     "winston": "^3.18.3"
   },
   "repository": {
@@ -50,60 +51,61 @@
   },
   "homepage": "https://github.com/mayura01/shresht-systems-management-system#readme",
   "build": {
-  "appId": "com.app.SSMS",
-  "productName": "SSMS",
-  "asar": true,
-
-  "asarUnpack": [
-    "node_modules/mongoose/**/*",
-    "node_modules/mongodb/**/*",
-    "node_modules/@mongodb-js/**/*",
-    "node_modules/bson/**/*",
-    "node_modules/bcryptjs/**/*"
-  ],
-
-  "directories": {
-    "output": "dist",
-    "buildResources": "public/assets"
-  },
-
-  "files": [
-    "**/*",
-    "!backups/**",
-    "!logs/**",
-    "!uploads/**",
-    "!.git/**",
-    "!node_modules/**/.cache",
-    "!dist/**",
-    "!**/*.md",
-    "!.github/**"
-  ],
-
-  "extraResources": [
-    {
-      "from": "public/assets",
-      "to": "assets",
-      "filter": ["**/*"]
-    }
-  ],
-
-  "win": {
-    "icon": "./public/assets/icon.ico",
-    "target": [
+    "appId": "com.app.SSMS",
+    "productName": "SSMS",
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/mongoose/**/*",
+      "node_modules/mongodb/**/*",
+      "node_modules/@mongodb-js/**/*",
+      "node_modules/bson/**/*",
+      "node_modules/bcryptjs/**/*",
+      "node_modules/puppeteer/**/*",
+      "node_modules/puppeteer-core/**/*",
+      "node_modules/@puppeteer/**/*"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "public/assets"
+    },
+    "files": [
+      "**/*",
+      "!backups/**",
+      "!logs/**",
+      "!uploads/**",
+      "!.git/**",
+      "!node_modules/**/.cache",
+      "!dist/**",
+      "!**/*.md",
+      "!.github/**"
+    ],
+    "extraResources": [
       {
-        "target": "nsis",
-        "arch": ["x64"]
+        "from": "public/assets",
+        "to": "assets",
+        "filter": [
+          "**/*"
+        ]
       }
-    ]
+    ],
+    "win": {
+      "icon": "./public/assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "MayuraPatkar",
+      "repo": "Shresht-Systems_Management-System",
+      "releaseType": "release"
+    }
   },
-
-  "publish": {
-    "provider": "github",
-    "owner": "MayuraPatkar",
-    "repo": "Shresht-Systems_Management-System",
-    "releaseType": "release"
-  }
-},
   "devDependencies": {
     "electron": "^38.1.2",
     "electron-builder": "^26.0.12",

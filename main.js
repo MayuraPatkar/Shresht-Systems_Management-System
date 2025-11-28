@@ -25,6 +25,7 @@ const log = require("electron-log");
 const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
 const { handlePrintEvent } = require("./src/utils/printHandler");
+const { setupPuppeteerHandlers, puppeteerHandler } = require("./src/utils/puppeteerPrintHandler");
 require('./src/utils/alertHandler');
 const EventEmitter = require("events");
 
@@ -386,6 +387,9 @@ async function createWindow() {
     // Setup custom event handlers with mainWindow as parameter
     handlePrintEvent(mainWindow);
     
+    // Setup Puppeteer-based print handlers for quotations (better rendering quality)
+    setupPuppeteerHandlers(mainWindow, ipcMain);
+    
     // Setup IPC handlers for file dialogs
     setupIPCHandlers();
     
@@ -442,12 +446,20 @@ app.whenReady().then(async () => {
 // Graceful shutdown handling
 let isQuitting = false;
 
-app.on("before-quit", (event) => {
+app.on("before-quit", async (event) => {
   if (!isQuitting) {
     event.preventDefault();
     isQuitting = true;
     
     log.info("Application shutting down gracefully...");
+    
+    // Cleanup Puppeteer browser instance
+    try {
+      await puppeteerHandler.cleanup();
+      log.info("Puppeteer browser cleanup completed");
+    } catch (error) {
+      log.error("Error during Puppeteer cleanup:", error);
+    }
     
     // Give time for any pending operations
     setTimeout(() => {

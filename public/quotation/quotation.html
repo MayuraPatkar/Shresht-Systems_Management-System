@@ -10,6 +10,7 @@
         integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="../css/shared/documentStyles.css">
+    <link rel="stylesheet" href="../css/shared/quotationStyles.css">
     <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
     <link rel="stylesheet" href="../css/quotation.css">
     <title>Quotation</title>
@@ -31,21 +32,25 @@
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                 </div>
                 <div class="flex items-center gap-2">
-                    <select id="date-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-sm">
+                    <select id="date-filter"
+                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-sm">
                         <option value="all">All Dates</option>
                         <option value="today">Today</option>
                         <option value="week">This Week</option>
                         <option value="month">This Month</option>
                         <option value="custom">Custom Range</option>
                     </select>
-                    <select id="sort-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-sm">
+                    <select id="sort-filter"
+                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-sm">
                         <option value="date-desc">Latest First</option>
                         <option value="date-asc">Oldest First</option>
                         <option value="amount-desc">High to Low</option>
                         <option value="amount-asc">Low to High</option>
                         <option value="name-asc">Name A-Z</option>
                     </select>
-                    <button id="clear-filters" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm" title="Clear Filters">
+                    <button id="clear-filters"
+                        class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                        title="Clear Filters">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -147,7 +152,7 @@
         <!-- New Quotation Form -->
         <div id="new">
             <form id="quotation-form" class="max-w-5xl mx-auto">
-                
+
                 <!-- Step 1: Project Details -->
                 <div class="steps active" id="step-1">
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
@@ -228,7 +233,7 @@
                             <i class="fas fa-list-ul text-green-600 text-2xl"></i>
                             <h2 class="text-2xl font-semibold text-gray-800">Item List</h2>
                         </div>
-                        
+
                         <!-- Column Headers -->
                         <div class="items-header">
                             <div class="header-number">#</div>
@@ -239,12 +244,12 @@
                             <div class="header-field rate">Tax %</div>
                             <div class="header-action"></div>
                         </div>
-                        
+
                         <!-- Items Container (Card-based) -->
                         <div id="items-container">
                             <!-- Items will be dynamically added here as cards -->
                         </div>
-                        
+
                         <!-- Hidden table for backward compatibility -->
                         <table id="items-table" style="display: none;">
                             <thead>
@@ -262,7 +267,7 @@
                                 <!-- Items will be synced here for data collection -->
                             </tbody>
                         </table>
-                        
+
                         <button type="button" id="add-item-btn"
                             class="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all">
                             <i class="fas fa-plus"></i>
@@ -279,7 +284,7 @@
                             <h2 class="text-2xl font-semibold text-gray-800">Other Charges</h2>
                         </div>
                         <p class="text-sm text-gray-600 mb-4">Add installation, shipping, or any other charges here.</p>
-                        
+
                         <!-- Column Headers -->
                         <div class="non-items-header">
                             <div class="header-number">#</div>
@@ -288,12 +293,12 @@
                             <div class="header-field rate">Tax %</div>
                             <div class="header-action"></div>
                         </div>
-                        
+
                         <!-- Non-Items Container (Card-based) -->
                         <div id="non-items-container">
                             <!-- Non-items will be dynamically added here as cards -->
                         </div>
-                        
+
                         <!-- Hidden table for backward compatibility -->
                         <table id="non-items-table" style="display: none;">
                             <thead>
@@ -309,7 +314,7 @@
                                 <!-- Non-items will be synced here for data collection -->
                             </tbody>
                         </table>
-                        
+
                         <button type="button" id="add-non-item-btn"
                             class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all">
                             <i class="fas fa-plus"></i>
@@ -326,19 +331,19 @@
                             <h2 class="text-2xl font-semibold text-gray-800">Add Specifications</h2>
                         </div>
                         <p class="text-sm text-gray-600 mb-4">Provide detailed specifications for each item.</p>
-                        
+
                         <!-- Column Headers -->
                         <div class="specifications-header">
                             <div class="header-number">#</div>
                             <div class="header-field description">Item</div>
                             <div class="header-field specification">Specifications</div>
                         </div>
-                        
+
                         <!-- Specifications Container (Card-based) -->
                         <div id="specifications-container">
                             <!-- Specifications will be dynamically populated here as cards -->
                         </div>
-                        
+
                         <!-- Hidden table for backward compatibility -->
                         <table id="items-specifications-table" style="display: none;">
                             <thead>
@@ -386,7 +391,8 @@
                 </div>
 
                 <!-- Navigation -->
-                <div id="step-navigation" class="mt-6 flex items-center justify-between bg-white p-4 rounded-lg shadow-md border border-gray-200 max-w-5xl mx-auto">
+                <div id="step-navigation"
+                    class="mt-6 flex items-center justify-between bg-white p-4 rounded-lg shadow-md border border-gray-200 max-w-5xl mx-auto">
                     <button type="button" id="prev-btn" disabled
                         class="bg-gray-300 text-gray-600 px-6 py-2 rounded-lg hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed font-medium">
                         <i class="fas fa-chevron-left mr-2"></i>Previous
@@ -405,7 +411,7 @@
         <!-- View Quotation -->
         <div id="view">
             <div id="project-details-view" class="max-w-6xl mx-auto space-y-6">
-                
+
                 <!-- Project Details Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
@@ -464,12 +470,24 @@
                         <table id="view-items-table" class="w-full border border-gray-300 rounded-lg">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Rate</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        S. No</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Description</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        HSN/SAC</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Qty</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Unit Price</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Rate</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -489,9 +507,15 @@
                         <table id="view-specifications-table" class="w-full border border-gray-300 rounded-lg">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Specifications</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        S. No</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Description</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Specifications</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -574,11 +598,11 @@
     <script src="../js/shared/documentManager.js"></script>
     <script src="../js/shared/sectionRenderers.js"></script>
     <script src="../js/shared/documentBuilder.js"></script>
-    
+
     <!-- Shared scripts -->
     <script src="../js/shared/companyConfig.js"></script>
     <script src="../js/shared/globalScript.js"></script>
-    
+
     <!-- Module-specific scripts -->
     <script src="./quotation_home.js"></script>
     <script src="./quotation_view.js"></script>
