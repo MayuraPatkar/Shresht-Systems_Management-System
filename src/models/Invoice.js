@@ -82,16 +82,18 @@ const invoiceSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-invoiceSchema.pre('save', function(next) {
+invoiceSchema.pre('save', function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 // Update payment status based on paid amount
 invoiceSchema.methods.updatePaymentStatus = function() {
-    const totalDue = this.total_amount_original || 0;
+    // Prefer duplicate total (customer-facing), fallback to original
+    const totalDue = (typeof this.total_amount_duplicate !== 'undefined' && this.total_amount_duplicate !== null)
+        ? this.total_amount_duplicate
+        : (this.total_amount_original || 0);
     const totalPaid = this.total_paid_amount || 0;
-    
+
     if (totalPaid === 0) {
         this.payment_status = 'Unpaid';
     } else if (totalPaid >= totalDue) {

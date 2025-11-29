@@ -28,9 +28,8 @@ const purchaseSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-purchaseSchema.pre('save', function(next) {
+purchaseSchema.pre('save', function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 // Index for faster queries

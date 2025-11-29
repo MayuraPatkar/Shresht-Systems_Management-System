@@ -27,9 +27,9 @@ const adminSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-adminSchema.pre('save', function(next) {
+// Use synchronous middleware (no next) to avoid runtime errors when Mongoose/karma middlewares call hooks differently
+adminSchema.pre('save', function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 module.exports = mongoose.model('Admin', adminSchema);

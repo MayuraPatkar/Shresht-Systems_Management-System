@@ -40,9 +40,8 @@ const serviceSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-serviceSchema.pre('save', function(next) {
+serviceSchema.pre('save', function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 // Index for faster queries
