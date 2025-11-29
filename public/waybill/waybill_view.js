@@ -80,10 +80,10 @@ function generateViewPreviewHTML(wayBill) {
         </div>
         <br>
         <div class="eighth-section">
-            <p>For SHRESHT SYSTEMS</p>
-            <div class="signature-space"></div>
-            <p><strong>Authorized Signatory</strong></p>
-        </div>
+                <p>For SHRESHT SYSTEMS</p>
+                <div class="eighth-section-space"></div>
+                <p><strong>Authorized Signatory</strong></p>
+            </div>
         <div class="ninth-section">
             <p>This is a computer-generated way bill</p>
         </div>

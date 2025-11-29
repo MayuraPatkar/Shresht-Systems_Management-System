@@ -84,6 +84,78 @@ body {
     }
 }
 
+/* ===== standard HEADER ===== */
+.doc-standard .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 30px;
+    margin-bottom: 24px;
+    background: #1a365d;
+    /* Brand Navy */
+    border-radius: 12px;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.doc-standard .header .quotation-brand {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.doc-standard .header .logo {
+    width: 80px;
+    height: 80px;
+    background: #ffffff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.doc-standard .header .logo img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.doc-standard .header .quotation-brand-text h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+
+.doc-standard .header .quotation-tagline {
+    margin-top: 4px;
+    color: #e2e8f0;
+    /* Slate 200 */
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.doc-standard .header .company-details {
+    text-align: right;
+    line-height: 1.6;
+}
+
+.doc-standard .header .company-details p {
+    margin: 0;
+    color: #f1f5f9;
+    /* Slate 100 */
+    font-size: 12px;
+    font-weight: 500;
+}
+
 
 /* ===== STANDARD DOCUMENT STYLES ===== */
 .doc-standard .first-section {
@@ -515,7 +587,7 @@ body {
 
 .doc-standard .eighth-section-space {
     margin: 10px 0;
-    width: 200px;
+    width: 150px;
     height: 40px;
     border-bottom: 1px solid #94a3b8;
 }

@@ -16,7 +16,7 @@ function renderHeader() {
             </div>
             <div class="quotation-brand-text">
                 <h1>SHRESHT SYSTEMS</h1>
-                <p class="quotation-tagline">CCTV & Security Solutions</p>
+                <p class="quotation-tagline">CCTV & Energy Solutions</p>
             </div>
         </div>
         <div class="company-details">
@@ -38,7 +38,7 @@ function renderQuotationDocumentHeader() {
             </div>
             <div class="quotation-brand-text">
                 <h1>SHRESHT SYSTEMS</h1>
-                <p class="quotation-tagline">CCTV & Security Solutions</p>
+                <p class="quotation-tagline">CCTV & Energy Solutions</p>
             </div>
         </div>
         <div class="company-details">
