@@ -13,7 +13,6 @@
  * Modules Used:
  *   - electron: Core Electron APIs for app, window, and IPC management.
  *   - path: File path utilities.
- *   - electron-log: Logging utility for Electron.
  *   - fs: File system utilities for log management.
  *   - printHandler: Custom module for print event handling.
  *   - alertHandler: Custom module for alert dialogs.
@@ -283,6 +282,29 @@ function setupIPCHandlers() {
     }
   });
 
+  // Handle request to open the backup folder in OS file manager
+  ipcMain.handle('open-backup-folder', async () => {
+    try {
+      const { shell } = require('electron');
+      const folderPath = global.appPaths && global.appPaths.backups;
+      if (!folderPath) {
+        logger.warn('Backup folder not configured');
+        return { success: false, message: 'Backup folder not configured' };
+      }
+
+      const result = await shell.openPath(folderPath);
+      // shell.openPath returns '' on success, or an error string on failure
+      if (typeof result === 'string' && result.length > 0) {
+        logger.error('Failed to open backup folder:', result);
+        return { success: false, message: result };
+      }
+      return { success: true, path: folderPath };
+    } catch (error) {
+      logger.error('Error opening backup folder:', error);
+      return { success: false, message: error.message };
+    }
+  });
+
   // Handle install update request
   ipcMain.handle('install-update', () => {
     logger.info('Install update requested');
@@ -323,8 +345,6 @@ async function createWindow() {
     });
 
     mainWindow.setMenu(null);
-
-    mainWindow.webContents.openDevTools();
 
     // Show window when ready to prevent flash
     mainWindow.once('ready-to-show', () => {

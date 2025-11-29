@@ -269,6 +269,101 @@ function handleGoogleDriveBackup() {
     window.electronAPI.showAlert1("Cloud backup feature is coming soon! Currently, you can use local export/restore.");
 }
 
+// --- MANUAL BACKUP ---
+/**
+ * Trigger a manual backup on the server which runs mongodump and creates
+ * a timestamped gzipped archive in the configured backup directory.
+ */
+function handleManualBackup() {
+    const statusElement = document.getElementById("backup-status");
+    const manualButton = document.getElementById("manual-backup-button");
+
+    if (!manualButton) return;
+
+    const originalContent = manualButton.innerHTML;
+    manualButton.disabled = true;
+    manualButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating backup...';
+
+    if (statusElement) {
+        statusElement.className = "text-blue-700 font-medium";
+        statusElement.innerText = 'Starting manual backup...';
+    }
+
+    fetch('/settings/backup/manual', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (statusElement) {
+                    statusElement.className = "text-green-700 font-medium";
+                    statusElement.innerText = `Backup created: ${data.path || ''}`;
+                    if (data.fileSize) {
+                        statusElement.innerText += ` (${(data.fileSize / (1024)).toFixed(2)} KB)`;
+                    }
+                }
+            } else {
+                if (statusElement) {
+                    statusElement.className = "text-red-700 font-medium";
+                    statusElement.innerText = `Backup failed: ${data.message || 'Unknown error'}`;
+                }
+            }
+        })
+        .catch(err => {
+            if (statusElement) {
+                statusElement.className = "text-red-700 font-medium";
+                statusElement.innerText = `Backup failed: ${err.message}`;
+            }
+            console.error('Manual backup error:', err);
+        })
+        .finally(() => {
+            manualButton.disabled = false;
+            manualButton.innerHTML = originalContent;
+        });
+}
+
+// Open backup folder in file manager
+function handleOpenBackupFolder() {
+    const statusElement = document.getElementById("backup-status");
+    const openButton = document.getElementById("manual-backup-open-folder");
+
+    if (!openButton || !window.electronAPI || !window.electronAPI.openBackupFolder) {
+        window.showAlert('Open folder not available in this environment');
+        return;
+    }
+
+    openButton.disabled = true;
+    openButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
+
+    window.electronAPI.openBackupFolder()
+        .then(result => {
+            if (result && result.success) {
+                if (statusElement) {
+                    statusElement.className = "text-green-700 font-medium";
+                    statusElement.innerText = `Opened backup folder: ${result.path}`;
+                }
+            } else {
+                const msg = (result && result.message) ? result.message : 'Failed to open backup folder';
+                if (statusElement) {
+                    statusElement.className = "text-red-700 font-medium";
+                    statusElement.innerText = `Error: ${msg}`;
+                }
+                window.showAlert(msg);
+            }
+        })
+        .catch(err => {
+            if (statusElement) {
+                statusElement.className = "text-red-700 font-medium";
+                statusElement.innerText = `Error opening backup folder: ${err.message}`;
+            }
+            console.error('Open backup folder error:', err);
+            window.showAlert('Failed to open backup folder: ' + (err.message || err));
+        })
+        .finally(() => {
+            openButton.disabled = false;
+            // restore button text
+            openButton.innerHTML = '<i class="fas fa-folder-open"></i>\n                            Open Backup Folder'.trim();
+        });
+}
+
 // --- EVENT LISTENERS ---
 
 /**
@@ -279,4 +374,6 @@ function initBackupModule() {
     document.getElementById("restore-collection-button")?.addEventListener("click", handleRestoreCollection);
     document.getElementById("restore-database-button")?.addEventListener("click", handleRestoreDatabase);
     document.getElementById("google-drive-backup")?.addEventListener("click", handleGoogleDriveBackup);
+    document.getElementById("manual-backup-button")?.addEventListener("click", handleManualBackup);
+    document.getElementById("manual-backup-open-folder")?.addEventListener("click", handleOpenBackupFolder);
 }

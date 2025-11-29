@@ -34,13 +34,6 @@ function loadPreferences() {
                 document.getElementById("backup-time").value = s.backup?.backup_time || '02:00';
                 document.getElementById("backup-retention").value = s.backup?.retention_days || 30;
                 document.getElementById("backup-location").value = s.backup?.backup_location || (window.process ? window.process.env.BACKUP_DIR || './backups' : './backups');
-                
-                if (s.backup?.last_backup) {
-                    const lastBackup = new Date(s.backup.last_backup).toLocaleString();
-                    document.getElementById("last-backup-time").textContent = lastBackup;
-                } else {
-                    document.getElementById("last-backup-time").textContent = "Never";
-                }
             }
         })
         .catch(err => {

@@ -12,8 +12,9 @@ const logger = require("./logger");
  * Creates a gzipped backup of the 'shreshtSystems' MongoDB database.
  * The backup file is saved with a timestamp into the '../backups' directory.
  */
-function autoBackup() {
+function createBackup() {
     // 1. Load configuration and determine backup directory.
+    return new Promise((resolve, reject) => {
     const config = require("../config/config");
 
     // Priority: env BACKUP_DIR -> global.appPaths -> config.backupDir -> Electron userData -> local backups
@@ -101,21 +102,31 @@ function autoBackup() {
 
     const cmd = `"${mongoDumpExec}" --uri="${mongoUri}" --archive="${backupPath}" --gzip`;
 
-    // 4. Execute the command and log the success or failure.
-    exec(cmd, (err, stdout, stderr) => {
-        if (err) {
-            // On Windows the error for missing executable may not set stderr text; check err.code
-            const notFound = err.code === 'ENOENT' || (stderr && (stderr.includes("not recognized") || stderr.includes("not found")));
-            if (notFound) {
-                logger.warn("Backup skipped: 'mongodump' command not found. Please install MongoDB Database Tools to enable automatic backups.");
-                return;
+        // 4. Execute the command and resolve/reject the promise based on outcome.
+        exec(cmd, async (err, stdout, stderr) => {
+            if (err) {
+                const notFound = err.code === 'ENOENT' || (stderr && (stderr.includes("not recognized") || stderr.includes("not found")));
+                if (notFound) {
+                    const message = "'mongodump' command not found. Please install MongoDB Database Tools to enable backups.";
+                    logger.warn(`Backup skipped: ${message}`);
+                    return reject(new Error(message));
+                }
+                logger.error("Backup failed:", stderr || err.message || err);
+                return reject(err);
             }
-            logger.error("Backup failed:", stderr || err.message || err);
-            return;
-        }
-        logger.info(`Backup created successfully: ${backupPath}`);
+
+            try {
+                const stats = fs.statSync(backupPath);
+                logger.info(`Backup created successfully: ${backupPath}`);
+                return resolve({ backupPath, size: stats.size, timestamp: new Date().toISOString() });
+            } catch (statErr) {
+                logger.error('Backup created but verification failed:', statErr);
+                return reject(statErr);
+            }
+        });
     });
 }
 
-// Export the function for use in other modules.
-module.exports = autoBackup;
+// Provide backward-compatible default export (function) and named property
+module.exports = createBackup;
+module.exports.autoBackup = createBackup;

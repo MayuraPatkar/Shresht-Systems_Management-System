@@ -7,6 +7,7 @@ const fs = require("fs").promises;
 const fsSync = require("fs");
 const logger = require('../utils/logger');
 const backupScheduler = require('../utils/backupScheduler');
+const backupUtil = require('../utils/backup');
 
 const router = express.Router();
 
@@ -600,6 +601,23 @@ router.post("/backup/restore-database", upload.single("backupFile"), asyncHandle
             message: "Database restore failed", 
             error: error.message 
         });
+    }
+}));
+
+// Manual backup trigger (creates a gzipped mongodump archive)
+router.post("/backup/manual", asyncHandler(async (req, res) => {
+    try {
+        const info = await backupUtil();
+        return res.json({
+            success: true,
+            message: 'Backup created successfully',
+            path: info.backupPath,
+            fileSize: info.size,
+            timestamp: info.timestamp
+        });
+    } catch (error) {
+        logger.error('Manual backup failed:', error);
+        return res.status(500).json({ success: false, message: 'Manual backup failed', error: error.message });
     }
 }));
 
