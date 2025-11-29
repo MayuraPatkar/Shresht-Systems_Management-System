@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Employee, AttendenceBook } = require('../models');
-const log = require("electron-log"); // Import electron-log in the preload process
+const logger = require('../utils/logger'); // Custom logger
 
 
 // Function to generate unique 3-digit Employee ID starting from 101
@@ -25,7 +25,7 @@ router.post('/addEmp', async (req, res) => {
 
         res.status(201).json({ message: 'Employee added successfully', employee: newEmployee });
     } catch (error) {
-        log.error('Error adding employee:', error);
+        logger.error('Error adding employee:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
@@ -36,7 +36,7 @@ router.get('/getEmployees', async (req, res) => {
         const employees = await Employee.find();
         res.status(200).json({ employees });
     } catch (error) {
-        log.error('Error fetching employees:', error);
+        logger.error('Error fetching employees:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
@@ -62,14 +62,14 @@ router.post('/markAttendance', async (req, res) => {
             date: new Date(),  // Today's date
             emp_id,
             present,
-            start_time: parseTimeOnly(start_time), 
+            start_time: parseTimeOnly(start_time),
             end_time: parseTimeOnly(end_time),
         });
-        
+
         await attendance.save();
         res.status(201).json({ message: 'Attendance recorded successfully' });
     } catch (error) {
-        log.error('Error recording attendance:', error);
+        logger.error('Error recording attendance:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });

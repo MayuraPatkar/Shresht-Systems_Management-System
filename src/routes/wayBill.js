@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { wayBills } = require('../models');
-const log = require("electron-log"); // Import electron-log in the preload process
+const logger = require('../utils/logger'); // Custom logger
 
 // Route to get all waybills
 router.get("/all", async (req, res) => {
@@ -9,7 +9,7 @@ router.get("/all", async (req, res) => {
         const allWayBills = await wayBills.find().sort({ createdAt: -1 });
         return res.status(200).json(allWayBills);
     } catch (error) {
-        log.error("Error fetching waybills:", error);
+        logger.error("Error fetching waybills:", error);
         return res.status(500).json({ error: "Internal Server Error" });
     }
 });
@@ -75,7 +75,7 @@ router.post("/save-way-bill", async (req, res) => {
             wayBill: savedWayBill,
         });
     } catch (error) {
-        log.error('Error saving data:', error);
+        logger.error('Error saving data:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -95,7 +95,7 @@ router.get("/recent-way-bills", async (req, res) => {
             wayBill: recentWayBills,
         });
     } catch (error) {
-        log.error("Error retrieving recent way bills:", error);
+        logger.error("Error retrieving recent way bills:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -121,7 +121,7 @@ router.get("/:wayBillId", async (req, res) => {
         });
 
     } catch (error) {
-        log.error("Error retrieving way bill:", error);
+        logger.error("Error retrieving way bill:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -146,7 +146,7 @@ router.delete("/:wayBillId", async (req, res) => {
         // Respond with success message
         res.status(200).json({ message: 'Way bill deleted successfully' });
     } catch (error) {
-        log.error("Error deleting way bill:", error);
+        logger.error("Error deleting way bill:", error);
         res.status(500).json({
             message: "Internal server error",
             error: error.message,
@@ -177,7 +177,7 @@ router.get('/search/:query', async (req, res) => {
             return res.status(200).json({ wayBills: way_bills });
         }
     } catch (err) {
-        log.log(err);
+        logger.error(err);
         return res.status(500).send('Failed to fetch way bills.');
     }
 });

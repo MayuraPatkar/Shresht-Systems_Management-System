@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Invoices, service } = require('../models');
 const moment = require('moment');
-const log = require("electron-log");
+const logger = require('../utils/logger');
 
 // Function to generate a unique ID for each Service
 function generateUniqueId() {
@@ -36,7 +36,7 @@ router.get('/all', async (req, res) => {
         const services = await Invoices.find({ service_month: { $ne: 0 } }).sort({ createdAt: -1 });
         return res.status(200).json(services);
     } catch (error) {
-        log.error("Error fetching services:", error);
+        logger.error("Error fetching services:", error);
         return res.status(500).json({ error: "Internal Server Error" });
     }
 });
@@ -60,7 +60,7 @@ router.get('/get-service', async (req, res) => {
 
         res.json({ projects: filteredProjects });
     } catch (error) {
-        log.error("Error fetching services:", error);
+        logger.error("Error fetching services:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -69,7 +69,7 @@ router.get('/get-service', async (req, res) => {
 router.post('/update-nextService', async (req, res) => {
     try {
         const { invoice_id, next_service } = req.body;
-        log.log(invoice_id, next_service);
+        logger.info(invoice_id, next_service);
 
         // Check if project exists
         const project = await Invoices.findOne({ invoice_id: invoice_id });
@@ -88,7 +88,7 @@ router.post('/update-nextService', async (req, res) => {
 
         res.json({ message: "Service updated successfully" });
     } catch (error) {
-        log.error("Error updating service:", error);
+        logger.error("Error updating service:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -139,7 +139,7 @@ router.post('/save-service', async (req, res) => {
 
         res.json({ message: "Service saved and invoice service_stage updated successfully" });
     } catch (error) {
-        log.error("Error saving service info:", error);
+        logger.error("Error saving service info:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -160,12 +160,12 @@ router.put('/update-service', async (req, res) => {
             total_amount_with_tax,
             notes
         } = req.body;
-        
+
         const existingService = await service.findOne({ service_id });
         if (!existingService) {
             return res.status(404).json({ error: 'Service not found' });
         }
-        
+
         // Update service record
         existingService.invoice_id = invoice_id || existingService.invoice_id;
         existingService.fee_amount = fee_amount !== undefined ? fee_amount : existingService.fee_amount;
@@ -177,15 +177,15 @@ router.put('/update-service', async (req, res) => {
         existingService.total_amount_no_tax = total_amount_no_tax !== undefined ? total_amount_no_tax : existingService.total_amount_no_tax;
         existingService.total_amount_with_tax = total_amount_with_tax !== undefined ? total_amount_with_tax : existingService.total_amount_with_tax;
         existingService.notes = notes !== undefined ? notes : existingService.notes;
-        
+
         await existingService.save();
-        
+
         res.status(200).json({
             message: 'Service updated successfully',
             service: existingService
         });
     } catch (error) {
-        log.error('Error updating service:', error);
+        logger.error('Error updating service:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -195,7 +195,7 @@ router.get('/search/:query', async (req, res) => {
     try {
         const query = req.params.query;
         const currentDate = moment();
-        
+
         // Search in invoices where service_month is not zero
         const projects = await Invoices.find({
             service_month: { $ne: 0 },
@@ -218,7 +218,7 @@ router.get('/search/:query', async (req, res) => {
 
         res.json({ service: filteredProjects });
     } catch (error) {
-        log.error("Error searching services:", error);
+        logger.error("Error searching services:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -230,7 +230,7 @@ router.get('/recent-services', async (req, res) => {
             .sort({ createdAt: -1 })
             .limit(10)
             .lean();
-        
+
         // Populate invoice details for each service
         const servicesWithInvoiceData = await Promise.all(
             recentServices.map(async (svc) => {
@@ -247,13 +247,13 @@ router.get('/recent-services', async (req, res) => {
                 };
             })
         );
-        
+
         res.status(200).json({
             message: 'Recent services retrieved successfully',
             services: servicesWithInvoiceData
         });
     } catch (error) {
-        log.error('Error retrieving recent services:', error);
+        logger.error('Error retrieving recent services:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -262,15 +262,15 @@ router.get('/recent-services', async (req, res) => {
 router.get('/:serviceId', async (req, res) => {
     try {
         const { serviceId } = req.params;
-        
+
         const serviceRecord = await service.findOne({ service_id: serviceId }).lean();
         if (!serviceRecord) {
             return res.status(404).json({ error: 'Service not found' });
         }
-        
+
         // Populate invoice details
         const invoice = await Invoices.findOne({ invoice_id: serviceRecord.invoice_id }).lean();
-        
+
         res.status(200).json({
             message: 'Service retrieved successfully',
             service: {
@@ -279,7 +279,7 @@ router.get('/:serviceId', async (req, res) => {
             }
         });
     } catch (error) {
-        log.error('Error retrieving service:', error);
+        logger.error('Error retrieving service:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -288,17 +288,17 @@ router.get('/:serviceId', async (req, res) => {
 router.get('/history/:invoiceId', async (req, res) => {
     try {
         const { invoiceId } = req.params;
-        
+
         const serviceHistory = await service.find({ invoice_id: invoiceId })
             .sort({ service_stage: 1 })
             .lean();
-        
+
         res.status(200).json({
             message: 'Service history retrieved successfully',
             services: serviceHistory
         });
     } catch (error) {
-        log.error('Error retrieving service history:', error);
+        logger.error('Error retrieving service history:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -307,7 +307,7 @@ router.get('/history/:invoiceId', async (req, res) => {
 router.get('/search-services/:query', async (req, res) => {
     try {
         const query = req.params.query;
-        
+
         // First, find matching services
         const matchingServices = await service.find({
             $or: [
@@ -315,7 +315,7 @@ router.get('/search-services/:query', async (req, res) => {
                 { invoice_id: { $regex: query, $options: 'i' } }
             ]
         }).lean();
-        
+
         // Also search by customer name in invoices
         const matchingInvoices = await Invoices.find({
             $or: [
@@ -323,18 +323,18 @@ router.get('/search-services/:query', async (req, res) => {
                 { project_name: { $regex: query, $options: 'i' } }
             ]
         }).select('invoice_id').lean();
-        
+
         const invoiceIds = matchingInvoices.map(inv => inv.invoice_id);
         const servicesByCustomer = await service.find({
             invoice_id: { $in: invoiceIds }
         }).lean();
-        
+
         // Combine and deduplicate results
         const allServices = [...matchingServices, ...servicesByCustomer];
         const uniqueServices = Array.from(
             new Map(allServices.map(s => [s.service_id, s])).values()
         );
-        
+
         // Populate invoice details
         const servicesWithInvoiceData = await Promise.all(
             uniqueServices.map(async (svc) => {
@@ -351,13 +351,13 @@ router.get('/search-services/:query', async (req, res) => {
                 };
             })
         );
-        
+
         res.status(200).json({
             message: 'Services found',
             services: servicesWithInvoiceData
         });
     } catch (error) {
-        log.error('Error searching service records:', error);
+        logger.error('Error searching service records:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -366,29 +366,29 @@ router.get('/search-services/:query', async (req, res) => {
 router.delete('/:serviceId', async (req, res) => {
     try {
         const { serviceId } = req.params;
-        
+
         const serviceRecord = await service.findOne({ service_id: serviceId });
         if (!serviceRecord) {
             return res.status(404).json({ error: 'Service not found' });
         }
-        
+
         const invoiceId = serviceRecord.invoice_id;
-        
+
         // Delete the service record
         await service.deleteOne({ service_id: serviceId });
-        
+
         // Decrement invoice service_stage
         const invoice = await Invoices.findOne({ invoice_id: invoiceId });
         if (invoice && invoice.service_stage > 0) {
             invoice.service_stage -= 1;
             await invoice.save();
         }
-        
+
         res.status(200).json({
             message: 'Service deleted successfully and invoice service_stage decremented'
         });
     } catch (error) {
-        log.error('Error deleting service:', error);
+        logger.error('Error deleting service:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
