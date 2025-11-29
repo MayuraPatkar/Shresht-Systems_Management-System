@@ -254,11 +254,10 @@ function initPreferencesModule() {
     document.getElementById("backup-browse")?.addEventListener("click", async (e) => {
         e.preventDefault();
         try {
-            const selected = await window.openFileDialog({ properties: ['openDirectory'] });
-            if (selected && typeof selected === 'string') {
-                document.getElementById('backup-location').value = selected;
-            } else if (Array.isArray(selected) && selected.length > 0) {
-                document.getElementById('backup-location').value = selected[0];
+            const result = await window.electronAPI.openFileDialog({ properties: ['openDirectory'] });
+            // ipc returns { canceled: boolean, filePaths: [] } per Electron's showOpenDialog
+            if (result && !result.canceled && Array.isArray(result.filePaths) && result.filePaths.length > 0) {
+                document.getElementById('backup-location').value = result.filePaths[0];
             }
         } catch (err) {
             console.error('Directory selection cancelled or failed:', err);

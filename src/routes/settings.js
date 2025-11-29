@@ -5,7 +5,7 @@ const os = require('os');
 const multer = require("multer");
 const fs = require("fs").promises;
 const fsSync = require("fs");
-const log = require("electron-log");
+const logger = require('../utils/logger');
 const backupScheduler = require('../utils/backupScheduler');
 
 const router = express.Router();
@@ -129,7 +129,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
         });
 
         if (result.canceled) {
-            log.info(`Export cancelled by user for collection: ${collection}`);
+            logger.info(`Export cancelled by user for collection: ${collection}`);
             return res.json({ 
                 success: true, 
                 message: "Export cancelled by user" 
@@ -147,13 +147,13 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
         const dir = path.dirname(filePath);
         await fs.mkdir(dir, { recursive: true });
 
-        log.info(`Starting export for collection: ${collection} to ${filePath}`);
+        logger.info(`Starting export for collection: ${collection} to ${filePath}`);
 
         // Check if mongoexport is available
         const toolsAvailable = await checkMongoTool('mongoexport');
 
         if (!toolsAvailable) {
-            log.warn(`MongoDB tools not available for collection: ${collection}, using native export`);
+            logger.warn(`MongoDB tools not available for collection: ${collection}, using native export`);
             
             // Fallback: Use native MongoDB driver to export data
             const mongoose = require('mongoose');
@@ -162,8 +162,8 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
             try {
                 const documents = await collectionModel.find({}).toArray();
                 
-                if (documents.length === 0) {
-                    log.info(`No documents found in collection: ${collection}`);
+                    if (documents.length === 0) {
+                        logger.info(`No documents found in collection: ${collection}`);
                     return res.json({ 
                         success: true, 
                         message: `No data found in collection '${collection}' to export.` 
@@ -174,14 +174,14 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
                 const jsonData = JSON.stringify(documents, null, 2);
                 await fs.writeFile(filePath, jsonData, 'utf8');
                 
-                log.info(`Native export completed for collection: ${collection} (${documents.length} documents)`);
+                logger.info(`Native export completed for collection: ${collection} (${documents.length} documents)`);
                 return res.json({ 
                     success: true, 
                     message: `Successfully exported ${documents.length} documents from '${collection}' to ${path.basename(filePath)}` 
                 });
                 
             } catch (exportError) {
-                log.error(`Native export failed for collection ${collection}:`, exportError);
+                logger.error(`Native export failed for collection ${collection}:`, exportError);
                 throw exportError;
             }
         }
@@ -208,7 +208,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
 
         mongoexport.on('close', async (code) => {
             if (code !== 0) {
-                log.error(`Export failed with code ${code}:`, stderr);
+                logger.error(`Export failed with code ${code}:`, stderr);
                 return res.status(500).json({ 
                     success: false, 
                     message: "Export failed", 
@@ -223,7 +223,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
                     throw new Error('Export file is empty');
                 }
 
-                log.info(`Export successful: ${filePath} (${stats.size} bytes)`);
+                logger.info(`Export successful: ${filePath} (${stats.size} bytes)`);
                 return res.json({ 
                     success: true, 
                     message: `Export successful! Saved to: ${filePath}`,
@@ -232,7 +232,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
                     timestamp: new Date().toISOString()
                 });
             } catch (statError) {
-                log.error('Error verifying export file:', statError);
+                logger.error('Error verifying export file:', statError);
                 return res.status(500).json({ 
                     success: false, 
                     message: "Export completed but file verification failed" 
@@ -241,7 +241,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
         });
 
         mongoexport.on('error', (error) => {
-            log.error('Mongoexport process error:', error);
+            logger.error('Mongoexport process error:', error);
             return res.status(500).json({ 
                 success: false, 
                 message: "Export process failed to start",
@@ -250,7 +250,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
         });
 
     } catch (err) {
-        log.error("Export error:", err);
+        logger.error("Export error:", err);
         return res.status(500).json({ 
             success: false, 
             message: "Export failed", 
@@ -308,7 +308,7 @@ router.post("/backup/restore-collection", upload.single("backupFile"), validateC
     }
     const collection = req.sanitizedCollection;
     
-    log.info(`Starting collection restore: ${collection} from ${originalName}`);
+    logger.info(`Starting collection restore: ${collection} from ${originalName}`);
 
     try {
         // Verify file exists and is readable
@@ -326,7 +326,7 @@ router.post("/backup/restore-collection", upload.single("backupFile"), validateC
             // Check if mongoimport is available
             const importAvailable = await checkMongoTool('mongoimport');
             if (!importAvailable) {
-                log.warn(`MongoDB tools not available for collection: ${collection}, using native import`);
+                logger.warn(`MongoDB tools not available for collection: ${collection}, using native import`);
                 
                 // Fallback: Use native MongoDB driver to import data
                 const mongoose = require('mongoose');
@@ -347,14 +347,14 @@ router.post("/backup/restore-collection", upload.single("backupFile"), validateC
                     // Insert new documents
                     const result = await collectionModel.insertMany(documents);
                     
-                    log.info(`Native import completed for collection: ${collection} (${result.insertedCount} documents)`);
+                    logger.info(`Native import completed for collection: ${collection} (${result.insertedCount} documents)`);
                     return res.json({ 
                         success: true, 
                         message: `Successfully imported ${result.insertedCount} documents to '${collection}'` 
                     });
                     
                 } catch (importError) {
-                    log.error(`Native import failed for collection ${collection}:`, importError);
+                    logger.error(`Native import failed for collection ${collection}:`, importError);
                     throw importError;
                 }
             }
@@ -409,11 +409,11 @@ router.post("/backup/restore-collection", upload.single("backupFile"), validateC
             try {
                 await fs.unlink(filePath);
             } catch (cleanupError) {
-                log.warn('Failed to cleanup temp file:', cleanupError);
+                logger.warn('Failed to cleanup temp file:', cleanupError);
             }
 
             if (code !== 0) {
-                log.error(`Restore failed with code ${code}:`, stderr);
+                logger.error(`Restore failed with code ${code}:`, stderr);
                 return res.status(500).json({ 
                     success: false, 
                     message: "Restore failed", 
@@ -421,7 +421,7 @@ router.post("/backup/restore-collection", upload.single("backupFile"), validateC
                 });
             }
 
-            log.info(`Restore successful: ${originalName} -> ${collection}`);
+            logger.info(`Restore successful: ${originalName} -> ${collection}`);
             return res.json({ 
                 success: true, 
                 message: `Restore successful from ${originalName}`,
@@ -436,10 +436,10 @@ router.post("/backup/restore-collection", upload.single("backupFile"), validateC
             try {
                 await fs.unlink(filePath);
             } catch (cleanupError) {
-                log.warn('Failed to cleanup temp file:', cleanupError);
+                logger.warn('Failed to cleanup temp file:', cleanupError);
             }
 
-            log.error('Restore process error:', error);
+            logger.error('Restore process error:', error);
             return res.status(500).json({ 
                 success: false, 
                 message: "Restore process failed to start",
@@ -452,10 +452,10 @@ router.post("/backup/restore-collection", upload.single("backupFile"), validateC
         try {
             await fs.unlink(filePath);
         } catch (cleanupError) {
-            log.warn('Failed to cleanup temp file:', cleanupError);
+            logger.warn('Failed to cleanup temp file:', cleanupError);
         }
 
-        log.error('Collection restore error:', error);
+        logger.error('Collection restore error:', error);
         return res.status(500).json({ 
             success: false, 
             message: "Restore failed", 
@@ -488,7 +488,7 @@ router.post("/backup/restore-database", upload.single("backupFile"), asyncHandle
         return res.status(400).json({ success: false, message: 'Invalid uploaded file' });
     }
     
-    log.info(`Starting database restore from ${originalName}`);
+    logger.info(`Starting database restore from ${originalName}`);
 
     try {
         // Verify file exists and is readable
@@ -548,11 +548,11 @@ router.post("/backup/restore-database", upload.single("backupFile"), asyncHandle
             try {
                 await fs.unlink(filePath);
             } catch (cleanupError) {
-                log.warn('Failed to cleanup temp file:', cleanupError);
+                logger.warn('Failed to cleanup temp file:', cleanupError);
             }
 
             if (code !== 0) {
-                log.error(`Database restore failed with code ${code}:`, stderr);
+                logger.error(`Database restore failed with code ${code}:`, stderr);
                 return res.status(500).json({ 
                     success: false, 
                     message: "Database restore failed", 
@@ -560,7 +560,7 @@ router.post("/backup/restore-database", upload.single("backupFile"), asyncHandle
                 });
             }
 
-            log.info(`Database restore successful from: ${originalName}`);
+            logger.info(`Database restore successful from: ${originalName}`);
             return res.json({ 
                 success: true, 
                 message: `Database restore successful from ${originalName}`,
@@ -575,10 +575,10 @@ router.post("/backup/restore-database", upload.single("backupFile"), asyncHandle
             try {
                 await fs.unlink(filePath);
             } catch (cleanupError) {
-                log.warn('Failed to cleanup temp file:', cleanupError);
+                logger.warn('Failed to cleanup temp file:', cleanupError);
             }
 
-            log.error('Database restore process error:', error);
+            logger.error('Database restore process error:', error);
             return res.status(500).json({ 
                 success: false, 
                 message: "Database restore process failed to start",
@@ -591,10 +591,10 @@ router.post("/backup/restore-database", upload.single("backupFile"), asyncHandle
         try {
             await fs.unlink(filePath);
         } catch (cleanupError) {
-            log.warn('Failed to cleanup temp file:', cleanupError);
+            logger.warn('Failed to cleanup temp file:', cleanupError);
         }
 
-        log.error('Database restore error:', error);
+        logger.error('Database restore error:', error);
         return res.status(500).json({ 
             success: false, 
             message: "Database restore failed", 
@@ -626,7 +626,7 @@ router.get("/backup/status", asyncHandler(async (req, res) => {
             maxFileSize: '100MB'
         });
     } catch (error) {
-        log.error('Error checking backup status:', error);
+        logger.error('Error checking backup status:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to check backup tools status',
@@ -656,7 +656,7 @@ router.get("/preferences", asyncHandler(async (req, res) => {
             settings: settings
         });
     } catch (error) {
-        log.error('Error fetching settings:', error);
+        logger.error('Error fetching settings:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to fetch settings',
@@ -690,19 +690,19 @@ router.patch("/preferences", asyncHandler(async (req, res) => {
         // Refresh backup schedule in case backup preferences changed
         try {
             await backupScheduler.refreshSchedule();
-            log.info('Backup scheduler refreshed after settings update');
+            logger.info('Backup scheduler refreshed after settings update');
         } catch (schedErr) {
-            log.warn('Failed to refresh backup scheduler after settings update:', schedErr.message || schedErr);
+            logger.warn('Failed to refresh backup scheduler after settings update:', schedErr.message || schedErr);
         }
 
-        log.info('Settings updated successfully');
+        logger.info('Settings updated successfully');
         res.json({
             success: true,
             message: 'Settings updated successfully',
             settings: settings
         });
     } catch (error) {
-        log.error('Error updating settings:', error);
+        logger.error('Error updating settings:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to update settings',
@@ -734,14 +734,14 @@ router.put("/company-info", asyncHandler(async (req, res) => {
         
         await admin.save();
         
-        log.info('Company information updated successfully');
+        logger.info('Company information updated successfully');
         res.json({
             success: true,
             message: 'Company information updated successfully',
             admin: admin
         });
     } catch (error) {
-        log.error('Error updating company info:', error);
+        logger.error('Error updating company info:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to update company information',
@@ -785,7 +785,7 @@ router.get("/database/stats", asyncHandler(async (req, res) => {
             }
         });
     } catch (error) {
-        log.error('Error fetching database stats:', error);
+        logger.error('Error fetching database stats:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to fetch database statistics',
@@ -811,7 +811,7 @@ router.post("/database/backup-completed", asyncHandler(async (req, res) => {
             last_backup: settings.backup.last_backup
         });
     } catch (error) {
-        log.error('Error updating backup timestamp:', error);
+        logger.error('Error updating backup timestamp:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to update backup timestamp',
@@ -870,14 +870,14 @@ router.post("/logo/upload", logoUpload.single("logo"), asyncHandler(async (req, 
         settings.updatedAt = new Date();
         await settings.save();
         
-        log.info('Company logo uploaded successfully:', logoPath);
+        logger.info('Company logo uploaded successfully:', logoPath);
         res.json({
             success: true,
             message: 'Logo uploaded successfully',
             logo_path: logoPath
         });
     } catch (error) {
-        log.error('Error uploading logo:', error);
+        logger.error('Error uploading logo:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to upload logo',
@@ -906,7 +906,7 @@ router.get("/system-info", asyncHandler(async (req, res) => {
             }
         });
     } catch (error) {
-        log.error('Error fetching system info:', error);
+        logger.error('Error fetching system info:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to fetch system information',
