@@ -324,6 +324,8 @@ async function createWindow() {
 
     mainWindow.setMenu(null);
 
+    mainWindow.webContents.openDevTools();
+
     // Show window when ready to prevent flash
     mainWindow.once('ready-to-show', () => {
       mainWindow.show();

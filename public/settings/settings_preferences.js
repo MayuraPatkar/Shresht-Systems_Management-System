@@ -87,8 +87,6 @@ function savePreferences() {
         .then(data => {
             if (data.success) {
                 window.electronAPI.showAlert1("Preferences saved successfully!");
-                // Apply theme if changed
-                applyTheme(preferences.branding.theme);
             } else {
                 window.electronAPI.showAlert1(`Failed to save: ${data.message}`);
             }
@@ -244,6 +242,8 @@ function saveNotificationSettings() {
 
 // --- EVENT LISTENERS ---
 
+// Theme support removed: no applyTheme helper
+
 /**
  * Initialize preferences module event listeners
  */
@@ -264,10 +264,7 @@ function initPreferencesModule() {
         }
     });
     
-    // Theme preview
-    document.getElementById("pref-theme")?.addEventListener("change", (e) => {
-        applyTheme(e.target.value);
-    });
+    // Theme support removed
     
     // Security
     document.getElementById("save-security-button")?.addEventListener("click", saveSecuritySettings);
