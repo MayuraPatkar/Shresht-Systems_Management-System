@@ -112,11 +112,12 @@ document.getElementById('settings')?.addEventListener('click', () => {
 
 let currentStep = 1;
 
-function moveNext() {
+async function moveNext() {
   // Hook: Check if the current module has a validation function
   if (typeof window.validateCurrentStep === 'function') {
     // If validation fails (returns false), stop here.
-    if (!window.validateCurrentStep()) {
+    const isValid = await window.validateCurrentStep();
+    if (!isValid) {
       return;
     }
   }
@@ -156,11 +157,12 @@ document.addEventListener("keydown", function (event) {
 // Event listener for the "Next" button
 const nextBtn = document.getElementById("next-btn");
 if (nextBtn) {
-  nextBtn.addEventListener("click", () => {
+  nextBtn.addEventListener("click", async () => {
 
     // Validation Check
     if (typeof window.validateCurrentStep === 'function') {
-      if (!window.validateCurrentStep()) return;
+      const isValid = await window.validateCurrentStep();
+      if (!isValid) return;
     }
 
     if (currentStep < totalSteps) {

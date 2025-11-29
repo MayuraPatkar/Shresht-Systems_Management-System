@@ -986,12 +986,33 @@ async function loadQuotationForEditing(id) {
  * Validates the current step before allowing navigation to the next.
  * This is called by globalScript.js via the hook.
  */
-window.validateCurrentStep = function () {
+window.validateCurrentStep = async function () {
     // currentStep is a global variable from globalScript.js
 
     if (currentStep === 1) {
         const projectName = document.getElementById('project-name');
         const quoteDate = document.getElementById('quotation-date');
+        const idInput = document.getElementById('id');
+        const enteredId = idInput.value.trim();
+
+        // Check for duplicate ID if not in update mode and ID is provided
+        if (sessionStorage.getItem('currentTab-status') !== 'update' && enteredId) {
+            try {
+                const response = await fetch(`/quotation/${enteredId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.quotation) {
+                        window.electronAPI.showAlert1("Quotation with this ID already exists. Please use a different ID.");
+                        idInput.focus();
+                        return false;
+                    }
+                }
+            } catch (error) {
+                console.error("Error checking for duplicate quotation ID:", error);
+                window.electronAPI.showAlert1("Error verifying Quotation ID. Please try again.");
+                return false;
+            }
+        }
 
         if (!projectName.value.trim()) {
             window.electronAPI.showAlert1("Please enter the Project Name.");
