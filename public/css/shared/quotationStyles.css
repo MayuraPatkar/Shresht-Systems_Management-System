@@ -403,9 +403,11 @@
 .doc-quotation .fifth-section .bank-details {
     font-size: 13px;
     display: flex;
+    justify-content: center;
+    align-items: center;
     gap: 20px;
     background: #f8fafc;
-    padding: 20px;
+    padding: 2px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
 }
@@ -507,6 +509,33 @@
     font-size: 12px;
     line-height: 1.7;
     color: #000000;
+}
+
+/* Ensure Terms & Conditions list items are displayed properly as block elements
+   and wrap correctly. Previous issues caused bullets to appear inline. */
+.doc-quotation .terms-section ul {
+    margin: 12px 0 10px 0;
+    padding-left: 26px; /* indent list a bit */
+    list-style-type: disc;
+    list-style-position: outside;
+}
+.doc-quotation .terms-section ul li {
+    display: list-item;
+    margin: 6px 0;
+    line-height: 1.6;
+    color: #000000;
+    white-space: normal; /* allow wrapping */
+    text-align: left;
+    word-break: break-word;
+}
+
+@media print {
+    .doc-quotation .terms-section ul,
+    .doc-quotation .terms-section ul li {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        white-space: normal;
+    }
 }
 
 .doc-quotation .notes-section {

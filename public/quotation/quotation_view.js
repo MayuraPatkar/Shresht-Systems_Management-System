@@ -23,6 +23,14 @@ function getQuotationHeaderHTML() {
     `;
 }
 
+function normalizeTermsHTML(raw) {
+    if (!raw) return '';
+    if (/ <\s*(ul|li|ol|p|br|div|h[1-6])/.test(raw) || /<\s*(ul|li|ol|p|br|div|h[1-6])/.test(raw)) return raw;
+    const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) return '';
+    return `<ul>${lines.map(l => `<li>${l}</li>`).join('')}</ul>`;
+}
+
 /**
  * Generate and display the preview for the quotation in view-preview-content.
  * This works for both withTax and withoutTax view modes.
@@ -227,7 +235,7 @@ function generateViewPreviewHTML(quotation, viewType) {
     ${itemsPageHTML}
     <div class="preview-container doc-quotation">
         ${headerHTML}
-        <div class="terms-section">${quotation.termsAndConditions || ''}</div>
+        <div class="terms-section">${normalizeTermsHTML(quotation.termsAndConditions || '')}</div>
         <div class="closing-section">
             <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
             <p>Thanking you,</p>

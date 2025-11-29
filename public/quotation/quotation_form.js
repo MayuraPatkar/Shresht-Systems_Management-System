@@ -12,6 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+function normalizeTermsHTML(raw) {
+    if (!raw) return '';
+    // If it already contains HTML list or block tags, return as-is
+    if (/<\s*(ul|li|ol|p|br|div|h[1-6])/.test(raw)) return raw;
+    // Otherwise, treat as newline separated text and convert to <ul><li>...
+    const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) return '';
+    return `<ul>${lines.map(l => `<li>${l}</li>`).join('')}</ul>`;
+}
+
 
 function getQuotationHeaderHTML() {
     if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
@@ -785,7 +795,7 @@ async function generatePreview() {
     <div class="preview-container doc-quotation">
         ${headerHTML}
         <div class="terms-section" contenteditable="true">
-            ${quotation.termsAndConditions || ''}
+            ${normalizeTermsHTML(quotation.termsAndConditions || '')}
         </div>
 
         <div class="closing-section">

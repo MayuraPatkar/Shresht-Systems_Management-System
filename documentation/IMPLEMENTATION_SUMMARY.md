@@ -79,6 +79,7 @@ Full auto-update functionality has been successfully integrated into the Shresht
 - ✅ Download progress with speed and percentage
 - ✅ One-click install button
 - ✅ Version information display
+ - ✅ Form validation and UI consistency across modules (quotation, invoice, purchaseOrder, service, wayBill): added validateCurrentStep hook and red '*' indicators for required fields
 
 ### Security
 - ✅ SHA512 hash verification

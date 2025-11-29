@@ -26,7 +26,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Next button
     const nextBtn = document.getElementById("next-btn");
     if (nextBtn) {
-        nextBtn.addEventListener("click", () => {
+        nextBtn.addEventListener("click", async () => {
+            if (typeof window.validateCurrentStep === 'function') {
+                const ok = await window.validateCurrentStep();
+                if (!ok) return;
+            }
             if (window.currentStep < window.totalSteps) {
                 window.changeStep(window.currentStep + 1);
             }
@@ -43,6 +47,78 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Validate current step similar to quotation/service
+window.validateCurrentStep = async function () {
+    // Step 2: Project details
+    if (window.currentStep === 2) {
+        const projectName = document.getElementById('project-name');
+        const waybillId = document.getElementById('waybill-id');
+        if (!projectName || !projectName.value.trim()) {
+            window.electronAPI.showAlert1('Please enter the Project Name.');
+            projectName?.focus();
+            return false;
+        }
+        if (!waybillId || !waybillId.value.trim()) {
+            window.electronAPI.showAlert1('Please enter the Way Bill ID.');
+            waybillId?.focus();
+            return false;
+        }
+    }
+
+    // Step 3: Shipped To info must be filled
+    if (window.currentStep === 3) {
+        const buyerName = document.getElementById('buyer-name');
+        const buyerAddress = document.getElementById('buyer-address');
+        const buyerPhone = document.getElementById('buyer-phone');
+        if (!buyerName || !buyerName.value.trim()) {
+            window.electronAPI.showAlert1('Please enter the Buyer Name.');
+            buyerName?.focus();
+            return false;
+        }
+        if (!buyerAddress || !buyerAddress.value.trim()) {
+            window.electronAPI.showAlert1('Please enter the Buyer Address.');
+            buyerAddress?.focus();
+            return false;
+        }
+        if (!buyerPhone || !buyerPhone.value.trim()) {
+            window.electronAPI.showAlert1('Please enter the Buyer Phone Number.');
+            buyerPhone?.focus();
+            return false;
+        }
+    }
+
+    // Step 5: Items check
+    if (window.currentStep === 5) {
+        const itemsTable = document.querySelector('#items-table tbody');
+        if (!itemsTable || itemsTable.rows.length === 0) {
+            window.electronAPI.showAlert1('Please add at least one item.');
+            return false;
+        }
+        for (const [index, row] of Array.from(itemsTable.rows).entries()) {
+            const desc = row.querySelector('td:nth-child(2) input');
+            const qty = row.querySelector('td:nth-child(4) input');
+            const price = row.querySelector('td:nth-child(5) input');
+            if (!desc || !desc.value.trim()) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Description is required.`);
+                desc?.focus();
+                return false;
+            }
+            if (!qty || Number(qty.value) <= 0) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
+                qty?.focus();
+                return false;
+            }
+            if (!price || Number(price.value) < 0) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Unit Price is required.`);
+                price?.focus();
+                return false;
+            }
+        }
+    }
+
+    return true;
+};
 
 // Open a way bill for editing
 async function openWayBill(wayBillId) {
