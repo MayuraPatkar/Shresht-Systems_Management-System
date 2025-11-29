@@ -27,9 +27,9 @@ const adminSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-adminSchema.pre('save', function(next) {
+// Use synchronous middleware without `next` for compatibility across mongoose versions
+adminSchema.pre('save', function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 module.exports = mongoose.model('Admin', adminSchema);

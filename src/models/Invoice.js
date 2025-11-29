@@ -82,9 +82,8 @@ const invoiceSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-invoiceSchema.pre('save', function(next) {
+invoiceSchema.pre('save', function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 // Update payment status based on paid amount
