@@ -22,8 +22,6 @@ const { app, BrowserWindow, ipcMain, screen, dialog } = require("electron");
 const path = require("path");
 const logger = require("./src/utils/logger");
 const fs = require("fs");
-// add electron-log for electron-updater / main process file logging
-const electronLog = require('electron-log');
 const { autoUpdater } = require("electron-updater");
 const { handlePrintEvent } = require("./src/utils/printHandler");
 const { setupPuppeteerHandlers, puppeteerHandler } = require("./src/utils/puppeteerPrintHandler");
@@ -35,10 +33,6 @@ global.dialogEmitter = new EventEmitter();
 
 // Configure auto-updater logging
 // use electron-log for autoUpdater (Winston logger doesn't have electron-log transports)
-autoUpdater.logger = electronLog;
-electronLog.transports.file.level = 'info';
-electronLog.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s} [{level}]: {text}';
-electronLog.transports.console.format = '{y}-{m}-{d} {h}:{i}:{s} [{level}]: {text}';
 autoUpdater.autoDownload = true; // Automatically download updates
 autoUpdater.autoInstallOnAppQuit = true; // Install on quit
 
@@ -177,16 +171,7 @@ async function cleanOldLogs() {
   }
 }
 
-// Configure electron-log to use date-based file names
-// previously this was applied to `logger` (Winston) which caused the TypeError.
-// apply resolvePathFn to electron-log instead.
-electronLog.transports.file.resolvePathFn = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = (now.getMonth() + 1).toString().padStart(2, '0');
-  const day = now.getDate().toString().padStart(2, '0');
-  return path.join(logDir, `main-${year}-${month}-${day}.log`);
-};
+// Log file naming is handled by the Winston logger in `src/utils/logger`.
 
 // Clean up old logs at startup
 cleanOldLogs().catch(err => logger.error("Failed to clean old logs:", err));
