@@ -321,7 +321,6 @@ function createQuotationCard(quotation) {
     viewBtn.addEventListener('click', () => {
         viewQuotation(quotation.quotation_id, 1);
     });
-
     viewTaxBtn.addEventListener('click', () => {
         viewQuotation(quotation.quotation_id, 2);
     });
@@ -381,6 +380,8 @@ function showNewQuotationForm() {
     setTimeout(() => {
         const idInput = document.getElementById('id');
         if (idInput) {
+            idInput.readOnly = false;
+            idInput.style.backgroundColor = ''; // Reset to default
             idInput.focus();
         }
     }, 100);

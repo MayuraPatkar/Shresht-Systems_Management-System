@@ -59,7 +59,10 @@ async function openQuotation(quotationId) {
         document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
     }
 
-    document.getElementById('id').value = quotation.quotation_id;
+    const idInput = document.getElementById('id');
+    idInput.value = quotation.quotation_id;
+    idInput.readOnly = true;
+    idInput.style.backgroundColor = '#f3f4f6'; // Light gray to indicate disabled
     document.getElementById('project-name').value = quotation.project_name;
     // Use input-safe ISO date for the date field
     document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
