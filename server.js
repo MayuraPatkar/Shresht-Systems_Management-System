@@ -98,7 +98,7 @@ exServer.get('/health', async (req, res) => {
     try {
         // Check database connection
         const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-        
+
         const healthCheck = {
             status: 'OK',
             timestamp: new Date().toISOString(),
@@ -107,7 +107,7 @@ exServer.get('/health', async (req, res) => {
             memory: process.memoryUsage(),
             version: process.version
         };
-        
+
         res.status(200).json(healthCheck);
     } catch (error) {
         logger.error('Health check failed:', error);
@@ -188,19 +188,19 @@ server.on('error', (error) => {
 // Graceful shutdown handling
 const gracefulShutdown = async (signal) => {
     logger.info(`${signal} received. Starting graceful shutdown...`);
-    
+
     // Stop accepting new connections
     server.close(async (err) => {
         if (err) {
             logger.error('Error during server shutdown:', err);
             process.exit(1);
         }
-        
+
         try {
             // Close database connections
             await mongoose.connection.close();
             logger.info('Database connections closed');
-            
+
             logger.info('Graceful shutdown completed');
             process.exit(0);
         } catch (error) {
@@ -208,7 +208,7 @@ const gracefulShutdown = async (signal) => {
             process.exit(1);
         }
     });
-    
+
     // Force shutdown after 10 seconds
     setTimeout(() => {
         logger.error('Forced shutdown due to timeout');
@@ -227,7 +227,8 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    logger.error('Unhandled Rejection at:', promise);
+    logger.error('Reason:', reason instanceof Error ? reason.stack : reason);
     gracefulShutdown('UNHANDLED_REJECTION');
 });
 
