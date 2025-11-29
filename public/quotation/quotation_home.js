@@ -351,6 +351,16 @@ function showNewQuotationForm() {
         totalSteps: typeof totalSteps !== 'undefined' ? totalSteps : undefined
     });
 
+    // Set default date to today
+    const dateInput = document.getElementById('quotation-date');
+    if (dateInput) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+    }
+
     // Focus on the Quotation ID field
     setTimeout(() => {
         const idInput = document.getElementById('id');
