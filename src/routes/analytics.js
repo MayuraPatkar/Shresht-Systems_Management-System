@@ -37,9 +37,6 @@ router.get('/overview', async (req, res) => {
     // Use this month's earnings for dashboard
     const totalEarned = totalEarnedThisMonthResult.length > 0 ? totalEarnedThisMonthResult[0].total : 0;
     
-    // Optional: log for debugging
-    log.info(`Analytics Overview - Total Earned This Month: ${totalEarned}`);
-
     /* ─────────────────────── Monthly purchase expenditure ─────────────────── */
     // Use $or to match either purchase_date or createdAt within current month
     const [{ total: totalExpenditure = 0 } = {}] = await Purchases.aggregate([
