@@ -229,6 +229,19 @@ async function openQuotation(quotationId) {
                 updateNonItemNumbers();
                 updateSpecificationsTable();
             });
+
+            // Add listener for description change to update specifications
+            const descriptionInput = card.querySelector('.non-item-field.description input');
+            if (descriptionInput) {
+                descriptionInput.addEventListener('input', () => {
+                    clearTimeout(descriptionInput.specUpdateTimeout);
+                    descriptionInput.specUpdateTimeout = setTimeout(() => {
+                        if (descriptionInput.value.trim()) {
+                            updateSpecificationsTable();
+                        }
+                    }, 500);
+                });
+            }
         }
     });
 
