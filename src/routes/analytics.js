@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Invoices, Quotations, Purchases } = require('../models');
-const log = require('electron-log');          // preload‑side logger
+const logger = require('../utils/logger');          // custom logger
 
 router.get('/overview', async (req, res) => {
   try {
@@ -33,10 +33,10 @@ router.get('/overview', async (req, res) => {
       },
       { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
     ]);
-    
+
     // Use this month's earnings for dashboard
     const totalEarned = totalEarnedThisMonthResult.length > 0 ? totalEarnedThisMonthResult[0].total : 0;
-    
+
     /* ─────────────────────── Monthly purchase expenditure ─────────────────── */
     // Use $or to match either purchase_date or createdAt within current month
     const [{ total: totalExpenditure = 0 } = {}] = await Purchases.aggregate([
@@ -67,7 +67,7 @@ router.get('/overview', async (req, res) => {
       remainingServices,
     });
   } catch (err) {
-    log.error('Error fetching analytics:', err);
+    logger.error('Error fetching analytics:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -144,7 +144,7 @@ router.get('/comparison', async (req, res) => {
       },
     });
   } catch (err) {
-    log.error('Error fetching comparison analytics:', err);
+    logger.error('Error fetching comparison analytics:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
