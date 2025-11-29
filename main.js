@@ -37,6 +37,8 @@ global.dialogEmitter = new EventEmitter();
 // use electron-log for autoUpdater (Winston logger doesn't have electron-log transports)
 autoUpdater.logger = electronLog;
 electronLog.transports.file.level = 'info';
+electronLog.transports.file.format = '{y}-{m}-{d} {h}:{i}:{s} [{level}]: {text}';
+electronLog.transports.console.format = '{y}-{m}-{d} {h}:{i}:{s} [{level}]: {text}';
 autoUpdater.autoDownload = true; // Automatically download updates
 autoUpdater.autoInstallOnAppQuit = true; // Install on quit
 
@@ -72,7 +74,7 @@ autoUpdater.on('update-downloaded', (info) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-downloaded', info);
   }
-  
+
   // Show dialog to user
   dialog.showMessageBox(mainWindow, {
     type: 'info',
@@ -157,7 +159,7 @@ async function cleanOldLogs() {
 
     if (logFiles.length > maxLogDays) {
       const filesToDelete = logFiles.slice(maxLogDays);
-      
+
       const deletePromises = filesToDelete.map(async (fileInfo) => {
         try {
           await fs.promises.unlink(fileInfo.path);
@@ -255,19 +257,19 @@ function setupIPCHandlers() {
   ipcMain.handle('manual-check-update', async () => {
     try {
       logger.info('Manual update check requested');
-      
+
       // Check if in development mode (unpacked app)
       if (!app.isPackaged) {
         logger.info('App is not packaged - update check skipped in development mode');
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: 'Update checks are only available in production builds. Use "npm run build" to create a packaged version.',
           isDevelopment: true
         };
       }
-      
+
       const result = await autoUpdater.checkForUpdates();
-      
+
       // Handle null result (no updates available or error)
       if (result && result.updateInfo) {
         return { success: true, updateInfo: result.updateInfo };
@@ -355,7 +357,7 @@ async function createWindow() {
     // Enhanced frontend loading with retry logic
     const maxRetries = 5;
     let retries = 0;
-    
+
     const loadFrontend = async () => {
       try {
         await mainWindow.loadURL("http://localhost:3000");
@@ -363,7 +365,7 @@ async function createWindow() {
       } catch (err) {
         retries++;
         logger.warn(`Failed to load frontend (attempt ${retries}/${maxRetries}):`, err.message);
-        
+
         if (retries < maxRetries) {
           // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, 2000));
@@ -394,7 +396,7 @@ async function createWindow() {
     // Handle navigation security
     mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
       const parsedUrl = new URL(navigationUrl);
-      
+
       // Only allow navigation to localhost and the app's domain
       if (parsedUrl.origin !== 'http://localhost:3000') {
         event.preventDefault();
@@ -411,15 +413,15 @@ async function createWindow() {
 
     // Setup custom event handlers with mainWindow as parameter
     handlePrintEvent(mainWindow);
-    
+
     // Setup Puppeteer-based print handlers for quotations (better rendering quality)
     setupPuppeteerHandlers(mainWindow, ipcMain);
-    
+
     // Setup IPC handlers for file dialogs
     setupIPCHandlers();
-    
+
     logger.info("Main window created successfully");
-    
+
   } catch (error) {
     logger.error("Failed to create main window:", error);
     throw error;
@@ -432,12 +434,12 @@ app.whenReady().then(async () => {
   try {
     const server = require("./server");
     logger.info("Express server started successfully");
-    
+
     // Wait a moment for server to fully initialize
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     createWindow();
-    
+
     // Check for updates after window is created (only in production)
     if (process.env.NODE_ENV !== "development") {
       logger.info('Checking for updates automatically...');
@@ -447,7 +449,7 @@ app.whenReady().then(async () => {
     }
   } catch (err) {
     logger.error("Failed to start Express server:", err);
-    
+
     // Show error dialog to user
     const { dialog } = require('electron');
     const result = await dialog.showMessageBox({
@@ -458,7 +460,7 @@ app.whenReady().then(async () => {
       buttons: ['Continue Anyway', 'Exit'],
       defaultId: 1
     });
-    
+
     if (result.response === 0) {
       createWindow();
     } else {
@@ -475,9 +477,9 @@ app.on("before-quit", async (event) => {
   if (!isQuitting) {
     event.preventDefault();
     isQuitting = true;
-    
+
     logger.info("Application shutting down gracefully...");
-    
+
     // Cleanup Puppeteer browser instance
     try {
       await puppeteerHandler.cleanup();
@@ -485,7 +487,7 @@ app.on("before-quit", async (event) => {
     } catch (error) {
       logger.error("Error during Puppeteer cleanup:", error);
     }
-    
+
     // Give time for any pending operations
     setTimeout(() => {
       app.quit();
@@ -496,7 +498,7 @@ app.on("before-quit", async (event) => {
 // Quit the app when all windows are closed (except on macOS)
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    logger.info("-------------***All windows closed. Exiting application***-------------");
+    logger.info("---------------------------***App closed***----------------------------");
     app.quit();
   }
 });
@@ -511,7 +513,7 @@ app.on("activate", () => {
 // Handle uncaught exceptions gracefully
 process.on('uncaughtException', (error) => {
   logger.error('Uncaught Exception:', error);
-  
+
   // Don't exit immediately, let the app handle it gracefully
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('app-error', {

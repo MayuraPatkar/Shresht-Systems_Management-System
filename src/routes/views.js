@@ -1,7 +1,6 @@
 const express = require('express');
 const path = require('path');
 const router = express.Router();
-const log = require("electron-log"); // Import electron-log in the preload process
 
 
 // Serve HTML files
@@ -28,7 +27,7 @@ pages.forEach(({ route, file }) => {
         // Check if this is exactly the route (not a sub-path like /invoice/something)
         // req.baseUrl + req.path gives the full matched path
         const fullPath = req.baseUrl + req.path;
-        
+
         if (fullPath === route || fullPath === route + '/') {
             res.sendFile(path.join(__dirname, '../../public', file));
         } else {
