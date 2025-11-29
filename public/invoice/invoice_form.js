@@ -10,6 +10,81 @@ document.getElementById("view-preview").addEventListener("click", () => {
     generatePreview();
 });
 
+// Validate current step before navigation
+window.validateCurrentStep = async function () {
+    // Step 2: Project details
+    if (currentStep === 2) {
+        const projectName = document.getElementById('project-name');
+        const serviceMonths = document.getElementById('service-months');
+
+        if (!projectName.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the Project Name.");
+            projectName.focus();
+            return false;
+        }
+        
+        if (!serviceMonths.value || Number(serviceMonths.value) < 0) {
+            window.electronAPI.showAlert1("Please enter valid Service Months (0 or greater).");
+            serviceMonths.focus();
+            return false;
+        }
+    }
+
+    // Step 3: Recipient details
+    if (currentStep === 3) {
+        const buyerName = document.getElementById('buyer-name');
+        const buyerAddress = document.getElementById('buyer-address');
+        const buyerPhone = document.getElementById('buyer-phone');
+
+        if (!buyerName.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the Buyer Name.");
+            buyerName.focus();
+            return false;
+        }
+        if (!buyerAddress.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the Buyer Address.");
+            buyerAddress.focus();
+            return false;
+        }
+        if (!buyerPhone.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the Buyer Phone Number.");
+            buyerPhone.focus();
+            return false;
+        }
+    }
+
+    // Step 5: Item list - ensure at least one item and validate its fields
+    if (currentStep === 5) {
+        const itemsTable = document.querySelector('#items-table tbody');
+        if (!itemsTable || itemsTable.rows.length === 0) {
+            window.electronAPI.showAlert1("Please add at least one item.");
+            return false;
+        }
+        for (const [index, row] of Array.from(itemsTable.rows).entries()) {
+            const desc = row.querySelector('td:nth-child(2) input');
+            const qty = row.querySelector('td:nth-child(4) input');
+            const price = row.querySelector('td:nth-child(5) input');
+            if (!desc || !desc.value.trim()) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Description is required.`);
+                desc?.focus();
+                return false;
+            }
+            if (!qty || Number(qty.value) <= 0) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
+                qty?.focus();
+                return false;
+            }
+            if (!price || Number(price.value) < 0) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Unit Price must be provided.`);
+                price?.focus();
+                return false;
+            }
+        }
+    }
+
+    return true;
+};
+
 // Event listener for the "Next" button
 document.getElementById("next-btn").addEventListener("click", () => {
     let sno = 1;

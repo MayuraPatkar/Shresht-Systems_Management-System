@@ -851,6 +851,10 @@ document.addEventListener('DOMContentLoaded', () => {
         nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
 
         newNextBtn.addEventListener('click', async () => {
+            if (typeof window.validateCurrentStep === 'function') {
+                const ok = await window.validateCurrentStep();
+                if (!ok) return;
+            }
             if (currentStep < totalSteps) {
                 // When moving from step 2 (Item Details) to step 3 (Add Specifications)
                 if (currentStep === 2) {
@@ -870,6 +874,61 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Validate current step before navigation
+window.validateCurrentStep = async function () {
+    // Step 1: Supplier details
+    if (currentStep === 1) {
+        const fields = [
+            { id: 'purchase-invoice-id', name: 'Purchase Invoice ID' },
+            { id: 'purchase-date', name: 'Purchase Date' },
+            { id: 'supplier-name', name: 'Supplier Name' },
+            { id: 'supplier-address', name: 'Supplier Address' },
+            { id: 'supplier-phone', name: 'Supplier Phone' },
+            { id: 'supplier-email', name: 'Supplier Email' },
+            { id: 'supplier-GSTIN', name: 'Supplier GSTIN' }
+        ];
+        for (const f of fields) {
+            const el = document.getElementById(f.id);
+            if (!el || !el.value.trim()) {
+                window.electronAPI.showAlert1(`Please enter ${f.name}.`);
+                el?.focus();
+                return false;
+            }
+        }
+    }
+
+    // Step 2: At least one item
+    if (currentStep === 2) {
+        const itemsTable = document.querySelector('#items-table tbody');
+        if (!itemsTable || itemsTable.rows.length === 0) {
+            window.electronAPI.showAlert1('Please add at least one item.');
+            return false;
+        }
+        for (const [index, row] of Array.from(itemsTable.rows).entries()) {
+            const desc = row.querySelector('td:nth-child(2) input');
+            const qty = row.querySelector('td:nth-child(7) input');
+            const price = row.querySelector('td:nth-child(8) input');
+            if (!desc || !desc.value.trim()) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Description is required.`);
+                desc?.focus();
+                return false;
+            }
+            if (!qty || Number(qty.value) <= 0) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
+                qty?.focus();
+                return false;
+            }
+            if (!price || Number(price.value) < 0) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Unit Price is required.`);
+                price?.focus();
+                return false;
+            }
+        }
+    }
+
+    return true;
+};
 
 
 
