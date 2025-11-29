@@ -203,10 +203,10 @@ function showToast(message) {
 function createQuotationCard(quotation) {
     const quotationCard = document.createElement("div");
     quotationCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-400 overflow-hidden fade-in";
-    
+
     // Format the date for display
     const formattedDate = quotation.quotation_date ? formatDateIndian(quotation.quotation_date) : '-';
-    
+
     quotationCard.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
@@ -350,6 +350,14 @@ function showNewQuotationForm() {
         currentStep: typeof currentStep !== 'undefined' ? currentStep : undefined,
         totalSteps: typeof totalSteps !== 'undefined' ? totalSteps : undefined
     });
+
+    // Focus on the Quotation ID field
+    setTimeout(() => {
+        const idInput = document.getElementById('id');
+        if (idInput) {
+            idInput.focus();
+        }
+    }, 100);
 }
 
 // Handle search functionality
@@ -360,7 +368,7 @@ async function handleSearch() {
         return;
     }
 
-    await searchDocuments('quotation', query, quotationListDiv, createQuotationCard, 
+    await searchDocuments('quotation', query, quotationListDiv, createQuotationCard,
         `<div class="flex flex-col items-center justify-center py-16 fade-in">
             <div class="bg-yellow-100 rounded-full p-8 mb-4">
                 <i class="fas fa-search text-yellow-500 text-6xl"></i>
