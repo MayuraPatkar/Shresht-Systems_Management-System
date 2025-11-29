@@ -33,6 +33,7 @@ function loadPreferences() {
                 document.getElementById("backup-frequency").value = s.backup?.backup_frequency || 'daily';
                 document.getElementById("backup-time").value = s.backup?.backup_time || '02:00';
                 document.getElementById("backup-retention").value = s.backup?.retention_days || 30;
+                document.getElementById("backup-location").value = s.backup?.backup_location || (window.process ? window.process.env.BACKUP_DIR || './backups' : './backups');
                 
                 if (s.backup?.last_backup) {
                     const lastBackup = new Date(s.backup.last_backup).toLocaleString();
@@ -72,7 +73,8 @@ function savePreferences() {
             auto_backup_enabled: document.getElementById("backup-auto-enabled").checked,
             backup_frequency: document.getElementById("backup-frequency").value,
             backup_time: document.getElementById("backup-time").value,
-            retention_days: parseInt(document.getElementById("backup-retention").value)
+            retention_days: parseInt(document.getElementById("backup-retention").value),
+            backup_location: document.getElementById("backup-location").value
         }
     };
     
@@ -249,6 +251,19 @@ function initPreferencesModule() {
     // Preferences
     document.getElementById("save-preferences-button")?.addEventListener("click", savePreferences);
     document.getElementById("logo-upload")?.addEventListener("change", handleLogoUpload);
+    document.getElementById("backup-browse")?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        try {
+            const selected = await window.openFileDialog({ properties: ['openDirectory'] });
+            if (selected && typeof selected === 'string') {
+                document.getElementById('backup-location').value = selected;
+            } else if (Array.isArray(selected) && selected.length > 0) {
+                document.getElementById('backup-location').value = selected[0];
+            }
+        } catch (err) {
+            console.error('Directory selection cancelled or failed:', err);
+        }
+    });
     
     // Theme preview
     document.getElementById("pref-theme")?.addEventListener("change", (e) => {

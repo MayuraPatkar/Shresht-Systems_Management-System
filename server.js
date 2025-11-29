@@ -11,6 +11,7 @@ const connectDB = require('./src/config/database');
 const { errorHandler, notFound } = require('./src/middleware/errorHandler');
 const { apiLimiter } = require('./src/middleware/rateLimiter');
 const autoBackup = require("./src/utils/backup");
+const backupScheduler = require('./src/utils/backupScheduler');
 
 // Security Middleware
 exServer.use(helmet({
@@ -43,7 +44,6 @@ exServer.use(express.json({ limit: '10mb' }));
 exServer.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Get paths from global or use defaults
-const uploadsPath = global.appPaths ? global.appPaths.uploads : path.join(__dirname, 'src/uploads');
 const publicPath = path.join(__dirname, 'public');
 
 // Static files with proper caching - BEFORE rate limiting
@@ -52,9 +52,6 @@ exServer.use(express.static(publicPath, {
     etag: true,
     lastModified: true
 }));
-
-// Uploads directory
-exServer.use('/uploads', express.static(uploadsPath));
 
 // Rate limiting AFTER static files to exclude them
 const limiter = rateLimit({
@@ -148,12 +145,15 @@ exServer.use(notFound);
 exServer.use(errorHandler);
 
 // Run automatic backup on startup with error handling
+// Start scheduled automatic backups based on saved settings
 try {
-    autoBackup();
-    logger.info('Automatic backup initiated successfully');
+    backupScheduler.startScheduler().then(() => {
+        logger.info('Backup scheduler started');
+    }).catch(err => {
+        logger.error('Failed to start backup scheduler:', err);
+    });
 } catch (backupError) {
-    logger.error('Failed to initiate automatic backup:', backupError.message);
-    // Don't exit, continue with server startup
+    logger.error('Failed to initialize backup scheduler:', backupError && backupError.message ? backupError.message : backupError);
 }
 
 // Start the server

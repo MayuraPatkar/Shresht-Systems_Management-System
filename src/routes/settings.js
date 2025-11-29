@@ -1,10 +1,12 @@
 const express = require("express");
 const { exec, spawn } = require("child_process");
 const path = require("path");
+const os = require('os');
 const multer = require("multer");
 const fs = require("fs").promises;
 const fsSync = require("fs");
 const log = require("electron-log");
+const backupScheduler = require('../utils/backupScheduler');
 
 const router = express.Router();
 
@@ -257,30 +259,6 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
     }
 }));
 
-// Enhanced Multer config with security
-const uploadDir = global.appPaths ? global.appPaths.uploads : path.join(__dirname, "../../uploads/");
-
-// Ensure upload directory exists
-const ensureUploadDir = async () => {
-    try {
-        await fs.mkdir(uploadDir, { recursive: true });
-    } catch (error) {
-        log.error('Failed to create upload directory:', error);
-    }
-};
-ensureUploadDir();
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        // Generate secure filename with timestamp
-        const timestamp = Date.now();
-        const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-        cb(null, `backup_${timestamp}_${sanitizedName}`);
-    }
-});
 
 const fileFilter = (req, file, cb) => {
     // Allow only specific backup file types
@@ -294,37 +272,17 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
+// Use memory storage for uploads to avoid relying on an application upload directory.
+// Files will be written to a secure temporary file if needed by restore handlers.
+const memoryStorage = multer.memoryStorage();
 const upload = multer({ 
-    storage: storage,
+    storage: memoryStorage,
     fileFilter: fileFilter,
     limits: {
         fileSize: 100 * 1024 * 1024, // 100MB limit
         files: 1
     }
 });
-
-// Clean up old temporary files
-const cleanupOldFiles = async () => {
-    try {
-        const files = await fs.readdir(uploadDir);
-        const oneHourAgo = Date.now() - (60 * 60 * 1000);
-        
-        for (const file of files) {
-            const filePath = path.join(uploadDir, file);
-            const stats = await fs.stat(filePath);
-            
-            if (stats.mtime.getTime() < oneHourAgo) {
-                await fs.unlink(filePath);
-                log.info(`Cleaned up old temp file: ${file}`);
-            }
-        }
-    } catch (error) {
-        log.error('Error cleaning up temp files:', error);
-    }
-};
-
-// Run cleanup every hour
-setInterval(cleanupOldFiles, 60 * 60 * 1000);
 
 // Restore collection from backup
 router.post("/backup/restore-collection", upload.single("backupFile"), validateCollection, asyncHandler(async (req, res) => {
@@ -334,9 +292,20 @@ router.post("/backup/restore-collection", upload.single("backupFile"), validateC
             message: "No backup file uploaded" 
         });
     }
-
-    const filePath = req.file.path;
+    // If multer used memoryStorage, write buffer to a temp file so restore tools can access a path
     const originalName = req.file.originalname;
+    let filePath;
+    if (req.file.path && typeof req.file.path === 'string') {
+        filePath = req.file.path;
+    } else if (req.file.buffer) {
+        const ext = path.extname(originalName) || '';
+        const tmpName = `shresht-restore-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+        const tmpPath = path.join(os.tmpdir(), tmpName);
+        await fs.writeFile(tmpPath, req.file.buffer);
+        filePath = tmpPath;
+    } else {
+        return res.status(400).json({ success: false, message: 'Invalid uploaded file' });
+    }
     const collection = req.sanitizedCollection;
     
     log.info(`Starting collection restore: ${collection} from ${originalName}`);
@@ -504,9 +473,20 @@ router.post("/backup/restore-database", upload.single("backupFile"), asyncHandle
             message: "No backup file uploaded" 
         });
     }
-
-    const filePath = req.file.path;
+    // If multer used memoryStorage, write buffer to a temp file so restore tools can access a path
     const originalName = req.file.originalname;
+    let filePath;
+    if (req.file.path && typeof req.file.path === 'string') {
+        filePath = req.file.path;
+    } else if (req.file.buffer) {
+        const ext = path.extname(originalName) || '';
+        const tmpName = `shresht-restore-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+        const tmpPath = path.join(os.tmpdir(), tmpName);
+        await fs.writeFile(tmpPath, req.file.buffer);
+        filePath = tmpPath;
+    } else {
+        return res.status(400).json({ success: false, message: 'Invalid uploaded file' });
+    }
     
     log.info(`Starting database restore from ${originalName}`);
 
@@ -642,7 +622,6 @@ router.get("/backup/status", asyncHandler(async (req, res) => {
                 mongoimport: mongoimportAvailable,
                 mongorestore: mongorestoreAvailable
             },
-            uploadDir: uploadDir,
             allowedCollections: ALLOWED_COLLECTIONS,
             maxFileSize: '100MB'
         });
@@ -707,7 +686,15 @@ router.patch("/preferences", asyncHandler(async (req, res) => {
         
         settings.updatedAt = new Date();
         await settings.save();
-        
+
+        // Refresh backup schedule in case backup preferences changed
+        try {
+            await backupScheduler.refreshSchedule();
+            log.info('Backup scheduler refreshed after settings update');
+        } catch (schedErr) {
+            log.warn('Failed to refresh backup scheduler after settings update:', schedErr.message || schedErr);
+        }
+
         log.info('Settings updated successfully');
         res.json({
             success: true,

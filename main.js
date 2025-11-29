@@ -118,10 +118,9 @@ const appPath = app.isPackaged ? userDataPath : __dirname;
 // Set up directory paths
 const logDir = path.join(appPath, "logs");
 const backupDir = path.join(appPath, "backups");
-const uploadDir = path.join(appPath, "uploads");
 
 // Ensure required directories exist
-[logDir, backupDir, uploadDir].forEach(dir => {
+[logDir, backupDir].forEach(dir => {
   if (!fs.existsSync(dir)) {
     try {
       fs.mkdirSync(dir, { recursive: true });
@@ -135,7 +134,6 @@ const uploadDir = path.join(appPath, "uploads");
 global.appPaths = {
   logs: logDir,
   backups: backupDir,
-  uploads: uploadDir,
   userData: userDataPath,
   root: appPath
 };
