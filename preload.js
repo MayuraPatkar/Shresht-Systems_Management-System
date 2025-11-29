@@ -93,4 +93,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
             ipcRenderer.on("update-error", (_, error) => callback(error));
         }
     },
+    // File dialog helpers
+    openFileDialog: (options) => ipcRenderer.invoke('show-open-dialog', options),
+    saveFileDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
+    showMessageBox: (options) => ipcRenderer.invoke('show-message-box', options),
+    // Open the configured backup folder in the OS file manager
+    openBackupFolder: () => ipcRenderer.invoke('open-backup-folder'),
 });

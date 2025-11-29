@@ -103,10 +103,11 @@ const settingsSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-settingsSchema.pre('save', function(next) {
+// Use a synchronous pre-save hook (no `next` callback) to avoid middleware signature issues
+settingsSchema.pre('save', function() {
     this.updatedAt = Date.now();
+    if (!this.system) this.system = {};
     this.system.last_updated = Date.now();
-    next();
 });
 
 module.exports = mongoose.model('Settings', settingsSchema);

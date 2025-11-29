@@ -13,7 +13,6 @@
  * Modules Used:
  *   - electron: Core Electron APIs for app, window, and IPC management.
  *   - path: File path utilities.
- *   - electron-log: Logging utility for Electron.
  *   - fs: File system utilities for log management.
  *   - printHandler: Custom module for print event handling.
  *   - alertHandler: Custom module for alert dialogs.
@@ -118,10 +117,9 @@ const appPath = app.isPackaged ? userDataPath : __dirname;
 // Set up directory paths
 const logDir = path.join(appPath, "logs");
 const backupDir = path.join(appPath, "backups");
-const uploadDir = path.join(appPath, "uploads");
 
 // Ensure required directories exist
-[logDir, backupDir, uploadDir].forEach(dir => {
+[logDir, backupDir].forEach(dir => {
   if (!fs.existsSync(dir)) {
     try {
       fs.mkdirSync(dir, { recursive: true });
@@ -135,7 +133,6 @@ const uploadDir = path.join(appPath, "uploads");
 global.appPaths = {
   logs: logDir,
   backups: backupDir,
-  uploads: uploadDir,
   userData: userDataPath,
   root: appPath
 };
@@ -282,6 +279,29 @@ function setupIPCHandlers() {
     } catch (error) {
       logger.error('Manual update check failed:', error);
       return { success: false, error: error.message };
+    }
+  });
+
+  // Handle request to open the backup folder in OS file manager
+  ipcMain.handle('open-backup-folder', async () => {
+    try {
+      const { shell } = require('electron');
+      const folderPath = global.appPaths && global.appPaths.backups;
+      if (!folderPath) {
+        logger.warn('Backup folder not configured');
+        return { success: false, message: 'Backup folder not configured' };
+      }
+
+      const result = await shell.openPath(folderPath);
+      // shell.openPath returns '' on success, or an error string on failure
+      if (typeof result === 'string' && result.length > 0) {
+        logger.error('Failed to open backup folder:', result);
+        return { success: false, message: result };
+      }
+      return { success: true, path: folderPath };
+    } catch (error) {
+      logger.error('Error opening backup folder:', error);
+      return { success: false, message: error.message };
     }
   });
 

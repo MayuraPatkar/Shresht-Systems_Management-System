@@ -33,13 +33,7 @@ function loadPreferences() {
                 document.getElementById("backup-frequency").value = s.backup?.backup_frequency || 'daily';
                 document.getElementById("backup-time").value = s.backup?.backup_time || '02:00';
                 document.getElementById("backup-retention").value = s.backup?.retention_days || 30;
-                
-                if (s.backup?.last_backup) {
-                    const lastBackup = new Date(s.backup.last_backup).toLocaleString();
-                    document.getElementById("last-backup-time").textContent = lastBackup;
-                } else {
-                    document.getElementById("last-backup-time").textContent = "Never";
-                }
+                document.getElementById("backup-location").value = s.backup?.backup_location || (window.process ? window.process.env.BACKUP_DIR || './backups' : './backups');
             }
         })
         .catch(err => {
@@ -72,7 +66,8 @@ function savePreferences() {
             auto_backup_enabled: document.getElementById("backup-auto-enabled").checked,
             backup_frequency: document.getElementById("backup-frequency").value,
             backup_time: document.getElementById("backup-time").value,
-            retention_days: parseInt(document.getElementById("backup-retention").value)
+            retention_days: parseInt(document.getElementById("backup-retention").value),
+            backup_location: document.getElementById("backup-location").value
         }
     };
     
@@ -85,8 +80,6 @@ function savePreferences() {
         .then(data => {
             if (data.success) {
                 window.electronAPI.showAlert1("Preferences saved successfully!");
-                // Apply theme if changed
-                applyTheme(preferences.branding.theme);
             } else {
                 window.electronAPI.showAlert1(`Failed to save: ${data.message}`);
             }
@@ -242,6 +235,8 @@ function saveNotificationSettings() {
 
 // --- EVENT LISTENERS ---
 
+// Theme support removed: no applyTheme helper
+
 /**
  * Initialize preferences module event listeners
  */
@@ -249,11 +244,20 @@ function initPreferencesModule() {
     // Preferences
     document.getElementById("save-preferences-button")?.addEventListener("click", savePreferences);
     document.getElementById("logo-upload")?.addEventListener("change", handleLogoUpload);
-    
-    // Theme preview
-    document.getElementById("pref-theme")?.addEventListener("change", (e) => {
-        applyTheme(e.target.value);
+    document.getElementById("backup-browse")?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        try {
+            const result = await window.electronAPI.openFileDialog({ properties: ['openDirectory'] });
+            // ipc returns { canceled: boolean, filePaths: [] } per Electron's showOpenDialog
+            if (result && !result.canceled && Array.isArray(result.filePaths) && result.filePaths.length > 0) {
+                document.getElementById('backup-location').value = result.filePaths[0];
+            }
+        } catch (err) {
+            console.error('Directory selection cancelled or failed:', err);
+        }
     });
+    
+    // Theme support removed
     
     // Security
     document.getElementById("save-security-button")?.addEventListener("click", saveSecuritySettings);
