@@ -63,7 +63,7 @@ function autoBackup() {
             logger.error("Backup failed:", stderr);
             return;
         }
-        logger.info("Backup created successfully:");
+        logger.info("Backup created successfully");
     });
 }
 
