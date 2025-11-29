@@ -48,7 +48,7 @@ document.getElementById("view-preview").addEventListener("click", () => {
 async function openQuotation(quotationId) {
     const data = await fetchDocumentById('quotation', quotationId);
     if (!data) return;
-    
+
     const quotation = data.quotation;
 
     document.getElementById('home').style.display = 'none';
@@ -59,35 +59,35 @@ async function openQuotation(quotationId) {
         document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
     }
 
-        document.getElementById('id').value = quotation.quotation_id;
-        document.getElementById('project-name').value = quotation.project_name;
-        // Use input-safe ISO date for the date field
-        document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
-        document.getElementById('buyer-name').value = quotation.customer_name;
-        document.getElementById('buyer-address').value = quotation.customer_address;
-        document.getElementById('buyer-phone').value = quotation.customer_phone;
-        document.getElementById('buyer-email').value = quotation.customer_email;
+    document.getElementById('id').value = quotation.quotation_id;
+    document.getElementById('project-name').value = quotation.project_name;
+    // Use input-safe ISO date for the date field
+    document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
+    document.getElementById('buyer-name').value = quotation.customer_name;
+    document.getElementById('buyer-address').value = quotation.customer_address;
+    document.getElementById('buyer-phone').value = quotation.customer_phone;
+    document.getElementById('buyer-email').value = quotation.customer_email;
 
-        const itemsContainer = document.getElementById("items-container");
-        const nonItemsContainer = document.getElementById("non-items-container");
-        const specificationsContainer = document.getElementById("specifications-container");
-        const itemsTableBody = document.querySelector("#items-table tbody");
-        const nonItemsTableBody = document.querySelector("#non-items-table tbody");
-        const itemsSpecificationsTableBody = document.querySelector("#items-specifications-table tbody");
-        
-        // Clear existing content
-        if (itemsContainer) itemsContainer.innerHTML = "";
-        if (nonItemsContainer) nonItemsContainer.innerHTML = "";
-        if (specificationsContainer) specificationsContainer.innerHTML = "";
-        itemsTableBody.innerHTML = "";
-        nonItemsTableBody.innerHTML = "";
-        itemsSpecificationsTableBody.innerHTML = "";
+    const itemsContainer = document.getElementById("items-container");
+    const nonItemsContainer = document.getElementById("non-items-container");
+    const specificationsContainer = document.getElementById("specifications-container");
+    const itemsTableBody = document.querySelector("#items-table tbody");
+    const nonItemsTableBody = document.querySelector("#non-items-table tbody");
+    const itemsSpecificationsTableBody = document.querySelector("#items-specifications-table tbody");
 
-        // Load items
-        (quotation.items || []).forEach((item, index) => {
-            // Create table row first
-            const row = document.createElement("tr");
-            row.innerHTML = `
+    // Clear existing content
+    if (itemsContainer) itemsContainer.innerHTML = "";
+    if (nonItemsContainer) nonItemsContainer.innerHTML = "";
+    if (specificationsContainer) specificationsContainer.innerHTML = "";
+    itemsTableBody.innerHTML = "";
+    nonItemsTableBody.innerHTML = "";
+    itemsSpecificationsTableBody.innerHTML = "";
+
+    // Load items
+    (quotation.items || []).forEach((item, index) => {
+        // Create table row first
+        const row = document.createElement("tr");
+        row.innerHTML = `
                 <td>${index + 1}</td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
                 <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
@@ -96,13 +96,13 @@ async function openQuotation(quotationId) {
                 <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
-            itemsTableBody.appendChild(row);
-            
-            // Create card
-            if (itemsContainer) {
-                const card = document.createElement("div");
-                card.className = "item-card";
-                card.innerHTML = `
+        itemsTableBody.appendChild(row);
+
+        // Create card
+        if (itemsContainer) {
+            const card = document.createElement("div");
+            card.className = "item-card";
+            card.innerHTML = `
                     <div class="item-number">${index + 1}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
@@ -126,71 +126,71 @@ async function openQuotation(quotationId) {
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
-                itemsContainer.appendChild(card);
-                
-                // Setup autocomplete for loaded items
-                const cardInput = card.querySelector(".item_name");
-                const cardSuggestions = card.querySelector(".suggestions");
-                
-                if (cardInput && cardSuggestions) {
-                    cardInput.addEventListener("input", function () {
-                        showSuggestions(cardInput, cardSuggestions);
-                        // Update specifications table when item description changes (with debounce)
-                        clearTimeout(cardInput.specUpdateTimeout);
-                        cardInput.specUpdateTimeout = setTimeout(() => {
-                            if (cardInput.value.trim()) {
-                                updateSpecificationsTable();
-                            }
-                        }, 500);
-                    });
+            itemsContainer.appendChild(card);
 
-                    cardInput.addEventListener("keydown", function (event) {
-                        handleKeyboardNavigation(event, cardInput, cardSuggestions);
-                    });
+            // Setup autocomplete for loaded items
+            const cardInput = card.querySelector(".item_name");
+            const cardSuggestions = card.querySelector(".suggestions");
 
-                    // Close suggestions handled by global listener
-                }
-                
-                // Sync card inputs with table inputs
-                const cardInputs = card.querySelectorAll('input');
-                const rowInputs = row.querySelectorAll('input');
-                cardInputs.forEach((input, idx) => {
-                    input.addEventListener('input', () => {
-                        if (rowInputs[idx]) {
-                            rowInputs[idx].value = input.value;
+            if (cardInput && cardSuggestions) {
+                cardInput.addEventListener("input", function () {
+                    showSuggestions(cardInput, cardSuggestions);
+                    // Update specifications table when item description changes (with debounce)
+                    clearTimeout(cardInput.specUpdateTimeout);
+                    cardInput.specUpdateTimeout = setTimeout(() => {
+                        if (cardInput.value.trim()) {
+                            updateSpecificationsTable();
                         }
-                    });
+                    }, 500);
                 });
-                
-                // Add remove button event listener
-                const removeBtn = card.querySelector(".remove-item-btn");
-                removeBtn.addEventListener("click", function() {
-                    card.remove();
-                    row.remove();
-                    updateItemNumbers();
-                    updateSpecificationsTable();
-                });
-            }
-        });
 
-        // Load non-items
-        (quotation.non_items || []).forEach((item, index) => {
-            // Create table row first
-            const row = document.createElement("tr");
-            row.innerHTML = `
+                cardInput.addEventListener("keydown", function (event) {
+                    handleKeyboardNavigation(event, cardInput, cardSuggestions);
+                });
+
+                // Close suggestions handled by global listener
+            }
+
+            // Sync card inputs with table inputs
+            const cardInputs = card.querySelectorAll('input');
+            const rowInputs = row.querySelectorAll('input');
+            cardInputs.forEach((input, idx) => {
+                input.addEventListener('input', () => {
+                    if (rowInputs[idx]) {
+                        rowInputs[idx].value = input.value;
+                    }
+                });
+            });
+
+            // Add remove button event listener
+            const removeBtn = card.querySelector(".remove-item-btn");
+            removeBtn.addEventListener("click", function () {
+                card.remove();
+                row.remove();
+                updateItemNumbers();
+                updateSpecificationsTable();
+            });
+        }
+    });
+
+    // Load non-items
+    (quotation.non_items || []).forEach((item, index) => {
+        // Create table row first
+        const row = document.createElement("tr");
+        row.innerHTML = `
                 <td>${index + 1}</td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
                 <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
                 <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn">Remove</button></td>
             `;
-            nonItemsTableBody.appendChild(row);
-            
-            // Create card
-            if (nonItemsContainer) {
-                const card = document.createElement("div");
-                card.className = "non-item-card";
-                card.innerHTML = `
+        nonItemsTableBody.appendChild(row);
+
+        // Create card
+        if (nonItemsContainer) {
+            const card = document.createElement("div");
+            card.className = "non-item-card";
+            card.innerHTML = `
                     <div class="item-number">${index + 1}</div>
                     <div class="non-item-field description">
                         <input type="text" placeholder="e.g., Installation Charges" value="${item.description || ''}" required>
@@ -205,42 +205,42 @@ async function openQuotation(quotationId) {
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
-                nonItemsContainer.appendChild(card);
-                
-                // Sync card inputs with table inputs
-                const cardInputs = card.querySelectorAll('input');
-                const rowInputs = row.querySelectorAll('input');
-                cardInputs.forEach((input, idx) => {
-                    input.addEventListener('input', () => {
-                        if (rowInputs[idx]) {
-                            rowInputs[idx].value = input.value;
-                        }
-                    });
-                });
-                
-                // Add remove button event listener
-                const removeBtn = card.querySelector(".remove-item-btn");
-                removeBtn.addEventListener("click", function() {
-                    card.remove();
-                    row.remove();
-                    updateNonItemNumbers();
-                    updateSpecificationsTable();
-                });
-            }
-        });
+            nonItemsContainer.appendChild(card);
 
-        // Combine items and non_items for specifications
-        const allItemsForSpecs = [
-            ...(quotation.items || []).map(item => ({ ...item, type: 'item' })),
-            ...(quotation.non_items || []).map(item => ({ ...item, type: 'non_item' }))
-        ];
+            // Sync card inputs with table inputs
+            const cardInputs = card.querySelectorAll('input');
+            const rowInputs = row.querySelectorAll('input');
+            cardInputs.forEach((input, idx) => {
+                input.addEventListener('input', () => {
+                    if (rowInputs[idx]) {
+                        rowInputs[idx].value = input.value;
+                    }
+                });
+            });
 
-        allItemsForSpecs.forEach((item, index) => {
-            // Create specification card
-            if (specificationsContainer) {
-                const card = document.createElement('div');
-                card.className = 'spec-card';
-                card.innerHTML = `
+            // Add remove button event listener
+            const removeBtn = card.querySelector(".remove-item-btn");
+            removeBtn.addEventListener("click", function () {
+                card.remove();
+                row.remove();
+                updateNonItemNumbers();
+                updateSpecificationsTable();
+            });
+        }
+    });
+
+    // Combine items and non_items for specifications
+    const allItemsForSpecs = [
+        ...(quotation.items || []).map(item => ({ ...item, type: 'item' })),
+        ...(quotation.non_items || []).map(item => ({ ...item, type: 'non_item' }))
+    ];
+
+    allItemsForSpecs.forEach((item, index) => {
+        // Create specification card
+        if (specificationsContainer) {
+            const card = document.createElement('div');
+            card.className = 'spec-card';
+            card.innerHTML = `
                     <div class="item-number">${index + 1}</div>
                     <div class="spec-field description">
                         <input type="text" value="${item.description || ''}" readonly style="background: #f9fafb; cursor: not-allowed;">
@@ -249,18 +249,18 @@ async function openQuotation(quotationId) {
                         <input type="text" placeholder="Enter specifications" value="${item.specification || ''}" required>
                     </div>
                 `;
-                specificationsContainer.appendChild(card);
-            }
-            
-            // Also create table row
-            const row = document.createElement("tr");
-            row.innerHTML = `
+            specificationsContainer.appendChild(card);
+        }
+
+        // Also create table row
+        const row = document.createElement("tr");
+        row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${item.description || ''}</td>
                 <td><input type="text" value="${item.specification || ''}" required></td>
             `;
-            itemsSpecificationsTableBody.appendChild(row);
-        });
+        itemsSpecificationsTableBody.appendChild(row);
+    });
 }
 
 // Function to get the quotation id
@@ -655,8 +655,8 @@ async function generatePreview() {
             const quotation = data.quotation;
 
             const itemsPageHTML = itemPages.map((pageHTML, index) => {
-        const isLastItemsPage = index === itemPages.length - 1;
-        return `
+                const isLastItemsPage = index === itemPages.length - 1;
+                return `
         <div class="preview-container doc-quotation">
             ${headerHTML}
             ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
@@ -723,9 +723,9 @@ async function generatePreview() {
             </footer>
         </div>
         `;
-    }).join('');
+            }).join('');
 
-        document.getElementById("preview-content").innerHTML = `
+            document.getElementById("preview-content").innerHTML = `
     <div class="preview-container doc-quotation">
         ${headerHTML}
 
@@ -783,9 +783,9 @@ async function generatePreview() {
         </footer>
     </div>
     `;
-        // generateFilePages(files)
-    
-            } catch (error) { 
+            // generateFilePages(files)
+
+        } catch (error) {
 
         }
     }
@@ -835,14 +835,14 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
 
 // Helper: convert various date values into YYYY-MM-DD for <input type="date">
 function toInputDate(value) {
-	// Accept Date object, ISO string, timestamp, or null/undefined.
-	if (!value) return '';
-	const d = new Date(value);
-	if (isNaN(d.getTime())) return '';
-	const yyyy = d.getFullYear();
-	const mm = String(d.getMonth() + 1).padStart(2, '0');
-	const dd = String(d.getDate()).padStart(2, '0');
-	return `${yyyy}-${mm}-${dd}`;
+    // Accept Date object, ISO string, timestamp, or null/undefined.
+    if (!value) return '';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
 }
 
 // Function to collect form data
@@ -981,6 +981,90 @@ async function loadQuotationForEditing(id) {
         window.electronAPI.showAlert1("Failed to load quotation data. Please try again.");
     }
 }
+
+/**
+ * Validates the current step before allowing navigation to the next.
+ * This is called by globalScript.js via the hook.
+ */
+window.validateCurrentStep = function () {
+    // currentStep is a global variable from globalScript.js
+
+    if (currentStep === 1) {
+        const projectName = document.getElementById('project-name');
+        const quoteDate = document.getElementById('quotation-date');
+
+        if (!projectName.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the Project Name.");
+            projectName.focus();
+            return false;
+        }
+        if (!quoteDate.value) {
+            window.electronAPI.showAlert1("Please select a Quotation Date.");
+            quoteDate.focus();
+            return false;
+        }
+    }
+
+    if (currentStep === 2) {
+        const buyerName = document.getElementById('buyer-name');
+        const buyerAddress = document.getElementById('buyer-address');
+        const buyerPhone = document.getElementById('buyer-phone');
+
+        if (!buyerName.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the Buyer Name.");
+            buyerName.focus();
+            return false;
+        }
+        if (!buyerAddress.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the Address.");
+            buyerAddress.focus();
+            return false;
+        }
+        if (!buyerPhone.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the Phone Number.");
+            buyerPhone.focus();
+            return false;
+        }
+    }
+
+    if (currentStep === 3) {
+        const itemsContainer = document.getElementById('items-container');
+        const itemCards = itemsContainer.querySelectorAll('.item-card');
+
+        if (itemCards.length === 0) {
+            window.electronAPI.showAlert1("Please add at least one item to the quotation.");
+            return false;
+        }
+
+        // Validate individual fields inside the cards
+        let isValid = true;
+        itemCards.forEach((card, index) => {
+            if (!isValid) return; // Stop checking if already failed
+
+            const desc = card.querySelector('.item_name');
+            const qty = card.querySelector('input[placeholder="0"]'); // Quantity
+            const price = card.querySelector('input[placeholder="0.00"]'); // Price
+
+            if (!desc.value.trim()) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Description is required.`);
+                desc.focus();
+                isValid = false;
+            } else if (!qty.value || parseFloat(qty.value) <= 0) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
+                qty.focus();
+                isValid = false;
+            } else if (!price.value || parseFloat(price.value) < 0) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Price is required.`);
+                price.focus();
+                isValid = false;
+            }
+        });
+
+        if (!isValid) return false;
+    }
+
+    return true;
+};
 
 // Expose the function to be called from other scripts
 window.loadQuotationForEditing = loadQuotationForEditing;

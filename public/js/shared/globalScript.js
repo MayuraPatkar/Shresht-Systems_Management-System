@@ -113,6 +113,15 @@ document.getElementById('settings')?.addEventListener('click', () => {
 let currentStep = 1;
 
 function moveNext() {
+  // Hook: Check if the current module has a validation function
+  if (typeof window.validateCurrentStep === 'function') {
+    // If validation fails (returns false), stop here.
+    if (!window.validateCurrentStep()) {
+      return;
+    }
+  }
+
+  // Proceed with navigation if validation passed
   const nextBtn = document.getElementById('next-btn');
   if (nextBtn) nextBtn.click();
 }
@@ -148,6 +157,12 @@ document.addEventListener("keydown", function (event) {
 const nextBtn = document.getElementById("next-btn");
 if (nextBtn) {
   nextBtn.addEventListener("click", () => {
+
+    // Validation Check
+    if (typeof window.validateCurrentStep === 'function') {
+      if (!window.validateCurrentStep()) return;
+    }
+
     if (currentStep < totalSteps) {
       changeStep(currentStep + 1);
       const idInput = document.getElementById('id') || document.getElementById('service-id');
