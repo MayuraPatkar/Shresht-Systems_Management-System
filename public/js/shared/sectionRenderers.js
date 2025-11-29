@@ -147,9 +147,10 @@ function renderItemsTable(itemsHTML, columns = null, hasTax = false) {
  * @param {boolean} hasTax - Whether to show tax breakdown
  * @returns {string} Totals HTML
  */
-function renderTotals(totals, hasTax = false) {
+function renderTotals(totals, hasTax = false, compact = false) {
+    const compactClass = compact ? 'totals-section-compact' : '';
     return `
-    <div class="totals-section">
+    <div class="totals-section ${compactClass}">
         <div style="display: flex; width: 100%;">
             <div class="totals-section-sub1" style="width: 50%;">
                 ${hasTax ? `

@@ -55,7 +55,7 @@
                     <i class="fas fa-plus"></i>
                     New Way Bill
                 </button>
-                <button id="view-preview-btn"
+                <button id="view-preview"
                     class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium"
                     style="display: none;">
                     <i class="fas fa-eye"></i>
@@ -446,12 +446,12 @@
                         <table id="view-items-table" class="w-full border-collapse">
                             <thead>
                                 <tr class="bg-gray-50">
-                                    <th class="border border-gray-300 px-5 py-3 text-left text-base font-semibold text-gray-700 w-20">Sl. No</th>
-                                    <th class="border border-gray-300 px-5 py-3 text-left text-base font-semibold text-gray-700 min-w-[250px]">Description</th>
-                                    <th class="border border-gray-300 px-5 py-3 text-left text-base font-semibold text-gray-700 w-36">HSN Code</th>
-                                    <th class="border border-gray-300 px-5 py-3 text-left text-base font-semibold text-gray-700 w-24">Qty</th>
-                                    <th class="border border-gray-300 px-5 py-3 text-left text-base font-semibold text-gray-700 w-36">Unit Price</th>
-                                    <th class="border border-gray-300 px-5 py-3 text-left text-base font-semibold text-gray-700 w-28">Tax Rate</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Sl. No</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b min-w-[250px]">Description</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN Code</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax Rate</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -464,7 +464,7 @@
                 <!-- Totals Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-calculator text-teal-600 text-xl"></i>
+                        <i class="fas fa-calculator text-blue-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Totals</h2>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -476,9 +476,9 @@
                             <span class="block text-sm font-medium text-gray-600 mb-1">Tax (GST)</span>
                             <span class="text-gray-900 font-bold text-lg" id="view-tax">-</span>
                         </div>
-                        <div class="bg-teal-50 p-4 rounded-lg border-2 border-teal-200">
-                            <span class="block text-sm font-medium text-teal-600 mb-1">Total Amount Due</span>
-                            <span class="text-teal-900 font-bold text-xl" id="view-grand-total">-</span>
+                        <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                            <span class="block text-sm font-medium text-blue-600 mb-1">Total Amount Due</span>
+                            <span class="text-blue-900 font-bold text-xl" id="view-grand-total">-</span>
                         </div>
                     </div>
                 </div>
@@ -493,12 +493,12 @@
                         <!-- Preview content will be generated here -->
                     </div>
                     <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
-                        <button type="button" id="print-project-btn"
+                        <button type="button" id="printProject"
                             class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
                             <i class="fas fa-print"></i>
                             Print
                         </button>
-                        <button type="button" id="save-project-pdf-btn"
+                        <button type="button" id="saveProjectPDF"
                             class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
                             <i class="fas fa-file-pdf"></i>
                             Save as PDF

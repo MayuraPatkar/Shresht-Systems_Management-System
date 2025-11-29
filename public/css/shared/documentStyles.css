@@ -674,3 +674,37 @@ body {
         print-color-adjust: exact;
     }
 }
+
+/* Compact totals card used for Way Bill and small documents */
+.doc-standard .fifth-section .totals-section.totals-section-compact {
+    width: 220px; /* narrow card */
+    min-width: 160px;
+    margin-left: auto; /* align right within parent */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+@media (max-width: 1024px) {
+    /* On narrow screens, keep compact totals readable but stack it below table */
+    .doc-standard .fifth-section .totals-section.totals-section-compact {
+        width: 200px;
+        margin-left: 0;
+        margin-right: auto;
+        margin-top: 12px;
+    }
+}
+
+.doc-standard .fifth-section .totals-section.totals-section-compact .totals-section-sub1 p,
+.doc-standard .fifth-section .totals-section.totals-section-compact .totals-section-sub2 p {
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+.doc-standard .fifth-section .totals-section.totals-section-compact .totals-section-sub1 p:last-child,
+.doc-standard .fifth-section .totals-section.totals-section-compact .totals-section-sub2 p:last-child {
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+/* alignment inside compact totals card */
+.doc-standard .fifth-section .totals-section.totals-section-compact .totals-section-sub1 p { text-align: left; }
+.doc-standard .fifth-section .totals-section.totals-section-compact .totals-section-sub2 p { text-align: right; }
