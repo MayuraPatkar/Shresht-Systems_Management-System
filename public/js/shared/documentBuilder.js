@@ -162,9 +162,9 @@ class CalculationEngine {
                 <td>${description}</td>
                 <td>${hsnSac}</td>
                 <td>${qty}</td>
-                <td>${unitPrice}</td>
+                <td>₹ ${formatIndian(unitPrice, 2)}</td>
                 <td>${rate}</td>
-                <td>${total}</td>
+                <td>₹ ${formatIndian(total, 2)}</td>
             </tr>`;
         });
 
@@ -223,7 +223,8 @@ class PaginationManager {
  */
 class DocumentBuilder {
     constructor(type = 'generic') {
-        this.type = type;
+        // Normalize type to a valid CSS class segment: lowercase, dashes instead of spaces
+        this.type = String(type).toLowerCase().replace(/\s+/g, '-');
         this.sections = [];
     }
 
@@ -250,7 +251,8 @@ class DocumentBuilder {
      * @returns {string} Wrapped HTML
      */
     wrapInContainer(content) {
-        return `<div class="preview-container doc-quotation">
+        // Include doc-standard and doc-specific class for consistent styling
+        return `<div class="preview-container doc-standard doc-${this.type}">
     ${content}
 </div>`;
     }

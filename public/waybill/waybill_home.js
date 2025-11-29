@@ -118,11 +118,11 @@ document.addEventListener("DOMContentLoaded", () => {
     wbSearchInput.addEventListener('input', debounce(() => {
         handleSearch();
     }, 300));
-    document.getElementById('view-preview-btn').addEventListener('click', () => {
+    document.getElementById('view-preview').addEventListener('click', () => {
         changeStep(totalSteps);
         generatePreview();
     });
-    document.getElementById('view-preview-btn').style.display = 'none';
+    document.getElementById('view-preview').style.display = 'none';
 
     // Keyboard shortcuts modal handlers
     const shortcutsModal = document.getElementById('shortcuts-modal');
@@ -301,7 +301,7 @@ function triggerPrintAction() {
         return true;
     }
 
-    const viewPrintBtn = document.getElementById('print-project-btn');
+    const viewPrintBtn = document.getElementById('printProject');
     if (viewPrintBtn && isSectionVisible('view')) {
         viewPrintBtn.click();
         return true;
@@ -354,7 +354,7 @@ function handleQuotationKeyboardShortcuts(event) {
                         event.stopPropagation();
                     }
                 } else {
-                    const previewBtn = document.getElementById('view-preview-btn');
+                    const previewBtn = document.getElementById('view-preview');
                     if (previewBtn && window.getComputedStyle(previewBtn).display !== 'none') {
                         event.preventDefault();
                         event.stopPropagation();
@@ -700,7 +700,7 @@ function showNewWayBillForm() {
         homeId: 'home',
         formId: 'new',
         newButtonId: 'new-waybill-btn',
-        previewButtonId: 'view-preview-btn',
+        previewButtonId: 'view-preview',
         viewId: 'view',
         stepIndicatorId: 'step-indicator',
         currentStep: 1,

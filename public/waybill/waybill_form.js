@@ -54,7 +54,7 @@ async function openWayBill(wayBillId) {
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
         document.getElementById('new-waybill-btn').style.display = 'none';
-        document.getElementById('view-preview-btn').style.display = 'block';
+        document.getElementById('view-preview').style.display = 'block';
 
         if (window.currentStep === 1) {
             window.changeStep(2);
@@ -266,6 +266,31 @@ function generatePreview() {
     const calculator = new CalculationEngine(items, []);
     const { itemsHTML } = calculator.calculateSimple();
 
+    // Calculate totals for preview
+    let subtotal = 0;
+    let totalCGST = 0;
+    let totalSGST = 0;
+    (items || []).forEach(item => {
+        const qty = parseFloat(item.quantity || 0);
+        const unitPrice = parseFloat(item.unit_price || 0);
+        const rate = parseFloat(item.rate || 0);
+        const taxableValue = qty * unitPrice;
+        const cgst = (taxableValue * rate / 2) / 100;
+        const sgst = (taxableValue * rate / 2) / 100;
+        subtotal += taxableValue;
+        totalCGST += cgst;
+        totalSGST += sgst;
+    });
+    const totalTax = totalCGST + totalSGST;
+    const grandTotal = subtotal + totalTax;
+    // Build totals using shared renderer
+    const totals = { taxableValue: subtotal, cgst: totalCGST, sgst: totalSGST, total: grandTotal };
+    const hasTax = (totalCGST + totalSGST) > 0;
+    const totalsHTML = `
+        <div class="fifth-section">
+            ${SectionRenderers.renderTotals(totals, hasTax, true)}
+        </div>`;
+
     // Use SectionRenderers to build the document
     const buyerInfoHTML = `
         <div class="buyer-details">
@@ -293,7 +318,8 @@ function generatePreview() {
         infoSection: infoSectionHTML,
         itemsHTML: itemsHTML,
         itemColumns: itemColumns,
-        footerMessage: 'This is a computer-generated way bill'
+        footerMessage: 'This is a computer-generated way bill',
+        additionalSections: [totalsHTML]
     });
 
     document.getElementById("preview-content").innerHTML = documentHTML;
