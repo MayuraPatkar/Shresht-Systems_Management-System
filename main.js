@@ -21,8 +21,10 @@
 
 const { app, BrowserWindow, ipcMain, screen, dialog } = require("electron");
 const path = require("path");
-const log = require("electron-log");
+const logger = require("./src/utils/logger");
 const fs = require("fs");
+// add electron-log for electron-updater / main process file logging
+const electronLog = require('electron-log');
 const { autoUpdater } = require("electron-updater");
 const { handlePrintEvent } = require("./src/utils/printHandler");
 const { setupPuppeteerHandlers, puppeteerHandler } = require("./src/utils/puppeteerPrintHandler");
@@ -33,25 +35,26 @@ const EventEmitter = require("events");
 global.dialogEmitter = new EventEmitter();
 
 // Configure auto-updater logging
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
+// use electron-log for autoUpdater (Winston logger doesn't have electron-log transports)
+autoUpdater.logger = electronLog;
+electronLog.transports.file.level = 'info';
 autoUpdater.autoDownload = true; // Automatically download updates
 autoUpdater.autoInstallOnAppQuit = true; // Install on quit
 
 // Auto-updater event listeners
 autoUpdater.on('checking-for-update', () => {
-  log.info('Checking for updates...');
+  logger.info('Checking for updates...');
 });
 
 autoUpdater.on('update-available', (info) => {
-  log.info('Update available:', info);
+  logger.info('Update available:', info);
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-available', info);
   }
 });
 
 autoUpdater.on('update-not-available', (info) => {
-  log.info('Update not available:', info);
+  logger.info('Update not available:', info);
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-not-available', info);
   }
@@ -59,14 +62,14 @@ autoUpdater.on('update-not-available', (info) => {
 
 autoUpdater.on('download-progress', (progressObj) => {
   const message = `Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`;
-  log.info(message);
+  logger.info(message);
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-download-progress', progressObj);
   }
 });
 
 autoUpdater.on('update-downloaded', (info) => {
-  log.info('Update downloaded:', info);
+  logger.info('Update downloaded:', info);
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-downloaded', info);
   }
@@ -87,7 +90,7 @@ autoUpdater.on('update-downloaded', (info) => {
 });
 
 autoUpdater.on('error', (error) => {
-  log.error('Auto-updater error:', error);
+  logger.error('Auto-updater error:', error);
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-error', error.message);
   }
@@ -97,7 +100,7 @@ autoUpdater.on('error', (error) => {
 app.on('web-contents-created', (event, contents) => {
   contents.on('new-window', (event, navigationUrl) => {
     event.preventDefault();
-    log.warn(`Blocked new window creation: ${navigationUrl}`);
+    logger.warn(`Blocked new window creation: ${navigationUrl}`);
   });
 });
 
@@ -123,7 +126,7 @@ const uploadDir = path.join(appPath, "uploads");
     try {
       fs.mkdirSync(dir, { recursive: true });
     } catch (err) {
-      log.error(`Failed to create directory ${dir}:`, err);
+      logger.error(`Failed to create directory ${dir}:`, err);
     }
   }
 });
@@ -161,22 +164,24 @@ async function cleanOldLogs() {
       const deletePromises = filesToDelete.map(async (fileInfo) => {
         try {
           await fs.promises.unlink(fileInfo.path);
-          log.info(`Deleted old log file: ${fileInfo.name}`);
+          logger.info(`Deleted old log file: ${fileInfo.name}`);
         } catch (unlinkErr) {
-          log.error(`Error deleting old log file ${fileInfo.name}:`, unlinkErr);
+          logger.error(`Error deleting old log file ${fileInfo.name}:`, unlinkErr);
         }
       });
 
       await Promise.all(deletePromises);
-      log.info(`Cleaned up ${filesToDelete.length} old log files`);
+      logger.info(`Cleaned up ${filesToDelete.length} old log files`);
     }
   } catch (err) {
-    log.error("Error cleaning old logs:", err);
+    logger.error("Error cleaning old logs:", err);
   }
 }
 
 // Configure electron-log to use date-based file names
-log.transports.file.resolvePathFn = () => {
+// previously this was applied to `logger` (Winston) which caused the TypeError.
+// apply resolvePathFn to electron-log instead.
+electronLog.transports.file.resolvePathFn = () => {
   const now = new Date();
   const year = now.getFullYear();
   const month = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -185,8 +190,8 @@ log.transports.file.resolvePathFn = () => {
 };
 
 // Clean up old logs at startup
-cleanOldLogs().catch(err => log.error("Failed to clean old logs:", err));
-log.info("---------------------------***App started***---------------------------");
+cleanOldLogs().catch(err => logger.error("Failed to clean old logs:", err));
+logger.info("---------------------------***App started***---------------------------");
 
 let mainWindow; // Reference to the main application window
 
@@ -201,7 +206,7 @@ function setupIPCHandlers() {
       const result = await dialog.showSaveDialog(mainWindow, options);
       return result;
     } catch (error) {
-      log.error('Error showing save dialog:', error);
+      logger.error('Error showing save dialog:', error);
       return { canceled: true, error: error.message };
     }
   });
@@ -212,7 +217,7 @@ function setupIPCHandlers() {
       const result = await dialog.showOpenDialog(mainWindow, options);
       return result;
     } catch (error) {
-      log.error('Error showing open dialog:', error);
+      logger.error('Error showing open dialog:', error);
       return { canceled: true, error: error.message };
     }
   });
@@ -223,7 +228,7 @@ function setupIPCHandlers() {
       const result = await dialog.showMessageBox(mainWindow, options);
       return result;
     } catch (error) {
-      log.error('Error showing message box:', error);
+      logger.error('Error showing message box:', error);
       return { canceled: true, error: error.message };
     }
   });
@@ -234,7 +239,7 @@ function setupIPCHandlers() {
       const result = await dialog.showSaveDialog(mainWindow, options);
       callback(null, result);
     } catch (error) {
-      log.error('Error showing save dialog from server:', error);
+      logger.error('Error showing save dialog from server:', error);
       callback(error, null);
     }
   });
@@ -244,7 +249,7 @@ function setupIPCHandlers() {
       const result = await dialog.showOpenDialog(mainWindow, options);
       callback(null, result);
     } catch (error) {
-      log.error('Error showing open dialog from server:', error);
+      logger.error('Error showing open dialog from server:', error);
       callback(error, null);
     }
   });
@@ -252,11 +257,11 @@ function setupIPCHandlers() {
   // Handle manual update check requests from renderer
   ipcMain.handle('manual-check-update', async () => {
     try {
-      log.info('Manual update check requested');
+      logger.info('Manual update check requested');
       
       // Check if in development mode (unpacked app)
       if (!app.isPackaged) {
-        log.info('App is not packaged - update check skipped in development mode');
+        logger.info('App is not packaged - update check skipped in development mode');
         return { 
           success: false, 
           error: 'Update checks are only available in production builds. Use "npm run build" to create a packaged version.',
@@ -275,18 +280,18 @@ function setupIPCHandlers() {
         return { success: true, updateInfo: null };
       }
     } catch (error) {
-      log.error('Manual update check failed:', error);
+      logger.error('Manual update check failed:', error);
       return { success: false, error: error.message };
     }
   });
 
   // Handle install update request
   ipcMain.handle('install-update', () => {
-    log.info('Install update requested');
+    logger.info('Install update requested');
     setImmediate(() => autoUpdater.quitAndInstall());
   });
 
-  log.info("IPC handlers for dialogs and updates registered successfully");
+  logger.info("IPC handlers for dialogs and updates registered successfully");
 }
 
 /**
@@ -334,10 +339,10 @@ async function createWindow() {
     const loadFrontend = async () => {
       try {
         await mainWindow.loadURL("http://localhost:3000");
-        log.info("Frontend loaded successfully");
+        logger.info("Frontend loaded successfully");
       } catch (err) {
         retries++;
-        log.warn(`Failed to load frontend (attempt ${retries}/${maxRetries}):`, err.message);
+        logger.warn(`Failed to load frontend (attempt ${retries}/${maxRetries}):`, err.message);
         
         if (retries < maxRetries) {
           // Wait before retrying
@@ -373,14 +378,14 @@ async function createWindow() {
       // Only allow navigation to localhost and the app's domain
       if (parsedUrl.origin !== 'http://localhost:3000') {
         event.preventDefault();
-        log.warn('Blocked navigation to:', navigationUrl);
+        logger.warn('Blocked navigation to:', navigationUrl);
       }
     });
 
     // Handle new window requests
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
       // Block popup windows for security
-      log.warn('Blocked popup window:', url);
+      logger.warn('Blocked popup window:', url);
       return { action: 'deny' };
     });
 
@@ -393,10 +398,10 @@ async function createWindow() {
     // Setup IPC handlers for file dialogs
     setupIPCHandlers();
     
-    log.info("Main window created successfully");
+    logger.info("Main window created successfully");
     
   } catch (error) {
-    log.error("Failed to create main window:", error);
+    logger.error("Failed to create main window:", error);
     throw error;
   }
 }
@@ -406,7 +411,7 @@ app.whenReady().then(async () => {
   // Start Express server with proper error handling
   try {
     const server = require("./server");
-    log.info("Express server started successfully");
+    logger.info("Express server started successfully");
     
     // Wait a moment for server to fully initialize
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -415,13 +420,13 @@ app.whenReady().then(async () => {
     
     // Check for updates after window is created (only in production)
     if (process.env.NODE_ENV !== "development") {
-      log.info('Checking for updates automatically...');
+      logger.info('Checking for updates automatically...');
       setTimeout(() => {
         autoUpdater.checkForUpdatesAndNotify();
       }, 3000); // Wait 3 seconds after app start
     }
   } catch (err) {
-    log.error("Failed to start Express server:", err);
+    logger.error("Failed to start Express server:", err);
     
     // Show error dialog to user
     const { dialog } = require('electron');
@@ -451,14 +456,14 @@ app.on("before-quit", async (event) => {
     event.preventDefault();
     isQuitting = true;
     
-    log.info("Application shutting down gracefully...");
+    logger.info("Application shutting down gracefully...");
     
     // Cleanup Puppeteer browser instance
     try {
       await puppeteerHandler.cleanup();
-      log.info("Puppeteer browser cleanup completed");
+      logger.info("Puppeteer browser cleanup completed");
     } catch (error) {
-      log.error("Error during Puppeteer cleanup:", error);
+      logger.error("Error during Puppeteer cleanup:", error);
     }
     
     // Give time for any pending operations
@@ -471,7 +476,7 @@ app.on("before-quit", async (event) => {
 // Quit the app when all windows are closed (except on macOS)
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    log.info("-------------***All windows closed. Exiting application***-------------");
+    logger.info("-------------***All windows closed. Exiting application***-------------");
     app.quit();
   }
 });
@@ -485,7 +490,7 @@ app.on("activate", () => {
 
 // Handle uncaught exceptions gracefully
 process.on('uncaughtException', (error) => {
-  log.error('Uncaught Exception:', error);
+  logger.error('Uncaught Exception:', error);
   
   // Don't exit immediately, let the app handle it gracefully
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -497,5 +502,5 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  log.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });

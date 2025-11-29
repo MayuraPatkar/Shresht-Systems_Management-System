@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
-const log = require('electron-log');
+const logger = require("./logger");
 const { dialog } = require('electron');
 
 /**
@@ -815,7 +815,7 @@ function setupPuppeteerHandlers(mainWindow, ipcMain) {
         }
     });
 
-    log.info('Puppeteer print handlers registered successfully');
+    logger.info('Puppeteer print handlers registered successfully');
 }
 
 // Cleanup on app exit

@@ -1,7 +1,7 @@
 const { ipcMain, BrowserWindow, dialog } = require("electron");
 const fs = require("fs");
 const path = require("path");
-const log = require("electron-log");
+const logger = require("./logger");
 
 /**
  * Legacy print handler - kept for backwards compatibility
@@ -11,7 +11,7 @@ const log = require("electron-log");
 function handlePrintEvent(mainWindow) {
     // Log that this handler is loaded but not registering IPC handlers
     // All IPC handlers are now in puppeteerPrintHandler.js for consistent rendering
-    log.info("Legacy print handler loaded (IPC handlers delegated to Puppeteer)");
+    logger.info("Legacy print handler loaded (IPC handlers delegated to Puppeteer)");
 }
 
 module.exports = { handlePrintEvent };

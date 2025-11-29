@@ -61,7 +61,8 @@ async function openQuotation(quotationId) {
 
         document.getElementById('id').value = quotation.quotation_id;
         document.getElementById('project-name').value = quotation.project_name;
-        document.getElementById('quotation-date').value = formatDate(quotation.quotation_date);
+        // Use input-safe ISO date for the date field
+        document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
         document.getElementById('buyer-name').value = quotation.customer_name;
         document.getElementById('buyer-address').value = quotation.customer_address;
         document.getElementById('buyer-phone').value = quotation.customer_phone;
@@ -832,6 +833,18 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
 });
 
 
+// Helper: convert various date values into YYYY-MM-DD for <input type="date">
+function toInputDate(value) {
+	// Accept Date object, ISO string, timestamp, or null/undefined.
+	if (!value) return '';
+	const d = new Date(value);
+	if (isNaN(d.getTime())) return '';
+	const yyyy = d.getFullYear();
+	const mm = String(d.getMonth() + 1).padStart(2, '0');
+	const dd = String(d.getDate()).padStart(2, '0');
+	return `${yyyy}-${mm}-${dd}`;
+}
+
 // Function to collect form data
 function collectFormData() {
     return {
@@ -897,7 +910,7 @@ async function loadQuotationForEditing(id) {
         document.getElementById('id').value = quotation.quotation_id;
         quotationId = quotation.quotation_id;
         document.getElementById('project-name').value = quotation.project_name || '';
-        document.getElementById('quotation-date').value = formatDate(quotation.quotation_date);
+        document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
         document.getElementById('buyer-name').value = quotation.customer_name || '';
         document.getElementById('buyer-address').value = quotation.customer_address || '';
         document.getElementById('buyer-phone').value = quotation.customer_phone || '';
