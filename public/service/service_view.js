@@ -2,6 +2,9 @@
 
 // Helper: Get descriptive service stage label
 function getServiceStageLabel(stage) {
+    // Normalize stage to a number (1-based); fall back to 1 if invalid
+    let s = Number(stage) || 0;
+    // If s === 0 then no service yet; but label will show '1st Service' for stage 1
     const stages = [
         '1st Service',
         '2nd Service',
@@ -14,9 +17,10 @@ function getServiceStageLabel(stage) {
         '9th Service',
         '10th Service'
     ];
-    // Service stage is stored as 0-based index, but displayed as 1-based
-    const displayStage = (stage || 0) + 1;
-    return stages[stage] || `${displayStage}th Service`;
+    // Treat stage as 1-based: index into array by stage-1
+    const index = Math.max(0, s - 1);
+    const displayStage = s > 0 ? s : 1;
+    return stages[index] || `${displayStage}th Service`;
 }
 
 // Helper: Format date to Indian format
@@ -77,7 +81,10 @@ async function viewService(serviceId) {
             'bg-orange-100 text-orange-700',
             'bg-teal-100 text-teal-700'
         ];
-        const badgeColor = stageBadgeColors[(service.service_stage - 1) % stageBadgeColors.length];
+        // Determine index safely even if service_stage is 0 or undefined
+        const len = stageBadgeColors.length;
+        const idx = Math.max(0, ((((Number(service.service_stage) || 0) - 1) % len) + len) % len);
+        const badgeColor = stageBadgeColors[idx];
         stageBadge.className = `inline-block px-3 py-1 rounded-full text-sm font-semibold ${badgeColor}`;
         
         // Populate customer details from invoice
@@ -89,7 +96,13 @@ async function viewService(serviceId) {
             document.getElementById('view-project-name').textContent = invoice.project_name || 'N/A';
         }
         
-        document.getElementById('view-notes').textContent = service.notes || 'No notes';
+        // Normalize notes if they contain a 0 stage (legacy entries)
+        const rawNotes = service.notes || 'No notes';
+        const normalizedNotes = rawNotes.replace(/Service stage\s+(\d+)/gi, (match, p1) => {
+            const num = Number(p1);
+            return `Service stage ${num === 0 ? (service.service_stage || 1) : num}`;
+        });
+        document.getElementById('view-notes').textContent = normalizedNotes;
         
         // Populate items table
         const itemsTableBody = document.getElementById("view-items-tbody");

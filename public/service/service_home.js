@@ -141,7 +141,10 @@ function getServiceStageLabel(stage) {
         '9th Service',
         '10th Service'
     ];
-    return stages[stage - 1] || `${stage}th Service`;
+    const s = Number(stage) || 0;
+    const index = Math.max(0, s - 1);
+    const displayStage = s > 0 ? s : 1;
+    return stages[index] || `${displayStage}th Service`;
 }
 
 // Helper: Format date to Indian format
@@ -290,7 +293,9 @@ function createServiceHistoryDiv(service) {
         'bg-orange-100 text-orange-700',
         'bg-teal-100 text-teal-700'
     ];
-    const badgeColor = stageBadgeColors[(service.service_stage - 1) % stageBadgeColors.length];
+    const len = stageBadgeColors.length;
+    const idx = Math.max(0, ((((Number(service.service_stage) || 0) - 1) % len) + len) % len);
+    const badgeColor = stageBadgeColors[idx];
     
     div.innerHTML = `
         <div class="flex">
