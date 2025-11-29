@@ -58,6 +58,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     initShortcutsModal();
     initQuotationFilters();
+
+    const dateInput = document.getElementById('quotation-date');
+
+    if (dateInput) {
+        dateInput.addEventListener('change', function () {
+            this.blur();
+        });
+
+        dateInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.blur();
+            }
+        });
+    }
+
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
 });
 
