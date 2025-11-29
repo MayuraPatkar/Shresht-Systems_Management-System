@@ -25,9 +25,8 @@ const wayBillSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-wayBillSchema.pre('save', function(next) {
+wayBillSchema.pre('save', function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 // Index for faster queries

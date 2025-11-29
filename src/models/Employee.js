@@ -15,9 +15,8 @@ const employeeSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-employeeSchema.pre('save', function(next) {
+employeeSchema.pre('save', function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 // Virtual for active employee check

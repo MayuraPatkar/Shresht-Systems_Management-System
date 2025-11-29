@@ -17,9 +17,8 @@ const stockSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-stockSchema.pre('save', function(next) {
+stockSchema.pre('save', function() {
     this.updatedAt = Date.now();
-    next();
 });
 
 // Virtual for low stock check
