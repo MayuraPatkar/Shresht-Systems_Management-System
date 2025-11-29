@@ -6,6 +6,11 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
     let totalPrice = 0;
     let totalCGST = 0;
     let totalSGST = 0;
+    // Non-items totals for preview
+    let nonItemsTaxableValue = 0;
+    let nonItemsCGST = 0;
+    let nonItemsSGST = 0;
+    let nonItemsTotalPrice = 0;
     let totalTaxableValue = 0;
     let totalTax = 0;
     let hasTax = false;
@@ -85,6 +90,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
             const rate = parseFloat(item.rate || 0);
 
             totalTaxableValue += price;
+            nonItemsTaxableValue += price;
 
             if (hasTax) {
                 const cgstPercent = rate / 2;
@@ -95,7 +101,10 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
 
                 totalCGST += cgstValue;
                 totalSGST += sgstValue;
+                nonItemsCGST += cgstValue;
+                nonItemsSGST += sgstValue;
                 totalPrice += rowTotal;
+                nonItemsTotalPrice += rowTotal;
                 totalTax += cgstValue + sgstValue;
 
                 itemsHTML += `
@@ -113,6 +122,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
             } else {
                 const rowTotal = price;
                 totalPrice += rowTotal;
+                nonItemsTotalPrice += rowTotal;
 
                 itemsHTML += `
                     <tr>
@@ -128,7 +138,8 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
         });
     } else {
         // Fallback to DOM table (edit mode)
-        const itemsTable = document.getElementById("detail-items-table")?.getElementsByTagName("tbody")[0];
+        const itemsTableElement = document.getElementById("detail-items-table") || document.getElementById("items-table") || document.getElementById("view-items-table");
+        const itemsTable = itemsTableElement?.getElementsByTagName("tbody")[0];
         if (!itemsTable) {
             document.getElementById("view-preview-content").innerHTML = "<p>No items to preview.</p>";
             return;
@@ -143,23 +154,34 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
     }
 
     const grandTotal = totalTaxableValue + totalCGST + totalSGST;
-    const roundOff = Math.round(grandTotal) - grandTotal;
-    const finalTotal = totalPrice + roundOff;
+        const roundedGrandTotal = Math.round(grandTotal);
+        const roundOff = roundedGrandTotal - grandTotal;
+        const finalTotal = roundedGrandTotal;
+
+    const hasTaxSection = hasTax ? `
+                <p>Taxable Value:</p>
+                <p>Total CGST:</p>
+                <p>Total SGST:</p>
+    ` : ``;
+    const hasTaxValues = hasTax ? `
+                <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+                <p>₹ ${formatIndian(totalCGST, 2)}</p>
+                <p>₹ ${formatIndian(totalSGST, 2)}</p>
+    ` : ``;
+    // We do not write non-items totals in the preview totals section.
+    const nonItemsSection = '';
+    const nonItemsValues = '';
 
     let totalsHTML = `
         <div style="display: flex; width: 100%;">
             <div class="totals-section-sub1" style="width: 50%;">
-                ${hasTax ? `
-                <p>Taxable Value:</p>
-                <p>Total CGST:</p>
-                <p>Total SGST:</p>` : ""}
+                ${hasTaxSection}
+                ${nonItemsSection}
                 <p>Grand Total:</p>
             </div>
             <div class="totals-section-sub2" style="width: 50%;">
-                ${hasTax ? `
-                <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
-                <p>₹ ${formatIndian(totalCGST, 2)}</p>
-                <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
+                ${hasTaxValues}
+                ${nonItemsValues}
                 <p>₹ ${formatIndian(finalTotal, 2)}</p>
             </div>
         </div>`;
@@ -338,7 +360,22 @@ async function viewInvoice(invoiceId, userRole) {
 
         const data = await response.json();
         const invoice = data.invoice;
+        // Ensure invoiceId variable is set locally for handlers below
+        const invoiceIdLocal = invoice?.invoice_id || invoiceId;
         let sno = 0;
+        // Prepare items and non-items based on view type
+        const itemsForType = (type === 'original') ? (invoice.items_original || []) : (invoice.items_duplicate || []);
+        const nonItemsForType = (type === 'original') ? (invoice.non_items_original || []) : (invoice.non_items_duplicate || []);
+        const hasTaxInView = itemsForType.some(itm => parseFloat(itm.rate || 0) > 0) || nonItemsForType.some(itm => parseFloat(itm.rate || 0) > 0);
+        let view_totalTaxable = 0;
+        let view_totalCGST = 0;
+        let view_totalSGST = 0;
+        let view_grandTotal = 0;
+        // Non-items breakdown
+        let view_nonItemsTaxable = 0;
+        let view_nonItemsCGST = 0;
+        let view_nonItemsSGST = 0;
+        let view_nonItemsGrandTotal = 0;
 
 
         // Hide other sections, show view section
@@ -447,72 +484,162 @@ async function viewInvoice(invoiceId, userRole) {
 
         // Item List
         const detailItemsTableBody = document.querySelector("#view-items-table tbody");
+        const detailItemsTableHead = document.querySelector("#view-items-table thead tr");
+        if (detailItemsTableHead) {
+            if (hasTaxInView) {
+                detailItemsTableHead.innerHTML = `
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Taxable Value</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Rate</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
+                `;
+            } else {
+                detailItemsTableHead.innerHTML = `
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
+                `;
+            }
+        }
         if (detailItemsTableBody) {
             detailItemsTableBody.innerHTML = "";
-            if (type === 'original') {
-                (invoice.items_original || []).forEach(item => {
-                    const row = document.createElement("tr");
-                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+            const itemsList = itemsForType;
+            itemsList.forEach(item => {
+                const row = document.createElement("tr");
+                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                const qty = parseFloat(item.quantity || 0);
+                const unitPrice = parseFloat(item.unit_price || 0);
+                const rate = parseFloat(item.rate || 0);
+                const taxableValue = qty * unitPrice;
+                let rowTotal = taxableValue;
+                let cgst = 0;
+                let sgst = 0;
+                if (hasTaxInView && rate > 0) {
+                    cgst = (taxableValue * (rate / 2)) / 100;
+                    sgst = (taxableValue * (rate / 2)) / 100;
+                    rowTotal = taxableValue + cgst + sgst;
+                    view_totalCGST += cgst;
+                    view_totalSGST += sgst;
+                }
+                view_totalTaxable += taxableValue;
+                view_grandTotal += rowTotal;
+
+                if (hasTaxInView) {
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(unitPrice, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(taxableValue, 2)}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${rate ? rate + '%' : ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(rowTotal, 2)}</td>
                     `;
-                    detailItemsTableBody.appendChild(row);
-                });
-            }
-            else {
-                (invoice.items_duplicate || []).forEach(item => {
-                    const row = document.createElement("tr");
-                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                } else {
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || ''}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || ''}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || ''}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(unitPrice, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(rowTotal, 2)}</td>
                     `;
-                    detailItemsTableBody.appendChild(row);
-                });
-            }
+                }
+                detailItemsTableBody.appendChild(row);
+            });
         }
 
-        // Item List
+        // Non-Items list
         const detailNonItemsTableBody = document.querySelector("#view-non-items-table tbody");
+        const detailNonItemsTableHead = document.querySelector("#view-non-items-table thead tr");
+        if (detailNonItemsTableHead) {
+            if (hasTaxInView) {
+                detailNonItemsTableHead.innerHTML = `
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Price</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Rate</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
+                `;
+            } else {
+                detailNonItemsTableHead.innerHTML = `
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Price</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Rate</th>
+                `;
+            }
+        }
         if (detailNonItemsTableBody) {
             detailNonItemsTableBody.innerHTML = "";
-            if (type === 'original') {
-                (invoice.non_items_original || []).forEach(item => {
-                    const row = document.createElement("tr");
-                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+            const nonItemsList = nonItemsForType;
+            nonItemsList.forEach(item => {
+                const row = document.createElement("tr");
+                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                const price = parseFloat(item.price || 0);
+                const rate = parseFloat(item.rate || 0);
+                let rowTotal = price;
+                if (hasTaxInView && rate > 0) {
+                    const cgst = (price * (rate / 2)) / 100;
+                    const sgst = (price * (rate / 2)) / 100;
+                    rowTotal = price + cgst + sgst;
+                    view_totalCGST += cgst;
+                    view_totalSGST += sgst;
+                }
+                view_totalTaxable += price;
+                view_grandTotal += rowTotal;
+                // Accumulate non-items totals too
+                view_nonItemsTaxable += price;
+                if (hasTaxInView && rate > 0) {
+                    view_nonItemsCGST += (price * (rate / 2)) / 100;
+                    view_nonItemsSGST += (price * (rate / 2)) / 100;
+                }
+                view_nonItemsGrandTotal += rowTotal;
+                if (hasTaxInView) {
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(price, 2) || ''}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(rowTotal, 2)}</td>
                     `;
-                    detailNonItemsTableBody.appendChild(row);
-                });
-            }
-            else {
-                (invoice.non_items_duplicate || []).forEach(item => {
-                    const row = document.createElement("tr");
-                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                } else {
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || ''}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(price, 2) || ''}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
                     `;
-                    detailNonItemsTableBody.appendChild(row);
-                });
-            }
+                }
+                detailNonItemsTableBody.appendChild(row);
+            });
         }
 
+
+        // Update totals in left side (professional 3-box) using computed values
+        const subtotal = view_totalTaxable;
+        const tax = view_totalCGST + view_totalSGST;
+        const total = view_grandTotal;
+        setTextContent('view-subtotal', `₹ ${formatIndian(subtotal, 2)}`);
+        setTextContent('view-tax', tax > 0 ? `₹ ${formatIndian(tax, 2)}` : 'No Tax');
+        setTextContent('view-grand-total', `₹ ${formatIndian(total, 2)}`);
+        // Non-items totals in Non-Items card
+        try {
+            setTextContent('view-non-items-total-amount', `₹ ${formatIndian(view_nonItemsTaxable, 2)}`);
+            const nonItemsTax = view_nonItemsCGST + view_nonItemsSGST;
+            setTextContent('view-non-items-total-tax', nonItemsTax > 0 ? `₹ ${formatIndian(nonItemsTax, 2)}` : 'No Tax');
+            setTextContent('non-items-overall', `₹ ${formatIndian(view_nonItemsGrandTotal, 2)}`);
+        } catch (e) {
+            // If elements not present, ignore silently
+            console.warn('Non-items totals DOM elements not found', e);
+        }
 
         generateInvoicePreview(invoice, userRole, type);
 
@@ -528,7 +655,7 @@ async function viewInvoice(invoiceId, userRole) {
         document.getElementById('saveProjectPDF').onclick = () => {
             const previewContent = document.getElementById("view-preview-content").innerHTML;
             if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-                let name = `Invoice-${invoiceId}`;
+                let name = `Invoice-${invoiceIdLocal}`;
                 window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
 
             } else {

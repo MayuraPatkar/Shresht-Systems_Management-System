@@ -259,7 +259,7 @@ function createInvoiceCard(invoice) {
             
             <div class="flex-1 p-6">
                 <!-- Main Content Row -->
-                <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center justify-between gap-6">
                     
                     <!-- Left Section: Icon + Project Info -->
                     <div class="flex items-center gap-4 flex-1 min-w-0">
@@ -282,7 +282,7 @@ function createInvoiceCard(invoice) {
                     </div>
 
                     <!-- Middle Section: Customer Info -->
-                    <div class="flex items-center gap-3 flex-1 min-w-[250px] px-6 border-l border-r border-gray-200">
+                    <div class="flex items-center gap-3 flex-1 min-w-0 px-6 border-l border-r border-gray-200">
                         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-user text-blue-600"></i>
                         </div>
@@ -295,7 +295,7 @@ function createInvoiceCard(invoice) {
 
                     <!-- Amount Section -->
                     ${userRole === 'admin' ? `
-                    <div class="flex items-center gap-4 px-6 border-r border-gray-200">
+                    <div class="flex items-center gap-3 px-6 border-r border-gray-200">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-lg ${isPaid ? 'bg-green-50' : 'bg-blue-50'} flex items-center justify-center flex-shrink-0">
                                 <i class="fas fa-rupee-sign ${isPaid ? 'text-green-600' : 'text-blue-600'}"></i>
@@ -321,8 +321,8 @@ function createInvoiceCard(invoice) {
                     <div class="px-6 border-r border-gray-200"></div>
                     `}
 
-                    <!-- Actions Section - Will wrap to new line if needed -->
-                    <div class="flex items-center gap-2 flex-wrap min-w-fit">
+                    <!-- Actions Section -->
+                    <div class="flex items-center gap-2 flex-shrink-0">
                         ${userRole === 'admin' ? `
                             <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
                                 <i class="fas fa-eye"></i>
@@ -371,14 +371,16 @@ function createInvoiceCard(invoice) {
     const deleteBtn = invoiceCard.querySelector('.delete-btn');
 
     // Copy ID functionality
-    copyElement.addEventListener('click', async () => {
+    if (copyElement) {
+        copyElement.addEventListener('click', async () => {
         try {
             await navigator.clipboard.writeText(invoice.invoice_id);
             showToast('ID Copied to Clipboard!');
         } catch (err) {
             console.error('Copy failed', err);
         }
-    });
+        });
+    }
 
     // Action button handlers
     if (viewBtn) {
@@ -542,7 +544,7 @@ document.getElementById('payment-mode')?.addEventListener('change', function () 
 // Payment form submission handler
 document.getElementById('payment-btn')?.addEventListener('click', async () => {
     const paymentStatus = document.querySelector('input[name="payment-question"]:checked')?.value;
-    const paidAmount = parseInt(document.getElementById("paid-amount").value);
+    const paidAmount = parseFloat(document.getElementById("paid-amount").value) || 0;
     const paymentDate = document.getElementById("payment-date").value;
     const paymentMode = document.getElementById("payment-mode").value;
 

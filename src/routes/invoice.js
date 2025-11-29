@@ -131,13 +131,16 @@ router.post("/save-invoice", async (req, res) => {
         }
 
         if (existingInvoice) {
-            // Update stock: revert previous items
-            for (let prev of existingInvoice.items_original) {
-                await Stock.updateOne({ item_name: prev.description }, { $inc: { quantity: prev.quantity } });
-            }
-            // Update stock: deduct new items (allow negative)
-            for (let cur of items_original) {
-                await Stock.updateOne({ item_name: cur.description }, { $inc: { quantity: -cur.quantity } });
+            // Only update stock if we're changing the original copy (which affects inventory)
+            if (type === 'original') {
+                // Update stock: revert previous items
+                for (let prev of existingInvoice.items_original) {
+                    await Stock.updateOne({ item_name: prev.description }, { $inc: { quantity: prev.quantity } });
+                }
+                // Update stock: deduct new items (allow negative)
+                for (let cur of items_original) {
+                    await Stock.updateOne({ item_name: cur.description }, { $inc: { quantity: -cur.quantity } });
+                }
             }
 
             // Update the invoice
@@ -171,13 +174,16 @@ router.post("/save-invoice", async (req, res) => {
             return res.status(200).json({ message: 'Invoice updated successfully', invoice: updatedInvoice });
         } else {
             // Deduct stock for new invoice (allow negative)
-            for (let item of items_original) {
-                const stockItem = await Stock.findOne({ item_name: item.description });
-                if (stockItem) {
-                    stockItem.quantity -= item.quantity;
-                    await stockItem.save();
+            if (type === 'original') {
+                for (let item of items_original) {
+                    const stockItem = await Stock.findOne({ item_name: item.description });
+                    if (stockItem) {
+                        stockItem.quantity -= item.quantity;
+                        await stockItem.save();
+                    }
                 }
             }
+            
 
             // Create a new invoice
             const invoice = new Invoices({
@@ -325,6 +331,11 @@ router.post("/save-payment", async (req, res) => {
 
         if (invoice.total_paid_amount >= invoice.total_amount_duplicate) {
             invoice.payment_status = 'Paid';
+        }
+
+        // Ensure payment status is consistent with totals
+        if (typeof invoice.updatePaymentStatus === 'function') {
+            invoice.updatePaymentStatus();
         }
 
         await invoice.save();

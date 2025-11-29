@@ -436,9 +436,11 @@ body {
 .doc-standard .fifth-section .bank-details {
     font-size: 13px;
     display: flex;
+    justify-content: center;
+    align-items: center;
     gap: 20px;
     background: #f8fafc;
-    padding: 20px;
+    padding: 4px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
 }
@@ -502,7 +504,7 @@ body {
     justify-content: center;
     align-items: center;
     margin: 0;
-    padding: 8px;
+    padding: 4px;
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 8px;

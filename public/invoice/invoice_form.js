@@ -12,7 +12,7 @@ document.getElementById("view-preview").addEventListener("click", () => {
 
 // Event listener for the "Next" button
 document.getElementById("next-btn").addEventListener("click", () => {
-    let sno = 0;
+    let sno = 1;
     if (currentStep === 2 && !document.getElementById("id").value) {
         const quotationId = document.getElementById("quotation-id").value;
         if (quotationId) {
@@ -378,8 +378,8 @@ function calculateInvoice(itemsTable) {
     let sno = 0;
     let itemsHTML = "";
 
-    // Check if rate column is populated
-    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[4].querySelector("input").value) > 0);
+    // Check if rate column is populated - rate is the 6th column (index 5)
+    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[5]?.querySelector("input")?.value || 0) > 0);
 
     for (const row of itemsTable.rows) {
         const description = row.cells[1].querySelector("input").value || "-";
@@ -781,14 +781,14 @@ function collectFormData() {
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(2) input").value,
             HSN_SAC: row.querySelector("td:nth-child(3) input").value,
-            quantity: row.querySelector("td:nth-child(4) input").value,
-            unit_price: row.querySelector("td:nth-child(5) input").value,
-            rate: row.querySelector("td:nth-child(6) input").value,
+            quantity: Number(row.querySelector("td:nth-child(4) input").value) || 0,
+            unit_price: Number(row.querySelector("td:nth-child(5) input").value) || 0,
+            rate: Number(row.querySelector("td:nth-child(6) input").value) || 0,
         })),
         non_items: Array.from(document.querySelectorAll("#non-items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(2) input").value,
-            price: row.querySelector("td:nth-child(3) input").value,
-            rate: row.querySelector("td:nth-child(4) input").value,
+            price: Number(row.querySelector("td:nth-child(3) input").value) || 0,
+            rate: Number(row.querySelector("td:nth-child(4) input").value) || 0,
         })),
         totalAmountOriginal: totalAmountOriginal,
         totalAmountDuplicate: totalAmountDuplicate,

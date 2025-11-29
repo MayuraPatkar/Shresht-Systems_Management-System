@@ -112,7 +112,7 @@ router.post('/save-service', async (req, res) => {
 
         // 1. Save service entry in the service collection
         const { service } = require('../models');
-        await service.create({
+        const savedService = await service.create({
             service_id,
             invoice_id,
             fee_amount,
@@ -126,17 +126,23 @@ router.post('/save-service', async (req, res) => {
             notes: notes || ''
         });
 
-        // 2. Update only service_stage in the invoice
+        // 2. Update only service_stage in the invoice - ensure we don't regress the stage number
         const invoice = await Invoices.findOne({ invoice_id });
         if (!invoice) {
             return res.status(404).json({ error: "Invoice not found" });
         }
-
         if (typeof service_stage !== "undefined") {
-            invoice.service_stage = service_stage;
+            // Ensure stage stored on invoice is maximum of existing and submitted to avoid regression
+            const existingStage = Number(invoice.service_stage || 0);
+            const incomingStage = Number(service_stage || 0);
+            invoice.service_stage = Math.max(existingStage, incomingStage);
             await invoice.save();
         }
+        
+        // Return details including saved service
+        return res.json({ message: "Service saved and invoice service_stage updated successfully", service: savedService });
 
+        // Should never reach here, but fallback
         res.json({ message: "Service saved and invoice service_stage updated successfully" });
     } catch (error) {
         logger.error("Error saving service info:", error);
@@ -179,6 +185,15 @@ router.put('/update-service', async (req, res) => {
         existingService.notes = notes !== undefined ? notes : existingService.notes;
 
         await existingService.save();
+
+        // 3. Ensure invoice service_stage remains accurate (no regression)
+        const invoice = await Invoices.findOne({ invoice_id });
+        if (invoice) {
+            const existingStage = Number(invoice.service_stage || 0);
+            const incomingStage = Number(service_stage || 0);
+            invoice.service_stage = Math.max(existingStage, incomingStage);
+            await invoice.save();
+        }
 
         res.status(200).json({
             message: 'Service updated successfully',
@@ -377,10 +392,13 @@ router.delete('/:serviceId', async (req, res) => {
         // Delete the service record
         await service.deleteOne({ service_id: serviceId });
 
-        // Decrement invoice service_stage
+        // Recompute invoice service_stage based on remaining service records for that invoice
         const invoice = await Invoices.findOne({ invoice_id: invoiceId });
-        if (invoice && invoice.service_stage > 0) {
-            invoice.service_stage -= 1;
+        if (invoice) {
+            // Find max stage among existing service records for this invoice
+            const remainingServices = await service.find({ invoice_id: invoiceId }).lean();
+            const maxStage = remainingServices.reduce((max, rec) => Math.max(max, Number(rec.service_stage || 0)), 0);
+            invoice.service_stage = maxStage;
             await invoice.save();
         }
 

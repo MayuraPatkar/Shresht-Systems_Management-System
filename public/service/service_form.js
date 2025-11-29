@@ -205,7 +205,9 @@ function collectFormData() {
     const serviceId = document.getElementById("service-id").value;
     
     // If editing (service_id starts with SRV-), don't increment stage
-    const isEditing = serviceId && serviceId.startsWith('SRV-');
+    // Use explicit hidden field is-editing to determine editing state
+    const isEditingFlag = document.getElementById('is-editing')?.value === 'true';
+    const isEditing = isEditingFlag;
     const finalStage = isEditing ? currentStage : (currentStage + 1);
 
     return {
@@ -295,7 +297,8 @@ async function handlePrint() {
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const serviceData = collectFormData();
         await sendToServer(serviceData);
-        const serviceRef = `${document.getElementById('invoice-id').value}-S${parseInt(document.getElementById('service-stage').value || 0) + 1}`;
+        const invoiceId = document.getElementById('invoice-id').value;
+        const serviceRef = `${invoiceId}-S${serviceData.service_stage || 0}`;
         const name = `Service-${serviceRef}`;
         window.electronAPI.handlePrintEvent(previewContent, "print", name);
     } else {
@@ -309,7 +312,8 @@ async function handleSavePDF() {
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         const serviceData = collectFormData();
         await sendToServer(serviceData);
-        const serviceRef = `${document.getElementById('invoice-id').value}-S${parseInt(document.getElementById('service-stage').value || 0) + 1}`;
+        const invoiceId = document.getElementById('invoice-id').value;
+        const serviceRef = `${invoiceId}-S${serviceData.service_stage || 0}`;
         const name = `Service-${serviceRef}`;
         window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
     } else {
