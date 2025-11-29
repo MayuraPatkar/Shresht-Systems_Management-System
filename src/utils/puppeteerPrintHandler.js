@@ -45,10 +45,18 @@ class PuppeteerPrintHandler {
                     '--font-render-hinting=none'
                 ]
             });
+
+            // Add disconnect handler
+            this.browser.on('disconnected', () => {
+                logger.info('Puppeteer browser disconnected');
+                this.browser = null;
+                this.isInitialized = false;
+            });
+
             this.isInitialized = true;
-            log.info('Puppeteer browser initialized successfully');
+            logger.info('Puppeteer browser initialized successfully');
         } catch (error) {
-            log.error('Failed to initialize Puppeteer:', error);
+            logger.error('Failed to initialize Puppeteer:', error);
             throw error;
         }
     }
@@ -104,7 +112,7 @@ ${processedQuotationStyles}
                 qrCodeBase64
             };
         } catch (error) {
-            log.error('Error loading assets:', error);
+            logger.error('Error loading assets:', error);
             throw error;
         }
     }
@@ -484,7 +492,7 @@ ${processedQuotationStyles}
 
             // Wait for fonts to load
             await page.evaluateHandle('document.fonts.ready');
-            
+
             // Additional wait to ensure all content is rendered
             await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -504,10 +512,10 @@ ${processedQuotationStyles}
             });
 
             await page.close();
-            log.info(`PDF generated successfully: ${outputPath}`);
+            logger.info(`PDF generated successfully: ${outputPath}`);
             return { success: true, path: outputPath };
         } catch (error) {
-            log.error('Error generating PDF:', error);
+            logger.error('Error generating PDF:', error);
             return { success: false, error: error.message };
         }
     }
@@ -705,13 +713,13 @@ ${processedQuotationStyles}
             `;
 
             const page = await this.browser.newPage();
-            
+
             await page.setViewport({
                 width: 794,
                 height: 1123,
                 deviceScaleFactor: 2
             });
-            
+
             await page.setContent(fullHTML, {
                 waitUntil: ['networkidle0', 'domcontentloaded', 'load']
             });
@@ -735,10 +743,10 @@ ${processedQuotationStyles}
             const { shell } = require('electron');
             await shell.openPath(tempPath);
 
-            log.info('Print dialog opened successfully');
+            logger.info('Print dialog opened successfully');
             return { success: true };
         } catch (error) {
-            log.error('Error printing:', error);
+            logger.error('Error printing:', error);
             return { success: false, error: error.message };
         }
     }
@@ -748,10 +756,14 @@ ${processedQuotationStyles}
      */
     async cleanup() {
         if (this.browser) {
-            await this.browser.close();
+            try {
+                await this.browser.close();
+            } catch (error) {
+                logger.warn('Error closing Puppeteer browser (might be already closed):', error.message);
+            }
             this.browser = null;
             this.isInitialized = false;
-            log.info('Puppeteer browser closed');
+            logger.info('Puppeteer browser closed');
         }
     }
 }
@@ -784,7 +796,7 @@ function setupPuppeteerHandlers(mainWindow, ipcMain) {
                 }
             }
         } catch (error) {
-            log.error('Error in Puppeteer print handler:', error);
+            logger.error('Error in Puppeteer print handler:', error);
             event.sender.send('printProcessError', { error: error.message });
         }
     });
@@ -810,7 +822,7 @@ function setupPuppeteerHandlers(mainWindow, ipcMain) {
                 }
             }
         } catch (error) {
-            log.error('Error in Puppeteer print handler:', error);
+            logger.error('Error in Puppeteer print handler:', error);
             event.sender.send('printProcessError', { error: error.message });
         }
     });
