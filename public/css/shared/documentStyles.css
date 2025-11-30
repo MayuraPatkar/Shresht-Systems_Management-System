@@ -163,7 +163,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding-bottom: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     border-bottom: 2px solid #1a365d;
     /* Brand Navy */
 }
@@ -207,7 +207,7 @@ body {
     letter-spacing: 1px;
     text-transform: uppercase;
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     border: 1px solid #e2e8f0;
 }
 
@@ -216,7 +216,6 @@ body {
     display: flex;
     justify-content: space-between;
     gap: 30px;
-    margin-bottom: 24px;
     padding: 0 10px;
 }
 
@@ -246,7 +245,6 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    margin-bottom: 20px;
 }
 
 .doc-standard .fourth-section table {
@@ -440,7 +438,6 @@ body {
     align-items: center;
     gap: 20px;
     background: #f8fafc;
-    padding: 4px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
 }
@@ -472,7 +469,6 @@ body {
     border: 1px solid #e2e8f0;
     gap: 10px;
     align-items: center;
-    margin-bottom: 10px;
 }
 
 .doc-standard .fifth-section-sub3-1 {
@@ -522,11 +518,7 @@ body {
 .doc-standard .seventh-section,
 .doc-standard .eighth-section {
     page-break-inside: avoid;
-    margin: 15px 0;
     padding: 15px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background: #f8fafc;
 }
 
 .doc-standard .sixth-section .declaration {
