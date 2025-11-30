@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { wayBills } = require('../models');
+const { generateNextId } = require('../utils/idGenerator');
 const logger = require('../utils/logger'); // Custom logger
 
 // Route to get all waybills
@@ -11,6 +12,17 @@ router.get("/all", async (req, res) => {
     } catch (error) {
         logger.error("Error fetching waybills:", error);
         return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+// Endpoint to generate a new Waybill ID
+router.get('/generate-id', async (req, res) => {
+    try {
+        const waybill_id = await generateNextId('wayBill');
+        return res.status(200).json({ waybill_id });
+    } catch (error) {
+        logger.error('Error generating waybill id', { error: error.message || error });
+        return res.status(500).json({ error: 'Failed to generate waybill id' });
     }
 });
 
@@ -26,6 +38,7 @@ router.post("/save-way-bill", async (req, res) => {
             transportMode = '',
             vehicleNumber = '',
             placeSupply = '',
+            waybillDate,
             items = [],
         } = req.body;
 
@@ -48,6 +61,7 @@ router.post("/save-way-bill", async (req, res) => {
             wayBill.transport_mode = transportMode;
             wayBill.vehicle_number = vehicleNumber;
             wayBill.place_supply = placeSupply;
+            if (waybillDate) wayBill.waybill_date = new Date(waybillDate);
             wayBill.items = items;
         } else {
             // Create a new way bill with the provided data
@@ -61,6 +75,7 @@ router.post("/save-way-bill", async (req, res) => {
                 transport_mode: transportMode,
                 vehicle_number: vehicleNumber,
                 place_supply: placeSupply,
+                waybill_date: waybillDate ? new Date(waybillDate) : undefined,
                 items,
                 createdAt: new Date(),
             });

@@ -5,28 +5,17 @@ const logger = require('../utils/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
 
 // Function to generate a unique ID for each quotation
-function generateUniqueId() {
-    const now = new Date();
-    const year = now.getFullYear().toString().slice(-2);
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const day = now.getDate().toString().padStart(2, '0');
-    const randomNum = Math.floor(Math.random() * 10);
-    return `${year}${month}${day}${randomNum}`;
-}
+const { generateNextId } = require('../utils/idGenerator');
 
 // Route to generate a new quotation ID
 router.get("/generate-id", async (req, res) => {
-    let quotationId;
-    let isUnique = false;
-
-    while (!isUnique) {
-        quotationId = generateUniqueId();
-        const existingQuotation = await Quotations.findOne({ quotation_id: quotationId });
-        if (!existingQuotation) {
-            isUnique = true;
-        }
+    try {
+        const quotation_id = await generateNextId('quotation');
+        return res.status(200).json({ quotation_id });
+    } catch (err) {
+        logger.error('Error generating quotation id', { error: err.message || err });
+        return res.status(500).json({ error: 'Failed to generate quotation id' });
     }
-    res.status(200).json({ quotation_id: quotationId });
 });
 
 // Route to get all quotations

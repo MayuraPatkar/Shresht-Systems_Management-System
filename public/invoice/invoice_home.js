@@ -452,6 +452,15 @@ function showNewInvoiceForm() {
             sessionStorage.setItem('update-invoice', 'original');
         }
     });
+    // Set default invoice date to today
+    const invoiceDateInput = document.getElementById('invoice-date');
+    if (invoiceDateInput && !invoiceDateInput.value) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        invoiceDateInput.value = `${yyyy}-${mm}-${dd}`;
+    }
 }
 
 // Handle search functionality

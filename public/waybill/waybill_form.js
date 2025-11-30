@@ -48,6 +48,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Set default waybill date and fetch new ID if empty
+document.addEventListener('DOMContentLoaded', async () => {
+    const dateInput = document.getElementById('waybill-date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+    const waybillIdEl = document.getElementById('waybill-id');
+    if (waybillIdEl && !waybillIdEl.value) {
+        await getWaybillId();
+    }
+});
+
+// Fetch next Waybill ID from server
+async function getWaybillId() {
+    try {
+        const response = await fetch('/wayBill/generate-id');
+        if (!response.ok) throw new Error('Failed to fetch waybill id');
+        const data = await response.json();
+        document.getElementById('waybill-id').value = data.waybill_id;
+    } catch (err) {
+        console.error('Error fetching waybill id:', err);
+    }
+}
+
+// Listen for manual typing in the items table to fetch additional data (HSN, price, rate)
+const waybillItemsTable = document.querySelector('#items-table');
+if (waybillItemsTable) {
+    waybillItemsTable.addEventListener('input', async (event) => {
+        const row = event.target.closest('tr');
+        if (!row) return;
+        // Only react when user types in the description column (first input)
+        const descInput = row.querySelector('input[type="text"]');
+        if (event.target === descInput) {
+            const itemName = descInput.value.trim();
+            if (itemName.length > 2) {
+                await fillWaybill(itemName, row);
+            }
+        }
+    });
+}
+
 // Validate current step similar to quotation/service
 window.validateCurrentStep = async function () {
     // Step 2: Project details
@@ -138,6 +179,9 @@ async function openWayBill(wayBillId) {
 
         document.getElementById('waybill-id').value = wayBill.waybill_id;
         document.getElementById('project-name').value = wayBill.project_name;
+        // Populate waybill date for editing
+        const wbDateEl = document.getElementById('waybill-date');
+        if (wbDateEl) wbDateEl.value = wayBill.waybill_date ? window.formatDate(wayBill.waybill_date) : '';
         document.getElementById('buyer-name').value = wayBill.customer_name;
         document.getElementById('buyer-address').value = wayBill.customer_address;
         document.getElementById('buyer-phone').value = wayBill.customer_phone;
@@ -245,7 +289,10 @@ function addItemFromData(item, itemSno) {
     row.className = "border-b border-gray-200 hover:bg-gray-50";
     row.innerHTML = `
         <td class="border border-gray-300 px-4 py-3 text-center text-base">${itemSno}</td>
-        <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description || ''}" required></td>
+        <td class="border border-gray-300 px-2 py-2">
+            <input type="text" value="${item.description || ''}" required>
+            <ul class="suggestions"></ul>
+        </td>
         <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC || ''}" required></td>
         <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity || ''}" min="1" required></td>
         <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.unit_price || ''}" required></td>
@@ -266,6 +313,31 @@ function addItemFromData(item, itemSno) {
             rowInputs[index].value = input.value;
         });
     });
+
+    // Setup autocomplete for description input (module-specific)
+    const cardDescriptionInput = card.querySelector('input[placeholder="Description"]');
+    const cardSuggestions = card.querySelector('.suggestions');
+    const rowDescriptionInput = row.querySelector('td:nth-child(2) input[type="text"]');
+    const rowSuggestions = row.querySelector('.suggestions');
+
+    if (cardDescriptionInput && cardSuggestions) {
+        cardDescriptionInput.addEventListener('input', function () {
+            showSuggestionsWaybill(cardDescriptionInput, cardSuggestions);
+        });
+        cardDescriptionInput.addEventListener('keydown', function (event) {
+            handleKeyboardNavigationWaybill(event, cardDescriptionInput, cardSuggestions);
+        });
+    }
+    if (rowDescriptionInput && rowSuggestions) {
+        rowDescriptionInput.addEventListener('input', function () {
+            showSuggestionsWaybill(rowDescriptionInput, rowSuggestions);
+            // Sync with card input
+            if (cardDescriptionInput) cardDescriptionInput.value = rowDescriptionInput.value;
+        });
+        rowDescriptionInput.addEventListener('keydown', function (event) {
+            handleKeyboardNavigationWaybill(event, rowDescriptionInput, rowSuggestions);
+        });
+    }
     
     // Add remove button event listeners (both card and table)
     const cardRemoveBtn = card.querySelector(".remove-item-btn");
@@ -297,6 +369,140 @@ function addItem() {
         rate: ''
     }, itemSno);
 }
+
+// --- Waybill-specific autocomplete implementation ---
+let waybillSelectedIndex = -1;
+let waybillData = [];
+
+async function fetchWaybillStockNames() {
+    try {
+        const response = await fetch('/stock/get-names');
+        waybillData = await response.json();
+    } catch (error) {
+        console.error('Error fetching stock names for waybill:', error);
+    }
+}
+
+fetchWaybillStockNames();
+
+async function fetchWaybillStockData(itemName) {
+    try {
+        const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching stock data for waybill:', error);
+        return null;
+    }
+}
+
+function showSuggestionsWaybill(input, suggestionsList) {
+    const query = input.value.toLowerCase();
+    suggestionsList.innerHTML = '';
+    waybillSelectedIndex = -1;
+    if (!query) {
+        suggestionsList.style.display = 'none';
+        return;
+    }
+
+    const filtered = waybillData.filter(item => item.toLowerCase().includes(query));
+    if (!filtered.length) {
+        suggestionsList.style.display = 'none';
+        return;
+    }
+    suggestionsList.style.display = 'block';
+    filtered.forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        li.addEventListener('click', async () => {
+            input.value = item;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            const parent = input.closest('.item-card') || input.closest('tr');
+            await fillWaybill(item, parent);
+            suggestionsList.style.display = 'none';
+            waybillSelectedIndex = -1;
+        });
+        suggestionsList.appendChild(li);
+    });
+}
+
+async function handleKeyboardNavigationWaybill(event, input, suggestionsList) {
+    const items = suggestionsList.querySelectorAll('li');
+    if (!items.length) return;
+
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        waybillSelectedIndex = (waybillSelectedIndex + 1) % items.length;
+        input.value = items[waybillSelectedIndex].textContent;
+        items.forEach((it, idx) => it.classList.toggle('selected', idx === waybillSelectedIndex));
+    } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        waybillSelectedIndex = (waybillSelectedIndex - 1 + items.length) % items.length;
+        input.value = items[waybillSelectedIndex].textContent;
+        items.forEach((it, idx) => it.classList.toggle('selected', idx === waybillSelectedIndex));
+    } else if (event.key === 'Enter') {
+        event.preventDefault();
+        if (waybillSelectedIndex >= 0 && items[waybillSelectedIndex]) {
+            const selectedItem = items[waybillSelectedIndex].textContent;
+            input.value = selectedItem;
+            suggestionsList.style.display = 'none';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            const parent = input.closest('.item-card') || input.closest('tr');
+            await fillWaybill(selectedItem, parent);
+            waybillSelectedIndex = -1;
+        }
+    }
+}
+
+async function fillWaybill(itemName, element) {
+    const isCard = element.classList.contains('item-card');
+    const stockData = await fetchWaybillStockData(itemName);
+    if (!stockData) return;
+
+    if (isCard) {
+        const inputs = element.querySelectorAll('input');
+        // We assume column order: description, hsn, qty, unit_price, rate
+        // Here inputs[1] => HSN, inputs[3] => Unit Price, inputs[4] => Rate (based on card structure in waybill)
+        inputs[1].value = stockData.HSN_SAC || '';
+        // unit_price is index 3? Check template: description, hsn, qty, unit_price, rate -> idx 3 & 4
+        if (inputs[3]) inputs[3].value = stockData.unitPrice || 0;
+        if (inputs[4]) inputs[4].value = stockData.GST || 0;
+        inputs[1].dispatchEvent(new Event('input', { bubbles: true }));
+        if (inputs[3]) inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
+        if (inputs[4]) inputs[4].dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Also update table row
+        const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
+        const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
+        if (tableRow) {
+            const rowInputs = tableRow.querySelectorAll('input');
+            if (rowInputs.length >= 5) {
+                rowInputs[1].value = stockData.HSN_SAC || '';
+                rowInputs[3].value = stockData.unitPrice || 0;
+                rowInputs[4].value = stockData.GST || 0;
+            }
+        }
+    } else {
+        // Table row
+        const rowInputs = element.querySelectorAll('input');
+        if (rowInputs.length >= 5) {
+            rowInputs[1].value = stockData.HSN_SAC || '';
+            rowInputs[3].value = stockData.unitPrice || 0;
+            rowInputs[4].value = stockData.GST || 0;
+        }
+    }
+}
+
+// Local click handler to close suggestions dropdowns on waybill page
+document.addEventListener('click', function (event) {
+    if (!window.location.pathname.toLowerCase().includes('/waybill')) return;
+    const allSuggestions = document.querySelectorAll('#items-container .suggestions, #items-table .suggestions');
+    allSuggestions.forEach(suggestionsList => {
+        const parentInput = suggestionsList.previousElementSibling || suggestionsList.parentElement?.querySelector('input');
+        if (parentInput && !parentInput.contains(event.target) && !suggestionsList.contains(event.target)) {
+            suggestionsList.style.display = 'none';
+        }
+    });
+});
 
 // Renumber items after deletion
 function renumberItems() {
@@ -364,7 +570,14 @@ function generatePreview() {
     const hasTax = (totalCGST + totalSGST) > 0;
     const totalsHTML = `
         <div class="fifth-section">
-            ${SectionRenderers.renderTotals(totals, hasTax, true)}
+            <div class="fifth-section-sub1">
+                <div class="fifth-section-sub2">
+                    ${SectionRenderers.renderAmountInWords(grandTotal)}
+                </div>
+                <div class="totals-section">
+                    ${SectionRenderers.renderTotals(totals, hasTax)}
+                </div>
+            </div>
         </div>`;
 
     // Use SectionRenderers to build the document
@@ -377,7 +590,10 @@ function generatePreview() {
             ${buyerEmail ? `<p>${buyerEmail}</p>` : ''}
         </div>`;
 
+    const waybillDate = document.getElementById('waybill-date')?.value || document.getElementById('date')?.value || (new Date()).toISOString().split('T')[0];
+
     const infoSectionHTML = SectionRenderers.renderInfoSection([
+        { label: 'Date', value: waybillDate },
         { label: 'Project Name', value: projectName },
         { label: 'Transportation Mode', value: transportMode },
         { label: 'Vehicle Number', value: vehicleNumber },
@@ -446,6 +662,7 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
 function collectFormData() {
     return {
         wayBillId: document.getElementById("waybill-id").value,
+        waybillDate: document.getElementById('waybill-date')?.value || document.getElementById('date')?.value || document.getElementById('waybill_date')?.value || (new Date()).toISOString().split('T')[0],
         projectName: document.getElementById("project-name").value,
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,
@@ -462,4 +679,9 @@ function collectFormData() {
             rate: row.querySelector("td:nth-child(6) input").value,
         })),
     };
+}
+
+// Expose a generic getId() used by globalScript.js
+async function getId() {
+    return getWaybillId();
 }

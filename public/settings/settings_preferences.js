@@ -24,8 +24,24 @@ function loadPreferences() {
                 // Numbering
                 document.getElementById("pref-invoice-prefix").value = s.numbering?.invoice_prefix || 'INV';
                 document.getElementById("pref-invoice-start").value = s.numbering?.invoice_start || 1;
+                document.getElementById("pref-invoice-pad").value = s.numbering?.invoice_pad || 6;
+                document.getElementById("pref-invoice-include-date").checked = s.numbering?.invoice_include_date || false;
                 document.getElementById("pref-quotation-prefix").value = s.numbering?.quotation_prefix || 'QUO';
                 document.getElementById("pref-quotation-start").value = s.numbering?.quotation_start || 1;
+                document.getElementById("pref-quotation-pad").value = s.numbering?.quotation_pad || 6;
+                document.getElementById("pref-quotation-include-date").checked = s.numbering?.quotation_include_date || false;
+                document.getElementById("pref-purchase-prefix").value = s.numbering?.purchase_prefix || 'PO';
+                document.getElementById("pref-purchase-start").value = s.numbering?.purchase_start || 1;
+                document.getElementById("pref-purchase-pad").value = s.numbering?.purchase_pad || 6;
+                document.getElementById("pref-purchase-include-date").checked = s.numbering?.purchase_include_date || false;
+                document.getElementById("pref-waybill-prefix").value = s.numbering?.waybill_prefix || 'WB';
+                document.getElementById("pref-waybill-start").value = s.numbering?.waybill_start || 1;
+                document.getElementById("pref-waybill-pad").value = s.numbering?.waybill_pad || 6;
+                document.getElementById("pref-waybill-include-date").checked = s.numbering?.waybill_include_date || false;
+                document.getElementById("pref-service-prefix").value = s.numbering?.service_prefix || 'SRV';
+                document.getElementById("pref-service-start").value = s.numbering?.service_start || 1;
+                document.getElementById("pref-service-pad").value = s.numbering?.service_pad || 6;
+                document.getElementById("pref-service-include-date").checked = s.numbering?.service_include_date || false;
                 
                 
                 // Backup settings
@@ -59,8 +75,24 @@ function savePreferences() {
         numbering: {
             invoice_prefix: document.getElementById("pref-invoice-prefix").value,
             invoice_start: parseInt(document.getElementById("pref-invoice-start").value),
+            invoice_pad: parseInt(document.getElementById("pref-invoice-pad").value) || 6,
+            invoice_include_date: document.getElementById("pref-invoice-include-date").checked || false,
             quotation_prefix: document.getElementById("pref-quotation-prefix").value,
-            quotation_start: parseInt(document.getElementById("pref-quotation-start").value)
+            quotation_start: parseInt(document.getElementById("pref-quotation-start").value),
+            quotation_pad: parseInt(document.getElementById("pref-quotation-pad").value) || 6,
+            quotation_include_date: document.getElementById("pref-quotation-include-date").checked || false,
+            purchase_prefix: document.getElementById("pref-purchase-prefix").value,
+            purchase_start: parseInt(document.getElementById("pref-purchase-start").value) || 1,
+            purchase_pad: parseInt(document.getElementById("pref-purchase-pad").value) || 6,
+            purchase_include_date: document.getElementById("pref-purchase-include-date").checked || false,
+            waybill_prefix: document.getElementById("pref-waybill-prefix").value,
+            waybill_start: parseInt(document.getElementById("pref-waybill-start").value) || 1,
+            waybill_pad: parseInt(document.getElementById("pref-waybill-pad").value) || 6,
+            waybill_include_date: document.getElementById("pref-waybill-include-date").checked || false,
+            service_prefix: document.getElementById("pref-service-prefix").value,
+            service_start: parseInt(document.getElementById("pref-service-start").value) || 1,
+            service_pad: parseInt(document.getElementById("pref-service-pad").value) || 6,
+            service_include_date: document.getElementById("pref-service-include-date").checked || false,
         },
         backup: {
             auto_backup_enabled: document.getElementById("backup-auto-enabled").checked,
@@ -264,4 +296,17 @@ function initPreferencesModule() {
     
     // Notifications
     document.getElementById("save-notifications-button")?.addEventListener("click", saveNotificationSettings);
+
+    // Auto toggle pad inputs when include-date checkbox changes
+    const modules = ["invoice", "quotation", "purchase", "waybill", "service"];
+    modules.forEach(m => {
+        const chk = document.getElementById(`pref-${m}-include-date`);
+        const padInput = document.getElementById(`pref-${m}-pad`);
+        if (chk && padInput) {
+            const toggle = () => { padInput.disabled = chk.checked; };
+            chk.addEventListener('change', toggle);
+            // set initial state
+            toggle();
+        }
+    });
 }

@@ -244,8 +244,8 @@ function handleChangePassword() {
     }
     
     // Basic password strength validation
-    if (newPassword.length < 8) {
-        window.electronAPI.showAlert1("New password must be at least 8 characters long.");
+    if (newPassword.length < 4) {
+        window.electronAPI.showAlert1("New password must be at least 4 characters long.");
         return;
     }
 
