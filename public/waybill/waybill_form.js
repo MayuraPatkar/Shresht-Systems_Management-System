@@ -48,6 +48,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Listen for manual typing in the items table to fetch additional data (HSN, price, rate)
+const waybillItemsTable = document.querySelector('#items-table');
+if (waybillItemsTable) {
+    waybillItemsTable.addEventListener('input', async (event) => {
+        const row = event.target.closest('tr');
+        if (!row) return;
+        // Only react when user types in the description column (first input)
+        const descInput = row.querySelector('input[type="text"]');
+        if (event.target === descInput) {
+            const itemName = descInput.value.trim();
+            if (itemName.length > 2) {
+                await fillWaybill(itemName, row);
+            }
+        }
+    });
+}
+
 // Validate current step similar to quotation/service
 window.validateCurrentStep = async function () {
     // Step 2: Project details
@@ -245,7 +262,10 @@ function addItemFromData(item, itemSno) {
     row.className = "border-b border-gray-200 hover:bg-gray-50";
     row.innerHTML = `
         <td class="border border-gray-300 px-4 py-3 text-center text-base">${itemSno}</td>
-        <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.description || ''}" required></td>
+        <td class="border border-gray-300 px-2 py-2">
+            <input type="text" value="${item.description || ''}" required>
+            <ul class="suggestions"></ul>
+        </td>
         <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC || ''}" required></td>
         <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity || ''}" min="1" required></td>
         <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.unit_price || ''}" required></td>
@@ -270,7 +290,7 @@ function addItemFromData(item, itemSno) {
     // Setup autocomplete for description input (module-specific)
     const cardDescriptionInput = card.querySelector('input[placeholder="Description"]');
     const cardSuggestions = card.querySelector('.suggestions');
-    const rowDescriptionInput = row.querySelector('input[type="text"]');
+    const rowDescriptionInput = row.querySelector('td:nth-child(2) input[type="text"]');
     const rowSuggestions = row.querySelector('.suggestions');
 
     if (cardDescriptionInput && cardSuggestions) {
@@ -427,15 +447,21 @@ async function fillWaybill(itemName, element) {
         const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
         const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
         if (tableRow) {
-            tableRow.querySelector("input[placeholder='HSN Code']")?.value = stockData.HSN_SAC || '';
-            tableRow.querySelector("input[placeholder='Unit Price']")?.value = stockData.unitPrice || 0;
-            tableRow.querySelector("input[placeholder='Tax Rate']")?.value = stockData.GST || 0;
+            const rowInputs = tableRow.querySelectorAll('input');
+            if (rowInputs.length >= 5) {
+                rowInputs[1].value = stockData.HSN_SAC || '';
+                rowInputs[3].value = stockData.unitPrice || 0;
+                rowInputs[4].value = stockData.GST || 0;
+            }
         }
     } else {
         // Table row
-        element.querySelector("input[placeholder='HSN Code']")?.value = stockData.HSN_SAC || '';
-        element.querySelector("input[placeholder='Unit Price']")?.value = stockData.unitPrice || 0;
-        element.querySelector("input[placeholder='Tax Rate']")?.value = stockData.GST || 0;
+        const rowInputs = element.querySelectorAll('input');
+        if (rowInputs.length >= 5) {
+            rowInputs[1].value = stockData.HSN_SAC || '';
+            rowInputs[3].value = stockData.unitPrice || 0;
+            rowInputs[4].value = stockData.GST || 0;
+        }
     }
 }
 
