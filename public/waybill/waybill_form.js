@@ -546,7 +546,6 @@ function generatePreview() {
             <div class="fifth-section-sub1">
                 <div class="fifth-section-sub2">
                     ${SectionRenderers.renderAmountInWords(grandTotal)}
-                    ${SectionRenderers.renderPaymentDetails()}
                 </div>
                 <div class="totals-section">
                     ${SectionRenderers.renderTotals(totals, hasTax)}
