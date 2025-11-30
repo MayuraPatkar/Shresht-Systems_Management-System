@@ -305,7 +305,7 @@ ${processedQuotationStyles4}
                         
                         /* Letter content page - ensure content fits */
                         .doc-quotation .quotation-letter-content {
-                            font-size: 12px !important;
+                            font-size: 13px !important;
                             line-height: 1.5 !important;
                             margin: 15px 0 !important;
                             flex: 1;
@@ -329,7 +329,7 @@ ${processedQuotationStyles4}
                         
                         /* Terms section - compact for fitting */
                         .doc-quotation .terms-section {
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                             line-height: 1.4 !important;
                             padding: 12px 15px !important;
                             margin: 10px 0 !important;
@@ -358,7 +358,7 @@ ${processedQuotationStyles4}
                         
                         /* Closing section - compact */
                         .doc-quotation .closing-section {
-                            font-size: 12px !important;
+                            font-size: 13px !important;
                             line-height: 1.5 !important;
                             padding: 12px 15px !important;
                             margin: 10px 0 !important;
@@ -378,12 +378,12 @@ ${processedQuotationStyles4}
                         }
                         
                         .doc-quotation .header .quotation-brand-text h1 {
-                            font-size: 22px !important;
+                            font-size: 24px !important;
                             line-height: 1.1 !important;
                         }
                         
                         .doc-quotation .header .company-details p {
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                             line-height: 1.4 !important;
                         }
                         
@@ -393,7 +393,7 @@ ${processedQuotationStyles4}
                             -webkit-print-color-adjust: exact !important;
                             print-color-adjust: exact !important;
                             padding: 10px 15px !important;
-                            font-size: 16px !important;
+                            font-size: 18px !important;
                             margin-bottom: 15px !important;
                         }
                         
@@ -416,7 +416,7 @@ ${processedQuotationStyles4}
                         
                         .doc-quotation .fifth-section-sub3 {
                             padding: 8px 12px !important;
-                            font-size: 12px !important;
+                            font-size: 13px !important;
                             margin-bottom: 8px !important;
                         }
                         
@@ -426,7 +426,7 @@ ${processedQuotationStyles4}
                         }
                         
                         .doc-quotation .fifth-section .bank-details-sub2 p {
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                             line-height: 1.4 !important;
                             margin: 1px 0 !important;
                         }
@@ -438,7 +438,7 @@ ${processedQuotationStyles4}
                         }
                         
                         .doc-quotation .fifth-section h3 {
-                            font-size: 13px !important;
+                            font-size: 14px !important;
                             margin-bottom: 5px !important;
                             padding-bottom: 5px !important;
                         }
@@ -446,20 +446,20 @@ ${processedQuotationStyles4}
                         .totals-section .totals-section-sub1 p,
                         .totals-section .totals-section-sub2 p {
                             padding: 8px 12px !important;
-                            font-size: 12px !important;
+                            font-size: 13px !important;
                         }
                         
                         .totals-section .totals-section-sub1 p:last-child,
                         .totals-section .totals-section-sub2 p:last-child {
                             padding: 10px 12px !important;
-                            font-size: 13px !important;
+                            font-size: 14px !important;
                         }
                         
                         /* Notes section - compact */
                         .doc-quotation .notes-section {
                             padding: 10px 15px !important;
                             margin: 10px 0 !important;
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                         }
                         
                         .doc-quotation .notes-section p {
@@ -484,12 +484,12 @@ ${processedQuotationStyles4}
                             -webkit-print-color-adjust: exact !important;
                             print-color-adjust: exact !important;
                             padding: 8px 10px !important;
-                            font-size: 10px !important;
+                            font-size: 12px !important;
                         }
                         
                         .doc-quotation table td {
                             padding: 8px 10px !important;
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                         }
                         
                         /* Alternating row backgrounds */
@@ -535,12 +535,12 @@ ${processedQuotationStyles4}
                             print-color-adjust: exact !important;
                             margin: 10px 0 !important;
                             padding: 6px !important;
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                         }
                         
                         /* Headline section */
                         .doc-quotation .headline-section {
-                            font-size: 14px !important;
+                            font-size: 15px !important;
                             margin-bottom: 8px !important;
                         }
                     </style>
@@ -707,7 +707,7 @@ ${processedQuotationStyles4}
                         
                         /* Compact letter content */
                         .doc-quotation .quotation-letter-content {
-                            font-size: 12px !important;
+                            font-size: 13px !important;
                             line-height: 1.5 !important;
                             margin: 15px 0 !important;
                         }
@@ -727,14 +727,14 @@ ${processedQuotationStyles4}
                         
                         /* Compact terms section */
                         .doc-quotation .terms-section {
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                             line-height: 1.4 !important;
                             padding: 12px 15px !important;
                             margin: 10px 0 !important;
                         }
                         
                         .doc-quotation .closing-section {
-                            font-size: 12px !important;
+                            font-size: 13px !important;
                             padding: 12px 15px !important;
                             margin: 10px 0 !important;
                         }
@@ -749,16 +749,16 @@ ${processedQuotationStyles4}
                         }
                         
                         .doc-quotation .header .quotation-brand-text h1 {
-                            font-size: 22px !important;
+                            font-size: 24px !important;
                         }
                         
                         .doc-quotation .header .company-details p {
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                         }
                         
                         .doc-quotation .title {
                             padding: 10px 15px !important;
-                            font-size: 16px !important;
+                            font-size: 18px !important;
                             margin-bottom: 15px !important;
                         }
                         
@@ -768,12 +768,12 @@ ${processedQuotationStyles4}
                             -webkit-print-color-adjust: exact !important;
                             print-color-adjust: exact !important;
                             padding: 8px 10px !important;
-                            font-size: 10px !important;
+                            font-size: 11px !important;
                         }
                         
                         .doc-quotation table td {
                             padding: 8px 10px !important;
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                         }
                         
                         .totals-section .totals-section-sub1 p:last-child,
@@ -786,7 +786,7 @@ ${processedQuotationStyles4}
                         
                         .doc-quotation .notes-section {
                             padding: 10px 15px !important;
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                         }
                     </style>
                 </head>
