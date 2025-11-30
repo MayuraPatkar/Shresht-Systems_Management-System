@@ -44,7 +44,8 @@ async function generateNextId(moduleKey, options = {}) {
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const dd = String(now.getDate()).padStart(2, '0');
-    const datePart = `${yyyy}${mm}${dd}`;
+    const yy = String(yyyy).slice(-2);
+    const datePart = `${yy}${mm}${dd}`;
 
     // Use per-day counter key so we can generate a suffix only if >1
     const perDayCounterKey = `${mk}-${datePart}`;
@@ -60,7 +61,7 @@ async function generateNextId(moduleKey, options = {}) {
     const pad = Number(options.pad ?? defaultPad ?? 6);
       // As requested, when includeDate is enabled, we use a raw numeric sequence per day
       // (no zero-padding). Examples: QUO-20251130-0, QUO-20251130-1
-      return `${prefix}-${datePart}${seqDay}`;
+      return `${prefix}${datePart}${seqDay}`;
   }
 
   // Otherwise use an incrementing counter for unlimited sequential IDs
@@ -82,7 +83,7 @@ async function generateNextId(moduleKey, options = {}) {
 
   const pad = Number(options.pad ?? defaultPad ?? 6);
   const padded = String(seq).padStart(Number(pad), '0');
-  return `${prefix}-${padded}`;
+  return `${prefix}${padded}`;
 }
 
 module.exports = { generateNextId };
