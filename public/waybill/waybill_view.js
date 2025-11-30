@@ -49,6 +49,7 @@ function generateViewPreviewHTML(wayBill) {
         </div>`;
     const infoSectionHTML = `
         <div class="info-section">
+            <p><strong>Date:</strong> ${window.formatDate(wayBill.waybill_date) || ''}</p>
             <p><strong>Project Name:</strong> ${wayBill.project_name || ''}</p>
             <p><strong>Transportation Mode:</strong> ${wayBill.transport_mode || ''}</p>
             <p><strong>Vehicle Number:</strong> ${wayBill.vehicle_number || ''}</p>
@@ -133,6 +134,9 @@ async function viewWayBill(wayBillId) {
         // Fill Project Details
         document.getElementById('view-project-name').textContent = waybill.project_name || '-';
         document.getElementById('view-waybill-id').textContent = waybill.waybill_id || '-';
+        // Display the waybill date if available
+        const viewDateEl = document.getElementById('view-waybill-date');
+        if (viewDateEl) viewDateEl.textContent = waybill.waybill_date ? window.formatDate(waybill.waybill_date) : '-';
 
         // Buyer & Consignee
         document.getElementById('view-buyer-name').textContent = waybill.customer_name || '-';

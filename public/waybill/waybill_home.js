@@ -728,6 +728,15 @@ function showNewWayBillForm() {
                 document.querySelectorAll('.steps').forEach(step => step.classList.remove('active'));
                 document.getElementById('step-1').classList.add('active');
             }
+            // Set default waybill date if the date input exists and is empty
+            const waybillDateInput = document.getElementById('waybill-date');
+            if (waybillDateInput && !waybillDateInput.value) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                waybillDateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
         }
     });
 }

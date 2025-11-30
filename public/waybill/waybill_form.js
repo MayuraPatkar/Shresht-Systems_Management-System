@@ -155,6 +155,9 @@ async function openWayBill(wayBillId) {
 
         document.getElementById('waybill-id').value = wayBill.waybill_id;
         document.getElementById('project-name').value = wayBill.project_name;
+        // Populate waybill date for editing
+        const wbDateEl = document.getElementById('waybill-date');
+        if (wbDateEl) wbDateEl.value = wayBill.waybill_date ? window.formatDate(wayBill.waybill_date) : '';
         document.getElementById('buyer-name').value = wayBill.customer_name;
         document.getElementById('buyer-address').value = wayBill.customer_address;
         document.getElementById('buyer-phone').value = wayBill.customer_phone;
@@ -563,7 +566,10 @@ function generatePreview() {
             ${buyerEmail ? `<p>${buyerEmail}</p>` : ''}
         </div>`;
 
+    const waybillDate = document.getElementById('waybill-date')?.value || document.getElementById('date')?.value || (new Date()).toISOString().split('T')[0];
+
     const infoSectionHTML = SectionRenderers.renderInfoSection([
+        { label: 'Date', value: waybillDate },
         { label: 'Project Name', value: projectName },
         { label: 'Transportation Mode', value: transportMode },
         { label: 'Vehicle Number', value: vehicleNumber },
@@ -632,6 +638,7 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
 function collectFormData() {
     return {
         wayBillId: document.getElementById("waybill-id").value,
+        waybillDate: document.getElementById('waybill-date')?.value || document.getElementById('date')?.value || document.getElementById('waybill_date')?.value || (new Date()).toISOString().split('T')[0],
         projectName: document.getElementById("project-name").value,
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,

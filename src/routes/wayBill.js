@@ -26,6 +26,7 @@ router.post("/save-way-bill", async (req, res) => {
             transportMode = '',
             vehicleNumber = '',
             placeSupply = '',
+            waybillDate,
             items = [],
         } = req.body;
 
@@ -48,6 +49,7 @@ router.post("/save-way-bill", async (req, res) => {
             wayBill.transport_mode = transportMode;
             wayBill.vehicle_number = vehicleNumber;
             wayBill.place_supply = placeSupply;
+            if (waybillDate) wayBill.waybill_date = new Date(waybillDate);
             wayBill.items = items;
         } else {
             // Create a new way bill with the provided data
@@ -61,6 +63,7 @@ router.post("/save-way-bill", async (req, res) => {
                 transport_mode: transportMode,
                 vehicle_number: vehicleNumber,
                 place_supply: placeSupply,
+                waybill_date: waybillDate ? new Date(waybillDate) : undefined,
                 items,
                 createdAt: new Date(),
             });

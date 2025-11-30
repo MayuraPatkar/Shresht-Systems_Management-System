@@ -299,6 +299,15 @@ function showNewPurchaseForm() {
         formId: 'new',
         newButtonId: 'new-purchase'
     });
+    // Set default purchase date to today when opening new purchase order form
+    const purchaseDateInput = document.getElementById('purchase-date');
+    if (purchaseDateInput && !purchaseDateInput.value) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        purchaseDateInput.value = `${yyyy}-${mm}-${dd}`;
+    }
 }
 
 // Handle search functionality

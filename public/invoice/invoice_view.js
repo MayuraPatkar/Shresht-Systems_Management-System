@@ -242,7 +242,10 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
             </div>
 
             <div class="second-section">
-                <p>INVOICE-${invoice.invoice_id}</p>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <p>INVOICE-${invoice.invoice_id}</p>
+                    <p><strong>Date: </strong>${window.formatDate ? window.formatDate(invoice.invoice_date) : (invoice.invoice_date || '-')}</p>
+                </div>
             </div>
             ${index === 0 ? `
             <div class="third-section">

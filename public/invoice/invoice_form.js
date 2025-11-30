@@ -611,6 +611,7 @@ function generatePreview() {
     const dcNumber = document.getElementById("delivery-challan-number").value || '';
     const wayBillNumber = document.getElementById("waybill-number").value || '';
     const buyerName = document.getElementById("buyer-name").value;
+        const invoiceDate = document.getElementById('invoice-date')?.value || '';
     const buyerAddress = document.getElementById("buyer-address").value;
     const buyerPhone = document.getElementById("buyer-phone").value;
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
@@ -678,7 +679,10 @@ function generatePreview() {
     </div>
 
             <div class="second-section">
-                <p>INVOICE-${invoiceId}</p>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <p>INVOICE-${invoiceId}</p>
+                    <p><strong>Date: </strong>${invoiceDate || '-'}</p>
+                </div>
             </div>
 
             ${index === 0 ? `
