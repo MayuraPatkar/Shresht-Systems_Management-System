@@ -116,7 +116,7 @@ async function scheduleFromSettings(settings) {
                             await s.save();
                         }
                     } catch (err) {
-                        logger.warn('Failed to update last_backup in settings:', err.message || err);
+                        logger.warn('Failed to update last_backup in settings', { error: err.message || err });
                     }
                 } catch (err) {
                     logger.error('Scheduled backup failed:', err);

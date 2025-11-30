@@ -111,7 +111,7 @@ function createBackup() {
                     logger.warn(`Backup skipped: ${message}`);
                     return reject(new Error(message));
                 }
-                logger.error("Backup failed:", stderr || err.message || err);
+                logger.error('Backup failed', { stderr, error: err.message || err });
                 return reject(err);
             }
 
