@@ -39,6 +39,28 @@ async function init() {
     const seed = Math.max(maxSuffix + 1, mod.start);
     console.log(`Initializing counter for ${mod.key} to ${seed}`);
     await Counters.findOneAndUpdate({ _id: mod.key }, { $set: { seq: seed } }, { upsert: true });
+
+    // Additionally, seed per-day counters for documents that use date-included IDs:
+    // e.g., PREFIX-YYYYMMDD or PREFIX-YYYYMMDD-0001
+    const perDayMap = {};
+    const dateRegex = /-(\d{8})(?:-(\d+))?$/;
+    for (const d of docs) {
+      const id = d[mod.idField] || '';
+      const m = id.match(dateRegex);
+      if (m) {
+        const datePart = m[1];
+        const suffix = m[2] ? parseInt(m[2], 10) : 0; // if no suffix, treat as 0
+        if (!perDayMap[datePart] || suffix > perDayMap[datePart]) {
+          perDayMap[datePart] = suffix;
+        }
+      }
+    }
+    for (const [datePart, maxSuffixForDay] of Object.entries(perDayMap)) {
+      const key = `${mod.key}-${datePart}`;
+      const seqToSet = maxSuffixForDay + 1; // store as next seq to be incremented +1
+      console.log(`Initializing per-day counter ${key} to ${seqToSet}`);
+      await Counters.findOneAndUpdate({ _id: key }, { $set: { seq: seqToSet } }, { upsert: true });
+    }
   }
 
   console.log('Counters initialization completed.');

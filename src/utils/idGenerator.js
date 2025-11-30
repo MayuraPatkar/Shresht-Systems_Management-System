@@ -54,21 +54,13 @@ async function generateNextId(moduleKey, options = {}) {
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
-    let seqDay = docDay.seq;
-    // Use start if configured and seq < start
-    if (start && Number.isInteger(start) && seqDay < start) {
-      docDay.seq = start;
-      await docDay.save();
-      seqDay = docDay.seq;
-    }
-
+    // Make sequence zero-based (first doc of the day has seq 0) by subtracting 1
+    let seqDay = (typeof docDay.seq === 'number') ? docDay.seq - 1 : 0;
+    if (seqDay < 0) seqDay = 0;
     const pad = Number(options.pad ?? defaultPad ?? 6);
-    if (seqDay <= 1) {
-      // First document of the day: return date-only id
-      return `${prefix}-${datePart}`;
-    }
-    const paddedSuffix = String(seqDay).padStart(Number(pad), '0');
-    return `${prefix}-${datePart}${paddedSuffix}`;
+      // As requested, when includeDate is enabled, we use a raw numeric sequence per day
+      // (no zero-padding). Examples: QUO-20251130-0, QUO-20251130-1
+      return `${prefix}-${datePart}${seqDay}`;
   }
 
   // Otherwise use an incrementing counter for unlimited sequential IDs

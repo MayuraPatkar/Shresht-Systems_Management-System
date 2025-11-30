@@ -296,4 +296,17 @@ function initPreferencesModule() {
     
     // Notifications
     document.getElementById("save-notifications-button")?.addEventListener("click", saveNotificationSettings);
+
+    // Auto toggle pad inputs when include-date checkbox changes
+    const modules = ["invoice", "quotation", "purchase", "waybill", "service"];
+    modules.forEach(m => {
+        const chk = document.getElementById(`pref-${m}-include-date`);
+        const padInput = document.getElementById(`pref-${m}-pad`);
+        if (chk && padInput) {
+            const toggle = () => { padInput.disabled = chk.checked; };
+            chk.addEventListener('change', toggle);
+            // set initial state
+            toggle();
+        }
+    });
 }
