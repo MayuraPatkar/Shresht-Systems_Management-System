@@ -209,7 +209,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
 
         mongoexport.on('close', async (code) => {
             if (code !== 0) {
-                logger.error(`Export failed with code ${code}:`, stderr);
+                logger.error(`Export failed with code ${code}`, { stderr });
                 return res.status(500).json({ 
                     success: false, 
                     message: "Export failed", 
@@ -414,7 +414,7 @@ router.post("/backup/restore-collection", upload.single("backupFile"), validateC
             }
 
             if (code !== 0) {
-                logger.error(`Restore failed with code ${code}:`, stderr);
+                logger.error(`Restore failed with code ${code}`, { stderr });
                 return res.status(500).json({ 
                     success: false, 
                     message: "Restore failed", 
@@ -553,7 +553,7 @@ router.post("/backup/restore-database", upload.single("backupFile"), asyncHandle
             }
 
             if (code !== 0) {
-                logger.error(`Database restore failed with code ${code}:`, stderr);
+                logger.error(`Database restore failed with code ${code}`, { stderr });
                 return res.status(500).json({ 
                     success: false, 
                     message: "Database restore failed", 

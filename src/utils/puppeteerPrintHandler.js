@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 const logger = require("./logger");
-const { dialog } = require('electron');
+const { dialog, BrowserWindow, shell } = require('electron');
 
 /**
  * Puppeteer-based PDF and Print Handler
@@ -14,6 +14,7 @@ class PuppeteerPrintHandler {
     constructor() {
         this.browser = null;
         this.isInitialized = false;
+        this.tempFiles = new Set();
     }
 
     /**
@@ -56,7 +57,7 @@ class PuppeteerPrintHandler {
             this.isInitialized = true;
             logger.info('Puppeteer browser initialized successfully');
         } catch (error) {
-            logger.error('Failed to initialize Puppeteer:', error);
+            logger.error('Failed to initialize Puppeteer', { error });
             throw error;
         }
     }
@@ -91,17 +92,36 @@ class PuppeteerPrintHandler {
             const qrCodeBuffer = fs.readFileSync(qrCodePath);
             const qrCodeBase64 = `data:image/jpeg;base64,${qrCodeBuffer.toString('base64')}`;
 
-            // Replace image paths in both CSS files
-            const processedDocumentStyles = documentStyles.replace(/url\(["']?\.\.\/\.\.\/assets\/icon2\.png["']?\)/g, `url("${iconDataUri}")`);
-            const processedQuotationStyles = quotationStyles.replace(/url\(["']?\.\.\/\.\.\/assets\/icon2\.png["']?\)/g, `url("${iconDataUri}")`);
+            // Replace image paths in both CSS files - support a few common path formats
+            const replaceUrl = (cssText, fileName, dataUri) => {
+                const patterns = [
+                    new RegExp(`url\\(["']?\\.{2}\\/{1,2}assets\\/${fileName}["']?\\)`, 'g'),
+                    new RegExp(`url\\(["']?\\.{1}\\/assets\\/${fileName}["']?\\)`, 'g'),
+                    new RegExp(`url\\(["']?assets\\/${fileName}["']?\\)`, 'g'),
+                    new RegExp(`url\\(["']?\\/assets\\/${fileName}["']?\\)`, 'g'),
+                ];
+                let result = cssText;
+                patterns.forEach(pat => { result = result.replace(pat, `url("${dataUri}")`); });
+                return result;
+            };
+
+            const processedDocumentStyles = replaceUrl(documentStyles, 'icon2.png', iconDataUri);
+            const processedDocumentStyles2 = replaceUrl(processedDocumentStyles, 'icon.png', iconPngDataUri);
+            const processedDocumentStyles3 = replaceUrl(processedDocumentStyles2, 'logo.png', logoBase64);
+            const processedDocumentStyles4 = replaceUrl(processedDocumentStyles3, 'shresht-systems-payment-QR-code.jpg', qrCodeBase64);
+
+            const processedQuotationStyles = replaceUrl(quotationStyles, 'icon2.png', iconDataUri);
+            const processedQuotationStyles2 = replaceUrl(processedQuotationStyles, 'icon.png', iconPngDataUri);
+            const processedQuotationStyles3 = replaceUrl(processedQuotationStyles2, 'logo.png', logoBase64);
+            const processedQuotationStyles4 = replaceUrl(processedQuotationStyles3, 'shresht-systems-payment-QR-code.jpg', qrCodeBase64);
 
             // Combine both CSS files
             const combinedCSS = `
 /* Document Styles */
-${processedDocumentStyles}
+${processedDocumentStyles4}
 
 /* Quotation Styles */
-${processedQuotationStyles}
+${processedQuotationStyles4}
 `;
 
             return {
@@ -112,7 +132,7 @@ ${processedQuotationStyles}
                 qrCodeBase64
             };
         } catch (error) {
-            logger.error('Error loading assets:', error);
+            logger.error('Error loading assets', { error });
             throw error;
         }
     }
@@ -123,10 +143,64 @@ ${processedQuotationStyles}
     processContent(content, assets) {
         let processed = content;
         // Replace all variations of image source paths
-        processed = processed.replace(/src=["']\.\.\/assets\/icon\.png["']/g, `src="${assets.iconPngDataUri}"`);
-        processed = processed.replace(/src=["']\.\.\/assets\/icon2\.png["']/g, `src="${assets.iconDataUri}"`);
-        processed = processed.replace(/src=["']\.\.\/assets\/logo\.png["']/g, `src="${assets.logoBase64}"`);
-        processed = processed.replace(/src=["']\.\.\/assets\/shresht-systems-payment-QR-code\.jpg["']/g, `src="${assets.qrCodeBase64}"`);
+        const replaceSrc = (text, patterns, dataUri) => {
+            let out = text;
+            patterns.forEach(pat => { out = out.replace(pat, `src="${dataUri}"`); });
+            return out;
+        };
+
+        processed = replaceSrc(processed, [
+            /src=["']\.\.\/assets\/icon\.png["']/g,
+            /src=["']\.\.\\assets\\icon\.png["']/g,
+            /src=["']\.\/assets\/icon\.png["']/g,
+            /src=["']assets\/icon\.png["']/g,
+            /src=["']\/assets\/icon\.png["']/g
+        ], assets.iconPngDataUri);
+
+        // Also replace data-src and srcset occurrences
+        processed = replaceSrc(processed, [
+            /data-src=["']\.\.\/assets\/icon\.png["']/g,
+            /srcset=["']\.\.\/assets\/icon\.png["']/g
+        ], assets.iconPngDataUri);
+
+        processed = replaceSrc(processed, [
+            /src=["']\.\.\/assets\/icon2\.png["']/g,
+            /src=["']\.\.\\assets\\icon2\.png["']/g,
+            /src=["']\.\/assets\/icon2\.png["']/g,
+            /src=["']assets\/icon2\.png["']/g,
+            /src=["']\/assets\/icon2\.png["']/g
+        ], assets.iconDataUri);
+
+        processed = replaceSrc(processed, [
+            /data-src=["']\.\.\/assets\/icon2\.png["']/g,
+            /srcset=["']\.\.\/assets\/icon2\.png["']/g
+        ], assets.iconDataUri);
+
+        processed = replaceSrc(processed, [
+            /src=["']\.\.\/assets\/logo\.png["']/g,
+            /src=["']\.\.\\assets\\logo\.png["']/g,
+            /src=["']\.\/assets\/logo\.png["']/g,
+            /src=["']assets\/logo\.png["']/g,
+            /src=["']\/assets\/logo\.png["']/g
+        ], assets.logoBase64);
+
+        processed = replaceSrc(processed, [
+            /data-src=["']\.\.\/assets\/logo\.png["']/g,
+            /srcset=["']\.\.\/assets\/logo\.png["']/g
+        ], assets.logoBase64);
+
+        processed = replaceSrc(processed, [
+            /src=["']\.\.\/assets\/shresht-systems-payment-QR-code\.jpg["']/g,
+            /src=["']\.\.\\assets\\shresht-systems-payment-QR-code\.jpg["']/g,
+            /src=["']\.\/assets\/shresht-systems-payment-QR-code\.jpg["']/g,
+            /src=["']assets\/shresht-systems-payment-QR-code\.jpg["']/g,
+            /src=["']\/assets\/shresht-systems-payment-QR-code\.jpg["']/g
+        ], assets.qrCodeBase64);
+
+        processed = replaceSrc(processed, [
+            /data-src=["']\.\.\/assets\/shresht-systems-payment-QR-code\.jpg["']/g,
+            /srcset=["']\.\.\/assets\/shresht-systems-payment-QR-code\.jpg["']/g
+        ], assets.qrCodeBase64);
         // Also handle paths that might have different formats
         processed = processed.replace(/src=["']\.\.\\assets\\icon\.png["']/g, `src="${assets.iconPngDataUri}"`);
         processed = processed.replace(/src=["']\.\.\\assets\\icon2\.png["']/g, `src="${assets.iconDataUri}"`);
@@ -491,7 +565,12 @@ ${processedQuotationStyles}
             });
 
             // Wait for fonts to load
-            await page.evaluateHandle('document.fonts.ready');
+            try {
+                await page.evaluate(() => document.fonts.ready);
+            } catch (e) {
+                // If fonts API isn't available, continue
+                logger.warn('Font readiness wait failed in generatePDF', { error: e.message });
+            }
 
             // Additional wait to ensure all content is rendered
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -515,7 +594,7 @@ ${processedQuotationStyles}
             logger.info(`PDF generated successfully: ${outputPath}`);
             return { success: true, path: outputPath };
         } catch (error) {
-            logger.error('Error generating PDF:', error);
+            logger.error('Error generating PDF', { error });
             return { success: false, error: error.message };
         }
     }
@@ -523,9 +602,14 @@ ${processedQuotationStyles}
     /**
      * Print HTML content (opens system print dialog)
      */
-    async print(htmlContent) {
+    async print(htmlContent, options = {}) {
+        const { useNativeDialog = true, mainWindow = null, fallbackOnError = true } = options;
         try {
             await this.initialize();
+            // Reinitialize if browser disconnected
+            if (!this.browser || !this.browser.isConnected()) {
+                await this.initialize();
+            }
             const assets = await this.loadAssets();
             const processedContent = this.processContent(htmlContent, assets);
 
@@ -712,7 +796,109 @@ ${processedQuotationStyles}
                 </html>
             `;
 
-            const page = await this.browser.newPage();
+            // Temporary HTML path used for BrowserWindow and temp PDF path used for fallback
+            let tempHtmlPath = null;
+            // First: try to print using a hidden BrowserWindow (native print dialog)
+            if (useNativeDialog && typeof BrowserWindow !== 'undefined') {
+                let win;
+                try {
+                    win = new BrowserWindow({
+                        show: false,
+                        parent: mainWindow || undefined,
+                        webPreferences: {
+                            nodeIntegration: false,
+                            contextIsolation: true,
+                            sandbox: false
+                            ,
+                            webSecurity: false,
+                            allowRunningInsecureContent: true
+                        }
+                    });
+
+                    // Write HTML to a temporary file and load it to avoid data URL length and loading issues
+                    const os = require('os');
+                    tempHtmlPath = path.join(os.tmpdir(), `print-${Date.now()}.html`);
+                    logger.info('Temporary HTML file created for BrowserWindow print', { path: tempHtmlPath });
+                    try {
+                        fs.writeFileSync(tempHtmlPath, fullHTML, 'utf8');
+                    } catch (writeErr) {
+                        logger.warn('Failed to write temporary HTML file for BrowserWindow print', { error: writeErr.message });
+                    }
+                    // Track temp html file for cleanup
+                    try { this.tempFiles.add(tempHtmlPath); } catch (e) { /* ignore */ }
+                    await win.loadFile(tempHtmlPath);
+
+                    // Wait until page loaded
+                    await new Promise((resolve, reject) => {
+                        const bwLoadTimeoutMs = 60000; // increase BrowserWindow load timeout
+                        const timeout = setTimeout(() => {
+                            reject(new Error('BrowserWindow load timeout'));
+                        }, bwLoadTimeoutMs);
+                        win.webContents.once('dom-ready', () => {
+                            clearTimeout(timeout);
+                            resolve();
+                        });
+                    });
+
+                    // Wait for fonts to be ready
+                    try {
+                        await win.webContents.executeJavaScript('document.fonts.ready');
+                    } catch (e) {
+                        logger.warn('Font readiness wait failed in BrowserWindow print', { error: e.message });
+                    }
+
+                    // Small delay to ensure rendering
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
+                    const printed = await new Promise((resolve) => {
+                        win.webContents.print({ silent: false, printBackground: true }, (success, failureReason) => {
+                            resolve({ success, failureReason });
+                        });
+                    });
+
+                    // Don't close here; let finally close the win if created
+
+                    if (printed.success) {
+                        logger.info('Native print dialog opened successfully via BrowserWindow');
+                        return { success: true };
+                    }
+
+                    // If print failed and fallback is disabled, return the failure
+                    if (!fallbackOnError) {
+                        return { success: false, error: printed.failureReason || 'Native print failed' };
+                    }
+                    // Else, continue to fallback to PDF-based printing
+                    logger.warn('Native print failed, falling back to PDF open', { reason: printed.failureReason });
+                } catch (err) {
+                    logger.warn('BrowserWindow-based printing not available or failed, will fallback to PDF', { error: err.message });
+                    // Continue to PDF fallback
+                } finally {
+                    if (win) {
+                        try { win.close(); } catch(e) { /* ignore */ }
+                    }
+                    // Attempt to delete the temp HTML file we created
+                    try {
+                        if (typeof tempHtmlPath !== 'undefined' && tempHtmlPath) {
+                            try { fs.unlinkSync(tempHtmlPath); } catch (unlinkErr) { /* ignore */ }
+                            try { this.tempFiles.delete(tempHtmlPath); } catch(e){}
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+            }
+
+            // ---------- FALLBACK: Use Puppeteer to generate a temporary PDF and open it ----------
+            const createPage = async () => {
+                // Ensure browser is connected or reinitialize
+                if (!this.browser || !this.browser.isConnected()) {
+                    await this.initialize();
+                }
+                return await this.browser.newPage();
+            };
+
+            let page;
+            let tempPath = null;
+            try {
+                page = await createPage();
 
             await page.setViewport({
                 width: 794,
@@ -720,16 +906,41 @@ ${processedQuotationStyles}
                 deviceScaleFactor: 2
             });
 
-            await page.setContent(fullHTML, {
-                waitUntil: ['networkidle0', 'domcontentloaded', 'load']
-            });
+            // Try setting content with a retry in case the frame gets detached
+            let setContentAttempts = 0;
+            const maxSetContentAttempts = 2;
+            while (setContentAttempts < maxSetContentAttempts) {
+                try {
+                    await page.setContent(fullHTML, {
+                        waitUntil: ['networkidle0', 'domcontentloaded', 'load']
+                    });
+                    break; // success
+                } catch (e) {
+                    setContentAttempts++;
+                    logger.warn('setContent attempt failed', { attempt: setContentAttempts, error: e.message });
+                    try { await page.close(); } catch (closeErr) { /* ignore */ }
+                    if (setContentAttempts < maxSetContentAttempts) {
+                        page = await createPage();
+                        // small backoff
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    } else {
+                        throw e; // rethrow the last error
+                    }
+                }
+            }
 
-            await page.evaluateHandle('document.fonts.ready');
+            try {
+                await page.evaluate(() => document.fonts.ready);
+            } catch (e) {
+                logger.warn('Font readiness wait failed in print fallback', { error: e.message });
+            }
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Generate a temporary PDF and open with system viewer for printing
-            const tempPath = path.join(require('os').tmpdir(), `print-${Date.now()}.pdf`);
-            await page.pdf({
+                // Generate a temporary PDF and open with system viewer for printing
+                tempPath = path.join(require('os').tmpdir(), `print-${Date.now()}.pdf`);
+                // Track temp files for cleanup
+                try { this.tempFiles.add(tempPath); } catch (e) { /* ignore */ }
+                await page.pdf({
                 path: tempPath,
                 format: 'A4',
                 printBackground: true,
@@ -737,16 +948,44 @@ ${processedQuotationStyles}
                 margin: { top: 0, right: 0, bottom: 0, left: 0 }
             });
 
-            await page.close();
+                logger.info('Temporary PDF generated for printing', { path: tempPath });
+
+            } finally {
+                // Ensure the page is always closed if we created one
+                if (page) {
+                    try { await page.close(); } catch (e) { /* ignore */ }
+                }
+            }
 
             // Open the PDF with the default system viewer (which allows printing)
-            const { shell } = require('electron');
-            await shell.openPath(tempPath);
+            if (!tempPath) {
+                logger.error('No temporary PDF path available to open');
+                return { success: false, error: 'PDF generation failed' };
+            }
+            const openResult = await shell.openPath(tempPath);
+            if (typeof openResult === 'string' && openResult.length > 0) {
+                logger.error('Failed to open PDF in viewer', { openResult });
+                return { success: false, error: openResult };
+            }
+
+            // Schedule deletion of temp PDF to avoid accumulation
+            const deleteAfterMs = 60 * 1000; // 1 minute
+            setTimeout(async () => {
+                try {
+                    await fs.promises.unlink(tempPath);
+                    logger.info('Deleted temporary PDF', { path: tempPath });
+                    // Remove from set
+                    try { this.tempFiles.delete(tempPath); } catch(e){}
+                } catch (unlinkErr) {
+                    // Not critical if deletion fails
+                    logger.warn('Failed to delete temporary PDF', { error: unlinkErr.message });
+                }
+            }, deleteAfterMs);
 
             logger.info('Print dialog opened successfully');
             return { success: true };
         } catch (error) {
-            logger.error('Error printing:', error);
+            logger.error('Error printing', { error });
             return { success: false, error: error.message };
         }
     }
@@ -759,11 +998,27 @@ ${processedQuotationStyles}
             try {
                 await this.browser.close();
             } catch (error) {
-                logger.warn('Error closing Puppeteer browser (might be already closed):', error.message);
+                logger.warn('Error closing Puppeteer browser (might be already closed)', { error: error.message });
             }
             this.browser = null;
             this.isInitialized = false;
             logger.info('Puppeteer browser closed');
+        }
+        // Attempt to clean up any remaining temporary files we've created
+        if (this.tempFiles && this.tempFiles.size > 0) {
+            const files = Array.from(this.tempFiles);
+            const unlinkPromises = files.map(async (p) => {
+                try {
+                    if (fs.existsSync(p)) {
+                        await fs.promises.unlink(p);
+                        logger.info('Deleted temporary file on cleanup', { path: p });
+                    }
+                } catch (e) {
+                    logger.warn('Failed to delete temporary file on cleanup', { path: p, error: e.message });
+                }
+            });
+            await Promise.all(unlinkPromises);
+            this.tempFiles.clear();
         }
     }
 }
@@ -775,13 +1030,28 @@ const puppeteerHandler = new PuppeteerPrintHandler();
  * Setup IPC handlers for Puppeteer-based printing
  */
 function setupPuppeteerHandlers(mainWindow, ipcMain) {
+    const safeSend = (sender, channel, payload) => {
+        try {
+            if (sender && !sender.isDestroyed()) {
+                sender.send(channel, payload);
+            } else {
+                logger.warn(`safeSend: WebContents destroyed - channel:${channel}`);
+            }
+        } catch (err) {
+            logger.warn('safeSend: failed to send IPC', { error: err.message });
+        }
+    };
     // Handle quotation print/PDF requests
     ipcMain.on('PrintQuatation', async (event, { content, mode, name }) => {
         try {
             if (mode === 'print') {
-                const result = await puppeteerHandler.print(content);
+                safeSend(event.sender, 'printStarted');
+                const result = await puppeteerHandler.print(content, { useNativeDialog: true, mainWindow });
                 if (!result.success) {
-                    event.sender.send('printFailed', { error: result.error });
+                    safeSend(event.sender, 'printFailed', { error: result.error });
+                }
+                else {
+                    safeSend(event.sender, 'printDone');
                 }
             } else if (mode === 'savePDF') {
                 const { filePath } = await dialog.showSaveDialog(mainWindow, {
@@ -792,12 +1062,12 @@ function setupPuppeteerHandlers(mainWindow, ipcMain) {
 
                 if (filePath) {
                     const result = await puppeteerHandler.generatePDF(content, filePath);
-                    event.sender.send('PDFSaved', result);
+                    safeSend(event.sender, 'PDFSaved', result);
                 }
             }
         } catch (error) {
-            logger.error('Error in Puppeteer print handler:', error);
-            event.sender.send('printProcessError', { error: error.message });
+            logger.error('Error in Puppeteer print handler', { error });
+            safeSend(event.sender, 'printProcessError', { error: error.message });
         }
     });
 
@@ -805,9 +1075,13 @@ function setupPuppeteerHandlers(mainWindow, ipcMain) {
     ipcMain.on('PrintDoc', async (event, { content, mode, name }) => {
         try {
             if (mode === 'print') {
-                const result = await puppeteerHandler.print(content);
+                safeSend(event.sender, 'printStarted');
+                const result = await puppeteerHandler.print(content, { useNativeDialog: true, mainWindow });
                 if (!result.success) {
-                    event.sender.send('printFailed', { error: result.error });
+                    safeSend(event.sender, 'printFailed', { error: result.error });
+                }
+                else {
+                    safeSend(event.sender, 'printDone');
                 }
             } else if (mode === 'savePDF') {
                 const { filePath } = await dialog.showSaveDialog(mainWindow, {
@@ -818,12 +1092,12 @@ function setupPuppeteerHandlers(mainWindow, ipcMain) {
 
                 if (filePath) {
                     const result = await puppeteerHandler.generatePDF(content, filePath);
-                    event.sender.send('PDFSaved', result);
+                    safeSend(event.sender, 'PDFSaved', result);
                 }
             }
         } catch (error) {
-            logger.error('Error in Puppeteer print handler:', error);
-            event.sender.send('printProcessError', { error: error.message });
+            logger.error('Error in Puppeteer print handler', { error });
+            safeSend(event.sender, 'printProcessError', { error: error.message });
         }
     });
 

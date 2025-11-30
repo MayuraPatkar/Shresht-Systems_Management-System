@@ -349,7 +349,7 @@ async function createWindow() {
         logger.info("Frontend loaded successfully");
       } catch (err) {
         retries++;
-        logger.warn(`Failed to load frontend (attempt ${retries}/${maxRetries}):`, err.message);
+        logger.warn(`Failed to load frontend (attempt ${retries}/${maxRetries})`, { error: err.message });
 
         if (retries < maxRetries) {
           // Wait before retrying
