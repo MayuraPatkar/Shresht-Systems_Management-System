@@ -99,7 +99,17 @@ main {
 
 #view-items-table td, #view-specifications-table td {
     padding: 1rem 1.25rem;
-    font-size: 0.95rem;
+    font-size: 1rem; /* Slightly larger for readability */
+}
+
+/* Slightly larger fonts for form and view containers within the Quotation module */
+#new, #view, #view-preview, #new-quotation {
+    font-size: 1rem; /* 16px baseline */
+}
+
+/* Force inputs, selects, and textareas in the quotation form to be larger for readability */
+#new input, #new select, #new textarea, #new .text-sm, #new .text-xs {
+    font-size: 1rem !important;
 }
 
 /* Keyboard shortcuts modal */
@@ -135,7 +145,7 @@ main {
     align-items: center;
     gap: 0.25rem;
     color: #94a3b8;
-    font-size: 0.875rem;
+    font-size: 0.95rem;
 }
 
 .shortcut-keys kbd {
@@ -144,6 +154,6 @@ main {
     border-radius: 0.375rem;
     padding: 0.25rem 0.75rem;
     font-family: 'Inter', sans-serif;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: #1e293b;
 }

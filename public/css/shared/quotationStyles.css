@@ -45,7 +45,7 @@
 .doc-quotation .header .quotation-brand-text h1 {
     margin: 0;
     color: #ffffff;
-    font-size: 26px;
+    font-size: 28px;
     letter-spacing: -0.5px;
     font-weight: 800;
     line-height: 1.1;
@@ -56,7 +56,7 @@
     margin-top: 4px;
     color: #e2e8f0;
     /* Slate 200 */
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -71,7 +71,7 @@
     margin: 0;
     color: #f1f5f9;
     /* Slate 100 */
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
 }
 
@@ -81,7 +81,7 @@
     /* Slate 50 */
     padding: 12px 20px;
     text-align: center;
-    font-size: 18px;
+    font-size: 20px;
     color: #1a365d;
     /* Brand Navy */
     font-weight: 700;
@@ -103,7 +103,7 @@
 
 .doc-quotation .buyer-details {
     padding: 0;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.6;
     width: 48%;
 }
@@ -136,7 +136,7 @@
 
 /* ===== QUOTATION LETTER CONTENT - FORMAL BUSINESS LETTER FORMAT ===== */
 .doc-quotation .quotation-letter-content {
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.7;
     color: #334155;
     margin: 30px 0;
@@ -242,7 +242,7 @@
     border-right: 1px solid #e2e8f0;
     padding: 10px 12px;
     text-align: center;
-    font-size: 12px;
+    font-size: 13px;
     word-wrap: break-word;
     overflow-wrap: break-word;
     line-height: 1.4;
@@ -262,7 +262,7 @@
     /* Brand Navy */
     color: #ffffff;
     font-weight: 600;
-    font-size: 11px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 12px 10px;
@@ -342,7 +342,7 @@
     width: 40%;
     min-width: 200px;
     height: fit-content;
-    font-size: 13px;
+    font-size: 14px;
     background: white;
     padding: 0;
     border: 1px solid #e2e8f0;
@@ -369,7 +369,7 @@
 .doc-quotation .fifth-section .totals-section .totals-section-sub2 p {
     margin: 0;
     padding: 12px 15px;
-    font-size: 13px;
+    font-size: 14px;
     border-bottom: 1px solid #e2e8f0;
     font-weight: 500;
     line-height: 1.4;
@@ -394,14 +394,14 @@
     background: #1a365d;
     color: white;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 15px;
     border-bottom: none;
     padding: 15px;
 }
 
 /* ===== QUOTATION BANK DETAILS ===== */
 .doc-quotation .fifth-section .bank-details {
-    font-size: 13px;
+    font-size: 14px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -420,7 +420,7 @@
 
 .doc-quotation .fifth-section .bank-details-sub2 p {
     color: #000000;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.6;
     margin: 2px 0;
 }
@@ -433,7 +433,7 @@
 .doc-quotation .fifth-section .bank-details-sub2 h4 {
     margin: 0 0 8px 0;
     color: #1a365d;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -441,7 +441,7 @@
 
 .doc-quotation .fifth-section-sub3 {
     display: flex;
-    font-size: 13px;
+    font-size: 14px;
     padding: 12px 15px;
     background: #f8fafc;
     border-radius: 8px;
@@ -465,7 +465,7 @@
 }
 
 .doc-quotation .fifth-section .fifth-section-sub2 h3 {
-    font-size: 16px;
+    font-size: 17px;
     color: #1a365d;
     font-weight: 700;
     border-bottom: 2px solid #1a365d;
@@ -506,7 +506,7 @@
 
 .doc-quotation .terms-section {
     height: fit-content;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.7;
     color: #000000;
 }
@@ -539,7 +539,7 @@
 }
 
 .doc-quotation .notes-section {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.6;
 }
 
@@ -560,7 +560,7 @@
 }
 
 .doc-quotation .closing-section {
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.6;
 }
 
@@ -576,7 +576,7 @@
 
 /* ===== QUOTATION DECLARATION ===== */
 .doc-quotation .declaration {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.6;
     color: #64748b;
     font-style: italic;
@@ -594,7 +594,7 @@
     left: 0;
     width: 100%;
     text-align: center;
-    font-size: 11px;
+    font-size: 12px;
     color: #94a3b8;
     margin-bottom: 15px;
     padding-top: 15px;
