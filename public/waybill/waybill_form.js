@@ -543,7 +543,15 @@ function generatePreview() {
     const hasTax = (totalCGST + totalSGST) > 0;
     const totalsHTML = `
         <div class="fifth-section">
-            ${SectionRenderers.renderTotals(totals, hasTax, true)}
+            <div class="fifth-section-sub1">
+                <div class="fifth-section-sub2">
+                    ${SectionRenderers.renderAmountInWords(grandTotal)}
+                    ${SectionRenderers.renderPaymentDetails()}
+                </div>
+                <div class="totals-section">
+                    ${SectionRenderers.renderTotals(totals, hasTax)}
+                </div>
+            </div>
         </div>`;
 
     // Use SectionRenderers to build the document

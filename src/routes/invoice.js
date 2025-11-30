@@ -248,13 +248,11 @@ router.get("/recent-invoices", async (req, res) => {
 
 // Get count of unpaid invoices
 router.get('/unpaid-count', async (req, res) => {
-    logger.info('Unpaid count route accessed');
     try {
         const count = await Invoices.countDocuments({
             payment_status: { $in: ['Unpaid', 'Partial'] }
         });
         
-        logger.info(`Unpaid invoices count: ${count}`);
         res.status(200).json({ count });
     } catch (error) {
         logger.error("Error getting unpaid count:", error);
