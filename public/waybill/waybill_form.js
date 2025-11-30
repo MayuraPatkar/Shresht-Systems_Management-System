@@ -48,6 +48,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Set default waybill date and fetch new ID if empty
+document.addEventListener('DOMContentLoaded', async () => {
+    const dateInput = document.getElementById('waybill-date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+    const waybillIdEl = document.getElementById('waybill-id');
+    if (waybillIdEl && !waybillIdEl.value) {
+        await getWaybillId();
+    }
+});
+
+// Fetch next Waybill ID from server
+async function getWaybillId() {
+    try {
+        const response = await fetch('/wayBill/generate-id');
+        if (!response.ok) throw new Error('Failed to fetch waybill id');
+        const data = await response.json();
+        document.getElementById('waybill-id').value = data.waybill_id;
+    } catch (err) {
+        console.error('Error fetching waybill id:', err);
+    }
+}
+
 // Listen for manual typing in the items table to fetch additional data (HSN, price, rate)
 const waybillItemsTable = document.querySelector('#items-table');
 if (waybillItemsTable) {
@@ -655,4 +679,9 @@ function collectFormData() {
             rate: row.querySelector("td:nth-child(6) input").value,
         })),
     };
+}
+
+// Expose a generic getId() used by globalScript.js
+async function getId() {
+    return getWaybillId();
 }

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { wayBills } = require('../models');
+const { generateNextId } = require('../utils/idGenerator');
 const logger = require('../utils/logger'); // Custom logger
 
 // Route to get all waybills
@@ -11,6 +12,17 @@ router.get("/all", async (req, res) => {
     } catch (error) {
         logger.error("Error fetching waybills:", error);
         return res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+// Endpoint to generate a new Waybill ID
+router.get('/generate-id', async (req, res) => {
+    try {
+        const waybill_id = await generateNextId('wayBill');
+        return res.status(200).json({ waybill_id });
+    } catch (error) {
+        logger.error('Error generating waybill id', { error: error.message || error });
+        return res.status(500).json({ error: 'Failed to generate waybill id' });
     }
 });
 

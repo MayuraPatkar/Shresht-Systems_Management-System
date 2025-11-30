@@ -4,29 +4,17 @@ const { Purchases, Stock } = require('../models');
 const logger = require('../utils/logger'); // Custom logger
 
 // Function to generate a unique ID for each purchaseOrder
-function generateUniqueId() {
-    const now = new Date();
-    const year = now.getFullYear().toString().slice(-2); // Last 2 digits of the year
-    const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month (0-based, so add 1)
-    const day = now.getDate().toString().padStart(2, '0'); // Day of the month
-    const randomNum = Math.floor(Math.random() * 10); // Random single-digit number
-    return `${year}${month}${day}${randomNum}`;
-}
+const { generateNextId } = require('../utils/idGenerator');
 
 // Route to generate a new purchaseOrder ID
 router.get("/generate-id", async (req, res) => {
-    let purchase_order_id;
-    let isUnique = false;
-
-    while (!isUnique) {
-        purchase_order_id = generateUniqueId();
-        const existingpurchaseOrder = await Purchases.findOne({ purchase_order_id: purchase_order_id });
-        if (!existingpurchaseOrder) {
-            isUnique = true;
-        }
+    try {
+        const purchase_order_id = await generateNextId('purchaseOrder');
+        return res.status(200).json({ purchase_order_id });
+    } catch (err) {
+        logger.error('Error generating purchase order id', { error: err.message || err });
+        return res.status(500).json({ error: 'Failed to generate purchase order id' });
     }
-
-    res.status(200).json({ purchase_order_id: purchase_order_id });
 });
 
 router.post("/save-purchase-order", async (req, res) => {

@@ -5,29 +5,17 @@ const moment = require('moment');
 const logger = require('../utils/logger');
 
 // Function to generate a unique ID for each Service
-function generateUniqueId() {
-    const now = new Date();
-    const year = now.getFullYear().toString().slice(-2);
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const day = now.getDate().toString().padStart(2, '0');
-    const randomNum = Math.floor(Math.random() * 10);
-    return `SRV-${year}${month}${day}${randomNum}`;
-}
+const { generateNextId } = require('../utils/idGenerator');
 
 // Route to generate a new service ID
-router.get("/generate-id", async (req, res) => {
-    let service_id;
-    let isUnique = false;
-
-    while (!isUnique) {
-        service_id = generateUniqueId();
-        const existingService = await service.findOne({ service_id: service_id });
-        if (!existingService) {
-            isUnique = true;
-        }
+router.get('/generate-id', async (req, res) => {
+    try {
+        const service_id = await generateNextId('service');
+        return res.status(200).json({ service_id });
+    } catch (err) {
+        logger.error('Error generating service id', { error: err.message || err });
+        return res.status(500).json({ error: 'Failed to generate service id' });
     }
-
-    res.status(200).json({ service_id: service_id });
 });
 
 // Route to get all services (invoices with service_month > 0)
