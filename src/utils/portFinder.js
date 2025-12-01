@@ -121,11 +121,11 @@ async function findAvailablePort(options = {}) {
     // Try priority ports first
     for (const { port, source } of portsToTry) {
         if (await isPortAvailable(port)) {
-            logger.info(`✓ Port ${port} is available (${source})`);
+            logger.info(`Port ${port} is available (${source})`);
             if (useCache) saveLastUsedPort(port);
             return { port, source };
         } else {
-            logger.warn(`✗ Port ${port} is in use (${source})`);
+            logger.warn(`Port ${port} is in use (${source})`);
         }
     }
 
@@ -178,18 +178,7 @@ function printStartupBanner(options = {}) {
     const url = `http://localhost:${port}`;
     const versionStr = appVersion ? ` v${appVersion}` : '';
     
-    const lines = [
-        '',
-        '╔════════════════════════════════════════════════════════════╗',
-        `║  ${appName}${versionStr}`.padEnd(61) + '║',
-        '╠════════════════════════════════════════════════════════════╣',
-        `║  🚀 Server running on: ${url}`.padEnd(61) + '║',
-        `║  📌 Port source: ${source}`.padEnd(61) + '║',
-        '╚════════════════════════════════════════════════════════════╝',
-        ''
-    ];
-
-    lines.forEach(line => logger.info(line));
+    logger.info(`${appName}${versionStr} running on ${url} (port source: ${source})`);
 }
 
 module.exports = {
