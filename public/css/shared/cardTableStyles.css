@@ -104,7 +104,8 @@
 }
 
 /* Table S. No badge - adapts item-number badge to table cells */
-.items-table td .item-number, .items-specifications-table td .item-number, .non-items-table td .item-number {
+.items-table td .item-number, .items-specifications-table td .item-number, .non-items-table td .item-number,
+#items-table td .item-number, #non-items-table td .item-number, #items-specifications-table td .item-number {
     min-width: 2rem;
     height: 1.9rem;
     border-radius: 0.375rem;
@@ -117,7 +118,8 @@
 }
 
 /* Table remove button - smaller icon-only style */
-.items-table td .remove-item-btn, .non-items-table td .remove-item-btn, .items-specifications-table td .remove-item-btn {
+.items-table td .remove-item-btn, .non-items-table td .remove-item-btn, .items-specifications-table td .remove-item-btn,
+#items-table td .remove-item-btn, #non-items-table td .remove-item-btn, #items-specifications-table td .remove-item-btn {
     width: 36px;
     height: 36px;
     background: transparent;
@@ -129,6 +131,25 @@
     justify-content: center;
     border-radius: 6px;
 }
+
+/* Table specific remove button shorthand class */
+.table-remove-btn {
+    width: 36px !important;
+    height: 36px !important;
+    background: transparent !important;
+    color: #9ca3af !important;
+    border: 1px solid transparent !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+}
+.table-remove-btn:hover {
+    background: #fef2f2 !important;
+    color: #ef4444 !important;
+    border-color: #fecaca !important;
+}
 .items-table td .remove-item-btn:hover, .non-items-table td .remove-item-btn:hover, .items-specifications-table td .remove-item-btn:hover {
     background: #fef2f2;
     color: #ef4444;
@@ -136,12 +157,22 @@
 }
 
 /* Alternate table row background for better readability */
-.items-table tbody tr:nth-child(odd), .non-items-table tbody tr:nth-child(odd), .items-specifications-table tbody tr:nth-child(odd) {
+.items-table tbody tr:nth-child(odd), .non-items-table tbody tr:nth-child(odd), .items-specifications-table tbody tr:nth-child(odd),
+#items-table tbody tr:nth-child(odd), #non-items-table tbody tr:nth-child(odd), #items-specifications-table tbody tr:nth-child(odd) {
     background: rgba(243, 244, 246, 0.6); /* light blurred gray */
 }
 
+/* Hover for table rows similar to card hover */
+.items-table tbody tr:hover, .non-items-table tbody tr:hover, .items-specifications-table tbody tr:hover,
+#items-table tbody tr:hover, #non-items-table tbody tr:hover, #items-specifications-table tbody tr:hover {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.04);
+    border-left: 4px solid rgba(59, 130, 246, 0.12);
+}
+
 /* Slightly bolder cell text for S. No */
-.items-table td:first-child, .non-items-table td:first-child, .items-specifications-table td:first-child {
+.items-table td:first-child, .non-items-table td:first-child, .items-specifications-table td:first-child,
+#items-table td:first-child, #non-items-table td:first-child, #items-specifications-table td:first-child {
     vertical-align: middle;
     text-align: center;
 }

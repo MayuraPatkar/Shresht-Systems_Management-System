@@ -204,8 +204,8 @@ async function openQuotation(quotationId) {
             const card = document.createElement("div");
             card.className = "non-item-card";
             card.innerHTML = `
-        row.innerHTML = `
-            <td><div class="item-number">${nonItemsTableBody.rows.length}</div></td>
+                    <div class="item-number">${index + 1}</div>
+                    <div class="non-item-field description">
                         <input type="text" placeholder="e.g., Installation Charges" value="${item.description || ''}" required>
                     </div>
                     <div class="non-item-field price">
