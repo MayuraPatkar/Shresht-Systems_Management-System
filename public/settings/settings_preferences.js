@@ -14,36 +14,22 @@ function loadPreferences() {
         .then(data => {
             if (data.success && data.settings) {
                 const s = data.settings;
-                
-            
+
+
                 // Tax settings
                 document.getElementById("pref-gst-rate").value = s.tax?.default_gst_rate || 18;
                 document.getElementById("pref-tax-included").checked = s.tax?.tax_included || false;
                 document.getElementById("pref-enable-gst").checked = s.tax?.enable_gst !== false;
-                
+
+                // Numbering
                 // Numbering
                 document.getElementById("pref-invoice-prefix").value = s.numbering?.invoice_prefix || 'INV';
-                document.getElementById("pref-invoice-start").value = s.numbering?.invoice_start || 1;
-                document.getElementById("pref-invoice-pad").value = s.numbering?.invoice_pad || 6;
-                document.getElementById("pref-invoice-include-date").checked = s.numbering?.invoice_include_date || false;
                 document.getElementById("pref-quotation-prefix").value = s.numbering?.quotation_prefix || 'QUO';
-                document.getElementById("pref-quotation-start").value = s.numbering?.quotation_start || 1;
-                document.getElementById("pref-quotation-pad").value = s.numbering?.quotation_pad || 6;
-                document.getElementById("pref-quotation-include-date").checked = s.numbering?.quotation_include_date || false;
                 document.getElementById("pref-purchase-prefix").value = s.numbering?.purchase_prefix || 'PO';
-                document.getElementById("pref-purchase-start").value = s.numbering?.purchase_start || 1;
-                document.getElementById("pref-purchase-pad").value = s.numbering?.purchase_pad || 6;
-                document.getElementById("pref-purchase-include-date").checked = s.numbering?.purchase_include_date || false;
                 document.getElementById("pref-waybill-prefix").value = s.numbering?.waybill_prefix || 'WB';
-                document.getElementById("pref-waybill-start").value = s.numbering?.waybill_start || 1;
-                document.getElementById("pref-waybill-pad").value = s.numbering?.waybill_pad || 6;
-                document.getElementById("pref-waybill-include-date").checked = s.numbering?.waybill_include_date || false;
                 document.getElementById("pref-service-prefix").value = s.numbering?.service_prefix || 'SRV';
-                document.getElementById("pref-service-start").value = s.numbering?.service_start || 1;
-                document.getElementById("pref-service-pad").value = s.numbering?.service_pad || 6;
-                document.getElementById("pref-service-include-date").checked = s.numbering?.service_include_date || false;
-                
-                
+
+
                 // Backup settings
                 document.getElementById("backup-auto-enabled").checked = s.backup?.auto_backup_enabled || false;
                 document.getElementById("backup-frequency").value = s.backup?.backup_frequency || 'daily';
@@ -65,7 +51,7 @@ function savePreferences() {
     const originalContent = saveButton.innerHTML;
     saveButton.disabled = true;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    
+
     const preferences = {
         tax: {
             default_gst_rate: parseFloat(document.getElementById("pref-gst-rate").value),
@@ -74,25 +60,10 @@ function savePreferences() {
         },
         numbering: {
             invoice_prefix: document.getElementById("pref-invoice-prefix").value,
-            invoice_start: parseInt(document.getElementById("pref-invoice-start").value),
-            invoice_pad: parseInt(document.getElementById("pref-invoice-pad").value) || 6,
-            invoice_include_date: document.getElementById("pref-invoice-include-date").checked || false,
             quotation_prefix: document.getElementById("pref-quotation-prefix").value,
-            quotation_start: parseInt(document.getElementById("pref-quotation-start").value),
-            quotation_pad: parseInt(document.getElementById("pref-quotation-pad").value) || 6,
-            quotation_include_date: document.getElementById("pref-quotation-include-date").checked || false,
             purchase_prefix: document.getElementById("pref-purchase-prefix").value,
-            purchase_start: parseInt(document.getElementById("pref-purchase-start").value) || 1,
-            purchase_pad: parseInt(document.getElementById("pref-purchase-pad").value) || 6,
-            purchase_include_date: document.getElementById("pref-purchase-include-date").checked || false,
             waybill_prefix: document.getElementById("pref-waybill-prefix").value,
-            waybill_start: parseInt(document.getElementById("pref-waybill-start").value) || 1,
-            waybill_pad: parseInt(document.getElementById("pref-waybill-pad").value) || 6,
-            waybill_include_date: document.getElementById("pref-waybill-include-date").checked || false,
             service_prefix: document.getElementById("pref-service-prefix").value,
-            service_start: parseInt(document.getElementById("pref-service-start").value) || 1,
-            service_pad: parseInt(document.getElementById("pref-service-pad").value) || 6,
-            service_include_date: document.getElementById("pref-service-include-date").checked || false,
         },
         backup: {
             auto_backup_enabled: document.getElementById("backup-auto-enabled").checked,
@@ -102,7 +73,7 @@ function savePreferences() {
             backup_location: document.getElementById("backup-location").value
         }
     };
-    
+
     fetch('/settings/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -137,7 +108,7 @@ function loadSecuritySettings() {
         .then(data => {
             if (data.success && data.settings) {
                 const s = data.settings.security || {};
-                
+
                 document.getElementById("security-session-timeout").value = s.session_timeout || 30;
                 document.getElementById("security-password-length").value = s.password_min_length || 8;
                 document.getElementById("security-password-uppercase").checked = s.password_require_uppercase !== false;
@@ -161,7 +132,7 @@ function saveSecuritySettings() {
     const originalContent = saveButton.innerHTML;
     saveButton.disabled = true;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    
+
     const security = {
         security: {
             session_timeout: parseInt(document.getElementById("security-session-timeout").value),
@@ -174,7 +145,7 @@ function saveSecuritySettings() {
             enable_2fa: document.getElementById("security-enable-2fa").checked
         }
     };
-    
+
     fetch('/settings/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -209,7 +180,7 @@ function loadNotificationSettings() {
         .then(data => {
             if (data.success && data.settings) {
                 const n = data.settings.notifications || {};
-                
+
                 document.getElementById("notif-invoice-enabled").checked = n.enable_invoice_reminders !== false;
                 document.getElementById("notif-invoice-days").value = n.invoice_reminder_days || 7;
                 document.getElementById("notif-service-enabled").checked = n.enable_service_reminders !== false;
@@ -229,7 +200,7 @@ function saveNotificationSettings() {
     const originalContent = saveButton.innerHTML;
     saveButton.disabled = true;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    
+
     const notifications = {
         notifications: {
             enable_stock_alerts: document.getElementById("notif-stock-enabled").checked,
@@ -241,7 +212,7 @@ function saveNotificationSettings() {
             enable_email_notifications: document.getElementById("notif-email-enabled").checked
         }
     };
-    
+
     fetch('/settings/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -288,25 +259,14 @@ function initPreferencesModule() {
             console.error('Directory selection cancelled or failed:', err);
         }
     });
-    
+
     // Theme support removed
-    
+
     // Security
     document.getElementById("save-security-button")?.addEventListener("click", saveSecuritySettings);
-    
+
     // Notifications
     document.getElementById("save-notifications-button")?.addEventListener("click", saveNotificationSettings);
 
-    // Auto toggle pad inputs when include-date checkbox changes
-    const modules = ["invoice", "quotation", "purchase", "waybill", "service"];
-    modules.forEach(m => {
-        const chk = document.getElementById(`pref-${m}-include-date`);
-        const padInput = document.getElementById(`pref-${m}-pad`);
-        if (chk && padInput) {
-            const toggle = () => { padInput.disabled = chk.checked; };
-            chk.addEventListener('change', toggle);
-            // set initial state
-            toggle();
-        }
-    });
+
 }
