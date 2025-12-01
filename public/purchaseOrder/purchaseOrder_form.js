@@ -178,7 +178,7 @@ function showSuggestionsPO(input, suggestionsList) {
             input.value = item;
             // Trigger input event to sync description with table
             input.dispatchEvent(new Event('input', { bubbles: true }));
-            
+
             const parent = input.closest('.item-card') || input.closest('tr');
             await fillPurchaseOrderItem(item, parent);
             suggestionsList.style.display = "none";
@@ -198,7 +198,7 @@ async function handleKeyboardNavigationPO(event, input, suggestionsList) {
         event.preventDefault(); // Prevent cursor movement and scrolling
         selectedIndex = (selectedIndex + 1) % items.length;
         input.value = items[selectedIndex].textContent;
-        
+
         // Update visual selection
         items.forEach((item, index) => {
             item.classList.toggle("selected", index === selectedIndex);
@@ -207,7 +207,7 @@ async function handleKeyboardNavigationPO(event, input, suggestionsList) {
         event.preventDefault(); // Prevent cursor movement and scrolling
         selectedIndex = (selectedIndex - 1 + items.length) % items.length;
         input.value = items[selectedIndex].textContent;
-        
+
         // Update visual selection
         items.forEach((item, index) => {
             item.classList.toggle("selected", index === selectedIndex);
@@ -215,19 +215,19 @@ async function handleKeyboardNavigationPO(event, input, suggestionsList) {
     } else if (event.key === "Enter") {
         event.preventDefault();
         event.stopPropagation();
-        
+
         if (selectedIndex >= 0 && items[selectedIndex]) {
             const selectedItem = items[selectedIndex].textContent;
             input.value = selectedItem;
             suggestionsList.style.display = "none";
-            
+
             // Trigger input event to sync description with table
             input.dispatchEvent(new Event('input', { bubbles: true }));
-            
+
             // Fill other fields from stock data
             const parent = input.closest('.item-card') || input.closest('tr');
             await fillPurchaseOrderItem(selectedItem, parent);
-            
+
             // Reset selected index
             selectedIndex = -1;
         }
@@ -239,7 +239,7 @@ async function handleKeyboardNavigationPO(event, input, suggestionsList) {
 async function fillPurchaseOrderItem(itemName, element) {
     // Check if element is a card or a table row
     const isCard = element.classList.contains('item-card');
-    
+
     const stockData = await fetchStockData(itemName);
     if (stockData) {
         if (isCard) {
@@ -264,7 +264,7 @@ async function fillPurchaseOrderItem(itemName, element) {
             [...row1Inputs, ...row2Inputs].forEach(input => {
                 input.dispatchEvent(new Event('input', { bubbles: true }));
             });
-            
+
             // Also update corresponding table row
             const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
             const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
@@ -279,14 +279,14 @@ async function fillPurchaseOrderItem(itemName, element) {
                 const qtyInput = cells[6]?.querySelector('input');
                 const priceInput = cells[7]?.querySelector('input');
                 const rateInput = cells[8]?.querySelector('input');
-                
+
                 if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
                 if (companyInput) companyInput.value = stockData.company || "";
                 if (typeInput) typeInput.value = stockData.type || "";
                 if (categoryInput) categoryInput.value = stockData.category || "";
                 if (priceInput) priceInput.value = stockData.unitPrice || 0;
                 if (rateInput) rateInput.value = stockData.GST || 0;
-                
+
                 // Store specification in row dataset
                 tableRow.dataset.specification = stockData.specifications || '';
             }
@@ -301,17 +301,17 @@ async function fillPurchaseOrderItem(itemName, element) {
             const qtyInput = cells[6]?.querySelector('input');
             const priceInput = cells[7]?.querySelector('input');
             const rateInput = cells[8]?.querySelector('input');
-            
+
             if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
             if (companyInput) companyInput.value = stockData.company || "";
             if (typeInput) typeInput.value = stockData.type || "";
             if (categoryInput) categoryInput.value = stockData.category || "";
             if (priceInput) priceInput.value = stockData.unitPrice || 0;
             if (rateInput) rateInput.value = stockData.GST || 0;
-            
+
             // Store specification in row dataset
             element.dataset.specification = stockData.specifications || '';
-            
+
             // Also sync with card if it exists
             const rowIndex = Array.from(element.parentElement.children).indexOf(element);
             const card = document.querySelector(`#items-container .item-card:nth-child(${rowIndex + 1})`);
@@ -407,26 +407,26 @@ async function openPurchaseOrder(purchaseOrderId) {
                     <div class="row-spacer"></div>
                 </div>
             `;
-            itemsContainer.appendChild(card);
-            
-            // Setup autocomplete for loaded items
-            const cardInput = card.querySelector(".item_name");
-            const cardSuggestions = card.querySelector(".suggestions");
-            
-            if (cardInput && cardSuggestions) {
-                cardInput.addEventListener("input", function () {
-                    showSuggestionsPO(cardInput, cardSuggestions);
-                });
+        itemsContainer.appendChild(card);
 
-                cardInput.addEventListener("keydown", function (event) {
-                    handleKeyboardNavigationPO(event, cardInput, cardSuggestions);
-                });
-            }
-            
-            // Create hidden table row
-            const row = document.createElement("tr");
-            row.dataset.specification = item.specification || ''; // Store specification
-            row.innerHTML = `
+        // Setup autocomplete for loaded items
+        const cardInput = card.querySelector(".item_name");
+        const cardSuggestions = card.querySelector(".suggestions");
+
+        if (cardInput && cardSuggestions) {
+            cardInput.addEventListener("input", function () {
+                showSuggestionsPO(cardInput, cardSuggestions);
+            });
+
+            cardInput.addEventListener("keydown", function (event) {
+                handleKeyboardNavigationPO(event, cardInput, cardSuggestions);
+            });
+        }
+
+        // Create hidden table row
+        const row = document.createElement("tr");
+        row.dataset.specification = item.specification || ''; // Store specification
+        row.innerHTML = `
                 <td class="text-center"><div class="item-number">${sno}</div></td>
                 <td><input type="text" value="${item.description}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="text" value="${item.HSN_SAC}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
@@ -473,9 +473,17 @@ async function openPurchaseOrder(purchaseOrderId) {
                 card.remove();
                 row.remove();
             });
-            
-            sno++;
         });
+
+        // Add remove button event listener
+        const removeBtn = card.querySelector(".remove-item-btn");
+        removeBtn.addEventListener("click", function () {
+            card.remove();
+            row.remove();
+        });
+
+        sno++;
+    });
 }
 
 // fuction to get the quotation id
@@ -632,10 +640,10 @@ async function generatePreview() {
 
     // Split items into rows for pagination
     const itemRows = itemsHTML.split('</tr>').filter(row => row.trim().length > 0).map(row => row + '</tr>');
-    
+
     const ITEMS_PER_PAGE = 15;
     const SUMMARY_SECTION_ROW_COUNT = 8;
-    
+
     const itemPages = [];
     let currentPageItemsHTML = '';
     let currentPageRowCount = 0;
@@ -832,12 +840,12 @@ async function populateSpecifications() {
     specificationsTableBody.innerHTML = "";
 
     const rows = Array.from(itemsTableBody.rows);
-    
+
     for (let index = 0; index < rows.length; index++) {
         const row = rows[index];
         const description = row.cells[1].querySelector("input").value;
         let existingSpecification = row.dataset.specification || '';
-        
+
         // Try to fetch specification from stock if not already present
         if (!existingSpecification && description.trim()) {
             try {
@@ -892,12 +900,12 @@ if (addItemBtn) {
     // Remove the global listener first to prevent double-adding
     const newAddItemBtn = addItemBtn.cloneNode(true);
     addItemBtn.parentNode.replaceChild(newAddItemBtn, addItemBtn);
-    
+
     // Add Purchase Order specific listener
-    newAddItemBtn.addEventListener('click', function(e) {
+    newAddItemBtn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const container = document.getElementById("items-container");
         const tableBody = document.querySelector("#items-table tbody");
         const itemNumber = tableBody.children.length + 1;
@@ -945,27 +953,27 @@ if (addItemBtn) {
             <div class="row-spacer"></div>
         </div>
     `;
-    
-    // Append card to container
-    if (container) {
-        container.appendChild(card);
-    }
-    
-    // Setup autocomplete for the card
-    const cardInput = card.querySelector(".item_name");
-    const cardSuggestions = card.querySelector(".suggestions");
-    
-    cardInput.addEventListener("input", function () {
-        showSuggestionsPO(cardInput, cardSuggestions);
-    });
 
-    cardInput.addEventListener("keydown", function (event) {
-        handleKeyboardNavigationPO(event, cardInput, cardSuggestions);
-    });
-    
-    // Also add to hidden table for backward compatibility
-    const row = document.createElement("tr");
-    row.innerHTML = `
+        // Append card to container
+        if (container) {
+            container.appendChild(card);
+        }
+
+        // Setup autocomplete for the card
+        const cardInput = card.querySelector(".item_name");
+        const cardSuggestions = card.querySelector(".suggestions");
+
+        cardInput.addEventListener("input", function () {
+            showSuggestionsPO(cardInput, cardSuggestions);
+        });
+
+        cardInput.addEventListener("keydown", function (event) {
+            handleKeyboardNavigationPO(event, cardInput, cardSuggestions);
+        });
+
+        // Also add to hidden table for backward compatibility
+        const row = document.createElement("tr");
+        row.innerHTML = `
         <td class="text-center"><div class="item-number">${itemNumber}</div></td>
         <td>
             <div style="position: relative;">
@@ -982,23 +990,36 @@ if (addItemBtn) {
         <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button></td>
     `;
-    tableBody.appendChild(row);
-    
-    // Setup autocomplete for the table input
-    const tableInput = row.querySelector(".item_name");
-    const tableSuggestions = row.querySelector(".suggestions");
-    
-    if (tableInput && tableSuggestions) {
-        tableInput.addEventListener("input", function () {
-            showSuggestionsPO(tableInput, tableSuggestions);
-            // Sync with card input
-            if (cardInput) {
-                cardInput.value = tableInput.value;
-            }
-        });
+        tableBody.appendChild(row);
 
-        tableInput.addEventListener("keydown", function (event) {
-            handleKeyboardNavigationPO(event, tableInput, tableSuggestions);
+        // Setup autocomplete for the table input
+        const tableInput = row.querySelector(".item_name");
+        const tableSuggestions = row.querySelector(".suggestions");
+
+        if (tableInput && tableSuggestions) {
+            tableInput.addEventListener("input", function () {
+                showSuggestionsPO(tableInput, tableSuggestions);
+                // Sync with card input
+                if (cardInput) {
+                    cardInput.value = tableInput.value;
+                }
+            });
+
+            tableInput.addEventListener("keydown", function (event) {
+                handleKeyboardNavigationPO(event, tableInput, tableSuggestions);
+            });
+        }
+
+        // Sync all inputs from card to table
+        const cardInputs = card.querySelectorAll("input");
+        const tableInputs = row.querySelectorAll("input");
+
+        cardInputs.forEach((input, index) => {
+            input.addEventListener("input", () => {
+                if (tableInputs[index]) {
+                    tableInputs[index].value = input.value;
+                }
+            });
         });
     }
     
@@ -1032,14 +1053,6 @@ if (addItemBtn) {
                 tableInput.value = cardInput.value;
             });
         }
-    });
-    
-    // Handle remove button
-    const removeBtn = card.querySelector(".remove-item-btn");
-    removeBtn.addEventListener("click", function() {
-        card.remove();
-        row.remove();
-    });
     });
 }
 

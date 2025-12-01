@@ -11,38 +11,23 @@ const settingsSchema = new mongoose.Schema({
         timezone: { type: String, default: 'Asia/Kolkata' },
         language: { type: String, default: 'en' },
     },
-    
+
     // Tax Settings
     tax: {
         default_gst_rate: { type: Number, default: 18 },
         tax_included: { type: Boolean, default: false },
         enable_gst: { type: Boolean, default: true },
     },
-    
+
     // Document Numbering
     numbering: {
-        invoice_prefix: { type: String, default: 'INV' },
-        invoice_start: { type: Number, default: 1 },
-        invoice_pad: { type: Number, default: 6 },
-        invoice_include_date: { type: Boolean, default: false },
-        quotation_prefix: { type: String, default: 'QUO' },
-        quotation_start: { type: Number, default: 1 },
-        quotation_pad: { type: Number, default: 6 },
-        quotation_include_date: { type: Boolean, default: false },
-        purchase_prefix: { type: String, default: 'PO' },
-        purchase_start: { type: Number, default: 1 },
-        purchase_pad: { type: Number, default: 6 },
-        purchase_include_date: { type: Boolean, default: false },
-        waybill_prefix: { type: String, default: 'WB' },
-        waybill_start: { type: Number, default: 1 },
-        waybill_pad: { type: Number, default: 6 },
-        waybill_include_date: { type: Boolean, default: false },
-        service_prefix: { type: String, default: 'SRV' },
-        service_start: { type: Number, default: 1 },
-        service_pad: { type: Number, default: 6 },
-        service_include_date: { type: Boolean, default: false },
+        invoice_prefix: { type: String, default: 'INV', uppercase: true, minlength: 1, maxlength: 5 },
+        quotation_prefix: { type: String, default: 'QUO', uppercase: true, minlength: 1, maxlength: 5 },
+        purchase_prefix: { type: String, default: 'PO', uppercase: true, minlength: 1, maxlength: 5 },
+        waybill_prefix: { type: String, default: 'WB', uppercase: true, minlength: 1, maxlength: 5 },
+        service_prefix: { type: String, default: 'SRV', uppercase: true, minlength: 1, maxlength: 5 },
     },
-    
+
     // Branding
     branding: {
         logo_path: { type: String, default: '' },
@@ -50,7 +35,7 @@ const settingsSchema = new mongoose.Schema({
         secondary_color: { type: String, default: '#10b981' },
         theme: { type: String, default: 'light' }, // light or dark
     },
-    
+
     // Backup Settings
     backup: {
         auto_backup_enabled: { type: Boolean, default: false },
@@ -60,7 +45,7 @@ const settingsSchema = new mongoose.Schema({
         last_backup: { type: Date, default: null },
         backup_location: { type: String, default: './backups' },
     },
-    
+
     // Security Settings
     security: {
         session_timeout: { type: Number, default: 30 }, // minutes
@@ -72,7 +57,7 @@ const settingsSchema = new mongoose.Schema({
         lockout_duration: { type: Number, default: 15 }, // minutes
         enable_2fa: { type: Boolean, default: false },
     },
-    
+
     // Notification Settings
     notifications: {
         low_stock_threshold: { type: Number, default: 10 },
@@ -83,7 +68,7 @@ const settingsSchema = new mongoose.Schema({
         service_reminder_days: { type: Number, default: 3 },
         enable_email_notifications: { type: Boolean, default: false },
     },
-    
+
     // Email Configuration
     email: {
         smtp_host: { type: String, default: '' },
@@ -94,7 +79,7 @@ const settingsSchema = new mongoose.Schema({
         from_name: { type: String, default: 'Shresht Systems' },
         from_email: { type: String, default: '' },
     },
-    
+
     // Default Terms & Conditions
     defaults: {
         invoice_terms: { type: String, default: '' },
@@ -102,21 +87,21 @@ const settingsSchema = new mongoose.Schema({
         payment_terms: { type: String, default: 'Net 30 days' },
         notes: { type: String, default: '' },
     },
-    
+
     // System Info (read-only)
     system: {
         app_version: { type: String, default: '1.0.0' },
         last_updated: { type: Date, default: Date.now },
         database_size: { type: Number, default: 0 },
     },
-    
+
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });
 
 // Update timestamp on save
 // Use a synchronous pre-save hook (no `next` callback) to avoid middleware signature issues
-settingsSchema.pre('save', function() {
+settingsSchema.pre('save', function () {
     this.updatedAt = Date.now();
     if (!this.system) this.system = {};
     this.system.last_updated = Date.now();

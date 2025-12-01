@@ -1,18 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const { Purchases, Stock } = require('../models');
-const logger = require('../utils/logger'); // Custom logger
+const logger = require('../utils/logger');
 
-// Function to generate a unique ID for each purchaseOrder
-const { generateNextId } = require('../utils/idGenerator');
+// Import ID generator functions
+const { previewNextId, generateNextId } = require('../utils/idGenerator');
 
-// Route to generate a new purchaseOrder ID
+/**
+ * Route: Generate a Preview ID
+ * Description: returns the next likely ID for UI display.
+ * Does NOT increment the database counter.
+ */
 router.get("/generate-id", async (req, res) => {
     try {
-        const purchase_order_id = await generateNextId('purchaseOrder');
+        const purchase_order_id = await previewNextId('purchaseOrder');
         return res.status(200).json({ purchase_order_id });
     } catch (err) {
-        logger.error('Error generating purchase order id', { error: err.message || err });
+        logger.error('Error generating purchase order preview', { error: err.message || err });
         return res.status(500).json({ error: 'Failed to generate purchase order id' });
     }
 });
@@ -64,7 +68,7 @@ router.get("/suppliers/list", async (req, res) => {
 router.post("/save-purchase-order", async (req, res) => {
     try {
         let {
-            purchaseOrderId = '',
+            purchaseOrderId = '', // Could be a preview ID (new) or existing ID (update)
             purchaseInvoiceId = '',
             purchaseDate = new Date(),
             supplierName = '',
@@ -76,22 +80,23 @@ router.post("/save-purchase-order", async (req, res) => {
             totalAmount = 0
         } = req.body;
 
-        // Validate required fields
-        if (!purchaseOrderId) {
-            return res.status(400).json({
-                message: 'Missing required fields or invalid data: purchase order id',
-            });
+        // Attempt to find an existing document using the provided ID
+        let purchaseOrder = null;
+        if (purchaseOrderId) {
+            purchaseOrder = await Purchases.findOne({ purchase_order_id: purchaseOrderId });
         }
 
-        // Check if purchase order already exists
-        let purchaseOrder = await Purchases.findOne({ purchase_order_id: purchaseOrderId });
         let previousItems = [];
+
         if (purchaseOrder) {
-            // Save previous items for stock adjustment
+            // ---------------------------------------------------------
+            // SCENARIO 1: UPDATE EXISTING PURCHASE ORDER
+            // ---------------------------------------------------------
+
+            // Capture previous items for stock reversal logic
             previousItems = Array.isArray(purchaseOrder.items) ? purchaseOrder.items : [];
 
-            // Update existing purchase order
-            purchaseOrder.purchase_order_id = purchaseOrderId;
+            // Update fields
             purchaseOrder.purchase_invoice_id = purchaseInvoiceId;
             purchaseOrder.purchase_date = purchaseDate || new Date();
             purchaseOrder.supplier_name = supplierName;
@@ -101,10 +106,17 @@ router.post("/save-purchase-order", async (req, res) => {
             purchaseOrder.supplier_GSTIN = supplierGSTIN;
             purchaseOrder.items = items;
             purchaseOrder.total_amount = totalAmount;
+
         } else {
-            // Create a new purchase order with the provided data
+            // ---------------------------------------------------------
+            // SCENARIO 2: CREATE NEW PURCHASE ORDER
+            // ---------------------------------------------------------
+
+            // Generate the permanent ID now (increments the counter)
+            const newId = await generateNextId('purchaseOrder');
+
             purchaseOrder = new Purchases({
-                purchase_order_id: purchaseOrderId,
+                purchase_order_id: newId,
                 purchase_invoice_id: purchaseInvoiceId,
                 purchase_date: purchaseDate || new Date(),
                 supplier_name: supplierName,
@@ -118,30 +130,29 @@ router.post("/save-purchase-order", async (req, res) => {
             });
         }
 
-        // --- STOCK MANAGEMENT LOGIC START ---
+        // ---------------------------------------------------------
+        // STOCK MANAGEMENT LOGIC
+        // ---------------------------------------------------------
 
-        // If updating, first revert previous items from stock
+        // 1. Revert previous items if updating
         if (previousItems.length > 0) {
             for (const prevItem of previousItems) {
                 if (!prevItem.description) continue;
                 let stockItem = await Stock.findOne({ item_name: prevItem.description });
                 if (stockItem) {
                     stockItem.quantity = Number(stockItem.quantity || 0) - Number(prevItem.quantity || 0);
-                    // // Prevent negative stock
-                    // if (stockItem.quantity < 0) stockItem.quantity = 0;
                     await stockItem.save();
                 }
             }
         }
 
-        // Now add new items to stock
+        // 2. Add current items to stock
         for (const item of items) {
             if (!item.description) continue;
 
             let stockItem = await Stock.findOne({ item_name: item.description });
 
             if (stockItem) {
-                // Update existing stock item
                 stockItem.quantity = Number(stockItem.quantity || 0) + Number(item.quantity || 0);
                 stockItem.unit_price = Number(item.unit_price) || stockItem.unit_price;
                 stockItem.GST = Number(item.rate) || stockItem.GST;
@@ -152,7 +163,6 @@ router.post("/save-purchase-order", async (req, res) => {
                 stockItem.updatedAt = new Date();
                 await stockItem.save();
             } else {
-                // Create new stock item
                 await Stock.create({
                     item_name: item.description,
                     HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
@@ -169,18 +179,17 @@ router.post("/save-purchase-order", async (req, res) => {
                 });
             }
         }
-        // --- STOCK MANAGEMENT LOGIC END ---
 
-        // Save the purchase order
+        // Save the document
         const savedPurchaseOrder = await purchaseOrder.save();
 
-        // Respond with success message and data
         res.status(201).json({
             message: 'Purchase order saved successfully',
             purchaseOrder: savedPurchaseOrder,
+            purchase_order_id: savedPurchaseOrder.purchase_order_id // Return the final ID
         });
     } catch (error) {
-        logger.error('Error saving data:', error);
+        logger.error('Error saving purchase order:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -188,23 +197,18 @@ router.post("/save-purchase-order", async (req, res) => {
 // Route to get the 10 most recent purchase orders
 router.get("/recent-purchase-orders", async (req, res) => {
     try {
-        // Fetch the 10 most recent purchase orders, sorted by creation date
         const recentPurchaseOrders = await Purchases.find()
-            .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
+            .sort({ createdAt: -1 })
             .limit(10)
             .select("project_name purchase_order_id supplier_name supplier_address total_amount");
 
-        // Respond with the fetched purchase orders
         res.status(200).json({
             message: "Recent purchase orders retrieved successfully",
             purchaseOrder: recentPurchaseOrders,
         });
     } catch (error) {
         logger.error("Error retrieving recent purchase orders:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 
@@ -212,25 +216,14 @@ router.get("/recent-purchase-orders", async (req, res) => {
 router.get("/:purchaseOrderId", async (req, res) => {
     try {
         const { purchaseOrderId } = req.params;
-
-        // Fetch the purchase order by ID
         const purchaseOrder = await Purchases.findOne({ purchase_order_id: purchaseOrderId });
         if (!purchaseOrder) {
             return res.status(404).json({ message: 'Purchase order not found' });
         }
-
-        // Respond with the fetched purchase order
-        res.status(200).json({
-            message: "Purchase order retrieved successfully",
-            purchaseOrder,
-        });
-
+        res.status(200).json({ message: "Purchase order retrieved successfully", purchaseOrder });
     } catch (error) {
         logger.error("Error retrieving purchase order:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 
@@ -238,33 +231,22 @@ router.get("/:purchaseOrderId", async (req, res) => {
 router.delete("/:purchaseOrderId", async (req, res) => {
     try {
         const { purchaseOrderId } = req.params;
-
-        // Fetch the purchase order by ID
         const purchaseOrder = await Purchases.findOne({ purchase_order_id: purchaseOrderId });
         if (!purchaseOrder) {
             return res.status(404).json({ message: 'Purchase order not found' });
         }
-
-        // Delete the purchase order
         await Purchases.deleteOne({ purchase_order_id: purchaseOrderId });
-
-        // Respond with success message
         res.status(200).json({ message: 'Purchase order deleted successfully' });
     } catch (error) {
         logger.error("Error deleting purchase order:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 
-// Search purchase orders by ID, project name, buyer name, or phone number
+// Search purchase orders
 router.get('/search/:query', async (req, res) => {
     const { query } = req.params;
-    if (!query) {
-        return res.status(400).send('Query parameter is required.');
-    }
+    if (!query) return res.status(400).send('Query parameter is required.');
 
     try {
         const purchaseOrders = await Purchases.find({

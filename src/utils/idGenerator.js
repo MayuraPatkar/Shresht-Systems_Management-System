@@ -1,15 +1,12 @@
 const { Counters, Settings } = require('../models');
 const logger = require('../utils/logger');
 
-/**
- * Map moduleKey to setting names used in Settings.numbering
- */
 const moduleToSettingKey = {
-  invoice: { prefix: 'invoice_prefix', start: 'invoice_start', pad: 'invoice_pad', includeDate: 'invoice_include_date' },
-  quotation: { prefix: 'quotation_prefix', start: 'quotation_start', pad: 'quotation_pad', includeDate: 'quotation_include_date' },
-  purchaseOrder: { prefix: 'purchase_prefix', start: 'purchase_start', pad: 'purchase_pad', includeDate: 'purchase_include_date' },
-  wayBill: { prefix: 'waybill_prefix', start: 'waybill_start', pad: 'waybill_pad', includeDate: 'waybill_include_date' },
-  service: { prefix: 'service_prefix', start: 'service_start', pad: 'service_pad', includeDate: 'service_include_date' }
+  invoice: { prefix: 'invoice_prefix' },
+  quotation: { prefix: 'quotation_prefix' },
+  purchaseOrder: { prefix: 'purchase_prefix' },
+  wayBill: { prefix: 'waybill_prefix' },
+  service: { prefix: 'service_prefix' }
 };
 
 async function getSettingsValue(key, defaultValue = null) {
@@ -23,67 +20,70 @@ async function getSettingsValue(key, defaultValue = null) {
   }
 }
 
-async function generateNextId(moduleKey, options = {}) {
-  // Normalize
+/**
+ * Helper to get Prefix and Date Part
+ */
+async function getPrefixAndDateParams(moduleKey) {
   const mk = String(moduleKey);
   const mapping = moduleToSettingKey[mk] || {};
   const prefixKey = mapping.prefix;
-  const startKey = mapping.start;
 
-  const defaultPad = Number(await getSettingsValue(mapping.pad, 6));
-  const defaultIncludeDate = Boolean(await getSettingsValue(mapping.includeDate, false));
+  const defaultPrefix = mk === 'service' ? 'SRV' : mk.toUpperCase().slice(0, 3);
+  const prefix = await getSettingsValue(prefixKey, defaultPrefix);
 
-  const prefix = await getSettingsValue(prefixKey, (mk === 'service' ? 'SRV' : mk.toUpperCase().slice(0,3)));
-  const start = await getSettingsValue(startKey, 1);
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const yy = String(yyyy).slice(-2);
+  const datePart = `${yy}${mm}${dd}`;
 
-  // If includeDate is true: return ID of form PREFIX-YYYYMMDD for the first document of the day.
-  // For additional documents within the same day return PREFIX-YYYYMMDD-<padded_seq>.
-  const includeDate = options.includeDate ?? defaultIncludeDate ?? false;
-  if (includeDate) {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const yy = String(yyyy).slice(-2);
-    const datePart = `${yy}${mm}${dd}`;
+  const perDayCounterKey = `${mk}-${datePart}`;
 
-    // Use per-day counter key so we can generate a suffix only if >1
-    const perDayCounterKey = `${mk}-${datePart}`;
-    const docDay = await Counters.findOneAndUpdate(
-      { _id: perDayCounterKey },
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
+  return { prefix, datePart, perDayCounterKey };
+}
 
-    // Make sequence zero-based (first doc of the day has seq 0) by subtracting 1
-    let seqDay = (typeof docDay.seq === 'number') ? docDay.seq - 1 : 0;
-    if (seqDay < 0) seqDay = 0;
-    const pad = Number(options.pad ?? defaultPad ?? 6);
-      // As requested, when includeDate is enabled, we use a raw numeric sequence per day
-      // (no zero-padding). Examples: QUO-20251130-0, QUO-20251130-1
-      return `${prefix}${datePart}${seqDay}`;
-  }
+/**
+ * READ-ONLY: Peeks at the next ID without incrementing the DB.
+ * Use this for displaying the ID in the UI (Preview).
+ */
+async function previewNextId(moduleKey) {
+  const { prefix, datePart, perDayCounterKey } = await getPrefixAndDateParams(moduleKey);
 
-  // Otherwise use an incrementing counter for unlimited sequential IDs
-  const counterId = mk;
-  const doc = await Counters.findOneAndUpdate(
-    { _id: counterId },
+  // Just find the current counter state, DO NOT update
+  const docDay = await Counters.findOne({ _id: perDayCounterKey }).lean();
+
+  // If no document exists for today, the count is 0.
+  // If it exists, 'seq' is the count of IDs already generated.
+  // So the NEXT ID is simply equal to the current 'seq'.
+  // Example: seq is 5 (IDs 00-04 exist). Next ID is 05.
+  let currentSeq = (docDay && typeof docDay.seq === 'number') ? docDay.seq : 0;
+
+  const paddedSeq = String(currentSeq).padStart(2, '0');
+  return `${prefix}${datePart}${paddedSeq}`;
+}
+
+/**
+ * WRITE: Atomically increments the counter.
+ * Use this ONLY in the final SAVE route/controller.
+ */
+async function generateNextId(moduleKey) {
+  const { prefix, datePart, perDayCounterKey } = await getPrefixAndDateParams(moduleKey);
+
+  // Atomically increment
+  const docDay = await Counters.findOneAndUpdate(
+    { _id: perDayCounterKey },
     { $inc: { seq: 1 } },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
 
-  let seq = doc.seq;
+  // 0-based logic:
+  // If it was 0, it becomes 1. We want 0. So subtract 1.
+  let seqDay = (typeof docDay.seq === 'number') ? docDay.seq - 1 : 0;
+  if (seqDay < 0) seqDay = 0;
 
-  // If seq is less than start, set to start
-  if (start && Number.isInteger(start) && seq < start) {
-    doc.seq = start;
-    await doc.save();
-    seq = doc.seq;
-  }
-
-  const pad = Number(options.pad ?? defaultPad ?? 6);
-  const padded = String(seq).padStart(Number(pad), '0');
-  return `${prefix}${padded}`;
+  const paddedSeq = String(seqDay).padStart(2, '0');
+  return `${prefix}${datePart}${paddedSeq}`;
 }
 
-module.exports = { generateNextId };
+module.exports = { previewNextId, generateNextId };

@@ -9,7 +9,7 @@ window.changeStep = async function(step) {
     document.getElementById(`step-${window.currentStep}`).classList.add("active");
     updateNavigation();
     document.getElementById("step-indicator").textContent = `Step ${window.currentStep} of ${window.totalSteps}`;
-    
+
     // Generate preview when reaching the last step
     if (window.currentStep === window.totalSteps) {
         await generatePreview();
@@ -22,7 +22,7 @@ function updateNavigation() {
 }
 
 // Setup navigation button listeners
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Next button
     const nextBtn = document.getElementById("next-btn");
     if (nextBtn) {
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Previous button
     const prevBtn = document.getElementById("prev-btn");
     if (prevBtn) {
@@ -165,52 +165,52 @@ window.validateCurrentStep = async function () {
 async function openWayBill(wayBillId) {
     const data = await fetchDocumentById('wayBill', wayBillId);
     if (!data) return;
-    
+
     const wayBill = data.wayBill;
 
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'block';
-        document.getElementById('new-waybill-btn').style.display = 'none';
-        document.getElementById('view-preview').style.display = 'block';
+    document.getElementById('home').style.display = 'none';
+    document.getElementById('new').style.display = 'block';
+    document.getElementById('new-waybill-btn').style.display = 'none';
+    document.getElementById('view-preview').style.display = 'block';
 
-        if (window.currentStep === 1) {
-            window.changeStep(2);
+    if (window.currentStep === 1) {
+        window.changeStep(2);
+    }
+
+    document.getElementById('waybill-id').value = wayBill.waybill_id;
+    document.getElementById('project-name').value = wayBill.project_name;
+    // Populate waybill date for editing. Use ISO YYYY-MM-DD for input value.
+    const wbDateEl = document.getElementById('waybill-date');
+    if (wbDateEl) {
+        if (wayBill.waybill_date) {
+            const dt = new Date(wayBill.waybill_date);
+            wbDateEl.value = dt.toISOString().split('T')[0];
+        } else {
+            wbDateEl.value = '';
         }
+    }
+    document.getElementById('buyer-name').value = wayBill.customer_name;
+    document.getElementById('buyer-address').value = wayBill.customer_address;
+    document.getElementById('buyer-phone').value = wayBill.customer_phone;
+    document.getElementById('buyer-email').value = wayBill.customer_email || "";
+    document.getElementById('transport-mode').value = wayBill.transport_mode;
+    document.getElementById('vehicle-number').value = wayBill.vehicle_number;
+    document.getElementById('place-supply').value = wayBill.place_supply;
 
-        document.getElementById('waybill-id').value = wayBill.waybill_id;
-        document.getElementById('project-name').value = wayBill.project_name;
-        // Populate waybill date for editing. Use ISO YYYY-MM-DD for input value.
-        const wbDateEl = document.getElementById('waybill-date');
-        if (wbDateEl) {
-            if (wayBill.waybill_date) {
-                const dt = new Date(wayBill.waybill_date);
-                wbDateEl.value = dt.toISOString().split('T')[0];
-            } else {
-                wbDateEl.value = '';
-            }
-        }
-        document.getElementById('buyer-name').value = wayBill.customer_name;
-        document.getElementById('buyer-address').value = wayBill.customer_address;
-        document.getElementById('buyer-phone').value = wayBill.customer_phone;
-        document.getElementById('buyer-email').value = wayBill.customer_email || "";
-        document.getElementById('transport-mode').value = wayBill.transport_mode;
-        document.getElementById('vehicle-number').value = wayBill.vehicle_number;
-        document.getElementById('place-supply').value = wayBill.place_supply;
+    const itemsTableBody = document.querySelector("#items-table tbody");
+    itemsTableBody.innerHTML = "";
+    const itemsContainer = document.getElementById("items-container");
+    itemsContainer.innerHTML = "";
+    let sno = 1;
 
-        const itemsTableBody = document.querySelector("#items-table tbody");
-        itemsTableBody.innerHTML = "";
-        const itemsContainer = document.getElementById("items-container");
-        itemsContainer.innerHTML = "";
-        let sno = 1;
-
-        (wayBill.items || []).forEach(item => {
-            addItemFromData(item, sno);
-            sno++;
-        });
+    (wayBill.items || []).forEach(item => {
+        addItemFromData(item, sno);
+        sno++;
+    });
 }
 
 // Event listener for the "Next" button - fetch quotation data on step 2
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const nextBtn = document.getElementById("next-btn");
     if (nextBtn) {
         nextBtn.addEventListener("click", () => {
@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Setup add item button listener after DOM loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const addItemBtn = document.getElementById('add-item-btn');
     if (addItemBtn) {
         addItemBtn.addEventListener('click', addItem);
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function addItemFromData(item, itemSno) {
     const itemsContainer = document.getElementById("items-container");
     const itemsTableBody = document.querySelector("#items-table tbody");
-    
+
     // Create card
     const card = document.createElement("div");
     card.className = "item-card";
@@ -290,7 +290,7 @@ function addItemFromData(item, itemSno) {
         </button>
     `;
     itemsContainer.appendChild(card);
-    
+
     // Create hidden table row
     const row = document.createElement("tr");
     row.innerHTML = `
@@ -306,7 +306,7 @@ function addItemFromData(item, itemSno) {
         <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
     `;
     itemsTableBody.appendChild(row);
-    
+
     // Sync card inputs with table inputs
     const cardInputs = card.querySelectorAll('input');
     const rowInputs = row.querySelectorAll('input');
@@ -340,18 +340,18 @@ function addItemFromData(item, itemSno) {
             handleKeyboardNavigationWaybill(event, rowDescriptionInput, rowSuggestions);
         });
     }
-    
+
     // Add remove button event listeners (both card and table)
     const cardRemoveBtn = card.querySelector(".remove-item-btn");
     const tableRemoveBtn = row.querySelector(".remove-item-btn");
-    
-    cardRemoveBtn.addEventListener("click", function() {
+
+    cardRemoveBtn.addEventListener("click", function () {
         card.remove();
         row.remove();
         renumberItems();
     });
-    
-    tableRemoveBtn.addEventListener("click", function() {
+
+    tableRemoveBtn.addEventListener("click", function () {
         card.remove();
         row.remove();
         renumberItems();
@@ -362,7 +362,7 @@ function addItemFromData(item, itemSno) {
 function addItem() {
     const itemsTableBody = document.querySelector("#items-table tbody");
     const itemSno = itemsTableBody.rows.length + 1;
-    
+
     addItemFromData({
         description: '',
         HSN_SAC: '',
@@ -510,14 +510,14 @@ document.addEventListener('click', function (event) {
 function renumberItems() {
     const cards = document.querySelectorAll("#items-container .item-card");
     const rows = document.querySelectorAll("#items-table tbody tr");
-    
+
     cards.forEach((card, index) => {
         const numberDiv = card.querySelector('.item-number');
         if (numberDiv) {
             numberDiv.textContent = index + 1;
         }
     });
-    
+
     rows.forEach((row, index) => {
         const badge = row.querySelector('td:first-child .item-number');
         if (badge) {
@@ -539,7 +539,7 @@ async function generatePreview() {
     const transportMode = document.getElementById("transport-mode").value || "";
     const vehicleNumber = document.getElementById("vehicle-number").value || "";
     const placeSupply = document.getElementById("place-supply").value || "";
-    
+
     // Collect items from table
     const items = Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
         description: row.cells[1].querySelector("input").value || "-",

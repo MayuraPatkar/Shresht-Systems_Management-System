@@ -279,8 +279,8 @@ async function openQuotation(quotationId) {
         }
 
         // Also create table row
-            const row = document.createElement("tr");
-            row.innerHTML = `
+        const row = document.createElement("tr");
+        row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td>${item.description || ''}</td>
                 <td><input type="text" value="${item.specification || ''}" required></td>
