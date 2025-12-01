@@ -3,7 +3,7 @@ window.currentStep = 1;
 window.totalSteps = 6;
 
 // Change step function - made global for keyboard shortcuts
-window.changeStep = function(step) {
+window.changeStep = async function(step) {
     document.getElementById(`step-${window.currentStep}`).classList.remove("active");
     window.currentStep = step;
     document.getElementById(`step-${window.currentStep}`).classList.add("active");
@@ -12,7 +12,7 @@ window.changeStep = function(step) {
     
     // Generate preview when reaching the last step
     if (window.currentStep === window.totalSteps) {
-        generatePreview();
+        await generatePreview();
     }
 };
 
@@ -529,7 +529,7 @@ function renumberItems() {
     });
 }
 
-function generatePreview() {
+async function generatePreview() {
     const projectName = document.getElementById("project-name").value || "";
     const waybillId = document.getElementById("waybill-id").value || "";
     const buyerName = document.getElementById("buyer-name").value || "";
@@ -609,7 +609,7 @@ function generatePreview() {
     const itemColumns = ['Sl. No', 'Description', 'HSN Code', 'Qty', 'Unit Price', 'Tax Rate', 'Total'];
 
     // Build the complete document
-    const documentHTML = buildSimpleDocument({
+    const documentHTML = await buildSimpleDocument({
         documentId: waybillId,
         documentType: 'WAY BILL',
         buyerInfo: buyerInfoHTML,

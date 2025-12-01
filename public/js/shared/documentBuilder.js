@@ -314,9 +314,9 @@ class DocumentBuilder {
 /**
  * Helper function to build a simple single-page document
  * @param {Object} options - Document options
- * @returns {string} Document HTML
+ * @returns {Promise<string>} Document HTML
  */
-function buildSimpleDocument(options) {
+async function buildSimpleDocument(options) {
     const {
         documentId,
         documentType,
@@ -330,7 +330,8 @@ function buildSimpleDocument(options) {
 
     const builder = new DocumentBuilder(documentType.toLowerCase());
     
-    builder.addSection(SectionRenderers.renderHeader());
+    // Await async section renderers
+    builder.addSection(await SectionRenderers.renderHeader());
     builder.addSection(SectionRenderers.renderTitle(documentType, documentId));
     
     if (buyerInfo || infoSection) {
@@ -346,7 +347,7 @@ function buildSimpleDocument(options) {
     // Add any additional sections
     additionalSections.forEach(section => builder.addSection(section));
     
-    builder.addSection(SectionRenderers.renderSignatory());
+    builder.addSection(await SectionRenderers.renderSignatory());
     builder.addSection(SectionRenderers.renderFooter(footerMessage));
     
     return builder.wrapInContainer(builder.build());

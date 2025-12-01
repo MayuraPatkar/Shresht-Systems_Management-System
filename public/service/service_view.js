@@ -202,7 +202,11 @@ async function viewService(serviceId) {
 }
 
 // Generate print preview for service (matching invoice design exactly)
-function generateServicePreview(service, invoice) {
+async function generateServicePreview(service, invoice) {
+    // Fetch company data from database
+    const company = await window.companyConfig.getCompanyInfo();
+    const bank = company.bank_details || {};
+    
     const previewContent = document.getElementById('view-service-preview-content');
     
     const serviceDate = formatDateIndian(service.service_date);
@@ -385,19 +389,19 @@ function generateServicePreview(service, invoice) {
             <div class="header">
                 <div class="quotation-brand">
                     <div class="logo">
-                        <img src="../assets/icon.png" alt="Shresht Logo">
+                        <img src="../assets/icon.png" alt="${company.company} Logo">
                     </div>
                     <div class="quotation-brand-text">
-                        <h1>SHRESHT SYSTEMS</h1>
-                        <p class="quotation-tagline">CCTV & Security Solutions</p>
+                        <h1>${company.company.toUpperCase()}</h1>
+                        <p class="quotation-tagline">CCTV & Energy Solutions</p>
                     </div>
                 </div>
                 <div class="company-details">
-                    <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                    <p>Ph: 7204657707 / 9901730305</p>
-                    <p>GSTIN: 29AGCPN4093N1ZS</p>
-                    <p>Email: shreshtsystems@gmail.com</p>
-                    <p>Website: www.shreshtsystems.com</p>
+                    <p>${company.address}</p>
+                    <p>Ph: ${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''}</p>
+                    <p>GSTIN: ${company.GSTIN}</p>
+                    <p>Email: ${company.email}</p>
+                    <p>Website: ${company.website}</p>
                 </div>
             </div>
 
@@ -459,11 +463,11 @@ function generateServicePreview(service, invoice) {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                                <p><strong>Bank Name: </strong>Canara Bank</p>
-                                <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                                <p><strong>Account No: </strong>120002152652</p>
-                                <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
+                                <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
+                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -489,7 +493,7 @@ function generateServicePreview(service, invoice) {
             </div>
 
             <div class="eighth-section">
-                <p>For SHRESHT SYSTEMS</p>
+                <p>For ${company.company.toUpperCase()}</p>
                 <div class="eighth-section-space"></div>
                 <p><strong>Authorized Signatory</strong></p>
             </div>
@@ -643,7 +647,11 @@ window.viewServiceHistory = viewServiceHistory;
 window.getServiceStageLabel = getServiceStageLabel;
 
 // Original generatePreview function (for form preview - keep existing functionality)
-function generatePreview() {
+async function generatePreview() {
+    // Fetch company data from database
+    const company = await window.companyConfig.getCompanyInfo();
+    const bank = company.bank_details || {};
+    
     const serviceId = document.getElementById('service-id')?.value || '';
     const invoiceId = document.getElementById('invoice-id')?.value || '';
     const serviceStage = parseInt(document.getElementById('service-stage')?.value || 0);
@@ -860,19 +868,19 @@ function generatePreview() {
             <div class="header">
                 <div class="quotation-brand">
                     <div class="logo">
-                        <img src="../assets/icon.png" alt="Shresht Logo">
+                        <img src="../assets/icon.png" alt="${company.company} Logo">
                     </div>
                     <div class="quotation-brand-text">
-                        <h1>SHRESHT SYSTEMS</h1>
-                        <p class="quotation-tagline">CCTV & Security Solutions</p>
+                        <h1>${company.company.toUpperCase()}</h1>
+                        <p class="quotation-tagline">CCTV & Energy Solutions</p>
                     </div>
                 </div>
                 <div class="company-details">
-                    <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                    <p>Ph: 7204657707 / 9901730305</p>
-                    <p>GSTIN: 29AGCPN4093N1ZS</p>
-                    <p>Email: shreshtsystems@gmail.com</p>
-                    <p>Website: www.shreshtsystems.com</p>
+                    <p>${company.address}</p>
+                    <p>Ph: ${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''}</p>
+                    <p>GSTIN: ${company.GSTIN}</p>
+                    <p>Email: ${company.email}</p>
+                    <p>Website: ${company.website}</p>
                 </div>
             </div>
 
@@ -936,11 +944,11 @@ function generatePreview() {
                                 <img src="../assets/shresht-systems-payment-QR-code.jpg" alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                                <p><strong>Bank Name: </strong>Canara Bank</p>
-                                <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                                <p><strong>Account No: </strong>120002152652</p>
-                                <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
+                                <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
+                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -967,7 +975,7 @@ function generatePreview() {
             </div>
 
             <div class="eighth-section">
-                <p>For SHRESHT SYSTEMS</p>
+                <p>For ${company.company.toUpperCase()}</p>
                 <div class="eighth-section-space"></div>
                 <p><strong>Authorized Signatory</strong></p>
             </div>

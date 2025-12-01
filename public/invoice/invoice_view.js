@@ -1,7 +1,17 @@
 // NOTE: calculateInvoice function has been moved to public/js/shared/calculations.js
 // It is now available globally via window.calculateInvoice
 
-function generateInvoicePreview(invoice = {}, userRole, type,) {
+async function generateInvoicePreview(invoice = {}, userRole, type,) {
+    // Fetch company info for dynamic header/footer/bank details
+    const company = window.companyConfig ? await window.companyConfig.getCompanyInfo() : null;
+    const companyName = company?.company?.toUpperCase() || 'COMPANY NAME';
+    const companyAddress = company?.address || 'Company Address';
+    const companyPhone = company?.phone ? `${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''}` : '';
+    const companyGSTIN = company?.GSTIN || '';
+    const companyEmail = company?.email || '';
+    const companyWebsite = company?.website || '';
+    const bankDetails = company?.bank_details || {};
+    
     let itemsHTML = "";
     let totalPrice = 0;
     let totalCGST = 0;
@@ -225,19 +235,19 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
             <div class="header">
                 <div class="quotation-brand">
                     <div class="logo">
-                        <img src="../assets/icon.png" alt="Shresht Logo">
+                        <img src="../assets/icon.png" alt="${companyName} Logo">
                     </div>
                     <div class="quotation-brand-text">
-                        <h1>SHRESHT SYSTEMS</h1>
+                        <h1>${companyName}</h1>
                         <p class="quotation-tagline">CCTV & Energy Solutions</p>
                     </div>
                 </div>
                 <div class="company-details">
-                    <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                    <p>Ph: 7204657707 / 9901730305</p>
-                    <p>GSTIN: 29AGCPN4093N1ZS</p>
-                    <p>Email: shreshtsystems@gmail.com</p>
-                    <p>Website: www.shreshtsystems.com</p>
+                    <p>${companyAddress}</p>
+                    <p>Ph: ${companyPhone}</p>
+                    <p>GSTIN: ${companyGSTIN}</p>
+                    <p>Email: ${companyEmail}</p>
+                    <p>Website: ${companyWebsite}</p>
                 </div>
             </div>
 
@@ -302,11 +312,11 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                                <p><strong>Bank Name: </strong>Canara Bank</p>
-                                <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                                <p><strong>Account No: </strong>120002152652</p>
-                                <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                                <p><strong>Account Holder Name: </strong>${bankDetails.name || companyName}</p>
+                                <p><strong>Bank Name: </strong>${bankDetails.bank_name || ''}</p>
+                                <p><strong>Branch Name: </strong>${bankDetails.branch || ''}</p>
+                                <p><strong>Account No: </strong>${bankDetails.accountNo || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bankDetails.IFSC_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -332,7 +342,7 @@ function generateInvoicePreview(invoice = {}, userRole, type,) {
             </div>
 
             <div class="eighth-section">
-                <p>For SHRESHT SYSTEMS</p>
+                <p>For ${companyName}</p>
                 <div class="eighth-section-space"></div>
                 <p><strong>Authorized Signatory</strong></p>
             </div>

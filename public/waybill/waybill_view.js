@@ -1,4 +1,4 @@
-function generateViewPreviewHTML(wayBill) {
+async function generateViewPreviewHTML(wayBill) {
     let itemsHTML = "";
     let sno = 0;
     (wayBill.items || []).forEach(item => {
@@ -71,7 +71,7 @@ function generateViewPreviewHTML(wayBill) {
             </div>
         </div>`;
 
-    const documentHTML = buildSimpleDocument({
+    const documentHTML = await buildSimpleDocument({
         documentId: wayBill.waybill_id || '',
         documentType: 'WAY BILL',
         buyerInfo: buyerInfoHTML,
@@ -194,7 +194,7 @@ async function viewWayBill(wayBillId) {
         setTextContent('view-tax', totalTax > 0 ? `₹ ${formatIndian(totalTax, 2)}` : 'No Tax');
         setTextContent('view-grand-total', `₹ ${formatIndian(grandTotal, 2)}`);
 
-        generateViewPreviewHTML(waybill);
+        await generateViewPreviewHTML(waybill);
 
     } catch (error) {
         console.error("Error fetching waybill:", error);
