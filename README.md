@@ -2,7 +2,7 @@
 
 A comprehensive desktop management system for Shresht Systems, built with Electron, Express, and MongoDB. This professional application streamlines business processes including quotations, invoices, purchase orders, waybills, service management, stock tracking, reports, analytics, and communications.
 
-**Version:** 3.3.0  
+**Version:** 3.3.1  
 **Website:** https://shreshtsystems.com
 
 ---
@@ -109,8 +109,8 @@ Shresht-Systems_Management-System/
 │       ├── initDatabase.js        # Database initialization
 │       ├── hashPasswords.js       # Password hashing utility
 │       ├── alertHandler.js        # Electron alert dialogs
-│       ├── printHandler.js        # Print/PDF generation
-│       └── puppeteerPrintHandler.js # Puppeteer-based PDF generation
+│       ├── printHandler.js        # Legacy print handler
+│       └── quotationPrintHandler.js # Native Electron print/PDF
 │
 ├── public/                        # Frontend assets
 │   ├── js/shared/                 # Shared utilities (IMPORTANT)
@@ -259,7 +259,7 @@ npm run release
 - **Logging:** Winston v3
 - **Validation:** express-validator v7
 - **Security:** Helmet v8, bcryptjs, express-rate-limit
-- **PDF Generation:** Puppeteer v24
+- **PDF Generation:** Native Electron BrowserWindow (printToPDF)
 - **Auto Updates:** electron-updater v6
 
 ### Design Patterns
@@ -651,6 +651,14 @@ npm install
 
 ## Changelog
 
+### Version 3.3.1 (2025-12-01)
+- ✅ **REMOVED:** Puppeteer dependency - replaced with native Electron printing
+- ✅ **Improved:** PDF generation now uses Electron's built-in `printToPDF()` API
+- ✅ **Improved:** Faster, lighter print handling via hidden BrowserWindows
+- ✅ **Removed:** `puppeteerPrintHandler.js` - replaced by `quotationPrintHandler.js`
+- ✅ **Removed:** `dataWorksheet.js` from calculations module (migrated to reports)
+- ✅ **Fixed:** Reduced app bundle size by removing Chromium dependency
+
 ### Version 3.3.0 (2025-12-01)
 - ✅ **NEW:** Reports Module with 3 report types
   - Stock Report with movement tracking
@@ -667,7 +675,6 @@ npm install
 
 ### Version 3.0.0 - 3.2.x
 - ✅ **Added:** Auto-update functionality via GitHub releases
-- ✅ **Added:** Puppeteer-based PDF generation
 - ✅ **Added:** Backup scheduler for automated backups
 - ✅ **Added:** Sequential ID generator (Counter model)
 - ✅ **Improved:** Document builder system with pagination
