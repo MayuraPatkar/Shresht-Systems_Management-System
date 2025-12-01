@@ -269,46 +269,41 @@ function addItemFromData(item, itemSno) {
         <div class="item-number">${itemSno}</div>
         <div class="item-field description">
             <div style="position: relative;">
-                <input type="text" value="${item.description || ''}" placeholder="Description" required>
+                <input type="text" value="${item.description || ''}" placeholder="Enter item description" required>
                 <ul class="suggestions"></ul>
             </div>
         </div>
         <div class="item-field hsn">
-            <input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN Code" required>
+            <input type="text" value="${item.HSN_SAC || ''}" placeholder="Code" required>
         </div>
         <div class="item-field qty">
-            <input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required>
+            <input type="number" value="${item.quantity || ''}" placeholder="0" min="1" required>
+        </div>
+        <div class="item-field price">
+            <input type="number" value="${item.unit_price || ''}" placeholder="0.00" step="0.01" required>
         </div>
         <div class="item-field rate">
-            <input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required>
+            <input type="number" value="${item.rate || ''}" placeholder="0" min="0" step="0.01">
         </div>
-        <div class="item-field rate">
-            <input type="number" value="${item.rate || ''}" placeholder="Tax Rate" required>
-        </div>
-        <button type="button" class="remove-item-btn">
-            <i class="fas fa-times"></i>
+        <button type="button" class="remove-item-btn" title="Remove Item">
+            <i class="fas fa-trash-alt"></i>
         </button>
     `;
     itemsContainer.appendChild(card);
     
     // Create hidden table row
     const row = document.createElement("tr");
-    row.className = "border-b border-gray-200 hover:bg-gray-50";
     row.innerHTML = `
-        <td class="border border-gray-300 px-4 py-3 text-center text-base"><div class="item-number">${itemSno}</div></td>
-        <td class="border border-gray-300 px-2 py-2">
-            <input type="text" value="${item.description || ''}" required>
+        <td><div class="item-number">${itemSno}</div></td>
+        <td>
+            <input type="text" value="${item.description || ''}" placeholder="Item Description" required>
             <ul class="suggestions"></ul>
         </td>
-        <td class="border border-gray-300 px-2 py-2"><input type="text" value="${item.HSN_SAC || ''}" required></td>
-        <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.quantity || ''}" min="1" required></td>
-        <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.unit_price || ''}" required></td>
-        <td class="border border-gray-300 px-2 py-2"><input type="number" value="${item.rate || ''}" required></td>
-        <td class="border border-gray-300 px-2 py-2 text-center">
-            <button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm">
-                <i class="fas fa-trash"></i>
-            </button>
-        </td>
+        <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
+        <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
+        <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
+        <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+        <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
     `;
     itemsTableBody.appendChild(row);
     

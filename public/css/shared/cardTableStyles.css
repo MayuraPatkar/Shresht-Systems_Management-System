@@ -90,7 +90,7 @@
 /* Item Number Badge */
 .item-number {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
+    color: #ffffff !important;
     min-width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.5rem;
@@ -115,6 +115,7 @@
     font-weight: 700;
     font-size: 0.8125rem;
     padding: 0 6px;
+    color: #ffffff !important;
 }
 
 /* Table remove button - smaller icon-only style */
