@@ -108,13 +108,13 @@ document.getElementById("next-btn").addEventListener("click", () => {
                     quotation.items.forEach(item => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
-                            <td>${sno++}</td>
+                            <td><div class="item-number">${sno++}</div></td>
                             <td><input type="text" value="${item.description}" required></td>
                             <td><input type="text" value="${item.HSN_SAC}" required></td>
                             <td><input type="number" value="${item.quantity}" min="1" required></td>
                             <td><input type="number" value="${item.unit_price}" required></td>
                             <td><input type="number" value="${item.rate}" required></td>
-                            <td><button type="button" class="remove-item-btn">Remove</button></td>
+                            <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                         `;
                         itemsTableBody.appendChild(row);
                     });
@@ -126,7 +126,7 @@ document.getElementById("next-btn").addEventListener("click", () => {
                             <td><input type="text" value="${item.description}" required></td>
                             <td><input type="number" value="${item.price}" required></td>
                             <td><input type="number" value="${item.rate}" required></td>
-                            <td><button type="button" class="remove-item-btn">Remove</button></td>
+                            <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                         `;
                         nonItemsTableBody.appendChild(row);
                     });
@@ -227,13 +227,13 @@ async function openInvoice(id) {
                 // Create hidden table row
                 const row = document.createElement("tr");
                 row.innerHTML = `
-                <td>${s}</td>
+                <td><div class="item-number">${s}</div></td>
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="text" value="${item.HSN_SAC}" required></td>
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
                 <td><input type="number" value="${item.unit_price}" required></td>
                 <td><input type="number" value="${item.rate}" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
                 itemsTableBody.appendChild(row);
                 
@@ -280,11 +280,11 @@ async function openInvoice(id) {
                 // Create hidden table row
                 const row = document.createElement("tr");
                 row.innerHTML = `
-                <td>${s}</td>
+                <td><div class="item-number">${s}</div></td>
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="number" value="${item.price}" required></td>
                 <td><input type="number" value="${item.rate}" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
                 nonItemsTableBody.appendChild(row);
                 
@@ -346,7 +346,7 @@ async function openInvoice(id) {
                 <td><input type="number" value="${item.quantity}" min="1" required></td>
                 <td><input type="number" value="${item.unit_price}" required></td>
                 <td><input type="number" value="${item.rate}" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
                 itemsTableBody.appendChild(row);
                 
@@ -397,7 +397,7 @@ async function openInvoice(id) {
                 <td><input type="text" value="${item.description}" required></td>
                 <td><input type="number" value="${item.price}" required></td>
                 <td><input type="number" value="${item.rate}" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
                 nonItemsTableBody.appendChild(row);
                 

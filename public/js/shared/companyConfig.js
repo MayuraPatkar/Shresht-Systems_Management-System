@@ -105,13 +105,19 @@ async function formatCurrency(amount) {
 }
 
 /**
- * Format date according to settings
+ * Format date according to settings (synchronous interface)
+ * Returns a formatted date string immediately using the cached settings if available.
+ * If no settings are cached, returns a sensible default (DD/MM/YYYY) and refreshes settings asynchronously.
  * @param {Date|string} date - Date to format
- * @returns {Promise<string>} Formatted date string
+ * @returns {string} Formatted date string
  */
-async function formatDate(date) {
-    const settings = await getSettings();
-    const format = settings.preferences?.date_format || 'DD/MM/YYYY';
+function formatDate(date) {
+    // If settings are not loaded yet, trigger a background refresh
+    if (!settingsCache) {
+        // Fire-and-forget; don't await here to keep this function synchronous
+        getSettings().catch(err => console.warn('Could not refresh settings in background:', err));
+    }
+    const format = settingsCache?.preferences?.date_format || 'DD/MM/YYYY';
     const dateObj = new Date(date);
     
     const day = String(dateObj.getDate()).padStart(2, '0');

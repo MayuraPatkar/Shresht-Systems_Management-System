@@ -48,8 +48,8 @@ function generateViewPreviewHTML(wayBill) {
             ${wayBill.customer_email ? `<p>${wayBill.customer_email}</p>` : ''}
         </div>`;
     const infoSectionHTML = `
-        <div class="info-section">
-            <p><strong>Date:</strong> ${window.formatDate(wayBill.waybill_date) || ''}</p>
+            <div class="info-section">
+                <p><strong>Date:</strong> ${typeof formatDateIndian === 'function' ? formatDateIndian(wayBill.waybill_date) : (window.formatDate ? window.formatDate(wayBill.waybill_date) : '')}</p>
             <p><strong>Project Name:</strong> ${wayBill.project_name || ''}</p>
             <p><strong>Transportation Mode:</strong> ${wayBill.transport_mode || ''}</p>
             <p><strong>Vehicle Number:</strong> ${wayBill.vehicle_number || ''}</p>
@@ -136,7 +136,7 @@ async function viewWayBill(wayBillId) {
         document.getElementById('view-waybill-id').textContent = waybill.waybill_id || '-';
         // Display the waybill date if available
         const viewDateEl = document.getElementById('view-waybill-date');
-        if (viewDateEl) viewDateEl.textContent = waybill.waybill_date ? window.formatDate(waybill.waybill_date) : '-';
+        if (viewDateEl) viewDateEl.textContent = waybill.waybill_date ? (typeof formatDateIndian === 'function' ? formatDateIndian(waybill.waybill_date) : (window.formatDate ? window.formatDate(waybill.waybill_date) : waybill.waybill_date)) : '-';
 
         // Buyer & Consignee
         document.getElementById('view-buyer-name').textContent = waybill.customer_name || '-';

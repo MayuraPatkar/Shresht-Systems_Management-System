@@ -179,9 +179,16 @@ async function openWayBill(wayBillId) {
 
         document.getElementById('waybill-id').value = wayBill.waybill_id;
         document.getElementById('project-name').value = wayBill.project_name;
-        // Populate waybill date for editing
+        // Populate waybill date for editing. Use ISO YYYY-MM-DD for input value.
         const wbDateEl = document.getElementById('waybill-date');
-        if (wbDateEl) wbDateEl.value = wayBill.waybill_date ? window.formatDate(wayBill.waybill_date) : '';
+        if (wbDateEl) {
+            if (wayBill.waybill_date) {
+                const dt = new Date(wayBill.waybill_date);
+                wbDateEl.value = dt.toISOString().split('T')[0];
+            } else {
+                wbDateEl.value = '';
+            }
+        }
         document.getElementById('buyer-name').value = wayBill.customer_name;
         document.getElementById('buyer-address').value = wayBill.customer_address;
         document.getElementById('buyer-phone').value = wayBill.customer_phone;
@@ -288,7 +295,7 @@ function addItemFromData(item, itemSno) {
     const row = document.createElement("tr");
     row.className = "border-b border-gray-200 hover:bg-gray-50";
     row.innerHTML = `
-        <td class="border border-gray-300 px-4 py-3 text-center text-base">${itemSno}</td>
+        <td class="border border-gray-300 px-4 py-3 text-center text-base"><div class="item-number">${itemSno}</div></td>
         <td class="border border-gray-300 px-2 py-2">
             <input type="text" value="${item.description || ''}" required>
             <ul class="suggestions"></ul>
@@ -517,9 +524,12 @@ function renumberItems() {
     });
     
     rows.forEach((row, index) => {
-        const numberCell = row.querySelector('td:first-child');
-        if (numberCell) {
-            numberCell.textContent = index + 1;
+        const badge = row.querySelector('td:first-child .item-number');
+        if (badge) {
+            badge.textContent = index + 1;
+        } else {
+            const numberCell = row.querySelector('td:first-child');
+            if (numberCell) numberCell.textContent = index + 1;
         }
     });
 }
@@ -591,9 +601,10 @@ function generatePreview() {
         </div>`;
 
     const waybillDate = document.getElementById('waybill-date')?.value || document.getElementById('date')?.value || (new Date()).toISOString().split('T')[0];
+    const waybillDateDisplay = typeof formatDateIndian === 'function' ? formatDateIndian(waybillDate) : (window.formatDate ? window.formatDate(waybillDate) : waybillDate);
 
     const infoSectionHTML = SectionRenderers.renderInfoSection([
-        { label: 'Date', value: waybillDate },
+        { label: 'Date', value: waybillDateDisplay },
         { label: 'Project Name', value: projectName },
         { label: 'Transportation Mode', value: transportMode },
         { label: 'Vehicle Number', value: vehicleNumber },
@@ -660,9 +671,19 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
 
 // Function to collect form data
 function collectFormData() {
+    const rawDate = document.getElementById('waybill-date')?.value || document.getElementById('date')?.value || document.getElementById('waybill_date')?.value || (new Date()).toISOString().split('T')[0];
+    let waybillDateISO = rawDate;
+    try {
+        // Convert YYYY-MM-DD to ISO string for backend consistency
+        const d = new Date(rawDate);
+        waybillDateISO = d.toISOString();
+    } catch (err) {
+        waybillDateISO = rawDate;
+    }
+
     return {
         wayBillId: document.getElementById("waybill-id").value,
-        waybillDate: document.getElementById('waybill-date')?.value || document.getElementById('date')?.value || document.getElementById('waybill_date')?.value || (new Date()).toISOString().split('T')[0],
+        waybillDate: waybillDateISO,
         projectName: document.getElementById("project-name").value,
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,
