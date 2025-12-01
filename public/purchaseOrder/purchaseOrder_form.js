@@ -2,6 +2,152 @@ const totalSteps = 4;
 let purchaseOrderId = '';
 let totalAmount = 0;
 
+// Supplier data for autocomplete
+let supplierData = [];
+let supplierNames = [];
+let selectedSupplierIndex = -1;
+
+// Fetch supplier data on load
+async function fetchSuppliers() {
+    try {
+        const response = await fetch('/purchaseOrder/suppliers/list');
+        if (response.ok) {
+            const data = await response.json();
+            supplierData = data.suppliers || [];
+            supplierNames = supplierData.map(s => s.name);
+        }
+    } catch (error) {
+        console.error('Error fetching suppliers:', error);
+    }
+}
+
+// Initialize supplier autocomplete
+function initSupplierAutocomplete() {
+    const supplierNameInput = document.getElementById('supplier-name');
+    if (!supplierNameInput) return;
+    
+    // Create suggestions list if it doesn't exist
+    let suggestionsContainer = supplierNameInput.parentElement.querySelector('.supplier-suggestions');
+    if (!suggestionsContainer) {
+        suggestionsContainer = document.createElement('ul');
+        suggestionsContainer.className = 'supplier-suggestions suggestions';
+        supplierNameInput.parentElement.style.position = 'relative';
+        supplierNameInput.parentElement.appendChild(suggestionsContainer);
+    }
+    
+    supplierNameInput.addEventListener('input', function() {
+        showSupplierSuggestions(this, suggestionsContainer);
+    });
+    
+    supplierNameInput.addEventListener('keydown', function(event) {
+        handleSupplierKeyboardNavigation(event, this, suggestionsContainer);
+    });
+    
+    // Close suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!supplierNameInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+}
+
+function showSupplierSuggestions(input, suggestionsList) {
+    const query = input.value.toLowerCase().trim();
+    suggestionsList.innerHTML = '';
+    selectedSupplierIndex = -1;
+    
+    if (query.length === 0) {
+        suggestionsList.style.display = 'none';
+        return;
+    }
+    
+    const filtered = supplierData.filter(s => 
+        s.name && s.name.toLowerCase().includes(query)
+    );
+    
+    if (filtered.length === 0) {
+        suggestionsList.style.display = 'none';
+        return;
+    }
+    
+    suggestionsList.style.display = 'block';
+    
+    filtered.forEach((supplier, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${supplier.name}</strong><br><small style="color: #666;">${supplier.address || ''}</small>`;
+        li.style.padding = '8px 12px';
+        li.style.cursor = 'pointer';
+        li.style.borderBottom = '1px solid #eee';
+        
+        li.onclick = function() {
+            fillSupplierDetails(supplier);
+            suggestionsList.style.display = 'none';
+            selectedSupplierIndex = -1;
+        };
+        
+        li.onmouseenter = function() {
+            li.style.backgroundColor = '#f0f0f0';
+        };
+        li.onmouseleave = function() {
+            li.style.backgroundColor = '';
+        };
+        
+        suggestionsList.appendChild(li);
+    });
+}
+
+function handleSupplierKeyboardNavigation(event, input, suggestionsList) {
+    const items = suggestionsList.querySelectorAll('li');
+    if (items.length === 0) return;
+    
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        selectedSupplierIndex = (selectedSupplierIndex + 1) % items.length;
+        updateSupplierSelection(items);
+    } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        selectedSupplierIndex = (selectedSupplierIndex - 1 + items.length) % items.length;
+        updateSupplierSelection(items);
+    } else if (event.key === 'Enter') {
+        event.preventDefault();
+        if (selectedSupplierIndex >= 0 && items[selectedSupplierIndex]) {
+            items[selectedSupplierIndex].click();
+        }
+    } else if (event.key === 'Escape') {
+        suggestionsList.style.display = 'none';
+        selectedSupplierIndex = -1;
+    }
+}
+
+function updateSupplierSelection(items) {
+    items.forEach((item, index) => {
+        if (index === selectedSupplierIndex) {
+            item.style.backgroundColor = '#e0e7ff';
+        } else {
+            item.style.backgroundColor = '';
+        }
+    });
+    
+    // Scroll selected item into view
+    if (selectedSupplierIndex >= 0 && items[selectedSupplierIndex]) {
+        items[selectedSupplierIndex].scrollIntoView({ block: 'nearest' });
+    }
+}
+
+function fillSupplierDetails(supplier) {
+    document.getElementById('supplier-name').value = supplier.name || '';
+    document.getElementById('supplier-address').value = supplier.address || '';
+    document.getElementById('supplier-phone').value = supplier.phone || '';
+    document.getElementById('supplier-email').value = supplier.email || '';
+    document.getElementById('supplier-GSTIN').value = supplier.GSTIN || '';
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchSuppliers();
+    initSupplierAutocomplete();
+});
+
 // Note: selectedIndex, data, fetchData, fetchStockData, showSuggestions, and handleKeyboardNavigation
 // are already defined in globalScript.js
 
@@ -350,7 +496,11 @@ document.getElementById("save-pdf-btn").addEventListener("click", async () => {
 });
 
 // Function to generate the preview
-function generatePreview() {
+async function generatePreview() {
+    // Fetch company data from database
+    const companyData = await window.companyConfig.getCompanyInfo();
+    const bank = companyData.bank_details || {};
+    
     if (!purchaseOrderId) purchaseOrderId = document.getElementById('id').value;
     const purchaseDate = document.getElementById("purchase-date").value || new Date().toLocaleDateString();
     const purchaseInvoiceId = document.getElementById("purchase-invoice-id").value || purchaseOrderId;
@@ -442,7 +592,7 @@ function generatePreview() {
                 <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
                 <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-                <p>₹ ${formatIndian(totalPrice, 2)}</p>
+                <p>₹ ${formatIndian(totalAmount, 2)}</p>
             </div>
         </div>
     `;
@@ -486,19 +636,19 @@ function generatePreview() {
         <div class="header">
         <div class="quotation-brand">
             <div class="logo">
-                <img src="../assets/icon.png" alt="Shresht Logo">
+                <img src="../assets/icon.png" alt="${companyData.company} Logo">
             </div>
             <div class="quotation-brand-text">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p class="quotation-tagline">CCTV & Security Solutions</p>
+                <h1>${companyData.company.toUpperCase()}</h1>
+                <p class="quotation-tagline">CCTV & Energy Solutions</p>
             </div>
         </div>
         <div class="company-details">
-            <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-            <p>Ph: 7204657707 / 9901730305</p>
-            <p>GSTIN: 29AGCPN4093N1ZS</p>
-            <p>Email: shreshtsystems@gmail.com</p>
-            <p>Website: www.shreshtsystems.com</p>
+            <p>${companyData.address}</p>
+            <p>Ph: ${companyData.phone.ph1}${companyData.phone.ph2 ? ' / ' + companyData.phone.ph2 : ''}</p>
+            <p>GSTIN: ${companyData.GSTIN}</p>
+            <p>Email: ${companyData.email}</p>
+            <p>Website: ${companyData.website}</p>
         </div>
     </div>
 
@@ -560,11 +710,11 @@ function generatePreview() {
                                 alt="qr-code" />
                         </div>
                         <div class="bank-details-sub2">
-                            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                            <p><strong>Bank Name: </strong>Canara Bank</p>
-                            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                            <p><strong>Account No: </strong>120002152652</p>
-                            <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                            <p><strong>Account Holder Name: </strong>${bank.name || companyData.company}</p>
+                            <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
+                            <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
+                            <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
+                            <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
                         </div>
                     </div>
                 </div>
@@ -590,7 +740,7 @@ function generatePreview() {
         </div>
 
         <div class="eighth-section">
-            <p>For SHRESHT SYSTEMS</p>
+            <p>For ${companyData.company.toUpperCase()}</p>
             <div class="eighth-section-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
@@ -884,9 +1034,6 @@ window.validateCurrentStep = async function () {
             { id: 'purchase-date', name: 'Purchase Date' },
             { id: 'supplier-name', name: 'Supplier Name' },
             { id: 'supplier-address', name: 'Supplier Address' },
-            { id: 'supplier-phone', name: 'Supplier Phone' },
-            { id: 'supplier-email', name: 'Supplier Email' },
-            { id: 'supplier-GSTIN', name: 'Supplier GSTIN' }
         ];
         for (const f of fields) {
             const el = document.getElementById(f.id);

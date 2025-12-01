@@ -23,9 +23,9 @@ function normalizeTermsHTML(raw) {
 }
 
 
-function getQuotationHeaderHTML() {
+async function getQuotationHeaderHTML() {
     if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
-        return window.SectionRenderers.renderQuotationDocumentHeader();
+        return await window.SectionRenderers.renderQuotationDocumentHeader();
     }
     // Fallback header if SectionRenderers not loaded
     return `
@@ -49,9 +49,9 @@ function getQuotationHeaderHTML() {
 }
 
 
-document.getElementById("view-preview").addEventListener("click", () => {
+document.getElementById("view-preview").addEventListener("click", async () => {
     changeStep(totalSteps);
-    generatePreview();
+    await generatePreview();
 });
 
 // Open a quotation for editing
@@ -298,7 +298,7 @@ async function getId() {
         const data = await response.json();
         document.getElementById('id').value = data.quotation_id;
         quotationId = data.quotation_id;
-        if (quotationId) generatePreview();
+        if (quotationId) await generatePreview();
     } catch (error) {
         console.error("Error fetching quotation id:", error);
         window.electronAPI.showAlert1("Failed to fetch quotation id. Please try again later.");
@@ -315,7 +315,7 @@ async function generateFilePages(files) {
         return filePath;
     };
 
-    const headerHTML = getQuotationHeaderHTML();
+    const headerHTML = await getQuotationHeaderHTML();
 
     const pages = await Promise.all(Array.from(files).map(async (file) => {
         const imagePath = await getFilePath(file);
@@ -342,6 +342,11 @@ async function generateFilePages(files) {
 
 // Function to generate the preview for both tax rate and without tax rate
 async function generatePreview() {
+    // Fetch company data from database
+    const company = await window.companyConfig.getCompanyInfo();
+    const bank = company.bank_details || {};
+    const phoneStr = company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '');
+    
     if (!quotationId) {
         quotationId = document.getElementById('id').value;
     }
@@ -351,7 +356,7 @@ async function generatePreview() {
     const buyerPhone = document.getElementById("buyer-phone").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
     const nonItemsTable = document.querySelector('#non-items-table tbody');
-    const headerHTML = getQuotationHeaderHTML();
+    const headerHTML = await getQuotationHeaderHTML();
 
     let totalPrice = 0;
     let totalCGST = 0;
@@ -463,7 +468,7 @@ async function generatePreview() {
                 <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
                 <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-                <p>₹ ${formatIndian(totalPrice, 2)}</p>
+                <p>₹ ${formatIndian(Math.round(totalPrice), 2)}</p>
             </div>
         </div>
     `;
@@ -550,11 +555,11 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                                <p><strong>Bank Name: </strong>Canara Bank</p>
-                                <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                                <p><strong>Account No: </strong>120002152652</p>
-                                <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
+                                <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
+                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -601,7 +606,7 @@ async function generatePreview() {
 
             <p>Dear ${buyerName},</p>
 
-            <p contenteditable="true">We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>Shresht Systems</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.</p>
+            <p contenteditable="true">We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>${company.company}</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.</p>
             <p>Our proposal includes:</p>
             <ul contenteditable="true">
                 <li>Cutting-edge technology and premium-grade equipment</li>
@@ -615,11 +620,10 @@ async function generatePreview() {
             <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
           
             <p>Best regards,</p>
-            <p><strong>Sandeep Nayak</strong><br>
-               <strong>Shresht Systems</strong><br>
-               Ph: 7204657707 / 9901730305<br>
-               Email: shreshtsystems@gmail.com<br>
-               Website: www.shreshtsystems.com</p>
+            <p><strong>${company.company}</strong><br>
+               Ph: ${phoneStr}<br>
+               Email: ${company.email}<br>
+               Website: ${company.website}</p>
         </div>
         
         <footer>
@@ -661,7 +665,7 @@ async function generatePreview() {
         <div class="closing-section">
             <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
             <p>Thanking you,</p>
-            <p><strong>For Shresht Systems,</strong><br>Sandeep Nayak<br>Mob: +91 7204657707 / 9901730305</p>
+            <p><strong>For ${company.company},</strong><br>Mob: +91 ${phoneStr}</p>
         </div>
 
         <footer>
@@ -724,11 +728,11 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                                <p><strong>Bank Name: </strong>Canara Bank</p>
-                                <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                                <p><strong>Account No: </strong>120002152652</p>
-                                <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
+                                <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
+                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -776,11 +780,10 @@ async function generatePreview() {
             <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
           
             <p>Best regards,</p>
-            <p><strong>Sandeep Nayak</strong><br>
-               <strong>Shresht Systems</strong><br>
-               Ph: 7204657707 / 9901730305<br>
-               Email: shreshtsystems@gmail.com<br>
-               Website: www.shreshtsystems.com</p>
+            <p><strong>${company.company}</strong><br>
+               Ph: ${phoneStr}<br>
+               Email: ${company.email}<br>
+               Website: ${company.website}</p>
         </div>
         
         <footer>
@@ -801,7 +804,7 @@ async function generatePreview() {
         <div class="closing-section">
             <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
             <p>Thanking you,</p>
-            <p><strong>For Shresht Systems,</strong><br>Sandeep Nayak<br>Mob: +91 7204657707 / 9901730305</p>
+            <p><strong>For ${company.company},</strong><br>Mob: +91 ${phoneStr}</p>
         </div>
 
         <footer>
@@ -988,7 +991,7 @@ async function loadQuotationForEditing(id) {
         });
 
         // Generate the preview with the loaded data
-        generatePreview();
+        await generatePreview();
 
         // Inject the saved editable content into the newly generated preview
         const previewContent = document.getElementById('preview-content');

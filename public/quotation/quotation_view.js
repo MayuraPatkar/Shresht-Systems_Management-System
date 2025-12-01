@@ -1,6 +1,6 @@
-function getQuotationHeaderHTML() {
+async function getQuotationHeaderHTML() {
     if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
-        return window.SectionRenderers.renderQuotationDocumentHeader();
+        return await window.SectionRenderers.renderQuotationDocumentHeader();
     }
     // Fallback header if SectionRenderers not loaded
     return `
@@ -35,7 +35,12 @@ function normalizeTermsHTML(raw) {
  * Generate and display the preview for the quotation in view-preview-content.
  * This works for both withTax and withoutTax view modes.
  */
-function generateViewPreviewHTML(quotation, viewType) {
+async function generateViewPreviewHTML(quotation, viewType) {
+    // Fetch company data from database
+    const company = await window.companyConfig.getCompanyInfo();
+    const bank = company.bank_details || {};
+    const phoneStr = company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '');
+    
     let totalTaxableValue = 0;
     let totalTax = 0;
     let totalPrice = 0;
@@ -43,7 +48,7 @@ function generateViewPreviewHTML(quotation, viewType) {
 
     const allRenderableItems = [];
     const CHARS_PER_LINE = 60; // Estimated row height for pagination
-    const headerHTML = getQuotationHeaderHTML();
+    const headerHTML = await getQuotationHeaderHTML();
 
     // Process regular items
     (quotation.items || []).forEach(item => {
@@ -102,8 +107,8 @@ function generateViewPreviewHTML(quotation, viewType) {
         allRenderableItems.push({ html: nonItemHTML, rowCount: rowCount });
     });
 
-    // Grand totals
-    let grandTotal = totalPrice + totalNonItemsPrice;
+    // Grand totals - round off to nearest rupee
+    let grandTotal = Math.round(totalPrice + totalNonItemsPrice);
 
     // Format the date for display (DD/MM/YYYY format)
     const formattedDate = formatDateIndian(quotation.quotation_date);
@@ -193,7 +198,7 @@ function generateViewPreviewHTML(quotation, viewType) {
                         <h3>Payment Details:</h3>
                         <div class="bank-details">
                             <div class="QR-code bank-details-sub1"><img src="../assets/shresht-systems-payment-QR-code.jpg" alt="qr-code" /></div>
-                            <div class="bank-details-sub2"><p><strong>Account Holder Name: </strong>Shresht Systems</p><p><strong>Bank Name: </strong>Canara Bank</p><p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p><p><strong>Account No: </strong>120002152652</p><p><strong>IFSC Code: </strong>CNRB0010261</p></div>
+                            <div class="bank-details-sub2"><p><strong>Account Holder Name: </strong>${bank.name || company.company}</p><p><strong>Bank Name: </strong>${bank.bank_name || ''}</p><p><strong>Branch Name: </strong>${bank.branch || ''}</p><p><strong>Account No: </strong>${bank.accountNo || ''}</p><p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p></div>
                         </div>
                     </div>
                     <div class="totals-section">${totalsHTML}</div>
@@ -228,7 +233,7 @@ function generateViewPreviewHTML(quotation, viewType) {
             <p>${quotation.letter_3 || ''}</p>
             <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
             <p>Best regards,</p>
-            <p><strong>Sandeep Nayak</strong><br><strong>Shresht Systems</strong><br>Ph: 7204657707 / 9901730305<br>Email: shreshtsystems@gmail.com<br>Website: www.shreshtsystems.com</p>
+            <p><strong>${company.company}</strong><br>Ph: ${phoneStr}<br>Email: ${company.email}<br>Website: ${company.website}</p>
         </div>
         <footer><p>This is a computer-generated quotation.</p></footer>
     </div>
@@ -239,7 +244,7 @@ function generateViewPreviewHTML(quotation, viewType) {
         <div class="closing-section">
             <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
             <p>Thanking you,</p>
-            <p><strong>For Shresht Systems,</strong><br>Sandeep Nayak<br>Mob: +91 7204657707 / 9901730305</p>
+            <p><strong>For ${company.company},</strong><br>Mob: +91 ${phoneStr}</p>
         </div>
         <footer><p>This is a computer-generated quotation.</p></footer>
     </div>`;
@@ -294,6 +299,7 @@ async function viewQuotation(quotationId, viewType) {
 
             totalTaxable += taxableValue;
             totalTax += taxAmount;
+            // Note: grandTotal is accumulated here but will be rounded at the end
             grandTotal += (viewType === 2) ? totalWithTax : taxableValue;
 
             const row = document.createElement("tr");
@@ -391,10 +397,10 @@ async function viewQuotation(quotationId, viewType) {
             itemNumber++;
         });
 
-        // Set totals (professional 3-box layout)
+        // Set totals (professional 3-box layout) - round off grand total
         const subtotal = totalTaxable;
         const tax = totalTax;
-        const total = grandTotal;
+        const total = Math.round(grandTotal);
 
         document.getElementById('view-subtotal').textContent = `₹ ${formatIndian(subtotal, 2) || '-'}`;
         document.getElementById('view-tax').textContent = viewType === 2 ? `₹ ${formatIndian(tax, 2) || '-'}` : 'No Tax';
@@ -432,7 +438,7 @@ async function viewQuotation(quotationId, viewType) {
         }
 
         // Show the preview in view-preview-content
-        generateViewPreviewHTML(quotation, viewType);
+        await generateViewPreviewHTML(quotation, viewType);
 
         // Print and Save as PDF handlers
         document.getElementById('printProject').onclick = () => {

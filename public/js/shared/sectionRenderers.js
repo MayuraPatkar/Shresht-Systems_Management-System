@@ -1,54 +1,53 @@
 /**
  * Section Renderers
  * Reusable HTML section generators for all document types
+ * Uses companyConfig for dynamic company/bank data
  */
 
 /**
- * Common company header section
+ * Common company header section (async - fetches from DB)
+ * @returns {Promise<string>} Header HTML
+ */
+async function renderHeader() {
+    if (window.companyConfig && window.companyConfig.getCompanyHeaderHTML) {
+        return await window.companyConfig.getCompanyHeaderHTML();
+    }
+    // Fallback if companyConfig not loaded
+    return renderHeaderSync();
+}
+
+/**
+ * Synchronous fallback header (for backwards compatibility)
  * @returns {string} Header HTML
  */
-function renderHeader() {
+function renderHeaderSync() {
     return `
     <div class="header">
         <div class="quotation-brand">
             <div class="logo">
-                <img src="../assets/icon.png" alt="Shresht Logo">
+                <img src="../assets/icon.png" alt="Company Logo">
             </div>
             <div class="quotation-brand-text">
-                <h1>SHRESHT SYSTEMS</h1>
+                <h1>COMPANY NAME</h1>
                 <p class="quotation-tagline">CCTV & Energy Solutions</p>
             </div>
         </div>
         <div class="company-details">
-            <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-            <p>Ph: 7204657707 / 9901730305</p>
-            <p>GSTIN: 29AGCPN4093N1ZS</p>
-            <p>Email: shreshtsystems@gmail.com</p>
-            <p>Website: www.shreshtsystems.com</p>
+            <p>Company Address</p>
+            <p>Ph: 0000000000</p>
+            <p>GSTIN: GSTIN NUMBER</p>
+            <p>Email: email@company.com</p>
+            <p>Website: www.company.com</p>
         </div>
     </div>`;
 }
 
-function renderQuotationDocumentHeader() {
-    return `
-    <div class="header">
-        <div class="quotation-brand">
-            <div class="logo">
-                <img src="../assets/icon.png" alt="Shresht Logo">
-            </div>
-            <div class="quotation-brand-text">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p class="quotation-tagline">CCTV & Energy Solutions</p>
-            </div>
-        </div>
-        <div class="company-details">
-            <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-            <p>Ph: 7204657707 / 9901730305</p>
-            <p>GSTIN: 29AGCPN4093N1ZS</p>
-            <p>Email: shreshtsystems@gmail.com</p>
-            <p>Website: www.shreshtsystems.com</p>
-        </div>
-    </div>`;
+/**
+ * Quotation document header (async - fetches from DB)
+ * @returns {Promise<string>} Header HTML
+ */
+async function renderQuotationDocumentHeader() {
+    return await renderHeader();
 }
 
 /**
@@ -186,10 +185,22 @@ function renderAmountInWords(amount) {
 }
 
 /**
- * Bank/Payment details section
+ * Bank/Payment details section (async - fetches from DB)
+ * @returns {Promise<string>} Payment details HTML
+ */
+async function renderPaymentDetails() {
+    if (window.companyConfig && window.companyConfig.getBankDetailsHTML) {
+        return await window.companyConfig.getBankDetailsHTML();
+    }
+    // Fallback if companyConfig not loaded
+    return renderPaymentDetailsSync();
+}
+
+/**
+ * Synchronous fallback payment details (for backwards compatibility)
  * @returns {string} Payment details HTML
  */
-function renderPaymentDetails() {
+function renderPaymentDetailsSync() {
     return `
     <h3>Payment Details</h3>
     <div class="bank-details">
@@ -198,23 +209,35 @@ function renderPaymentDetails() {
                 alt="qr-code" />
         </div>
         <div class="bank-details-sub2">
-            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-            <p><strong>Bank Name: </strong>Canara Bank</p>
-            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-            <p><strong>Account No: </strong>120002152652</p>
-            <p><strong>IFSC Code: </strong>CNRB0010261</p>
+            <p><strong>Account Holder Name: </strong>Account Holder</p>
+            <p><strong>Bank Name: </strong>Bank Name</p>
+            <p><strong>Branch Name: </strong>Branch Name</p>
+            <p><strong>Account No: </strong>0000000000</p>
+            <p><strong>IFSC Code: </strong>IFSC0000000</p>
         </div>
     </div>`;
 }
 
 /**
- * Authorized signatory section
+ * Authorized signatory section (async - fetches from DB)
+ * @returns {Promise<string>} Signatory HTML
+ */
+async function renderSignatory() {
+    if (window.companyConfig && window.companyConfig.getSignatoryHTML) {
+        return await window.companyConfig.getSignatoryHTML();
+    }
+    // Fallback if companyConfig not loaded
+    return renderSignatorySync();
+}
+
+/**
+ * Synchronous fallback signatory section
  * @returns {string} Signatory HTML
  */
-function renderSignatory() {
+function renderSignatorySync() {
     return `
     <div class="eighth-section">
-        <p>For SHRESHT SYSTEMS</p>
+        <p>For COMPANY NAME</p>
         <div class="eighth-section-space"></div>
         <p><strong>Authorized Signatory</strong></p>
     </div>`;
@@ -244,19 +267,20 @@ function renderContinuation() {
 }
 
 /**
- * Invoice-specific: Fifth section with amount in words, payment details, and totals
+ * Invoice-specific: Fifth section with amount in words, payment details, and totals (async)
  * @param {number} totalAmount - Total amount for words conversion
  * @param {Object} totals - Totals data
  * @param {boolean} hasTax - Whether to show tax breakdown
- * @returns {string} Fifth section HTML
+ * @returns {Promise<string>} Fifth section HTML
  */
-function renderInvoiceFifthSection(totalAmount, totals, hasTax) {
+async function renderInvoiceFifthSection(totalAmount, totals, hasTax) {
+    const paymentDetailsHTML = await renderPaymentDetails();
     return `
     <div class="fifth-section">
         <div class="fifth-section-sub1">
             <div class="fifth-section-sub2">
                 ${renderAmountInWords(totalAmount)}
-                ${renderPaymentDetails()}
+                ${paymentDetailsHTML}
             </div>
             ${renderTotals(totals, hasTax)}
         </div>
@@ -301,7 +325,7 @@ function renderTerms(content = null, editable = true) {
 }
 
 /**
- * Quotation-specific: Letter/proposal section
+ * Quotation-specific: Letter/proposal section (async - fetches from DB)
  * @param {Object} data - Letter data
  * @param {string} data.buyerName - Buyer name
  * @param {string} data.buyerAddress - Buyer address
@@ -310,9 +334,17 @@ function renderTerms(content = null, editable = true) {
  * @param {string} data.paragraph1 - First paragraph
  * @param {Array} data.bulletPoints - Bullet points array
  * @param {string} data.paragraph2 - Second paragraph
- * @returns {string} Letter HTML
+ * @returns {Promise<string>} Letter HTML
  */
-function renderQuotationLetter(data) {
+async function renderQuotationLetter(data) {
+    const company = window.companyConfig ? await window.companyConfig.getCompanyInfo() : null;
+    const companyName = company?.company || 'Company Name';
+    const phone1 = company?.phone?.ph1 || '';
+    const phone2 = company?.phone?.ph2 || '';
+    const phoneStr = phone1 + (phone2 ? ' / ' + phone2 : '');
+    const email = company?.email || 'email@company.com';
+    const website = company?.website || 'www.company.com';
+    
     const bulletPointsHTML = (data.bulletPoints || [])
         .map(point => `<li>${point}</li>`)
         .join('\n                ');
@@ -338,11 +370,10 @@ function renderQuotationLetter(data) {
         <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
       
         <p>Best regards,</p>
-        <p><strong>Sandeep Nayak</strong><br>
-           <strong>Shresht Systems</strong><br>
-           Ph: 7204657707 / 9901730305<br>
-           Email: shreshtsystems@gmail.com<br>
-           Website: www.shreshtsystems.com</p>
+        <p><strong>${companyName}</strong><br>
+           Ph: ${phoneStr}<br>
+           Email: ${email}<br>
+           Website: ${website}</p>
     </div>`;
 }
 
@@ -377,6 +408,7 @@ function renderNotes(notes = null) {
 if (typeof window !== 'undefined') {
     window.SectionRenderers = {
         renderHeader,
+        renderHeaderSync,
         renderQuotationDocumentHeader,
         renderTitle,
         renderBuyerDetails,
@@ -385,7 +417,9 @@ if (typeof window !== 'undefined') {
         renderTotals,
         renderAmountInWords,
         renderPaymentDetails,
+        renderPaymentDetailsSync,
         renderSignatory,
+        renderSignatorySync,
         renderFooter,
         renderContinuation,
         renderInvoiceFifthSection,

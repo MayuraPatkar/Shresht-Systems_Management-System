@@ -17,32 +17,32 @@ async function getCompanyInfo() {
     }
 
     try {
-        const response = await fetch('/auth/admin');
+        const response = await fetch('/admin/admin-info');
         if (!response.ok) {
             throw new Error('Failed to fetch company info');
         }
         
         const data = await response.json();
-        companyDataCache = data.admin;
+        companyDataCache = data;
         return companyDataCache;
     } catch (error) {
         console.error('Error fetching company info:', error);
         
         // Return default fallback data
         return {
-            company: 'SHRESHT SYSTEMS',
-            address: '3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113',
-            phone: { ph1: '7204657707', ph2: '9901730305' },
-            email: 'shreshtsystems@gmail.com',
-            website: 'www.shreshtsystems.com',
-            GSTIN: '29AGCPN4093N1ZS',
+            company: 'Company Name',
+            address: 'Company Address',
+            phone: { ph1: '0000000000', ph2: '' },
+            email: 'email@company.com',
+            website: 'www.company.com',
+            GSTIN: 'GSTIN Number',
             bank_details: {
-                bank_name: 'HDFC Bank',
-                name: 'Shresht Systems',
-                accountNo: '1234567890',
+                bank_name: 'Bank Name',
+                name: 'Account Holder Name',
+                accountNo: '0000000000',
                 type: 'Current',
-                IFSC_code: 'HDFC0001234',
-                branch: 'Udupi'
+                IFSC_code: 'IFSC0000000',
+                branch: 'Branch Name'
             }
         };
     }
@@ -144,18 +144,74 @@ async function getCompanyHeaderHTML() {
     
     return `
         <div class="header">
-            <div class="logo">
-                <img src="../assets/logo.png"
-                    alt="${company.company} Logo">
+            <div class="quotation-brand">
+                <div class="logo">
+                    <img src="../assets/icon.png" alt="${company.company} Logo">
+                </div>
+                <div class="quotation-brand-text">
+                    <h1>${company.company.toUpperCase()}</h1>
+                    <p class="quotation-tagline">CCTV & Energy Solutions</p>
+                </div>
             </div>
             <div class="company-details">
-                <h1>${company.company}</h1>
                 <p>${company.address}</p>
-                <p>Ph: ${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''} | GSTIN: ${company.GSTIN}</p>
-                <p>Email: ${company.email} | Website: ${company.website}</p>
+                <p>Ph: ${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''}</p>
+                <p>GSTIN: ${company.GSTIN}</p>
+                <p>Email: ${company.email}</p>
+                <p>Website: ${company.website}</p>
             </div>
         </div>
     `;
+}
+
+/**
+ * Generate bank/payment details HTML for documents
+ * @returns {Promise<string>} HTML string for bank details
+ */
+async function getBankDetailsHTML() {
+    const company = await getCompanyInfo();
+    const bank = company.bank_details || {};
+    
+    return `
+        <h3>Payment Details</h3>
+        <div class="bank-details">
+            <div class="QR-code bank-details-sub1">
+                <img src="../assets/shresht-systems-payment-QR-code.jpg" alt="qr-code" />
+            </div>
+            <div class="bank-details-sub2">
+                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
+                <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
+                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
+                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Generate signatory section HTML
+ * @returns {Promise<string>} HTML string for signatory section
+ */
+async function getSignatoryHTML() {
+    const company = await getCompanyInfo();
+    
+    return `
+        <div class="eighth-section">
+            <p>For ${company.company.toUpperCase()}</p>
+            <div class="eighth-section-space"></div>
+            <p><strong>Authorized Signatory</strong></p>
+        </div>
+    `;
+}
+
+/**
+ * Get company name
+ * @returns {Promise<string>} Company name
+ */
+async function getCompanyName() {
+    const company = await getCompanyInfo();
+    return company.company || 'Company';
 }
 
 /**
@@ -191,6 +247,9 @@ window.companyConfig = {
     formatCurrency,
     formatDate,
     getCompanyHeaderHTML,
+    getBankDetailsHTML,
+    getSignatoryHTML,
+    getCompanyName,
     clearCache,
     refreshCompanyInfo,
     refreshSettings
