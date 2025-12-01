@@ -92,6 +92,7 @@ const employeeRoute = require('./src/routes/employee');
 const analyticsRoutes = require('./src/routes/analytics');
 const commsRouter = require('./src/routes/comms');
 const settingsRoutes = require('./src/routes/settings');
+const reportsRoutes = require('./src/routes/reports');
 
 // Health check endpoint
 exServer.get('/health', async (req, res) => {
@@ -131,6 +132,7 @@ exServer.use('/employee', employeeRoute);
 exServer.use('/analytics', analyticsRoutes);
 exServer.use('/comms', commsRouter);
 exServer.use('/settings', settingsRoutes);
+exServer.use('/reports', reportsRoutes);
 
 // View routes LAST (to avoid catching API routes)
 exServer.use('/', viewRoutes);

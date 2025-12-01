@@ -27,6 +27,7 @@ document.addEventListener("keydown", function (event) {
       '/purchaseorder',
       '/stock',
       '/comms',
+      '/reports',
       '/calculations',
       '/settings'
     ];
@@ -98,6 +99,11 @@ document.getElementById('stock')?.addEventListener('click', () => {
 document.getElementById('comms')?.addEventListener('click', () => {
   window.location = '/comms';
   sessionStorage.setItem('currentTab', 'comms');
+})
+
+document.getElementById('reports')?.addEventListener('click', () => {
+  window.location = '/reports';
+  sessionStorage.setItem('currentTab', 'reports');
 })
 
 document.getElementById('calculations')?.addEventListener('click', () => {

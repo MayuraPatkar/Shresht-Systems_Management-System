@@ -14,6 +14,7 @@ const pages = [
     { route: '/service', file: 'service/service.html' },
     { route: '/stock', file: 'stock/stock.html' },
     { route: '/comms', file: 'comms/comms.html' },
+    { route: '/reports', file: 'reports/reports.html' },
     { route: '/employee', file: 'employees/employee.html' },
     { route: '/database', file: 'database.html' },
     { route: '/analytics', file: 'analytics/analytics.html' },
