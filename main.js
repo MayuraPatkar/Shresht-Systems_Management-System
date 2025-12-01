@@ -310,6 +310,105 @@ function setupIPCHandlers() {
     return getSafeConfig();
   });
 
+  // Handle changelog-related IPC requests
+  ipcMain.handle('get-changelog', () => {
+    try {
+      const changelogPath = path.join(__dirname, 'json', 'changelog.json');
+      const changelog = require(changelogPath);
+      return { success: true, changelog: changelog };
+    } catch (error) {
+      logger.error('Failed to load changelog:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Get current app version and check if changelog should be shown
+  ipcMain.handle('get-version-info', () => {
+    try {
+      const packageJson = require('./package.json');
+      const currentVersion = packageJson.version;
+      
+      // Check last seen version from app settings
+      const store = require('electron').app;
+      const lastSeenVersion = store.lastSeenVersion || null;
+      
+      return {
+        success: true,
+        currentVersion: currentVersion,
+        lastSeenVersion: lastSeenVersion,
+        showChangelog: lastSeenVersion !== currentVersion
+      };
+    } catch (error) {
+      logger.error('Failed to get version info:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Mark changelog as seen for current version
+  ipcMain.handle('mark-changelog-seen', () => {
+    try {
+      const packageJson = require('./package.json');
+      const currentVersion = packageJson.version;
+      
+      // Store last seen version in app
+      const store = require('electron').app;
+      store.lastSeenVersion = currentVersion;
+      
+      // Also save to a file for persistence across app restarts
+      const settingsPath = path.join(app.getPath('userData'), 'app-settings.json');
+      let settings = {};
+      
+      try {
+        if (fs.existsSync(settingsPath)) {
+          settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        }
+      } catch (e) {
+        // Ignore read errors, start fresh
+      }
+      
+      settings.lastSeenVersion = currentVersion;
+      settings.lastSeenAt = new Date().toISOString();
+      
+      fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+      
+      logger.info(`Changelog marked as seen for version ${currentVersion}`);
+      return { success: true, version: currentVersion };
+    } catch (error) {
+      logger.error('Failed to mark changelog as seen:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Check if changelog should be shown (reads from persisted settings)
+  ipcMain.handle('should-show-changelog', () => {
+    try {
+      const packageJson = require('./package.json');
+      const currentVersion = packageJson.version;
+      
+      const settingsPath = path.join(app.getPath('userData'), 'app-settings.json');
+      let lastSeenVersion = null;
+      
+      try {
+        if (fs.existsSync(settingsPath)) {
+          const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+          lastSeenVersion = settings.lastSeenVersion || null;
+        }
+      } catch (e) {
+        // Ignore read errors
+      }
+      
+      return {
+        success: true,
+        currentVersion: currentVersion,
+        lastSeenVersion: lastSeenVersion,
+        showChangelog: lastSeenVersion !== currentVersion
+      };
+    } catch (error) {
+      logger.error('Failed to check changelog status:', error);
+      return { success: false, error: error.message, showChangelog: false };
+    }
+  });
+
   logger.info("IPC handlers for dialogs and updates registered successfully");
 }
 
@@ -420,9 +519,6 @@ async function createWindow() {
     // Setup Native Print handlers for quotations
     setupQuotationHandlers(mainWindow, ipcMain);
 
-    // Setup IPC handlers for file dialogs
-    setupIPCHandlers();
-
     logger.info("Main window created successfully");
 
   } catch (error) {
@@ -433,6 +529,9 @@ async function createWindow() {
 
 // Start the application when Electron is ready
 app.whenReady().then(async () => {
+  // Setup IPC handlers FIRST before anything else loads
+  setupIPCHandlers();
+  
   // Start Express server with proper error handling
   try {
     const server = require("./server");

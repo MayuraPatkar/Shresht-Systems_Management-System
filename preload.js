@@ -103,4 +103,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Get safe app configuration (non-sensitive values only)
     // NEVER expose API tokens or secrets through this!
     getAppConfig: () => ipcRenderer.invoke('get-app-config'),
+
+    // Changelog APIs
+    getChangelog: () => ipcRenderer.invoke('get-changelog'),
+    shouldShowChangelog: () => ipcRenderer.invoke('should-show-changelog'),
+    markChangelogSeen: () => ipcRenderer.invoke('mark-changelog-seen'),
 });
