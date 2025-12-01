@@ -25,7 +25,8 @@ async function logStockMovement(itemName, quantityChange, movementType, referenc
 // Route to generate a new Invoice ID
 router.get("/generate-id", async (req, res) => {
     try {
-        const invoice_id = await generateNextId('invoice');
+        const peek = req.query.peek === 'true';
+        const invoice_id = await generateNextId('invoice', { peek });
         return res.status(200).json({ invoice_id });
     } catch (err) {
         logger.error('Error generating invoice id', { error: err.message || err });
@@ -213,7 +214,15 @@ router.post("/save-invoice", async (req, res) => {
                     }
                 }
             }
-            
+
+
+
+            // Check if we need to increment the counter for this ID
+            // We only increment if the ID matches the *next* expected ID (peeked)
+            const expectedId = await generateNextId('invoice', { peek: true });
+            if (invoiceId === expectedId) {
+                await generateNextId('invoice'); // Increment
+            }
 
             // Create a new invoice
             const invoice = new Invoices({
@@ -282,7 +291,7 @@ router.get('/unpaid-count', async (req, res) => {
         const count = await Invoices.countDocuments({
             payment_status: { $in: ['Unpaid', 'Partial'] }
         });
-        
+
         res.status(200).json({ count });
     } catch (error) {
         logger.error("Error getting unpaid count:", error);
@@ -337,7 +346,7 @@ router.post("/save-payment", async (req, res) => {
             payment_date: paymentDate,
             paid_amount: Number(paidAmount),
             payment_mode: paymentMode,
-            extra_details: paymentExtra || ''               
+            extra_details: paymentExtra || ''
         });
 
         // Update total_paid_amount

@@ -45,15 +45,21 @@ async function generateNextId(moduleKey, options = {}) {
   const perDayCounterKey = `${mk}-${datePart}`;
 
   // Increment sequence for this day
-  const docDay = await Counters.findOneAndUpdate(
-    { _id: perDayCounterKey },
-    { $inc: { seq: 1 } },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
+  let seqDay;
+  if (options.peek) {
+    const docDay = await Counters.findOne({ _id: perDayCounterKey });
+    seqDay = docDay ? docDay.seq : 0;
+  } else {
+    const docDay = await Counters.findOneAndUpdate(
+      { _id: perDayCounterKey },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    // Sequence is 0-based for the first document of the day
+    // docDay.seq will be 1 after first increment, so subtract 1 to get 0
+    seqDay = (typeof docDay.seq === 'number') ? docDay.seq - 1 : 0;
+  }
 
-  // Sequence is 0-based for the first document of the day
-  // docDay.seq will be 1 after first increment, so subtract 1 to get 0
-  let seqDay = (typeof docDay.seq === 'number') ? docDay.seq - 1 : 0;
   if (seqDay < 0) seqDay = 0;
 
   // Always pad sequence to 2 digits (e.g., 00, 01, ..., 99, 100)

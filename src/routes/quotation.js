@@ -10,7 +10,8 @@ const { generateNextId } = require('../utils/idGenerator');
 // Route to generate a new quotation ID
 router.get("/generate-id", async (req, res) => {
     try {
-        const quotation_id = await generateNextId('quotation');
+        const peek = req.query.peek === 'true';
+        const quotation_id = await generateNextId('quotation', { peek });
         return res.status(200).json({ quotation_id });
     } catch (err) {
         logger.error('Error generating quotation id', { error: err.message || err });
@@ -109,6 +110,12 @@ router.post("/save-quotation", async (req, res) => {
             quotation.notes = notes;
             quotation.termsAndConditions = termsAndConditions;
         } else {
+            // Check if we need to increment the counter for this ID
+            const expectedId = await generateNextId('quotation', { peek: true });
+            if (quotation_id === expectedId) {
+                await generateNextId('quotation'); // Increment
+            }
+
             // Create a new quotation with the provided data
             quotation = new Quotations({
                 quotation_id: quotation_id,

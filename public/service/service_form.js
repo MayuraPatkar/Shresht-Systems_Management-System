@@ -6,21 +6,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // NOTE: Navigation buttons (prev-btn, next-btn) are already handled by globalScript.js
     // NOTE: Add item buttons (add-item-btn, add-non-item-btn) are also handled by globalScript.js
     // We don't add duplicate listeners here to avoid conflicts
-    
+
     // Override the global changeStep to add service-specific logic
     if (typeof window.originalChangeStep === 'undefined' && typeof changeStep === 'function') {
         window.originalChangeStep = changeStep;
-        window.changeStep = function(step) {
+        window.changeStep = function (step) {
             // Validate before moving forward
             if (step > currentStep) {
                 if (!validateStep(currentStep)) {
                     return;
                 }
             }
-            
+
             // Call original changeStep
             window.originalChangeStep(step);
-            
+
             // Service-specific: Generate preview on step 4
             if (step === 4 && typeof generatePreview === 'function') {
                 generatePreview();
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Get ID for preview generation
 async function getId() {
     try {
-        const response = await fetch("/service/generate-id");
+        const response = await fetch("/service/generate-id?peek=true");
         if (!response.ok) throw new Error("Failed to fetch service id");
 
         const data = await response.json();
@@ -121,26 +121,26 @@ function resetForm() {
     document.getElementById('service-stage').value = '0';
     document.getElementById('date').value = new Date().toISOString().split('T')[0];
     document.getElementById('question-yes').checked = true;
-    
+
     // Reset is-editing flag
     const isEditingField = document.getElementById('is-editing');
     if (isEditingField) isEditingField.value = 'false';
-    
+
     // Clear items and non-items containers AND tables
     const itemsContainer = document.getElementById("items-container");
     const nonItemsContainer = document.getElementById("non-items-container");
     const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
     const nonItemsTable = document.getElementById("non-items-table")?.getElementsByTagName("tbody")[0];
-    
+
     if (itemsContainer) itemsContainer.innerHTML = '';
     if (nonItemsContainer) nonItemsContainer.innerHTML = '';
     if (itemsTable) itemsTable.innerHTML = '';
     if (nonItemsTable) nonItemsTable.innerHTML = '';
-    
+
     // Clear preview
     const previewContent = document.getElementById('preview-content');
     if (previewContent) previewContent.innerHTML = '';
-    
+
     // Reset all steps
     for (let i = 1; i <= totalSteps; i++) {
         const stepEl = document.getElementById(`step-${i}`);
@@ -148,10 +148,10 @@ function resetForm() {
     }
     const step1 = document.getElementById('step-1');
     if (step1) step1.classList.add('active');
-    
+
     // Reset currentStep and update UI
     currentStep = 1;
-    
+
     // Update navigation buttons and indicator (use global function from globalScript.js)
     if (typeof updateNavigation === 'function') {
         updateNavigation();
@@ -235,7 +235,7 @@ function collectFormData() {
     const total_amount_with_tax = total_amount_no_tax + total_tax;
     const currentStage = parseInt(document.getElementById("service-stage")?.value || 0);
     const serviceId = document.getElementById("service-id").value;
-    
+
     // If editing (service_id starts with SRV-), don't increment stage
     // Use explicit hidden field is-editing to determine editing state
     const isEditingFlag = document.getElementById('is-editing')?.value === 'true';
@@ -271,7 +271,7 @@ async function updateNextService(invoiceId, nextService) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ invoice_id: invoiceId, next_service: nextService }),
         });
-        
+
         if (!response.ok) {
             console.error("Failed to update next service status");
         }
@@ -287,7 +287,7 @@ async function sendToServer(data) {
         const isEditingFlag = document.getElementById('is-editing')?.value === 'true';
         const endpoint = isEditingFlag ? "/service/update-service" : "/service/save-service";
         const method = isEditingFlag ? "PUT" : "POST";
-        
+
         const response = await fetch(endpoint, {
             method: method,
             headers: { "Content-Type": "application/json" },
@@ -313,7 +313,7 @@ async function handleSave() {
         // Handle next service question
         const nextServiceAnswer = document.querySelector('input[name="question"]:checked')?.value || 'yes';
         await updateNextService(document.getElementById('invoice-id').value, nextServiceAnswer);
-        
+
         window.electronAPI?.showAlert1("Service saved successfully.");
         setTimeout(() => {
             showHome();
@@ -358,15 +358,15 @@ function populateFormWithServiceData(service) {
     // Set hidden fields
     document.getElementById('service-id').value = service.service_id || '';
     document.getElementById('service-stage').value = service.service_stage || 0;
-    
+
     // Set is-editing flag to true
     const isEditingField = document.getElementById('is-editing');
     if (isEditingField) isEditingField.value = 'true';
-    
+
     // Set basic fields
     document.getElementById('invoice-id').value = service.invoice_id || '';
     document.getElementById('date').value = service.service_date ? service.service_date.split('T')[0] : '';
-    
+
     // If invoice details are available, populate customer info
     if (service.invoice_details) {
         const invoice = service.invoice_details;
@@ -376,24 +376,24 @@ function populateFormWithServiceData(service) {
         document.getElementById('phone').value = invoice.customer_phone || '';
         document.getElementById('email').value = invoice.customer_email || '';
     }
-    
+
     // Populate items using addItem() function from globalScript.js
     if (service.items && service.items.length > 0) {
         service.items.forEach((item, index) => {
             // Add item row using global function
             if (typeof addItem === 'function') {
                 addItem();
-                
+
                 // Get the last added card and table row
                 const itemsContainer = document.getElementById("items-container");
                 const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
-                
+
                 if (itemsContainer && itemsTable) {
                     const cards = itemsContainer.querySelectorAll('.item-card');
                     const rows = itemsTable.querySelectorAll('tr');
                     const lastCard = cards[cards.length - 1];
                     const lastRow = rows[rows.length - 1];
-                    
+
                     if (lastCard && lastRow) {
                         // Populate card inputs
                         const cardInputs = lastCard.querySelectorAll('input');
@@ -402,7 +402,7 @@ function populateFormWithServiceData(service) {
                         cardInputs[2].value = item.quantity || 0;      // quantity
                         cardInputs[3].value = item.unit_price || 0;    // unit_price
                         cardInputs[4].value = item.rate || 0;          // rate
-                        
+
                         // Populate table inputs (they should sync automatically)
                         const tableInputs = lastRow.querySelectorAll('input');
                         tableInputs[0].value = item.description || '';
@@ -415,31 +415,31 @@ function populateFormWithServiceData(service) {
             }
         });
     }
-    
+
     // Populate non-items using addNonItem() function from globalScript.js
     if (service.non_items && service.non_items.length > 0) {
         service.non_items.forEach((item, index) => {
             // Add non-item row using global function
             if (typeof addNonItem === 'function') {
                 addNonItem();
-                
+
                 // Get the last added card and table row
                 const nonItemsContainer = document.getElementById("non-items-container");
                 const nonItemsTable = document.querySelector('#non-items-table tbody');
-                
+
                 if (nonItemsContainer && nonItemsTable) {
                     const cards = nonItemsContainer.querySelectorAll('.non-item-card');
                     const rows = nonItemsTable.querySelectorAll('tr');
                     const lastCard = cards[cards.length - 1];
                     const lastRow = rows[rows.length - 1];
-                    
+
                     if (lastCard && lastRow) {
                         // Populate card inputs
                         const cardInputs = lastCard.querySelectorAll('input');
                         cardInputs[0].value = item.description || ''; // description
                         cardInputs[1].value = item.price || 0;        // price
                         cardInputs[2].value = item.rate || 0;         // rate
-                        
+
                         // Populate table inputs
                         const tableInputs = lastRow.querySelectorAll('input');
                         tableInputs[0].value = item.description || '';

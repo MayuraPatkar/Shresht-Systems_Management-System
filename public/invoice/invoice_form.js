@@ -22,7 +22,7 @@ window.validateCurrentStep = async function () {
             projectName.focus();
             return false;
         }
-        
+
         if (!serviceMonths.value || Number(serviceMonths.value) < 0) {
             window.electronAPI.showAlert1("Please enter valid Service Months (0 or greater).");
             serviceMonths.focus();
@@ -223,7 +223,7 @@ async function openInvoice(id) {
                     </button>
                 `;
                 itemsContainer.appendChild(card);
-                
+
                 // Create hidden table row
                 const row = document.createElement("tr");
                 row.innerHTML = `
@@ -236,7 +236,7 @@ async function openInvoice(id) {
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
                 itemsTableBody.appendChild(row);
-                
+
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');
@@ -245,14 +245,14 @@ async function openInvoice(id) {
                         rowInputs[index].value = input.value;
                     });
                 });
-                
+
                 // Add remove button event listener
                 const removeBtn = card.querySelector(".remove-item-btn");
-                removeBtn.addEventListener("click", function() {
+                removeBtn.addEventListener("click", function () {
                     card.remove();
                     row.remove();
                 });
-                
+
                 s++;
             });
 
@@ -276,7 +276,7 @@ async function openInvoice(id) {
                     </button>
                 `;
                 nonItemsContainer.appendChild(card);
-                
+
                 // Create hidden table row
                 const row = document.createElement("tr");
                 row.innerHTML = `
@@ -287,7 +287,7 @@ async function openInvoice(id) {
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
                 nonItemsTableBody.appendChild(row);
-                
+
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');
@@ -296,14 +296,14 @@ async function openInvoice(id) {
                         rowInputs[index].value = input.value;
                     });
                 });
-                
+
                 // Add remove button event listener
                 const removeBtn = card.querySelector(".remove-item-btn");
-                removeBtn.addEventListener("click", function() {
+                removeBtn.addEventListener("click", function () {
                     card.remove();
                     row.remove();
                 });
-                
+
                 s++;
             });
         } else {
@@ -336,7 +336,7 @@ async function openInvoice(id) {
                     </button>
                 `;
                 itemsContainer.appendChild(card);
-                
+
                 // Create hidden table row
                 const row = document.createElement("tr");
                 row.innerHTML = `
@@ -349,7 +349,7 @@ async function openInvoice(id) {
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
                 itemsTableBody.appendChild(row);
-                
+
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');
@@ -358,14 +358,14 @@ async function openInvoice(id) {
                         rowInputs[index].value = input.value;
                     });
                 });
-                
+
                 // Add remove button event listener
                 const removeBtn = card.querySelector(".remove-item-btn");
-                removeBtn.addEventListener("click", function() {
+                removeBtn.addEventListener("click", function () {
                     card.remove();
                     row.remove();
                 });
-                
+
                 s++;
             });
 
@@ -389,7 +389,7 @@ async function openInvoice(id) {
                     </button>
                 `;
                 nonItemsContainer.appendChild(card);
-                
+
                 // Create hidden table row
                 const row = document.createElement("tr");
                 row.innerHTML = `
@@ -400,7 +400,7 @@ async function openInvoice(id) {
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
                 nonItemsTableBody.appendChild(row);
-                
+
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');
@@ -409,14 +409,14 @@ async function openInvoice(id) {
                         rowInputs[index].value = input.value;
                     });
                 });
-                
+
                 // Add remove button event listener
                 const removeBtn = card.querySelector(".remove-item-btn");
-                removeBtn.addEventListener("click", function() {
+                removeBtn.addEventListener("click", function () {
                     card.remove();
                     row.remove();
                 });
-                
+
                 s++;
             });
         }
@@ -429,7 +429,7 @@ async function openInvoice(id) {
 // Function to get the invoice id
 async function getId() {
     try {
-        const response = await fetch("/invoice/generate-id");
+        const response = await fetch("/invoice/generate-id?peek=true");
         if (!response.ok) throw new Error("Failed to fetch invoice id");
 
         const data = await response.json();
@@ -611,7 +611,7 @@ function generatePreview() {
     const dcNumber = document.getElementById("delivery-challan-number").value || '';
     const wayBillNumber = document.getElementById("waybill-number").value || '';
     const buyerName = document.getElementById("buyer-name").value;
-        const invoiceDate = document.getElementById('invoice-date')?.value || '';
+    const invoiceDate = document.getElementById('invoice-date')?.value || '';
     const buyerAddress = document.getElementById("buyer-address").value;
     const buyerPhone = document.getElementById("buyer-phone").value;
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
@@ -625,10 +625,10 @@ function generatePreview() {
 
     // Split items into rows for pagination
     const itemRows = itemsHTML.split('</tr>').filter(row => row.trim().length > 0).map(row => row + '</tr>');
-    
+
     const ITEMS_PER_PAGE = 15;
     const SUMMARY_SECTION_ROW_COUNT = 8;
-    
+
     const itemPages = [];
     let currentPageItemsHTML = '';
     let currentPageRowCount = 0;
