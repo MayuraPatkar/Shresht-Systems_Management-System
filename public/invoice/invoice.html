@@ -728,17 +728,13 @@
                 </div>
 
                 <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-3">Payment Status</label>
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="payment-question" id="invoice-Paid" value="Paid" class="w-4 h-4 text-blue-600">
-                                <span class="text-gray-700">Paid</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="payment-question" id="invoice-unpaid" value="Unpaid" checked class="w-4 h-4 text-blue-600">
-                                <span class="text-gray-700">Unpaid</span>
-                            </label>
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="block text-sm font-medium text-blue-600 mb-1">Due Amount</span>
+                                <span class="text-2xl font-bold text-blue-900" id="payment-due-amount">₹ 0.00</span>
+                            </div>
+                            <i class="fas fa-rupee-sign text-blue-400 text-3xl"></i>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
