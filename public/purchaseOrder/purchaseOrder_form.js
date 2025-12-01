@@ -2,6 +2,152 @@ const totalSteps = 4;
 let purchaseOrderId = '';
 let totalAmount = 0;
 
+// Supplier data for autocomplete
+let supplierData = [];
+let supplierNames = [];
+let selectedSupplierIndex = -1;
+
+// Fetch supplier data on load
+async function fetchSuppliers() {
+    try {
+        const response = await fetch('/purchaseOrder/suppliers/list');
+        if (response.ok) {
+            const data = await response.json();
+            supplierData = data.suppliers || [];
+            supplierNames = supplierData.map(s => s.name);
+        }
+    } catch (error) {
+        console.error('Error fetching suppliers:', error);
+    }
+}
+
+// Initialize supplier autocomplete
+function initSupplierAutocomplete() {
+    const supplierNameInput = document.getElementById('supplier-name');
+    if (!supplierNameInput) return;
+    
+    // Create suggestions list if it doesn't exist
+    let suggestionsContainer = supplierNameInput.parentElement.querySelector('.supplier-suggestions');
+    if (!suggestionsContainer) {
+        suggestionsContainer = document.createElement('ul');
+        suggestionsContainer.className = 'supplier-suggestions suggestions';
+        supplierNameInput.parentElement.style.position = 'relative';
+        supplierNameInput.parentElement.appendChild(suggestionsContainer);
+    }
+    
+    supplierNameInput.addEventListener('input', function() {
+        showSupplierSuggestions(this, suggestionsContainer);
+    });
+    
+    supplierNameInput.addEventListener('keydown', function(event) {
+        handleSupplierKeyboardNavigation(event, this, suggestionsContainer);
+    });
+    
+    // Close suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!supplierNameInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+}
+
+function showSupplierSuggestions(input, suggestionsList) {
+    const query = input.value.toLowerCase().trim();
+    suggestionsList.innerHTML = '';
+    selectedSupplierIndex = -1;
+    
+    if (query.length === 0) {
+        suggestionsList.style.display = 'none';
+        return;
+    }
+    
+    const filtered = supplierData.filter(s => 
+        s.name && s.name.toLowerCase().includes(query)
+    );
+    
+    if (filtered.length === 0) {
+        suggestionsList.style.display = 'none';
+        return;
+    }
+    
+    suggestionsList.style.display = 'block';
+    
+    filtered.forEach((supplier, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${supplier.name}</strong><br><small style="color: #666;">${supplier.address || ''}</small>`;
+        li.style.padding = '8px 12px';
+        li.style.cursor = 'pointer';
+        li.style.borderBottom = '1px solid #eee';
+        
+        li.onclick = function() {
+            fillSupplierDetails(supplier);
+            suggestionsList.style.display = 'none';
+            selectedSupplierIndex = -1;
+        };
+        
+        li.onmouseenter = function() {
+            li.style.backgroundColor = '#f0f0f0';
+        };
+        li.onmouseleave = function() {
+            li.style.backgroundColor = '';
+        };
+        
+        suggestionsList.appendChild(li);
+    });
+}
+
+function handleSupplierKeyboardNavigation(event, input, suggestionsList) {
+    const items = suggestionsList.querySelectorAll('li');
+    if (items.length === 0) return;
+    
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        selectedSupplierIndex = (selectedSupplierIndex + 1) % items.length;
+        updateSupplierSelection(items);
+    } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        selectedSupplierIndex = (selectedSupplierIndex - 1 + items.length) % items.length;
+        updateSupplierSelection(items);
+    } else if (event.key === 'Enter') {
+        event.preventDefault();
+        if (selectedSupplierIndex >= 0 && items[selectedSupplierIndex]) {
+            items[selectedSupplierIndex].click();
+        }
+    } else if (event.key === 'Escape') {
+        suggestionsList.style.display = 'none';
+        selectedSupplierIndex = -1;
+    }
+}
+
+function updateSupplierSelection(items) {
+    items.forEach((item, index) => {
+        if (index === selectedSupplierIndex) {
+            item.style.backgroundColor = '#e0e7ff';
+        } else {
+            item.style.backgroundColor = '';
+        }
+    });
+    
+    // Scroll selected item into view
+    if (selectedSupplierIndex >= 0 && items[selectedSupplierIndex]) {
+        items[selectedSupplierIndex].scrollIntoView({ block: 'nearest' });
+    }
+}
+
+function fillSupplierDetails(supplier) {
+    document.getElementById('supplier-name').value = supplier.name || '';
+    document.getElementById('supplier-address').value = supplier.address || '';
+    document.getElementById('supplier-phone').value = supplier.phone || '';
+    document.getElementById('supplier-email').value = supplier.email || '';
+    document.getElementById('supplier-GSTIN').value = supplier.GSTIN || '';
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchSuppliers();
+    initSupplierAutocomplete();
+});
+
 // Note: selectedIndex, data, fetchData, fetchStockData, showSuggestions, and handleKeyboardNavigation
 // are already defined in globalScript.js
 
@@ -888,9 +1034,6 @@ window.validateCurrentStep = async function () {
             { id: 'purchase-date', name: 'Purchase Date' },
             { id: 'supplier-name', name: 'Supplier Name' },
             { id: 'supplier-address', name: 'Supplier Address' },
-            { id: 'supplier-phone', name: 'Supplier Phone' },
-            { id: 'supplier-email', name: 'Supplier Email' },
-            { id: 'supplier-GSTIN', name: 'Supplier GSTIN' }
         ];
         for (const f of fields) {
             const el = document.getElementById(f.id);

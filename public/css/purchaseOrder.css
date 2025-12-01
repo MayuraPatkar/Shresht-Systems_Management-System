@@ -297,3 +297,43 @@ main {
     font-size: 0.85rem;
     color: #1e293b;
 }
+
+/* Supplier autocomplete suggestions */
+.supplier-suggestions {
+    position: absolute;
+    z-index: 9999;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    max-height: 250px;
+    overflow-y: auto;
+    display: none;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    width: 100%;
+    list-style: none;
+    padding: 0;
+    left: 0;
+    top: 100%;
+}
+
+.supplier-suggestions li {
+    padding: 0.625rem 0.875rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.supplier-suggestions li:last-child {
+    border-bottom: none;
+}
+
+.supplier-suggestions li:hover {
+    background: #f3f4f6;
+}
+
+.supplier-suggestions li.selected {
+    background: #eff6ff;
+    color: #3b82f6;
+}

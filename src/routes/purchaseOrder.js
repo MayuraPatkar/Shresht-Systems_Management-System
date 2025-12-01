@@ -17,6 +17,50 @@ router.get("/generate-id", async (req, res) => {
     }
 });
 
+// Route to get all unique suppliers
+router.get("/suppliers/list", async (req, res) => {
+    try {
+        // Get all unique supplier names with their details
+        const suppliers = await Purchases.aggregate([
+            {
+                $group: {
+                    _id: "$supplier_name",
+                    supplier_name: { $first: "$supplier_name" },
+                    supplier_address: { $first: "$supplier_address" },
+                    supplier_phone: { $first: "$supplier_phone" },
+                    supplier_email: { $first: "$supplier_email" },
+                    supplier_GSTIN: { $first: "$supplier_GSTIN" }
+                }
+            },
+            {
+                $match: {
+                    _id: { $ne: null, $ne: "" }
+                }
+            },
+            {
+                $sort: { supplier_name: 1 }
+            }
+        ]);
+
+        res.status(200).json({
+            message: "Suppliers retrieved successfully",
+            suppliers: suppliers.map(s => ({
+                name: s.supplier_name,
+                address: s.supplier_address,
+                phone: s.supplier_phone,
+                email: s.supplier_email,
+                GSTIN: s.supplier_GSTIN
+            }))
+        });
+    } catch (error) {
+        logger.error("Error retrieving suppliers:", error);
+        res.status(500).json({
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+});
+
 router.post("/save-purchase-order", async (req, res) => {
     try {
         let {
