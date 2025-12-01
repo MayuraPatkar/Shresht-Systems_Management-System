@@ -75,28 +75,27 @@ function validateStep(step) {
     }
     if (step === 2) {
         const itemsTable = document.querySelector('#items-table tbody');
-        if (!itemsTable || itemsTable.rows.length === 0) {
-            window.electronAPI?.showAlert1('Please add at least one service item.');
-            return false;
-        }
-        for (const [index, row] of Array.from(itemsTable.rows).entries()) {
-            const desc = row.querySelector('td:nth-child(2) input');
-            const qty = row.querySelector('td:nth-child(4) input');
-            const price = row.querySelector('td:nth-child(5) input');
-            if (!desc || !desc.value.trim()) {
-                window.electronAPI?.showAlert1(`Item #${index + 1}: Description is required.`);
-                desc?.focus();
-                return false;
-            }
-            if (!qty || Number(qty.value) <= 0) {
-                window.electronAPI?.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
-                qty?.focus();
-                return false;
-            }
-            if (!price || Number(price.value) < 0) {
-                window.electronAPI?.showAlert1(`Item #${index + 1}: Unit Price must be provided.`);
-                price?.focus();
-                return false;
+        // Validate existing items if any are present
+        if (itemsTable && itemsTable.rows.length > 0) {
+            for (const [index, row] of Array.from(itemsTable.rows).entries()) {
+                const desc = row.querySelector('td:nth-child(2) input');
+                const qty = row.querySelector('td:nth-child(4) input');
+                const price = row.querySelector('td:nth-child(5) input');
+                if (!desc || !desc.value.trim()) {
+                    window.electronAPI?.showAlert1(`Item #${index + 1}: Description is required.`);
+                    desc?.focus();
+                    return false;
+                }
+                if (!qty || Number(qty.value) <= 0) {
+                    window.electronAPI?.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
+                    qty?.focus();
+                    return false;
+                }
+                if (!price || Number(price.value) < 0) {
+                    window.electronAPI?.showAlert1(`Item #${index + 1}: Unit Price must be provided.`);
+                    price?.focus();
+                    return false;
+                }
             }
         }
     }

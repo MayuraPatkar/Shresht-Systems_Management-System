@@ -98,4 +98,5 @@ document.getElementById("about-button")?.addEventListener("click", () => {
     toggleSection("about-section");
     loadSystemInfo();
     loadDatabaseStats();
+    loadChangelog();
 });

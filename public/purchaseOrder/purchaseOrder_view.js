@@ -1,5 +1,9 @@
 // Generate the purchase order preview (for view block)
 async function generatePurchaseOrderViewPreview(purchaseOrder) {
+    // Fetch company data from database
+    const companyData = await window.companyConfig.getCompanyInfo();
+    const bank = companyData.bank_details || {};
+    
     let itemsHTML = "";
     let totalTaxableValue = 0;
     let totalCGST = 0;
@@ -65,6 +69,9 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
         }
     });
 
+    // Round off grand total to nearest rupee
+    const grandTotal = Math.round(totalPrice);
+
     let totalsHTML = `
         <div style="display: flex; width: 100%;">
             <div class="totals-section-sub1" style="width: 50%;">
@@ -79,7 +86,7 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
                 <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
                 <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-                <p>₹ ${formatIndian(totalPrice, 2)}</p>
+                <p>₹ ${formatIndian(grandTotal, 2)}</p>
             </div>
         </div>
     `;
@@ -123,19 +130,19 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
         <div class="header">
         <div class="quotation-brand">
             <div class="logo">
-                <img src="../assets/icon.png" alt="Shresht Logo">
+                <img src="../assets/icon.png" alt="${companyData.company} Logo">
             </div>
             <div class="quotation-brand-text">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p class="quotation-tagline">CCTV & Security Solutions</p>
+                <h1>${companyData.company.toUpperCase()}</h1>
+                <p class="quotation-tagline">CCTV & Energy Solutions</p>
             </div>
         </div>
         <div class="company-details">
-            <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-            <p>Ph: 7204657707 / 9901730305</p>
-            <p>GSTIN: 29AGCPN4093N1ZS</p>
-            <p>Email: shreshtsystems@gmail.com</p>
-            <p>Website: www.shreshtsystems.com</p>
+            <p>${companyData.address}</p>
+            <p>Ph: ${companyData.phone.ph1}${companyData.phone.ph2 ? ' / ' + companyData.phone.ph2 : ''}</p>
+            <p>GSTIN: ${companyData.GSTIN}</p>
+            <p>Email: ${companyData.email}</p>
+            <p>Website: ${companyData.website}</p>
         </div>
     </div>
 
@@ -197,11 +204,11 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
                                 alt="qr-code" />
                         </div>
                         <div class="bank-details-sub2">
-                            <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                            <p><strong>Bank Name: </strong>Canara Bank</p>
-                            <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                            <p><strong>Account No: </strong>120002152652</p>
-                            <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                            <p><strong>Account Holder Name: </strong>${bank.name || companyData.company}</p>
+                            <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
+                            <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
+                            <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
+                            <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
                         </div>
                     </div>
                 </div>
@@ -227,7 +234,7 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
         </div>
 
         <div class="eighth-section">
-            <p>For SHRESHT SYSTEMS</p>
+            <p>For ${companyData.company.toUpperCase()}</p>
             <div class="eighth-section-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
@@ -324,7 +331,7 @@ async function viewPurchaseOrder(purchaseOrderId) {
             totalTax += (cgst + sgst);
         });
         
-        const grandTotal = subtotal + totalTax;
+        const grandTotal = Math.round(subtotal + totalTax);
         
         document.getElementById('view-subtotal').textContent = `₹ ${formatIndian(subtotal, 2)}`;
         document.getElementById('view-tax').textContent = totalTax > 0 ? `₹ ${formatIndian(totalTax, 2)}` : 'No Tax';

@@ -54,6 +54,9 @@ module.exports = {
         phoneNumberId: process.env.PHONE_NUMBER_ID || '',
         appId: process.env.APP_ID || '',
         verifyToken: process.env.VERIFY_TOKEN || '',
+        // Base URL for serving PDF documents (required for WhatsApp to access them)
+        // In production, set this to your public domain (e.g., https://yourdomain.com or ngrok URL)
+        pdfBaseUrl: process.env.WHATSAPP_PDF_BASE_URL || '',
         isConfigured() {
             return !!(this.token && this.phoneNumberId);
         }

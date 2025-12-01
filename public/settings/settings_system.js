@@ -29,6 +29,129 @@ function loadSystemInfo() {
         });
 }
 
+// --- CHANGELOG DISPLAY ---
+
+/**
+ * Gets the icon for a change type
+ */
+function getChangeTypeIcon(type) {
+    const icons = {
+        'feature': '<i class="fas fa-star text-yellow-500"></i>',
+        'improvement': '<i class="fas fa-arrow-up text-blue-500"></i>',
+        'bugfix': '<i class="fas fa-bug text-red-500"></i>',
+        'security': '<i class="fas fa-shield-alt text-green-500"></i>',
+        'breaking': '<i class="fas fa-exclamation-triangle text-orange-500"></i>'
+    };
+    return icons[type] || '<i class="fas fa-circle text-gray-400"></i>';
+}
+
+/**
+ * Gets the badge class for a change type
+ */
+function getChangeTypeBadge(type) {
+    const badges = {
+        'feature': 'bg-yellow-100 text-yellow-800',
+        'improvement': 'bg-blue-100 text-blue-800',
+        'bugfix': 'bg-red-100 text-red-800',
+        'security': 'bg-green-100 text-green-800',
+        'breaking': 'bg-orange-100 text-orange-800'
+    };
+    return badges[type] || 'bg-gray-100 text-gray-800';
+}
+
+/**
+ * Formats a date string
+ */
+function formatChangelogDate(dateStr) {
+    try {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-IN', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    } catch (e) {
+        return dateStr;
+    }
+}
+
+/**
+ * Loads and displays the changelog in the About section
+ */
+async function loadChangelog() {
+    const container = document.getElementById('changelog-container');
+    if (!container) return;
+    
+    try {
+        const result = await window.electronAPI.getChangelog();
+        
+        if (!result.success || !result.changelog || !result.changelog.versions) {
+            container.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                    <p>Unable to load changelog</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const versions = result.changelog.versions;
+        
+        if (versions.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-info-circle text-2xl mb-2"></i>
+                    <p>No release history available</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        
+        versions.forEach((version, index) => {
+            const isLatest = index === 0;
+            
+            html += `
+                <div class="border rounded-lg ${isLatest ? 'border-teal-300 bg-teal-50' : 'border-gray-200 bg-white'} p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="px-3 py-1 rounded-full text-sm font-semibold ${isLatest ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'}">
+                                v${version.version}
+                            </span>
+                            ${isLatest ? '<span class="text-xs text-teal-600 font-medium uppercase">Current</span>' : ''}
+                        </div>
+                        <span class="text-sm text-gray-500">${formatChangelogDate(version.date)}</span>
+                    </div>
+                    
+                    <h4 class="font-semibold text-gray-800 mb-3">${version.title || 'Release'}</h4>
+                    
+                    <ul class="space-y-2">
+                        ${version.changes.map(change => `
+                            <li class="flex items-start gap-2">
+                                ${getChangeTypeIcon(change.type)}
+                                <span class="text-gray-700 text-sm">${change.description}</span>
+                                <span class="text-xs px-2 py-0.5 rounded ${getChangeTypeBadge(change.type)} capitalize">${change.type}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Failed to load changelog:', error);
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                <p>Error loading changelog</p>
+            </div>
+        `;
+    }
+}
+
 // --- DATABASE STATISTICS ---
 
 /**
@@ -79,6 +202,9 @@ function initSystemModule() {
     
     // Initialize auto-update functionality
     initAutoUpdate();
+    
+    // Load changelog when About section is shown
+    loadChangelog();
 }
 
 // --- AUTO-UPDATE FUNCTIONALITY ---

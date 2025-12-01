@@ -88,7 +88,7 @@ window.validateCurrentStep = async function () {
 // Event listener for the "Next" button
 document.getElementById("next-btn").addEventListener("click", () => {
     let sno = 1;
-    if (currentStep === 2 && !document.getElementById("id").value) {
+    if (currentStep === 1 && !document.getElementById("id").value) {
         const quotationId = document.getElementById("quotation-id").value;
         if (quotationId) {
             fetch(`/quotation/${quotationId}`)
@@ -100,15 +100,52 @@ document.getElementById("next-btn").addEventListener("click", () => {
                     document.getElementById("buyer-address").value = quotation.customer_address;
                     document.getElementById("buyer-phone").value = quotation.customer_phone;
                     document.getElementById("buyer-email").value = quotation.customer_email;
+                    
+                    // Clear existing items
                     const itemsTableBody = document.querySelector("#items-table tbody");
                     itemsTableBody.innerHTML = "";
+                    const itemsContainer = document.getElementById("items-container");
+                    itemsContainer.innerHTML = "";
                     const nonItemsTableBody = document.querySelector("#non-items-table tbody");
                     nonItemsTableBody.innerHTML = "";
+                    const nonItemsContainer = document.getElementById("non-items-container");
+                    nonItemsContainer.innerHTML = "";
 
+                    // Add items with both cards and table rows
                     quotation.items.forEach(item => {
+                        // Create card
+                        const card = document.createElement("div");
+                        card.className = "item-card";
+                        card.innerHTML = `
+                            <div class="item-number">${sno}</div>
+                            <div class="item-field description">
+                                <div style="position: relative;">
+                                    <input type="text" value="${item.description}" placeholder="Description" required>
+                                    <ul class="suggestions"></ul>
+                                </div>
+                            </div>
+                            <div class="item-field hsn">
+                                <input type="text" value="${item.HSN_SAC}" placeholder="HSN/SAC" required>
+                            </div>
+                            <div class="item-field qty">
+                                <input type="number" value="${item.quantity}" placeholder="Qty" min="1" required>
+                            </div>
+                            <div class="item-field rate">
+                                <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
+                            </div>
+                            <div class="item-field rate">
+                                <input type="number" value="${item.rate}" placeholder="Rate" required>
+                            </div>
+                            <button type="button" class="remove-item-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        itemsContainer.appendChild(card);
+                        
+                        // Create hidden table row
                         const row = document.createElement("tr");
                         row.innerHTML = `
-                            <td><div class="item-number">${sno++}</div></td>
+                            <td><div class="item-number">${sno}</div></td>
                             <td><input type="text" value="${item.description}" required></td>
                             <td><input type="text" value="${item.HSN_SAC}" required></td>
                             <td><input type="number" value="${item.quantity}" min="1" required></td>
@@ -117,24 +154,82 @@ document.getElementById("next-btn").addEventListener("click", () => {
                             <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                         `;
                         itemsTableBody.appendChild(row);
+                        
+                        // Sync card inputs with table inputs
+                        const cardInputs = card.querySelectorAll('input');
+                        const rowInputs = row.querySelectorAll('input');
+                        cardInputs.forEach((input, index) => {
+                            input.addEventListener('input', () => {
+                                rowInputs[index].value = input.value;
+                            });
+                        });
+                        
+                        // Add remove button event listener
+                        const removeBtn = card.querySelector(".remove-item-btn");
+                        removeBtn.addEventListener("click", function() {
+                            card.remove();
+                            row.remove();
+                        });
+                        
+                        sno++;
                     });
 
+                    // Add non-items with both cards and table rows
                     quotation.non_items.forEach(item => {
+                        // Create card
+                        const card = document.createElement("div");
+                        card.className = "non-item-card";
+                        card.innerHTML = `
+                            <div class="item-number">${sno}</div>
+                            <div class="non-item-field description">
+                                <input type="text" value="${item.description}" placeholder="Description" required>
+                            </div>
+                            <div class="non-item-field price">
+                                <input type="number" value="${item.price}" placeholder="Price" required>
+                            </div>
+                            <div class="non-item-field rate">
+                                <input type="number" value="${item.rate}" placeholder="Rate" required>
+                            </div>
+                            <button type="button" class="remove-item-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        nonItemsContainer.appendChild(card);
+                        
+                        // Create hidden table row
                         const row = document.createElement("tr");
                         row.innerHTML = `
-                            <td>${sno++}</td>
+                            <td><div class="item-number">${sno}</div></td>
                             <td><input type="text" value="${item.description}" required></td>
                             <td><input type="number" value="${item.price}" required></td>
                             <td><input type="number" value="${item.rate}" required></td>
                             <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                         `;
                         nonItemsTableBody.appendChild(row);
+                        
+                        // Sync card inputs with table inputs
+                        const cardInputs = card.querySelectorAll('input');
+                        const rowInputs = row.querySelectorAll('input');
+                        cardInputs.forEach((input, index) => {
+                            input.addEventListener('input', () => {
+                                rowInputs[index].value = input.value;
+                            });
+                        });
+                        
+                        // Add remove button event listener
+                        const removeBtn = card.querySelector(".remove-item-btn");
+                        removeBtn.addEventListener("click", function() {
+                            card.remove();
+                            row.remove();
+                        });
+                        
+                        sno++;
                     });
                 })
                 .catch(error => {
                     console.error("Error:", error);
                     window.electronAPI.showAlert1("Failed to fetch quotation.");
-                });
+                })
         }
     }
 });
@@ -450,7 +545,7 @@ function calculateInvoice(itemsTable) {
     let totalCGST = 0;
     let totalSGST = 0;
     let totalTaxableValue = 0;
-    let sno = 0;
+    let sno = 1;
     let itemsHTML = "";
 
     // Check if rate column is populated - rate is the 6th column (index 5)
@@ -479,7 +574,7 @@ function calculateInvoice(itemsTable) {
 
             itemsHTML += `
                 <tr>
-                    <td>${sno++}</td>
+                    <td>${sno}</td>
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -489,13 +584,14 @@ function calculateInvoice(itemsTable) {
                     <td>${formatIndian(rowTotal, 2)}</td>
                 </tr>
             `;
+            sno++;
         } else {
             const rowTotal = taxableValue;
             totalPrice += rowTotal;
 
             itemsHTML += `
                 <tr>
-                    <td>${sno++}</td>   
+                    <td>${sno}</td>   
                     <td>${description}</td>
                     <td>${hsnSac}</td>
                     <td>${qty}</td>
@@ -503,6 +599,7 @@ function calculateInvoice(itemsTable) {
                     <td>${rowTotal.toFixed(2)}</td>
                 </tr>
             `;
+            sno++;
         }
     }
 
@@ -529,7 +626,7 @@ function calculateInvoice(itemsTable) {
 
             itemsHTML += `
             <tr>
-                <td>${sno++}</td>
+                <td>${sno}</td>
                 <td>${description}</td>
                 <td>-</td>
                 <td>-</td>
@@ -539,13 +636,14 @@ function calculateInvoice(itemsTable) {
                 <td>${formatIndian(rowTotal, 2)}</td>
             </tr>
         `;
+            sno++;
         } else {
             const rowTotal = unitPrice;
             totalPrice += rowTotal;
 
             itemsHTML += `
             <tr>
-                <td>${sno++}</td>
+                <td>${sno}</td>
                 <td>${description}</td>
                 <td>-</td>
                 <td>-</td>
@@ -553,6 +651,7 @@ function calculateInvoice(itemsTable) {
                 <td>${rowTotal.toFixed(2)}</td>
             </tr>
         `;
+            sno++;
         }
     }
 
@@ -584,7 +683,7 @@ function calculateInvoice(itemsTable) {
                 <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
                 <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-                <p>₹ ${formatIndian(totalPrice, 2)}</p>
+                <p>₹ ${formatIndian(finalTotal, 2)}</p>
             </div>
         </div>
     `;
@@ -604,7 +703,11 @@ function calculateInvoice(itemsTable) {
 }
 
 // Function to generate the invoice preview
-function generatePreview() {
+async function generatePreview() {
+    // Fetch company data from database
+    const company = await window.companyConfig.getCompanyInfo();
+    const bank = company.bank_details || {};
+    
     if (!invoiceId) invoiceId = document.getElementById('id').value;
     const projectName = document.getElementById("project-name").value;
     const poNumber = document.getElementById("purchase-order-number").value || '';
@@ -662,19 +765,19 @@ function generatePreview() {
             <div class="header">
         <div class="quotation-brand">
             <div class="logo">
-                <img src="../assets/icon.png" alt="Shresht Logo">
+                <img src="../assets/icon.png" alt="${company.company} Logo">
             </div>
             <div class="quotation-brand-text">
-                <h1>SHRESHT SYSTEMS</h1>
-                <p class="quotation-tagline">CCTV & Security Solutions</p>
+                <h1>${company.company.toUpperCase()}</h1>
+                <p class="quotation-tagline">CCTV & Energy Solutions</p>
             </div>
         </div>
         <div class="company-details">
-            <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-            <p>Ph: 7204657707 / 9901730305</p>
-            <p>GSTIN: 29AGCPN4093N1ZS</p>
-            <p>Email: shreshtsystems@gmail.com</p>
-            <p>Website: www.shreshtsystems.com</p>
+            <p>${company.address}</p>
+            <p>Ph: ${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''}</p>
+            <p>GSTIN: ${company.GSTIN}</p>
+            <p>Email: ${company.email}</p>
+            <p>Website: ${company.website}</p>
         </div>
     </div>
 
@@ -741,11 +844,11 @@ function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>Shresht Systems</p>
-                                <p><strong>Bank Name: </strong>Canara Bank</p>
-                                <p><strong>Branch Name: </strong>Shanthi Nagar Manipal</p>
-                                <p><strong>Account No: </strong>120002152652</p>
-                                <p><strong>IFSC Code: </strong>CNRB0010261</p>
+                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
+                                <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
+                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -771,7 +874,7 @@ function generatePreview() {
             </div>
 
             <div class="eighth-section">
-                <p>For SHRESHT SYSTEMS</p>
+                <p>For ${company.company.toUpperCase()}</p>
                 <div class="eighth-section-space"></div>
                 <p><strong>Authorized Signatory</strong></p>
             </div>
@@ -802,7 +905,7 @@ document.getElementById("save-btn").addEventListener("click", async () => {
 
 // Event listener for the "Print" button
 document.getElementById("print-btn").addEventListener("click", async () => {
-    generatePreview(); // Ensure preview is up to date
+    await generatePreview(); // Ensure preview is up to date
     setTimeout(async () => {
         const previewContent = document.getElementById("preview-content").innerHTML;
         if (window.electronAPI && window.electronAPI.handlePrintEvent) {
@@ -819,7 +922,7 @@ document.getElementById("print-btn").addEventListener("click", async () => {
 
 // Event listener for the "Save as PDF" button
 document.getElementById("save-pdf-btn").addEventListener("click", async () => {
-    generatePreview();
+    await generatePreview();
     setTimeout(async () => {
         const previewContent = document.getElementById("preview-content").innerHTML;
         if (window.electronAPI && window.electronAPI.handlePrintEvent) {

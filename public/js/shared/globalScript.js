@@ -13,52 +13,59 @@ document.addEventListener("keydown", function (event) {
 });
 
 // Ctrl+Tab navigation to switch between sidebar tabs
-document.addEventListener("keydown", function (event) {
-  if (event.ctrlKey && event.key === "Tab") {
-    event.preventDefault(); // Prevent default browser tab switching
+// Guard against duplicate registration
+if (!window._ctrlTabNavRegistered) {
+  window._ctrlTabNavRegistered = true;
+  
+  document.addEventListener("keydown", function (event) {
+    // Check for Ctrl+Tab - use keyCode for Tab (9) as fallback for better compatibility
+    if (event.ctrlKey && (event.key === "Tab" || event.keyCode === 9)) {
+      event.preventDefault(); // Prevent default browser tab switching
+      event.stopPropagation(); // Stop event from bubbling
 
-    // Define the navigation order matching the server routes exactly
-    const navigationOrder = [
-      '/dashboard',
-      '/quotation',
-      '/invoice',
-      '/wayBill',
-      '/service',
-      '/purchaseorder',
-      '/stock',
-      '/comms',
-      '/reports',
-      '/calculations',
-      '/settings'
-    ];
+      // Define the navigation order matching the server routes exactly
+      const navigationOrder = [
+        '/dashboard',
+        '/quotation',
+        '/invoice',
+        '/wayBill',
+        '/service',
+        '/purchaseorder',
+        '/stock',
+        '/comms',
+        '/reports',
+        '/calculations',
+        '/settings'
+      ];
 
-    // Get current path
-    const currentPath = window.location.pathname;
+      // Get current path and normalize it (remove trailing slash, convert to lowercase for comparison)
+      const currentPath = window.location.pathname.replace(/\/$/, '').toLowerCase() || '/';
 
-    // Find current index - match exactly
-    let currentIndex = navigationOrder.findIndex(route => currentPath === route);
+      // Find current index - match exactly (case-insensitive)
+      let currentIndex = navigationOrder.findIndex(route => currentPath === route.toLowerCase());
 
-    // If not found, try to find partial match
-    if (currentIndex === -1) {
-      currentIndex = navigationOrder.findIndex(route =>
-        currentPath.toLowerCase().includes(route.toLowerCase())
-      );
+      // If not found, try to find partial match (case-insensitive)
+      if (currentIndex === -1) {
+        currentIndex = navigationOrder.findIndex(route =>
+          currentPath.includes(route.toLowerCase())
+        );
+      }
+
+      // If still not found, default to first item
+      if (currentIndex === -1) {
+        currentIndex = 0;
+      }
+
+      // Move to next/previous tab with wrapping
+      const nextIndex = event.shiftKey
+        ? (currentIndex - 1 + navigationOrder.length) % navigationOrder.length
+        : (currentIndex + 1) % navigationOrder.length;
+
+      // Navigate to the next route
+      window.location.href = navigationOrder[nextIndex];
     }
-
-    // If still not found, default to first item
-    if (currentIndex === -1) {
-      currentIndex = 0;
-    }
-
-    // Move to next/previous tab with wrapping
-    const nextIndex = event.shiftKey
-      ? (currentIndex - 1 + navigationOrder.length) % navigationOrder.length
-      : (currentIndex + 1) % navigationOrder.length;
-
-    // Navigate using window.location.replace to avoid popup blocking
-    window.location.replace(navigationOrder[nextIndex]);
-  }
-});
+  });
+}
 
 // Sidebar navigation - add null checks for elements that may not exist on all pages
 document.getElementById('dashboard')?.addEventListener('click', () => {

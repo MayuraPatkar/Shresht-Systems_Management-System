@@ -44,8 +44,7 @@ const reportSchema = new mongoose.Schema({
         index: true 
     },
     expires_at: { 
-        type: Date,
-        index: true 
+        type: Date
     },
     generated_by: { 
         type: String 

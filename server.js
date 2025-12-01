@@ -71,12 +71,31 @@ exServer.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Get paths from global or use defaults
 const publicPath = path.join(__dirname, 'public');
+const documentsPath = path.join(__dirname, 'uploads', 'documents');
+
+// Ensure documents directory exists
+const fs = require('fs');
+if (!fs.existsSync(documentsPath)) {
+    fs.mkdirSync(documentsPath, { recursive: true });
+}
 
 // Static files with proper caching - BEFORE rate limiting
 exServer.use(express.static(publicPath, {
     maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0',
     etag: true,
     lastModified: true
+}));
+
+// Serve generated documents (PDFs for WhatsApp)
+exServer.use('/documents', express.static(documentsPath, {
+    maxAge: '1h', // Cache for 1 hour
+    etag: true,
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.pdf')) {
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'inline');
+        }
+    }
 }));
 
 // Rate limiting AFTER static files to exclude them
