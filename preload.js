@@ -99,4 +99,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     showMessageBox: (options) => ipcRenderer.invoke('show-message-box', options),
     // Open the configured backup folder in the OS file manager
     openBackupFolder: () => ipcRenderer.invoke('open-backup-folder'),
+    
+    // Get safe app configuration (non-sensitive values only)
+    // NEVER expose API tokens or secrets through this!
+    getAppConfig: () => ipcRenderer.invoke('get-app-config'),
 });

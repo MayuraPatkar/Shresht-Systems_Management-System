@@ -49,8 +49,8 @@ function performLogin() {
     // Prepare data to send
     const data = { username, password };
 
-    // Send POST request to the server
-    fetch('http://localhost:3000/admin/login', {
+    // Send POST request to the server (using relative URL since frontend is served by same Express server)
+    fetch('/admin/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

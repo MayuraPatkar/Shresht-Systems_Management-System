@@ -18,6 +18,11 @@
  *   - alertHandler: Custom module for alert dialogs.
  */
 
+// Load environment variables FIRST before any other imports
+// In development: loads from .env file
+// In production: uses system environment variables
+require('./src/utils/envLoader');
+
 const { app, BrowserWindow, ipcMain, screen, dialog } = require("electron");
 const path = require("path");
 const logger = require("./src/utils/logger");
@@ -298,6 +303,13 @@ function setupIPCHandlers() {
     setImmediate(() => autoUpdater.quitAndInstall());
   });
 
+  // Handle get-app-config request from renderer
+  // Returns ONLY safe, non-sensitive configuration values
+  ipcMain.handle('get-app-config', () => {
+    const { getSafeConfig } = require('./src/utils/envLoader');
+    return getSafeConfig();
+  });
+
   logger.info("IPC handlers for dialogs and updates registered successfully");
 }
 
@@ -342,11 +354,15 @@ async function createWindow() {
     // Enhanced frontend loading with retry logic
     const maxRetries = 5;
     let retries = 0;
+    
+    // Get the actual server port (set by app.whenReady)
+    const serverPort = global.serverPort || 3000;
+    const serverUrl = `http://localhost:${serverPort}`;
 
     const loadFrontend = async () => {
       try {
-        await mainWindow.loadURL("http://localhost:3000");
-        logger.info("Frontend loaded successfully");
+        await mainWindow.loadURL(serverUrl);
+        logger.info(`Frontend loaded successfully from ${serverUrl}`);
       } catch (err) {
         retries++;
         logger.warn(`Failed to load frontend (attempt ${retries}/${maxRetries})`, { error: err.message });
@@ -362,7 +378,8 @@ async function createWindow() {
               <head><title>Connection Error</title></head>
               <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
                 <h1>Unable to Connect to Server</h1>
-                <p>The application server is not responding. Please ensure the server is running.</p>
+                <p>The application server is not responding on port ${serverPort}.</p>
+                <p>Please ensure the server is running.</p>
                 <button onclick="location.reload()">Retry</button>
               </body>
             </html>`;
@@ -381,9 +398,10 @@ async function createWindow() {
     // Handle navigation security
     mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
       const parsedUrl = new URL(navigationUrl);
+      const allowedOrigin = `http://localhost:${serverPort}`;
 
-      // Only allow navigation to localhost and the app's domain
-      if (parsedUrl.origin !== 'http://localhost:3000') {
+      // Only allow navigation to localhost with the correct port
+      if (parsedUrl.origin !== allowedOrigin) {
         event.preventDefault();
         logger.warn('Blocked navigation to:', navigationUrl);
       }
@@ -418,10 +436,14 @@ app.whenReady().then(async () => {
   // Start Express server with proper error handling
   try {
     const server = require("./server");
-    logger.info("Express server started successfully");
-
-    // Wait a moment for server to fully initialize
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Wait for server to be ready and get the actual port
+    const { port: actualPort } = await server.serverReady;
+    
+    // Store the actual port globally for use in window creation
+    global.serverPort = actualPort;
+    
+    logger.info(`Express server started successfully on port ${actualPort}`);
 
     createWindow();
 
@@ -435,13 +457,26 @@ app.whenReady().then(async () => {
   } catch (err) {
     logger.error("Failed to start Express server:", err);
 
-    // Show error dialog to user
+    // Show error dialog to user with more details
     const { dialog } = require('electron');
+    
+    let errorMessage = 'Failed to start the backend server';
+    let errorDetail = 'The application may not function properly. Please check the logs.';
+    
+    // Check for port-related errors
+    if (err.code === 'ENOPORTS') {
+      errorMessage = 'No available ports found';
+      errorDetail = err.message + '\n\nPlease close other applications or set a custom PORT in your .env file.';
+    } else if (err.message && err.message.includes('already in use')) {
+      errorMessage = 'Port conflict detected';
+      errorDetail = err.message;
+    }
+    
     const result = await dialog.showMessageBox({
       type: 'error',
       title: 'Server Error',
-      message: 'Failed to start the backend server',
-      detail: 'The application may not function properly. Please check the logs.',
+      message: errorMessage,
+      detail: errorDetail,
       buttons: ['Continue Anyway', 'Exit'],
       defaultId: 1
     });
