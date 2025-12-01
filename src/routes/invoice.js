@@ -1,10 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const { Invoices, Stock } = require('../models');
+const { Invoices, Stock, StockMovement } = require('../models');
 const logger = require('../utils/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
 
 const { generateNextId } = require('../utils/idGenerator');
+
+// Helper function to log stock movements
+async function logStockMovement(itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
+    try {
+        await StockMovement.create({
+            item_name: itemName,
+            quantity_change: quantityChange,
+            movement_type: movementType,
+            reference_type: referenceType,
+            reference_id: referenceId,
+            notes: notes
+        });
+    } catch (error) {
+        logger.error('Error logging stock movement:', error);
+    }
+}
 
 // Route to generate a new Invoice ID
 router.get("/generate-id", async (req, res) => {
@@ -123,10 +139,28 @@ router.post("/save-invoice", async (req, res) => {
                 // Update stock: revert previous items
                 for (let prev of existingInvoice.items_original) {
                     await Stock.updateOne({ item_name: prev.description }, { $inc: { quantity: prev.quantity } });
+                    // Log stock movement for revert
+                    await logStockMovement(
+                        prev.description,
+                        prev.quantity,
+                        'in',
+                        'invoice',
+                        invoiceId,
+                        `Reverted for invoice update: ${invoiceId}`
+                    );
                 }
                 // Update stock: deduct new items (allow negative)
                 for (let cur of items_original) {
                     await Stock.updateOne({ item_name: cur.description }, { $inc: { quantity: -cur.quantity } });
+                    // Log stock movement for deduction
+                    await logStockMovement(
+                        cur.description,
+                        cur.quantity,
+                        'out',
+                        'invoice',
+                        invoiceId,
+                        `Deducted for invoice update: ${invoiceId}`
+                    );
                 }
             }
 
@@ -167,6 +201,15 @@ router.post("/save-invoice", async (req, res) => {
                     if (stockItem) {
                         stockItem.quantity -= item.quantity;
                         await stockItem.save();
+                        // Log stock movement for new invoice
+                        await logStockMovement(
+                            item.description,
+                            item.quantity,
+                            'out',
+                            'invoice',
+                            invoiceId,
+                            `Deducted for new invoice: ${invoiceId}`
+                        );
                     }
                 }
             }

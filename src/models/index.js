@@ -10,6 +10,8 @@ const Employee = require('./Employee');
 const AttendanceBook = require('./AttendanceBook');
 const Settings = require('./Settings');
 const Counters = require('./Counter');
+const StockMovement = require('./StockMovement');
+const Report = require('./Report');
 
 module.exports = {
     Admin,
@@ -20,7 +22,9 @@ module.exports = {
     Stock,
     service: Service,
     Employee,
-    AttendenceBook: AttendanceBook, // Keep original name for backward compatibility
-    Settings
-    , Counters
+    AttendenceBook: AttendanceBook,
+    Settings,
+    Counters,
+    StockMovement,
+    Report
 };

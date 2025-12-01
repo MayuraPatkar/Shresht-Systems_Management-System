@@ -1,8 +1,8 @@
 # Shresht Systems Management System
 
-A comprehensive desktop management system for Shresht Systems, built with Electron, Express, and MongoDB. This professional application streamlines business processes including quotations, invoices, purchase orders, waybills, employee management, analytics, and communications.
+A comprehensive desktop management system for Shresht Systems, built with Electron, Express, and MongoDB. This professional application streamlines business processes including quotations, invoices, purchase orders, waybills, service management, stock tracking, reports, analytics, and communications.
 
-**Version:** 2.6.0  
+**Version:** 3.3.0  
 **Website:** https://shreshtsystems.com
 
 ---
@@ -26,17 +26,23 @@ A comprehensive desktop management system for Shresht Systems, built with Electr
 
 ### Core Modules
 - **Quotation Management:** Create, edit, view, and export quotations with professional templates
-- **Invoice Management:** Generate, update, and track invoices with payment status
+- **Invoice Management:** Generate, update, and track invoices with payment status and stock deduction
 - **Purchase Orders:** Manage supplier orders and track inventory
 - **Waybills:** Create and manage waybills for shipments and deliveries
-- **Service Management:** Track services, maintenance, and customer support
-- **Stock Management:** Monitor inventory levels and stock movements
+- **Service Management:** Track services, maintenance with automatic stock deduction for parts used
+- **Stock Management:** Monitor inventory levels, stock movements, and low stock alerts
+
+### Reports Module (NEW)
+- **Stock Report:** Track all stock in/out movements with date filters and item search
+- **Monthly GST Report:** Invoice-based tax summaries with HSN/SAC breakdown
+- **Data Worksheet:** Solar installation calculator with energy savings estimates (migrated from Calculations)
+- **Print/PDF Export:** All reports support print and PDF generation
 
 ### Administrative Features
 - **Employee Management:** Add, view, and manage employee profiles and attendance
 - **Analytics Dashboard:** Visualize business metrics, sales trends, and project statuses
 - **Communication:** Send payment reminders and documents via WhatsApp integration
-- **Settings:** Admin credentials, company info, and data export/import
+- **Settings:** Admin credentials, company info, backup/restore, and data export/import
 
 ### Technical Features
 - **Professional Logging:** Winston-based logging with daily rotation
@@ -45,6 +51,8 @@ A comprehensive desktop management system for Shresht Systems, built with Electr
 - **Rate Limiting:** Protection against abuse with configurable limits
 - **Security Headers:** Helmet.js for secure HTTP headers
 - **Error Handling:** Centralized error handling middleware
+- **Auto Updates:** GitHub-based automatic updates via electron-updater
+- **Stock Movement Tracking:** Automatic logging of all stock changes for audit trails
 
 ---
 
@@ -60,24 +68,28 @@ Shresht-Systems_Management-System/
 │   ├── models/                    # Mongoose models (separated)
 │   │   ├── index.js               # Model exports
 │   │   ├── Admin.js               # User/Admin model
+│   │   ├── Counter.js             # Auto-increment counters
 │   │   ├── Invoice.js             # Invoice model
 │   │   ├── Quotation.js           # Quotation model
 │   │   ├── Purchase.js            # Purchase order model
 │   │   ├── WayBill.js             # Waybill model
 │   │   ├── Service.js             # Service model
 │   │   ├── Stock.js               # Stock/inventory model
+│   │   ├── StockMovement.js       # Stock movement tracking (NEW)
+│   │   ├── Report.js              # Cached reports model (NEW)
 │   │   ├── Employee.js            # Employee model
 │   │   ├── AttendanceBook.js      # Attendance model
 │   │   └── Settings.js            # Settings model
 │   │
 │   ├── routes/                    # Express route handlers
 │   │   ├── auth.js                # Authentication routes
-│   │   ├── invoice.js             # Invoice CRUD operations
+│   │   ├── invoice.js             # Invoice CRUD + stock deduction
 │   │   ├── quotation.js           # Quotation operations
 │   │   ├── purchaseOrder.js       # Purchase order routes
 │   │   ├── wayBill.js             # Waybill routes
-│   │   ├── service.js             # Service routes
-│   │   ├── stock.js               # Stock management routes
+│   │   ├── service.js             # Service routes + stock deduction
+│   │   ├── stock.js               # Stock management + movement logging
+│   │   ├── reports.js             # Reports API (NEW)
 │   │   ├── employee.js            # Employee routes
 │   │   ├── analytics.js           # Analytics endpoints
 │   │   ├── comms.js               # Communication routes
@@ -89,44 +101,62 @@ Shresht-Systems_Management-System/
 │   │   ├── rateLimiter.js         # Rate limiting (3 limiters)
 │   │   └── validators.js          # Input validation rules (12+)
 │   │
-│   ├── utils/                     # Utility functions
-│   │   ├── logger.js              # Winston logger with rotation
-│   │   ├── backup.js              # MongoDB backup utility
-│   │   ├── initDatabase.js        # Database initialization
-│   │   ├── hashPasswords.js       # Password hashing utility
-│   │   ├── alertHandler.js        # Electron alert dialogs
-│   │   └── printHandler.js        # Print/PDF generation
-│   │
-│   └── services/                  # Business logic layer (future)
+│   └── utils/                     # Utility functions
+│       ├── logger.js              # Winston logger with rotation
+│       ├── backup.js              # MongoDB backup utility
+│       ├── backupScheduler.js     # Automated backup scheduler
+│       ├── idGenerator.js         # Sequential ID generator
+│       ├── initDatabase.js        # Database initialization
+│       ├── hashPasswords.js       # Password hashing utility
+│       ├── alertHandler.js        # Electron alert dialogs
+│       ├── printHandler.js        # Print/PDF generation
+│       └── puppeteerPrintHandler.js # Puppeteer-based PDF generation
 │
 ├── public/                        # Frontend assets
-│   ├── global/                    # Shared styles & scripts
-│   │   ├── globalScript.js        # Common frontend logic
-│   │   ├── globalStyle.css        # Global styles
-│   │   ├── formStyle.css          # Form styles
-│   │   ├── viewStyle.css          # View styles
+│   ├── js/shared/                 # Shared utilities (IMPORTANT)
+│   │   ├── globalScript.js        # Navigation, session management
+│   │   ├── documentBuilder.js     # Document generation engine
+│   │   ├── documentManager.js     # CRUD operations helper
+│   │   ├── sectionRenderers.js    # HTML section generators
+│   │   ├── calculations.js        # GST/total calculations
+│   │   ├── utils.js               # Formatting utilities
+│   │   ├── ipc.js                 # IPC wrapper functions
 │   │   └── companyConfig.js       # Dynamic company data
 │   │
-│   ├── invoice/                   # Invoice module
-│   │   ├── invoice.html           # Invoice page
-│   │   ├── invoice_home.js        # Invoice list
-│   │   ├── invoice_form.js        # Invoice form
-│   │   └── invoice_view.js        # Invoice viewer
+│   ├── css/                       # Stylesheets
+│   │   ├── tailwind.css           # Compiled Tailwind CSS
+│   │   ├── input.css              # Tailwind source
+│   │   ├── reports.css            # Reports module styles (NEW)
+│   │   └── shared/                # Shared component styles
+│   │       ├── documentStyles.css
+│   │       ├── cardTableStyles.css
+│   │       └── formStyle.css
 │   │
 │   ├── quotation/                 # Quotation module
+│   │   ├── quotation.html
+│   │   ├── quotation_home.js
+│   │   ├── quotation_form.js
+│   │   └── quotation_view.js
+│   │
+│   ├── invoice/                   # Invoice module
 │   ├── purchaseOrder/             # Purchase order module
 │   ├── waybill/                   # Waybill module
 │   ├── service/                   # Service module
 │   ├── stock/                     # Stock module
-│   ├── employees/                 # Employee module
-│   ├── analytics/                 # Analytics dashboard
-│   ├── comms/                     # Communication module
-│   ├── settings/                  # Settings module
+│   ├── reports/                   # Reports module (NEW)
+│   │   ├── reports.html           # Reports dashboard
+│   │   ├── reports.js             # Main controller
+│   │   ├── stockReport.js         # Stock movement report
+│   │   ├── gstReport.js           # GST summary report
+│   │   └── dataWorksheetReport.js # Solar calculator
+│   │
 │   ├── dashboard/                 # Main dashboard
+│   ├── comms/                     # Communication module
 │   ├── calculations/              # Calculation tools
+│   ├── settings/                  # Settings module
 │   ├── alert/                     # Alert modals
 │   ├── assets/                    # Images & icons
-│   └── css/                       # Tailwind CSS
+│   └── index.html                 # Login page
 │
 ├── main.js                        # Electron main process
 ├── server.js                      # Express server entry point
@@ -137,7 +167,7 @@ Shresht-Systems_Management-System/
 │
 ├── backups/                       # Database backups
 ├── logs/                          # Application logs
-├── uploads/                       # Uploaded files
+├── resources/bin/                 # External binaries (mongodump)
 └── json/                          # Static data files
 ```
 
@@ -208,6 +238,12 @@ npm run server
 
 # Build CSS in watch mode
 npm run build-css
+
+# Build for distribution
+npm run build
+
+# Build and publish release
+npm run release
 ```
 
 ---
@@ -216,13 +252,15 @@ npm run build-css
 
 ### Technology Stack
 
-- **Frontend:** HTML5, CSS3 (Tailwind CSS), Vanilla JavaScript
+- **Frontend:** HTML5, CSS3 (Tailwind CSS v4), Vanilla JavaScript
 - **Backend:** Node.js, Express v5
-- **Database:** MongoDB with Mongoose ODM
-- **Desktop:** Electron v38
+- **Database:** MongoDB with Mongoose v9 ODM
+- **Desktop:** Electron v39
 - **Logging:** Winston v3
 - **Validation:** express-validator v7
-- **Security:** Helmet, bcrypt, express-rate-limit
+- **Security:** Helmet v8, bcryptjs, express-rate-limit
+- **PDF Generation:** Puppeteer v24
+- **Auto Updates:** electron-updater v6
 
 ### Design Patterns
 
@@ -277,6 +315,29 @@ npm run build-css
 #### Purchase Orders, Waybills, Services
 - Similar workflow for each module
 - Use the sidebar to navigate between modules
+- Services now automatically deduct stock for parts used
+
+### Reports (NEW)
+
+Navigate to **Reports** from the sidebar to access:
+
+1. **Stock Report:**
+   - Filter by date range, movement type, or item name
+   - View all stock in/out movements with references
+   - Print or save as PDF
+
+2. **Monthly GST Report:**
+   - Select month and year
+   - View HSN/SAC-wise tax breakdown
+   - See invoice-level details
+   - Export for GST filing
+
+3. **Data Worksheet:**
+   - Enter solar installation parameters
+   - Get energy production estimates
+   - Calculate monthly savings
+   - Compare PM SGY subsidy options
+   - Generate professional worksheet PDF
 
 ### Communication
 
@@ -390,11 +451,14 @@ npm run build-css-prod
 # Database backup
 npm run backup
 
-# View logs
-npm run logs
+# Build Windows installer
+npm run build
 
-# Clean build artifacts
-npm run clean
+# Build and publish to GitHub
+npm run release
+
+# Run database migrations
+npm run migrate
 ```
 
 ### Project Guidelines
@@ -587,6 +651,28 @@ npm install
 
 ## Changelog
 
+### Version 3.3.0 (2025-12-01)
+- ✅ **NEW:** Reports Module with 3 report types
+  - Stock Report with movement tracking
+  - Monthly GST Report with HSN/SAC breakdown
+  - Data Worksheet (migrated from Calculations)
+- ✅ **NEW:** StockMovement model for audit trail
+- ✅ **NEW:** Stock deduction on Invoice creation
+- ✅ **NEW:** Stock deduction on Service creation (for parts used)
+- ✅ **NEW:** Automatic stock movement logging across all modules
+- ✅ **Added:** Reports API endpoints (/reports/*)
+- ✅ **Added:** Print/PDF export for all reports
+- ✅ **Updated:** Electron v39, Mongoose v9, Tailwind v4
+- ✅ **Updated:** All dependencies to latest stable versions
+
+### Version 3.0.0 - 3.2.x
+- ✅ **Added:** Auto-update functionality via GitHub releases
+- ✅ **Added:** Puppeteer-based PDF generation
+- ✅ **Added:** Backup scheduler for automated backups
+- ✅ **Added:** Sequential ID generator (Counter model)
+- ✅ **Improved:** Document builder system with pagination
+- ✅ **Improved:** Shared utilities in public/js/shared/
+
 ### Version 2.6.0 (2025-10-19)
 - ✅ **Fixed:** MongoDB deprecation warnings removed
 - ✅ **Restructured:** Professional MVC architecture with src/ directory
@@ -631,7 +717,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ## Contact & Support
 
 - 🌐 **Website:** [https://shreshtsystems.com](https://shreshtsystems.com)
-- 📧 **Email:** shreshtsystems@gmail.com.com
+- 📧 **Email:** shreshtsystems@gmail.com
 - 🐛 **Issues:** [GitHub Issues](https://github.com/MayuraPatkar/Shresht-Systems_Management-System/issues)
 - 📦 **Repository:** [GitHub](https://github.com/MayuraPatkar/Shresht-Systems_Management-System)
 

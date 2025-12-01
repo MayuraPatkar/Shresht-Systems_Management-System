@@ -1,0 +1,398 @@
+/**
+ * Reports Module Styles
+ * Styling for the Reports section including cards, tables, and print layouts
+ */
+
+/* ============================================
+   Report Cards Grid
+   ============================================ */
+.report-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.report-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.report-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.report-card-header {
+    position: relative;
+    overflow: hidden;
+}
+
+.report-card-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+    pointer-events: none;
+}
+
+/* Ensure icons are visible in report card headers */
+.report-card-header .bg-white.bg-opacity-20 {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.report-card-header i {
+    display: inline-block !important;
+    font-style: normal !important;
+}
+
+.report-card-body ul li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ============================================
+   Report Section Transitions
+   ============================================ */
+.report-section {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   Summary Cards
+   ============================================ */
+#stock-report-summary > div,
+#gst-report-summary > div {
+    transition: transform 0.2s ease;
+}
+
+#stock-report-summary > div:hover,
+#gst-report-summary > div:hover {
+    transform: scale(1.02);
+}
+
+/* ============================================
+   Report Tables
+   ============================================ */
+#stock-report-table,
+#gst-report-table,
+#gst-invoice-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#stock-report-table thead,
+#gst-report-table thead,
+#gst-invoice-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#stock-report-table tbody tr:hover,
+#gst-report-table tbody tr:hover,
+#gst-invoice-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Movement type badges */
+.movement-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.movement-badge.in {
+    background-color: #d1fae5;
+    color: #059669;
+}
+
+.movement-badge.out {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.movement-badge.adjustment {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+/* ============================================
+   Data Worksheet Form
+   ============================================ */
+#dataWorksheetForm input:focus,
+#dataWorksheetForm select:focus {
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+#dataWorksheetForm .bg-blue-50,
+#dataWorksheetForm .bg-green-50,
+#dataWorksheetForm .bg-yellow-50,
+#dataWorksheetForm .bg-purple-50,
+#dataWorksheetForm .bg-orange-50 {
+    transition: box-shadow 0.2s ease;
+}
+
+#dataWorksheetForm .bg-blue-50:hover,
+#dataWorksheetForm .bg-green-50:hover,
+#dataWorksheetForm .bg-yellow-50:hover,
+#dataWorksheetForm .bg-purple-50:hover,
+#dataWorksheetForm .bg-orange-50:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================
+   Worksheet Preview Modal
+   ============================================ */
+#worksheetPreview {
+    backdrop-filter: blur(4px);
+}
+
+#worksheetPreviewContent {
+    transform-origin: top center;
+    animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   Recent Reports Section
+   ============================================ */
+#recent-reports > div {
+    transition: all 0.2s ease;
+}
+
+#recent-reports > div:hover {
+    background-color: #f8fafc;
+    transform: translateX(4px);
+}
+
+/* ============================================
+   Filter Section Styling
+   ============================================ */
+#stock-report-section .bg-white:first-of-type,
+#gst-report-section .bg-white:first-of-type {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+@media print {
+    /* Hide non-printable elements */
+    header,
+    aside,
+    #reports-home,
+    .report-section button,
+    #worksheetPreview > div > div:first-child {
+        display: none !important;
+    }
+    
+    main {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .report-section {
+        display: block !important;
+    }
+    
+    /* Table print styles */
+    #stock-report-table,
+    #gst-report-table,
+    #gst-invoice-table {
+        font-size: 10pt;
+        page-break-inside: avoid;
+    }
+    
+    #stock-report-table th,
+    #gst-report-table th,
+    #gst-invoice-table th {
+        background-color: #f3f4f6 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* Summary cards print */
+    #stock-report-summary > div,
+    #gst-report-summary > div {
+        background-color: #f3f4f6 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color: #1f2937 !important;
+    }
+    
+    #stock-report-summary > div p,
+    #gst-report-summary > div p {
+        color: #1f2937 !important;
+    }
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+@media (max-width: 768px) {
+    .report-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    #stock-report-summary,
+    #gst-report-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .dw-subsidy-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dw-info-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    #stock-report-summary,
+    #gst-report-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .dw-info-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+.report-section *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.report-section *::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.report-section *::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 4px;
+}
+
+.report-section *::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* ============================================
+   Loading States
+   ============================================ */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 50%;
+    border-top-color: #3b82f6;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   Toast Notifications
+   ============================================ */
+.toast-notification {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    z-index: 9999;
+    animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   Empty State Styling
+   ============================================ */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: #d1d5db;
+}
+
+.empty-state p {
+    margin-bottom: 0.5rem;
+}
+
+.empty-state .retry-btn {
+    color: #3b82f6;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.empty-state .retry-btn:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}

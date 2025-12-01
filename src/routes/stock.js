@@ -1,7 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const { Stock } = require('../models');
+const { Stock, StockMovement } = require('../models');
 const logger = require('../utils/logger'); // Custom logger
+
+// Helper function to log stock movements
+async function logStockMovement(itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
+    try {
+        await StockMovement.create({
+            item_name: itemName,
+            quantity_change: quantityChange,
+            movement_type: movementType,
+            reference_type: referenceType,
+            reference_id: referenceId,
+            notes: notes
+        });
+    } catch (error) {
+        logger.error('Error logging stock movement:', error);
+    }
+}
 
 // Route to get all stock items
 router.get('/all', async (req, res) => {
@@ -69,6 +85,19 @@ router.post('/addItem', async (req, res) => {
         });
 
         await newItem.save();
+        
+        // Log stock movement for initial quantity
+        if (quantity && quantity > 0) {
+            await logStockMovement(
+                itemName.trim(),
+                quantity,
+                'in',
+                'stock',
+                newItem._id.toString(),
+                'Initial stock entry'
+            );
+        }
+        
         res.status(201).json({
             message: 'Item added successfully',
             item: newItem
@@ -92,6 +121,16 @@ router.post('/addToStock', async (req, res) => {
 
         item.quantity += quantity;
         await item.save();
+        
+        // Log stock movement
+        await logStockMovement(
+            item.item_name,
+            quantity,
+            'in',
+            'stock',
+            itemId,
+            'Stock added manually'
+        );
 
         res.status(200).json({ message: 'Stock updated successfully' });
     } catch (error) {
@@ -120,6 +159,16 @@ router.post('/removeFromStock', async (req, res) => {
 
         item.quantity -= quantity;
         await item.save();
+        
+        // Log stock movement
+        await logStockMovement(
+            item.item_name,
+            quantity,
+            'out',
+            'stock',
+            itemId,
+            'Stock removed manually'
+        );
 
         res.status(200).json({ message: 'Stock updated successfully' });
     } catch (error) {
@@ -165,6 +214,11 @@ router.post('/editItem', async (req, res) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
+        // Calculate quantity change for logging
+        const oldQuantity = item.quantity || 0;
+        const newQuantity = quantity || 0;
+        const quantityDiff = newQuantity - oldQuantity;
+
         item.item_name = itemName.trim();
         item.HSN_SAC = HSN_SAC;
         item.specifications = specifications,
@@ -177,6 +231,18 @@ router.post('/editItem', async (req, res) => {
         item.min_quantity = min_quantity;
         item.updatedAt = new Date();
         await item.save();
+        
+        // Log stock movement if quantity changed
+        if (quantityDiff !== 0) {
+            await logStockMovement(
+                itemName.trim(),
+                Math.abs(quantityDiff),
+                quantityDiff > 0 ? 'in' : 'out',
+                'stock',
+                itemId,
+                `Stock adjustment via edit (${oldQuantity} → ${newQuantity})`
+            );
+        }
 
         res.status(200).json({ message: 'Item updated successfully' });
     } catch (error) {
@@ -251,10 +317,24 @@ router.get('/search/:itemName', async (req, res) => {
 router.post('/deleteItem', async (req, res) => {
     const { itemId } = req.body;
     try {
-        const result = await Stock.deleteOne({ _id: itemId });
-        if (result.deletedCount === 0) {
+        const item = await Stock.findOne({ _id: itemId });
+        if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
+        
+        // Log stock movement if item had quantity
+        if (item.quantity > 0) {
+            await logStockMovement(
+                item.item_name,
+                item.quantity,
+                'out',
+                'stock',
+                itemId,
+                'Item deleted from stock'
+            );
+        }
+        
+        const result = await Stock.deleteOne({ _id: itemId });
         res.json({ success: true });
     } catch (error) {
         logger.error('Error deleting stock item:', error);
