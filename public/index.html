@@ -89,6 +89,51 @@
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
 
+    <!-- Changelog Modal -->
+    <div id="changelog-modal" class="fixed inset-0 z-50 hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+        
+        <!-- Modal Content -->
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden fade-in">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-5 text-white">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-white bg-opacity-20 rounded-lg">
+                                <i class="fas fa-rocket text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold">What's New!</h2>
+                                <p id="changelog-version-text" class="text-sm text-blue-100">Version update</p>
+                            </div>
+                        </div>
+                        <button id="close-changelog-modal" class="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Body -->
+                <div id="changelog-modal-content" class="p-6 overflow-y-auto max-h-[50vh]">
+                    <!-- Content will be populated dynamically -->
+                    <div class="flex items-center justify-center py-8">
+                        <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                    <button id="dismiss-changelog" class="w-full gradient-bg text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all">
+                        <i class="fas fa-check mr-2"></i>
+                        Got it, let's go!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <div class="w-full max-w-6xl mx-4 my-8">
         <div class="grid lg:grid-cols-2 gap-8 items-center">

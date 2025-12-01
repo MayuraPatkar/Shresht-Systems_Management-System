@@ -60,7 +60,7 @@ function setupBackButtons() {
  */
 function setupHomeButton() {
     document.getElementById('home-btn')?.addEventListener('click', () => {
-        window.location.href = '../dashboard/dashboard.html';
+        window.location = '/reports';
     });
 }
 

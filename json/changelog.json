@@ -1,0 +1,65 @@
+{
+  "versions": [
+    {
+      "version": "3.3.1",
+      "date": "2025-12-01",
+      "title": "Bug Fixes & Improvements",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Added changelog display on app updates"
+        },
+        {
+          "type": "feature",
+          "description": "View complete release history in Settings > About"
+        },
+        {
+          "type": "improvement",
+          "description": "Enhanced update notification system"
+        }
+      ]
+    },
+    {
+      "version": "3.3.0",
+      "date": "2025-11-15",
+      "title": "Major Feature Update",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Auto-update system with GitHub releases integration"
+        },
+        {
+          "type": "feature",
+          "description": "Improved backup and restore functionality"
+        },
+        {
+          "type": "improvement",
+          "description": "Enhanced security with rate limiting"
+        },
+        {
+          "type": "bugfix",
+          "description": "Fixed document ID generation issues"
+        }
+      ]
+    },
+    {
+      "version": "3.2.0",
+      "date": "2025-10-20",
+      "title": "Settings & Preferences",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Document numbering customization"
+        },
+        {
+          "type": "feature",
+          "description": "Backup scheduling system"
+        },
+        {
+          "type": "improvement",
+          "description": "Improved database statistics display"
+        }
+      ]
+    }
+  ]
+}
