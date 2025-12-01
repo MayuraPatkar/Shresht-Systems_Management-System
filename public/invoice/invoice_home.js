@@ -526,11 +526,21 @@ async function payment(id) {
     // Store invoiceId for payment form submission
     window.currentPaymentInvoiceId = invoiceId;
     
+    // Set default payment date to today
+    const paymentDateInput = document.getElementById('payment-date');
+    if (paymentDateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        paymentDateInput.value = today;
+    }
+    
     // Fetch invoice to get due amount
     try {
-        const invoice = await fetchDocumentById('invoice', invoiceId);
-        if (invoice && invoice.invoice) {
-            const dueAmount = invoice.invoice.balance_due || 0;
+        const response = await fetchDocumentById('invoice', invoiceId);
+        if (response && response.invoice) {
+            const invoice = response.invoice;
+            const totalAmount = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
+            const paidAmount = invoice.total_paid_amount || 0;
+            const dueAmount = totalAmount - paidAmount;
             const dueAmountElement = document.getElementById('payment-due-amount');
             if (dueAmountElement) {
                 dueAmountElement.textContent = `₹ ${formatIndian(dueAmount, 2)}`;
