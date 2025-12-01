@@ -1,14 +1,43 @@
 const express = require('express');
-const { Quotations, Invoices } = require('../models');
+const path = require('path');
+const fs = require('fs');
+const { Quotations, Invoices, Admin } = require('../models');
 const router = express.Router();
 const axios = require('axios');
 const config = require('../config/config');
+const pdfGenerator = require('../utils/pdfGenerator');
+const logger = require('../utils/logger');
 
 // Load WhatsApp credentials from centralized config
 // In development: loaded from .env file
 // In production: loaded from system environment variables
 const WHATSAPP_TOKEN = config.whatsapp.token;
 const WHATSAPP_PHONE_NUMBER_ID = config.whatsapp.phoneNumberId;
+
+/**
+ * Get company info from Admin model for PDF generation
+ * @returns {Promise<Object>} Company information
+ */
+async function getCompanyInfo() {
+    try {
+        const admin = await Admin.findOne();
+        if (!admin) {
+            return {};
+        }
+        return {
+            name: admin.company || 'Shresht Systems',
+            tagline: 'CCTV & Energy Solutions',
+            address: admin.address || '',
+            phone: admin.phone?.ph1 || '',
+            gstin: admin.GSTIN || '',
+            email: admin.email || '',
+            website: admin.website || ''
+        };
+    } catch (error) {
+        logger.error('Error fetching company info:', error);
+        return {};
+    }
+}
 
 // Helper to build WhatsApp API URL
 function getWhatsAppApiUrl(endpoint = 'messages') {
@@ -144,44 +173,333 @@ router.post('/send-manual-reminder', async (req, res) => {
 });
 
 
-// Send invoice
+/**
+ * Send a simple message using the "simple_message" template
+ * Template structure:
+ * - Body: "Dear Customer, {{1}} Thank You, SHRESHT SYSTEMS"
+ * 
+ * @param {string} phone - Recipient phone number (with country code)
+ * @param {string} message - The message content for {{1}} parameter
+ */
+async function sendSimpleMessageTemplate(phone, message) {
+    // Validate WhatsApp configuration before sending
+    checkWhatsAppConfig();
+    
+    const payload = {
+        messaging_product: 'whatsapp',
+        to: phone,
+        type: 'template',
+        template: {
+            name: 'simple_message',
+            language: { code: 'en' },
+            components: [
+                {
+                    type: 'body',
+                    parameters: [
+                        { type: 'text', text: message }  // {{1}} - The message content
+                    ]
+                }
+            ]
+        }
+    };
+
+    try {
+        const { data } = await axios.post(
+            getWhatsAppApiUrl('messages'),
+            payload,
+            { headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}` } }
+        );
+        logger.info('Simple message sent successfully', { 
+            to: phone, 
+            messageId: data.messages?.[0]?.id 
+        });
+        return data;
+    } catch (err) {
+        logger.error('WhatsApp API error (simple_message)', {
+            error: err?.response?.data || err.message,
+            phone
+        });
+        throw err;
+    }
+}
+
+
+/**
+ * Send document via WhatsApp using the "sending_documents" template
+ * Template structure:
+ * - Header: Document PDF attachment (REQUIRED)
+ * - Body: {{1}} = Customer Name, {{2}} = Document Type (quotation/invoice), 
+ *         {{3}} = Reference No, {{4}} = Date, {{5}} = Amount
+ * - Footer: Contact information (static)
+ * 
+ * @param {string} phone - Recipient phone number (with country code)
+ * @param {object} docDetails - Document details
+ * @param {string} docDetails.documentUrl - URL to document PDF (REQUIRED - must be publicly accessible)
+ * @param {string} docDetails.documentType - Type of document (e.g., "quotation", "invoice")
+ * @param {string} docDetails.customerName - Customer/Buyer name
+ * @param {string} docDetails.referenceNo - Document reference number (e.g., QT-1092, INV-001)
+ * @param {string} docDetails.date - Document date (formatted as DD MMM YYYY)
+ * @param {string} docDetails.amount - Total amount (formatted with ₹ symbol)
+ */
+async function sendDocumentTemplate(phone, docDetails) {
+    // Validate WhatsApp configuration before sending
+    checkWhatsAppConfig();
+    
+    const { documentType, customerName, referenceNo, date, amount, documentUrl } = docDetails;
+    
+    // Document URL is required for this template
+    if (!documentUrl) {
+        throw new Error('Document URL is required. The WhatsApp template requires a PDF attachment.');
+    }
+    
+    // Build template components
+    const components = [
+        // Header component with document (REQUIRED)
+        {
+            type: 'header',
+            parameters: [
+                {
+                    type: 'document',
+                    document: {
+                        link: documentUrl,
+                        filename: `${referenceNo}.pdf`
+                    }
+                }
+            ]
+        },
+        // Body component with all 5 parameters
+        {
+            type: 'body',
+            parameters: [
+                { type: 'text', text: customerName },    // {{1}} - Customer Name
+                { type: 'text', text: documentType },    // {{2}} - Document Type (quotation/invoice)
+                { type: 'text', text: referenceNo },     // {{3}} - Reference No
+                { type: 'text', text: date },            // {{4}} - Date
+                { type: 'text', text: amount }           // {{5}} - Amount
+            ]
+        }
+    ];
+    
+    const payload = {
+        messaging_product: 'whatsapp',
+        to: phone,
+        type: 'template',
+        template: {
+            name: 'sending_documents',
+            language: { code: 'en' },
+            components: components
+        }
+    };
+
+    try {
+        const { data } = await axios.post(
+            getWhatsAppApiUrl('messages'),
+            payload,
+            { headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}` } }
+        );
+        logger.info('Document template sent successfully', { 
+            to: phone, 
+            referenceNo: docDetails.referenceNo,
+            messageId: data.messages?.[0]?.id 
+        });
+        return data;
+    } catch (err) {
+        logger.error('WhatsApp API error (sending_documents)', {
+            error: err?.response?.data || err.message,
+            phone,
+            referenceNo: docDetails.referenceNo
+        });
+        throw err;
+    }
+}
+
+/**
+ * Format date to "DD MMM YYYY" format for WhatsApp template
+ * @param {Date|string} date - Date to format
+ * @returns {string} Formatted date string
+ */
+function formatDateForTemplate(date) {
+    const d = new Date(date);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day} ${month} ${year}`;
+}
+
+/**
+ * Format amount with Indian Rupee symbol
+ * @param {number} amount - Amount to format
+ * @returns {string} Formatted amount string
+ */
+function formatAmountForTemplate(amount) {
+    // Format with Indian number system (lakhs, crores)
+    const formatted = new Intl.NumberFormat('en-IN', {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 0
+    }).format(amount);
+    return `₹${formatted}`;
+}
+
+// Send invoice using template (auto-generates PDF)
 router.post('/send-invoice', async (req, res) => {
-    const { phone, invoiceId } = req.body;
+    const { phone, invoiceId, documentUrl: providedUrl } = req.body;
     if (!phone || !invoiceId) return res.status(400).json({ message: 'Phone and Invoice ID required.' });
+    
     try {
         const invoice = await Invoices.findOne({ invoice_id: invoiceId });
         if (!invoice) {
             return res.status(404).json({ message: 'Invoice not found.' });
         }
         
-        const totalAmount = invoice.total_amount_original || 0;
-        await sendWhatsAppMessage(phone, `Your invoice (ID: ${invoiceId}) from Shresht Systems. Total Amount: ₹${totalAmount.toFixed(2)}`);
-        res.json({ message: 'Invoice sent via WhatsApp.' });
+        let documentUrl = providedUrl;
+        let generatedPdfFilename = null;
+        
+        // If no URL provided, generate PDF and use local server URL
+        if (!documentUrl) {
+            const companyInfo = await getCompanyInfo();
+            const pdfResult = await pdfGenerator.generateInvoicePDF(invoice, companyInfo);
+            
+            if (!pdfResult.success) {
+                return res.status(500).json({ 
+                    message: 'Failed to generate PDF.', 
+                    error: pdfResult.error 
+                });
+            }
+            
+            generatedPdfFilename = pdfResult.filename;
+            
+            // Get the base URL for serving PDFs
+            // In production, this should be your public domain or ngrok URL
+            const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
+            documentUrl = `${baseUrl}/documents/${generatedPdfFilename}`;
+            
+            logger.info(`Generated invoice PDF: ${documentUrl}`);
+        }
+        
+        const totalAmount = invoice.total_amount_original || invoice.total_amount_duplicate || 0;
+        const customerName = invoice.customer_name || 'Customer';
+        const invoiceDate = invoice.invoice_date || invoice.createdAt || new Date();
+        
+        await sendDocumentTemplate(phone, {
+            documentType: 'invoice',
+            customerName: customerName,
+            referenceNo: invoiceId,
+            date: formatDateForTemplate(invoiceDate),
+            amount: formatAmountForTemplate(totalAmount),
+            documentUrl: documentUrl
+        });
+        
+        res.json({ 
+            message: 'Invoice sent via WhatsApp.',
+            pdfUrl: documentUrl
+        });
     } catch (err) {
-        console.error('Error sending invoice:', err);
-        res.status(500).json({ message: 'Failed to send invoice.', error: err.message });
+        logger.error('Error sending invoice:', { error: err?.response?.data || err.message, invoiceId });
+        res.status(500).json({ 
+            message: 'Failed to send invoice.', 
+            error: err?.response?.data || err.message 
+        });
     }
 });
 
-// Send quotation
+// Send quotation using template (auto-generates PDF)
 router.post('/send-quotation', async (req, res) => {
-    const { phone, quotationId } = req.body;
+    const { phone, quotationId, documentUrl: providedUrl } = req.body;
     if (!phone || !quotationId) return res.status(400).json({ message: 'Phone and Quotation ID required.' });
+    
     try {
         const quotation = await Quotations.findOne({ quotation_id: quotationId });
         if (!quotation) {
             return res.status(404).json({ message: 'Quotation not found.' });
         }
         
-        await sendWhatsAppMessage(phone, `Your quotation (ID: ${quotationId}) from Shresht Systems. Total Amount: ₹${quotation.total_amount || 0}`);
-        res.json({ message: 'Quotation sent via WhatsApp.' });
+        let documentUrl = providedUrl;
+        let generatedPdfFilename = null;
+        
+        // If no URL provided, generate PDF and use local server URL
+        if (!documentUrl) {
+            const companyInfo = await getCompanyInfo();
+            const pdfResult = await pdfGenerator.generateQuotationPDF(quotation, companyInfo);
+            
+            if (!pdfResult.success) {
+                return res.status(500).json({ 
+                    message: 'Failed to generate PDF.', 
+                    error: pdfResult.error 
+                });
+            }
+            
+            generatedPdfFilename = pdfResult.filename;
+            
+            // Get the base URL for serving PDFs
+            // In production, this should be your public domain or ngrok URL
+            const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
+            documentUrl = `${baseUrl}/documents/${generatedPdfFilename}`;
+            
+            logger.info(`Generated quotation PDF: ${documentUrl}`);
+        }
+        
+        const totalAmount = quotation.total_amount_tax || quotation.total_amount_no_tax || 0;
+        const customerName = quotation.customer_name || 'Customer';
+        const quotationDate = quotation.quotation_date || quotation.createdAt || new Date();
+        
+        await sendDocumentTemplate(phone, {
+            documentType: 'quotation',
+            customerName: customerName,
+            referenceNo: quotationId,
+            date: formatDateForTemplate(quotationDate),
+            amount: formatAmountForTemplate(totalAmount),
+            documentUrl: documentUrl
+        });
+        
+        res.json({ 
+            message: 'Quotation sent via WhatsApp.',
+            pdfUrl: documentUrl
+        });
     } catch (err) {
-        console.error('Error sending quotation:', err);
-        res.status(500).json({ message: 'Failed to send quotation.', error: err.message });
+        logger.error('Error sending quotation:', { error: err?.response?.data || err.message, quotationId });
+        res.status(500).json({ 
+            message: 'Failed to send quotation.', 
+            error: err?.response?.data || err.message 
+        });
     }
 });
 
-// Send custom message
+// Send generic document using template (for any document type)
+// Can be used for waybills, purchase orders, or any other documents
+router.post('/send-document', async (req, res) => {
+    const { phone, documentType, customerName, referenceNo, date, amount, documentUrl } = req.body;
+    
+    // Validation
+    if (!phone) return res.status(400).json({ message: 'Phone number is required.' });
+    if (!documentUrl) return res.status(400).json({ message: 'Document URL is required. Please provide a publicly accessible URL to the document PDF.' });
+    if (!documentType) return res.status(400).json({ message: 'Document type is required.' });
+    if (!customerName) return res.status(400).json({ message: 'Customer name is required.' });
+    if (!referenceNo) return res.status(400).json({ message: 'Reference number is required.' });
+    if (!date) return res.status(400).json({ message: 'Date is required.' });
+    if (amount === undefined || amount === null) return res.status(400).json({ message: 'Amount is required.' });
+    
+    try {
+        await sendDocumentTemplate(phone, {
+            documentType: documentType, // e.g., 'quotation', 'invoice', 'waybill', 'purchase order'
+            customerName: customerName,
+            referenceNo: referenceNo,
+            date: formatDateForTemplate(date),
+            amount: formatAmountForTemplate(parseFloat(amount) || 0),
+            documentUrl: documentUrl
+        });
+        
+        res.json({ message: 'Document sent via WhatsApp.' });
+    } catch (err) {
+        console.error('Error sending document:', err);
+        res.status(500).json({ 
+            message: 'Failed to send document.', 
+            error: err?.response?.data || err.message 
+        });
+    }
+});
+
+// Send custom message using simple_message template
 router.post('/send-message', async (req, res) => {
     const { phoneNumber, message } = req.body;
     if (!phoneNumber || !message) {
@@ -189,11 +507,11 @@ router.post('/send-message', async (req, res) => {
     }
     
     try {
-        await sendWhatsAppMessage(phoneNumber, message);
+        await sendSimpleMessageTemplate(phoneNumber, message);
         res.json({ message: 'Message sent successfully via WhatsApp.' });
     } catch (err) {
-        console.error('Error sending message:', err);
-        res.status(500).json({ message: 'Failed to send message.', error: err.message });
+        logger.error('Error sending message:', { error: err?.response?.data || err.message, phone: phoneNumber });
+        res.status(500).json({ message: 'Failed to send message.', error: err?.response?.data || err.message });
     }
 });
 
