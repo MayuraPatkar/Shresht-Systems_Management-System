@@ -453,6 +453,11 @@ function showNewInvoiceForm() {
         }
     });
     
+    // Reset to step 1
+    if (typeof changeStep === 'function') {
+        changeStep(1);
+    }
+    
     // Clear any existing items from previous form sessions
     const itemsContainer = document.getElementById("items-container");
     const nonItemsContainer = document.getElementById("non-items-container");
