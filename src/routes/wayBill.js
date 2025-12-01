@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { wayBills } = require('../models');
-const { generateNextId } = require('../utils/idGenerator');
-const logger = require('../utils/logger'); // Custom logger
+const logger = require('../utils/logger');
+
+// Import ID generator functions
+const { previewNextId, generateNextId } = require('../utils/idGenerator');
 
 // Route to get all waybills
 router.get("/all", async (req, res) => {
@@ -15,21 +17,29 @@ router.get("/all", async (req, res) => {
     }
 });
 
-// Endpoint to generate a new Waybill ID
+/**
+ * Route: Generate a Preview ID
+ * Description: returns the next likely ID for UI display.
+ * Does NOT increment the database counter.
+ */
 router.get('/generate-id', async (req, res) => {
     try {
-        const waybill_id = await generateNextId('wayBill');
+        const waybill_id = await previewNextId('wayBill');
         return res.status(200).json({ waybill_id });
     } catch (error) {
-        logger.error('Error generating waybill id', { error: error.message || error });
+        logger.error('Error generating waybill preview', { error: error.message || error });
         return res.status(500).json({ error: 'Failed to generate waybill id' });
     }
 });
 
+/**
+ * Route: Save or Update Waybill
+ * Description: Creates a new Waybill (generating a fresh ID) or updates an existing one.
+ */
 router.post("/save-way-bill", async (req, res) => {
     try {
         let {
-            wayBillId = '',
+            wayBillId = '', // Could be a preview ID (new) or existing ID (update)
             projectName,
             buyerName = '',
             buyerAddress = '',
@@ -42,17 +52,22 @@ router.post("/save-way-bill", async (req, res) => {
             items = [],
         } = req.body;
 
-        // Validate required fields
         if (!projectName) {
             return res.status(400).json({
                 message: 'Missing required fields or invalid data: projectName',
             });
         }
 
-        // Check if way bill already exists
-        let wayBill = await wayBills.findOne({ waybill_id: wayBillId });
+        // Attempt to find an existing document using the provided ID
+        let wayBill = null;
+        if (wayBillId) {
+            wayBill = await wayBills.findOne({ waybill_id: wayBillId });
+        }
+
         if (wayBill) {
-            // Update existing way bill
+            // ---------------------------------------------------------
+            // SCENARIO 1: UPDATE EXISTING WAYBILL
+            // ---------------------------------------------------------
             wayBill.project_name = projectName;
             wayBill.customer_name = buyerName;
             wayBill.customer_address = buyerAddress;
@@ -64,9 +79,15 @@ router.post("/save-way-bill", async (req, res) => {
             if (waybillDate) wayBill.waybill_date = new Date(waybillDate);
             wayBill.items = items;
         } else {
-            // Create a new way bill with the provided data
+            // ---------------------------------------------------------
+            // SCENARIO 2: CREATE NEW WAYBILL
+            // ---------------------------------------------------------
+
+            // Generate the permanent ID now (increments the counter)
+            const newId = await generateNextId('wayBill');
+
             wayBill = new wayBills({
-                waybill_id: wayBillId,
+                waybill_id: newId,
                 project_name: projectName,
                 customer_name: buyerName,
                 customer_address: buyerAddress,
@@ -81,16 +102,15 @@ router.post("/save-way-bill", async (req, res) => {
             });
         }
 
-        // Save the way bill
         const savedWayBill = await wayBill.save();
 
-        // Respond with success message and data
         res.status(201).json({
             message: 'Way bill saved successfully',
             wayBill: savedWayBill,
+            waybill_id: savedWayBill.waybill_id // Return the final ID
         });
     } catch (error) {
-        logger.error('Error saving data:', error);
+        logger.error('Error saving waybill:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -98,23 +118,18 @@ router.post("/save-way-bill", async (req, res) => {
 // Route to get the 10 most recent way bills
 router.get("/recent-way-bills", async (req, res) => {
     try {
-        // Fetch the 10 most recent way bills, sorted by creation date
         const recentWayBills = await wayBills.find()
-            .sort({ createdAt: -1 }) // Assuming `createdAt` is a timestamp
+            .sort({ createdAt: -1 })
             .limit(10)
             .select("project_name waybill_id customer_name customer_address place_supply");
 
-        // Respond with the fetched way bills
         res.status(200).json({
             message: "Recent way bills retrieved successfully",
             wayBill: recentWayBills,
         });
     } catch (error) {
         logger.error("Error retrieving recent way bills:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 
@@ -122,25 +137,14 @@ router.get("/recent-way-bills", async (req, res) => {
 router.get("/:wayBillId", async (req, res) => {
     try {
         const { wayBillId } = req.params;
-
-        // Fetch the way bill by ID
         const wayBill = await wayBills.findOne({ waybill_id: wayBillId });
         if (!wayBill) {
             return res.status(404).json({ message: 'Way bill not found' });
         }
-
-        // Respond with the fetched way bill
-        res.status(200).json({
-            message: "Way bill retrieved successfully",
-            wayBill,
-        });
-
+        res.status(200).json({ message: "Way bill retrieved successfully", wayBill });
     } catch (error) {
         logger.error("Error retrieving way bill:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 
@@ -148,33 +152,22 @@ router.get("/:wayBillId", async (req, res) => {
 router.delete("/:wayBillId", async (req, res) => {
     try {
         const { wayBillId } = req.params;
-
-        // Fetch the way bill by ID
         const wayBill = await wayBills.findOne({ waybill_id: wayBillId });
         if (!wayBill) {
             return res.status(404).json({ message: 'Way bill not found' });
         }
-
-        // Delete the way bill
         await wayBills.deleteOne({ wayBill_id: wayBillId });
-
-        // Respond with success message
         res.status(200).json({ message: 'Way bill deleted successfully' });
     } catch (error) {
         logger.error("Error deleting way bill:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 
-// Search way bills by ID, project name, buyer name, or phone number
+// Search way bills
 router.get('/search/:query', async (req, res) => {
     const { query } = req.params;
-    if (!query) {
-        return res.status(400).send('Query parameter is required.');
-    }
+    if (!query) return res.status(400).send('Query parameter is required.');
 
     try {
         const way_bills = await wayBills.find({

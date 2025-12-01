@@ -4,8 +4,8 @@ const { Invoices, service, Stock, StockMovement } = require('../models');
 const moment = require('moment');
 const logger = require('../utils/logger');
 
-// Function to generate a unique ID for each Service
-const { generateNextId } = require('../utils/idGenerator');
+// Import ID generator functions
+const { previewNextId, generateNextId } = require('../utils/idGenerator');
 
 // Helper function to log stock movements
 async function logStockMovement(itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
@@ -23,13 +23,17 @@ async function logStockMovement(itemName, quantityChange, movementType, referenc
     }
 }
 
-// Route to generate a new service ID
+/**
+ * Route: Generate a Preview ID
+ * Description: returns the next likely ID for UI display.
+ * Does NOT increment the database counter.
+ */
 router.get('/generate-id', async (req, res) => {
     try {
-        const service_id = await generateNextId('service');
+        const service_id = await previewNextId('service');
         return res.status(200).json({ service_id });
     } catch (err) {
-        logger.error('Error generating service id', { error: err.message || err });
+        logger.error('Error generating service preview', { error: err.message || err });
         return res.status(500).json({ error: 'Failed to generate service id' });
     }
 });
@@ -45,14 +49,12 @@ router.get('/all', async (req, res) => {
     }
 });
 
-// Get service notifications (all invoices with service_month > 0 and due)
+// Get service notifications
 router.get('/get-service', async (req, res) => {
     try {
         const currentDate = moment();
-        // Fetch invoices where service_month is not zero
         const projects = await Invoices.find({ service_month: { $ne: 0 } });
 
-        // Filter invoices based on service_month and invoice_date/createdAt
         const filteredProjects = projects.filter(project => {
             if (!project.createdAt && !project.invoice_date) return false;
             if (!project.service_month) return false;
@@ -75,17 +77,13 @@ router.post('/update-nextService', async (req, res) => {
         const { invoice_id, next_service } = req.body;
         logger.info(invoice_id, next_service);
 
-        // Check if project exists
         const project = await Invoices.findOne({ invoice_id: invoice_id });
         if (!project) return res.status(404).json({ error: "Project not found" });
 
-        // Update project with service_month
         if (next_service === "yes") {
-            // Double the service_month interval for next service
             project.service_month = project.service_month * 2;
             await project.save();
         } else {
-            // Mark as no further service
             project.service_month = 0;
             await project.save();
         }
@@ -97,11 +95,14 @@ router.post('/update-nextService', async (req, res) => {
     }
 });
 
-// Route to save a new service entry and update service_stage in invoice
+/**
+ * Route: Create New Service Record
+ * Description: Always creates a new service. Generates a fresh permanent ID here.
+ */
 router.post('/save-service', async (req, res) => {
     try {
         const {
-            service_id,
+            // service_id, // Ignored from frontend (it's just a preview)
             invoice_id,
             fee_amount,
             service_date,
@@ -114,9 +115,12 @@ router.post('/save-service', async (req, res) => {
             notes
         } = req.body;
 
+        // Generate the permanent ID now (increments the counter)
+        const newServiceId = await generateNextId('service');
+
         // 1. Save service entry in the service collection
         const savedService = await service.create({
-            service_id,
+            service_id: newServiceId, // Use the fresh ID
             invoice_id,
             fee_amount,
             service_date,
@@ -142,38 +146,38 @@ router.post('/save-service', async (req, res) => {
                         item.quantity,
                         'out',
                         'service',
-                        service_id,
-                        `Deducted for service: ${service_id}`
+                        newServiceId,
+                        `Deducted for service: ${newServiceId}`
                     );
                 }
             }
         }
 
-        // 3. Update only service_stage in the invoice - ensure we don't regress the stage number
+        // 3. Update only service_stage in the invoice
         const invoice = await Invoices.findOne({ invoice_id });
         if (!invoice) {
             return res.status(404).json({ error: "Invoice not found" });
         }
         if (typeof service_stage !== "undefined") {
-            // Ensure stage stored on invoice is maximum of existing and submitted to avoid regression
             const existingStage = Number(invoice.service_stage || 0);
             const incomingStage = Number(service_stage || 0);
             invoice.service_stage = Math.max(existingStage, incomingStage);
             await invoice.save();
         }
 
-        // Return details including saved service
-        return res.json({ message: "Service saved and invoice service_stage updated successfully", service: savedService });
+        return res.json({
+            message: "Service saved and invoice service_stage updated successfully",
+            service: savedService,
+            service_id: newServiceId // Return the final ID
+        });
 
-        // Should never reach here, but fallback
-        res.json({ message: "Service saved and invoice service_stage updated successfully" });
     } catch (error) {
         logger.error("Error saving service info:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
 
-// Update existing service record (MUST be before parameterized routes like /search/:query)
+// Update existing service record
 router.put('/update-service', async (req, res) => {
     try {
         const {
@@ -241,7 +245,7 @@ router.put('/update-service', async (req, res) => {
 
         await existingService.save();
 
-        // 3. Ensure invoice service_stage remains accurate (no regression)
+        // Ensure invoice service_stage remains accurate
         const invoice = await Invoices.findOne({ invoice_id });
         if (invoice) {
             const existingStage = Number(invoice.service_stage || 0);
@@ -260,13 +264,12 @@ router.put('/update-service', async (req, res) => {
     }
 });
 
-// Search services by customer name, project name, or invoice ID
+// Search services
 router.get('/search/:query', async (req, res) => {
     try {
         const query = req.params.query;
         const currentDate = moment();
 
-        // Search in invoices where service_month is not zero
         const projects = await Invoices.find({
             service_month: { $ne: 0 },
             $or: [
@@ -276,7 +279,6 @@ router.get('/search/:query', async (req, res) => {
             ]
         });
 
-        // Filter based on service due date
         const filteredProjects = projects.filter(project => {
             if (!project.createdAt && !project.invoice_date) return false;
             if (!project.service_month) return false;
@@ -293,7 +295,7 @@ router.get('/search/:query', async (req, res) => {
     }
 });
 
-// Get recent service records (last 10 completed services from Service collection)
+// Get recent service records
 router.get('/recent-services', async (req, res) => {
     try {
         const recentServices = await service.find()
@@ -301,7 +303,6 @@ router.get('/recent-services', async (req, res) => {
             .limit(10)
             .lean();
 
-        // Populate invoice details for each service
         const servicesWithInvoiceData = await Promise.all(
             recentServices.map(async (svc) => {
                 const invoice = await Invoices.findOne({ invoice_id: svc.invoice_id })
@@ -332,15 +333,11 @@ router.get('/recent-services', async (req, res) => {
 router.get('/:serviceId', async (req, res) => {
     try {
         const { serviceId } = req.params;
-
         const serviceRecord = await service.findOne({ service_id: serviceId }).lean();
         if (!serviceRecord) {
             return res.status(404).json({ error: 'Service not found' });
         }
-
-        // Populate invoice details
         const invoice = await Invoices.findOne({ invoice_id: serviceRecord.invoice_id }).lean();
-
         res.status(200).json({
             message: 'Service retrieved successfully',
             service: {
@@ -354,11 +351,10 @@ router.get('/:serviceId', async (req, res) => {
     }
 });
 
-// Get service history for a specific invoice
+// Get service history
 router.get('/history/:invoiceId', async (req, res) => {
     try {
         const { invoiceId } = req.params;
-
         const serviceHistory = await service.find({ invoice_id: invoiceId })
             .sort({ service_stage: 1 })
             .lean();
@@ -373,12 +369,10 @@ router.get('/history/:invoiceId', async (req, res) => {
     }
 });
 
-// Search service records by service_id, customer name, or invoice_id
+// Search service records
 router.get('/search-services/:query', async (req, res) => {
     try {
         const query = req.params.query;
-
-        // First, find matching services
         const matchingServices = await service.find({
             $or: [
                 { service_id: { $regex: query, $options: 'i' } },
@@ -386,7 +380,6 @@ router.get('/search-services/:query', async (req, res) => {
             ]
         }).lean();
 
-        // Also search by customer name in invoices
         const matchingInvoices = await Invoices.find({
             $or: [
                 { customer_name: { $regex: query, $options: 'i' } },
@@ -399,13 +392,11 @@ router.get('/search-services/:query', async (req, res) => {
             invoice_id: { $in: invoiceIds }
         }).lean();
 
-        // Combine and deduplicate results
         const allServices = [...matchingServices, ...servicesByCustomer];
         const uniqueServices = Array.from(
             new Map(allServices.map(s => [s.service_id, s])).values()
         );
 
-        // Populate invoice details
         const servicesWithInvoiceData = await Promise.all(
             uniqueServices.map(async (svc) => {
                 const invoice = await Invoices.findOne({ invoice_id: svc.invoice_id })
@@ -432,7 +423,7 @@ router.get('/search-services/:query', async (req, res) => {
     }
 });
 
-// Delete service record and decrement invoice service_stage
+// Delete service record
 router.delete('/:serviceId', async (req, res) => {
     try {
         const { serviceId } = req.params;
@@ -444,7 +435,6 @@ router.delete('/:serviceId', async (req, res) => {
 
         const invoiceId = serviceRecord.invoice_id;
 
-        // Revert stock for service items before deletion
         if (serviceRecord.items && serviceRecord.items.length > 0) {
             for (let item of serviceRecord.items) {
                 await Stock.updateOne({ item_name: item.description }, { $inc: { quantity: item.quantity } });
@@ -459,13 +449,10 @@ router.delete('/:serviceId', async (req, res) => {
             }
         }
 
-        // Delete the service record
         await service.deleteOne({ service_id: serviceId });
 
-        // Recompute invoice service_stage based on remaining service records for that invoice
         const invoice = await Invoices.findOne({ invoice_id: invoiceId });
         if (invoice) {
-            // Find max stage among existing service records for this invoice
             const remainingServices = await service.find({ invoice_id: invoiceId }).lean();
             const maxStage = remainingServices.reduce((max, rec) => Math.max(max, Number(rec.service_stage || 0)), 0);
             invoice.service_stage = maxStage;

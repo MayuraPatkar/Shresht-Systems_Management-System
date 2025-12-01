@@ -4,16 +4,20 @@ const { Quotations } = require('../models');
 const logger = require('../utils/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
 
-// Function to generate a unique ID for each quotation
-const { generateNextId } = require('../utils/idGenerator');
+// Import ID generator functions
+const { previewNextId, generateNextId } = require('../utils/idGenerator');
 
-// Route to generate a new quotation ID
+/**
+ * Route: Generate a Preview ID
+ * Description: Returns the next likely ID for UI display.
+ * Does NOT increment the database counter.
+ */
 router.get("/generate-id", async (req, res) => {
     try {
-        const quotation_id = await generateNextId('quotation');
+        const quotation_id = await previewNextId('quotation');
         return res.status(200).json({ quotation_id });
     } catch (err) {
-        logger.error('Error generating quotation id', { error: err.message || err });
+        logger.error('Error generating quotation preview', { error: err.message || err });
         return res.status(500).json({ error: 'Failed to generate quotation id' });
     }
 });
@@ -34,7 +38,7 @@ function isValidItem(item) {
     return (
         typeof item === 'object' &&
         typeof item.description === 'string' &&
-        item.description.trim() !== '' &&
+        typeof item.description.trim() !== '' &&
         typeof item.quantity !== 'undefined' &&
         !isNaN(Number(item.quantity)) &&
         typeof item.unit_price !== 'undefined' &&
@@ -42,11 +46,14 @@ function isValidItem(item) {
     );
 }
 
-// Route to save a new quotation or update an existing one
+/**
+ * Route: Save or Update Quotation
+ * Description: Creates a new Quotation (generating a fresh ID) or updates an existing one.
+ */
 router.post("/save-quotation", async (req, res) => {
     try {
         let {
-            quotation_id = '',
+            quotation_id = '', // Could be a preview ID (new) or existing ID (update)
             projectName,
             quotationDate,
             buyerName = '',
@@ -69,13 +76,6 @@ router.post("/save-quotation", async (req, res) => {
 
         } = req.body;
 
-        // Validate required fields
-        if (!quotation_id || !projectName) {
-            return res.status(400).json({
-                message: 'Missing required fields: Quotation ID, projectName',
-            });
-        }
-
         // Validate items array
         if (!Array.isArray(items)) {
             return res.status(400).json({ message: 'Items must be an array.' });
@@ -86,10 +86,20 @@ router.post("/save-quotation", async (req, res) => {
             }
         }
 
-        // Check if quotation already exists
-        let quotation = await Quotations.findOne({ quotation_id: quotation_id });
+        // Attempt to find an existing quotation using the provided ID
+        let quotation = null;
+        if (quotation_id) {
+            quotation = await Quotations.findOne({ quotation_id: quotation_id });
+        }
+
         if (quotation) {
-            // Update existing quotation
+            // ---------------------------------------------------------
+            // SCENARIO 1: UPDATE EXISTING QUOTATION
+            // ---------------------------------------------------------
+            if (!projectName) {
+                return res.status(400).json({ message: 'Project name is required for updates.' });
+            }
+
             quotation.project_name = projectName;
             quotation.quotation_date = quotationDate;
             quotation.customer_name = buyerName;
@@ -108,10 +118,21 @@ router.post("/save-quotation", async (req, res) => {
             quotation.headline = headline;
             quotation.notes = notes;
             quotation.termsAndConditions = termsAndConditions;
+
         } else {
-            // Create a new quotation with the provided data
+            // ---------------------------------------------------------
+            // SCENARIO 2: CREATE NEW QUOTATION
+            // ---------------------------------------------------------
+
+            // Generate the permanent ID now (increments the counter)
+            const newId = await generateNextId('quotation');
+
+            if (!projectName) {
+                return res.status(400).json({ message: 'Project name is required.' });
+            }
+
             quotation = new Quotations({
-                quotation_id: quotation_id,
+                quotation_id: newId, // Use the fresh ID
                 project_name: projectName,
                 quotation_date: quotationDate,
                 customer_name: buyerName,
@@ -140,9 +161,11 @@ router.post("/save-quotation", async (req, res) => {
         res.status(201).json({
             message: 'Quotation saved successfully',
             quotation: savedQuotation,
+            quotation_id: savedQuotation.quotation_id // Return the final ID
         });
+
     } catch (error) {
-        logger.error('Error saving data:', error);
+        logger.error('Error saving quotation:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -222,7 +245,7 @@ router.delete("/:quotationId", async (req, res) => {
     }
 });
 
-// Search quotations by ID, project name, buyer name, phone, or email
+// Search quotations
 router.get('/search/:query', async (req, res) => {
     const { query } = req.params;
     if (!query) {

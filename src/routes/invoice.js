@@ -4,7 +4,8 @@ const { Invoices, Stock, StockMovement } = require('../models');
 const logger = require('../utils/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
 
-const { generateNextId } = require('../utils/idGenerator');
+// Import ID generator functions
+const { previewNextId, generateNextId } = require('../utils/idGenerator');
 
 // Helper function to log stock movements
 async function logStockMovement(itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
@@ -22,18 +23,22 @@ async function logStockMovement(itemName, quantityChange, movementType, referenc
     }
 }
 
-// Route to generate a new Invoice ID
+/**
+ * Route: Generate a Preview ID
+ * Description: returns the next likely ID for UI display.
+ * Does NOT increment the database counter.
+ */
 router.get("/generate-id", async (req, res) => {
     try {
-        const invoice_id = await generateNextId('invoice');
+        const invoice_id = await previewNextId('invoice');
         return res.status(200).json({ invoice_id });
     } catch (err) {
-        logger.error('Error generating invoice id', { error: err.message || err });
+        logger.error('Error generating invoice preview', { error: err.message || err });
         return res.status(500).json({ error: 'Failed to generate invoice id' });
     }
 });
 
-// Test route to verify invoice routes are working
+// Test and List routes
 router.get("/test", (req, res) => {
     res.status(200).json({ message: "Invoice routes are working!" });
 });
@@ -48,7 +53,6 @@ router.get("/get-all", async (req, res) => {
     }
 });
 
-// Alias for dashboard compatibility
 router.get("/all", async (req, res) => {
     try {
         const invoices = await Invoices.find().sort({ createdAt: -1 });
@@ -59,13 +63,16 @@ router.get("/all", async (req, res) => {
     }
 });
 
-
-
+/**
+ * Route: Save or Update Invoice
+ * Description: Creates a new Invoice (generating a fresh ID) or updates an existing one.
+ * Handles complex stock deduction logic based on 'original' vs 'duplicate' status.
+ */
 router.post("/save-invoice", async (req, res) => {
     try {
         const {
             type,
-            invoiceId = '',
+            invoiceId = '', // Could be a preview ID (new) or existing ID (update)
             invoiceDate = '',
             projectName,
             poNumber = '',
@@ -94,29 +101,33 @@ router.post("/save-invoice", async (req, res) => {
         let total_tax_original = totalTaxOriginal;
         let total_tax_duplicate = totalTaxDuplicate;
 
-        if (!invoiceId || !projectName) {
-            return res.status(400).json({ message: 'Missing required fields: invoiceId, projectName.' });
+        if (!projectName) {
+            return res.status(400).json({ message: 'Missing required fields: projectName.' });
         }
 
-        const existingInvoice = await Invoices.findOne({ invoice_id: invoiceId });
+        // Attempt to find an existing invoice
+        let existingInvoice = null;
+        if (invoiceId) {
+            existingInvoice = await Invoices.findOne({ invoice_id: invoiceId });
+        }
 
         let items_original = existingInvoice?.items_original || [];
         let items_duplicate = existingInvoice?.items_duplicate || [];
         let non_items_original = existingInvoice?.non_items_original || [];
         let non_items_duplicate = existingInvoice?.non_items_duplicate || [];
 
+        // Handle item assignment based on type
         if (type === 'original') {
-            items_original = items;                // overwrite originals
-            non_items_original = non_items;        // overwrite non_items originals
-            // leave duplicate untouched
+            items_original = items;
+            non_items_original = non_items;
         } else if (type === 'duplicate') {
-            items_duplicate = items;               // overwrite duplicates
-            non_items_duplicate = non_items;       // overwrite non_items duplicates
-            // originals stay as‐is
+            items_duplicate = items;
+            non_items_duplicate = non_items;
         } else {
             return res.status(400).json({ message: 'type must be "original" or "duplicate"' });
         }
 
+        // Handle financial totals inheritance
         if (existingInvoice) {
             if (totalAmountOriginal == 0 && totalTaxOriginal == 0) {
                 total_amount_original = existingInvoice.total_amount_original;
@@ -126,20 +137,18 @@ router.post("/save-invoice", async (req, res) => {
                 total_amount_duplicate = existingInvoice.total_amount_duplicate;
                 total_tax_duplicate = existingInvoice.total_tax_duplicate;
             }
-        } else {
-            total_amount_original = total_amount_original;
-            total_tax_original = total_tax_original;
-            total_amount_duplicate = total_amount_original;
-            total_tax_duplicate = total_tax_original;
         }
 
         if (existingInvoice) {
-            // Only update stock if we're changing the original copy (which affects inventory)
+            // ---------------------------------------------------------
+            // SCENARIO 1: UPDATE EXISTING INVOICE
+            // ---------------------------------------------------------
+
+            // Stock Logic: Only update stock if we're changing the 'original' copy
             if (type === 'original') {
-                // Update stock: revert previous items
+                // Revert previous items
                 for (let prev of existingInvoice.items_original) {
                     await Stock.updateOne({ item_name: prev.description }, { $inc: { quantity: prev.quantity } });
-                    // Log stock movement for revert
                     await logStockMovement(
                         prev.description,
                         prev.quantity,
@@ -149,10 +158,9 @@ router.post("/save-invoice", async (req, res) => {
                         `Reverted for invoice update: ${invoiceId}`
                     );
                 }
-                // Update stock: deduct new items (allow negative)
+                // Deduct new items
                 for (let cur of items_original) {
                     await Stock.updateOne({ item_name: cur.description }, { $inc: { quantity: -cur.quantity } });
-                    // Log stock movement for deduction
                     await logStockMovement(
                         cur.description,
                         cur.quantity,
@@ -164,7 +172,7 @@ router.post("/save-invoice", async (req, res) => {
                 }
             }
 
-            // Update the invoice
+            // Update fields
             Object.assign(existingInvoice, {
                 project_name: projectName,
                 invoice_date: invoiceDate,
@@ -193,31 +201,36 @@ router.post("/save-invoice", async (req, res) => {
 
             const updatedInvoice = await existingInvoice.save();
             return res.status(200).json({ message: 'Invoice updated successfully', invoice: updatedInvoice });
+
         } else {
-            // Deduct stock for new invoice (allow negative)
+            // ---------------------------------------------------------
+            // SCENARIO 2: CREATE NEW INVOICE
+            // ---------------------------------------------------------
+
+            // Generate the permanent ID now (increments the counter)
+            const newId = await generateNextId('invoice');
+
+            // Stock Logic: Deduct stock for new invoice
             if (type === 'original') {
                 for (let item of items_original) {
                     const stockItem = await Stock.findOne({ item_name: item.description });
                     if (stockItem) {
                         stockItem.quantity -= item.quantity;
                         await stockItem.save();
-                        // Log stock movement for new invoice
                         await logStockMovement(
                             item.description,
                             item.quantity,
                             'out',
                             'invoice',
-                            invoiceId,
-                            `Deducted for new invoice: ${invoiceId}`
+                            newId,
+                            `Deducted for new invoice: ${newId}`
                         );
                     }
                 }
             }
 
-
-            // Create a new invoice
             const invoice = new Invoices({
-                invoice_id: invoiceId,
+                invoice_id: newId, // Use fresh ID
                 invoice_date: invoiceDate || new Date(),
                 project_name: projectName,
                 po_number: poNumber,
@@ -244,35 +257,33 @@ router.post("/save-invoice", async (req, res) => {
             });
 
             const savedInvoice = await invoice.save();
-            return res.status(201).json({ message: 'Invoice saved successfully', invoice: savedInvoice });
+            return res.status(201).json({
+                message: 'Invoice saved successfully',
+                invoice: savedInvoice,
+                invoice_id: newId // Return the final ID
+            });
         }
     } catch (error) {
-        logger.error('Error saving data:', error);
+        logger.error('Error saving invoice:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
 
-
 // Route to get the 10 most recent invoices
 router.get("/recent-invoices", async (req, res) => {
     try {
-        // Fetch the 10 most recent invoices, sorted by creation date
         const recentInvoices = await Invoices.find()
             .sort({ createdAt: -1 })
             .limit(10)
             .select("project_name invoice_id customer_name customer_phone customer_address payment_status total_amount_duplicate total_paid_amount");
 
-        // Respond with the fetched invoices
         res.status(200).json({
             message: "Recent invoices retrieved successfully",
             invoices: recentInvoices,
         });
     } catch (error) {
         logger.error("Error retrieving recent invoices:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 
@@ -286,10 +297,7 @@ router.get('/unpaid-count', async (req, res) => {
         res.status(200).json({ count });
     } catch (error) {
         logger.error("Error getting unpaid count:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 
@@ -297,21 +305,16 @@ router.get('/unpaid-count', async (req, res) => {
 router.get("/:invoice_id", async (req, res) => {
     try {
         const { invoice_id } = req.params;
-
-        // Fetch the invoice data from the database
         const invoice = await Invoices.findOne({ invoice_id });
         if (!invoice) {
             return res.status(404).json({ message: "Invoice not found" });
         }
-
-        // Respond with the invoice data
         res.status(200).json({ invoice });
     } catch (error) {
         logger.error("Error fetching invoice:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
-
 
 router.post("/save-payment", async (req, res) => {
     try {
@@ -329,10 +332,8 @@ router.post("/save-payment", async (req, res) => {
             return res.status(404).json({ message: "Invoice not found" });
         }
 
-        // Ensure total_paid_amount is initialized
         invoice.total_paid_amount = Number(invoice.total_paid_amount || 0);
 
-        // Push new payment
         invoice.payments.push({
             payment_date: paymentDate,
             paid_amount: Number(paidAmount),
@@ -340,7 +341,6 @@ router.post("/save-payment", async (req, res) => {
             extra_details: paymentExtra || ''
         });
 
-        // Update total_paid_amount
         invoice.total_paid_amount += Number(paidAmount);
         invoice.payment_status = paymentStatus;
 
@@ -361,7 +361,6 @@ router.post("/save-payment", async (req, res) => {
             invoice.payment_status = 'Paid';
         }
 
-        // Ensure payment status is consistent with totals
         if (typeof invoice.updatePaymentStatus === 'function') {
             invoice.updatePaymentStatus();
         }
@@ -375,14 +374,11 @@ router.post("/save-payment", async (req, res) => {
     }
 });
 
-
-
-// Search invoice by ID, owner name, or phone number
+// Search invoice
 router.get('/search/:query', async (req, res) => {
     const { query } = req.params;
-    if (!query) {
-        return res.status(400).send('Query parameter is required.');
-    }
+    if (!query) return res.status(400).send('Query parameter is required.');
+
     let invoices = [];
     try {
         if (query.toLowerCase() === 'unpaid') {
@@ -416,24 +412,15 @@ router.get('/search/:query', async (req, res) => {
 router.delete("/:invoiceId", async (req, res) => {
     try {
         const { invoiceId } = req.params;
-
-        // Fetch the invoiceId by ID
         const invoice = await Invoices.findOne({ invoice_id: invoiceId });
         if (!invoice) {
             return res.status(404).json({ message: 'invoice not found' });
         }
-
-        // Delete the invoice
         await Invoices.deleteOne({ invoice_id: invoiceId });
-
-        // Respond with success message
         res.status(200).json({ message: 'invoice deleted successfully' });
     } catch (error) {
         logger.error("Error deleting invoice:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
 
