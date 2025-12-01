@@ -14,8 +14,10 @@ document.addEventListener("keydown", function (event) {
 
 // Ctrl+Tab navigation to switch between sidebar tabs
 document.addEventListener("keydown", function (event) {
-  if (event.ctrlKey && event.key === "Tab") {
+  // Check for Ctrl+Tab - use keyCode for Tab (9) as fallback for better compatibility
+  if (event.ctrlKey && (event.key === "Tab" || event.keyCode === 9)) {
     event.preventDefault(); // Prevent default browser tab switching
+    event.stopPropagation(); // Stop event from bubbling
 
     // Define the navigation order matching the server routes exactly
     const navigationOrder = [
@@ -32,13 +34,13 @@ document.addEventListener("keydown", function (event) {
       '/settings'
     ];
 
-    // Get current path
-    const currentPath = window.location.pathname;
+    // Get current path and normalize it (remove trailing slash)
+    const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
 
-    // Find current index - match exactly
+    // Find current index - match exactly first
     let currentIndex = navigationOrder.findIndex(route => currentPath === route);
 
-    // If not found, try to find partial match
+    // If not found, try to find partial match (case-insensitive)
     if (currentIndex === -1) {
       currentIndex = navigationOrder.findIndex(route =>
         currentPath.toLowerCase().includes(route.toLowerCase())
