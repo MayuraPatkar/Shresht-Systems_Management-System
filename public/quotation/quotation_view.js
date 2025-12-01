@@ -102,8 +102,8 @@ function generateViewPreviewHTML(quotation, viewType) {
         allRenderableItems.push({ html: nonItemHTML, rowCount: rowCount });
     });
 
-    // Grand totals
-    let grandTotal = totalPrice + totalNonItemsPrice;
+    // Grand totals - round off to nearest rupee
+    let grandTotal = Math.round(totalPrice + totalNonItemsPrice);
 
     // Format the date for display (DD/MM/YYYY format)
     const formattedDate = formatDateIndian(quotation.quotation_date);
@@ -294,6 +294,7 @@ async function viewQuotation(quotationId, viewType) {
 
             totalTaxable += taxableValue;
             totalTax += taxAmount;
+            // Note: grandTotal is accumulated here but will be rounded at the end
             grandTotal += (viewType === 2) ? totalWithTax : taxableValue;
 
             const row = document.createElement("tr");
@@ -391,10 +392,10 @@ async function viewQuotation(quotationId, viewType) {
             itemNumber++;
         });
 
-        // Set totals (professional 3-box layout)
+        // Set totals (professional 3-box layout) - round off grand total
         const subtotal = totalTaxable;
         const tax = totalTax;
-        const total = grandTotal;
+        const total = Math.round(grandTotal);
 
         document.getElementById('view-subtotal').textContent = `₹ ${formatIndian(subtotal, 2) || '-'}`;
         document.getElementById('view-tax').textContent = viewType === 2 ? `₹ ${formatIndian(tax, 2) || '-'}` : 'No Tax';

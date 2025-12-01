@@ -463,7 +463,7 @@ async function generatePreview() {
                 <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
                 <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-                <p>₹ ${formatIndian(totalPrice, 2)}</p>
+                <p>₹ ${formatIndian(Math.round(totalPrice), 2)}</p>
             </div>
         </div>
     `;

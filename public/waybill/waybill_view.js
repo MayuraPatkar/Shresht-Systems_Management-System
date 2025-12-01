@@ -36,7 +36,7 @@ function generateViewPreviewHTML(wayBill) {
             totalSGST += sgst;
         });
         const totalTax = totalCGST + totalSGST;
-        const grandTotal = subtotal + totalTax;
+        const grandTotal = Math.round(subtotal + totalTax);
 
     // Use the shared builder to generate consistent preview HTML
     const buyerInfoHTML = `
@@ -184,7 +184,7 @@ async function viewWayBill(wayBillId) {
             totalTax += (cgst + sgst);
         });
         
-        const grandTotal = subtotal + totalTax;
+        const grandTotal = Math.round(subtotal + totalTax);
         
         const setTextContent = (id, value) => {
             const el = document.getElementById(id);

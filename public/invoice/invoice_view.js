@@ -626,10 +626,10 @@ async function viewInvoice(invoiceId, userRole) {
         }
 
 
-        // Update totals in left side (professional 3-box) using computed values
+        // Update totals in left side (professional 3-box) using computed values - round off grand total
         const subtotal = view_totalTaxable;
         const tax = view_totalCGST + view_totalSGST;
-        const total = view_grandTotal;
+        const total = Math.round(view_grandTotal);
         setTextContent('view-subtotal', `₹ ${formatIndian(subtotal, 2)}`);
         setTextContent('view-tax', tax > 0 ? `₹ ${formatIndian(tax, 2)}` : 'No Tax');
         setTextContent('view-grand-total', `₹ ${formatIndian(total, 2)}`);

@@ -790,7 +790,7 @@ function generatePreview() {
         }
     }
 
-    const grandTotal = totalPrice;
+    const grandTotal = Math.round(totalPrice);
 
     // Build totals HTML
     let totalsHTML = `

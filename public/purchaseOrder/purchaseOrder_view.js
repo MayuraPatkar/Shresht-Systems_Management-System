@@ -65,6 +65,9 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
         }
     });
 
+    // Round off grand total to nearest rupee
+    const grandTotal = Math.round(totalPrice);
+
     let totalsHTML = `
         <div style="display: flex; width: 100%;">
             <div class="totals-section-sub1" style="width: 50%;">
@@ -79,7 +82,7 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
                 <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
                 <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-                <p>₹ ${formatIndian(totalPrice, 2)}</p>
+                <p>₹ ${formatIndian(grandTotal, 2)}</p>
             </div>
         </div>
     `;
@@ -324,7 +327,7 @@ async function viewPurchaseOrder(purchaseOrderId) {
             totalTax += (cgst + sgst);
         });
         
-        const grandTotal = subtotal + totalTax;
+        const grandTotal = Math.round(subtotal + totalTax);
         
         document.getElementById('view-subtotal').textContent = `₹ ${formatIndian(subtotal, 2)}`;
         document.getElementById('view-tax').textContent = totalTax > 0 ? `₹ ${formatIndian(totalTax, 2)}` : 'No Tax';

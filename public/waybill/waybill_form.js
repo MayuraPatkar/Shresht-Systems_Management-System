@@ -569,7 +569,7 @@ function generatePreview() {
         totalSGST += sgst;
     });
     const totalTax = totalCGST + totalSGST;
-    const grandTotal = subtotal + totalTax;
+    const grandTotal = Math.round(subtotal + totalTax);
     // Build totals using shared renderer
     const totals = { taxableValue: subtotal, cgst: totalCGST, sgst: totalSGST, total: grandTotal };
     const hasTax = (totalCGST + totalSGST) > 0;
