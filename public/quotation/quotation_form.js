@@ -101,13 +101,13 @@ async function openQuotation(quotationId) {
         // Create table row first
         const row = document.createElement("tr");
         row.innerHTML = `
-                <td>${index + 1}</td>
+                <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
                 <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
                 <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" required></td>
                 <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
         itemsTableBody.appendChild(row);
 
@@ -191,11 +191,11 @@ async function openQuotation(quotationId) {
         // Create table row first
         const row = document.createElement("tr");
         row.innerHTML = `
-                <td>${index + 1}</td>
+            <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
                 <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
                 <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
-                <td><button type="button" class="remove-item-btn">Remove</button></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
         nonItemsTableBody.appendChild(row);
 
@@ -279,9 +279,9 @@ async function openQuotation(quotationId) {
         }
 
         // Also create table row
-        const row = document.createElement("tr");
-        row.innerHTML = `
-                <td>${index + 1}</td>
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><div class="item-number">${index + 1}</div></td>
                 <td>${item.description || ''}</td>
                 <td><input type="text" value="${item.specification || ''}" required></td>
             `;
@@ -948,13 +948,13 @@ async function loadQuotationForEditing(id) {
         (quotation.items || []).forEach(item => {
             const row = itemsTableBody.insertRow();
             row.innerHTML = `
-                <td>${itemsTableBody.rows.length}</td>
+                <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Enter item description"></td>
                 <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="Enter HSN/SAC"></td>
                 <td><input type="number" value="${item.quantity || 0}" min="1" placeholder="Enter quantity"></td>
                 <td><input type="number" value="${item.unit_price || 0}" placeholder="Enter unit price"></td>
                 <td><input type="number" value="${item.rate || 0}" placeholder="Enter rate" step="0.01"></td>
-                <td><button class="remove-item-btn">Remove</button></td>
+                <td><button class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
             row.querySelector(".remove-item-btn").addEventListener("click", () => row.remove());
         });
@@ -965,11 +965,11 @@ async function loadQuotationForEditing(id) {
         (quotation.non_items || []).forEach(item => {
             const row = nonItemsTableBody.insertRow();
             row.innerHTML = `
-                <td>${nonItemsTableBody.rows.length}</td>
+                <td><div class="item-number">${nonItemsTableBody.rows.length}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description"></td>
                 <td><input type="number" value="${item.price || 0}" placeholder="Price"></td>
                 <td><input type="number" value="${item.rate || 0}" placeholder="Rate" step="0.01"></td>
-                <td><button class="remove-item-btn">Remove</button></td>
+                <td><button class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
             row.querySelector(".remove-item-btn").addEventListener("click", () => row.remove());
         });
@@ -981,7 +981,7 @@ async function loadQuotationForEditing(id) {
         allItems.forEach((item, index) => {
             const row = specTableBody.insertRow();
             row.innerHTML = `
-                <td>${index + 1}</td>
+                <td><div class="item-number">${index + 1}</div></td>
                 <td>${item.description || ''}</td>
                 <td><input type="text" value="${item.specification || ''}" placeholder="Enter specifications"></td>
              `;

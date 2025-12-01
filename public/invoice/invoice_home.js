@@ -452,9 +452,37 @@ function showNewInvoiceForm() {
             sessionStorage.setItem('update-invoice', 'original');
         }
     });
+    
+    // Reset to step 1
+    if (typeof changeStep === 'function') {
+        changeStep(1);
+    }
+    
+    // Clear any existing items from previous form sessions
+    const itemsContainer = document.getElementById("items-container");
+    const nonItemsContainer = document.getElementById("non-items-container");
+    const itemsTableBody = document.querySelector("#items-table tbody");
+    const nonItemsTableBody = document.querySelector("#non-items-table tbody");
+    
+    if (itemsContainer) itemsContainer.innerHTML = "";
+    if (nonItemsContainer) nonItemsContainer.innerHTML = "";
+    if (itemsTableBody) itemsTableBody.innerHTML = "";
+    if (nonItemsTableBody) nonItemsTableBody.innerHTML = "";
+    
+    // Clear form inputs including ID field
+    const form = document.getElementById('invoice-form');
+    if (form) form.reset();
+    
+    const idInput = document.getElementById('id');
+    if (idInput) {
+        idInput.value = '';
+        idInput.readOnly = false;
+        idInput.style.backgroundColor = '';
+    }
+    
     // Set default invoice date to today
     const invoiceDateInput = document.getElementById('invoice-date');
-    if (invoiceDateInput && !invoiceDateInput.value) {
+    if (invoiceDateInput) {
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');

@@ -290,7 +290,7 @@ function addItem() {
   // Also add to hidden table for backward compatibility
   const row = document.createElement("tr");
   row.innerHTML = `
-    <td>${itemNumber}</td>
+    <td><div class="item-number">${itemNumber}</div></td>
     <td>
       <input type="text" placeholder="Item Description" class="item_name" required>
       <ul class="suggestions"></ul>
@@ -299,7 +299,7 @@ function addItem() {
     <td><input type="number" placeholder="Qty" min="1" required></td>
     <td><input type="number" placeholder="Unit Price" required></td>
     <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
-    <td><button type="button" class="remove-item-btn">Remove</button></td>
+    <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
   `;
   tableBody.appendChild(row);
 
@@ -408,14 +408,14 @@ function addNonItem() {
   // Also add to hidden table for backward compatibility
   const row = document.createElement("tr");
   row.innerHTML = `
-    <td>${itemNumber}</td>
+    <td><div class="item-number">${itemNumber}</div></td>
     <td>
       <input type="text" placeholder="Item Description" class="item_name" required>
       <ul class="suggestions"></ul>
     </td>
     <td><input type="number" placeholder="Price" required></td>
     <td><input type="number" placeholder="Rate"></td>
-    <td><button type="button" class="remove-item-btn">Remove</button></td>
+    <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
   `;
   tableBody.appendChild(row);
 
@@ -466,9 +466,14 @@ function updateItemNumbers() {
 
   const tableRows = document.querySelectorAll("#items-table tbody tr");
   tableRows.forEach((row, index) => {
-    const cell = row.querySelector("td:first-child");
-    if (cell) {
-      cell.textContent = index + 1;
+    const badge = row.querySelector("td:first-child .item-number");
+    if (badge) {
+      badge.textContent = index + 1;
+    } else {
+      const cell = row.querySelector("td:first-child");
+      if (cell) {
+        cell.textContent = index + 1;
+      }
     }
   });
 }
@@ -485,9 +490,14 @@ function updateNonItemNumbers() {
 
   const tableRows = document.querySelectorAll("#non-items-table tbody tr");
   tableRows.forEach((row, index) => {
-    const cell = row.querySelector("td:first-child");
-    if (cell) {
-      cell.textContent = index + 1;
+    const badge = row.querySelector("td:first-child .item-number");
+    if (badge) {
+      badge.textContent = index + 1;
+    } else {
+      const cell = row.querySelector("td:first-child");
+      if (cell) {
+        cell.textContent = index + 1;
+      }
     }
   });
 }
@@ -587,20 +597,28 @@ async function handleKeyboardNavigation(event, input, suggestionsList) {
 
 // Event listener for the "Remove Item" button
 document.querySelector("#items-table")?.addEventListener("click", (event) => {
-  if (event.target.classList.contains('remove-item-btn')) {
-    event.target.closest('tr').remove();
-    // Update specifications table after removing item
-    setTimeout(() => updateSpecificationsTable(), 100);
+  const btn = event.target.closest('.remove-item-btn');
+  if (btn) {
+    btn.closest('tr').remove();
+    // Update items and specifications table after removing item
+    setTimeout(() => {
+      updateItemNumbers();
+      updateSpecificationsTable();
+    }, 100);
   }
 });
 
 const nonItemsTable = document.querySelector("#non-items-table");
 if (nonItemsTable) {
   nonItemsTable.addEventListener("click", (event) => {
-    if (event.target.classList.contains('remove-item-btn')) {
-      event.target.closest('tr').remove();
-      // Update specifications table after removing item
-      setTimeout(() => updateSpecificationsTable(), 100);
+    const btn = event.target.closest('.remove-item-btn');
+    if (btn) {
+      btn.closest('tr').remove();
+      // Update non-items and specifications table after removing item
+      setTimeout(() => {
+        updateNonItemNumbers();
+        updateSpecificationsTable();
+      }, 100);
     }
   });
 }
@@ -609,8 +627,10 @@ if (sessionStorage.getItem('currentTab') === 'quotation') {
   const itemsSpecTable = document.querySelector("#items-specifications-table");
   if (itemsSpecTable) {
     itemsSpecTable.addEventListener("click", (event) => {
-      if (event.target.classList.contains('remove-item-btn')) {
-        event.target.closest('tr').remove();
+      const btn = event.target.closest('.remove-item-btn');
+      if (btn) {
+        btn.closest('tr').remove();
+        setTimeout(() => updateSpecificationsTable(), 100);
       }
     });
   }

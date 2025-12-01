@@ -266,7 +266,7 @@ async function openPurchaseOrder(purchaseOrderId) {
             const row = document.createElement("tr");
             row.dataset.specification = item.specification || ''; // Store specification
             row.innerHTML = `
-                <td class="text-center">${sno}</td>
+                <td class="text-center"><div class="item-number">${sno}</div></td>
                 <td><input type="text" value="${item.description}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="text" value="${item.HSN_SAC}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="text" value="${item.company || ''}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
@@ -685,7 +685,7 @@ async function populateSpecifications() {
         // Create hidden table row
         const specRow = document.createElement("tr");
         specRow.innerHTML = `
-            <td>${index + 1}</td>
+            <td><div class="item-number">${index + 1}</div></td>
             <td><input type="text" value="${description}" readonly></td>
             <td><input type="text" placeholder="Enter specifications" value="${existingSpecification}"></td>
         `;
@@ -786,7 +786,7 @@ if (addItemBtn) {
     // Also add to hidden table for backward compatibility
     const row = document.createElement("tr");
     row.innerHTML = `
-        <td class="text-center">${itemNumber}</td>
+        <td class="text-center"><div class="item-number">${itemNumber}</div></td>
         <td>
             <div style="position: relative;">
                 <input type="text" placeholder="Item Description" class="item_name w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500" required>
