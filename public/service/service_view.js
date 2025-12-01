@@ -800,34 +800,24 @@ async function generatePreview() {
 
     const grandTotal = Math.round(totalPrice);
 
-    // Build totals HTML
+    // Build totals HTML - using same structure as invoice/quotation
     let totalsHTML = `
-        <table>
-            <tbody>
-                <tr>
-                    <td><strong>Taxable Value:</strong></td>
-                    <td>₹ ${formatIndian(totalTaxableValue, 2)}</td>
-                </tr>`;
-    
-    if (hasTax) {
-        totalsHTML += `
-                <tr>
-                    <td><strong>CGST:</strong></td>
-                    <td>₹ ${formatIndian(totalCGST, 2)}</td>
-                </tr>
-                <tr>
-                    <td><strong>SGST:</strong></td>
-                    <td>₹ ${formatIndian(totalSGST, 2)}</td>
-                </tr>`;
-    }
-    
-    totalsHTML += `
-                <tr>
-                    <td><strong>Grand Total:</strong></td>
-                    <td><strong>₹ ${formatIndian(grandTotal, 2)}</strong></td>
-                </tr>
-            </tbody>
-        </table>`;
+        <div style="display: flex; width: 100%;">
+            <div class="totals-section-sub1" style="width: 50%;">
+                <p>Taxable Value:</p>
+                ${hasTax ? `
+                <p>Total CGST:</p>
+                <p>Total SGST:</p>` : ""}
+                <p>Grand Total:</p>
+            </div>
+            <div class="totals-section-sub2" style="width: 50%;">
+                <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+                ${hasTax ? `
+                <p>₹ ${formatIndian(totalCGST, 2)}</p>
+                <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
+                <p>₹ ${formatIndian(grandTotal, 2)}</p>
+            </div>
+        </div>`;
 
     // Split items into rows for pagination
     const itemRows = itemsHTML.split('</tr>').filter(row => row.trim().length > 0).map(row => row + '</tr>');
