@@ -243,18 +243,25 @@ async function fillPurchaseOrderItem(itemName, element) {
     const stockData = await fetchStockData(itemName);
     if (stockData) {
         if (isCard) {
-            // Fill card inputs
-            const inputs = element.querySelectorAll('input');
-            inputs[1].value = stockData.HSN_SAC || ""; // HSN/SAC
-            inputs[2].value = stockData.company || ""; // Company
-            inputs[3].value = stockData.type || ""; // Type
-            inputs[4].value = stockData.category || ""; // Category
+            // Fill card inputs - new two-row layout
+            // Row 1 inputs: description, hsn, qty, unit_price, rate
+            // Row 2 inputs: company, type, category
+            const row1Inputs = element.querySelectorAll('.item-row-1 input');
+            const row2Inputs = element.querySelectorAll('.item-row-2 input');
+            
+            // Row 1: [0]=description, [1]=HSN, [2]=qty, [3]=unit_price, [4]=rate
+            if (row1Inputs[1]) row1Inputs[1].value = stockData.HSN_SAC || "";
             // Leave qty blank (user needs to enter)
-            inputs[6].value = stockData.unitPrice || 0; // Unit Price
-            inputs[7].value = stockData.GST || 0; // Rate
+            if (row1Inputs[3]) row1Inputs[3].value = stockData.unitPrice || 0;
+            if (row1Inputs[4]) row1Inputs[4].value = stockData.GST || 0;
+            
+            // Row 2: [0]=company, [1]=type, [2]=category
+            if (row2Inputs[0]) row2Inputs[0].value = stockData.company || "";
+            if (row2Inputs[1]) row2Inputs[1].value = stockData.type || "";
+            if (row2Inputs[2]) row2Inputs[2].value = stockData.category || "";
             
             // Trigger input events to sync with table
-            inputs.forEach(input => {
+            [...row1Inputs, ...row2Inputs].forEach(input => {
                 input.dispatchEvent(new Event('input', { bubbles: true }));
             });
             
@@ -309,13 +316,15 @@ async function fillPurchaseOrderItem(itemName, element) {
             const rowIndex = Array.from(element.parentElement.children).indexOf(element);
             const card = document.querySelector(`#items-container .item-card:nth-child(${rowIndex + 1})`);
             if (card) {
-                const cardInputs = card.querySelectorAll('input');
-                if (cardInputs[1]) cardInputs[1].value = stockData.HSN_SAC || "";
-                if (cardInputs[2]) cardInputs[2].value = stockData.company || "";
-                if (cardInputs[3]) cardInputs[3].value = stockData.type || "";
-                if (cardInputs[4]) cardInputs[4].value = stockData.category || "";
-                if (cardInputs[6]) cardInputs[6].value = stockData.unitPrice || 0;
-                if (cardInputs[7]) cardInputs[7].value = stockData.GST || 0;
+                const row1Inputs = card.querySelectorAll('.item-row-1 input');
+                const row2Inputs = card.querySelectorAll('.item-row-2 input');
+                
+                if (row1Inputs[1]) row1Inputs[1].value = stockData.HSN_SAC || "";
+                if (row1Inputs[3]) row1Inputs[3].value = stockData.unitPrice || 0;
+                if (row1Inputs[4]) row1Inputs[4].value = stockData.GST || 0;
+                if (row2Inputs[0]) row2Inputs[0].value = stockData.company || "";
+                if (row2Inputs[1]) row2Inputs[1].value = stockData.type || "";
+                if (row2Inputs[2]) row2Inputs[2].value = stockData.category || "";
             }
         }
     }
@@ -360,37 +369,43 @@ async function openPurchaseOrder(purchaseOrderId) {
             const card = document.createElement("div");
             card.className = "item-card";
             card.innerHTML = `
-                <div class="item-number">${sno}</div>
-                <div class="item-field description">
-                    <div style="position: relative;">
-                        <input type="text" value="${item.description}" placeholder="Description" class="item_name" required>
-                        <ul class="suggestions"></ul>
+                <div class="item-row-1">
+                    <div class="item-number">${sno}</div>
+                    <div class="item-field description">
+                        <div style="position: relative;">
+                            <input type="text" value="${item.description}" placeholder="Description" class="item_name" required>
+                            <ul class="suggestions"></ul>
+                        </div>
                     </div>
+                    <div class="item-field hsn">
+                        <input type="text" value="${item.HSN_SAC}" placeholder="HSN/SAC" required>
+                    </div>
+                    <div class="item-field qty">
+                        <input type="number" value="${item.quantity}" placeholder="Qty" min="1" required>
+                    </div>
+                    <div class="item-field rate">
+                        <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
+                    </div>
+                    <div class="item-field rate">
+                        <input type="number" value="${item.rate}" placeholder="GST %" min="0" step="0.01">
+                    </div>
+                    <button type="button" class="remove-item-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div class="item-field hsn">
-                    <input type="text" value="${item.HSN_SAC}" placeholder="HSN/SAC" required>
+                <div class="item-row-2">
+                    <div class="row-spacer"></div>
+                    <div class="item-field">
+                        <input type="text" value="${item.company || ''}" placeholder="Company">
+                    </div>
+                    <div class="item-field">
+                        <input type="text" value="${item.type || ''}" placeholder="Type">
+                    </div>
+                    <div class="item-field">
+                        <input type="text" value="${item.category || ''}" placeholder="Category">
+                    </div>
+                    <div class="row-spacer"></div>
                 </div>
-                <div class="item-field hsn">
-                    <input type="text" value="${item.company || ''}" placeholder="Company">
-                </div>
-                <div class="item-field hsn">
-                    <input type="text" value="${item.type || ''}" placeholder="Type">
-                </div>
-                <div class="item-field hsn">
-                    <input type="text" value="${item.category || ''}" placeholder="Category">
-                </div>
-                <div class="item-field qty">
-                    <input type="number" value="${item.quantity}" placeholder="Qty" min="1" required>
-                </div>
-                <div class="item-field rate">
-                    <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
-                </div>
-                <div class="item-field rate">
-                    <input type="number" value="${item.rate}" placeholder="Rate" min="0.01" step="0.01" required>
-                </div>
-                <button type="button" class="remove-item-btn">
-                    <i class="fas fa-times"></i>
-                </button>
             `;
             itemsContainer.appendChild(card);
             
@@ -425,13 +440,31 @@ async function openPurchaseOrder(purchaseOrderId) {
             `;
             itemsTableBody.appendChild(row);
             
-            // Sync card inputs with table inputs
-            const cardInputs = card.querySelectorAll('input');
-            const rowInputs = row.querySelectorAll('input');
-            cardInputs.forEach((input, index) => {
-                input.addEventListener('input', () => {
-                    rowInputs[index].value = input.value;
-                });
+            // Sync card inputs with table inputs using new two-row layout
+            // Card Row 1: description, hsn, qty, unit_price, rate
+            // Card Row 2: company, type, category
+            // Table: description, hsn, company, type, category, qty, unit_price, rate
+            const row1Inputs = card.querySelectorAll('.item-row-1 input');
+            const row2Inputs = card.querySelectorAll('.item-row-2 input');
+            const tableInputs = row.querySelectorAll('input');
+            
+            const inputMapping = [
+                { card: row1Inputs[0], table: tableInputs[0] }, // description
+                { card: row1Inputs[1], table: tableInputs[1] }, // hsn
+                { card: row2Inputs[0], table: tableInputs[2] }, // company
+                { card: row2Inputs[1], table: tableInputs[3] }, // type
+                { card: row2Inputs[2], table: tableInputs[4] }, // category
+                { card: row1Inputs[2], table: tableInputs[5] }, // qty
+                { card: row1Inputs[3], table: tableInputs[6] }, // unit_price
+                { card: row1Inputs[4], table: tableInputs[7] }, // rate
+            ];
+            
+            inputMapping.forEach(({ card: cardInput, table: tableInput }) => {
+                if (cardInput && tableInput) {
+                    cardInput.addEventListener('input', () => {
+                        tableInput.value = cardInput.value;
+                    });
+                }
             });
             
             // Add remove button event listener
@@ -874,46 +907,43 @@ if (addItemBtn) {
     card.className = "item-card";
     
     card.innerHTML = `
-        <div class="item-number">${itemNumber}</div>
-        
-        <div class="item-field description">
-            <div style="position: relative;">
-                <input type="text" placeholder="Enter item description" class="item_name" required>
-                <ul class="suggestions"></ul>
+        <div class="item-row-1">
+            <div class="item-number">${itemNumber}</div>
+            <div class="item-field description">
+                <div style="position: relative;">
+                    <input type="text" placeholder="Description" class="item_name" required>
+                    <ul class="suggestions"></ul>
+                </div>
             </div>
+            <div class="item-field hsn">
+                <input type="text" placeholder="HSN/SAC" required>
+            </div>
+            <div class="item-field qty">
+                <input type="number" placeholder="Qty" min="1" required>
+            </div>
+            <div class="item-field rate">
+                <input type="number" placeholder="Unit Price" step="0.01" required>
+            </div>
+            <div class="item-field rate">
+                <input type="number" placeholder="GST %" min="0" step="0.01">
+            </div>
+            <button type="button" class="remove-item-btn" title="Remove Item">
+                <i class="fas fa-trash-alt"></i>
+            </button>
         </div>
-        
-        <div class="item-field hsn">
-            <input type="text" placeholder="HSN/SAC" required>
+        <div class="item-row-2">
+            <div class="row-spacer"></div>
+            <div class="item-field">
+                <input type="text" placeholder="Company">
+            </div>
+            <div class="item-field">
+                <input type="text" placeholder="Type">
+            </div>
+            <div class="item-field">
+                <input type="text" placeholder="Category">
+            </div>
+            <div class="row-spacer"></div>
         </div>
-        
-        <div class="item-field hsn">
-            <input type="text" placeholder="Company">
-        </div>
-        
-        <div class="item-field hsn">
-            <input type="text" placeholder="Type">
-        </div>
-        
-        <div class="item-field hsn">
-            <input type="text" placeholder="Category">
-        </div>
-        
-        <div class="item-field qty">
-            <input type="number" placeholder="Qty" min="1" required>
-        </div>
-        
-        <div class="item-field rate">
-            <input type="number" placeholder="Unit Price" step="0.01" required>
-        </div>
-        
-        <div class="item-field rate">
-            <input type="number" placeholder="Rate" min="0" step="0.01">
-        </div>
-        
-        <button type="button" class="remove-item-btn" title="Remove Item">
-            <i class="fas fa-trash-alt"></i>
-        </button>
     `;
     
     // Append card to container
@@ -972,16 +1002,36 @@ if (addItemBtn) {
         });
     }
     
-    // Sync all inputs from card to table
-    const cardInputs = card.querySelectorAll("input");
-    const tableInputs = row.querySelectorAll("input");
+    // Sync inputs from card to table with new two-row layout
+    // Card Row 1: description, hsn, qty, unit_price, rate
+    // Card Row 2: company, type, category
+    // Table: description, hsn, company, type, category, qty, unit_price, rate
+    const row1Inputs = card.querySelectorAll('.item-row-1 input');
+    const row2Inputs = card.querySelectorAll('.item-row-2 input');
+    const tableInputs = row.querySelectorAll('input');
     
-    cardInputs.forEach((input, index) => {
-        input.addEventListener("input", () => {
-            if (tableInputs[index]) {
-                tableInputs[index].value = input.value;
-            }
-        });
+    // Map card inputs to table inputs
+    // Row 1: [0]=description, [1]=hsn, [2]=qty, [3]=unit_price, [4]=rate
+    // Row 2: [0]=company, [1]=type, [2]=category
+    // Table: [0]=description, [1]=hsn, [2]=company, [3]=type, [4]=category, [5]=qty, [6]=unit_price, [7]=rate
+    
+    const inputMapping = [
+        { card: row1Inputs[0], table: tableInputs[0] }, // description
+        { card: row1Inputs[1], table: tableInputs[1] }, // hsn
+        { card: row2Inputs[0], table: tableInputs[2] }, // company
+        { card: row2Inputs[1], table: tableInputs[3] }, // type
+        { card: row2Inputs[2], table: tableInputs[4] }, // category
+        { card: row1Inputs[2], table: tableInputs[5] }, // qty
+        { card: row1Inputs[3], table: tableInputs[6] }, // unit_price
+        { card: row1Inputs[4], table: tableInputs[7] }, // rate
+    ];
+    
+    inputMapping.forEach(({ card: cardInput, table: tableInput }) => {
+        if (cardInput && tableInput) {
+            cardInput.addEventListener('input', () => {
+                tableInput.value = cardInput.value;
+            });
+        }
     });
     
     // Handle remove button
