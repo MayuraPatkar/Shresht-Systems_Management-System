@@ -12,6 +12,11 @@ const { errorHandler, notFound } = require('./src/middleware/errorHandler');
 const { apiLimiter } = require('./src/middleware/rateLimiter');
 const autoBackup = require("./src/utils/backup");
 const backupScheduler = require('./src/utils/backupScheduler');
+const { findAvailablePort, printStartupBanner } = require('./src/utils/portFinder');
+
+// Track the actual port the server is running on
+let actualPort = null;
+let server = null;
 
 // Security Middleware
 exServer.use(helmet({
@@ -31,13 +36,34 @@ exServer.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 
-// CORS configuration for Electron app
-exServer.use(cors({
-    origin: ['http://localhost:3000', 'file://'],
+// Dynamic CORS configuration - uses actual port after detection
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like Electron file://)
+        if (!origin) {
+            return callback(null, true);
+        }
+        
+        // Build allowed origins dynamically based on actual port
+        const port = actualPort || config.port;
+        const allowedOrigins = [
+            `http://localhost:${port}`,
+            'file://'
+        ];
+        
+        if (allowedOrigins.includes(origin) || origin.startsWith('file://')) {
+            callback(null, true);
+        } else {
+            logger.warn(`CORS blocked origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization']
-}));
+};
+
+exServer.use(cors(corsOptions));
 
 // Body parsing middleware
 exServer.use(express.json({ limit: '10mb' }));
@@ -106,7 +132,8 @@ exServer.get('/health', async (req, res) => {
             uptime: process.uptime(),
             database: dbStatus,
             memory: process.memoryUsage(),
-            version: process.version
+            version: process.version,
+            port: actualPort
         };
 
         res.status(200).json(healthCheck);
@@ -158,38 +185,77 @@ try {
     logger.error('Failed to initialize backup scheduler:', backupError && backupError.message ? backupError.message : backupError);
 }
 
-// Start the server
-const server = exServer.listen(config.port, () => {
-    logger.info(`Express server listening on port ${config.port}`);
-    logger.info(`Server started at ${new Date().toISOString()}`);
-    logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    logger.info(`Process ID: ${process.pid}`);
-});
+/**
+ * Start the server with automatic port detection
+ * @returns {Promise<{server: object, port: number}>} Server instance and actual port
+ */
+async function startServer() {
+    try {
+        // Find an available port
+        const { port, source } = await findAvailablePort({
+            defaultPort: config.port,
+            maxRetries: config.portMaxRetries,
+            useCache: config.portCacheEnabled,
+            logger: logger
+        });
 
-// Handle server startup errors
-server.on('error', (error) => {
-    if (error.syscall !== 'listen') {
+        actualPort = port;
+
+        // Start the server on the detected port
+        return new Promise((resolve, reject) => {
+            server = exServer.listen(port, () => {
+                // Print startup banner
+                printStartupBanner({
+                    port: actualPort,
+                    source: source,
+                    appName: config.appName,
+                    appVersion: config.appVersion,
+                    logger: logger
+                });
+
+                logger.info(`Server started at ${new Date().toISOString()}`);
+                logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+                logger.info(`Process ID: ${process.pid}`);
+
+                resolve({ server, port: actualPort });
+            });
+
+            // Handle server startup errors
+            server.on('error', (error) => {
+                if (error.syscall !== 'listen') {
+                    reject(error);
+                    return;
+                }
+                const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+                switch (error.code) {
+                    case 'EACCES':
+                        logger.error(`${bind} requires elevated privileges`);
+                        reject(new Error(`${bind} requires elevated privileges`));
+                        break;
+                    case 'EADDRINUSE':
+                        logger.error(`${bind} is already in use`);
+                        reject(new Error(`${bind} is already in use`));
+                        break;
+                    default:
+                        logger.error('Server error:', error);
+                        reject(error);
+                }
+            });
+        });
+    } catch (error) {
+        logger.error('Failed to start server:', error);
         throw error;
     }
-    const bind = typeof config.port === 'string' ? 'Pipe ' + config.port : 'Port ' + config.port;
-    switch (error.code) {
-        case 'EACCES':
-            logger.error(`${bind} requires elevated privileges`);
-            process.exit(1);
-            break;
-        case 'EADDRINUSE':
-            logger.error(`${bind} is already in use`);
-            process.exit(1);
-            break;
-        default:
-            logger.error('Server error:', error);
-            throw error;
-    }
-});
+}
 
 // Graceful shutdown handling
 const gracefulShutdown = async (signal) => {
     logger.info(`${signal} received. Starting graceful shutdown...`);
+
+    if (!server) {
+        process.exit(0);
+        return;
+    }
 
     // Stop accepting new connections
     server.close(async (err) => {
@@ -234,4 +300,11 @@ process.on('unhandledRejection', (reason, promise) => {
     gracefulShutdown('UNHANDLED_REJECTION');
 });
 
+// Auto-start server when this module is required
+// Store the startup promise so main.js can await it
+const serverStartPromise = startServer();
+
+// Export the app, actual port getter, and startup promise
 module.exports = exServer;
+module.exports.getActualPort = () => actualPort;
+module.exports.serverReady = serverStartPromise;

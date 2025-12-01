@@ -2,18 +2,34 @@ const express = require('express');
 const { Quotations, Invoices } = require('../models');
 const router = express.Router();
 const axios = require('axios');
+const config = require('../config/config');
 
-// Load WhatsApp credentials from environment variables
-const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
-const WHATSAPP_PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+// Load WhatsApp credentials from centralized config
+// In development: loaded from .env file
+// In production: loaded from system environment variables
+const WHATSAPP_TOKEN = config.whatsapp.token;
+const WHATSAPP_PHONE_NUMBER_ID = config.whatsapp.phoneNumberId;
 
 // Helper to build WhatsApp API URL
 function getWhatsAppApiUrl(endpoint = 'messages') {
+    if (!WHATSAPP_PHONE_NUMBER_ID) {
+        throw new Error('WhatsApp Phone Number ID is not configured');
+    }
     return `https://graph.facebook.com/v20.0/${WHATSAPP_PHONE_NUMBER_ID}/${endpoint}`;
+}
+
+// Check if WhatsApp is properly configured
+function checkWhatsAppConfig() {
+    if (!config.whatsapp.isConfigured()) {
+        throw new Error('WhatsApp API is not configured. Please set WHATSAPP_TOKEN and PHONE_NUMBER_ID environment variables.');
+    }
 }
 
 // Generic function to send WhatsApp text message
 async function sendWhatsAppMessage(phone, message) {
+    // Validate WhatsApp configuration before sending
+    checkWhatsAppConfig();
+    
     const payload = {
         messaging_product: 'whatsapp',
         to: phone,
@@ -39,6 +55,8 @@ async function sendWhatsAppMessage(phone, message) {
 }
 
 async function sendPaymentReminder(phone, amount_due) {
+    // Validate WhatsApp configuration before sending
+    checkWhatsAppConfig();
     // Send WhatsApp “Reminder” template
     // {{1}} → amount   (text)
     // {{2}} → invoice No         (text)

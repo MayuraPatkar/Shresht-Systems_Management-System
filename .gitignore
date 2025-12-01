@@ -8,3 +8,4 @@ uploads/
 backups/
 .github/
 public/css/tailwind.css
+.port-cache

@@ -1,11 +1,14 @@
-require('dotenv').config();
+// Environment loader handles dotenv in development, system env vars in production
+require('../utils/envLoader');
 
 module.exports = {
     // Application
     env: process.env.NODE_ENV || 'development',
     port: parseInt(process.env.PORT, 10) || 3000,
+    portMaxRetries: parseInt(process.env.PORT_MAX_RETRIES, 10) || 10,
+    portCacheEnabled: process.env.PORT_CACHE_ENABLED !== 'false', // Enabled by default
     appName: process.env.APP_NAME || 'Shresht Systems Management System',
-    appVersion: process.env.APP_VERSION || '1.0.0',
+    appVersion: process.env.APP_VERSION || '3.3.0',
 
     // Database
     mongoURI: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/shreshtSystems',
@@ -43,6 +46,17 @@ module.exports = {
     rateLimit: {
         windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 900000, // 15 minutes
         maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
+    },
+
+    // WhatsApp API Configuration
+    whatsapp: {
+        token: process.env.WHATSAPP_TOKEN || '',
+        phoneNumberId: process.env.PHONE_NUMBER_ID || '',
+        appId: process.env.APP_ID || '',
+        verifyToken: process.env.VERIFY_TOKEN || '',
+        isConfigured() {
+            return !!(this.token && this.phoneNumberId);
+        }
     },
 
     // Helper methods
