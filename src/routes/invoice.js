@@ -317,7 +317,6 @@ router.post("/save-payment", async (req, res) => {
     try {
         const {
             invoiceId,
-            paymentStatus,
             paymentMode,
             paymentDate,
             paidAmount = 0,
@@ -342,23 +341,14 @@ router.post("/save-payment", async (req, res) => {
 
         // Update total_paid_amount
         invoice.total_paid_amount += Number(paidAmount);
-        invoice.payment_status = paymentStatus;
 
-        if (paymentStatus === 'Paid' && invoice.total_amount_duplicate > invoice.total_paid_amount) {
-            const remaining_amount = invoice.total_amount_duplicate - invoice.total_paid_amount;
-
-            invoice.payments.push({
-                payment_date: new Date(),
-                paid_amount: Number(remaining_amount),
-                payment_mode: 'Cash',
-                extra_details: 'Auto-generated for remaining balance'
-            });
-
-            invoice.total_paid_amount += Number(remaining_amount);
-        }
-
+        // Auto-determine payment status based on amounts
         if (invoice.total_paid_amount >= invoice.total_amount_duplicate) {
             invoice.payment_status = 'Paid';
+        } else if (invoice.total_paid_amount > 0) {
+            invoice.payment_status = 'Partial';
+        } else {
+            invoice.payment_status = 'Unpaid';
         }
 
         // Ensure payment status is consistent with totals

@@ -199,16 +199,26 @@ body {
     background: #f8fafc;
     /* Slate 50 */
     padding: 12px 20px;
-    text-align: center;
-    font-size: 18px;
+    font-size: 16px;
     color: #1a365d;
     /* Brand Navy */
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
     border-radius: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     border: 1px solid #e2e8f0;
+}
+
+.doc-standard .second-section p {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a365d;
+}
+
+.doc-standard .second-section strong {
+    font-weight: 600;
 }
 
 /* Bill To / Info Section */
@@ -216,27 +226,35 @@ body {
     display: flex;
     justify-content: space-between;
     gap: 30px;
-    padding: 0 10px;
+    padding: 15px 10px;
+    margin-bottom: 15px;
 }
 
 .doc-standard .third-section .order-info,
-.doc-standard .third-section .buyer-details {
+.doc-standard .third-section .buyer-details,
+.doc-standard .third-section .info-section {
     padding: 0;
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.7;
     width: 48%;
 }
 
+.doc-standard .third-section .info-section {
+    text-align: right;
+}
+
 .doc-standard .third-section p {
-    margin: 4px 0;
+    margin: 3px 0;
     color: #334155;
     /* Slate 700 */
+    font-size: 13px;
 }
 
 .doc-standard .third-section strong {
-    color: #0f172a;
-    /* Slate 900 */
+    color: #1a365d;
+    /* Brand Navy */
     font-weight: 600;
+    font-size: 13px;
 }
 
 /* ===== TABLE STYLES - STANDARD ===== */
