@@ -25,8 +25,7 @@ async function logStockMovement(itemName, quantityChange, movementType, referenc
 // Route to generate a new Invoice ID
 router.get("/generate-id", async (req, res) => {
     try {
-        const peek = req.query.peek === 'true';
-        const invoice_id = await generateNextId('invoice', { peek });
+        const invoice_id = await generateNextId('invoice');
         return res.status(200).json({ invoice_id });
     } catch (err) {
         logger.error('Error generating invoice id', { error: err.message || err });
@@ -215,14 +214,6 @@ router.post("/save-invoice", async (req, res) => {
                 }
             }
 
-
-
-            // Check if we need to increment the counter for this ID
-            // We only increment if the ID matches the *next* expected ID (peeked)
-            const expectedId = await generateNextId('invoice', { peek: true });
-            if (invoiceId === expectedId) {
-                await generateNextId('invoice'); // Increment
-            }
 
             // Create a new invoice
             const invoice = new Invoices({

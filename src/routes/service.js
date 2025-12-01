@@ -26,8 +26,7 @@ async function logStockMovement(itemName, quantityChange, movementType, referenc
 // Route to generate a new service ID
 router.get('/generate-id', async (req, res) => {
     try {
-        const peek = req.query.peek === 'true';
-        const service_id = await generateNextId('service', { peek });
+        const service_id = await generateNextId('service');
         return res.status(200).json({ service_id });
     } catch (err) {
         logger.error('Error generating service id', { error: err.message || err });
@@ -114,12 +113,6 @@ router.post('/save-service', async (req, res) => {
             total_amount_with_tax,
             notes
         } = req.body;
-
-        // Check if we need to increment the counter for this ID
-        const expectedId = await generateNextId('service', { peek: true });
-        if (service_id === expectedId) {
-            await generateNextId('service'); // Increment
-        }
 
         // 1. Save service entry in the service collection
         const savedService = await service.create({

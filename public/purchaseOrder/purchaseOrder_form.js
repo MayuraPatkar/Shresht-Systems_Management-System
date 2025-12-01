@@ -302,7 +302,7 @@ async function openPurchaseOrder(purchaseOrderId) {
 // fuction to get the quotation id
 async function getId() {
     try {
-        const response = await fetch("/purchaseOrder/generate-id?peek=true");
+        const response = await fetch("/purchaseOrder/generate-id");
         if (!response.ok) {
             throw new Error("Failed to fetch quotation id");
         }

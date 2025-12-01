@@ -18,8 +18,7 @@ router.get("/all", async (req, res) => {
 // Endpoint to generate a new Waybill ID
 router.get('/generate-id', async (req, res) => {
     try {
-        const peek = req.query.peek === 'true';
-        const waybill_id = await generateNextId('wayBill', { peek });
+        const waybill_id = await generateNextId('wayBill');
         return res.status(200).json({ waybill_id });
     } catch (error) {
         logger.error('Error generating waybill id', { error: error.message || error });
@@ -65,12 +64,6 @@ router.post("/save-way-bill", async (req, res) => {
             if (waybillDate) wayBill.waybill_date = new Date(waybillDate);
             wayBill.items = items;
         } else {
-            // Check if we need to increment the counter for this ID
-            const expectedId = await generateNextId('wayBill', { peek: true });
-            if (wayBillId === expectedId) {
-                await generateNextId('wayBill'); // Increment
-            }
-
             // Create a new way bill with the provided data
             wayBill = new wayBills({
                 waybill_id: wayBillId,

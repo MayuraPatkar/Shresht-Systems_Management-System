@@ -9,8 +9,7 @@ const { generateNextId } = require('../utils/idGenerator');
 // Route to generate a new purchaseOrder ID
 router.get("/generate-id", async (req, res) => {
     try {
-        const peek = req.query.peek === 'true';
-        const purchase_order_id = await generateNextId('purchaseOrder', { peek });
+        const purchase_order_id = await generateNextId('purchaseOrder');
         return res.status(200).json({ purchase_order_id });
     } catch (err) {
         logger.error('Error generating purchase order id', { error: err.message || err });
@@ -59,12 +58,6 @@ router.post("/save-purchase-order", async (req, res) => {
             purchaseOrder.items = items;
             purchaseOrder.total_amount = totalAmount;
         } else {
-            // Check if we need to increment the counter for this ID
-            const expectedId = await generateNextId('purchaseOrder', { peek: true });
-            if (purchaseOrderId === expectedId) {
-                await generateNextId('purchaseOrder'); // Increment
-            }
-
             // Create a new purchase order with the provided data
             purchaseOrder = new Purchases({
                 purchase_order_id: purchaseOrderId,

@@ -429,7 +429,7 @@ async function openInvoice(id) {
 // Function to get the invoice id
 async function getId() {
     try {
-        const response = await fetch("/invoice/generate-id?peek=true");
+        const response = await fetch("/invoice/generate-id");
         if (!response.ok) throw new Error("Failed to fetch invoice id");
 
         const data = await response.json();

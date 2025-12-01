@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Fetch next Waybill ID from server
 async function getWaybillId() {
     try {
-        const response = await fetch('/wayBill/generate-id?peek=true');
+        const response = await fetch('/wayBill/generate-id');
         if (!response.ok) throw new Error('Failed to fetch waybill id');
         const data = await response.json();
         document.getElementById('waybill-id').value = data.waybill_id;

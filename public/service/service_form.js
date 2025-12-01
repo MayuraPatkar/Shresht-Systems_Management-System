@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Get ID for preview generation
 async function getId() {
     try {
-        const response = await fetch("/service/generate-id?peek=true");
+        const response = await fetch("/service/generate-id");
         if (!response.ok) throw new Error("Failed to fetch service id");
 
         const data = await response.json();
