@@ -121,7 +121,7 @@ router.get("/recent-way-bills", async (req, res) => {
         const recentWayBills = await wayBills.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("project_name waybill_id customer_name customer_address place_supply");
+            .select("project_name waybill_id customer_name customer_address place_supply waybill_date createdAt");
 
         res.status(200).json({
             message: "Recent way bills retrieved successfully",

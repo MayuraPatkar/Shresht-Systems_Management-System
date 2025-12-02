@@ -200,7 +200,7 @@ router.get("/recent-purchase-orders", async (req, res) => {
         const recentPurchaseOrders = await Purchases.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("project_name purchase_order_id supplier_name supplier_address total_amount");
+            .select("project_name purchase_order_id supplier_name supplier_address total_amount purchase_date createdAt");
 
         res.status(200).json({
             message: "Recent purchase orders retrieved successfully",

@@ -275,7 +275,7 @@ router.get("/recent-invoices", async (req, res) => {
         const recentInvoices = await Invoices.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("project_name invoice_id customer_name customer_phone customer_address payment_status total_amount_duplicate total_paid_amount");
+            .select("project_name invoice_id customer_name customer_phone customer_address payment_status total_amount_duplicate total_paid_amount invoice_date createdAt");
 
         res.status(200).json({
             message: "Recent invoices retrieved successfully",
