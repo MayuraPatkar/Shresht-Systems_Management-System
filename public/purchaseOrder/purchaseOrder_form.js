@@ -1013,38 +1013,6 @@ if (addItemBtn) {
                 }
             });
         });
-    }
-    
-    // Sync inputs from card to table with new two-row layout
-    // Card Row 1: description, hsn, qty, unit_price, rate
-    // Card Row 2: company, type, category
-    // Table: description, hsn, company, type, category, qty, unit_price, rate
-    const row1Inputs = card.querySelectorAll('.item-row-1 input');
-    const row2Inputs = card.querySelectorAll('.item-row-2 input');
-    const tableInputs = row.querySelectorAll('input');
-    
-    // Map card inputs to table inputs
-    // Row 1: [0]=description, [1]=hsn, [2]=qty, [3]=unit_price, [4]=rate
-    // Row 2: [0]=company, [1]=type, [2]=category
-    // Table: [0]=description, [1]=hsn, [2]=company, [3]=type, [4]=category, [5]=qty, [6]=unit_price, [7]=rate
-    
-    const inputMapping = [
-        { card: row1Inputs[0], table: tableInputs[0] }, // description
-        { card: row1Inputs[1], table: tableInputs[1] }, // hsn
-        { card: row2Inputs[0], table: tableInputs[2] }, // company
-        { card: row2Inputs[1], table: tableInputs[3] }, // type
-        { card: row2Inputs[2], table: tableInputs[4] }, // category
-        { card: row1Inputs[2], table: tableInputs[5] }, // qty
-        { card: row1Inputs[3], table: tableInputs[6] }, // unit_price
-        { card: row1Inputs[4], table: tableInputs[7] }, // rate
-    ];
-    
-    inputMapping.forEach(({ card: cardInput, table: tableInput }) => {
-        if (cardInput && tableInput) {
-            cardInput.addEventListener('input', () => {
-                tableInput.value = cardInput.value;
-            });
-        }
     });
 }
 
