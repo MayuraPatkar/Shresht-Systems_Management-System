@@ -182,6 +182,23 @@ function createPurchaseOrderDiv(purchaseOrder) {
     const purchaseOrderDiv = document.createElement("div");
     purchaseOrderDiv.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-400 overflow-hidden fade-in";
     
+    // Format the date for display
+    const dateToFormat = purchaseOrder.purchase_date || purchaseOrder.createdAt;
+    let formattedDate = '-';
+    if (dateToFormat) {
+        try {
+            const dateObj = new Date(dateToFormat);
+            if (!isNaN(dateObj.getTime())) {
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const year = dateObj.getFullYear();
+                formattedDate = `${day}/${month}/${year}`;
+            }
+        } catch (e) {
+            formattedDate = '-';
+        }
+    }
+    
     purchaseOrderDiv.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
@@ -198,11 +215,18 @@ function createPurchaseOrderDiv(purchaseOrder) {
                         </div>
                         <div class="flex-1 min-w-0">
                             <h3 class="text-lg font-bold text-gray-900 mb-1 truncate">${purchaseOrder.supplier_name}</h3>
-                            <p class="text-sm text-gray-600 cursor-pointer hover:text-purple-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
-                                <i class="fas fa-hashtag text-xs"></i>
-                                <span>${purchaseOrder.purchase_order_id}</span>
-                                <i class="fas fa-copy text-xs ml-1"></i>
-                            </p>
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm text-gray-600 cursor-pointer hover:text-purple-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
+                                    <i class="fas fa-hashtag text-xs"></i>
+                                    <span>${purchaseOrder.purchase_order_id}</span>
+                                    <i class="fas fa-copy text-xs ml-1"></i>
+                                </p>
+                                <span class="text-gray-300">|</span>
+                                <p class="text-xs text-gray-500 inline-flex items-center gap-1">
+                                    <i class="fas fa-calendar-alt text-xs"></i>
+                                    ${formattedDate}
+                                </p>
+                            </div>
                         </div>
                     </div>
 

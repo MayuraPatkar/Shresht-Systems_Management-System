@@ -473,14 +473,6 @@ async function openPurchaseOrder(purchaseOrderId) {
                 card.remove();
                 row.remove();
             });
-        });
-
-        // Add remove button event listener
-        const removeBtn = card.querySelector(".remove-item-btn");
-        removeBtn.addEventListener("click", function () {
-            card.remove();
-            row.remove();
-        });
 
         sno++;
     });
