@@ -6,6 +6,7 @@ const router = express.Router();
 const axios = require('axios');
 const config = require('../config/config');
 const pdfGenerator = require('../utils/pdfGenerator');
+const cloudStorage = require('../utils/cloudStorage');
 const logger = require('../utils/logger');
 
 // Load WhatsApp credentials from centralized config
@@ -349,30 +350,45 @@ router.post('/send-invoice', async (req, res) => {
     try {
         const invoice = await Invoices.findOne({ invoice_id: invoiceId });
         if (!invoice) {
-            return res.status(404).json({ message: 'Invoice not found.' });
+            logger.warn(`Invoice not found: ${invoiceId}`);
+            return res.status(404).json({ message: `Invoice "${invoiceId}" not found. Please check the invoice ID.` });
         }
         
         let documentUrl = providedUrl;
-        let generatedPdfFilename = null;
         
-        // If no URL provided, generate PDF and use local server URL
+        // If no URL provided, generate PDF and upload to cloud or use local URL
         if (!documentUrl) {
             const companyInfo = await getCompanyInfo();
             const pdfResult = await pdfGenerator.generateInvoicePDF(invoice, companyInfo);
             
             if (!pdfResult.success) {
+                logger.error('Failed to generate invoice PDF:', { error: pdfResult.error, invoiceId });
                 return res.status(500).json({ 
                     message: 'Failed to generate PDF.', 
                     error: pdfResult.error 
                 });
             }
             
-            generatedPdfFilename = pdfResult.filename;
+            // Try to upload to cloud storage (Cloudinary) for public accessibility
+            if (cloudStorage.isConfigured()) {
+                const uploadResult = await cloudStorage.uploadPDF(pdfResult.path, invoiceId);
+                if (uploadResult.success) {
+                    documentUrl = uploadResult.url;
+                    logger.info(`Invoice PDF uploaded to cloud: ${documentUrl}`);
+                } else {
+                    logger.warn(`Cloud upload failed, using local URL: ${uploadResult.error}`);
+                }
+            }
             
-            // Get the base URL for serving PDFs
-            // In production, this should be your public domain or ngrok URL
-            const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
-            documentUrl = `${baseUrl}/documents/${generatedPdfFilename}`;
+            // Fallback to local URL if cloud upload failed or not configured
+            if (!documentUrl) {
+                const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
+                documentUrl = `${baseUrl}/documents/${pdfResult.filename}`;
+                
+                if (documentUrl.includes('localhost') || documentUrl.includes('127.0.0.1')) {
+                    logger.warn(`Invoice PDF URL uses localhost which may not be accessible by WhatsApp: ${documentUrl}`);
+                }
+            }
             
             logger.info(`Generated invoice PDF: ${documentUrl}`);
         }
@@ -411,30 +427,45 @@ router.post('/send-quotation', async (req, res) => {
     try {
         const quotation = await Quotations.findOne({ quotation_id: quotationId });
         if (!quotation) {
-            return res.status(404).json({ message: 'Quotation not found.' });
+            logger.warn(`Quotation not found: ${quotationId}`);
+            return res.status(404).json({ message: `Quotation "${quotationId}" not found. Please check the quotation ID.` });
         }
         
         let documentUrl = providedUrl;
-        let generatedPdfFilename = null;
         
-        // If no URL provided, generate PDF and use local server URL
+        // If no URL provided, generate PDF and upload to cloud or use local URL
         if (!documentUrl) {
             const companyInfo = await getCompanyInfo();
             const pdfResult = await pdfGenerator.generateQuotationPDF(quotation, companyInfo);
             
             if (!pdfResult.success) {
+                logger.error('Failed to generate quotation PDF:', { error: pdfResult.error, quotationId });
                 return res.status(500).json({ 
                     message: 'Failed to generate PDF.', 
                     error: pdfResult.error 
                 });
             }
             
-            generatedPdfFilename = pdfResult.filename;
+            // Try to upload to cloud storage (Cloudinary) for public accessibility
+            if (cloudStorage.isConfigured()) {
+                const uploadResult = await cloudStorage.uploadPDF(pdfResult.path, quotationId);
+                if (uploadResult.success) {
+                    documentUrl = uploadResult.url;
+                    logger.info(`Quotation PDF uploaded to cloud: ${documentUrl}`);
+                } else {
+                    logger.warn(`Cloud upload failed, using local URL: ${uploadResult.error}`);
+                }
+            }
             
-            // Get the base URL for serving PDFs
-            // In production, this should be your public domain or ngrok URL
-            const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
-            documentUrl = `${baseUrl}/documents/${generatedPdfFilename}`;
+            // Fallback to local URL if cloud upload failed or not configured
+            if (!documentUrl) {
+                const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
+                documentUrl = `${baseUrl}/documents/${pdfResult.filename}`;
+                
+                if (documentUrl.includes('localhost') || documentUrl.includes('127.0.0.1')) {
+                    logger.warn(`Quotation PDF URL uses localhost which may not be accessible by WhatsApp: ${documentUrl}`);
+                }
+            }
             
             logger.info(`Generated quotation PDF: ${documentUrl}`);
         }
