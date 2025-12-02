@@ -62,6 +62,17 @@ module.exports = {
         }
     },
 
+    // Cloudinary Configuration (for cloud-hosted PDFs - recommended for WhatsApp)
+    // Get free account at https://cloudinary.com (25GB storage, 25GB bandwidth/month)
+    cloudinary: {
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+        apiKey: process.env.CLOUDINARY_API_KEY || '',
+        apiSecret: process.env.CLOUDINARY_API_SECRET || '',
+        isConfigured() {
+            return !!(this.cloudName && this.apiKey && this.apiSecret);
+        }
+    },
+
     // Helper methods
     isDevelopment() {
         return this.env === 'development';

@@ -169,6 +169,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const phoneInput = document.getElementById('message-phone');
             const messageInput = document.getElementById('message-content');
+            const submitBtn = sendMessageForm.querySelector('button[type="submit"]');
 
             const phone = phoneInput.value.trim();
             const message = messageInput.value.trim();
@@ -195,8 +196,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const formattedPhone = formatPhoneNumber(phone);
 
             try {
-                const submitBtn = sendMessageForm.querySelector('button[type="submit"]');
-                setLoading(null, true);
+                // Disable the submit button and show loading state
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.dataset.originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                }
 
                 const res = await fetch('/comms/send-message', {
                     method: 'POST',
@@ -219,7 +224,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error sending message:', err);
                 showNotification('Failed to send message. Please try again.', 'error');
             } finally {
-                setLoading(null, false);
+                // Restore the submit button
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    if (submitBtn.dataset.originalText) {
+                        submitBtn.innerHTML = submitBtn.dataset.originalText;
+                    }
+                }
             }
         });
     }
@@ -232,6 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const phoneInput = document.getElementById('invoice-phone');
             const invoiceIdInput = document.getElementById('invoice-id');
+            const submitBtn = sendInvoiceForm.querySelector('button[type="submit"]');
 
             const phone = phoneInput.value.trim();
             const invoiceId = invoiceIdInput.value.trim();
@@ -258,7 +270,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const formattedPhone = formatPhoneNumber(phone);
 
             try {
-                setLoading(null, true);
+                // Disable the submit button and show loading state
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.dataset.originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                }
 
                 const res = await fetch('/comms/send-invoice', {
                     method: 'POST',
@@ -281,7 +298,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error sending invoice:', err);
                 showNotification('Failed to send invoice. Please try again.', 'error');
             } finally {
-                setLoading(null, false);
+                // Restore the submit button
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    if (submitBtn.dataset.originalText) {
+                        submitBtn.innerHTML = submitBtn.dataset.originalText;
+                    }
+                }
             }
         });
     }
@@ -294,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const phoneInput = document.getElementById('quotation-phone');
             const quotationIdInput = document.getElementById('quotation-id');
+            const submitBtn = sendQuotationForm.querySelector('button[type="submit"]');
 
             const phone = phoneInput.value.trim();
             const quotationId = quotationIdInput.value.trim();
@@ -320,7 +344,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const formattedPhone = formatPhoneNumber(phone);
 
             try {
-                setLoading(null, true);
+                // Disable the submit button and show loading state
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.dataset.originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                }
 
                 const res = await fetch('/comms/send-quotation', {
                     method: 'POST',
@@ -343,7 +372,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error sending quotation:', err);
                 showNotification('Failed to send quotation. Please try again.', 'error');
             } finally {
-                setLoading(null, false);
+                // Restore the submit button
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    if (submitBtn.dataset.originalText) {
+                        submitBtn.innerHTML = submitBtn.dataset.originalText;
+                    }
+                }
             }
         });
     }
