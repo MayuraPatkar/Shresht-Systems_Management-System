@@ -45,9 +45,10 @@ function calculateGST() {
 }
 
 // Clear All Fields Function
-function clearAllFields() {
+async function clearAllFields() {
     // Confirm before clearing
-    if (!confirm('Are you sure you want to clear all fields?')) {
+    const confirmed = await window.electronAPI.showAlert2('Are you sure you want to clear all fields?');
+    if (!confirmed) {
         return;
     }
     
@@ -82,7 +83,7 @@ function clearAllFields() {
     if (totalHeight) totalHeight.value = '';
     
     // Show success message
-    showNotification('All fields cleared successfully!', 'success');
+    window.electronAPI.showAlert1('All fields cleared successfully!');
 }
 
 // Notification function
@@ -339,9 +340,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const text = this.textContent;
                 if (text && text.trim()) {
                     navigator.clipboard.writeText(text).then(() => {
-                        showNotification('Result copied to clipboard!', 'success');
+                        window.electronAPI.showAlert1('Result copied to clipboard!');
                     }).catch(() => {
-                        showNotification('Failed to copy', 'error');
+                        window.electronAPI.showAlert1('Failed to copy to clipboard');
                     });
                 }
             });
