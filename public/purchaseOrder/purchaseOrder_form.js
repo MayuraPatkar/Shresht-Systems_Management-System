@@ -1002,14 +1002,29 @@ if (addItemBtn) {
             });
         }
 
-        // Sync all inputs from card to table
+        // Sync all inputs from card to table with proper mapping
+        // Card order: Description, HSN/SAC, Qty, Unit Price, GST%, Company, Type, Category
+        // Table order: Description, HSN/SAC, Company, Type, Category, Qty, Unit Price, Rate
         const cardInputs = card.querySelectorAll("input");
         const tableInputs = row.querySelectorAll("input");
+        
+        // Mapping: card index -> table index
+        const cardToTableMap = {
+            0: 0,  // Description -> Description
+            1: 1,  // HSN/SAC -> HSN/SAC
+            2: 5,  // Qty -> Qty
+            3: 6,  // Unit Price -> Unit Price
+            4: 7,  // GST% -> Rate
+            5: 2,  // Company -> Company
+            6: 3,  // Type -> Type
+            7: 4   // Category -> Category
+        };
 
-        cardInputs.forEach((input, index) => {
+        cardInputs.forEach((input, cardIndex) => {
             input.addEventListener("input", () => {
-                if (tableInputs[index]) {
-                    tableInputs[index].value = input.value;
+                const tableIndex = cardToTableMap[cardIndex];
+                if (tableIndex !== undefined && tableInputs[tableIndex]) {
+                    tableInputs[tableIndex].value = input.value;
                 }
             });
         });
