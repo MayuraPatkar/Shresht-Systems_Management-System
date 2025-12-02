@@ -51,11 +51,20 @@ router.get('/overview', async (req, res) => {
       { $group: { _id: null, total: { $sum: '$total_amount' } } },
     ]);
 
-    /* ────────────────────── Remaining service months (invoices) ───────────── */
-    // Count invoices with service_month > 0 (active services)
-    const remainingServices = await Invoices.countDocuments({
-      service_month: { $gt: 0 }
-    });
+    /* ────────────────────── Pending services (invoices due for service) ───────────── */
+    // Count invoices where service is due now (same logic as /service/get-service)
+    // Service is due when: current date >= invoice_date + service_month months
+    const invoicesWithService = await Invoices.find({ service_month: { $gt: 0 } }).lean();
+    const remainingServices = invoicesWithService.filter(invoice => {
+      const invoiceDate = invoice.invoice_date || invoice.createdAt;
+      if (!invoiceDate || !invoice.service_month) return false;
+      
+      const baseDate = new Date(invoiceDate);
+      const targetDate = new Date(baseDate);
+      targetDate.setMonth(targetDate.getMonth() + invoice.service_month);
+      
+      return now >= targetDate;
+    }).length;
 
     /* ────────────────────────────── Response ──────────────────────────────── */
     res.json({

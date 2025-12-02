@@ -331,10 +331,10 @@ function displayStockAlerts(items) {
 function loadPendingTasks() {
     Promise.all([
         fetchWithRetry('/invoice/all').catch(() => []),
-        fetchWithRetry('/service/all').catch(() => []),
+        fetchWithRetry('/service/get-service').catch(() => ({ projects: [] })),
         fetchWithRetry('/stock/all').catch(() => [])
     ])
-    .then(([invoices, services, stockItems]) => {
+    .then(([invoices, serviceData, stockItems]) => {
         const tasks = [];
 
         // Unpaid invoices
@@ -350,12 +350,8 @@ function loadPendingTasks() {
             });
         }
 
-        // Pending services
-        // Services are invoices with service_month > 0 (active service contracts)
-        const pendingServices = (services || []).filter(s => {
-            const serviceMonth = parseInt(s.service_month) || 0;
-            return serviceMonth > 0;
-        }).length;
+        // Pending services (use get-service which filters by due date)
+        const pendingServices = (serviceData.projects || []).length;
         if (pendingServices > 0) {
             tasks.push({
                 icon: 'fa-tools',
