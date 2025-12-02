@@ -68,8 +68,34 @@ async function generateGSTReport() {
         const data = await response.json();
         
         if (data.success && data.report) {
-            gstReportData = data.report;
-            renderGSTReport(data.report);
+            // Map backend response to frontend expected structure
+            const report = data.report;
+            const mappedReport = {
+                summary: {
+                    totalTaxableValue: report.summary.total_taxable_value || 0,
+                    totalCGST: report.summary.total_cgst || 0,
+                    totalSGST: report.summary.total_sgst || 0,
+                    totalGST: report.summary.total_tax || 0
+                },
+                hsnBreakdown: (report.hsn_breakdown || []).map(item => ({
+                    hsn: item.hsn_sac || 'N/A',
+                    description: item.description || `GST @ ${item.rate || 0}%`,
+                    taxableValue: item.taxable_value || 0,
+                    cgst: item.cgst || 0,
+                    sgst: item.sgst || 0
+                })),
+                invoices: (report.invoice_breakdown || []).map(inv => ({
+                    invoice_id: inv.invoice_id,
+                    date: inv.invoice_date,
+                    customer: inv.customer_name || 'Unknown',
+                    taxableValue: inv.taxable_value || 0,
+                    cgst: inv.cgst || 0,
+                    sgst: inv.sgst || 0,
+                    total: inv.total_value || 0
+                }))
+            };
+            gstReportData = mappedReport;
+            renderGSTReport(mappedReport);
         } else {
             // Fallback: Generate from invoices
             await generateGSTReportFromInvoices(month, year);

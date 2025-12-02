@@ -583,6 +583,23 @@ function createWayBillCard(wayBill) {
     const wayBillDiv = document.createElement("div");
     wayBillDiv.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
     
+    // Format the date for display
+    const dateToFormat = wayBill.waybill_date || wayBill.createdAt;
+    let formattedDate = '-';
+    if (dateToFormat) {
+        try {
+            const dateObj = new Date(dateToFormat);
+            if (!isNaN(dateObj.getTime())) {
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const year = dateObj.getFullYear();
+                formattedDate = `${day}/${month}/${year}`;
+            }
+        } catch (e) {
+            formattedDate = '-';
+        }
+    }
+    
     wayBillDiv.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
@@ -599,11 +616,18 @@ function createWayBillCard(wayBill) {
                         </div>
                         <div class="flex-1 min-w-0">
                             <h3 class="text-lg font-bold text-gray-900 mb-1 truncate">${wayBill.project_name}</h3>
-                            <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
-                                <i class="fas fa-hashtag text-xs"></i>
-                                <span>${wayBill.waybill_id}</span>
-                                <i class="fas fa-copy text-xs ml-1"></i>
-                            </p>
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
+                                    <i class="fas fa-hashtag text-xs"></i>
+                                    <span>${wayBill.waybill_id}</span>
+                                    <i class="fas fa-copy text-xs ml-1"></i>
+                                </p>
+                                <span class="text-gray-300">|</span>
+                                <p class="text-xs text-gray-500 inline-flex items-center gap-1">
+                                    <i class="fas fa-calendar-alt text-xs"></i>
+                                    ${formattedDate}
+                                </p>
+                            </div>
                         </div>
                     </div>
 

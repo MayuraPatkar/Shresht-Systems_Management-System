@@ -252,6 +252,23 @@ function createInvoiceCard(invoice) {
     const isPaid = invoice.payment_status === 'Paid';
     const dueAmount = invoice.total_amount_duplicate - invoice.total_paid_amount;
     
+    // Format the date for display
+    const dateToFormat = invoice.invoice_date || invoice.createdAt;
+    let formattedDate = '-';
+    if (dateToFormat) {
+        try {
+            const dateObj = new Date(dateToFormat);
+            if (!isNaN(dateObj.getTime())) {
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const year = dateObj.getFullYear();
+                formattedDate = `${day}/${month}/${year}`;
+            }
+        } catch (e) {
+            formattedDate = '-';
+        }
+    }
+    
     invoiceCard.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
@@ -273,11 +290,18 @@ function createInvoiceCard(invoice) {
                                     ${isPaid ? 'PAID' : 'PENDING'}
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
-                                <i class="fas fa-hashtag text-xs"></i>
-                                <span>${invoice.invoice_id}</span>
-                                <i class="fas fa-copy text-xs ml-1"></i>
-                            </p>
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
+                                    <i class="fas fa-hashtag text-xs"></i>
+                                    <span>${invoice.invoice_id}</span>
+                                    <i class="fas fa-copy text-xs ml-1"></i>
+                                </p>
+                                <span class="text-gray-300">|</span>
+                                <p class="text-xs text-gray-500 inline-flex items-center gap-1">
+                                    <i class="fas fa-calendar-alt text-xs"></i>
+                                    ${formattedDate}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -295,27 +319,28 @@ function createInvoiceCard(invoice) {
 
                     <!-- Amount Section -->
                     ${userRole === 'admin' ? `
-                    <div class="flex items-center gap-3 px-6 border-r border-gray-200">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg ${isPaid ? 'bg-green-50' : 'bg-blue-50'} flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-rupee-sign ${isPaid ? 'text-green-600' : 'text-blue-600'}"></i>
+                    <div class="flex items-center px-4 border-r border-gray-200">
+                        <div class="rounded-lg p-3 w-[200px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : dueAmount > 0 ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : dueAmount > 0 ? '#fcd34d' : '#bfdbfe'};">
+                            <!-- Total Row -->
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
+                                <span class="text-base font-bold" style="color: ${isPaid ? '#059669' : '#2563eb'};">₹${formatIndian(invoice.total_amount_duplicate, 2)}</span>
                             </div>
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Total</p>
-                                <p class="text-lg font-bold ${isPaid ? 'text-green-600' : 'text-blue-600'}">₹ ${formatIndian(invoice.total_amount_duplicate, 2)}</p>
+                            <!-- Progress Bar -->
+                            <div class="w-full h-1.5 rounded-full mb-2" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
+                                <div class="h-1.5 rounded-full" style="width: ${Math.round(((invoice.total_amount_duplicate - dueAmount) / invoice.total_amount_duplicate) * 100)}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
+                            </div>
+                            <!-- Due/Paid Row -->
+                            <div class="flex items-center justify-between">
+                                ${dueAmount > 0 ? `
+                                <span class="text-xs font-medium uppercase tracking-wide" style="color: #dc2626;">Balance Due</span>
+                                <span class="text-base font-bold" style="color: #dc2626;">₹${formatIndian(dueAmount, 2)}</span>
+                                ` : `
+                                <span class="text-xs font-medium" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
+                                <span class="text-base font-bold" style="color: #059669;">₹0.00</span>
+                                `}
                             </div>
                         </div>
-                        ${dueAmount > 0 ? `
-                        <div class="flex items-center gap-3 pl-4 border-l border-gray-300">
-                            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-exclamation-circle text-red-600"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Due</p>
-                                <p class="text-lg font-bold text-red-600">₹ ${formatIndian(dueAmount, 2)}</p>
-                            </div>
-                        </div>
-                        ` : ''}
                     </div>
                     ` : `
                     <div class="px-6 border-r border-gray-200"></div>
