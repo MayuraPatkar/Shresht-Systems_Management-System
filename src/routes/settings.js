@@ -783,6 +783,48 @@ router.post('/preferences/whatsapp/token', asyncHandler(async (req, res) => {
     }
 }));
 
+// Update Cloudinary settings (stored in Settings DB - secrets encrypted)
+router.patch('/preferences/cloudinary', asyncHandler(async (req, res) => {
+    try {
+        const { cloudName, apiKey, apiSecret } = req.body;
+        
+        if (!cloudName || !apiKey || !apiSecret) {
+            return res.status(400).json({ success: false, message: 'All Cloudinary fields are required' });
+        }
+        
+        let settings = await Settings.findOne();
+        if (!settings) settings = new Settings({});
+        
+        // Store cloudinary config - in production these would go to secure store
+        // For now, store in settings with a reference that they're configured
+        settings.cloudinary = settings.cloudinary || {};
+        settings.cloudinary.cloudName = cloudName;
+        settings.cloudinary.apiKey = apiKey;
+        settings.cloudinary.configured = true;
+        
+        // Store the secret securely using the same pattern as WhatsApp token
+        const crypto = require('crypto');
+        const secret = process.env.SESSION_SECRET || 'unsafe-default-secret-change-in-production';
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv('aes-256-cbc', crypto.createHash('sha256').update(secret).digest(), iv);
+        const encrypted = Buffer.concat([cipher.update(apiSecret, 'utf8'), cipher.final()]);
+        settings.cloudinary.apiSecretEncrypted = iv.toString('hex') + ':' + encrypted.toString('hex');
+        
+        await settings.save();
+        
+        // Also set environment variables for current session
+        process.env.CLOUDINARY_CLOUD_NAME = cloudName;
+        process.env.CLOUDINARY_API_KEY = apiKey;
+        process.env.CLOUDINARY_API_SECRET = apiSecret;
+        
+        logger.info('Cloudinary settings updated');
+        return res.json({ success: true, message: 'Cloudinary settings saved successfully' });
+    } catch (error) {
+        logger.error('Error updating Cloudinary settings:', error);
+        return res.status(500).json({ success: false, message: 'Failed to update Cloudinary settings', error: error.message });
+    }
+}));
+
 // Update admin/company information
 router.put("/company-info", asyncHandler(async (req, res) => {
     try {

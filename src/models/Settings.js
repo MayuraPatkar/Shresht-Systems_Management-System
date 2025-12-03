@@ -90,6 +90,14 @@ const settingsSchema = new mongoose.Schema({
         storedTokenReference: { type: String, default: '' },
     },
 
+    // Cloudinary Settings (for PDF hosting)
+    cloudinary: {
+        cloudName: { type: String, default: '' },
+        apiKey: { type: String, default: '' },
+        apiSecretEncrypted: { type: String, default: '' }, // Encrypted secret
+        configured: { type: Boolean, default: false },
+    },
+
     // Default Terms & Conditions
     defaults: {
         invoice_terms: { type: String, default: '' },

@@ -114,6 +114,11 @@
                     <i class="fas fa-database"></i>
                     <span>Data Backup</span>
                 </button>
+                <button id="integrations-button"
+                    class="flex items-center gap-2 px-3 py-2 text-sm text-teal-700 bg-teal-100 border border-teal-200 rounded-lg hover:bg-teal-200 font-medium whitespace-nowrap">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>WhatsApp</span>
+                </button>
                 <button id="about-button"
                     class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-200 font-medium whitespace-nowrap">
                     <i class="fas fa-info-circle"></i>
@@ -924,6 +929,123 @@
                 </div>
             </div>
         </section>
+        <!-- WhatsApp/Integrations Section -->
+        <section id="integrations-section" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- WhatsApp API Configuration Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fab fa-whatsapp text-green-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">WhatsApp Business API</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <!-- Status Indicator -->
+                        <div id="whatsapp-status" class="flex items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                            <i class="fas fa-circle text-gray-400 text-xs"></i>
+                            <span class="text-gray-600">Checking status...</span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-phone text-gray-500 mr-2"></i>Phone Number ID
+                            </label>
+                            <input type="text" id="whatsapp-phone-number-id"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="Enter your WhatsApp Phone Number ID">
+                            <p class="text-xs text-gray-500 mt-1">Found in Meta Business Suite → WhatsApp → API Setup</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-key text-gray-500 mr-2"></i>Access Token
+                            </label>
+                            <input type="password" id="whatsapp-token"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="Enter your WhatsApp Access Token">
+                            <p class="text-xs text-gray-500 mt-1">Token is stored securely and never displayed again</p>
+                        </div>
+                        <button type="button" id="save-whatsapp-button"
+                            class="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-save"></i>
+                            Save WhatsApp Settings
+                        </button>
+                    </div>
+                </div>
+
+                <!-- WhatsApp Setup Guide Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-book text-blue-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Setup Guide</h2>
+                    </div>
+                    <div class="space-y-4 text-sm text-gray-700">
+                        <div class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">1</span>
+                            <p>Go to <a href="https://developers.facebook.com" target="_blank" class="text-blue-600 hover:underline">Meta for Developers</a> and create a Business App</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">2</span>
+                            <p>Add the <strong>WhatsApp</strong> product to your app</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">3</span>
+                            <p>Navigate to <strong>WhatsApp → API Setup</strong></p>
+                        </div>
+                        <div class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">4</span>
+                            <p>Copy the <strong>Phone Number ID</strong> and <strong>Access Token</strong></p>
+                        </div>
+                        <div class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">5</span>
+                            <p>For production, create a <strong>System User</strong> with permanent token</p>
+                        </div>
+                        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5"></i>
+                                <p class="text-yellow-800"><strong>Note:</strong> Temporary tokens expire in 24 hours. For continuous use, generate a permanent token via System Users.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cloudinary Configuration Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-cloud text-purple-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Cloudinary (PDF Storage)</h2>
+                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Optional</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Cloudinary is required for sending PDFs via WhatsApp. WhatsApp needs publicly accessible URLs for document attachments.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Cloud Name</label>
+                            <input type="text" id="cloudinary-cloud-name"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="your-cloud-name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                            <input type="text" id="cloudinary-api-key"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="API Key">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">API Secret</label>
+                            <input type="password" id="cloudinary-api-secret"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="API Secret">
+                        </div>
+                    </div>
+                    <button type="button" id="save-cloudinary-button"
+                        class="mt-4 bg-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-700 flex items-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Save Cloudinary Settings
+                    </button>
+                    <p class="text-xs text-gray-500 mt-2">Get free account at <a href="https://cloudinary.com" target="_blank" class="text-purple-600 hover:underline">cloudinary.com</a> (25GB storage, 25GB bandwidth/month)</p>
+                </div>
+            </div>
+        </section>
+
         <!-- About/System Info Section -->
         <section id="about-section" class="space-y-6 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

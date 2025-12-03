@@ -41,6 +41,7 @@ function toggleSection(sectionId) {
         "preferences-section",
         "security-section",
         "notifications-section",
+        "integrations-section",
         "about-section"
     ];
     
@@ -91,6 +92,12 @@ document.getElementById("security-button")?.addEventListener("click", () => {
 document.getElementById("notifications-button")?.addEventListener("click", () => {
     toggleSection("notifications-section");
     loadNotificationSettings();
+});
+
+// Integrations/WhatsApp section
+document.getElementById("integrations-button")?.addEventListener("click", () => {
+    toggleSection("integrations-section");
+    loadWhatsAppStatus();
 });
 
 // About section

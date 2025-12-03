@@ -42,7 +42,7 @@
     "winston": "^3.18.3"
   },
   "optionalDependencies": {
-    "keytar": "^7.10.0"
+    "keytar": "npm:null@^7.10.0"
   },
   "repository": {
     "type": "git",

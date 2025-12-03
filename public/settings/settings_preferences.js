@@ -236,6 +236,155 @@ function saveNotificationSettings() {
         });
 }
 
+// --- WHATSAPP SETTINGS ---
+
+/**
+ * Load WhatsApp configuration status
+ */
+function loadWhatsAppStatus() {
+    fetch('/settings/preferences')
+        .then(res => res.json())
+        .then(data => {
+            const statusEl = document.getElementById('whatsapp-status');
+            if (data.success && data.settings?.whatsapp) {
+                const wa = data.settings.whatsapp;
+                const phoneNumberIdInput = document.getElementById('whatsapp-phone-number-id');
+                
+                // Fill in the phone number ID if available
+                if (wa.phoneNumberId) {
+                    phoneNumberIdInput.value = wa.phoneNumberId;
+                }
+                
+                // Check if configured
+                if (wa.phoneNumberId && wa.storedTokenReference) {
+                    statusEl.innerHTML = `
+                        <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                        <span class="text-green-700 font-medium">WhatsApp API Configured</span>
+                    `;
+                    statusEl.className = 'flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200';
+                } else {
+                    statusEl.innerHTML = `
+                        <i class="fas fa-exclamation-circle text-yellow-500 text-sm"></i>
+                        <span class="text-yellow-700 font-medium">Not Configured - Enter credentials below</span>
+                    `;
+                    statusEl.className = 'flex items-center gap-2 p-3 rounded-lg bg-yellow-50 border border-yellow-200';
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Failed to load WhatsApp status:', err);
+            const statusEl = document.getElementById('whatsapp-status');
+            statusEl.innerHTML = `
+                <i class="fas fa-times-circle text-red-500 text-sm"></i>
+                <span class="text-red-700 font-medium">Error checking status</span>
+            `;
+            statusEl.className = 'flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200';
+        });
+}
+
+/**
+ * Save WhatsApp settings
+ */
+function saveWhatsAppSettings() {
+    const saveButton = document.getElementById('save-whatsapp-button');
+    const originalContent = saveButton.innerHTML;
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    const phoneNumberId = document.getElementById('whatsapp-phone-number-id').value.trim();
+    const token = document.getElementById('whatsapp-token').value.trim();
+    
+    if (!phoneNumberId) {
+        window.electronAPI.showAlert1('Please enter the Phone Number ID');
+        saveButton.disabled = false;
+        saveButton.innerHTML = originalContent;
+        return;
+    }
+    
+    // Save phone number ID first
+    const savePhoneId = fetch('/settings/preferences/whatsapp', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumberId, enabled: true })
+    });
+    
+    // Save token if provided (separate secure endpoint)
+    let saveToken = Promise.resolve({ success: true });
+    if (token) {
+        saveToken = fetch('/settings/preferences/whatsapp/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+        }).then(res => res.json());
+    }
+    
+    Promise.all([savePhoneId.then(r => r.json()), saveToken])
+        .then(([phoneRes, tokenRes]) => {
+            if (phoneRes.success && tokenRes.success) {
+                window.electronAPI.showAlert1('WhatsApp settings saved successfully!');
+                document.getElementById('whatsapp-token').value = ''; // Clear token field
+                loadWhatsAppStatus(); // Refresh status
+            } else {
+                const errors = [];
+                if (!phoneRes.success) errors.push(phoneRes.message || 'Failed to save phone ID');
+                if (!tokenRes.success) errors.push(tokenRes.message || 'Failed to save token');
+                window.electronAPI.showAlert1(`Error: ${errors.join(', ')}`);
+            }
+        })
+        .catch(err => {
+            console.error('Failed to save WhatsApp settings:', err);
+            window.electronAPI.showAlert1('Failed to save WhatsApp settings. Please try again.');
+        })
+        .finally(() => {
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalContent;
+        });
+}
+
+/**
+ * Save Cloudinary settings
+ */
+function saveCloudinarySettings() {
+    const saveButton = document.getElementById('save-cloudinary-button');
+    const originalContent = saveButton.innerHTML;
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    const cloudName = document.getElementById('cloudinary-cloud-name').value.trim();
+    const apiKey = document.getElementById('cloudinary-api-key').value.trim();
+    const apiSecret = document.getElementById('cloudinary-api-secret').value.trim();
+    
+    if (!cloudName || !apiKey || !apiSecret) {
+        window.electronAPI.showAlert1('Please fill in all Cloudinary fields');
+        saveButton.disabled = false;
+        saveButton.innerHTML = originalContent;
+        return;
+    }
+    
+    fetch('/settings/preferences/cloudinary', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cloudName, apiKey, apiSecret })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.electronAPI.showAlert1('Cloudinary settings saved successfully!');
+                document.getElementById('cloudinary-api-secret').value = ''; // Clear secret
+            } else {
+                window.electronAPI.showAlert1(`Failed to save: ${data.message}`);
+            }
+        })
+        .catch(err => {
+            console.error('Failed to save Cloudinary settings:', err);
+            window.electronAPI.showAlert1('Failed to save Cloudinary settings. Please try again.');
+        })
+        .finally(() => {
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalContent;
+        });
+}
+
 // --- EVENT LISTENERS ---
 
 // Theme support removed: no applyTheme helper
@@ -268,5 +417,7 @@ function initPreferencesModule() {
     // Notifications
     document.getElementById("save-notifications-button")?.addEventListener("click", saveNotificationSettings);
 
-
+    // WhatsApp/Integrations
+    document.getElementById("save-whatsapp-button")?.addEventListener("click", saveWhatsAppSettings);
+    document.getElementById("save-cloudinary-button")?.addEventListener("click", saveCloudinarySettings);
 }

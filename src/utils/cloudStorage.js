@@ -4,7 +4,7 @@
  * 
  * Setup:
  * 1. Create free Cloudinary account at https://cloudinary.com
- * 2. Add these to your .env file:
+ * 2. Configure via Settings UI or add to .env file:
  *    CLOUDINARY_CLOUD_NAME=your_cloud_name
  *    CLOUDINARY_API_KEY=your_api_key
  *    CLOUDINARY_API_SECRET=your_api_secret
@@ -13,9 +13,68 @@
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const logger = require('./logger');
 
-// Configure Cloudinary from environment variables
+let cloudinaryConfigured = false;
+let configChecked = false;
+
+/**
+ * Load Cloudinary credentials from database if not in environment
+ */
+async function loadCloudinaryFromDB() {
+    if (configChecked) return cloudinaryConfigured;
+    
+    try {
+        // Check if already configured via env
+        if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+            cloudinary.config({
+                cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                api_key: process.env.CLOUDINARY_API_KEY,
+                api_secret: process.env.CLOUDINARY_API_SECRET
+            });
+            cloudinaryConfigured = true;
+            configChecked = true;
+            return true;
+        }
+        
+        // Try to load from database
+        const { Settings } = require('../models');
+        const settings = await Settings.findOne();
+        
+        if (settings?.cloudinary?.configured && settings.cloudinary.cloudName && settings.cloudinary.apiKey && settings.cloudinary.apiSecretEncrypted) {
+            // Decrypt the API secret
+            const secret = process.env.SESSION_SECRET || 'unsafe-default-secret-change-in-production';
+            const [ivHex, dataHex] = settings.cloudinary.apiSecretEncrypted.split(':');
+            const iv = Buffer.from(ivHex, 'hex');
+            const encrypted = Buffer.from(dataHex, 'hex');
+            const decipher = crypto.createDecipheriv('aes-256-cbc', crypto.createHash('sha256').update(secret).digest(), iv);
+            const apiSecret = Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
+            
+            // Configure cloudinary
+            cloudinary.config({
+                cloud_name: settings.cloudinary.cloudName,
+                api_key: settings.cloudinary.apiKey,
+                api_secret: apiSecret
+            });
+            
+            // Also set env vars for other modules
+            process.env.CLOUDINARY_CLOUD_NAME = settings.cloudinary.cloudName;
+            process.env.CLOUDINARY_API_KEY = settings.cloudinary.apiKey;
+            process.env.CLOUDINARY_API_SECRET = apiSecret;
+            
+            cloudinaryConfigured = true;
+            logger.info('Cloudinary configured from database settings');
+        }
+    } catch (err) {
+        logger.warn('Failed to load Cloudinary settings from database:', err.message);
+    }
+    
+    configChecked = true;
+    return cloudinaryConfigured;
+}
+
+// Initial configuration from environment variables
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -35,12 +94,24 @@ function isConfigured() {
 }
 
 /**
+ * Async version that checks database too
+ * @returns {Promise<boolean>}
+ */
+async function isConfiguredAsync() {
+    await loadCloudinaryFromDB();
+    return isConfigured();
+}
+
+/**
  * Upload a PDF file to Cloudinary
  * @param {string} filePath - Local path to the PDF file
  * @param {string} publicId - Public ID for the file (without extension)
  * @returns {Promise<{success: boolean, url?: string, error?: string}>}
  */
 async function uploadPDF(filePath, publicId) {
+    // Ensure credentials are loaded from DB if needed
+    await loadCloudinaryFromDB();
+    
     if (!isConfigured()) {
         logger.warn('Cloudinary not configured. Using local URL for PDF.');
         return { 
@@ -125,6 +196,8 @@ function getPDFUrl(publicId) {
 
 module.exports = {
     isConfigured,
+    isConfiguredAsync,
+    loadCloudinaryFromDB,
     uploadPDF,
     deletePDF,
     getPDFUrl
