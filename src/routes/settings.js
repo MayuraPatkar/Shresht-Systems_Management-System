@@ -9,6 +9,16 @@ const logger = require('../utils/logger');
 const backupScheduler = require('../utils/backupScheduler');
 const backupUtil = require('../utils/backup');
 
+// Import cache invalidation function from comms route
+let invalidateWhatsAppCache;
+try {
+    const commsRoute = require('./comms');
+    invalidateWhatsAppCache = commsRoute.invalidateWhatsAppCache;
+} catch (e) {
+    // If comms route is not yet loaded, create a no-op function
+    invalidateWhatsAppCache = () => {};
+}
+
 const router = express.Router();
 
 // Helper function to show dialogs through the main process
@@ -747,6 +757,9 @@ router.patch('/preferences/whatsapp', asyncHandler(async (req, res) => {
         settings.updatedAt = new Date();
         await settings.save();
 
+        // Invalidate WhatsApp credentials cache so new settings take effect immediately
+        if (invalidateWhatsAppCache) invalidateWhatsAppCache();
+
         logger.info('WhatsApp settings updated');
         return res.json({ success: true, message: 'WhatsApp settings updated', whatsapp: settings.whatsapp });
     } catch (error) {
@@ -774,6 +787,9 @@ router.post('/preferences/whatsapp/token', asyncHandler(async (req, res) => {
         settings.whatsapp = settings.whatsapp || {};
         settings.whatsapp.storedTokenReference = 'os-keychain';
         await settings.save();
+
+        // Invalidate WhatsApp credentials cache so new token takes effect immediately
+        if (invalidateWhatsAppCache) invalidateWhatsAppCache();
 
         logger.info('WhatsApp token stored securely');
         return res.json({ success: true, message: 'WhatsApp token stored securely' });

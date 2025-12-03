@@ -15,21 +15,33 @@ let cachedWhatsApp = null;
 let cachedAt = 0;
 const CACHE_TTL_MS = 30 * 1000; // 30 seconds cache for credential lookups
 
+/**
+ * Invalidate the cached WhatsApp credentials
+ * Call this when settings are updated to force re-fetching credentials
+ */
+function invalidateWhatsAppCache() {
+    cachedWhatsApp = null;
+    cachedAt = 0;
+    logger.info('WhatsApp credentials cache invalidated');
+}
+
 async function resolveWhatsAppCredentials() {
     if (cachedWhatsApp && (Date.now() - cachedAt) < CACHE_TTL_MS) return cachedWhatsApp;
 
     // Priorities: env -> secure store (keytar) -> settings DB -> config.pdfBaseUrl / defaults
-    let token = process.env.WHATSAPP_TOKEN || config.whatsapp.token || '';
-    try {
-        if (!token) {
+    let token = process.env.WHATSAPP_TOKEN || (config.whatsapp && config.whatsapp.token) || '';
+    
+    // Always try secure store if token not in env (it's the preferred storage)
+    if (!token) {
+        try {
             token = await secureStore.getWhatsAppToken();
+        } catch (e) {
+            logger.warn('Failed to get WhatsApp token from secure store:', e && e.message);
         }
-    } catch (e) {
-        // ignore
     }
 
-    // Phone Number ID: env -> config -> settings
-    let phoneNumberId = process.env.PHONE_NUMBER_ID || config.whatsapp.phoneNumberId || '';
+    // Phone Number ID: env -> config -> settings DB
+    let phoneNumberId = process.env.PHONE_NUMBER_ID || (config.whatsapp && config.whatsapp.phoneNumberId) || '';
     if (!phoneNumberId) {
         // Try to read from settings DB
         try {
@@ -53,6 +65,14 @@ async function resolveWhatsAppCredentials() {
 
     cachedAt = Date.now();
     cachedWhatsApp = { token, phoneNumberId, pdfBaseUrl };
+    
+    // Log configuration status (without exposing sensitive data)
+    logger.info('WhatsApp credentials resolved', { 
+        hasToken: !!token, 
+        hasPhoneNumberId: !!phoneNumberId,
+        hasPdfBaseUrl: !!pdfBaseUrl
+    });
+    
     return cachedWhatsApp;
 }
 
@@ -656,4 +676,6 @@ router.post('/send-automated-reminders', async (req, res) => {
     }
 });
 
+// Export router and cache invalidation function
 module.exports = router;
+module.exports.invalidateWhatsAppCache = invalidateWhatsAppCache;
