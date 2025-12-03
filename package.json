@@ -41,6 +41,9 @@
     "puppeteer": "^24.31.0",
     "winston": "^3.18.3"
   },
+  "optionalDependencies": {
+    "keytar": "^7.10.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/mayura01/shresht-systems-management-system.git"

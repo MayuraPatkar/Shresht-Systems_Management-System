@@ -80,6 +80,16 @@ const settingsSchema = new mongoose.Schema({
         from_email: { type: String, default: '' },
     },
 
+    // WhatsApp / Communication Settings
+    whatsapp: {
+        // Non-sensitive values
+        enabled: { type: Boolean, default: false },
+        phoneNumberId: { type: String, default: '' },
+        pdfBaseUrl: { type: String, default: '' },
+        // Do NOT store the token in plaintext here. Use Keytar or env variables.
+        storedTokenReference: { type: String, default: '' },
+    },
+
     // Default Terms & Conditions
     defaults: {
         invoice_terms: { type: String, default: '' },

@@ -9,11 +9,52 @@ const pdfGenerator = require('../utils/pdfGenerator');
 const cloudStorage = require('../utils/cloudStorage');
 const logger = require('../utils/logger');
 
-// Load WhatsApp credentials from centralized config
-// In development: loaded from .env file
-// In production: loaded from system environment variables
-const WHATSAPP_TOKEN = config.whatsapp.token;
-const WHATSAPP_PHONE_NUMBER_ID = config.whatsapp.phoneNumberId;
+// Load WhatsApp credentials from env/config; fallback to secure store and DB settings
+const secureStore = require('../utils/secureStore');
+let cachedWhatsApp = null;
+let cachedAt = 0;
+const CACHE_TTL_MS = 30 * 1000; // 30 seconds cache for credential lookups
+
+async function resolveWhatsAppCredentials() {
+    if (cachedWhatsApp && (Date.now() - cachedAt) < CACHE_TTL_MS) return cachedWhatsApp;
+
+    // Priorities: env -> secure store (keytar) -> settings DB -> config.pdfBaseUrl / defaults
+    let token = process.env.WHATSAPP_TOKEN || config.whatsapp.token || '';
+    try {
+        if (!token) {
+            token = await secureStore.getWhatsAppToken();
+        }
+    } catch (e) {
+        // ignore
+    }
+
+    // Phone Number ID: env -> config -> settings
+    let phoneNumberId = process.env.PHONE_NUMBER_ID || config.whatsapp.phoneNumberId || '';
+    if (!phoneNumberId) {
+        // Try to read from settings DB
+        try {
+            const { Settings } = require('../models');
+            const settings = await Settings.findOne();
+            if (settings && settings.whatsapp && settings.whatsapp.phoneNumberId) {
+                phoneNumberId = settings.whatsapp.phoneNumberId;
+            }
+        } catch (err) {
+            logger.warn('Failed to read WhatsApp phoneNumberId from settings:', err && err.message);
+        }
+    }
+
+    const pdfBaseUrl = (config.whatsapp && config.whatsapp.pdfBaseUrl) || (await (async () => {
+        try {
+            const { Settings } = require('../models');
+            const settings = await Settings.findOne();
+            return settings?.whatsapp?.pdfBaseUrl || '';
+        } catch (e) { return '' }
+    })()) || '';
+
+    cachedAt = Date.now();
+    cachedWhatsApp = { token, phoneNumberId, pdfBaseUrl };
+    return cachedWhatsApp;
+}
 
 /**
  * Get company info from Admin model for PDF generation
@@ -41,24 +82,26 @@ async function getCompanyInfo() {
 }
 
 // Helper to build WhatsApp API URL
-function getWhatsAppApiUrl(endpoint = 'messages') {
-    if (!WHATSAPP_PHONE_NUMBER_ID) {
+function getWhatsAppApiUrl(phoneNumberId, endpoint = 'messages') {
+    if (!phoneNumberId) {
         throw new Error('WhatsApp Phone Number ID is not configured');
     }
-    return `https://graph.facebook.com/v20.0/${WHATSAPP_PHONE_NUMBER_ID}/${endpoint}`;
+    return `https://graph.facebook.com/v20.0/${phoneNumberId}/${endpoint}`;
 }
 
-// Check if WhatsApp is properly configured
-function checkWhatsAppConfig() {
-    if (!config.whatsapp.isConfigured()) {
-        throw new Error('WhatsApp API is not configured. Please set WHATSAPP_TOKEN and PHONE_NUMBER_ID environment variables.');
+// Check if WhatsApp is properly configured (runtime async version)
+async function checkWhatsAppConfig() {
+    const creds = await resolveWhatsAppCredentials();
+    if (!creds || !creds.token || !creds.phoneNumberId) {
+        throw new Error('WhatsApp API is not configured. Please configure token and phone number ID from Settings or environment.');
     }
+    return true;
 }
 
 // Generic function to send WhatsApp text message
 async function sendWhatsAppMessage(phone, message) {
     // Validate WhatsApp configuration before sending
-    checkWhatsAppConfig();
+    // checkWhatsAppConfig(); // now resolved at runtime
     
     const payload = {
         messaging_product: 'whatsapp',
@@ -68,11 +111,13 @@ async function sendWhatsAppMessage(phone, message) {
     };
 
     try {
+        const creds = await resolveWhatsAppCredentials();
+        if (!creds.token || !creds.phoneNumberId) throw new Error('WhatsApp is not configured');
         const { data } = await axios.post(
-            getWhatsAppApiUrl('messages'),
-            payload,
-            { headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}` } }
-        );
+                getWhatsAppApiUrl(creds.phoneNumberId, 'messages'),
+                payload,
+                { headers: { Authorization: `Bearer ${creds.token}` } }
+            );
         console.log('WhatsApp message sent:', data);
         return data;
     } catch (err) {
@@ -85,8 +130,8 @@ async function sendWhatsAppMessage(phone, message) {
 }
 
 async function sendPaymentReminder(phone, amount_due) {
-    // Validate WhatsApp configuration before sending
-    checkWhatsAppConfig();
+    // Validate WhatsApp configuration before sending (runtime)
+    // checkWhatsAppConfig();
     // Send WhatsApp “Reminder” template
     // {{1}} → amount   (text)
     // {{2}} → invoice No         (text)
@@ -109,10 +154,12 @@ async function sendPaymentReminder(phone, amount_due) {
     };
 
     try {
+        const creds = await resolveWhatsAppCredentials();
+        if (!creds.token || !creds.phoneNumberId) throw new Error('WhatsApp is not configured');
         const { data } = await axios.post(
-            getWhatsAppApiUrl('messages'),
+            getWhatsAppApiUrl(creds.phoneNumberId, 'messages'),
             payload,
-            { headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}` } }
+            { headers: { Authorization: `Bearer ${creds.token}` } }
         );
         console.log('sent:', data);
     } catch (err) {
@@ -184,7 +231,7 @@ router.post('/send-manual-reminder', async (req, res) => {
  */
 async function sendSimpleMessageTemplate(phone, message) {
     // Validate WhatsApp configuration before sending
-    checkWhatsAppConfig();
+    // checkWhatsAppConfig();
     
     const payload = {
         messaging_product: 'whatsapp',
@@ -205,10 +252,12 @@ async function sendSimpleMessageTemplate(phone, message) {
     };
 
     try {
+        const creds = await resolveWhatsAppCredentials();
+        if (!creds.token || !creds.phoneNumberId) throw new Error('WhatsApp is not configured');
         const { data } = await axios.post(
-            getWhatsAppApiUrl('messages'),
+            getWhatsAppApiUrl(creds.phoneNumberId, 'messages'),
             payload,
-            { headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}` } }
+            { headers: { Authorization: `Bearer ${creds.token}` } }
         );
         logger.info('Simple message sent successfully', { 
             to: phone, 
@@ -244,7 +293,7 @@ async function sendSimpleMessageTemplate(phone, message) {
  */
 async function sendDocumentTemplate(phone, docDetails) {
     // Validate WhatsApp configuration before sending
-    checkWhatsAppConfig();
+    await checkWhatsAppConfig();
     
     const { documentType, customerName, referenceNo, date, amount, documentUrl } = docDetails;
     
@@ -293,10 +342,11 @@ async function sendDocumentTemplate(phone, docDetails) {
     };
 
     try {
+        const creds = await resolveWhatsAppCredentials();
         const { data } = await axios.post(
-            getWhatsAppApiUrl('messages'),
+            getWhatsAppApiUrl(creds.phoneNumberId, 'messages'),
             payload,
-            { headers: { Authorization: `Bearer ${WHATSAPP_TOKEN}` } }
+            { headers: { Authorization: `Bearer ${creds.token}` } }
         );
         logger.info('Document template sent successfully', { 
             to: phone, 

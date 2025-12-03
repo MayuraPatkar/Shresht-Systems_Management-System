@@ -11,6 +11,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const secureStore = require('./secureStore');
 
 /**
  * Determines if the app is running in a packaged (production) state
@@ -95,6 +96,19 @@ function isWhatsAppConfigured() {
     );
 }
 
+async function asyncIsWhatsAppConfigured() {
+    if (process.env.WHATSAPP_TOKEN && process.env.PHONE_NUMBER_ID) return true;
+    try {
+        const token = await secureStore.getWhatsAppToken();
+        const phone = process.env.PHONE_NUMBER_ID || undefined;
+        if (token && phone) return true;
+        // If phone is in DB, check DB (less ideal in this low-level loader)
+        return !!(token && phone);
+    } catch (e) {
+        return false;
+    }
+}
+
 /**
  * Get safe configuration for exposing to renderer process
  * NEVER expose sensitive tokens to the renderer!
@@ -119,5 +133,6 @@ module.exports = {
     getRequiredEnv,
     isPackaged,
     isWhatsAppConfigured,
+    asyncIsWhatsAppConfigured,
     getSafeConfig
 };

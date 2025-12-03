@@ -729,6 +729,58 @@ router.patch("/preferences", asyncHandler(async (req, res) => {
     }
 }));
 
+// Update WhatsApp settings (non-sensitive fields). Token not included here; see separate token endpoint.
+router.patch('/preferences/whatsapp', asyncHandler(async (req, res) => {
+    try {
+        const { enabled, phoneNumberId, pdfBaseUrl } = req.body;
+
+        let settings = await Settings.findOne();
+        if (!settings) settings = new Settings({});
+
+        settings.whatsapp = settings.whatsapp || {};
+        if (enabled !== undefined) settings.whatsapp.enabled = !!enabled;
+        if (phoneNumberId !== undefined) settings.whatsapp.phoneNumberId = String(phoneNumberId);
+        if (pdfBaseUrl !== undefined) settings.whatsapp.pdfBaseUrl = String(pdfBaseUrl);
+
+        settings.updatedAt = new Date();
+        await settings.save();
+
+        logger.info('WhatsApp settings updated');
+        return res.json({ success: true, message: 'WhatsApp settings updated', whatsapp: settings.whatsapp });
+    } catch (error) {
+        logger.error('Error updating WhatsApp settings:', error);
+        return res.status(500).json({ success: false, message: 'Failed to update WhatsApp settings', error: error.message });
+    }
+}));
+
+// Store WhatsApp token securely using Keytar or encrypted fallback
+const secureStore = require('../utils/secureStore');
+
+router.post('/preferences/whatsapp/token', asyncHandler(async (req, res) => {
+    try {
+        const { token } = req.body;
+        if (!token) return res.status(400).json({ success: false, message: 'Token is required' });
+
+        const ok = await secureStore.setWhatsAppToken(token);
+        if (!ok) {
+            return res.status(500).json({ success: false, message: 'Failed to store token securely' });
+        }
+
+        // Optionally update settings to reflect token is present
+        let settings = await Settings.findOne();
+        if (!settings) settings = new Settings({});
+        settings.whatsapp = settings.whatsapp || {};
+        settings.whatsapp.storedTokenReference = 'os-keychain';
+        await settings.save();
+
+        logger.info('WhatsApp token stored securely');
+        return res.json({ success: true, message: 'WhatsApp token stored securely' });
+    } catch (error) {
+        logger.error('Error storing WhatsApp token:', error);
+        return res.status(500).json({ success: false, message: 'Failed to store WhatsApp token', error: error.message });
+    }
+}));
+
 // Update admin/company information
 router.put("/company-info", asyncHandler(async (req, res) => {
     try {

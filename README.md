@@ -260,6 +260,32 @@ npm start
 
 The startup logic prefers `UPLOADS_DIR` if present, then the `userData` folder, and finally falls back to a local `uploads` path for development runs.
 
+### WhatsApp (API) configuration
+
+When using WhatsApp integration, you may configure credentials via one of the following methods depending on your deployment model:
+
+- Development or server builds: Add credentials to your `.env` file (or system env), for example:
+
+```powershell
+# Windows PowerShell (dev):
+$env:WHATSAPP_TOKEN = '<your_access_token>'
+$env:PHONE_NUMBER_ID = '<your_phone_number_id>'
+# Optional: base url used for PDFs shared via WhatsApp
+$env:WHATSAPP_PDF_BASE_URL = 'https://yourdomain.com'
+npm run server
+```
+
+- Packaged desktop application (recommended):
+   - Open the application and go to **Settings → Communications**.
+   - Enter the **Phone Number ID** and **PDF Base URL** into the non-secret fields.
+   - Use the **Set WhatsApp Token** secure input to store the access token. The token will be stored in the OS keychain using `keytar`, so you don't need to manage environment variables on the user's machine.
+
+- Cloud / Automated deployments: Use your cloud provider's secrets manager (AWS Secrets Manager, Azure Key Vault, GCP Secret Manager, HashiCorp Vault) and inject the runtime environment variable `WHATSAPP_TOKEN` in the host/VM/container environment.
+
+Important:
+- The app prefers these credentials in this order: env vars → OS keychain → application settings. If no credentials are configured, WhatsApp features will be disabled and a helpful message will be shown.
+- Do not commit tokens to source control. Use a secret manager or the secure in-app store.
+
 
 ---
 

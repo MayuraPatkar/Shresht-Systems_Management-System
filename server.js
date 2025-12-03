@@ -13,6 +13,7 @@ const { apiLimiter } = require('./src/middleware/rateLimiter');
 const autoBackup = require("./src/utils/backup");
 const backupScheduler = require('./src/utils/backupScheduler');
 const { findAvailablePort, printStartupBanner } = require('./src/utils/portFinder');
+const secureStore = require('./src/utils/secureStore');
 
 // Track the actual port the server is running on
 let actualPort = null;
@@ -177,6 +178,32 @@ connectDB().then(async () => {
     const initializeDatabase = require('./src/utils/initDatabase');
     await initializeDatabase();
     logger.info('Database initialization complete');
+    // Resolve WhatsApp token from secure storage if not provided via env
+    try {
+        if (!process.env.WHATSAPP_TOKEN || !config.whatsapp.token) {
+            const token = await secureStore.getWhatsAppToken();
+            if (token) {
+                config.whatsapp.token = token;
+                logger.info('WhatsApp token loaded from secure store');
+            }
+        }
+        // If phoneNumberId not in env, check settings collection
+        try {
+            const { Settings } = require('./src/models');
+            const settings = await Settings.findOne();
+            if (settings && settings.whatsapp && settings.whatsapp.phoneNumberId && !config.whatsapp.phoneNumberId) {
+                config.whatsapp.phoneNumberId = settings.whatsapp.phoneNumberId;
+                logger.info('WhatsApp phoneNumberId loaded from DB settings');
+            }
+            if (settings && settings.whatsapp && settings.whatsapp.pdfBaseUrl && !config.whatsapp.pdfBaseUrl) {
+                config.whatsapp.pdfBaseUrl = settings.whatsapp.pdfBaseUrl;
+            }
+        } catch (e) {
+            logger.warn('Failed to load WhatsApp settings from DB on startup', e && e.message);
+        }
+    } catch (err) {
+        logger.warn('Failed to load WhatsApp token from secure store', err && err.message);
+    }
 }).catch(err => {
     logger.error('Database connection failed:', err);
 });
