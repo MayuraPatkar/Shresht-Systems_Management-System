@@ -425,6 +425,14 @@ router.post('/send-invoice', async (req, res) => {
                 if (uploadResult.success) {
                     documentUrl = uploadResult.url;
                     logger.info(`Invoice PDF uploaded to cloud: ${documentUrl}`);
+
+                    // Remove local temp copy after successful cloud upload
+                    try {
+                        const fileCleanup = require('../utils/fileCleanup');
+                        await fileCleanup.removeFile(pdfResult.path, (global.appPaths && global.appPaths.userData) || __dirname);
+                    } catch (e) {
+                        logger.warn('Failed to delete local PDF after cloud upload:', e && e.message);
+                    }
                 } else {
                     logger.warn(`Cloud upload failed, using local URL: ${uploadResult.error}`);
                 }
@@ -502,6 +510,14 @@ router.post('/send-quotation', async (req, res) => {
                 if (uploadResult.success) {
                     documentUrl = uploadResult.url;
                     logger.info(`Quotation PDF uploaded to cloud: ${documentUrl}`);
+
+                    // Remove local temp copy after successful cloud upload
+                    try {
+                        const fileCleanup = require('../utils/fileCleanup');
+                        await fileCleanup.removeFile(pdfResult.path, (global.appPaths && global.appPaths.userData) || __dirname);
+                    } catch (e) {
+                        logger.warn('Failed to delete local PDF after cloud upload:', e && e.message);
+                    }
                 } else {
                     logger.warn(`Cloud upload failed, using local URL: ${uploadResult.error}`);
                 }

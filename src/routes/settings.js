@@ -657,6 +657,8 @@ router.get("/backup/status", asyncHandler(async (req, res) => {
 
 const { Settings, Admin } = require('../models');
 const mongoose = require('mongoose');
+const fileCleanup = require('../utils/fileCleanup');
+const config = require('../config/config');
 
 // Get system settings
 router.get("/preferences", asyncHandler(async (req, res) => {
@@ -887,6 +889,20 @@ router.post("/database/backup-completed", asyncHandler(async (req, res) => {
             message: 'Failed to update backup timestamp',
             error: error.message
         });
+    }
+}));
+
+// Trigger immediate uploads cleanup (remove old PDFs)
+router.post('/cleanup/uploads', asyncHandler(async (req, res) => {
+    try {
+        // Build uploads path similarly to server fallback logic
+        const uploadsDir = process.env.UPLOADS_DIR || (global.appPaths && path.join(global.appPaths.userData, 'uploads', 'documents')) || path.join(__dirname, '../../uploads/documents');
+        const retentionDays = config.uploadsRetentionDays || 7;
+        const result = await fileCleanup.cleanupOldFiles(uploadsDir, retentionDays, ['.pdf']);
+        return res.json({ success: true, message: 'Upload cleanup completed', result });
+    } catch (error) {
+        logger.error('Upload cleanup error via settings endpoint:', error);
+        return res.status(500).json({ success: false, message: 'Upload cleanup failed', error: error.message });
     }
 }));
 

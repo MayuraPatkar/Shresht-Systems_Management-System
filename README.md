@@ -286,6 +286,14 @@ Important:
 - The app prefers these credentials in this order: env vars → OS keychain → application settings. If no credentials are configured, WhatsApp features will be disabled and a helpful message will be shown.
 - Do not commit tokens to source control. Use a secret manager or the secure in-app store.
 
+Uploads lifetime & cleanup
+-------------------------
+The application automatically cleans up PDF files generated in the `uploads/documents` directory.
+- On startup and once per day, the application removes PDF files older than `uploadsRetentionDays` (default 7 days). You can change this by setting `UPLOADS_RETENTION_DAYS` environment variable or change `uploadsRetentionDays` in `src/config/config.js`.
+- When PDF files are uploaded to cloud storage (Cloudinary), the local copy is removed immediately after successful upload.
+ - Administrators can also trigger immediate cleanup using the Settings UI (or API endpoint `POST /settings/cleanup/uploads`) to remove old files immediately.
+This helps keep disk usage under control and ensures temporary files don't accumulate.
+
 
 ---
 

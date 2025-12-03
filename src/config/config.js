@@ -42,6 +42,9 @@ module.exports = {
     logLevel: process.env.LOG_LEVEL || 'info',
     logFile: process.env.LOG_FILE || './logs/app.log',
 
+    // Uploads cleanup
+    uploadsRetentionDays: parseInt(process.env.UPLOADS_RETENTION_DAYS, 10) || 7,
+
     // Rate Limiting
     rateLimit: {
         windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 900000, // 15 minutes

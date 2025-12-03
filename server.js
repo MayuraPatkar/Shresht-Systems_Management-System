@@ -14,6 +14,7 @@ const autoBackup = require("./src/utils/backup");
 const backupScheduler = require('./src/utils/backupScheduler');
 const { findAvailablePort, printStartupBanner } = require('./src/utils/portFinder');
 const secureStore = require('./src/utils/secureStore');
+const fileCleanup = require('./src/utils/fileCleanup');
 
 // Track the actual port the server is running on
 let actualPort = null;
@@ -284,6 +285,26 @@ try {
     }).catch(err => {
         logger.error('Failed to start backup scheduler:', err);
     });
+
+    // Schedule periodic cleanup of old files in uploads/documents (default 7 days)
+    try {
+        const retentionDays = config.uploadsRetentionDays || 7;
+        if (documentsPath) {
+            // Run on startup once
+            fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }) => {
+                if (success && removed) logger.info(`Uploads cleanup completed: removed ${removed} old files`);
+            }).catch(err => logger.warn('Uploads cleanup error:', err && err.message));
+
+            // Schedule daily cleanup
+            setInterval(() => {
+                fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }) => {
+                    if (success && removed) logger.info(`Scheduled uploads cleanup removed ${removed} old files`);
+                }).catch(err => logger.warn('Scheduled uploads cleanup error:', err && err.message));
+            }, 24 * 60 * 60 * 1000);
+        }
+    } catch (e) {
+        logger.warn('Failed to schedule uploads cleanup:', e && e.message);
+    }
 } catch (backupError) {
     logger.error('Failed to initialize backup scheduler:', backupError && backupError.message ? backupError.message : backupError);
 }
