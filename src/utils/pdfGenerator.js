@@ -9,11 +9,45 @@ const path = require('path');
 const fs = require('fs');
 const logger = require('./logger');
 
-// Ensure uploads directory exists
-const UPLOADS_DIR = path.join(__dirname, '../../uploads/documents');
-if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+// Resolve UPLOADS_DIR (packaged/asar-safe). Similar priority as server.js: env var -> global.appPaths -> Electron userData -> dev path
+function resolveUploadsDir() {
+    const envUploadsDir = process.env.UPLOADS_DIR;
+    if (envUploadsDir) return path.resolve(envUploadsDir);
+
+    if (global.appPaths && global.appPaths.userData) {
+        return path.join(global.appPaths.userData, 'uploads', 'documents');
+    }
+
+    try {
+        // eslint-disable-next-line global-require
+        const { app } = require('electron');
+        if (app && typeof app.getPath === 'function') {
+            return path.join(app.getPath('userData'), 'uploads', 'documents');
+        }
+    } catch (e) {
+        // Not running in Electron or require failed
+    }
+
+    return path.join(__dirname, '../../uploads/documents');
 }
+
+const UPLOADS_DIR = resolveUploadsDir();
+try {
+    if (fs.existsSync(UPLOADS_DIR)) {
+        const stat = fs.lstatSync(UPLOADS_DIR);
+        if (!stat.isDirectory()) {
+            logger.error(`Uploads path exists but is not a directory: ${UPLOADS_DIR}`);
+            // fallback
+            const fallback = path.join(__dirname, '../../uploads', 'documents');
+            if (!fs.existsSync(fallback)) fs.mkdirSync(fallback, { recursive: true });
+        }
+    } else {
+        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    }
+} catch (err) {
+    logger.error('Failed to ensure uploads directory:', err);
+}
+logger.info(`PDF uploads directory: ${UPLOADS_DIR}`);
 
 /**
  * Format number in Indian number system

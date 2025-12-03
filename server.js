@@ -71,13 +71,70 @@ exServer.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Get paths from global or use defaults
 const publicPath = path.join(__dirname, 'public');
-const documentsPath = path.join(__dirname, 'uploads', 'documents');
-
-// Ensure documents directory exists
 const fs = require('fs');
-if (!fs.existsSync(documentsPath)) {
-    fs.mkdirSync(documentsPath, { recursive: true });
+
+// Resolve a writable documents directory (packaged/asar-safe)
+// Priority:
+// 1. process.env.UPLOADS_DIR
+// 2. global.appPaths.userData (set by main.js in Electron)
+// 3. Electron userData path (if available)
+// 4. Relative development path: __dirname/uploads/documents
+function resolveDocumentsDirectory() {
+    const envUploadsDir = process.env.UPLOADS_DIR;
+    if (envUploadsDir) return path.resolve(envUploadsDir);
+
+    if (global.appPaths && global.appPaths.userData) {
+        return path.join(global.appPaths.userData, 'uploads', 'documents');
+    }
+
+    try {
+        // Running inside Electron main process
+        // eslint-disable-next-line global-require
+        const { app } = require('electron');
+        if (app && typeof app.getPath === 'function') {
+            return path.join(app.getPath('userData'), 'uploads', 'documents');
+        }
+    } catch (e) {
+        // Not running inside Electron or require failed
+    }
+
+    // Local development fallback
+    return path.join(__dirname, 'uploads', 'documents');
 }
+
+let documentsPath = resolveDocumentsDirectory();
+
+// Ensure documents directory exists and is actually a directory
+try {
+    if (fs.existsSync(documentsPath)) {
+        const stat = fs.lstatSync(documentsPath);
+        if (!stat.isDirectory()) {
+            // Problem: path exists but is not a directory
+            logger.error(`Documents path exists but is not a directory: ${documentsPath}`);
+            // Try fallback to userData/uploads/documents, or fail after logging
+            const fallbackBase = (global.appPaths && global.appPaths.userData) || __dirname;
+            documentsPath = path.join(fallbackBase, 'uploads', 'documents');
+            if (!fs.existsSync(documentsPath)) {
+                fs.mkdirSync(documentsPath, { recursive: true });
+            }
+        }
+    } else {
+        fs.mkdirSync(documentsPath, { recursive: true });
+    }
+} catch (err) {
+    logger.error('Failed to prepare documents directory:', err);
+    // Final fallback to a safe relative path
+    try {
+        const fallback = path.join(__dirname, '..', 'uploads', 'documents');
+        if (!fs.existsSync(fallback)) {
+            fs.mkdirSync(fallback, { recursive: true });
+        }
+        documentsPath = fallback;
+    } catch (ex) {
+        logger.error('Unable to create fallback documents directory:', ex);
+    }
+}
+logger.info(`Serving documents from: ${documentsPath}`);
 
 // Static files with proper caching - BEFORE rate limiting
 exServer.use(express.static(publicPath, {

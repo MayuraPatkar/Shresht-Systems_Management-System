@@ -49,13 +49,6 @@
     "url": "https://github.com/mayura01/shresht-systems-management-system/issues"
   },
   "homepage": "https://github.com/mayura01/shresht-systems-management-system#readme",
-  "nsis": {
-    "oneClick": false,
-    "allowToChangeInstallationDirectory": true
-  },
-  "win": {
-    "target": "nsis"
-  },
   "build": {
     "appId": "com.app.SSMS",
     "productName": "SSMS",
@@ -104,6 +97,10 @@
         ]
       }
     ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
     "win": {
       "icon": "./public/assets/icon.ico",
       "target": [

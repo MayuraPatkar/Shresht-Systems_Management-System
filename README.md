@@ -246,6 +246,21 @@ npm run build
 npm run release
 ```
 
+### Note for Packaged Builds
+
+When the app is packaged into an Electron build, the application resources are bundled into an `app.asar` archive, which is read-only at runtime. The server and utilities write generated documents (PDFs) and backups to the application's user data folder (Electron's `userData`) by default.
+
+If you need to write generated PDFs or uploads to a custom path, set the `UPLOADS_DIR` environment variable to a writable path outside the `app.asar` archive before starting the app. Example (Windows PowerShell):
+
+```powershell
+# Windows - set environment variable then start the app
+$env:UPLOADS_DIR = 'C:\Users\<your_user>\AppData\Local\MyApp\uploads\documents'
+npm start
+```
+
+The startup logic prefers `UPLOADS_DIR` if present, then the `userData` folder, and finally falls back to a local `uploads` path for development runs.
+
+
 ---
 
 ## Architecture
