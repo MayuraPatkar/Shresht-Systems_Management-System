@@ -1,63 +1,196 @@
 {
   "versions": [
     {
-      "version": "3.3.1",
-      "date": "2025-12-01",
-      "title": "Bug Fixes & Improvements",
+      "version": "3.4.1",
+      "date": "2025-12-03",
+      "title": "Reports, WhatsApp & Performance",
       "changes": [
         {
           "type": "feature",
-          "description": "Added changelog display on app updates"
+          "description": "Added dedicated Reports Module with Stock Movement and Monthly GST reports"
         },
         {
           "type": "feature",
-          "description": "View complete release history in Settings > About"
+          "description": "WhatsApp Integration: Send Invoices and Quotations directly to clients with one click"
+        },
+        {
+          "type": "feature",
+          "description": "Cloud Document Links: PDFs are stored in the cloud for permanent WhatsApp accessibility"
+        },
+        {
+          "type": "feature",
+          "description": "Custom Document Numbering: Configure unique prefixes and sequences in Settings"
         },
         {
           "type": "improvement",
-          "description": "Enhanced update notification system"
+          "description": "Replaced Puppeteer with native Electron printing for faster PDF generation"
+        },
+        {
+          "type": "improvement",
+          "description": "Smart Networking: Added dynamic port detection to solve startup errors"
+        },
+        {
+          "type": "bugfix",
+          "description": "Fixed visual glitches in the new reporting interfaces"
+        },
+        {
+          "type": "bugfix",
+          "description": "Resolved edge-case bugs affecting document saving and startup"
         }
       ]
     },
     {
-      "version": "3.3.0",
-      "date": "2025-11-15",
-      "title": "Major Feature Update",
+      "version": "3.2.1",
+      "date": "2025-11-30",
+      "title": "Readability & Stability Patch",
       "changes": [
         {
-          "type": "feature",
-          "description": "Auto-update system with GitHub releases integration"
-        },
-        {
-          "type": "feature",
-          "description": "Improved backup and restore functionality"
+          "type": "improvement",
+          "description": "Increased font sizes in Quotation module for better readability"
         },
         {
           "type": "improvement",
-          "description": "Enhanced security with rate limiting"
+          "description": "Improved internal error log formatting for diagnostics"
         },
         {
           "type": "bugfix",
-          "description": "Fixed document ID generation issues"
+          "description": "Smoothed out interactions in data entry forms across modules"
+        },
+        {
+          "type": "bugfix",
+          "description": "Applied patch fixes for minor stability issues"
         }
       ]
     },
     {
       "version": "3.2.0",
-      "date": "2025-10-20",
-      "title": "Settings & Preferences",
+      "date": "2025-11-30",
+      "title": "Validation & Document Polish",
       "changes": [
         {
           "type": "feature",
-          "description": "Document numbering customization"
+          "description": "Enhanced Form Validation: Proactive error prevention across all modules"
         },
         {
           "type": "feature",
-          "description": "Backup scheduling system"
+          "description": "Robust Backups: Bundled native database tools for reliable self-contained backups"
         },
         {
           "type": "improvement",
-          "description": "Improved database statistics display"
+          "description": "Updated Waybill layout with Compact Totals display"
+        },
+        {
+          "type": "improvement",
+          "description": "Polished Quotation PDF engine to fix layout shifts"
+        },
+        {
+          "type": "improvement",
+          "description": "Migrated internal routes to custom logging system"
+        },
+        {
+          "type": "bugfix",
+          "description": "Fixed critical issue where backups targeted the wrong directory"
+        },
+        {
+          "type": "bugfix",
+          "description": "Resolved logic bugs in Invoice saving and calculation"
+        },
+        {
+          "type": "bugfix",
+          "description": "Fixed auto-updater stability by removing conflicting loggers"
+        }
+      ]
+    },
+    {
+      "version": "3.0.4",
+      "date": "2025-11-16",
+      "title": "Maintenance & Optimization",
+      "changes": [
+        {
+          "type": "improvement",
+          "description": "Significant codebase cleanup and removal of debug logs for optimization"
+        }
+      ]
+    },
+    {
+      "version": "3.0.3",
+      "date": "2025-11-16",
+      "title": "The Productivity & Design Overhaul",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Automatic Updates: App now detects and installs new versions automatically"
+        },
+        {
+          "type": "feature",
+          "description": "Keyboard Navigation: Switch modules with Ctrl+Tab and use arrow keys in lists"
+        },
+        {
+          "type": "feature",
+          "description": "Service History: Dedicated view for tracking item/client service records"
+        },
+        {
+          "type": "feature",
+          "description": "Solar Data Worksheet: New module for energy saving calculations"
+        },
+        {
+          "type": "improvement",
+          "description": "Unified Document Design: Professional layout overhaul for all document types"
+        },
+        {
+          "type": "improvement",
+          "description": "Added global search bars and filtering options across all modules"
+        },
+        {
+          "type": "improvement",
+          "description": "Stock Printing: Generate and print filtered inventory reports"
+        },
+        {
+          "type": "improvement",
+          "description": "Dashboard Stats now support URL parameters for deep linking"
+        },
+        {
+          "type": "bugfix",
+          "description": "Fixed missing images/logos in printed documents"
+        },
+        {
+          "type": "bugfix",
+          "description": "Fixed total calculations in Dashboard and Invoices for financial accuracy"
+        },
+        {
+          "type": "bugfix",
+          "description": "Corrected Pending Services count logic"
+        }
+      ]
+    },
+    {
+      "version": "2.5.6",
+      "date": "2025-10-11",
+      "title": "Initial Release",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Purchase Order Module: Create and track supplier orders"
+        },
+        {
+          "type": "feature",
+          "description": "Enhanced Stock Tracking with company/brand categorization"
+        },
+        {
+          "type": "improvement",
+          "description": "Updated sidebar navigation for consistent behavior"
+        },
+        {
+          "type": "improvement",
+          "description": "Improved local database backup reliability"
+        },
+        {
+          "type": "improvement",
+          "description": "Overhauled quotation viewing experience"
+        },
+        {
+          "type": "bugfix",
+          "description": "Fixed layout overflow errors in quotation forms and PDFs"
         }
       ]
     }
