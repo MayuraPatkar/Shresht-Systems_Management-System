@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Stock, StockMovement } = require('../models');
-const logger = require('../utils/logger'); // Custom logger
+const logger = require('../utils/logger');
+const validators = require('../middleware/validators'); // Import validators
 
 // Helper function to log stock movements
 async function logStockMovement(itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
@@ -30,41 +31,13 @@ router.get('/all', async (req, res) => {
     }
 });
 
-// Route to Get Stock Data
-router.get('/getStock', async (req, res) => {
-    try {
-        const stockData = await Stock.find();
-        res.status(200).json(stockData);
-    } catch (error) {
-        logger.error('Error fetching stock data:', error);
-        res.status(500).json({ error: 'Failed to fetch stock data' });
-    }
-});
-
 // Route to Add Item to Stock
-router.post('/addItem', async (req, res) => {
-    const { itemName, HSN_SAC, specifications, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
+router.post('/addItem', validators.createStock, async (req, res) => {
+    const { item_name, HSN_SAC, specifications, company, category, type, unit_price, quantity, GST, min_quantity } = req.body;
 
     try {
-        // Input validation
-        if (!itemName || !itemName.trim()) {
-            return res.status(400).json({ error: 'Item name is required' });
-        }
-
-        if (unitPrice && (isNaN(unitPrice) || unitPrice < 0)) {
-            return res.status(400).json({ error: 'Unit price must be a valid positive number' });
-        }
-
-        if (quantity && (isNaN(quantity) || quantity < 0)) {
-            return res.status(400).json({ error: 'Quantity must be a valid positive number' });
-        }
-
-        if (GST && (isNaN(GST) || GST < 0 || GST > 100)) {
-            return res.status(400).json({ error: 'GST must be a valid number between 0 and 100' });
-        }
-
         // Check if item already exists
-        const existingItem = await Stock.findOne({ item_name: itemName.trim() });
+        const existingItem = await Stock.findOne({ item_name: item_name.trim() });
 
         if (existingItem) {
             return res.status(400).json({ error: 'Item already exists in stock' });
@@ -72,13 +45,13 @@ router.post('/addItem', async (req, res) => {
 
         // Add new stock item
         const newItem = new Stock({
-            item_name: itemName.trim(),
+            item_name: item_name.trim(),
             HSN_SAC,
             specifications,
             company,
             category,
             type: type || 'material',
-            unit_price: unitPrice,
+            unit_price,
             quantity,
             GST,
             min_quantity: min_quantity || 5,
@@ -89,7 +62,7 @@ router.post('/addItem', async (req, res) => {
         // Log stock movement for initial quantity
         if (quantity && quantity > 0) {
             await logStockMovement(
-                itemName.trim(),
+                item_name.trim(),
                 quantity,
                 'in',
                 'stock',
@@ -179,15 +152,15 @@ router.post('/removeFromStock', async (req, res) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req, res) => {
-    const { itemId, itemName, HSN_SAC, specifications, company, category, type, unitPrice, quantity, GST, min_quantity } = req.body;
+    const { itemId, item_name, HSN_SAC, specifications, company, category, type, unit_price, quantity, GST, min_quantity } = req.body;
 
     try {
         // Input validation
-        if (!itemName || !itemName.trim()) {
+        if (!item_name || !item_name.trim()) {
             return res.status(400).json({ error: 'Item name is required' });
         }
 
-        if (unitPrice && (isNaN(unitPrice) || unitPrice < 0)) {
+        if (unit_price && (isNaN(unit_price) || unit_price < 0)) {
             return res.status(400).json({ error: 'Unit price must be a valid positive number' });
         }
 
@@ -201,7 +174,7 @@ router.post('/editItem', async (req, res) => {
 
         // Check if another item with the same name exists (excluding current item)
         const existingItem = await Stock.findOne({
-            item_name: itemName.trim(),
+            item_name: item_name.trim(),
             _id: { $ne: itemId }
         });
 
@@ -219,13 +192,13 @@ router.post('/editItem', async (req, res) => {
         const newQuantity = quantity || 0;
         const quantityDiff = newQuantity - oldQuantity;
 
-        item.item_name = itemName.trim();
+        item.item_name = item_name.trim();
         item.HSN_SAC = HSN_SAC;
-        item.specifications = specifications,
-            item.company = company;
+        item.specifications = specifications;
+        item.company = company;
         item.category = category;
         item.type = type;
-        item.unit_price = unitPrice;
+        item.unit_price = unit_price;
         item.quantity = quantity;
         item.GST = GST;
         item.min_quantity = min_quantity;
@@ -235,7 +208,7 @@ router.post('/editItem', async (req, res) => {
         // Log stock movement if quantity changed
         if (quantityDiff !== 0) {
             await logStockMovement(
-                itemName.trim(),
+                item_name.trim(),
                 Math.abs(quantityDiff),
                 quantityDiff > 0 ? 'in' : 'out',
                 'stock',
@@ -259,16 +232,7 @@ router.get("/get-stock-item", async (req, res) => {
         const stockItem = await Stock.findOne({ item_name: itemName });
         if (!stockItem) return res.status(404).json({ message: "Stock item not found" });
 
-        res.json({
-            itemName: stockItem.item_name,
-            HSN_SAC: stockItem.HSN_SAC,
-            specifications: stockItem.specifications,
-            company: stockItem.company,
-            type: stockItem.type,
-            category: stockItem.category,
-            unitPrice: stockItem.unit_price,
-            GST: stockItem.GST
-        });
+        res.json(stockItem);
     } catch (error) {
         logger.error("Error fetching stock item:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -308,8 +272,8 @@ router.get('/search/:itemName', async (req, res) => {
             res.json({ found: false });
         }
     } catch (error) {
-        logger.error("Error searching stock item:", error);
-        res.status(500).json({ error: "Failed to search stock item" });
+        logger.error('Error searching stock item:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

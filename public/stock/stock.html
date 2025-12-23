@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock</title>
     <link rel="stylesheet" href="../css/tailwind.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../css/shared/globalStyle.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -30,18 +31,6 @@
             height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
-        }
-
-        .low-stock {
-            background-color: #fef3cd !important;
-        }
-
-        .out-of-stock {
-            background-color: #ffb4b4 !important;
-        }
-
-        .table-row:hover {
-            background-color: #f8fafc;
         }
 
         .fade-in {
@@ -105,7 +94,7 @@
         }
 
         .table-container::-webkit-scrollbar-thumb {
-            border-radius: none;
+            border-radius: 0;
         }
 
         *::-webkit-scrollbar-thumb:hover {
@@ -118,22 +107,53 @@
 
         /* Full height table container */
         .table-container {
-            height: calc(100vh - 11rem);
+            height: calc(100vh - 168px);
             min-height: 400px;
         }
 
         /* Quantity input styling */
         .quantity-input {
-            width: 80px;
+            width: 100px;
             text-align: center;
         }
 
         .quantity-btn {
-            min-width: 32px;
-            height: 32px;
+            min-width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .quantity-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Button transitions */
+        button {
+            transition: all 0.2s ease;
+        }
+
+        /* Modal animation */
+        .modal-content {
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Table row hover enhancement */
+        .table-row {
+            transition: background-color 0.15s ease;
         }
     </style>
 </head>
@@ -150,8 +170,8 @@
             <div class="flex items-center gap-4">
                 <div class="relative">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" placeholder="Search stock items..."
-                        class="bg-gray-50 border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="search-input" placeholder="Search stock items..."
+                        class="bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow">
                 </div>
                 <button id="newStockItemBtn"
                     class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
@@ -163,7 +183,7 @@
     </header>
 
     <!-- Sidebar -->
-    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24">
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
         <!-- Navigation Links -->
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
@@ -227,16 +247,16 @@
     </aside>
 
     <!-- Fixed Action Bar -->
-    <div class="fixed top-24 left-[280px] right-0 bg-white z-20 px-8 py-4 shadow-md">
+    <div class="fixed top-24 left-[280px] right-0 bg-white z-20 px-8 py-4 shadow-md" style="height: 72px;">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <button
+                <button id="refreshBtn"
                     class="flex items-center gap-2 px-4 py-2 text-green-700 bg-green-100 border border-green-200 rounded-lg hover:bg-green-200">
                     <i class="fas fa-sync-alt text-green-700"></i>
                     <span>Refresh</span>
                 </button>
-                <button
-                    class="flex items-center gap-2 px-4 py-2 text-orange-600 bg-orange-100 border-orange-200 rounded-lg hover:bg-orange-200">
+                <button id="lowStockBtn"
+                    class="flex items-center gap-2 px-4 py-2 text-orange-600 bg-orange-100 border border-orange-200 rounded-lg hover:bg-orange-200">
                     <i class="fas fa-exclamation-triangle"></i>
                     <span>Low Stock Items</span>
                 </button>
@@ -298,13 +318,13 @@
     </div>
 
     <!-- Main Content -->
-    <main class="ml-[280px] pt-44 mt-0">
+    <main class="ml-[280px]" style="padding-top: 168px;">
         <!-- Stock Table -->
         <div class="bg-white border border-gray-200 overflow-auto table-container">
             <table class="w-full text-left table-fixed" id="stock-table">
                 <thead>
                     <tr class="bg-blue-600 text-white">
-                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-4/12 cursor-pointer hover:bg-blue-700 text-center"
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-4/12 cursor-pointer hover:bg-blue-700 text-left"
                             data-sort="name">
                             Items <i class="fas fa-sort ml-1"></i>
                         </th>
@@ -389,7 +409,7 @@
                     <div>
                         <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type <span
                                 class="text-red-500">*</span></label>
-                        <input type="text" id="type" placeholder="e.g., Asset"
+                        <input type="text" id="type" placeholder="e.g., Material" value="Material"
                             class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required>
                     </div>
@@ -540,54 +560,58 @@
     <!-- Item Details Modal -->
     <div id="itemDetailsModal"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg">
-            <div class="flex justify-between items-center pb-4 border-b mb-4">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+            <div class="flex justify-between items-center pb-4 border-b mb-6">
                 <h3 id="detailsModalTitle" class="text-xl font-semibold text-gray-800">Item Details</h3>
                 <button id="closeDetailsModalBtn" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times fa-lg"></i>
                 </button>
             </div>
-            <div class="space-y-4">
-                <div>
-                    <h4 class="text-sm font-medium text-gray-500">Item Name</h4>
-                    <p id="detailsItemName" class="text-gray-800"></p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Item Name</h4>
+                    <p id="detailsItemName" class="text-gray-900 font-medium text-lg"></p>
                 </div>
-                <div>
-                    <h4 class="text-sm font-medium text-gray-500">HSN/SAC</h4>
-                    <p id="detailsHsn" class="text-gray-800"></p>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Company</h4>
+                    <p id="detailsCompany" class="text-gray-900 font-medium"></p>
                 </div>
-                <div>
-                    <h4 class="text-sm font-medium text-gray-500">Company</h4>
-                    <p id="detailsCompany" class="text-gray-800"></p>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">HSN/SAC Code</h4>
+                    <p id="detailsHsn" class="text-gray-900 font-medium"></p>
                 </div>
-                <div>
-                    <h4 class="text-sm font-medium text-gray-500">Category</h4>
-                    <p id="detailsCategory" class="text-gray-800"></p>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Category</h4>
+                    <p id="detailsCategory" class="text-gray-900 font-medium"></p>
                 </div>
-                <div>
-                    <h4 class="text-sm font-medium text-gray-500">Type</h4>
-                    <p id="detailsType" class="text-gray-800"></p>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Type</h4>
+                    <p id="detailsType" class="text-gray-900 font-medium"></p>
                 </div>
-                <div>
-                    <h4 class="text-sm font-medium text-gray-500">Quantity</h4>
-                    <p id="detailsQuantity" class="text-gray-800"></p>
+                <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h4 class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Unit Price</h4>
+                    <p id="detailsUnitPrice" class="text-blue-700 font-bold text-lg"></p>
                 </div>
-                <div>
-                    <h4 class="text-sm font-medium text-gray-500">GST Rate</h4>
-                    <p id="detailsGstRate" class="text-gray-800"></p>
+                <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <h4 class="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Current Quantity</h4>
+                    <p id="detailsQuantity" class="text-green-700 font-bold text-lg"></p>
                 </div>
-                <div>
-                    <h4 class="text-sm font-medium text-gray-500">Unit Price</h4>
-                    <p id="detailsUnitPrice" class="text-gray-800"></p>
+                <div class="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                    <h4 class="text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">Minimum Quantity</h4>
+                    <p id="detailsMinQuantity" class="text-orange-700 font-bold text-lg"></p>
                 </div>
-                <div>
-                    <h4 class="text-sm font-medium text-gray-500">Minimum Quantity</h4>
-                    <p id="detailsMinQuantity" class="text-gray-800"></p>
+                <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <h4 class="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">GST Rate</h4>
+                    <p id="detailsGstRate" class="text-purple-700 font-bold text-lg"></p>
                 </div>
-                <div>
-                    <h4 class="text-sm font-medium text-gray-500">Specifications</h4>
+                <div class="md:col-span-2 bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Specifications</h4>
                     <p id="detailsSpecifications" class="text-gray-800 whitespace-pre-wrap"></p>
                 </div>
+            </div>
+            <div class="flex justify-end pt-6 mt-6 border-t">
+                <button id="closeDetailsBtn"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Close</button>
             </div>
         </div>
     </div>
@@ -605,7 +629,7 @@
                 <div>
                     <label for="printTypeFilter" class="block text-sm font-medium text-gray-700">Filter by Type</label>
                     <select id="printTypeFilter"
-                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-white">
                         <option value="all">All Types</option>
                         <option value="Asset">Asset</option>
                         <option value="Material">Material</option>
@@ -615,7 +639,7 @@
                     <label for="printCategoryFilter" class="block text-sm font-medium text-gray-700">Filter by
                         Category</label>
                     <select id="printCategoryFilter"
-                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-white">
                         <!-- Options populated by JS -->
                     </select>
                 </div>
@@ -623,7 +647,7 @@
                     <label for="printStatusFilter" class="block text-sm font-medium text-gray-700">Filter by
                         Status</label>
                     <select id="printStatusFilter"
-                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-gray-200">
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-white">
                         <option value="all">All</option>
                         <option value="In Stock">In Stock</option>
                         <option value="Low Stock">Low Stock</option>
@@ -646,33 +670,33 @@
     <!-- Quantity Adjustment Modal -->
     <div id="quantityModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
         <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-            <div class="flex justify-between items-center pb-4 border-b mb-4">
+            <div class="flex justify-between items-center pb-4 border-b mb-6">
                 <h3 id="quantityModalTitle" class="text-xl font-semibold text-gray-800">Adjust Quantity</h3>
-                <button id="closeQuantityModalBtn" class="text-gray-400 hover:text-gray-600">
+                <button id="closeQuantityModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <i class="fas fa-times fa-lg"></i>
                 </button>
             </div>
             <div class="mb-6">
-                <p id="quantityModalText" class="text-gray-600 mb-4">How much quantity do you want to add/remove?</p>
+                <p id="quantityModalText" class="text-gray-600 mb-6 text-center">How much quantity do you want to add/remove?</p>
                 <div class="flex items-center justify-center gap-4">
                     <button id="decreaseQuantityBtn"
-                        class="quantity-btn bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="quantity-btn bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
                         <i class="fas fa-minus"></i>
                     </button>
                     <input type="number" id="quantityModalInput"
-                        class="quantity-input border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="quantity-input border-2 border-gray-300 rounded-lg p-2 text-xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         value="1" min="1">
                     <button id="increaseQuantityBtn"
-                        class="quantity-btn bg-green-500 text-white rounded-lg hover:bg-green-600">
+                        class="quantity-btn bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors shadow-sm">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
             </div>
-            <div class="flex justify-end items-center gap-4">
+            <div class="flex justify-end items-center gap-3 pt-4 border-t">
                 <button id="cancelQuantityBtn"
-                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
                 <button id="confirmQuantityBtn"
-                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm">
                     <span id="confirmQuantityText">Add</span>
                 </button>
             </div>
