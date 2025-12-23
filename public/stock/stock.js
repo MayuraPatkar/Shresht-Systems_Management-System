@@ -18,7 +18,7 @@ function hideModal(modalId) {
 async function fetchStockData() {
     try {
         showLoading(true);
-        const response = await fetch('/stock/getStock');
+        const response = await fetch('/stock/all');
         if (!response.ok) throw new Error('Failed to fetch stock data');
         const stockData = await response.json();
         currentStockData = stockData || [];
@@ -59,13 +59,6 @@ function showEmpty(show) {
     }
 }
 
-function normalizeField(item, fieldAlternatives) {
-    for (const f of fieldAlternatives) {
-        if (item[f] !== undefined) return item[f];
-    }
-    return '';
-}
-
 function renderStockTable(data) {
     const tbody = document.querySelector('#stock-table tbody');
     if (!tbody) return;
@@ -83,21 +76,27 @@ function renderStockTable(data) {
     }
 
     data.forEach(item => {
-        const id = normalizeField(item, ['_id', 'id']);
-        const name = normalizeField(item, ['item_name', 'itemName']);
-        const HSN = normalizeField(item, ['HSN_SAC', 'hsnCode', 'HSN']);
-        const company = normalizeField(item, ['company']);
-        const unitPrice = normalizeField(item, ['unit_price', 'unitPrice']);
-        const quantity = Number(normalizeField(item, ['quantity', 'qty'])) || 0;
-        const GST = normalizeField(item, ['GST', 'gstRate']) || 0;
-        const minQuantity = Number(normalizeField(item, ['min_quantity', 'minQuantity'])) || 0;
-        const category = normalizeField(item, ['category']);
-        const type = normalizeField(item, ['type']);
+        const id = item._id;
+        const name = item.item_name;
+        const HSN = item.HSN_SAC;
+        const company = item.company;
+        const unitPrice = item.unit_price;
+        const quantity = Number(item.quantity) || 0;
+        const GST = item.GST || 0;
+        const minQuantity = Number(item.min_quantity) || 0;
+        const category = item.category;
+        const type = item.type;
 
         const row = document.createElement('tr');
-        row.classList.add('table-row', 'fade-in');
-        if (quantity < minQuantity) row.classList.add('low-stock');
-        if (quantity <= 0) row.classList.add('out-of-stock');
+        row.classList.add('table-row', 'fade-in', 'hover:bg-slate-50', 'transition-colors');
+        
+        if (quantity < 0) {
+            row.classList.add('bg-red-200');
+        } else if (quantity === 0) {
+            row.classList.add('bg-red-100');
+        } else if (quantity < minQuantity) {
+            row.classList.add('bg-yellow-100');
+        }
 
         const actionsCell = document.createElement('td');
 
@@ -130,9 +129,9 @@ function renderStockTable(data) {
             if (action === 'add' || action === 'remove') {
                 showQuantityModal(action, id, name);
             } else if (action === 'edit') {
-                openEditModal({ id, name, HSN, company, unitPrice, quantity, GST, minQuantity, category, type, specifications: normalizeField(item, ['specification', 'specifications']) });
+                openEditModal(item);
             } else if (action === 'details') {
-                openDetailsModal({ id, name, HSN, company, unitPrice, quantity, GST, minQuantity, category, type, specifications: normalizeField(item, ['specifications', 'details']) });
+                openDetailsModal(item);
             } else if (action === 'delete') {
                 window.electronAPI.showAlert2(`Are you sure you want to delete "${name}"? This action cannot be undone.`);
                 if (window.electronAPI) {
@@ -169,7 +168,10 @@ function renderStockTable(data) {
         let status = 'In Stock';
         let statusClass = 'bg-green-100 text-green-800 flex items-center';
 
-        if (quantity === 0) {
+        if (quantity < 0) {
+            status = 'Negative Stock';
+            statusClass = 'bg-red-200 text-red-900 font-bold';
+        } else if (quantity === 0) {
             status = 'Out of Stock';
             statusClass = 'bg-red-100 text-red-800';
         } else if (quantity < minQuantity) {
@@ -216,19 +218,19 @@ function generateStockPrintContent(type, category, status) {
     
     // Apply type filter
     if (type !== 'all') {
-        filteredData = filteredData.filter(item => normalizeField(item, ['type']) === type);
+        filteredData = filteredData.filter(item => item.type === type);
     }
     
     // Apply category filter
     if (category !== 'all') {
-        filteredData = filteredData.filter(item => normalizeField(item, ['category']) === category);
+        filteredData = filteredData.filter(item => item.category === category);
     }
     
     // Apply status filter
     if (status !== 'all') {
         filteredData = filteredData.filter(item => {
-            const quantity = Number(normalizeField(item, ['quantity', 'qty'])) || 0;
-            const minQuantity = Number(normalizeField(item, ['min_quantity', 'minQuantity'])) || 0;
+            const quantity = Number(item.quantity) || 0;
+            const minQuantity = Number(item.min_quantity) || 0;
             
             if (status === 'In Stock') return quantity >= minQuantity;
             if (status === 'Low Stock') return quantity > 0 && quantity < minQuantity;
@@ -242,13 +244,13 @@ function generateStockPrintContent(type, category, status) {
     let totalQuantity = 0;
     
     filteredData.forEach((item, index) => {
-        const itemName = normalizeField(item, ['item_name', 'itemName']);
-        const company = normalizeField(item, ['company']);
-        const itemCategory = normalizeField(item, ['category']);
-        const unitPrice = parseFloat(normalizeField(item, ['unit_price', 'unitPrice'])) || 0;
-        const qty = Number(normalizeField(item, ['quantity', 'qty'])) || 0;
-        const gst = normalizeField(item, ['GST', 'gstRate']) || 0;
-        const minQuantity = Number(normalizeField(item, ['min_quantity', 'minQuantity'])) || 0;
+        const itemName = item.item_name;
+        const company = item.company;
+        const itemCategory = item.category;
+        const unitPrice = parseFloat(item.unit_price) || 0;
+        const qty = Number(item.quantity) || 0;
+        const gst = item.GST || 0;
+        const minQuantity = Number(item.min_quantity) || 0;
         
         const value = qty * unitPrice;
         totalQuantity += qty;
@@ -258,7 +260,10 @@ function generateStockPrintContent(type, category, status) {
         let statusText = 'In Stock';
         let statusClass = 'stock-status-normal';
         
-        if (qty === 0) {
+        if (qty < 0) {
+            statusText = 'Negative Stock';
+            statusClass = 'stock-status-negative';
+        } else if (qty === 0) {
             statusText = 'Out of Stock';
             statusClass = 'stock-status-out';
         } else if (qty < minQuantity) {
@@ -429,6 +434,17 @@ function generateStockPrintContent(type, category, status) {
                     white-space: nowrap;
                 }
 
+                .stock-status-negative {
+                    display: inline-block;
+                    padding: 2px 6px;
+                    border-radius: 10px;
+                    font-size: 7pt;
+                    font-weight: 600;
+                    background-color: #fecaca;
+                    color: #7f1d1d;
+                    white-space: nowrap;
+                }
+
                 .stock-print-summary {
                     margin-top: 15px;
                     padding: 12px;
@@ -529,7 +545,7 @@ function generateStockPrintContent(type, category, status) {
 function populateCategoryFilters(data) {
     const cats = new Set();
     data.forEach(i => {
-        const c = normalizeField(i, ['category']);
+        const c = i.category;
         if (c) cats.add(c);
     });
     const printCat = document.getElementById('printCategoryFilter');
@@ -547,23 +563,23 @@ const newStockForm = document.getElementById('newStockForm');
 if (newStockForm) {
     newStockForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const itemName = document.getElementById('itemName').value.trim();
+        const item_name = document.getElementById('itemName').value.trim();
         const HSN_SAC = document.getElementById('hsnCode').value.trim();
         const company = document.getElementById('company').value.trim();
         const category = document.getElementById('category').value.trim();
         const type = document.getElementById('type').value.trim();
-        const unitPrice = parseFloat(document.getElementById('unitPrice').value);
+        const unit_price = parseFloat(document.getElementById('unitPrice').value);
         const quantity = parseInt(document.getElementById('quantity').value, 10);
         const GST = parseFloat(document.getElementById('gstRate').value);
-        const minQuantity = parseInt(document.getElementById('minQuantity').value, 10);
+        const min_quantity = parseInt(document.getElementById('minQuantity').value, 10);
         const specifications = document.getElementById('specifications').value.trim();
 
-        if (!itemName || !HSN_SAC || !company || !category || !type) {
+        if (!item_name || !HSN_SAC || !company || !category || !type) {
             showErrorMessage('Please fill all required text fields.');
             return;
         }
 
-        if (isNaN(unitPrice) || unitPrice <= 0) {
+        if (isNaN(unit_price) || unit_price <= 0) {
             showErrorMessage('Please enter a valid unit price.');
             return;
         }
@@ -578,7 +594,7 @@ if (newStockForm) {
             return;
         }
 
-        if (isNaN(minQuantity) || minQuantity < 0) {
+        if (isNaN(min_quantity) || min_quantity < 0) {
             showErrorMessage('Please enter a valid minimum quantity.');
             return;
         }
@@ -587,7 +603,7 @@ if (newStockForm) {
             const res = await fetch('/stock/addItem', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ itemName, HSN_SAC, company, category, type, unitPrice, quantity, GST, minQuantity, specifications })
+                body: JSON.stringify({ item_name, HSN_SAC, company, category, type, unit_price, quantity, GST, min_quantity, specifications })
             });
             if (!res.ok) throw new Error('Failed to add item');
             await fetchStockData();
@@ -604,19 +620,19 @@ if (newStockForm) {
 // Edit modal wiring
 function openEditModal(item) {
     showModal('editStockModal');
-    document.getElementById('editItemName').value = item.name || '';
-    document.getElementById('editHsnCode').value = item.HSN || '';
+    document.getElementById('editItemName').value = item.item_name || '';
+    document.getElementById('editHsnCode').value = item.HSN_SAC || '';
     document.getElementById('editCompany').value = item.company || '';
     document.getElementById('editCategory').value = item.category || '';
     document.getElementById('editType').value = item.type || 'material';
-    document.getElementById('editUnitPrice').value = item.unitPrice || '';
+    document.getElementById('editUnitPrice').value = item.unit_price || '';
     document.getElementById('editQuantity').value = item.quantity || '';
     document.getElementById('editGstRate').value = item.GST || '';
-    document.getElementById('editMinQuantity').value = item.minQuantity || '5';
+    document.getElementById('editMinQuantity').value = item.min_quantity || '5';
     document.getElementById('editSpecifications').value = item.specifications || '';
 
     // store id on modal element for submit
-    document.getElementById('editStockModal').setAttribute('data-item-id', item.id);
+    document.getElementById('editStockModal').setAttribute('data-item-id', item._id);
 }
 
 const editForm = document.getElementById('editStockForm');
@@ -625,25 +641,25 @@ if (editForm) {
         e.preventDefault();
         const modal = document.getElementById('editStockModal');
         const itemId = modal.getAttribute('data-item-id');
-        const itemName = document.getElementById('editItemName').value.trim();
+        const item_name = document.getElementById('editItemName').value.trim();
         const HSN_SAC = document.getElementById('editHsnCode').value.trim();
         const company = document.getElementById('editCompany').value.trim();
         const category = document.getElementById('editCategory').value.trim();
         const type = document.getElementById('editType').value.trim();
-        const unitPrice = parseFloat(document.getElementById('editUnitPrice').value);
+        const unit_price = parseFloat(document.getElementById('editUnitPrice').value);
         const quantity = parseInt(document.getElementById('editQuantity').value, 10);
         const GST = parseFloat(document.getElementById('editGstRate').value);
-        const minQuantity = parseInt(document.getElementById('editMinQuantity').value, 10);
+        const min_quantity = parseInt(document.getElementById('editMinQuantity').value, 10);
         const specifications = document.getElementById('editSpecifications').value.trim();
 
         if (!itemId) return;
 
-        if (!itemName || !HSN_SAC || !company || !category || !type) {
+        if (!item_name || !HSN_SAC || !company || !category || !type) {
             showErrorMessage('Please fill all required text fields.');
             return;
         }
 
-        if (isNaN(unitPrice) || unitPrice <= 0) {
+        if (isNaN(unit_price) || unit_price <= 0) {
             showErrorMessage('Please enter a valid unit price.');
             return;
         }
@@ -658,7 +674,7 @@ if (editForm) {
             return;
         }
 
-        if (isNaN(minQuantity) || minQuantity < 0) {
+        if (isNaN(min_quantity) || min_quantity < 0) {
             showErrorMessage('Please enter a valid minimum quantity.');
             return;
         }
@@ -667,7 +683,7 @@ if (editForm) {
             const res = await fetch('/stock/editItem', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ itemId, itemName, HSN_SAC, company, category, type, unitPrice, quantity, GST, minQuantity, specifications })
+                body: JSON.stringify({ itemId, item_name, HSN_SAC, company, category, type, unit_price, quantity, GST, min_quantity, specifications })
             });
             if (!res.ok) throw new Error('Failed to edit item');
             await fetchStockData();
@@ -682,13 +698,13 @@ if (editForm) {
 
 function openDetailsModal(item) {
     showModal('itemDetailsModal');
-    document.getElementById('detailsItemName').textContent = item.name || '';
-    document.getElementById('detailsMinQuantity').textContent = item.minQuantity || '0';
-    document.getElementById('detailsUnitPrice').textContent = item.unitPrice ? `₹ ${formatIndian(item.unitPrice)}` : '';
+    document.getElementById('detailsItemName').textContent = item.item_name || '';
+    document.getElementById('detailsMinQuantity').textContent = item.min_quantity || '0';
+    document.getElementById('detailsUnitPrice').textContent = item.unit_price ? `₹ ${formatIndian(item.unit_price)}` : '';
     document.getElementById('detailsQuantity').textContent = item.quantity || '0';
     document.getElementById('detailsGstRate').textContent = item.GST ? `${item.GST}%` : '0%';
     // document.getElementById('detailsMargin').textContent = item.margin ? `${item.margin}%` : '0%';
-    document.getElementById('detailsHsn').textContent = item.HSN || '';
+    document.getElementById('detailsHsn').textContent = item.HSN_SAC || '';
     document.getElementById('detailsCompany').textContent = item.company || '';
     document.getElementById('detailsCategory').textContent = item.category || '';
     document.getElementById('detailsType').textContent = item.type || '';
@@ -811,12 +827,12 @@ const lowStockBtn = document.getElementById('lowStockBtn');
 if (lowStockBtn) {
     lowStockBtn.addEventListener('click', async () => {
         try {
-            const res = await fetch('/stock/getStock');
+            const res = await fetch('/stock/all');
             if (!res.ok) throw new Error('Failed');
             const data = await res.json();
             const lowStockItems = (data || []).filter(i => {
-                const qty = Number(normalizeField(i, ['quantity', 'qty'])) || 0;
-                const minQty = Number(normalizeField(i, ['min_quantity', 'minQuantity'])) || 0;
+                const qty = Number(i.quantity) || 0;
+                const minQty = Number(i.min_quantity) || 0;
                 return qty < minQty || qty === 0;
             });
             renderStockTable(lowStockItems);
@@ -859,10 +875,10 @@ if (searchInput) {
         }
         
         const filteredData = currentStockData.filter(item => {
-            const name = normalizeField(item, ['item_name', 'itemName']).toLowerCase();
-            const company = normalizeField(item, ['company']).toLowerCase();
-            const category = normalizeField(item, ['category']).toLowerCase();
-            const hsn = normalizeField(item, ['HSN_SAC', 'hsnCode', 'HSN']).toLowerCase();
+            const name = (item.item_name || '').toLowerCase();
+            const company = (item.company || '').toLowerCase();
+            const category = (item.category || '').toLowerCase();
+            const hsn = (item.HSN_SAC || '').toLowerCase();
             
             return name.includes(searchTerm) || 
                    company.includes(searchTerm) || 
@@ -939,17 +955,17 @@ function applyFilters() {
     let filteredData = currentStockData;
 
     if (typeFilter !== 'all') {
-        filteredData = filteredData.filter(item => normalizeField(item, ['type']) === typeFilter);
+        filteredData = filteredData.filter(item => item.type === typeFilter);
     }
 
     if (categoryFilter !== 'all') {
-        filteredData = filteredData.filter(item => normalizeField(item, ['category']) === categoryFilter);
+        filteredData = filteredData.filter(item => item.category === categoryFilter);
     }
 
     if (statusFilter !== 'all') {
         filteredData = filteredData.filter(item => {
-            const quantity = Number(normalizeField(item, ['quantity', 'qty'])) || 0;
-            const minQuantity = Number(normalizeField(item, ['min_quantity', 'minQuantity'])) || 0;
+            const quantity = Number(item.quantity) || 0;
+            const minQuantity = Number(item.min_quantity) || 0;
 
             if (statusFilter === 'In Stock') return quantity >= minQuantity;
             if (statusFilter === 'Low Stock') return quantity > 0 && quantity < minQuantity;
@@ -1117,25 +1133,26 @@ function sortData(data, field, direction) {
 
         switch (field) {
             case 'name':
-                aVal = normalizeField(a, ['item_name', 'itemName']).toLowerCase();
-                bVal = normalizeField(b, ['item_name', 'itemName']).toLowerCase();
+                aVal = (a.item_name || '').toLowerCase();
+                bVal = (b.item_name || '').toLowerCase();
                 break;
             case 'price':
-                aVal = parseFloat(normalizeField(a, ['unit_price', 'unitPrice'])) || 0;
-                bVal = parseFloat(normalizeField(b, ['unit_price', 'unitPrice'])) || 0;
+                aVal = parseFloat(a.unit_price) || 0;
+                bVal = parseFloat(b.unit_price) || 0;
                 break;
             case 'quantity':
-                aVal = Number(normalizeField(a, ['quantity', 'qty'])) || 0;
-                bVal = Number(normalizeField(b, ['quantity', 'qty'])) || 0;
+                aVal = Number(a.quantity) || 0;
+                bVal = Number(b.quantity) || 0;
                 break;
             case 'gst':
-                aVal = parseFloat(normalizeField(a, ['GST', 'gstRate'])) || 0;
-                bVal = parseFloat(normalizeField(b, ['GST', 'gstRate'])) || 0;
+                aVal = parseFloat(a.GST) || 0;
+                bVal = parseFloat(b.GST) || 0;
                 break;
             case 'status':
                 const getStatusPriority = (item) => {
-                    const quantity = Number(normalizeField(item, ['quantity', 'qty'])) || 0;
-                    const minQuantity = Number(normalizeField(item, ['min_quantity', 'minQuantity'])) || 0;
+                    const quantity = Number(item.quantity) || 0;
+                    const minQuantity = Number(item.min_quantity) || 0;
+                    if (quantity < 0) return -1; // Negative Stock
                     if (quantity === 0) return 0; // Out of Stock
                     if (quantity < minQuantity) return 1; // Low Stock
                     return 2; // In Stock
@@ -1168,12 +1185,12 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             // Find the item in currentStockData
             const stockItem = currentStockData.find(item => 
-                normalizeField(item, ['item_name', 'itemName']).trim() === itemName.trim()
+                (item.item_name || '').trim() === itemName.trim()
             );
             
             if (stockItem) {
-                const itemId = normalizeField(stockItem, ['_id', 'id']);
-                const itemNameFromData = normalizeField(stockItem, ['item_name', 'itemName']);
+                const itemId = stockItem._id;
+                const itemNameFromData = stockItem.item_name;
                 
                 // Scroll to the item first
                 const rows = document.querySelectorAll('#stock-table tbody tr');
@@ -1183,13 +1200,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         row.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         
                         // Brief highlight
-                        row.style.backgroundColor = '#fef3cd';
+                        row.classList.add('bg-yellow-200');
                         setTimeout(() => {
-                            row.style.backgroundColor = '';
+                            row.classList.remove('bg-yellow-200');
                             const qty = parseInt(row.querySelector('td:nth-child(3)')?.textContent.replace(/[^0-9]/g, '')) || 0;
-                            const minQty = Number(normalizeField(stockItem, ['min_quantity', 'minQuantity'])) || 0;
-                            if (qty < minQty) row.classList.add('low-stock');
-                            if (qty <= 0) row.classList.add('out-of-stock');
+                            const minQty = Number(stockItem.min_quantity) || 0;
+                            
+                            if (qty < 0) {
+                                row.classList.add('bg-red-200');
+                            } else if (qty === 0) {
+                                row.classList.add('bg-red-100');
+                            } else if (qty < minQty) {
+                                row.classList.add('bg-yellow-100');
+                            }
                         }, 800);
                     }
                 });
