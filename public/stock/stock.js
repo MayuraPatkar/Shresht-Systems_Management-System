@@ -103,16 +103,25 @@ function renderStockTable(data) {
 
         // Build actions select
         const select = document.createElement('select');
-        select.className = 'btn border rounded p-1';
+        select.className = 'bg-white border border-gray-300 rounded-lg px-4 py-2 text-base text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer hover:bg-gray-50 transition-colors min-w-[130px]';
         const defaultOpt = document.createElement('option');
         defaultOpt.disabled = true;
         defaultOpt.selected = true;
         defaultOpt.textContent = 'Actions';
         select.appendChild(defaultOpt);
-        ['add', 'remove', 'edit', 'details', 'delete'].forEach(action => {
+        
+        const actions = [
+            { value: 'add', label: 'Add Stock', icon: '+' },
+            { value: 'remove', label: 'Remove Stock', icon: '-' },
+            { value: 'edit', label: 'Edit Item', icon: '✎' },
+            { value: 'details', label: 'View Details', icon: 'ℹ' },
+            { value: 'delete', label: 'Delete', icon: '✕' }
+        ];
+        
+        actions.forEach(action => {
             const opt = document.createElement('option');
-            opt.value = action;
-            opt.textContent = action.charAt(0).toUpperCase() + action.slice(1);
+            opt.value = action.value;
+            opt.textContent = action.label;
             select.appendChild(opt);
         });
 
@@ -175,11 +184,11 @@ function renderStockTable(data) {
                     <div class="text-sm text-gray-500">${escapeHtml(company)} • ${escapeHtml(category)}</div>
                 </div>
             </td>
-            <td class="p-4 text-right">₹ ${escapeHtml(formatIndian(unitPrice))}</td>
-            <td class="p-4 text-right">${escapeHtml(formatIndian(quantity))}</td>
-            <td class="p-4 text-right">${escapeHtml(GST)}%</td>
-            <td class="p-4" style="width:120px; text-align:center;">
-                <span class="inline-flex text-center px-2.5 py-0.5 rounded-full text-s font-medium ${statusClass}">
+            <td class="p-4 text-center font-medium">₹ ${escapeHtml(formatIndian(unitPrice))}</td>
+            <td class="p-4 text-center font-medium">${escapeHtml(formatIndian(quantity))}</td>
+            <td class="p-4 text-center">${escapeHtml(GST)}%</td>
+            <td class="p-4 text-center" style="width:140px;">
+                <span class="inline-flex text-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusClass}">
                     ${status}
                 </span>
             </td>
@@ -771,6 +780,7 @@ document.getElementById('cancelBtn')?.addEventListener('click', () => hideModal(
 document.getElementById('closeEditModalBtn')?.addEventListener('click', () => hideModal('editStockModal'));
 document.getElementById('cancelEditBtn')?.addEventListener('click', () => hideModal('editStockModal'));
 document.getElementById('closeDetailsModalBtn')?.addEventListener('click', () => hideModal('itemDetailsModal'));
+document.getElementById('closeDetailsBtn')?.addEventListener('click', () => hideModal('itemDetailsModal'));
 document.getElementById('closePrintModalBtn')?.addEventListener('click', () => hideModal('printModal'));
 document.getElementById('cancelPrintBtn')?.addEventListener('click', () => hideModal('printModal'));
 
@@ -796,39 +806,94 @@ document.getElementById('finalPrintBtn')?.addEventListener('click', () => {
     hideModal('printModal');
 });
 
-// Attach low-stock button by searching for the button text (present in HTML)
-Array.from(document.querySelectorAll('button')).forEach(btn => {
-    if (btn.textContent && btn.textContent.includes('Low Stock Items')) {
-        btn.addEventListener('click', async () => {
-            try {
-                const res = await fetch('/stock/getStock');
-                if (!res.ok) throw new Error('Failed');
-                const data = await res.json();
-                renderStockTable((data || []).filter(i => (Number(normalizeField(i, ['quantity', 'qty'])) || 0) < (Number(normalizeField(i, ['min_quantity', 'minQuantity'])) || 0)));
-            } catch (err) { console.error(err); }
-        });
-    }
-});
+// Low Stock Items button handler
+const lowStockBtn = document.getElementById('lowStockBtn');
+if (lowStockBtn) {
+    lowStockBtn.addEventListener('click', async () => {
+        try {
+            const res = await fetch('/stock/getStock');
+            if (!res.ok) throw new Error('Failed');
+            const data = await res.json();
+            const lowStockItems = (data || []).filter(i => {
+                const qty = Number(normalizeField(i, ['quantity', 'qty'])) || 0;
+                const minQty = Number(normalizeField(i, ['min_quantity', 'minQuantity'])) || 0;
+                return qty < minQty || qty === 0;
+            });
+            renderStockTable(lowStockItems);
+            
+            // Update filter dropdown to show "Low Stock" as active
+            const filterDropdown = document.getElementById('filterDropdown');
+            if (filterDropdown) {
+                filterDropdown.querySelectorAll('a').forEach(link => {
+                    link.classList.remove('bg-gray-100', 'font-semibold');
+                    if (link.getAttribute('data-filter') === 'Low Stock') {
+                        link.classList.add('bg-gray-100', 'font-semibold');
+                    }
+                });
+            }
+        } catch (err) { 
+            console.error(err);
+            showErrorMessage('Failed to filter low stock items.');
+        }
+    });
+}
+
+// Home button handler
+const homeBtn = document.getElementById('home-btn');
+if (homeBtn) {
+    homeBtn.addEventListener('click', () => {
+        window.location.href = '../dashboard/dashboard.html';
+    });
+}
 
 // Search functionality
-const searchInput = document.querySelector('input[placeholder="Search stock items..."]');
+const searchInput = document.getElementById('search-input');
 if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const rows = document.querySelectorAll('#stock-table tbody tr');
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        const searchTerm = e.target.value.toLowerCase().trim();
+        
+        if (!searchTerm) {
+            // If search is cleared, show all items (with current filters applied)
+            applyFilters();
+            return;
+        }
+        
+        const filteredData = currentStockData.filter(item => {
+            const name = normalizeField(item, ['item_name', 'itemName']).toLowerCase();
+            const company = normalizeField(item, ['company']).toLowerCase();
+            const category = normalizeField(item, ['category']).toLowerCase();
+            const hsn = normalizeField(item, ['HSN_SAC', 'hsnCode', 'HSN']).toLowerCase();
+            
+            return name.includes(searchTerm) || 
+                   company.includes(searchTerm) || 
+                   category.includes(searchTerm) ||
+                   hsn.includes(searchTerm);
         });
+        
+        renderStockTable(filteredData);
     });
 }
 
 // Refresh functionality
-const refreshBtn = Array.from(document.querySelectorAll('button')).find(btn =>
-    btn.querySelector('i.fa-sync-alt') !== null
-);
+const refreshBtn = document.getElementById('refreshBtn');
 if (refreshBtn) {
     refreshBtn.addEventListener('click', () => {
+        // Reset all filters to "All"
+        const typeDropdown = document.getElementById('typeFilterDropdown');
+        const categoryDropdown = document.getElementById('categoryFilterDropdown');
+        const filterDropdown = document.getElementById('filterDropdown');
+        
+        [typeDropdown, categoryDropdown, filterDropdown].forEach(dropdown => {
+            if (dropdown) {
+                dropdown.querySelectorAll('a').forEach((link, index) => {
+                    link.classList.remove('bg-gray-100', 'font-semibold');
+                    if (index === 0) {
+                        link.classList.add('bg-gray-100', 'font-semibold');
+                    }
+                });
+            }
+        });
+        
         fetchStockData();
         showSuccessMessage('Stock data refreshed!');
     });
@@ -971,13 +1036,17 @@ function addTooltips() {
     const newStockBtn = document.getElementById('newStockItemBtn');
     if (newStockBtn) newStockBtn.title = 'Add new stock item (Ctrl+N)';
 
-    const refreshBtn = Array.from(document.querySelectorAll('button')).find(btn =>
-        btn.querySelector('i.fa-sync-alt') !== null
-    );
+    const refreshBtn = document.getElementById('refreshBtn');
     if (refreshBtn) refreshBtn.title = 'Refresh data (Ctrl+R)';
 
     const printBtn = document.getElementById('printBtn');
     if (printBtn) printBtn.title = 'Print stock report';
+    
+    const lowStockBtn = document.getElementById('lowStockBtn');
+    if (lowStockBtn) lowStockBtn.title = 'Show only low stock and out of stock items';
+    
+    const homeBtn = document.getElementById('home-btn');
+    if (homeBtn) homeBtn.title = 'Go to Dashboard';
 }
 
 // Add success feedback for operations
