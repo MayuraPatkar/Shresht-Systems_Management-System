@@ -269,7 +269,13 @@ router.get('/search/:itemName', async (req, res) => {
                 }
             });
         } else {
-            res.json({stockItem
+            res.json({ found: false });
+        }
+    } catch (error) {
+        logger.error('Error searching stock item:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 // Delete stock item
 router.post('/deleteItem', async (req, res) => {
