@@ -16,12 +16,6 @@ function loadPreferences() {
                 const s = data.settings;
 
 
-                // Tax settings
-                document.getElementById("pref-gst-rate").value = s.tax?.default_gst_rate || 18;
-                document.getElementById("pref-tax-included").checked = s.tax?.tax_included || false;
-                document.getElementById("pref-enable-gst").checked = s.tax?.enable_gst !== false;
-
-                // Numbering
                 // Numbering
                 document.getElementById("pref-invoice-prefix").value = s.numbering?.invoice_prefix || 'INV';
                 document.getElementById("pref-quotation-prefix").value = s.numbering?.quotation_prefix || 'QUO';
@@ -53,16 +47,10 @@ function savePreferences() {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
     const preferences = {
-        tax: {
-            default_gst_rate: parseFloat(document.getElementById("pref-gst-rate").value),
-            tax_included: document.getElementById("pref-tax-included").checked,
-            enable_gst: document.getElementById("pref-enable-gst").checked
-        },
         numbering: {
             invoice_prefix: document.getElementById("pref-invoice-prefix").value,
             quotation_prefix: document.getElementById("pref-quotation-prefix").value,
             purchase_prefix: document.getElementById("pref-purchase-prefix").value,
-
             service_prefix: document.getElementById("pref-service-prefix").value,
         },
         backup: {
@@ -73,6 +61,7 @@ function savePreferences() {
             backup_location: document.getElementById("backup-location").value
         }
     };
+
 
     fetch('/settings/preferences', {
         method: 'PATCH',
