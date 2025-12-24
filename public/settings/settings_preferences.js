@@ -26,7 +26,7 @@ function loadPreferences() {
                 document.getElementById("pref-invoice-prefix").value = s.numbering?.invoice_prefix || 'INV';
                 document.getElementById("pref-quotation-prefix").value = s.numbering?.quotation_prefix || 'QUO';
                 document.getElementById("pref-purchase-prefix").value = s.numbering?.purchase_prefix || 'PO';
-                document.getElementById("pref-waybill-prefix").value = s.numbering?.waybill_prefix || 'WB';
+
                 document.getElementById("pref-service-prefix").value = s.numbering?.service_prefix || 'SRV';
 
 
@@ -62,7 +62,7 @@ function savePreferences() {
             invoice_prefix: document.getElementById("pref-invoice-prefix").value,
             quotation_prefix: document.getElementById("pref-quotation-prefix").value,
             purchase_prefix: document.getElementById("pref-purchase-prefix").value,
-            waybill_prefix: document.getElementById("pref-waybill-prefix").value,
+
             service_prefix: document.getElementById("pref-service-prefix").value,
         },
         backup: {
@@ -249,12 +249,12 @@ function loadWhatsAppStatus() {
             if (data.success && data.settings?.whatsapp) {
                 const wa = data.settings.whatsapp;
                 const phoneNumberIdInput = document.getElementById('whatsapp-phone-number-id');
-                
+
                 // Fill in the phone number ID if available
                 if (wa.phoneNumberId) {
                     phoneNumberIdInput.value = wa.phoneNumberId;
                 }
-                
+
                 // Check if configured
                 if (wa.phoneNumberId && wa.storedTokenReference) {
                     statusEl.innerHTML = `
@@ -290,24 +290,24 @@ function saveWhatsAppSettings() {
     const originalContent = saveButton.innerHTML;
     saveButton.disabled = true;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    
+
     const phoneNumberId = document.getElementById('whatsapp-phone-number-id').value.trim();
     const token = document.getElementById('whatsapp-token').value.trim();
-    
+
     if (!phoneNumberId) {
         window.electronAPI.showAlert1('Please enter the Phone Number ID');
         saveButton.disabled = false;
         saveButton.innerHTML = originalContent;
         return;
     }
-    
+
     // Save phone number ID first
     const savePhoneId = fetch('/settings/preferences/whatsapp', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumberId, enabled: true })
     });
-    
+
     // Save token if provided (separate secure endpoint)
     let saveToken = Promise.resolve({ success: true });
     if (token) {
@@ -317,7 +317,7 @@ function saveWhatsAppSettings() {
             body: JSON.stringify({ token })
         }).then(res => res.json());
     }
-    
+
     Promise.all([savePhoneId.then(r => r.json()), saveToken])
         .then(([phoneRes, tokenRes]) => {
             if (phoneRes.success && tokenRes.success) {
@@ -349,18 +349,18 @@ function saveCloudinarySettings() {
     const originalContent = saveButton.innerHTML;
     saveButton.disabled = true;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    
+
     const cloudName = document.getElementById('cloudinary-cloud-name').value.trim();
     const apiKey = document.getElementById('cloudinary-api-key').value.trim();
     const apiSecret = document.getElementById('cloudinary-api-secret').value.trim();
-    
+
     if (!cloudName || !apiKey || !apiSecret) {
         window.electronAPI.showAlert1('Please fill in all Cloudinary fields');
         saveButton.disabled = false;
         saveButton.innerHTML = originalContent;
         return;
     }
-    
+
     fetch('/settings/preferences/cloudinary', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },

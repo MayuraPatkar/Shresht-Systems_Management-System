@@ -681,13 +681,7 @@
                                     class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 uppercase"
                                     placeholder="PO">
                             </div>
-                            <!-- Waybill -->
-                            <div class="flex items-center gap-4">
-                                <label class="w-32 text-sm font-medium text-gray-700">Waybill Prefix</label>
-                                <input type="text" id="pref-waybill-prefix" maxlength="5"
-                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 uppercase"
-                                    placeholder="WB">
-                            </div>
+
                             <!-- Service -->
                             <div class="flex items-center gap-4">
                                 <label class="w-32 text-sm font-medium text-gray-700">Service Prefix</label>
@@ -941,11 +935,12 @@
                     </div>
                     <div class="space-y-4">
                         <!-- Status Indicator -->
-                        <div id="whatsapp-status" class="flex items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                        <div id="whatsapp-status"
+                            class="flex items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
                             <i class="fas fa-circle text-gray-400 text-xs"></i>
                             <span class="text-gray-600">Checking status...</span>
                         </div>
-                        
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <i class="fas fa-phone text-gray-500 mr-2"></i>Phone Number ID
@@ -953,7 +948,8 @@
                             <input type="text" id="whatsapp-phone-number-id"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                 placeholder="Enter your WhatsApp Phone Number ID">
-                            <p class="text-xs text-gray-500 mt-1">Found in Meta Business Suite → WhatsApp → API Setup</p>
+                            <p class="text-xs text-gray-500 mt-1">Found in Meta Business Suite → WhatsApp → API Setup
+                            </p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -980,29 +976,37 @@
                     </div>
                     <div class="space-y-4 text-sm text-gray-700">
                         <div class="flex gap-3">
-                            <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">1</span>
-                            <p>Go to <a href="https://developers.facebook.com" target="_blank" class="text-blue-600 hover:underline">Meta for Developers</a> and create a Business App</p>
+                            <span
+                                class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">1</span>
+                            <p>Go to <a href="https://developers.facebook.com" target="_blank"
+                                    class="text-blue-600 hover:underline">Meta for Developers</a> and create a Business
+                                App</p>
                         </div>
                         <div class="flex gap-3">
-                            <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">2</span>
+                            <span
+                                class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">2</span>
                             <p>Add the <strong>WhatsApp</strong> product to your app</p>
                         </div>
                         <div class="flex gap-3">
-                            <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">3</span>
+                            <span
+                                class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">3</span>
                             <p>Navigate to <strong>WhatsApp → API Setup</strong></p>
                         </div>
                         <div class="flex gap-3">
-                            <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">4</span>
+                            <span
+                                class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">4</span>
                             <p>Copy the <strong>Phone Number ID</strong> and <strong>Access Token</strong></p>
                         </div>
                         <div class="flex gap-3">
-                            <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">5</span>
+                            <span
+                                class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold">5</span>
                             <p>For production, create a <strong>System User</strong> with permanent token</p>
                         </div>
                         <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                             <div class="flex items-start gap-2">
                                 <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5"></i>
-                                <p class="text-yellow-800"><strong>Note:</strong> Temporary tokens expire in 24 hours. For continuous use, generate a permanent token via System Users.</p>
+                                <p class="text-yellow-800"><strong>Note:</strong> Temporary tokens expire in 24 hours.
+                                    For continuous use, generate a permanent token via System Users.</p>
                             </div>
                         </div>
                     </div>
@@ -1015,7 +1019,8 @@
                         <h2 class="text-xl font-semibold text-gray-800">Cloudinary (PDF Storage)</h2>
                         <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Optional</span>
                     </div>
-                    <p class="text-sm text-gray-600 mb-4">Cloudinary is required for sending PDFs via WhatsApp. WhatsApp needs publicly accessible URLs for document attachments.</p>
+                    <p class="text-sm text-gray-600 mb-4">Cloudinary is required for sending PDFs via WhatsApp. WhatsApp
+                        needs publicly accessible URLs for document attachments.</p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Cloud Name</label>
@@ -1041,7 +1046,9 @@
                         <i class="fas fa-save"></i>
                         Save Cloudinary Settings
                     </button>
-                    <p class="text-xs text-gray-500 mt-2">Get free account at <a href="https://cloudinary.com" target="_blank" class="text-purple-600 hover:underline">cloudinary.com</a> (25GB storage, 25GB bandwidth/month)</p>
+                    <p class="text-xs text-gray-500 mt-2">Get free account at <a href="https://cloudinary.com"
+                            target="_blank" class="text-purple-600 hover:underline">cloudinary.com</a> (25GB storage,
+                        25GB bandwidth/month)</p>
                 </div>
             </div>
         </section>
