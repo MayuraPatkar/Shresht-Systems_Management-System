@@ -288,6 +288,9 @@ function createQuotationCard(quotation) {
                         <button class="action-btn compact-btn px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-all border border-orange-200 hover:border-orange-400" title="Compact View">
                             <i class="fas fa-list"></i>
                         </button>
+                        <button class="action-btn duplicate-btn px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all border border-indigo-200 hover:border-indigo-400" title="Duplicate Quotation">
+                            <i class="fas fa-copy"></i>
+                        </button>
                         <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -304,6 +307,7 @@ function createQuotationCard(quotation) {
     const viewBtn = quotationCard.querySelector('.view-btn');
     const viewTaxBtn = quotationCard.querySelector('.view-tax-btn');
     const compactBtn = quotationCard.querySelector('.compact-btn');
+    const duplicateBtn = quotationCard.querySelector('.duplicate-btn');
     const editBtn = quotationCard.querySelector('.edit-btn');
     const deleteBtn = quotationCard.querySelector('.delete-btn');
 
@@ -327,6 +331,11 @@ function createQuotationCard(quotation) {
 
     compactBtn.addEventListener('click', () => {
         viewQuotation(quotation.quotation_id, 3);
+    });
+
+    duplicateBtn.addEventListener('click', () => {
+        sessionStorage.setItem('currentTab-status', 'duplicate');
+        duplicateQuotation(quotation.quotation_id);
     });
 
     editBtn.addEventListener('click', () => {

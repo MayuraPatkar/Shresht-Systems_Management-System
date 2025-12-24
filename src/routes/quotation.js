@@ -73,6 +73,7 @@ router.post("/save-quotation", async (req, res) => {
             headline = '',
             notes = [],
             termsAndConditions = '',
+            duplicated_from = null, // Audit trail: source quotation ID if duplicated
 
         } = req.body;
 
@@ -151,6 +152,7 @@ router.post("/save-quotation", async (req, res) => {
                 headline,
                 notes,
                 termsAndConditions,
+                duplicated_from, // Audit trail for duplicated quotations
                 createdAt: new Date(),
             });
         }
