@@ -19,10 +19,10 @@ const logger = require('../utils/logger');
 router.get('/stock', async (req, res) => {
     try {
         const { start_date, end_date, item_name, movement_type } = req.query;
-        
+
         // Build query
         const query = {};
-        
+
         if (start_date || end_date) {
             query.timestamp = {};
             if (start_date) query.timestamp.$gte = new Date(start_date);
@@ -32,20 +32,20 @@ router.get('/stock', async (req, res) => {
                 query.timestamp.$lte = endDate;
             }
         }
-        
+
         if (item_name) {
             query.item_name = { $regex: item_name, $options: 'i' };
         }
-        
+
         if (movement_type && movement_type !== 'all') {
             query.movement_type = movement_type;
         }
-        
+
         // Get movements
         const movements = await StockMovement.find(query)
             .sort({ timestamp: -1 })
             .limit(1000);
-        
+
         // Calculate summary
         const summary = await StockMovement.aggregate([
             { $match: query },
@@ -58,12 +58,44 @@ router.get('/stock', async (req, res) => {
                 }
             }
         ]);
-        
+
         // Get current stock levels for comparison
         const currentStock = await Stock.find({})
             .select('item_name quantity unit_price HSN_SAC')
             .sort({ item_name: 1 });
-        
+
+        // Save report to history
+        try {
+            const reportName = `Stock Report - ${new Date().toLocaleDateString('en-IN')}`;
+            const report = new Report({
+                report_type: 'stock',
+                report_name: reportName,
+                parameters: {
+                    start_date,
+                    end_date,
+                    item_name,
+                    movement_type
+                },
+                data: {
+                    movements,
+                    summary: {
+                        in: summary.find(s => s._id === 'in') || { total_quantity: 0, total_value: 0, count: 0 },
+                        out: summary.find(s => s._id === 'out') || { total_quantity: 0, total_value: 0, count: 0 },
+                        adjustment: summary.find(s => s._id === 'adjustment') || { total_quantity: 0, total_value: 0, count: 0 }
+                    },
+                    currentStock
+                },
+                summary: {
+                    total_records: movements.length,
+                    total_value: summary.reduce((acc, curr) => acc + (curr.total_value || 0), 0)
+                }
+            });
+            await report.save();
+        } catch (saveError) {
+            logger.error('Failed to save stock report to history:', saveError);
+            // continue even if saving fails, as the report data was generated successfully
+        }
+
         res.json({
             success: true,
             movements,
@@ -88,7 +120,7 @@ router.get('/stock', async (req, res) => {
 router.get('/stock/summary', async (req, res) => {
     try {
         const { start_date, end_date } = req.query;
-        
+
         const matchStage = {};
         if (start_date || end_date) {
             matchStage.timestamp = {};
@@ -99,7 +131,7 @@ router.get('/stock/summary', async (req, res) => {
                 matchStage.timestamp.$lte = endDate;
             }
         }
-        
+
         const summary = await StockMovement.aggregate([
             { $match: matchStage },
             {
@@ -130,7 +162,7 @@ router.get('/stock/summary', async (req, res) => {
             },
             { $sort: { _id: 1 } }
         ]);
-        
+
         res.json({
             success: true,
             summary,
@@ -153,20 +185,20 @@ router.get('/stock/summary', async (req, res) => {
 router.get('/gst', async (req, res) => {
     try {
         const { month, year } = req.query;
-        
+
         // Default to current month/year
         const reportYear = parseInt(year) || new Date().getFullYear();
         const reportMonth = parseInt(month) || new Date().getMonth() + 1;
-        
+
         // Calculate date range for the month
         const startDate = new Date(reportYear, reportMonth - 1, 1);
         const endDate = new Date(reportYear, reportMonth, 0, 23, 59, 59, 999);
-        
+
         // Get all invoices for the month
         const invoices = await Invoices.find({
             invoice_date: { $gte: startDate, $lte: endDate }
         }).sort({ invoice_date: 1 });
-        
+
         // Calculate GST breakdown by HSN/SAC
         const hsnBreakdown = {};
         let totalTaxableValue = 0;
@@ -174,7 +206,7 @@ router.get('/gst', async (req, res) => {
         let totalSGST = 0;
         let totalIGST = 0;
         let totalInvoiceValue = 0;
-        
+
         invoices.forEach(invoice => {
             // Process original items
             const items = invoice.items_original || invoice.items_duplicate || [];
@@ -184,7 +216,7 @@ router.get('/gst', async (req, res) => {
                 const rate = item.rate || 0;
                 const cgst = (taxableValue * rate / 2) / 100;
                 const sgst = (taxableValue * rate / 2) / 100;
-                
+
                 if (!hsnBreakdown[hsn]) {
                     hsnBreakdown[hsn] = {
                         hsn_sac: hsn,
@@ -196,19 +228,19 @@ router.get('/gst', async (req, res) => {
                         total_value: 0
                     };
                 }
-                
+
                 hsnBreakdown[hsn].taxable_value += taxableValue;
                 hsnBreakdown[hsn].cgst += cgst;
                 hsnBreakdown[hsn].sgst += sgst;
                 hsnBreakdown[hsn].total_tax += (cgst + sgst);
                 hsnBreakdown[hsn].total_value += (taxableValue + cgst + sgst);
-                
+
                 totalTaxableValue += taxableValue;
                 totalCGST += cgst;
                 totalSGST += sgst;
                 totalInvoiceValue += (taxableValue + cgst + sgst);
             });
-            
+
             // Process non-items (installation charges, etc.)
             const nonItems = invoice.non_items_original || invoice.non_items_duplicate || [];
             nonItems.forEach(item => {
@@ -216,7 +248,7 @@ router.get('/gst', async (req, res) => {
                 const rate = item.rate || 0;
                 const cgst = (taxableValue * rate / 2) / 100;
                 const sgst = (taxableValue * rate / 2) / 100;
-                
+
                 const hsn = 'Services';
                 if (!hsnBreakdown[hsn]) {
                     hsnBreakdown[hsn] = {
@@ -229,25 +261,26 @@ router.get('/gst', async (req, res) => {
                         total_value: 0
                     };
                 }
-                
+
                 hsnBreakdown[hsn].taxable_value += taxableValue;
                 hsnBreakdown[hsn].cgst += cgst;
                 hsnBreakdown[hsn].sgst += sgst;
                 hsnBreakdown[hsn].total_tax += (cgst + sgst);
                 hsnBreakdown[hsn].total_value += (taxableValue + cgst + sgst);
-                
+
                 totalTaxableValue += taxableValue;
                 totalCGST += cgst;
                 totalSGST += sgst;
                 totalInvoiceValue += (taxableValue + cgst + sgst);
             });
         });
-        
+
         // Convert to array and sort
-        const hsnList = Object.values(hsnBreakdown).sort((a, b) => 
+        const hsnList = Object.values(hsnBreakdown).sort((a, b) =>
             a.hsn_sac.localeCompare(b.hsn_sac)
         );
-        
+
+        // Invoice-wise breakdown
         // Invoice-wise breakdown
         const invoiceBreakdown = invoices.map(inv => ({
             invoice_id: inv.invoice_id,
@@ -259,7 +292,46 @@ router.get('/gst', async (req, res) => {
             total_tax: inv.total_tax_original || 0,
             total_value: inv.total_amount_original || 0
         }));
-        
+
+        // Save report to history
+        try {
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthName = months[reportMonth - 1] || reportMonth;
+            const reportName = `${monthName} ${reportYear} GST Report`;
+
+            const report = new Report({
+                report_type: 'gst',
+                report_name: reportName,
+                parameters: {
+                    month: reportMonth,
+                    year: reportYear
+                },
+                data: {
+                    summary: {
+                        total_invoices: invoices.length,
+                        total_taxable_value: totalTaxableValue,
+                        total_cgst: totalCGST,
+                        total_sgst: totalSGST,
+                        total_igst: totalIGST,
+                        total_tax: totalCGST + totalSGST + totalIGST,
+                        total_invoice_value: totalInvoiceValue
+                    },
+                    hsn_breakdown: hsnList,
+                    invoice_breakdown: invoiceBreakdown
+                },
+                summary: {
+                    total_records: invoices.length,
+                    total_value: totalInvoiceValue,
+                    custom: {
+                        total_tax: totalCGST + totalSGST + totalIGST
+                    }
+                }
+            });
+            await report.save();
+        } catch (saveError) {
+            logger.error('Failed to save GST report to history:', saveError);
+        }
+
         res.json({
             success: true,
             report: {
@@ -294,13 +366,13 @@ router.get('/gst/summary', async (req, res) => {
     try {
         const { year } = req.query;
         const reportYear = parseInt(year) || new Date().getFullYear();
-        
+
         const monthlySummary = [];
-        
+
         for (let month = 1; month <= 12; month++) {
             const startDate = new Date(reportYear, month - 1, 1);
             const endDate = new Date(reportYear, month, 0, 23, 59, 59, 999);
-            
+
             const result = await Invoices.aggregate([
                 {
                     $match: {
@@ -316,7 +388,7 @@ router.get('/gst/summary', async (req, res) => {
                     }
                 }
             ]);
-            
+
             monthlySummary.push({
                 month,
                 month_name: new Date(reportYear, month - 1, 1).toLocaleString('en-IN', { month: 'long' }),
@@ -327,7 +399,7 @@ router.get('/gst/summary', async (req, res) => {
                 sgst: (result[0]?.total_tax || 0) / 2
             });
         }
-        
+
         res.json({
             success: true,
             year: reportYear,
@@ -351,7 +423,7 @@ router.get('/gst/summary', async (req, res) => {
 router.post('/data-worksheet', async (req, res) => {
     try {
         const worksheetData = req.body;
-        
+
         // Save to Report collection for history
         const report = new Report({
             report_type: 'data_worksheet',
@@ -368,9 +440,9 @@ router.post('/data-worksheet', async (req, res) => {
                 monthly_savings: worksheetData.monthlySavings
             }
         });
-        
+
         await report.save();
-        
+
         res.json({
             success: true,
             report_id: report._id,
@@ -392,7 +464,7 @@ router.get('/data-worksheet/history', async (req, res) => {
             .select('report_name parameters summary generated_at')
             .sort({ generated_at: -1 })
             .limit(50);
-        
+
         res.json({
             success: true,
             worksheets
@@ -436,7 +508,7 @@ router.get('/list', async (req, res) => {
                 color: 'purple'
             }
         ];
-        
+
         res.json({ success: true, reports });
     } catch (error) {
         logger.error('Error fetching report list:', error);
@@ -451,15 +523,15 @@ router.get('/list', async (req, res) => {
 router.get('/saved', async (req, res) => {
     try {
         const { type, limit = 10 } = req.query;
-        
+
         const query = { status: 'generated' };
         if (type) query.report_type = type;
-        
+
         const reports = await Report.find(query)
             .select('report_type report_name parameters summary generated_at')
             .sort({ generated_at: -1 })
             .limit(parseInt(limit));
-        
+
         res.json({ success: true, reports });
     } catch (error) {
         logger.error('Error fetching saved reports:', error);
@@ -474,14 +546,14 @@ router.get('/saved', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const report = await Report.findById(req.params.id);
-        
+
         if (!report) {
             return res.status(404).json({ success: false, error: 'Report not found' });
         }
-        
+
         // Update access stats
         await report.recordAccess();
-        
+
         res.json({ success: true, report });
     } catch (error) {
         logger.error('Error fetching report:', error);
@@ -496,11 +568,11 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const result = await Report.findByIdAndDelete(req.params.id);
-        
+
         if (!result) {
             return res.status(404).json({ success: false, error: 'Report not found' });
         }
-        
+
         res.json({ success: true, message: 'Report deleted successfully' });
     } catch (error) {
         logger.error('Error deleting report:', error);

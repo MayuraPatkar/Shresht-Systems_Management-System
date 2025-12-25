@@ -16,11 +16,11 @@ let gstReportData = {
 function initGSTReport() {
     // Populate year dropdown
     populateYearDropdown();
-    
+
     // Set current month
     const currentMonth = new Date().getMonth() + 1;
     document.getElementById('gst-month').value = currentMonth;
-    
+
     // Set up event handlers
     document.getElementById('generate-gst-report')?.addEventListener('click', generateGSTReport);
     document.getElementById('print-gst-report')?.addEventListener('click', printGSTReport);
@@ -33,7 +33,7 @@ function initGSTReport() {
 function populateYearDropdown() {
     const yearSelect = document.getElementById('gst-year');
     const currentYear = new Date().getFullYear();
-    
+
     yearSelect.innerHTML = '';
     for (let year = currentYear; year >= currentYear - 5; year--) {
         const option = document.createElement('option');
@@ -49,9 +49,9 @@ function populateYearDropdown() {
 async function generateGSTReport() {
     const month = document.getElementById('gst-month').value;
     const year = document.getElementById('gst-year').value;
-    
+
     const tbody = document.getElementById('gst-report-body');
-    
+
     // Show loading state
     tbody.innerHTML = `
         <tr>
@@ -61,12 +61,12 @@ async function generateGSTReport() {
             </td>
         </tr>
     `;
-    
+
     try {
         // Try to fetch from reports API first
         const response = await fetch(`/reports/gst?month=${month}&year=${year}`);
         const data = await response.json();
-        
+
         if (data.success && data.report) {
             // Map backend response to frontend expected structure
             const report = data.report;
@@ -112,12 +112,12 @@ async function generateGSTReport() {
  */
 async function generateGSTReportFromInvoices(month, year) {
     const tbody = document.getElementById('gst-report-body');
-    
+
     try {
         // Fetch all invoices
         const response = await fetch('/invoice/all');
         const invoices = await response.json();
-        
+
         if (!invoices || invoices.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -131,14 +131,14 @@ async function generateGSTReportFromInvoices(month, year) {
             document.getElementById('gst-invoice-details').style.display = 'none';
             return;
         }
-        
+
         // Filter invoices by month and year
         const filteredInvoices = invoices.filter(inv => {
             const invoiceDate = new Date(inv.invoice_date || inv.date || inv.createdAt);
-            return invoiceDate.getMonth() + 1 === parseInt(month) && 
-                   invoiceDate.getFullYear() === parseInt(year);
+            return invoiceDate.getMonth() + 1 === parseInt(month) &&
+                invoiceDate.getFullYear() === parseInt(year);
         });
-        
+
         if (filteredInvoices.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -152,13 +152,13 @@ async function generateGSTReportFromInvoices(month, year) {
             document.getElementById('gst-invoice-details').style.display = 'none';
             return;
         }
-        
+
         // Calculate HSN-wise breakdown
         const hsnMap = new Map();
         let totalTaxableValue = 0;
         let totalCGST = 0;
         let totalSGST = 0;
-        
+
         filteredInvoices.forEach(invoice => {
             const items = invoice.items || [];
             items.forEach(item => {
@@ -167,7 +167,7 @@ async function generateGSTReportFromInvoices(month, year) {
                 const gstRate = parseFloat(item.gst) || 18; // Default 18%
                 const cgst = (taxableValue * gstRate / 2) / 100;
                 const sgst = (taxableValue * gstRate / 2) / 100;
-                
+
                 if (hsnMap.has(hsn)) {
                     const existing = hsnMap.get(hsn);
                     existing.taxableValue += taxableValue;
@@ -182,15 +182,15 @@ async function generateGSTReportFromInvoices(month, year) {
                         sgst: sgst
                     });
                 }
-                
+
                 totalTaxableValue += taxableValue;
                 totalCGST += cgst;
                 totalSGST += sgst;
             });
         });
-        
+
         const hsnBreakdown = Array.from(hsnMap.values());
-        
+
         const reportData = {
             summary: {
                 totalTaxableValue,
@@ -209,10 +209,10 @@ async function generateGSTReportFromInvoices(month, year) {
                 total: inv.grand_total || inv.grandTotal || 0
             }))
         };
-        
+
         gstReportData = reportData;
         renderGSTReport(reportData);
-        
+
     } catch (error) {
         console.error('Error fetching invoices:', error);
         tbody.innerHTML = `
@@ -233,7 +233,7 @@ async function generateGSTReportFromInvoices(month, year) {
  */
 function renderGSTReport(data) {
     const { summary, hsnBreakdown, invoices } = data;
-    
+
     // Update summary
     if (summary) {
         document.getElementById('summary-taxable').textContent = formatCurrency(summary.totalTaxableValue || 0);
@@ -242,10 +242,10 @@ function renderGSTReport(data) {
         document.getElementById('summary-total-gst').textContent = formatCurrency(summary.totalGST || 0);
         document.getElementById('gst-report-summary').style.display = 'grid';
     }
-    
+
     // Render HSN breakdown table
     const tbody = document.getElementById('gst-report-body');
-    
+
     if (!hsnBreakdown || hsnBreakdown.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -266,7 +266,7 @@ function renderGSTReport(data) {
                 <td class="px-4 py-3 border-b text-right font-medium">${formatCurrency(item.cgst + item.sgst)}</td>
             </tr>
         `).join('');
-        
+
         // Add total row
         tbody.innerHTML += `
             <tr class="bg-gray-100 font-bold">
@@ -278,12 +278,12 @@ function renderGSTReport(data) {
             </tr>
         `;
     }
-    
+
     // Render invoice details
     const invoiceTbody = document.getElementById('gst-invoice-body');
     if (invoices && invoices.length > 0) {
         document.getElementById('gst-invoice-details').style.display = 'block';
-        
+
         invoiceTbody.innerHTML = invoices.map(inv => `
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3 border-b font-medium">${inv.invoice_id}</td>
@@ -298,7 +298,7 @@ function renderGSTReport(data) {
     } else {
         document.getElementById('gst-invoice-details').style.display = 'none';
     }
-    
+
     // Show print/PDF buttons
     document.getElementById('print-gst-report').style.display = 'flex';
     document.getElementById('save-gst-pdf').style.display = 'flex';
@@ -310,8 +310,8 @@ function renderGSTReport(data) {
  * @returns {string} Month name
  */
 function getMonthName(month) {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                    'July', 'August', 'September', 'October', 'November', 'December'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
     return months[month - 1] || '';
 }
 
@@ -323,7 +323,7 @@ function generateGSTReportHTML() {
     const month = document.getElementById('gst-month').value;
     const year = document.getElementById('gst-year').value;
     const { summary, hsnBreakdown, invoices } = gstReportData;
-    
+
     // HSN breakdown table
     const hsnTableContent = hsnBreakdown.map(item => `
         <tr>
@@ -335,7 +335,7 @@ function generateGSTReportHTML() {
             <td class="text-right">${formatCurrency(item.cgst + item.sgst)}</td>
         </tr>
     `).join('');
-    
+
     // Invoice details table
     const invoiceTableContent = invoices.map(inv => `
         <tr>
@@ -348,7 +348,7 @@ function generateGSTReportHTML() {
             <td class="text-right">${formatCurrency(inv.total)}</td>
         </tr>
     `).join('');
-    
+
     const content = `
         <div class="report-summary">
             <div class="summary-item">
@@ -411,9 +411,9 @@ function generateGSTReportHTML() {
             </tbody>
         </table>
     `;
-    
+
     const subtitle = `Period: ${getMonthName(parseInt(month))} ${year}`;
-    
+
     return generatePrintableReport('Monthly GST Report', content, { subtitle });
 }
 
@@ -435,3 +435,47 @@ function saveGSTReportPDF() {
     const filename = `gst-report-${getMonthName(parseInt(month))}-${year}`;
     saveReportPDF(html, filename);
 }
+
+/**
+ * Load a saved GST report into the view
+ * @param {Object} report - Complete report object from database
+ */
+window.loadSavedGSTReport = function (report) {
+    if (!report || !report.data) return;
+
+    const data = report.data;
+    const params = report.parameters || {};
+
+    // Set parameters
+    if (params.month) document.getElementById('gst-month').value = params.month;
+    if (params.year) document.getElementById('gst-year').value = params.year;
+
+    // Set global data
+    gstReportData = {
+        summary: {
+            totalTaxableValue: data.summary.total_taxable_value || 0,
+            totalCGST: data.summary.total_cgst || 0,
+            totalSGST: data.summary.total_sgst || 0,
+            totalGST: data.summary.total_tax || 0
+        },
+        hsnBreakdown: (data.hsn_breakdown || []).map(item => ({
+            hsn: item.hsn_sac || 'N/A',
+            description: item.description || `GST @ ${item.rate || 0}%`,
+            taxableValue: item.taxable_value || 0,
+            cgst: item.cgst || 0,
+            sgst: item.sgst || 0
+        })),
+        invoices: (data.invoice_breakdown || []).map(inv => ({
+            invoice_id: inv.invoice_id,
+            date: inv.invoice_date,
+            customer: inv.customer_name || 'Unknown',
+            taxableValue: inv.taxable_value || 0,
+            cgst: inv.cgst || 0,
+            sgst: inv.sgst || 0,
+            total: inv.total_value || 0
+        }))
+    };
+
+    // Render report
+    renderGSTReport(gstReportData);
+};
