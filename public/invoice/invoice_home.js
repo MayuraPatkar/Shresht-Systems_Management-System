@@ -352,11 +352,8 @@ function createInvoiceCard(invoice) {
                             <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
+                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit Duplicate">
                                 <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn view-original-btn px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all border border-indigo-200 hover:border-indigo-400" title="View Original">
-                                <i class="fas fa-file-alt"></i>
                             </button>
                             <button class="action-btn edit-original-btn px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all border border-teal-200 hover:border-teal-400" title="Edit Original">
                                 <i class="fas fa-file-signature"></i>
@@ -390,7 +387,6 @@ function createInvoiceCard(invoice) {
     const copyElement = invoiceCard.querySelector('.copy-text');
     const viewBtn = invoiceCard.querySelector('.view-btn');
     const editBtn = invoiceCard.querySelector('.edit-btn');
-    const viewOriginalBtn = invoiceCard.querySelector('.view-original-btn');
     const editOriginalBtn = invoiceCard.querySelector('.edit-original-btn');
     const paymentBtn = invoiceCard.querySelector('.payment-btn');
     const deleteBtn = invoiceCard.querySelector('.delete-btn');
@@ -419,13 +415,6 @@ function createInvoiceCard(invoice) {
         editBtn.addEventListener('click', () => {
             sessionStorage.setItem('update-invoice', 'duplicate');
             openInvoice(invoice.invoice_id);
-        });
-    }
-
-    if (viewOriginalBtn) {
-        viewOriginalBtn.addEventListener('click', () => {
-            sessionStorage.setItem('view-invoice', 'original');
-            viewInvoice(invoice.invoice_id, userRole);
         });
     }
 
