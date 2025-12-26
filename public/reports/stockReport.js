@@ -23,6 +23,9 @@ function initStockReport() {
     document.getElementById('clear-stock-filters')?.addEventListener('click', clearStockFilters);
     document.getElementById('print-stock-report')?.addEventListener('click', printStockReport);
     document.getElementById('save-stock-pdf')?.addEventListener('click', saveStockReportPDF);
+
+    // Reset filter and UI state
+    clearStockFilters();
 }
 
 /**

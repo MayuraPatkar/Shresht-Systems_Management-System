@@ -25,6 +25,23 @@ function initGSTReport() {
     document.getElementById('generate-gst-report')?.addEventListener('click', generateGSTReport);
     document.getElementById('print-gst-report')?.addEventListener('click', printGSTReport);
     document.getElementById('save-gst-pdf')?.addEventListener('click', saveGSTReportPDF);
+
+    // Reset state and UI
+    gstReportData = { summary: null, hsnBreakdown: [], invoices: [] };
+    document.getElementById('gst-report-summary').style.display = 'none';
+    document.getElementById('gst-invoice-details').style.display = 'none';
+    document.getElementById('print-gst-report').style.display = 'none';
+    document.getElementById('save-gst-pdf').style.display = 'none';
+
+    // Reset table to initial state
+    document.getElementById('gst-report-body').innerHTML = `
+        <tr>
+            <td colspan="6" class="text-center py-8 text-gray-500">
+                <i class="fas fa-file-invoice-dollar text-4xl text-gray-300 mb-3"></i>
+                <p>Select month and year to generate report</p>
+            </td>
+        </tr>
+    `;
 }
 
 /**
