@@ -300,9 +300,14 @@ router.get('/gst', async (req, res) => {
             try {
                 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                 const monthName = months[reportMonth - 1] || reportMonth;
-                const reportName = `${monthName} ${reportYear} GST Report`;
+                const filter = {
+                    report_type: 'gst',
+                    'parameters.month': reportMonth,
+                    'parameters.year': reportYear
+                };
 
-                const report = new Report({
+                const reportName = `${monthName} ${reportYear} GST Report`;
+                const updateData = {
                     report_type: 'gst',
                     report_name: reportName,
                     parameters: {
@@ -329,9 +334,16 @@ router.get('/gst', async (req, res) => {
                             month: reportMonth,
                             year: reportYear
                         }
-                    }
+                    },
+                    generated_at: new Date(),
+                    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Reset expiry to 7 days
+                };
+
+                await Report.findOneAndUpdate(filter, updateData, {
+                    upsert: true,
+                    new: true,
+                    setDefaultsOnInsert: true
                 });
-                await report.save();
             } catch (saveError) {
                 logger.error('Failed to save GST report to history:', saveError);
                 // continue even if saving fails, as the report data was generated successfully
