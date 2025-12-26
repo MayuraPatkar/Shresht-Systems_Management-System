@@ -91,6 +91,18 @@ async function generateStockReport() {
 
         if (data.success && data.movements) {
             stockReportData = data.movements;
+
+            if (stockReportData.length === 0) {
+                if (window.electronAPI && window.electronAPI.showAlert1) {
+                    window.electronAPI.showAlert1('No stock movements found for the selected criteria.');
+                } else {
+                    alert('No stock movements found for the selected criteria.');
+                }
+                // Reset UI logic is handled by renderStockReport when empty, but we want the alert first
+                renderStockReport([], data.summary);
+                return;
+            }
+
             renderStockReport(data.movements, data.summary);
         } else {
             // If no data from StockMovement, try to generate from stock entries

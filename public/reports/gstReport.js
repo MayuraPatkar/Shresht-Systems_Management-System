@@ -112,6 +112,26 @@ async function generateGSTReport() {
                 }))
             };
             gstReportData = mappedReport;
+
+            // Check for empty data
+            if (!gstReportData.invoices || gstReportData.invoices.length === 0) {
+                if (window.electronAPI && window.electronAPI.showAlert1) {
+                    window.electronAPI.showAlert1('No data found for the selected period.');
+                } else {
+                    alert('No data found for the selected period.');
+                }
+                // Reset UI
+                document.getElementById('gst-report-body').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-file-invoice-dollar text-4xl text-gray-300 mb-3"></i>
+                            <p>No data found for the selected period</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
             renderGSTReport(mappedReport);
         } else {
             // Fallback: Generate from invoices

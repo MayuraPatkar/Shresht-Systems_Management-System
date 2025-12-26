@@ -65,35 +65,37 @@ router.get('/stock', async (req, res) => {
             .sort({ item_name: 1 });
 
         // Save report to history
-        try {
-            const reportName = `Stock Report - ${new Date().toLocaleDateString('en-IN')}`;
-            const report = new Report({
-                report_type: 'stock',
-                report_name: reportName,
-                parameters: {
-                    start_date,
-                    end_date,
-                    item_name,
-                    movement_type
-                },
-                data: {
-                    movements,
-                    summary: {
-                        in: summary.find(s => s._id === 'in') || { total_quantity: 0, total_value: 0, count: 0 },
-                        out: summary.find(s => s._id === 'out') || { total_quantity: 0, total_value: 0, count: 0 },
-                        adjustment: summary.find(s => s._id === 'adjustment') || { total_quantity: 0, total_value: 0, count: 0 }
+        if (movements.length > 0) {
+            try {
+                const reportName = `Stock Report - ${new Date().toLocaleDateString('en-IN')}`;
+                const report = new Report({
+                    report_type: 'stock',
+                    report_name: reportName,
+                    parameters: {
+                        start_date,
+                        end_date,
+                        item_name,
+                        movement_type
                     },
-                    currentStock
-                },
-                summary: {
-                    total_records: movements.length,
-                    total_value: summary.reduce((acc, curr) => acc + (curr.total_value || 0), 0)
-                }
-            });
-            await report.save();
-        } catch (saveError) {
-            logger.error('Failed to save stock report to history:', saveError);
-            // continue even if saving fails, as the report data was generated successfully
+                    data: {
+                        movements,
+                        summary: {
+                            in: summary.find(s => s._id === 'in') || { total_quantity: 0, total_value: 0, count: 0 },
+                            out: summary.find(s => s._id === 'out') || { total_quantity: 0, total_value: 0, count: 0 },
+                            adjustment: summary.find(s => s._id === 'adjustment') || { total_quantity: 0, total_value: 0, count: 0 }
+                        },
+                        currentStock
+                    },
+                    summary: {
+                        total_records: movements.length,
+                        total_value: summary.reduce((acc, curr) => acc + (curr.total_value || 0), 0)
+                    }
+                });
+                await report.save();
+            } catch (saveError) {
+                logger.error('Failed to save stock report to history:', saveError);
+                // continue even if saving fails, as the report data was generated successfully
+            }
         }
 
         res.json({
@@ -294,42 +296,46 @@ router.get('/gst', async (req, res) => {
         }));
 
         // Save report to history
-        try {
-            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            const monthName = months[reportMonth - 1] || reportMonth;
-            const reportName = `${monthName} ${reportYear} GST Report`;
+        if (invoices.length > 0) {
+            try {
+                const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                const monthName = months[reportMonth - 1] || reportMonth;
+                const reportName = `${monthName} ${reportYear} GST Report`;
 
-            const report = new Report({
-                report_type: 'gst',
-                report_name: reportName,
-                parameters: {
-                    month: reportMonth,
-                    year: reportYear
-                },
-                data: {
-                    summary: {
-                        total_invoices: invoices.length,
-                        total_taxable_value: totalTaxableValue,
-                        total_cgst: totalCGST,
-                        total_sgst: totalSGST,
-                        total_igst: totalIGST,
-                        total_tax: totalCGST + totalSGST + totalIGST,
-                        total_invoice_value: totalInvoiceValue
+                const report = new Report({
+                    report_type: 'gst',
+                    report_name: reportName,
+                    parameters: {
+                        month: reportMonth,
+                        year: reportYear
                     },
-                    hsn_breakdown: hsnList,
-                    invoice_breakdown: invoiceBreakdown
-                },
-                summary: {
-                    total_records: invoices.length,
-                    total_value: totalInvoiceValue,
-                    custom: {
-                        total_tax: totalCGST + totalSGST + totalIGST
+                    data: {
+                        summary: {
+                            total_invoices: invoices.length,
+                            total_taxable_value: totalTaxableValue,
+                            total_cgst: totalCGST,
+                            total_sgst: totalSGST,
+                            total_igst: totalIGST,
+                            total_tax: totalCGST + totalSGST + totalIGST,
+                            total_invoice_value: totalInvoiceValue
+                        },
+                        hsn_breakdown: hsnList,
+                        invoice_breakdown: invoiceBreakdown
+                    },
+                    summary: {
+                        total_records: invoices.length,
+                        total_value: totalInvoiceValue,
+                        custom: {
+                            month: reportMonth,
+                            year: reportYear
+                        }
                     }
-                }
-            });
-            await report.save();
-        } catch (saveError) {
-            logger.error('Failed to save GST report to history:', saveError);
+                });
+                await report.save();
+            } catch (saveError) {
+                logger.error('Failed to save GST report to history:', saveError);
+                // continue even if saving fails, as the report data was generated successfully
+            }
         }
 
         res.json({
