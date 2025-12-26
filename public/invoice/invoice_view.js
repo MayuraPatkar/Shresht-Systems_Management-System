@@ -64,7 +64,7 @@ function initInvoiceViewTypeTabs() {
 // Initialize tabs when DOM is ready
 document.addEventListener('DOMContentLoaded', initInvoiceViewTypeTabs);
 
-async function generateInvoicePreview(invoice = {}, userRole, type,) {
+async function generateInvoicePreview(invoice = {}, userRole, type, showTax = false) {
     // Fetch company info for dynamic header/footer/bank details
     const company = window.companyConfig ? await window.companyConfig.getCompanyInfo() : null;
     const companyName = company?.company?.toUpperCase() || 'COMPANY NAME';
@@ -86,7 +86,8 @@ async function generateInvoicePreview(invoice = {}, userRole, type,) {
     let nonItemsTotalPrice = 0;
     let totalTaxableValue = 0;
     let totalTax = 0;
-    let hasTax = false;
+    // Use showTax parameter instead of deriving from data
+    let hasTax = showTax;
     let items = []
 
     if (type == 'original') {
@@ -97,7 +98,7 @@ async function generateInvoicePreview(invoice = {}, userRole, type,) {
 
     if (items.length > 0) {
         let sno = 1;
-        hasTax = items.some(item => parseFloat(item.rate || 0) > 0);
+        // hasTax is now controlled by showTax parameter
         items.forEach(item => {
             const description = item.description || "-";
             const hsnSac = item.HSN_SAC || "-";
@@ -668,9 +669,8 @@ async function renderInvoiceView(invoice, userRole, viewType) {
         console.warn('Non-items totals DOM elements not found', e);
     }
 
-    // Pass docType to generateInvoicePreview (it handles original vs duplicate)
-    // TODO: The preview generation may need updating to handle showTax as well
-    generateInvoicePreview(invoice, userRole, docType);
+    // Pass docType and showTax to generateInvoicePreview
+    generateInvoicePreview(invoice, userRole, docType, showTax);
 
     // Print and Save as PDF handlers
     document.getElementById('printProject').onclick = () => {
