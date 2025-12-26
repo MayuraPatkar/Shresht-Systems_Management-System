@@ -43,6 +43,9 @@ const quotationSchema = new mongoose.Schema({
     notes: [{ type: String }],
     termsAndConditions: { type: String },
 
+    // audit trail for duplicated quotations
+    duplicated_from: { type: String, default: null, index: true },
+
     createdAt: { type: Date, default: Date.now, index: true },
     updatedAt: { type: Date, default: Date.now },
 });

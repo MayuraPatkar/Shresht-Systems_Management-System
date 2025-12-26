@@ -289,6 +289,280 @@ async function openQuotation(quotationId) {
     });
 }
 
+// Duplicate a quotation - copies items and content but clears customer details
+async function duplicateQuotation(sourceQuotationId) {
+    try {
+        // Fetch the source quotation
+        const data = await fetchDocumentById('quotation', sourceQuotationId);
+        if (!data) {
+            window.electronAPI.showAlert1("Failed to load quotation for duplication.");
+            return;
+        }
+
+        const quotation = data.quotation;
+
+        // Show the form (similar to showNewQuotationForm)
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('new').style.display = 'block';
+        document.getElementById('new-quotation').style.display = 'none';
+        document.getElementById('view-preview').style.display = 'block';
+        if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
+            document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+        }
+
+        // Generate a new ID for the duplicate
+        const idResponse = await fetch("/quotation/generate-id");
+        if (!idResponse.ok) throw new Error("Failed to generate new quotation ID");
+        const { quotation_id: newId } = await idResponse.json();
+
+        // Set the new ID and make it editable (it's a new quotation)
+        const idInput = document.getElementById('id');
+        idInput.value = newId;
+        idInput.readOnly = false;
+        idInput.style.backgroundColor = ''; // Reset to default (editable)
+        quotationId = newId;
+
+        // Store the source quotation ID for audit trail
+        sessionStorage.setItem('duplicated_from', sourceQuotationId);
+
+        // Store the source quotation content for preview generation
+        sessionStorage.setItem('duplicate_content', JSON.stringify({
+            subject: quotation.subject || '',
+            letter_1: quotation.letter_1 || '',
+            letter_2: quotation.letter_2 || [],
+            letter_3: quotation.letter_3 || '',
+            headline: quotation.headline || '',
+            notes: quotation.notes || [],
+            termsAndConditions: quotation.termsAndConditions || ''
+        }));
+
+        // Copy project name (append " (Copy)" to indicate duplicate)
+        document.getElementById('project-name').value = quotation.project_name || '';
+
+        // Set date to today
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        document.getElementById('quotation-date').value = `${yyyy}-${mm}-${dd}`;
+
+        // Clear customer fields - user must enter new customer details
+        document.getElementById('buyer-name').value = '';
+        document.getElementById('buyer-address').value = '';
+        document.getElementById('buyer-phone').value = '';
+        document.getElementById('buyer-email').value = '';
+
+        // Get containers
+        const itemsContainer = document.getElementById("items-container");
+        const nonItemsContainer = document.getElementById("non-items-container");
+        const specificationsContainer = document.getElementById("specifications-container");
+        const itemsTableBody = document.querySelector("#items-table tbody");
+        const nonItemsTableBody = document.querySelector("#non-items-table tbody");
+        const itemsSpecificationsTableBody = document.querySelector("#items-specifications-table tbody");
+
+        // Clear existing content
+        if (itemsContainer) itemsContainer.innerHTML = "";
+        if (nonItemsContainer) nonItemsContainer.innerHTML = "";
+        if (specificationsContainer) specificationsContainer.innerHTML = "";
+        itemsTableBody.innerHTML = "";
+        nonItemsTableBody.innerHTML = "";
+        itemsSpecificationsTableBody.innerHTML = "";
+
+        // Copy items (same logic as openQuotation)
+        (quotation.items || []).forEach((item, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><div class="item-number">${index + 1}</div></td>
+                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
+                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" required></td>
+                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
+            `;
+            itemsTableBody.appendChild(row);
+
+            if (itemsContainer) {
+                const card = document.createElement("div");
+                card.className = "item-card";
+                card.innerHTML = `
+                    <div class="item-number">${index + 1}</div>
+                    <div class="item-field description">
+                        <div style="position: relative;">
+                            <input type="text" placeholder="Enter item description" class="item_name" value="${item.description || ''}" required>
+                            <ul class="suggestions"></ul>
+                        </div>
+                    </div>
+                    <div class="item-field hsn">
+                        <input type="text" placeholder="Code" value="${item.HSN_SAC || ''}" required>
+                    </div>
+                    <div class="item-field qty">
+                        <input type="number" placeholder="0" min="1" value="${item.quantity || ''}" required>
+                    </div>
+                    <div class="item-field price">
+                        <input type="number" placeholder="0.00" step="0.01" value="${item.unit_price || ''}" required>
+                    </div>
+                    <div class="item-field rate">
+                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                    </div>
+                    <button type="button" class="remove-item-btn" title="Remove Item">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                itemsContainer.appendChild(card);
+
+                // Setup autocomplete
+                const cardInput = card.querySelector(".item_name");
+                const cardSuggestions = card.querySelector(".suggestions");
+                if (cardInput && cardSuggestions) {
+                    cardInput.addEventListener("input", function () {
+                        showSuggestions(cardInput, cardSuggestions);
+                        clearTimeout(cardInput.specUpdateTimeout);
+                        cardInput.specUpdateTimeout = setTimeout(() => {
+                            if (cardInput.value.trim()) {
+                                updateSpecificationsTable();
+                            }
+                        }, 500);
+                    });
+                    cardInput.addEventListener("keydown", function (event) {
+                        handleKeyboardNavigation(event, cardInput, cardSuggestions);
+                    });
+                }
+
+                // Sync card inputs with table inputs
+                const cardInputs = card.querySelectorAll('input');
+                const rowInputs = row.querySelectorAll('input');
+                cardInputs.forEach((input, idx) => {
+                    input.addEventListener('input', () => {
+                        if (rowInputs[idx]) {
+                            rowInputs[idx].value = input.value;
+                        }
+                    });
+                });
+
+                // Remove button
+                const removeBtn = card.querySelector(".remove-item-btn");
+                removeBtn.addEventListener("click", function () {
+                    card.remove();
+                    row.remove();
+                    updateItemNumbers();
+                    updateSpecificationsTable();
+                });
+            }
+        });
+
+        // Copy non-items
+        (quotation.non_items || []).forEach((item, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
+                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
+                <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
+                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
+            `;
+            nonItemsTableBody.appendChild(row);
+
+            if (nonItemsContainer) {
+                const card = document.createElement("div");
+                card.className = "non-item-card";
+                card.innerHTML = `
+                    <div class="item-number">${index + 1}</div>
+                    <div class="non-item-field description">
+                        <input type="text" placeholder="e.g., Installation Charges" value="${item.description || ''}" required>
+                    </div>
+                    <div class="non-item-field price">
+                        <input type="number" placeholder="0.00" step="0.01" value="${item.price || ''}" required>
+                    </div>
+                    <div class="non-item-field rate">
+                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                    </div>
+                    <button type="button" class="remove-item-btn" title="Remove Item">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                nonItemsContainer.appendChild(card);
+
+                // Sync card inputs with table inputs
+                const cardInputs = card.querySelectorAll('input');
+                const rowInputs = row.querySelectorAll('input');
+                cardInputs.forEach((input, idx) => {
+                    input.addEventListener('input', () => {
+                        if (rowInputs[idx]) {
+                            rowInputs[idx].value = input.value;
+                        }
+                    });
+                });
+
+                // Remove button
+                const removeBtn = card.querySelector(".remove-item-btn");
+                removeBtn.addEventListener("click", function () {
+                    card.remove();
+                    row.remove();
+                    updateNonItemNumbers();
+                    updateSpecificationsTable();
+                });
+
+                // Description change listener
+                const descriptionInput = card.querySelector('.non-item-field.description input');
+                if (descriptionInput) {
+                    descriptionInput.addEventListener('input', () => {
+                        clearTimeout(descriptionInput.specUpdateTimeout);
+                        descriptionInput.specUpdateTimeout = setTimeout(() => {
+                            if (descriptionInput.value.trim()) {
+                                updateSpecificationsTable();
+                            }
+                        }, 500);
+                    });
+                }
+            }
+        });
+
+        // Copy specifications
+        const allItemsForSpecs = [
+            ...(quotation.items || []).map(item => ({ ...item, type: 'item' })),
+            ...(quotation.non_items || []).map(item => ({ ...item, type: 'non_item' }))
+        ];
+
+        allItemsForSpecs.forEach((item, index) => {
+            if (specificationsContainer) {
+                const card = document.createElement('div');
+                card.className = 'spec-card';
+                card.innerHTML = `
+                    <div class="item-number">${index + 1}</div>
+                    <div class="spec-field description">
+                        <input type="text" value="${item.description || ''}" readonly style="background: #f9fafb; cursor: not-allowed;">
+                    </div>
+                    <div class="spec-field specification">
+                        <input type="text" placeholder="Enter specifications" value="${item.specification || ''}" required>
+                    </div>
+                `;
+                specificationsContainer.appendChild(card);
+            }
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><div class="item-number">${index + 1}</div></td>
+                <td>${item.description || ''}</td>
+                <td><input type="text" value="${item.specification || ''}" required></td>
+            `;
+            itemsSpecificationsTableBody.appendChild(row);
+        });
+
+        // Generate preview - content will be populated from sessionStorage in duplicate mode
+        await generatePreview();
+
+        // Show success toast
+        if (typeof showToast === 'function') {
+            showToast(`Quotation duplicated from ${sourceQuotationId}. Please enter customer details.`);
+        }
+
+    } catch (error) {
+        console.error("Error duplicating quotation:", error);
+        window.electronAPI.showAlert1("Failed to duplicate quotation. Please try again.");
+    }
+}
+
 // Function to get the quotation id
 async function getId() {
     try {
@@ -591,7 +865,24 @@ async function generatePreview() {
     const summaryPageHTML = ``;
 
     // const files = document.getElementById('files');
-    if (sessionStorage.getItem('currentTab-status') != 'update') {
+    const tabStatus = sessionStorage.getItem('currentTab-status');
+    const isDuplicate = tabStatus === 'duplicate';
+    const isUpdate = tabStatus === 'update';
+
+    // Get duplicate content if in duplicate mode
+    let duplicateContent = null;
+    if (isDuplicate) {
+        try {
+            const storedContent = sessionStorage.getItem('duplicate_content');
+            if (storedContent) {
+                duplicateContent = JSON.parse(storedContent);
+            }
+        } catch (e) {
+            console.error('Failed to parse duplicate content:', e);
+        }
+    }
+
+    if (!isUpdate && !isDuplicate) {
         document.getElementById("preview-content").innerHTML = `
     <div class="preview-container doc-quotation">
         ${headerHTML}
@@ -674,6 +965,136 @@ async function generatePreview() {
     </div>
     `;
         // generateFilePages(files)
+    } else if (isDuplicate && duplicateContent) {
+        // Duplicate mode - use content from source quotation stored in sessionStorage
+        const itemsPageHTMLDup = itemPages.map((pageHTML, index) => {
+            const isLastItemsPage = index === itemPages.length - 1;
+            return `
+        <div class="preview-container doc-quotation">
+            ${headerHTML}
+            ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${duplicateContent.headline || 'Items and Charges'}</u></p></div>` : ''}
+            <div class="items-section">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>S. No</th>
+                            <th>Description</th>
+                            <th>HSN/SAC</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            ${hasTax ? `
+                            <th>Taxable Value (₹)</th>
+                            <th>Rate (%)</th>` : ""}
+                            <th>Total Price (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pageHTML}
+                    </tbody>
+                </table>
+            </div>
+
+            ${!isLastItemsPage ? `<div class="continuation-text">Continued on next page...</div>` : ''}
+
+            ${isLastItemsPage ? `
+            <div class="fifth-section">
+                <div class="fifth-section-sub1">
+                    <div class="fifth-section-sub2">
+                        <div class="fifth-section-sub3">
+                            <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                        </div>
+                        <h3>Payment Details</h3>
+                        <div class="bank-details">
+                            <div class="QR-code bank-details-sub1">
+                                <img src="../assets/shresht-systems-payment-QR-code.jpg"
+                                    alt="qr-code" />
+                            </div>
+                            <div class="bank-details-sub2">
+                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
+                                <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
+                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="totals-section">
+                        ${totalsHTML}
+                    </div>
+                </div>
+            </div>
+            <div class="notes-section" contenteditable="true">
+                <p><strong>Notes:</strong></p>
+                <ul>
+                   ${(duplicateContent.notes || []).map(note => `<li>${note}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
+            <footer>
+                <p>This is a computer-generated quotation.</p>
+            </footer>
+        </div>
+        `;
+        }).join('');
+
+        document.getElementById("preview-content").innerHTML = `
+    <div class="preview-container doc-quotation">
+        ${headerHTML}
+
+        <div class="title">Quotation-${quotationId}</div>
+        <div class="quotation-letter-content" >
+            <p><strong>To:</strong></p>
+              ${buyerName}<br>
+              ${buyerAddress}<br>
+              ${buyerPhone}<br>
+            <p contenteditable="true"><strong>Subject:</strong> ${duplicateContent.subject || ''}</p>
+
+            <p>Dear ${buyerName},</p>
+
+            <p contenteditable="true">${duplicateContent.letter_1 || ''}</p>
+            <p>Our proposal includes:</p>
+            <ul contenteditable="true">
+                ${(duplicateContent.letter_2 || []).map(li => `<li>${li}</li>`).join('')}
+            </ul>
+            
+            <p contenteditable="true">${duplicateContent.letter_3 || ''}</p>
+            
+            <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
+          
+            <p>Best regards,</p>
+            <p><strong>${company.company}</strong><br>
+               Ph: ${phoneStr}<br>
+               Email: ${company.email}<br>
+               Website: ${company.website}</p>
+        </div>
+        
+        <footer>
+            <p>This is a computer-generated quotation.</p>
+        </footer>
+    </div>
+
+    ${itemsPageHTMLDup}
+
+    ${summaryPageHTML}
+
+    <div class="preview-container doc-quotation">
+        ${headerHTML}
+        <div class="terms-section" contenteditable="true">
+            ${normalizeTermsHTML(duplicateContent.termsAndConditions || '')}
+        </div>
+
+        <div class="closing-section">
+            <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
+            <p>Thanking you,</p>
+            <p><strong>For ${company.company},</strong><br>Mob: +91 ${phoneStr}</p>
+        </div>
+
+        <footer>
+            <p>This is a computer-generated quotation.</p>
+        </footer>
+    </div>
+    `;
     } else {
         try {
             const response = await fetch(`/quotation/${quotationId}`);
@@ -825,7 +1246,13 @@ async function generatePreview() {
 
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
-    return await sendDocumentToServer("/quotation/save-quotation", data);
+    const result = await sendDocumentToServer("/quotation/save-quotation", data);
+    // Clear duplicate-related data from sessionStorage after successful save
+    if (result) {
+        sessionStorage.removeItem('duplicated_from');
+        sessionStorage.removeItem('duplicate_content');
+    }
+    return result;
 }
 
 // Event listener for the "Save" button
@@ -914,6 +1341,8 @@ function collectFormData() {
         totalAmountNoTax: totalAmountNoTax,
         totalAmountTax: totalAmountTax,
 
+        // Include duplicated_from for audit trail if this is a duplicated quotation
+        duplicated_from: sessionStorage.getItem('duplicated_from') || null,
 
         subject: document.querySelector(".quotation-letter-content p[contenteditable]")?.innerText.replace("Subject:", "").trim() || '',
         letter_1: document.querySelectorAll(".quotation-letter-content p[contenteditable]")[1]?.innerText.trim() || '',
