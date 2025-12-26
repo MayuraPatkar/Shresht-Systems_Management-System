@@ -513,10 +513,19 @@ function printReport(htmlContent, filename) {
  * @param {string} htmlContent 
  * @param {string} filename 
  */
-function saveReportPDF(htmlContent, filename) {
+async function saveReportPDF(htmlContent, filename) {
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        window.electronAPI.handlePrintEvent(htmlContent, 'savePDF', filename);
-        showNotification('PDF saved successfully!', 'success');
+        try {
+            const result = await window.electronAPI.handlePrintEvent(htmlContent, 'savePDF', filename);
+            if (result && result.success) {
+                showNotification('PDF saved successfully!', 'success');
+            } else if (result && result.error) {
+                showNotification(`Failed to save PDF: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('PDF save error:', error);
+            showNotification('Failed to save PDF', 'error');
+        }
     } else {
         showNotification('PDF save requires Electron environment', 'error');
     }
