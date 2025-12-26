@@ -94,6 +94,14 @@ async function generateGSTReport() {
                     totalSGST: report.summary.total_sgst || 0,
                     totalGST: report.summary.total_tax || 0
                 },
+                // Support new tax_rate_breakdown
+                taxRateBreakdown: (report.tax_rate_breakdown || []).map(item => ({
+                    rate: item.rate,
+                    description: item.description,
+                    taxableValue: item.taxable_value || 0,
+                    cgst: item.cgst || 0,
+                    sgst: item.sgst || 0
+                })),
                 hsnBreakdown: (report.hsn_breakdown || []).map(item => ({
                     hsn: item.hsn_sac || 'N/A',
                     description: item.description || `GST @ ${item.rate || 0}%`,
@@ -235,7 +243,7 @@ async function generateGSTReportFromInvoices(month, year) {
                 totalSGST,
                 totalGST: totalCGST + totalSGST
             },
-            hsnBreakdown,
+            taxRateBreakdown, // Use taxRateBreakdown
             invoices: filteredInvoices.map(inv => ({
                 invoice_id: inv.invoice_id || inv._id,
                 date: inv.invoice_date || inv.date,
@@ -266,10 +274,13 @@ async function generateGSTReportFromInvoices(month, year) {
 
 /**
  * Render GST report data
- * @param {Object} data - Report data with summary, hsnBreakdown, and invoices
+ * @param {Object} data - Report data with summary, taxRateBreakdown, and invoices
  */
 function renderGSTReport(data) {
-    const { summary, hsnBreakdown, invoices } = data;
+    const { summary, taxRateBreakdown, hsnBreakdown, invoices } = data;
+
+    // Use taxRateBreakdown if available, otherwise fallback to hsnBreakdown for legacy support
+    const breakdownList = taxRateBreakdown || hsnBreakdown || [];
 
     // Update summary
     if (summary) {
@@ -280,29 +291,44 @@ function renderGSTReport(data) {
         document.getElementById('gst-report-summary').style.display = 'grid';
     }
 
-    // Render HSN breakdown table
+    // Render Breakdown table (Tax Rate / HSN)
     const tbody = document.getElementById('gst-report-body');
+    const tableHeader = document.querySelector('#gst-report-table thead tr th:first-child');
+    const sectionTitle = document.getElementById('gst-breakdown-title');
 
-    if (!hsnBreakdown || hsnBreakdown.length === 0) {
+    if (tableHeader) {
+        // If data has 'rate' property, it's the new format, otherwise assume HSN
+        const isRateGrouped = breakdownList.length > 0 && breakdownList[0].rate !== undefined;
+        tableHeader.textContent = isRateGrouped ? 'Tax Rate' : 'HSN/SAC';
+        if (sectionTitle) {
+            sectionTitle.textContent = isRateGrouped ? 'Tax Rate Wise Breakdown' : 'HSN/SAC Wise Breakdown';
+        }
+    }
+
+    if (!breakdownList || breakdownList.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center py-8 text-gray-500">
                     <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
-                    <p>No HSN/SAC data found</p>
+                    <p>No data found</p>
                 </td>
             </tr>
         `;
     } else {
-        tbody.innerHTML = hsnBreakdown.map(item => `
+        tbody.innerHTML = breakdownList.map(item => {
+            // Display Rate (e.g. 18%) or HSN code
+            const firstColValue = item.rate !== undefined ? `${item.rate}%` : (item.hsn || item.hsn_sac || 'N/A');
+
+            return `
             <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 border-b font-medium">${item.hsn}</td>
+                <td class="px-4 py-3 border-b font-medium">${firstColValue}</td>
                 <td class="px-4 py-3 border-b">${item.description}</td>
                 <td class="px-4 py-3 border-b text-right">${formatCurrency(item.taxableValue)}</td>
                 <td class="px-4 py-3 border-b text-right">${formatCurrency(item.cgst)}</td>
                 <td class="px-4 py-3 border-b text-right">${formatCurrency(item.sgst)}</td>
                 <td class="px-4 py-3 border-b text-right font-medium">${formatCurrency(item.cgst + item.sgst)}</td>
             </tr>
-        `).join('');
+        `}).join('');
 
         // Add total row
         tbody.innerHTML += `
@@ -359,19 +385,25 @@ function getMonthName(month) {
 function generateGSTReportHTML() {
     const month = document.getElementById('gst-month').value;
     const year = document.getElementById('gst-year').value;
-    const { summary, hsnBreakdown, invoices } = gstReportData;
+    const { summary, taxRateBreakdown, hsnBreakdown, invoices } = gstReportData;
 
-    // HSN breakdown table
-    const hsnTableContent = hsnBreakdown.map(item => `
+    const breakdownList = taxRateBreakdown || hsnBreakdown || [];
+    const isRateGrouped = breakdownList.length > 0 && breakdownList[0].rate !== undefined;
+    const firstColHeader = isRateGrouped ? 'Tax Rate' : 'HSN/SAC';
+
+    // Breakdown table
+    const tableContent = breakdownList.map(item => {
+        const firstColValue = item.rate !== undefined ? `${item.rate}%` : (item.hsn || item.hsn_sac || 'N/A');
+        return `
         <tr>
-            <td>${item.hsn}</td>
+            <td>${firstColValue}</td>
             <td>${item.description}</td>
             <td class="text-right">${formatCurrency(item.taxableValue)}</td>
             <td class="text-right">${formatCurrency(item.cgst)}</td>
             <td class="text-right">${formatCurrency(item.sgst)}</td>
             <td class="text-right">${formatCurrency(item.cgst + item.sgst)}</td>
         </tr>
-    `).join('');
+    `}).join('');
 
     // Invoice details table
     const invoiceTableContent = invoices.map(inv => `
@@ -406,11 +438,11 @@ function generateGSTReportHTML() {
             </div>
         </div>
         
-        <h3 style="margin: 30px 0 15px; font-size: 16px; color: #374151;">HSN/SAC Wise Breakdown</h3>
+        <h3 style="margin: 30px 0 15px; font-size: 16px; color: #374151;">${isRateGrouped ? 'Tax Rate Wise Breakdown' : 'HSN/SAC Wise Breakdown'}</h3>
         <table class="report-table">
             <thead>
                 <tr>
-                    <th>HSN/SAC</th>
+                    <th>${firstColHeader}</th>
                     <th>Description</th>
                     <th class="text-right">Taxable Value</th>
                     <th class="text-right">CGST</th>
@@ -419,7 +451,7 @@ function generateGSTReportHTML() {
                 </tr>
             </thead>
             <tbody>
-                ${hsnTableContent}
+                ${tableContent}
                 <tr class="total-row">
                     <td colspan="2">Total</td>
                     <td class="text-right">${formatCurrency(summary.totalTaxableValue)}</td>
@@ -495,6 +527,14 @@ window.loadSavedGSTReport = function (report) {
             totalSGST: data.summary.total_sgst || 0,
             totalGST: data.summary.total_tax || 0
         },
+        // Support both new tax_rate_breakdown and legacy hsn_breakdown
+        taxRateBreakdown: (data.tax_rate_breakdown || []).map(item => ({
+            rate: item.rate,
+            description: item.description,
+            taxableValue: item.taxable_value || 0,
+            cgst: item.cgst || 0,
+            sgst: item.sgst || 0
+        })),
         hsnBreakdown: (data.hsn_breakdown || []).map(item => ({
             hsn: item.hsn_sac || 'N/A',
             description: item.description || `GST @ ${item.rate || 0}%`,

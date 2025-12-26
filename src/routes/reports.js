@@ -201,8 +201,8 @@ router.get('/gst', async (req, res) => {
             invoice_date: { $gte: startDate, $lte: endDate }
         }).sort({ invoice_date: 1 });
 
-        // Calculate GST breakdown by HSN/SAC
-        const hsnBreakdown = {};
+        // Calculate GST breakdown by Tax Rate
+        const rateBreakdown = {};
         let totalTaxableValue = 0;
         let totalCGST = 0;
         let totalSGST = 0;
@@ -213,16 +213,18 @@ router.get('/gst', async (req, res) => {
             // Process original items
             const items = invoice.items_original || invoice.items_duplicate || [];
             items.forEach(item => {
-                const hsn = item.HSN_SAC || 'N/A';
-                const taxableValue = (item.quantity || 0) * (item.unit_price || 0);
                 const rate = item.rate || 0;
+                const taxableValue = (item.quantity || 0) * (item.unit_price || 0);
                 const cgst = (taxableValue * rate / 2) / 100;
                 const sgst = (taxableValue * rate / 2) / 100;
 
-                if (!hsnBreakdown[hsn]) {
-                    hsnBreakdown[hsn] = {
-                        hsn_sac: hsn,
+                // Use rate as key
+                const key = rate.toString();
+
+                if (!rateBreakdown[key]) {
+                    rateBreakdown[key] = {
                         rate: rate,
+                        description: `GST @ ${rate}%`,
                         taxable_value: 0,
                         cgst: 0,
                         sgst: 0,
@@ -231,11 +233,11 @@ router.get('/gst', async (req, res) => {
                     };
                 }
 
-                hsnBreakdown[hsn].taxable_value += taxableValue;
-                hsnBreakdown[hsn].cgst += cgst;
-                hsnBreakdown[hsn].sgst += sgst;
-                hsnBreakdown[hsn].total_tax += (cgst + sgst);
-                hsnBreakdown[hsn].total_value += (taxableValue + cgst + sgst);
+                rateBreakdown[key].taxable_value += taxableValue;
+                rateBreakdown[key].cgst += cgst;
+                rateBreakdown[key].sgst += sgst;
+                rateBreakdown[key].total_tax += (cgst + sgst);
+                rateBreakdown[key].total_value += (taxableValue + cgst + sgst);
 
                 totalTaxableValue += taxableValue;
                 totalCGST += cgst;
@@ -246,16 +248,17 @@ router.get('/gst', async (req, res) => {
             // Process non-items (installation charges, etc.)
             const nonItems = invoice.non_items_original || invoice.non_items_duplicate || [];
             nonItems.forEach(item => {
-                const taxableValue = item.price || 0;
                 const rate = item.rate || 0;
+                const taxableValue = item.price || 0;
                 const cgst = (taxableValue * rate / 2) / 100;
                 const sgst = (taxableValue * rate / 2) / 100;
 
-                const hsn = 'Services';
-                if (!hsnBreakdown[hsn]) {
-                    hsnBreakdown[hsn] = {
-                        hsn_sac: hsn,
+                const key = rate.toString();
+
+                if (!rateBreakdown[key]) {
+                    rateBreakdown[key] = {
                         rate: rate,
+                        description: `GST @ ${rate}%`,
                         taxable_value: 0,
                         cgst: 0,
                         sgst: 0,
@@ -264,11 +267,11 @@ router.get('/gst', async (req, res) => {
                     };
                 }
 
-                hsnBreakdown[hsn].taxable_value += taxableValue;
-                hsnBreakdown[hsn].cgst += cgst;
-                hsnBreakdown[hsn].sgst += sgst;
-                hsnBreakdown[hsn].total_tax += (cgst + sgst);
-                hsnBreakdown[hsn].total_value += (taxableValue + cgst + sgst);
+                rateBreakdown[key].taxable_value += taxableValue;
+                rateBreakdown[key].cgst += cgst;
+                rateBreakdown[key].sgst += sgst;
+                rateBreakdown[key].total_tax += (cgst + sgst);
+                rateBreakdown[key].total_value += (taxableValue + cgst + sgst);
 
                 totalTaxableValue += taxableValue;
                 totalCGST += cgst;
@@ -277,12 +280,9 @@ router.get('/gst', async (req, res) => {
             });
         });
 
-        // Convert to array and sort
-        const hsnList = Object.values(hsnBreakdown).sort((a, b) =>
-            a.hsn_sac.localeCompare(b.hsn_sac)
-        );
+        // Convert to array and sort by rate (descending)
+        const taxRateList = Object.values(rateBreakdown).sort((a, b) => b.rate - a.rate);
 
-        // Invoice-wise breakdown
         // Invoice-wise breakdown
         const invoiceBreakdown = invoices.map(inv => ({
             invoice_id: inv.invoice_id,
@@ -324,7 +324,7 @@ router.get('/gst', async (req, res) => {
                             total_tax: totalCGST + totalSGST + totalIGST,
                             total_invoice_value: totalInvoiceValue
                         },
-                        hsn_breakdown: hsnList,
+                        tax_rate_breakdown: taxRateList,
                         invoice_breakdown: invoiceBreakdown
                     },
                     summary: {
@@ -365,7 +365,7 @@ router.get('/gst', async (req, res) => {
                     total_tax: totalCGST + totalSGST + totalIGST,
                     total_invoice_value: totalInvoiceValue
                 },
-                hsn_breakdown: hsnList,
+                tax_rate_breakdown: taxRateList,
                 invoice_breakdown: invoiceBreakdown
             },
             generated_at: new Date()
