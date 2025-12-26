@@ -249,7 +249,8 @@ async function openInvoice(id) {
         document.getElementById('new-invoice').style.display = 'none';
         document.getElementById('view-preview').style.display = 'block';
 
-        if (currentStep === 1) changeStep(2);
+        // Ensure we open the EDIT form at step 2 (Project Details) regardless of previous state
+        changeStep(2);
 
         // Helper function to format date to YYYY-MM-DD for input fields
         const formatDateForInput = (dateString) => {
