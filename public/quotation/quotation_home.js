@@ -282,12 +282,6 @@ function createQuotationCard(quotation) {
                         <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="action-btn view-tax-btn px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" title="View With Tax">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </button>
-                        <button class="action-btn compact-btn px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-all border border-orange-200 hover:border-orange-400" title="Compact View">
-                            <i class="fas fa-list"></i>
-                        </button>
                         <button class="action-btn duplicate-btn px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all border border-indigo-200 hover:border-indigo-400" title="Duplicate Quotation">
                             <i class="fas fa-copy"></i>
                         </button>
@@ -305,8 +299,6 @@ function createQuotationCard(quotation) {
 
     const copyElement = quotationCard.querySelector('.copy-text');
     const viewBtn = quotationCard.querySelector('.view-btn');
-    const viewTaxBtn = quotationCard.querySelector('.view-tax-btn');
-    const compactBtn = quotationCard.querySelector('.compact-btn');
     const duplicateBtn = quotationCard.querySelector('.duplicate-btn');
     const editBtn = quotationCard.querySelector('.edit-btn');
     const deleteBtn = quotationCard.querySelector('.delete-btn');
@@ -321,16 +313,9 @@ function createQuotationCard(quotation) {
         }
     });
 
-    // Action button handlers
+    // Action button handlers - view with default type (1 = Without Tax)
     viewBtn.addEventListener('click', () => {
         viewQuotation(quotation.quotation_id, 1);
-    });
-    viewTaxBtn.addEventListener('click', () => {
-        viewQuotation(quotation.quotation_id, 2);
-    });
-
-    compactBtn.addEventListener('click', () => {
-        viewQuotation(quotation.quotation_id, 3);
     });
 
     duplicateBtn.addEventListener('click', () => {
