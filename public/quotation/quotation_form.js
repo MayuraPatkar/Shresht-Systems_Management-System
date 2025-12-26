@@ -325,6 +325,17 @@ async function duplicateQuotation(sourceQuotationId) {
         // Store the source quotation ID for audit trail
         sessionStorage.setItem('duplicated_from', sourceQuotationId);
 
+        // Store the source quotation content for preview generation
+        sessionStorage.setItem('duplicate_content', JSON.stringify({
+            subject: quotation.subject || '',
+            letter_1: quotation.letter_1 || '',
+            letter_2: quotation.letter_2 || [],
+            letter_3: quotation.letter_3 || '',
+            headline: quotation.headline || '',
+            notes: quotation.notes || [],
+            termsAndConditions: quotation.termsAndConditions || ''
+        }));
+
         // Copy project name (append " (Copy)" to indicate duplicate)
         document.getElementById('project-name').value = quotation.project_name || '';
 
@@ -537,6 +548,9 @@ async function duplicateQuotation(sourceQuotationId) {
             `;
             itemsSpecificationsTableBody.appendChild(row);
         });
+
+        // Generate preview - content will be populated from sessionStorage in duplicate mode
+        await generatePreview();
 
         // Show success toast
         if (typeof showToast === 'function') {
@@ -851,7 +865,24 @@ async function generatePreview() {
     const summaryPageHTML = ``;
 
     // const files = document.getElementById('files');
-    if (sessionStorage.getItem('currentTab-status') != 'update') {
+    const tabStatus = sessionStorage.getItem('currentTab-status');
+    const isDuplicate = tabStatus === 'duplicate';
+    const isUpdate = tabStatus === 'update';
+
+    // Get duplicate content if in duplicate mode
+    let duplicateContent = null;
+    if (isDuplicate) {
+        try {
+            const storedContent = sessionStorage.getItem('duplicate_content');
+            if (storedContent) {
+                duplicateContent = JSON.parse(storedContent);
+            }
+        } catch (e) {
+            console.error('Failed to parse duplicate content:', e);
+        }
+    }
+
+    if (!isUpdate && !isDuplicate) {
         document.getElementById("preview-content").innerHTML = `
     <div class="preview-container doc-quotation">
         ${headerHTML}
@@ -934,6 +965,136 @@ async function generatePreview() {
     </div>
     `;
         // generateFilePages(files)
+    } else if (isDuplicate && duplicateContent) {
+        // Duplicate mode - use content from source quotation stored in sessionStorage
+        const itemsPageHTMLDup = itemPages.map((pageHTML, index) => {
+            const isLastItemsPage = index === itemPages.length - 1;
+            return `
+        <div class="preview-container doc-quotation">
+            ${headerHTML}
+            ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${duplicateContent.headline || 'Items and Charges'}</u></p></div>` : ''}
+            <div class="items-section">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>S. No</th>
+                            <th>Description</th>
+                            <th>HSN/SAC</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            ${hasTax ? `
+                            <th>Taxable Value (₹)</th>
+                            <th>Rate (%)</th>` : ""}
+                            <th>Total Price (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pageHTML}
+                    </tbody>
+                </table>
+            </div>
+
+            ${!isLastItemsPage ? `<div class="continuation-text">Continued on next page...</div>` : ''}
+
+            ${isLastItemsPage ? `
+            <div class="fifth-section">
+                <div class="fifth-section-sub1">
+                    <div class="fifth-section-sub2">
+                        <div class="fifth-section-sub3">
+                            <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                        </div>
+                        <h3>Payment Details</h3>
+                        <div class="bank-details">
+                            <div class="QR-code bank-details-sub1">
+                                <img src="../assets/shresht-systems-payment-QR-code.jpg"
+                                    alt="qr-code" />
+                            </div>
+                            <div class="bank-details-sub2">
+                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
+                                <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
+                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="totals-section">
+                        ${totalsHTML}
+                    </div>
+                </div>
+            </div>
+            <div class="notes-section" contenteditable="true">
+                <p><strong>Notes:</strong></p>
+                <ul>
+                   ${(duplicateContent.notes || []).map(note => `<li>${note}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
+            <footer>
+                <p>This is a computer-generated quotation.</p>
+            </footer>
+        </div>
+        `;
+        }).join('');
+
+        document.getElementById("preview-content").innerHTML = `
+    <div class="preview-container doc-quotation">
+        ${headerHTML}
+
+        <div class="title">Quotation-${quotationId}</div>
+        <div class="quotation-letter-content" >
+            <p><strong>To:</strong></p>
+              ${buyerName}<br>
+              ${buyerAddress}<br>
+              ${buyerPhone}<br>
+            <p contenteditable="true"><strong>Subject:</strong> ${duplicateContent.subject || ''}</p>
+
+            <p>Dear ${buyerName},</p>
+
+            <p contenteditable="true">${duplicateContent.letter_1 || ''}</p>
+            <p>Our proposal includes:</p>
+            <ul contenteditable="true">
+                ${(duplicateContent.letter_2 || []).map(li => `<li>${li}</li>`).join('')}
+            </ul>
+            
+            <p contenteditable="true">${duplicateContent.letter_3 || ''}</p>
+            
+            <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
+          
+            <p>Best regards,</p>
+            <p><strong>${company.company}</strong><br>
+               Ph: ${phoneStr}<br>
+               Email: ${company.email}<br>
+               Website: ${company.website}</p>
+        </div>
+        
+        <footer>
+            <p>This is a computer-generated quotation.</p>
+        </footer>
+    </div>
+
+    ${itemsPageHTMLDup}
+
+    ${summaryPageHTML}
+
+    <div class="preview-container doc-quotation">
+        ${headerHTML}
+        <div class="terms-section" contenteditable="true">
+            ${normalizeTermsHTML(duplicateContent.termsAndConditions || '')}
+        </div>
+
+        <div class="closing-section">
+            <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
+            <p>Thanking you,</p>
+            <p><strong>For ${company.company},</strong><br>Mob: +91 ${phoneStr}</p>
+        </div>
+
+        <footer>
+            <p>This is a computer-generated quotation.</p>
+        </footer>
+    </div>
+    `;
     } else {
         try {
             const response = await fetch(`/quotation/${quotationId}`);
@@ -1086,9 +1247,10 @@ async function generatePreview() {
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
     const result = await sendDocumentToServer("/quotation/save-quotation", data);
-    // Clear duplicated_from from sessionStorage after successful save
+    // Clear duplicate-related data from sessionStorage after successful save
     if (result) {
         sessionStorage.removeItem('duplicated_from');
+        sessionStorage.removeItem('duplicate_content');
     }
     return result;
 }
