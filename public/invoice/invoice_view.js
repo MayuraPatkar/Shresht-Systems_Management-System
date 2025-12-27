@@ -647,6 +647,16 @@ async function renderInvoiceView(invoice, userRole, viewType) {
             }
             detailItemsTableBody.appendChild(row);
         });
+
+        // Populate Items totals card
+        try {
+            setTextContent('view-items-total-amount', `₹ ${formatIndian(view_totalTaxable, 2)}`);
+            const itemsTax = view_totalCGST + view_totalSGST;
+            setTextContent('view-items-total-tax', showTax && itemsTax > 0 ? `₹ ${formatIndian(itemsTax, 2)}` : 'No Tax');
+            setTextContent('items-overall', `₹ ${formatIndian(view_grandTotal, 2)}`);
+        } catch (e) {
+            console.warn('Items totals DOM elements not found', e);
+        }
     }
 
     // Non-Items List
