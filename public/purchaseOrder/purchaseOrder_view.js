@@ -148,8 +148,14 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
     </div>
 
         <div class="second-section">
-            <p>Purchase Order-${purchaseOrder.purchase_order_id || purchaseOrder.Id || ""}</p>
-        </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <p>PURCHASE ORDER-${purchaseOrder.purchase_order_id || purchaseOrder.Id || ""}</p>
+                    <div style="text-align:right;">
+                        
+                        <p><strong>Date:</strong> ${formattedDate || new Date().toLocaleDateString()}</p>
+                    </div>
+                </div>
+            </div>
 
         ${index === 0 ? `
         <div class="third-section">
@@ -161,8 +167,7 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
                 <p>GSTIN: ${purchaseOrder.supplier_GSTIN || ""}</p>
             </div>
             <div class="info-section">
-                <p><strong>Purchase Invoice ID:</strong> ${purchaseOrder.purchase_invoice_id || ""}</p>
-                <p><strong>Date:</strong> ${formattedDate || new Date().toLocaleDateString()}</p>
+            <p><strong>Purchase Invoice ID:</strong> ${purchaseOrder.purchase_invoice_id || ""}</p>
             </div>
         </div>
         ` : ''}
