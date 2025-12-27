@@ -156,7 +156,8 @@ router.delete("/:wayBillId", async (req, res) => {
         if (!wayBill) {
             return res.status(404).json({ message: 'Way bill not found' });
         }
-        await wayBills.deleteOne({ wayBill_id: wayBillId });
+        // Use correct field name for deletion (waybill_id)
+        await wayBills.deleteOne({ waybill_id: wayBillId });
         res.status(200).json({ message: 'Way bill deleted successfully' });
     } catch (error) {
         logger.error("Error deleting way bill:", error);

@@ -17,7 +17,14 @@ async function deleteDocument(endpoint, documentId, documentType, reloadCallback
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to delete ${documentType.toLowerCase()}`);
+            let errMsg = `Failed to delete ${documentType.toLowerCase()}`;
+            try {
+                const errData = await response.json();
+                if (errData && errData.message) errMsg += `: ${errData.message}`;
+            } catch (e) {
+                // ignore json parse errors
+            }
+            throw new Error(errMsg);
         }
 
         window.electronAPI.showAlert1(`${documentType} deleted successfully`);
