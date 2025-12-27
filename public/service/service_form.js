@@ -34,6 +34,26 @@ document.addEventListener("DOMContentLoaded", () => {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
 
+    // Add input constraints for phone and email (readonly may be populated from invoice)
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.setAttribute('inputmode', 'numeric');
+        phoneInput.setAttribute('maxlength', '10');
+        phoneInput.setAttribute('pattern', '[0-9]{10}');
+        phoneInput.addEventListener('input', () => {
+            const cleaned = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+            if (phoneInput.value !== cleaned) phoneInput.value = cleaned;
+        });
+    }
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        emailInput.setAttribute('maxlength', '254');
+        emailInput.addEventListener('input', () => {
+            const cleaned = emailInput.value.trim().replace(/\s+/g, '');
+            if (emailInput.value !== cleaned) emailInput.value = cleaned;
+        });
+    }
+
     // Save, Print, and PDF buttons
     document.getElementById("save-btn")?.addEventListener("click", handleSave);
     document.getElementById("print-btn")?.addEventListener("click", handlePrint);
@@ -71,6 +91,24 @@ function validateStep(step) {
         if (!date) {
             window.electronAPI?.showAlert1("Please select a service date");
             return false;
+        }
+
+        // Ensure phone/email propagated from invoice are valid
+        const phoneEl = document.getElementById('phone');
+        const emailEl = document.getElementById('email');
+        if (!phoneEl || !phoneEl.value.trim() || (phoneEl.value.replace(/\D/g, '').length !== 10)) {
+            window.electronAPI?.showAlert1("Customer phone is missing or invalid. Please update the invoice before proceeding.");
+            phoneEl?.focus();
+            return false;
+        }
+        if (emailEl && emailEl.value.trim()) {
+            const cleanedEmail = emailEl.value.trim().replace(/\s+/g, '');
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRe.test(cleanedEmail)) {
+                window.electronAPI?.showAlert1("Customer email is invalid. Please update the invoice before proceeding.");
+                emailEl?.focus();
+                return false;
+            }
         }
     }
     if (step === 2) {

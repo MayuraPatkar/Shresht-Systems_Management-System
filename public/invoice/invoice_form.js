@@ -35,6 +35,7 @@ window.validateCurrentStep = async function () {
         const buyerName = document.getElementById('buyer-name');
         const buyerAddress = document.getElementById('buyer-address');
         const buyerPhone = document.getElementById('buyer-phone');
+        const buyerEmail = document.getElementById('buyer-email');
 
         if (!buyerName.value.trim()) {
             window.electronAPI.showAlert1("Please enter the Buyer Name.");
@@ -50,6 +51,23 @@ window.validateCurrentStep = async function () {
             window.electronAPI.showAlert1("Please enter the Buyer Phone Number.");
             buyerPhone.focus();
             return false;
+        }
+        // Validate phone length (10 digits)
+        const cleanedPhone = (buyerPhone.value || '').replace(/\D/g, '');
+        if (cleanedPhone.length !== 10) {
+            window.electronAPI.showAlert1("Please enter a valid 10-digit Buyer Phone Number.");
+            buyerPhone.focus();
+            return false;
+        }
+        // Validate email if provided
+        if (buyerEmail && buyerEmail.value.trim()) {
+            const cleanedEmail = buyerEmail.value.trim().replace(/\s+/g, '');
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRe.test(cleanedEmail)) {
+                window.electronAPI.showAlert1("Please enter a valid Buyer Email address.");
+                buyerEmail.focus();
+                return false;
+            }
         }
     }
 
@@ -84,6 +102,29 @@ window.validateCurrentStep = async function () {
 
     return true;
 };
+
+// Add input sanitization and constraints for phone/email
+document.addEventListener('DOMContentLoaded', () => {
+    const phoneInput = document.getElementById('buyer-phone');
+    if (phoneInput) {
+        phoneInput.setAttribute('inputmode', 'numeric');
+        phoneInput.setAttribute('maxlength', '10');
+        phoneInput.setAttribute('pattern', '[0-9]{10}');
+        phoneInput.addEventListener('input', () => {
+            const cleaned = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+            if (phoneInput.value !== cleaned) phoneInput.value = cleaned;
+        });
+    }
+
+    const emailInput = document.getElementById('buyer-email');
+    if (emailInput) {
+        emailInput.setAttribute('maxlength', '254');
+        emailInput.addEventListener('input', () => {
+            const cleaned = emailInput.value.trim().replace(/\s+/g, '');
+            if (emailInput.value !== cleaned) emailInput.value = cleaned;
+        });
+    }
+});
 
 // Event listener for the "Next" button
 document.getElementById("next-btn").addEventListener("click", () => {

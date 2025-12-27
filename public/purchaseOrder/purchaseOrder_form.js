@@ -119,6 +119,43 @@ function handleSupplierKeyboardNavigation(event, input, suggestionsList) {
     }
 }
 
+// Validate supplier step (and email/phone rules)
+window.validateCurrentStep = async function () {
+    if (typeof currentStep === 'undefined') return true;
+    if (currentStep === 1) {
+        const supplierName = document.getElementById('supplier-name');
+        const supplierPhone = document.getElementById('supplier-phone');
+        const supplierEmail = document.getElementById('supplier-email');
+
+        if (!supplierName || !supplierName.value.trim()) {
+            window.electronAPI.showAlert1('Please enter the Supplier Name.');
+            supplierName?.focus();
+            return false;
+        }
+        if (!supplierPhone || !supplierPhone.value.trim()) {
+            window.electronAPI.showAlert1('Please enter the Supplier Phone Number.');
+            supplierPhone?.focus();
+            return false;
+        }
+        const cleanedPhone = (supplierPhone.value || '').replace(/\D/g, '');
+        if (cleanedPhone.length !== 10) {
+            window.electronAPI.showAlert1('Please enter a valid 10-digit Supplier Phone Number.');
+            supplierPhone?.focus();
+            return false;
+        }
+        if (supplierEmail && supplierEmail.value.trim()) {
+            const cleanedEmail = supplierEmail.value.trim().replace(/\s+/g, '');
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRe.test(cleanedEmail)) {
+                window.electronAPI.showAlert1('Please enter a valid Supplier Email address.');
+                supplierEmail?.focus();
+                return false;
+            }
+        }
+    }
+    return true;
+};
+
 function updateSupplierSelection(items) {
     items.forEach((item, index) => {
         if (index === selectedSupplierIndex) {
@@ -146,6 +183,26 @@ function fillSupplierDetails(supplier) {
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchSuppliers();
     initSupplierAutocomplete();
+
+    // Add sanitization for supplier phone and email
+    const phoneInput = document.getElementById('supplier-phone');
+    if (phoneInput) {
+        phoneInput.setAttribute('inputmode', 'numeric');
+        phoneInput.setAttribute('maxlength', '10');
+        phoneInput.setAttribute('pattern', '[0-9]{10}');
+        phoneInput.addEventListener('input', () => {
+            const cleaned = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+            if (phoneInput.value !== cleaned) phoneInput.value = cleaned;
+        });
+    }
+    const emailInput = document.getElementById('supplier-email');
+    if (emailInput) {
+        emailInput.setAttribute('maxlength', '254');
+        emailInput.addEventListener('input', () => {
+            const cleaned = emailInput.value.trim().replace(/\s+/g, '');
+            if (emailInput.value !== cleaned) emailInput.value = cleaned;
+        });
+    }
 });
 
 // Note: selectedIndex, data, fetchData, fetchStockData, showSuggestions, and handleKeyboardNavigation
