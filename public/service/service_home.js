@@ -491,10 +491,8 @@ function renderPendingServices(services) {
 
     if (!services || services.length === 0) {
         serviceListDiv.innerHTML = `
-            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
-                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
-                    <i class="fas fa-clock text-4xl text-blue-500"></i>
-                </div>
+            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                <div class="text-blue-500 text-5xl mb-4"><i class="fas fa-clock"></i></div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Pending Services</h2>
                 <p class="text-gray-600">Invoices due for service will appear here</p>
             </div>
@@ -514,10 +512,8 @@ function renderServiceHistory(services) {
 
     if (services.length === 0) {
         serviceListDiv.innerHTML = `
-            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
-                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-                    <i class="fas fa-history text-4xl text-green-500"></i>
-                </div>
+            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                <div class="text-green-500 text-5xl mb-4"><i class="fas fa-history"></i></div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Service History</h2>
                 <p class="text-gray-600">Completed services will appear here</p>
             </div>
@@ -648,17 +644,9 @@ function displayPendingSearchResults(results, query) {
     
     if (results.length === 0) {
         pendingServicesDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 fade-in">
-                <div class="bg-yellow-100 rounded-full p-8 mb-4">
-                    <i class="fas fa-search text-yellow-500 text-6xl"></i>
-                </div>
+            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
                 <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-                <p class="text-gray-500 mb-2">No pending services found for "${query}"</p>
-                <button onclick="document.getElementById('search-input').value=''; loadPendingServices();" 
-                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium mt-4">
-                    <i class="fas fa-list"></i>
-                    Show All Pending Services
-                </button>
+                <p class="text-gray-500">No pending services found for "${query}"</p>
             </div>
         `;
         return;
@@ -675,17 +663,9 @@ function displayHistorySearchResults(results, query) {
     
     if (results.length === 0) {
         serviceHistoryDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 fade-in">
-                <div class="bg-yellow-100 rounded-full p-8 mb-4">
-                    <i class="fas fa-search text-yellow-500 text-6xl"></i>
-                </div>
+            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
                 <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-                <p class="text-gray-500 mb-2">No service history found for "${query}"</p>
-                <button onclick="document.getElementById('search-input').value=''; loadServiceHistory();" 
-                    class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium mt-4">
-                    <i class="fas fa-list"></i>
-                    Show All Service History
-                </button>
+                <p class="text-gray-500">No service history found for "${query}"</p>
             </div>
         `;
         return;

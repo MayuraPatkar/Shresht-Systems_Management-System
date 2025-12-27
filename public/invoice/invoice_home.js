@@ -121,7 +121,7 @@ async function loadRecentInvoices() {
     try {
         const response = await fetch(`/invoice/recent-invoices`);
         if (!response.ok) {
-            invoicesListDiv.innerHTML = "<h1>No Invoices Found.</h1>";
+            invoicesListDiv.innerHTML = "<div class='text-center py-12 fade-in'><h2 class='text-2xl font-bold text-gray-800 mb-2'>No Invoices Found</h2><p class='text-gray-600'>Start creating invoices for your clients</p></div>";
             return;
         }
 
@@ -224,15 +224,12 @@ function renderInvoices(invoices) {
     invoicesListDiv.innerHTML = "";
     if (!invoices || invoices.length === 0) {
         invoicesListDiv.innerHTML = `
-            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
-                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
-                    <i class="fas fa-file-invoice-dollar text-4xl text-blue-500"></i>
+            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                <div class="text-blue-500 text-5xl mb-4">
+                    <i class="fas fa-file-invoice-dollar"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Invoices Found</h2>
-                <p class="text-gray-600 mb-6">Start creating invoices for your clients</p>
-                <button onclick="document.getElementById('new-invoice').click()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg font-semibold">
-                    <i class="fas fa-plus mr-2"></i>Create First Invoice
-                </button>
+                <p class="text-gray-600">Start creating invoices for your clients</p>
             </div>
         `;
         return;
@@ -514,17 +511,10 @@ async function handleSearch() {
     }
 
     await searchDocuments('invoice', query, invoicesListDiv, createInvoiceCard, 
-        `<div class="flex flex-col items-center justify-center py-16 fade-in">
-            <div class="bg-yellow-100 rounded-full p-8 mb-4">
-                <i class="fas fa-search text-yellow-500 text-6xl"></i>
-            </div>
+        `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+            <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
             <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-            <p class="text-gray-500 mb-2">No invoices match your search</p>
-            <button onclick="document.getElementById('search-input').value=''; loadRecentInvoices();" 
-                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium mt-4">
-                <i class="fas fa-list"></i>
-                Show All Invoices
-            </button>
+            <p class="text-gray-500">No invoices match your search</p>
         </div>`);
 }
 

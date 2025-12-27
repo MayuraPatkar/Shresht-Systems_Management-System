@@ -66,7 +66,7 @@ async function loadRecentPurchaseOrders() {
     try {
         const response = await fetch(`/purchaseOrder/recent-purchase-orders`);
         if (!response.ok) {
-            purchaseOrderListDiv.innerHTML = "<div class='text-center py-12'><i class='fas fa-inbox text-gray-400 text-6xl mb-4'></i><p class='text-gray-500 text-lg'>No Purchase Orders Found.</p></div>";
+            purchaseOrderListDiv.innerHTML = "<div class='flex flex-col items-center justify-center py-12 fade-in' style='min-height: calc(100vh - 11rem);'><div class='text-purple-500 text-5xl mb-4'><i class='fas fa-shopping-cart'></i></div><p class='text-gray-500 text-lg'>No Purchase Orders Found.</p></div>";
             return;
         }
 
@@ -158,15 +158,12 @@ function renderPurchaseOrders(purchaseOrders) {
     purchaseOrderListDiv.innerHTML = "";
     if (!purchaseOrders || purchaseOrders.length === 0) {
         purchaseOrderListDiv.innerHTML = `
-            <div class="bg-white rounded-lg shadow-md p-12 text-center border-2 border-dashed border-gray-300">
-                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
-                    <i class="fas fa-shopping-cart text-4xl text-purple-500"></i>
+            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                <div class="text-purple-500 text-5xl mb-4">
+                    <i class="fas fa-shopping-cart"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Purchase Orders Found</h2>
-                <p class="text-gray-600 mb-6">Start creating purchase orders for your suppliers</p>
-                <button onclick="document.getElementById('new-purchase').click()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-semibold">
-                    <i class="fas fa-plus mr-2"></i>Create First Purchase Order
-                </button>
+                <p class="text-gray-600">Start creating purchase orders for your suppliers</p>
             </div>
         `;
         return;
@@ -343,17 +340,10 @@ async function handleSearch() {
     }
 
     await searchDocuments('purchaseOrder', query, purchaseOrderListDiv, createPurchaseOrderDiv, 
-        `<div class="flex flex-col items-center justify-center py-16 fade-in">
-            <div class="bg-yellow-100 rounded-full p-8 mb-4">
-                <i class="fas fa-search text-yellow-500 text-6xl"></i>
-            </div>
+        `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+            <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
             <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-            <p class="text-gray-500 mb-2">No purchase orders match your search</p>
-            <button onclick="document.getElementById('search-input').value=''; loadRecentPurchaseOrders();" 
-                class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium mt-4">
-                <i class="fas fa-list"></i>
-                Show All Purchase Orders
-            </button>
+            <p class="text-gray-500">No purchase orders match your search</p>
         </div>`);
 }
 
