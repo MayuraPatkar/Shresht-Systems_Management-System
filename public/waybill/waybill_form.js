@@ -32,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!ok) return;
             }
 
-            // If user is on Step 2 and creating a new waybill, import quotation data before advancing
-            if (window.currentStep === 2 && !document.getElementById("waybill-id").value) {
+            // If user is on Step 1 (Import step) and creating a new waybill, import quotation data before advancing
+            if (window.currentStep === 1 && !document.getElementById("waybill-id").value) {
                 const quotationId = document.getElementById("quotation-id")?.value;
                 if (quotationId) {
                     try {
@@ -178,6 +178,16 @@ window.validateCurrentStep = async function () {
                 buyerEmail?.focus();
                 return false;
             }
+        }
+    }
+
+    // Step 4: Place to Supply must be filled
+    if (window.currentStep === 4) {
+        const placeSupply = document.getElementById('place-supply');
+        if (!placeSupply || !placeSupply.value.trim()) {
+            window.electronAPI.showAlert1('Please enter the Place to Supply.');
+            placeSupply?.focus();
+            return false;
         }
     }
 
