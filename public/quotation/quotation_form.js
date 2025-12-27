@@ -1501,6 +1501,7 @@ window.validateCurrentStep = async function () {
         const buyerName = document.getElementById('buyer-name');
         const buyerAddress = document.getElementById('buyer-address');
         const buyerPhone = document.getElementById('buyer-phone');
+        const buyerEmail = document.getElementById('buyer-email');
 
         if (!buyerName.value.trim()) {
             window.electronAPI.showAlert1("Please enter the Buyer Name.");
@@ -1516,6 +1517,23 @@ window.validateCurrentStep = async function () {
             window.electronAPI.showAlert1("Please enter the Phone Number.");
             buyerPhone.focus();
             return false;
+        }
+        // Ensure phone is 10 digits
+        const phoneClean = buyerPhone.value.replace(/\D/g, '');
+        if (!/^\d{10}$/.test(phoneClean)) {
+            window.electronAPI.showAlert1("Please enter a valid 10-digit phone number.");
+            buyerPhone.focus();
+            return false;
+        }
+        // If email provided, ensure it's valid
+        if (buyerEmail && buyerEmail.value.trim()) {
+            const emailVal = buyerEmail.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailVal)) {
+                window.electronAPI.showAlert1("Please enter a valid email address.");
+                buyerEmail.focus();
+                return false;
+            }
         }
     }
 
@@ -1557,6 +1575,34 @@ window.validateCurrentStep = async function () {
 
     return true;
 };
+
+// Add input sanitization and constraints for phone field
+document.addEventListener('DOMContentLoaded', () => {
+    const phoneInput = document.getElementById('buyer-phone');
+    if (phoneInput) {
+        // Ensure numeric keyboard on mobile and maxlength
+        phoneInput.setAttribute('inputmode', 'numeric');
+        phoneInput.setAttribute('maxlength', '10');
+        phoneInput.setAttribute('pattern', '[0-9]{10}');
+
+        phoneInput.addEventListener('input', () => {
+            // Strip non-digits and limit to 10 characters
+            const cleaned = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+            if (phoneInput.value !== cleaned) phoneInput.value = cleaned;
+        });
+    }
+
+    const emailInput = document.getElementById('buyer-email');
+    if (emailInput) {
+        // Limit length and basic cleanup
+        emailInput.setAttribute('maxlength', '254');
+        emailInput.addEventListener('input', () => {
+            // Trim spaces and remove internal whitespace
+            const cleaned = emailInput.value.trim().replace(/\s+/g, '');
+            if (emailInput.value !== cleaned) emailInput.value = cleaned;
+        });
+    }
+});
 
 // Expose the function to be called from other scripts
 window.loadQuotationForEditing = loadQuotationForEditing;
