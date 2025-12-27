@@ -380,58 +380,104 @@ async function renderQuotationView(quotation, viewType) {
         itemNumber++;
     });
 
-    // Process non-items
-    (quotation.non_items || []).forEach(item => {
-        const price = parseFloat(item.price || 0);
-        const taxRate = parseFloat(item.rate || 0);
-        const taxAmount = (price * taxRate) / 100;
-        let totalWithTax = price + taxAmount;
+    // Populate Items totals cards (use direct DOM updates to avoid missing helper)
+    try {
+        const elItemsAmount = document.getElementById('view-items-total-amount');
+        if (elItemsAmount) elItemsAmount.textContent = `₹ ${formatIndian(totalTaxable, 2)}`;
+        const elItemsTax = document.getElementById('view-items-total-tax');
+        if (elItemsTax) elItemsTax.textContent = (viewType === 2 && totalTax > 0) ? `₹ ${formatIndian(totalTax, 2)}` : 'No Tax';
+        const elItemsOverall = document.getElementById('items-overall');
+        if (elItemsOverall) elItemsOverall.textContent = `₹ ${formatIndian(grandTotal, 2)}`;
+    } catch (e) {
+        console.warn('Items totals DOM elements not found', e);
+    }
 
-        totalTaxable += price;
-        totalTax += taxAmount;
-        grandTotal += (viewType === 2) ? totalWithTax : price;
-
-        const row = document.createElement("tr");
+    // Process non-items (Other Charges) into a separate table
+    const viewNonItemsTableBody = document.querySelector("#view-non-items-table tbody");
+    const viewNonItemsTableHead = document.querySelector("#view-non-items-table thead tr");
+    if (viewNonItemsTableHead) {
         if (viewType === 2) {
-            row.innerHTML = `
-                <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">-</td>
-                <td class="px-4 py-3 text-sm text-gray-900">-</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${price ? formatIndian(price, 2) : '-'}</td>
-                <td class="px-4 py-3 text-sm font-semibold text-gray-900">${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td>
-            `;
-        } else if (viewType === 1) {
-            row.innerHTML = `
-                <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">-</td>
-                <td class="px-4 py-3 text-sm text-gray-900">-</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${price ? formatIndian(price, 2) : '-'}</td>
-                <td class="px-4 py-3 text-sm font-semibold text-gray-900">${price ? formatIndian(price, 2) : '-'}</td>
+            viewNonItemsTableHead.innerHTML = `
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Price</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Rate</th>
             `;
         } else {
-            row.innerHTML = `
-                <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">-</td>
-                <td class="px-4 py-3 text-sm text-gray-900">-</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${price ? formatIndian(price, 2) : '-'}</td>
-                <td class="px-4 py-3 text-sm font-semibold text-gray-900">${taxRate ? taxRate + '%' : '-'}</td>
+            viewNonItemsTableHead.innerHTML = `
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Price</th>
             `;
         }
-        viewItemsTableBody.appendChild(row);
+    }
 
-        // Add to specifications table
-        const specRow = document.createElement("tr");
-        specRow.innerHTML = `
-            <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
-            <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-            <td class="px-4 py-3 text-sm text-gray-900">${item.specification || '-'}</td>
-        `;
-        viewSpecificationsTableBody.appendChild(specRow);
-        itemNumber++;
-    });
+    // Prepare totals for non-items
+    let view_nonItemsTaxable = 0;
+    let view_nonItemsCGST = 0;
+    let view_nonItemsSGST = 0;
+    let view_nonItemsGrandTotal = 0;
+
+    if (viewNonItemsTableBody) {
+        viewNonItemsTableBody.innerHTML = "";
+        let nonItemNumber = 1;
+        (quotation.non_items || []).forEach(item => {
+            const price = parseFloat(item.price || 0);
+            const rate = parseFloat(item.rate || 0);
+            const cgst = (price * (rate / 2)) / 100;
+            const sgst = (price * (rate / 2)) / 100;
+            const rowTotal = viewType === 2 ? (price + cgst + sgst) : price;
+
+            view_nonItemsTaxable += price;
+            if (viewType === 2) {
+                view_nonItemsCGST += cgst;
+                view_nonItemsSGST += sgst;
+            }
+            view_nonItemsGrandTotal += rowTotal;
+
+            const row = document.createElement("tr");
+            row.className = "border-b border-gray-200 hover:bg-gray-50";
+            if (viewType === 2) {
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-900">${nonItemNumber}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-gray-900">${price ? formatIndian(price, 2) : '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : '-'}</td>
+                `;
+            } else {
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-900">${nonItemNumber}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-gray-900">${price ? formatIndian(price, 2) : '-'}</td>
+                `;
+            }
+            viewNonItemsTableBody.appendChild(row);
+
+            // Keep adding specification rows for backward compatibility
+            const specRow = document.createElement("tr");
+            specRow.innerHTML = `
+                <td class="px-4 py-3 text-sm text-gray-900">${nonItemNumber}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${item.specification || '-'}</td>
+            `;
+            viewSpecificationsTableBody.appendChild(specRow);
+
+            nonItemNumber++;
+        });
+
+        // Populate Non-Items totals
+        try {
+            const elNonItemsAmount = document.getElementById('view-non-items-total-amount');
+            if (elNonItemsAmount) elNonItemsAmount.textContent = `₹ ${formatIndian(view_nonItemsTaxable, 2)}`;
+            const nonItemsTax = view_nonItemsCGST + view_nonItemsSGST;
+            const elNonItemsTax = document.getElementById('view-non-items-total-tax');
+            if (elNonItemsTax) elNonItemsTax.textContent = (viewType === 2 && nonItemsTax > 0) ? `₹ ${formatIndian(nonItemsTax, 2)}` : 'No Tax';
+            const elNonItemsOverall = document.getElementById('non-items-overall');
+            if (elNonItemsOverall) elNonItemsOverall.textContent = `₹ ${formatIndian(view_nonItemsGrandTotal, 2)}`;
+        } catch (e) {
+            console.warn('Non-items totals DOM elements not found', e);
+        }
+    }
 
     // Set totals (professional 3-box layout) - round off grand total
     const subtotal = totalTaxable;
