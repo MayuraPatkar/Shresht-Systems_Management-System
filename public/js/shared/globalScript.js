@@ -16,7 +16,7 @@ document.addEventListener("keydown", function (event) {
 // Guard against duplicate registration
 if (!window._ctrlTabNavRegistered) {
   window._ctrlTabNavRegistered = true;
-  
+
   document.addEventListener("keydown", function (event) {
     // Check for Ctrl+Tab - use keyCode for Tab (9) as fallback for better compatibility
     if (event.ctrlKey && (event.key === "Tab" || event.keyCode === 9)) {
@@ -671,7 +671,7 @@ async function fill(itemName, element) {
       // Fill card inputs
       const inputs = element.querySelectorAll('input');
       inputs[1].value = stockData.HSN_SAC || ""; // HSN/SAC
-      inputs[3].value = stockData.unitPrice || 0; // Unit Price
+      inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0; // Unit Price
       inputs[4].value = stockData.GST || 0; // Rate
 
       // Trigger input events to sync with table
@@ -684,19 +684,32 @@ async function fill(itemName, element) {
       const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
       if (tableRow) {
         tableRow.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
-        tableRow.querySelector("input[placeholder='Unit Price']").value = stockData.unitPrice || 0;
-        tableRow.querySelector("input[placeholder='Rate']").value = stockData.GST || 0;
+        const unitInput = tableRow.querySelector("input[placeholder='Unit Price']");
+        const rateInput = tableRow.querySelector("input[placeholder='Rate']");
+        unitInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+        rateInput.value = stockData.GST || 0;
+        // Dispatch events so calculations update
+        unitInput.dispatchEvent(new Event('input', { bubbles: true }));
+        rateInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
     } else {
       // Fill table row (backward compatibility)
-      element.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
-      element.querySelector("input[placeholder='Unit Price']").value = stockData.unitPrice || 0;
-      element.querySelector("input[placeholder='Rate']").value = stockData.GST || 0;
-    }
-
-    // Update specifications table when item is filled
-    if (sessionStorage.getItem('currentTab') === 'quotation') {
-      setTimeout(() => updateSpecificationsTable(), 100);
+      const hsnInput = element.querySelector("input[placeholder='HSN/SAC']");
+      const unitInput = element.querySelector("input[placeholder='Unit Price']");
+      const rateInput = element.querySelector("input[placeholder='Rate']");
+      if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
+      if (unitInput) {
+        unitInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+        unitInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (rateInput) {
+        rateInput.value = stockData.GST || 0;
+        rateInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      // Update specifications table when item is filled
+      if (sessionStorage.getItem('currentTab') === 'quotation') {
+        setTimeout(() => updateSpecificationsTable(), 100);
+      }
     }
   }
 }

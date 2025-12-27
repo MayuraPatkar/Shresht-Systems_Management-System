@@ -252,7 +252,7 @@ async function fillPurchaseOrderItem(itemName, element) {
             // Row 1: [0]=description, [1]=HSN, [2]=qty, [3]=unit_price, [4]=rate
             if (row1Inputs[1]) row1Inputs[1].value = stockData.HSN_SAC || "";
             // Leave qty blank (user needs to enter)
-            if (row1Inputs[3]) row1Inputs[3].value = stockData.unitPrice || 0;
+            if (row1Inputs[3]) row1Inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
             if (row1Inputs[4]) row1Inputs[4].value = stockData.GST || 0;
             
             // Row 2: [0]=company, [1]=type, [2]=category
@@ -284,7 +284,7 @@ async function fillPurchaseOrderItem(itemName, element) {
                 if (companyInput) companyInput.value = stockData.company || "";
                 if (typeInput) typeInput.value = stockData.type || "";
                 if (categoryInput) categoryInput.value = stockData.category || "";
-                if (priceInput) priceInput.value = stockData.unitPrice || 0;
+                if (priceInput) priceInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
                 if (rateInput) rateInput.value = stockData.GST || 0;
 
                 // Store specification in row dataset
@@ -306,8 +306,14 @@ async function fillPurchaseOrderItem(itemName, element) {
             if (companyInput) companyInput.value = stockData.company || "";
             if (typeInput) typeInput.value = stockData.type || "";
             if (categoryInput) categoryInput.value = stockData.category || "";
-            if (priceInput) priceInput.value = stockData.unitPrice || 0;
-            if (rateInput) rateInput.value = stockData.GST || 0;
+            if (priceInput) {
+                priceInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+                priceInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            if (rateInput) {
+                rateInput.value = stockData.GST || 0;
+                rateInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
 
             // Store specification in row dataset
             element.dataset.specification = stockData.specifications || '';
@@ -320,7 +326,7 @@ async function fillPurchaseOrderItem(itemName, element) {
                 const row2Inputs = card.querySelectorAll('.item-row-2 input');
                 
                 if (row1Inputs[1]) row1Inputs[1].value = stockData.HSN_SAC || "";
-                if (row1Inputs[3]) row1Inputs[3].value = stockData.unitPrice || 0;
+                if (row1Inputs[3]) row1Inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
                 if (row1Inputs[4]) row1Inputs[4].value = stockData.GST || 0;
                 if (row2Inputs[0]) row2Inputs[0].value = stockData.company || "";
                 if (row2Inputs[1]) row2Inputs[1].value = stockData.type || "";

@@ -466,7 +466,7 @@ async function fillWaybill(itemName, element) {
         // Here inputs[1] => HSN, inputs[3] => Unit Price, inputs[4] => Rate (based on card structure in waybill)
         inputs[1].value = stockData.HSN_SAC || '';
         // unit_price is index 3? Check template: description, hsn, qty, unit_price, rate -> idx 3 & 4
-        if (inputs[3]) inputs[3].value = stockData.unitPrice || 0;
+        if (inputs[3]) inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
         if (inputs[4]) inputs[4].value = stockData.GST || 0;
         inputs[1].dispatchEvent(new Event('input', { bubbles: true }));
         if (inputs[3]) inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
@@ -479,8 +479,11 @@ async function fillWaybill(itemName, element) {
             const rowInputs = tableRow.querySelectorAll('input');
             if (rowInputs.length >= 5) {
                 rowInputs[1].value = stockData.HSN_SAC || '';
-                rowInputs[3].value = stockData.unitPrice || 0;
+                rowInputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
                 rowInputs[4].value = stockData.GST || 0;
+                // Trigger input events to ensure totals update
+                rowInputs[3].dispatchEvent(new Event('input', { bubbles: true }));
+                rowInputs[4].dispatchEvent(new Event('input', { bubbles: true }));
             }
         }
     } else {
@@ -488,7 +491,7 @@ async function fillWaybill(itemName, element) {
         const rowInputs = element.querySelectorAll('input');
         if (rowInputs.length >= 5) {
             rowInputs[1].value = stockData.HSN_SAC || '';
-            rowInputs[3].value = stockData.unitPrice || 0;
+            rowInputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
             rowInputs[4].value = stockData.GST || 0;
         }
     }
