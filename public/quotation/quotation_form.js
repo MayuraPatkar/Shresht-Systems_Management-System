@@ -625,6 +625,7 @@ async function generatePreview() {
         quotationId = document.getElementById('id').value;
     }
     const projectName = document.getElementById("project-name").value || "";
+    const quotationDate = document.getElementById("quotation-date").value || "";
     const buyerName = document.getElementById("buyer-name").value || "";
     const buyerAddress = document.getElementById("buyer-address").value || "";
     const buyerPhone = document.getElementById("buyer-phone").value || "";
@@ -869,6 +870,9 @@ async function generatePreview() {
     const isDuplicate = tabStatus === 'duplicate';
     const isUpdate = tabStatus === 'update';
 
+    // Format the date for display (DD/MM/YYYY format)
+    const formattedDate = formatDateIndian(quotationDate);
+
     // Get duplicate content if in duplicate mode
     let duplicateContent = null;
     if (isDuplicate) {
@@ -888,6 +892,9 @@ async function generatePreview() {
         ${headerHTML}
 
         <div class="title">Quotation-${quotationId}</div>
+        <div class="quotation-letter-date">
+            <p><strong>Date:</strong> ${formattedDate}</p>
+        </div>
         <div class="quotation-letter-content" >
             <p><strong>To:</strong></p>
               ${buyerName}<br>
@@ -1043,6 +1050,9 @@ async function generatePreview() {
         ${headerHTML}
 
         <div class="title">Quotation-${quotationId}</div>
+        <div class="quotation-letter-date">
+            <p><strong>Date:</strong> ${formattedDate}</p>
+        </div>
         <div class="quotation-letter-content" >
             <p><strong>To:</strong></p>
               ${buyerName}<br>
@@ -1181,6 +1191,9 @@ async function generatePreview() {
         ${headerHTML}
 
         <div class="title">Quotation-${quotationId}</div>
+        <div class="quotation-letter-date">
+            <p><strong>Date:</strong> ${formattedDate}</p>
+        </div>
         <div class="quotation-letter-content" >
             <p><strong>To:</strong></p>
               ${buyerName}<br>
