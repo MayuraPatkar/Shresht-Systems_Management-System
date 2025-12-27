@@ -331,8 +331,7 @@ router.post("/save-payment", async (req, res) => {
             return res.status(404).json({ message: "Invoice not found" });
         }
 
-        invoice.total_paid_amount = Number(invoice.total_paid_amount || 0);
-
+        // Add the new payment
         invoice.payments.push({
             payment_date: paymentDate,
             paid_amount: Number(paidAmount),
@@ -340,10 +339,38 @@ router.post("/save-payment", async (req, res) => {
             extra_details: paymentExtra || ''
         });
 
-        invoice.total_paid_amount += Number(paidAmount);
+        // Recalculate total_paid_amount from all payments to avoid drift
+        invoice.total_paid_amount = (invoice.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
 
-        // Auto-determine payment status based on amounts
-        if (invoice.total_paid_amount >= invoice.total_amount_duplicate) {
+        // Compute total due: prefer duplicate total, fallback to computed sum of items/non-items
+        const computeTotalDue = (inv) => {
+            const dup = Number(inv.total_amount_duplicate || 0);
+            if (dup > 0) return dup;
+            const items = inv.items_duplicate && inv.items_duplicate.length > 0 ? inv.items_duplicate : (inv.items_original || []);
+            const nonItems = inv.non_items_duplicate && inv.non_items_duplicate.length > 0 ? inv.non_items_duplicate : (inv.non_items_original || []);
+            let subtotal = 0;
+            let tax = 0;
+            for (const it of items) {
+                const qty = Number(it.quantity || 0);
+                const unit = Number(it.unit_price || 0);
+                const rate = Number(it.rate || 0);
+                const taxable = qty * unit;
+                subtotal += taxable;
+                tax += taxable * (rate / 100);
+            }
+            for (const nit of nonItems) {
+                const price = Number(nit.price || 0);
+                const rate = Number(nit.rate || 0);
+                subtotal += price;
+                tax += price * (rate / 100);
+            }
+            return Number((subtotal + tax).toFixed(2));
+        };
+
+        const totalDue = computeTotalDue(invoice);
+
+        // Auto-determine payment status based on recalculated totals
+        if (totalDue > 0 && invoice.total_paid_amount >= totalDue) {
             invoice.payment_status = 'Paid';
         } else if (invoice.total_paid_amount > 0) {
             invoice.payment_status = 'Partial';
@@ -351,6 +378,7 @@ router.post("/save-payment", async (req, res) => {
             invoice.payment_status = 'Unpaid';
         }
 
+        // Allow model hook if present
         if (typeof invoice.updatePaymentStatus === 'function') {
             invoice.updatePaymentStatus();
         }

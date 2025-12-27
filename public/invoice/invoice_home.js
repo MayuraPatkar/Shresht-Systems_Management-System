@@ -246,8 +246,39 @@ function createInvoiceCard(invoice) {
     const invoiceCard = document.createElement("div");
     invoiceCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
     
-    const isPaid = invoice.payment_status === 'Paid';
-    const dueAmount = invoice.total_amount_duplicate - invoice.total_paid_amount;
+    const status = (invoice.payment_status || 'Unpaid');
+    const isPaid = status === 'Paid';
+    const isPartial = status === 'Partial';
+
+    // Compute effective total: prefer total_amount_duplicate, fallback to computed from items/non-items
+    const computeEffectiveTotal = (inv) => {
+        const dup = Number(inv.total_amount_duplicate || 0);
+        if (dup > 0) return dup;
+        const items = inv.items_duplicate && inv.items_duplicate.length > 0 ? inv.items_duplicate : (inv.items_original || []);
+        const nonItems = inv.non_items_duplicate && inv.non_items_duplicate.length > 0 ? inv.non_items_duplicate : (inv.non_items_original || []);
+        let subtotal = 0;
+        let tax = 0;
+        for (const it of items) {
+            const qty = Number(it.quantity || 0);
+            const unit = Number(it.unit_price || 0);
+            const rate = Number(it.rate || 0);
+            const taxable = qty * unit;
+            subtotal += taxable;
+            tax += taxable * (rate / 100);
+        }
+        for (const nit of nonItems) {
+            const price = Number(nit.price || 0);
+            const rate = Number(nit.rate || 0);
+            subtotal += price;
+            tax += price * (rate / 100);
+        }
+        return Number((subtotal + tax).toFixed(2));
+    };
+
+    const total = computeEffectiveTotal(invoice);
+    const paidSoFar = Number(invoice.total_paid_amount || 0);
+    const dueAmount = Number((total - paidSoFar).toFixed(2));
+    const percentPaid = total > 0 ? Math.round((paidSoFar / total) * 100) : (paidSoFar > 0 ? 100 : 0);
     
     // Format the date for display
     const dateToFormat = invoice.invoice_date || invoice.createdAt;
@@ -317,24 +348,27 @@ function createInvoiceCard(invoice) {
                     <!-- Amount Section -->
                     ${userRole === 'admin' ? `
                     <div class="flex items-center px-4 border-r border-gray-200">
-                        <div class="rounded-lg p-3 w-[200px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : dueAmount > 0 ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : dueAmount > 0 ? '#fcd34d' : '#bfdbfe'};">
+                        <div class="rounded-lg p-3 w-[200px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#bfdbfe'};">
                             <!-- Total Row -->
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
-                                <span class="text-base font-bold" style="color: ${isPaid ? '#059669' : '#2563eb'};">₹${formatIndian(invoice.total_amount_duplicate, 2)}</span>
+                                <span class="text-base font-bold" style="color: ${isPaid ? '#059669' : '#2563eb'};">₹${formatIndian(total, 2)}</span>
                             </div>
                             <!-- Progress Bar -->
                             <div class="w-full h-1.5 rounded-full mb-2" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
-                                <div class="h-1.5 rounded-full" style="width: ${Math.round(((invoice.total_amount_duplicate - dueAmount) / invoice.total_amount_duplicate) * 100)}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
+                                <div class="h-1.5 rounded-full" style="width: ${percentPaid}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
                             </div>
                             <!-- Due/Paid Row -->
                             <div class="flex items-center justify-between">
-                                ${dueAmount > 0 ? `
+                                ${total > 0 ? (dueAmount > 0 ? `
                                 <span class="text-xs font-medium uppercase tracking-wide" style="color: #dc2626;">Balance Due</span>
                                 <span class="text-base font-bold" style="color: #dc2626;">₹${formatIndian(dueAmount, 2)}</span>
                                 ` : `
                                 <span class="text-xs font-medium" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
-                                <span class="text-base font-bold" style="color: #059669;">₹0.00</span>
+                                <span class="text-base font-bold" style="color: #059669;">₹${formatIndian(paidSoFar, 2)}</span>
+                                `) : `
+                                <span class="text-xs font-medium" style="color: #2563eb;">No Charges</span>
+                                <span class="text-base font-bold" style="color: #2563eb;">₹0.00</span>
                                 `}
                             </div>
                         </div>
@@ -546,14 +580,39 @@ async function payment(id) {
         paidAmountInput.setAttribute('inputmode', 'decimal');
     }
     
-    // Fetch invoice to get due amount
+    // Fetch invoice to get due amount (use computed total if stored total is absent)
     try {
         const response = await fetchDocumentById('invoice', invoiceId);
         if (response && response.invoice) {
             const invoice = response.invoice;
-            const totalAmount = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
-            const paidAmount = invoice.total_paid_amount || 0;
-            const dueAmount = totalAmount - paidAmount;
+            // Compute effective total similar to card
+            const computeEffectiveTotalLocal = (inv) => {
+                const dup = Number(inv.total_amount_duplicate || 0);
+                if (dup > 0) return dup;
+                const items = inv.items_duplicate && inv.items_duplicate.length > 0 ? inv.items_duplicate : (inv.items_original || []);
+                const nonItems = inv.non_items_duplicate && inv.non_items_duplicate.length > 0 ? inv.non_items_duplicate : (inv.non_items_original || []);
+                let subtotal = 0;
+                let tax = 0;
+                for (const it of items) {
+                    const qty = Number(it.quantity || 0);
+                    const unit = Number(it.unit_price || 0);
+                    const rate = Number(it.rate || 0);
+                    const taxable = qty * unit;
+                    subtotal += taxable;
+                    tax += taxable * (rate / 100);
+                }
+                for (const nit of nonItems) {
+                    const price = Number(nit.price || 0);
+                    const rate = Number(nit.rate || 0);
+                    subtotal += price;
+                    tax += price * (rate / 100);
+                }
+                return Number((subtotal + tax).toFixed(2));
+            };
+
+            const totalAmount = computeEffectiveTotalLocal(invoice);
+            const paidAmount = Number(invoice.total_paid_amount || 0);
+            const dueAmount = Number((totalAmount - paidAmount).toFixed(2));
             const dueAmountElement = document.getElementById('payment-due-amount');
             if (dueAmountElement) {
                 dueAmountElement.textContent = `₹ ${formatIndian(dueAmount, 2)}`;

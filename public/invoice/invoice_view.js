@@ -493,24 +493,71 @@ async function renderInvoiceView(invoice, userRole, viewType) {
     setTextContent('view-consignee-address', invoice.consignee_address);
     
     // Set the totals for the view section (professional 3-box layout)
-    // Use docType to determine original vs duplicate, showTax to determine if tax is displayed
+    // We'll prefer explicit totals from the invoice if present (and > 0), otherwise compute from items/non-items
+    let viewSubtotal = 0;
+    let viewTax = 0;
+    let viewGrandTotal = 0;
+
+    // Helper to compute totals from items and non-items
+    const computeTotalsFromItems = (itemsList, nonItemsList) => {
+        let subtotal = 0;
+        let tax = 0;
+        for (const it of itemsList || []) {
+            const qty = Number(it.quantity || 0);
+            const unit = Number(it.unit_price || 0);
+            const rate = Number(it.rate || 0);
+            const taxable = qty * unit;
+            const taxVal = taxable * (rate / 100);
+            subtotal += taxable;
+            tax += taxVal;
+        }
+        for (const nit of nonItemsList || []) {
+            const price = Number(nit.price || 0);
+            const rate = Number(nit.rate || 0);
+            const taxVal = price * (rate / 100);
+            subtotal += price;
+            tax += taxVal;
+        }
+        const grand = subtotal + tax;
+        return { subtotal, tax, grand };
+    };
+
     if (docType === 'original') {
-        const subtotal = invoice.total_amount_original - invoice.total_tax_original;
-        const tax = invoice.total_tax_original;
-        const grandTotal = showTax ? invoice.total_amount_original : subtotal;
-        
-        setTextContent('view-subtotal', `₹ ${formatIndian(subtotal, 2)}`);
-        setTextContent('view-tax', showTax && tax > 0 ? `₹ ${formatIndian(tax, 2)}` : 'No Tax');
-        setTextContent('view-grand-total', `₹ ${formatIndian(grandTotal, 2)}`);
+        const givenTotal = Number(invoice.total_amount_original || 0);
+        const givenTax = Number(invoice.total_tax_original || 0);
+        if (givenTotal > 0) {
+            viewGrandTotal = givenTotal;
+            viewTax = givenTax;
+            viewSubtotal = Math.max(0, viewGrandTotal - viewTax);
+        } else {
+            const totals = computeTotalsFromItems(itemsForType, nonItemsForType);
+            viewSubtotal = totals.subtotal;
+            viewTax = totals.tax;
+            viewGrandTotal = totals.grand;
+        }
     } else {
-        const subtotal = invoice.total_amount_duplicate - invoice.total_tax_duplicate;
-        const tax = invoice.total_tax_duplicate;
-        const grandTotal = showTax ? invoice.total_amount_duplicate : subtotal;
-        
-        setTextContent('view-subtotal', `₹ ${formatIndian(subtotal, 2)}`);
-        setTextContent('view-tax', showTax && tax > 0 ? `₹ ${formatIndian(tax, 2)}` : 'No Tax');
-        setTextContent('view-grand-total', `₹ ${formatIndian(grandTotal, 2)}`);
+        const givenTotal = Number(invoice.total_amount_duplicate || 0);
+        const givenTax = Number(invoice.total_tax_duplicate || 0);
+        if (givenTotal > 0) {
+            viewGrandTotal = givenTotal;
+            viewTax = givenTax;
+            viewSubtotal = Math.max(0, viewGrandTotal - viewTax);
+        } else {
+            const totals = computeTotalsFromItems(itemsForType, nonItemsForType);
+            viewSubtotal = totals.subtotal;
+            viewTax = totals.tax;
+            viewGrandTotal = totals.grand;
+        }
     }
+
+    setTextContent('view-subtotal', `₹ ${formatIndian(viewSubtotal, 2)}`);
+    setTextContent('view-tax', showTax && viewTax > 0 ? `₹ ${formatIndian(viewTax, 2)}` : 'No Tax');
+    setTextContent('view-grand-total', `₹ ${formatIndian(viewGrandTotal, 2)}`);
+
+    // Update balance due based on computed grand total (fallback if stored total is absent)
+    const effectiveTotal = viewGrandTotal;
+    const balanceDueComputed = Number(effectiveTotal || 0) - Number(invoice.total_paid_amount || 0);
+    setTextContent('view-balance-due', `₹ ${formatIndian(balanceDueComputed, 2)}`);
 
     // Payment History
     const detailPaymentsTableBody = document.querySelector("#view-payment-table tbody");
@@ -523,6 +570,7 @@ async function renderInvoiceView(invoice, userRole, viewType) {
                     <td class="px-4 py-3 text-sm text-gray-900">${formatDateIndian(item.payment_date) || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.extra_details ? item.extra_details : '-'}</td>
                 `;
             detailPaymentsTableBody.appendChild(row);
         }
