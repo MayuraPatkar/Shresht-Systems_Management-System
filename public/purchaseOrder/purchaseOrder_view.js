@@ -125,6 +125,34 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
     // Generate pages
     const pagesHTML = itemPages.map((pageHTML, index) => {
         const isLastPage = index === itemPages.length - 1;
+        // If this is the last page and there are specifications, add a specifications section
+        const hasSpecs = (purchaseOrder.items || []).some(it => (it.specification || '').toString().trim().length > 0);
+        let specsHTML = '';
+        if (isLastPage && hasSpecs) {
+            const specRows = (purchaseOrder.items || []).map((it, idx) => `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${it.description || '-'}</td>
+                    <td>${it.specification || '-'}</td>
+                </tr>`).join('');
+            specsHTML = `
+                <div class="specifications-section" style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 8px;">Specifications</h3>
+                    <table style="width:100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left; border-bottom: 1px solid #e5e7eb; padding: 6px;">S.No</th>
+                                <th style="text-align:left; border-bottom: 1px solid #e5e7eb; padding: 6px;">Description</th>
+                                <th style="text-align:left; border-bottom: 1px solid #e5e7eb; padding: 6px;">Specifications</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${specRows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
         return `
     <div class="preview-container doc-standard doc-purchase-order doc-quotation">
         <div class="header">
@@ -188,6 +216,8 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
         </div>
 
         ${!isLastPage ? `<div class="continuation-text" style="text-align: center; margin: 20px 0; font-style: italic; color: #666;">Continued on next page...</div>` : ''}
+
+        ${specsHTML}
 
         ${isLastPage ? `
         <div class="fifth-section">
@@ -306,7 +336,6 @@ async function viewPurchaseOrder(purchaseOrderId) {
             row.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">${item.specification || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || item.hsn_sac || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
@@ -336,6 +365,23 @@ async function viewPurchaseOrder(purchaseOrderId) {
         document.getElementById('view-subtotal').textContent = `₹ ${formatIndian(subtotal, 2)}`;
         document.getElementById('view-tax').textContent = totalTax > 0 ? `₹ ${formatIndian(totalTax, 2)}` : 'No Tax';
         document.getElementById('view-grand-total').textContent = `₹ ${formatIndian(grandTotal, 2)}`;
+
+        // Populate the Specifications table (separate section)
+        const viewSpecsBody = document.querySelector('#view-specifications-table tbody');
+        if (viewSpecsBody) {
+            viewSpecsBody.innerHTML = '';
+            let specNo = 1;
+            (purchaseOrder.items || []).forEach(item => {
+                const specRow = document.createElement('tr');
+                specRow.className = 'border-b border-gray-200 hover:bg-gray-50';
+                specRow.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-700">${specNo++}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.description || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.specification || '-'}</td>
+                `;
+                viewSpecsBody.appendChild(specRow);
+            });
+        }
 
         // Generate the preview for print/PDF
         await generatePurchaseOrderViewPreview(purchaseOrder);
