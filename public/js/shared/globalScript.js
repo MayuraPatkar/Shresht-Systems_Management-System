@@ -178,6 +178,17 @@ if (nextBtn) {
       if (!isValid) return;
     }
 
+    // Module hook: allow forms to perform async actions before the step advances
+    if (currentStep < totalSteps && typeof window.beforeStepAdvance === 'function') {
+      try {
+        const proceed = await window.beforeStepAdvance(currentStep);
+        if (!proceed) return; // Hook decided to cancel navigation
+      } catch (err) {
+        console.error('beforeStepAdvance hook failed:', err);
+        return;
+      }
+    }
+
     if (currentStep < totalSteps) {
       changeStep(currentStep + 1);
       const idInput = document.getElementById('id') || document.getElementById('service-id');

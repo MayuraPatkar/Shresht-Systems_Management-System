@@ -530,11 +530,20 @@ async function payment(id) {
     // Store invoiceId for payment form submission
     window.currentPaymentInvoiceId = invoiceId;
     
-    // Set default payment date to today
+    // Set default payment date to today and disallow future dates
     const paymentDateInput = document.getElementById('payment-date');
     if (paymentDateInput) {
         const today = new Date().toISOString().split('T')[0];
         paymentDateInput.value = today;
+        paymentDateInput.max = today;
+    }
+
+    // Ensure paid amount input has proper constraints
+    const paidAmountInput = document.getElementById('paid-amount');
+    if (paidAmountInput) {
+        paidAmountInput.setAttribute('min', '0.01');
+        paidAmountInput.setAttribute('step', '0.01');
+        paidAmountInput.setAttribute('inputmode', 'decimal');
     }
     
     // Fetch invoice to get due amount
@@ -608,20 +617,95 @@ document.getElementById('payment-mode')?.addEventListener('change', function () 
 
 // Payment form submission handler
 document.getElementById('payment-btn')?.addEventListener('click', async () => {
-    const paidAmount = parseFloat(document.getElementById("paid-amount").value) || 0;
+    const paymentBtn = document.getElementById('payment-btn');
+
+    // Prevent double submission
+    if (paymentBtn.disabled) return;
+
+    const paidAmountInput = document.getElementById("paid-amount");
+    const paidAmount = parseFloat(paidAmountInput?.value) || 0;
     const paymentDate = document.getElementById("payment-date").value;
     const paymentMode = document.getElementById("payment-mode").value;
 
-    // Get extra field value
+    // Re-fetch invoice to get the latest due amount
+    let dueAmount = null;
+    try {
+        const invResp = await fetchDocumentById('invoice', window.currentPaymentInvoiceId);
+        if (invResp && invResp.invoice) {
+            const invoice = invResp.invoice;
+            const totalAmount = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
+            const paidSoFar = invoice.total_paid_amount || 0;
+            dueAmount = Number((totalAmount - paidSoFar).toFixed(2));
+        }
+    } catch (err) {
+        console.error('Error fetching invoice for validation:', err);
+    }
+
+    // Basic validations
+    if (!window.currentPaymentInvoiceId) {
+        window.electronAPI.showAlert1('Invoice not selected for payment.');
+        return;
+    }
+
+    if (!paymentDate) {
+        window.electronAPI.showAlert1('Please select a payment date.');
+        return;
+    }
+
+    const today = new Date();
+    const enteredDate = new Date(paymentDate + 'T00:00:00');
+    if (isNaN(enteredDate.getTime())) {
+        window.electronAPI.showAlert1('Invalid payment date.');
+        return;
+    }
+    if (enteredDate > today) {
+        window.electronAPI.showAlert1('Payment date cannot be in the future.');
+        return;
+    }
+
+    if (!paymentMode) {
+        window.electronAPI.showAlert1('Please select a payment method.');
+        return;
+    }
+
+    if (paidAmount <= 0 || isNaN(paidAmount)) {
+        window.electronAPI.showAlert1('Please enter a valid paid amount greater than 0.');
+        paidAmountInput?.focus();
+        return;
+    }
+
+    if (dueAmount !== null && paidAmount > dueAmount) {
+        window.electronAPI.showAlert1(`Paid amount cannot exceed due amount (₹ ${formatIndian(dueAmount, 2)}).`);
+        paidAmountInput?.focus();
+        return;
+    }
+
+    // Extra info validations based on payment method
     let extraInfo = '';
     if (paymentMode === 'Cash') {
         extraInfo = document.getElementById('cash-location')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter cash location.');
+            return;
+        }
     } else if (paymentMode === 'UPI') {
         extraInfo = document.getElementById('upi-transaction-id')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter UPI transaction ID.');
+            return;
+        }
     } else if (paymentMode === 'Cheque') {
         extraInfo = document.getElementById('cheque-number')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter cheque number.');
+            return;
+        }
     } else if (paymentMode === 'Bank Transfer') {
         extraInfo = document.getElementById('bank-details')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter bank details.');
+            return;
+        }
     }
 
     const data = {
@@ -631,6 +715,11 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
         paymentMode: paymentMode,
         paymentExtra: extraInfo,
     };
+
+    // Disable button while processing
+    paymentBtn.disabled = true;
+    const originalBtnText = paymentBtn.innerHTML;
+    paymentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
     try {
         const response = await fetch("/invoice/save-payment", {
@@ -643,10 +732,14 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
 
         if (!response.ok) {
             window.electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
+            paymentBtn.disabled = false;
+            paymentBtn.innerHTML = originalBtnText;
         } else {
             window.electronAPI.showAlert1("Payment Saved!");
             document.getElementById("paid-amount").value = '';
-            document.getElementById("payment-date").value = '';
+            // Reset payment date to today
+            const paymentDateEl = document.getElementById('payment-date');
+            if (paymentDateEl) paymentDateEl.value = new Date().toISOString().split('T')[0];
             document.getElementById("payment-mode").value = '';
             const extraField = document.getElementById('extra-payment-details');
             if (extraField) {
@@ -658,6 +751,7 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 `;
             }
+
             // Close payment modal and return to home
             document.getElementById('payment-container').style.display = 'none';
             document.getElementById('home').style.display = 'block';
@@ -667,6 +761,8 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
     } catch (error) {
         console.error("Error:", error);
         window.electronAPI.showAlert1("Failed to connect to server.");
+        paymentBtn.disabled = false;
+        paymentBtn.innerHTML = originalBtnText;
     }
 });
 

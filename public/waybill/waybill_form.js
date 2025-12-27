@@ -31,6 +31,40 @@ document.addEventListener('DOMContentLoaded', function () {
                 const ok = await window.validateCurrentStep();
                 if (!ok) return;
             }
+
+            // If user is on Step 2 and creating a new waybill, import quotation data before advancing
+            if (window.currentStep === 2 && !document.getElementById("waybill-id").value) {
+                const quotationId = document.getElementById("quotation-id")?.value;
+                if (quotationId) {
+                    try {
+                        const response = await fetch(`/quotation/${quotationId}`);
+                        if (!response.ok) throw new Error('Failed to fetch quotation');
+                        const data = await response.json();
+                        const quotation = data.quotation;
+
+                        document.getElementById("project-name").value = quotation.project_name;
+                        document.getElementById("buyer-name").value = quotation.customer_name;
+                        document.getElementById("buyer-address").value = quotation.customer_address;
+                        document.getElementById("buyer-phone").value = quotation.customer_phone;
+
+                        const itemsTableBody = document.querySelector("#items-table tbody");
+                        itemsTableBody.innerHTML = "";
+                        const itemsContainer = document.getElementById("items-container");
+                        itemsContainer.innerHTML = "";
+                        let itemSno = 1;
+
+                        (quotation.items || []).forEach(item => {
+                            addItemFromData(item, itemSno);
+                            itemSno++;
+                        });
+                    } catch (error) {
+                        console.error("Error:", error);
+                        window.electronAPI.showAlert1("Failed to fetch quotation.");
+                        return; // cancel navigation
+                    }
+                }
+            }
+
             if (window.currentStep < window.totalSteps) {
                 window.changeStep(window.currentStep + 1);
             }
@@ -250,43 +284,7 @@ async function openWayBill(wayBillId) {
     });
 }
 
-// Event listener for the "Next" button - fetch quotation data on step 2
-document.addEventListener('DOMContentLoaded', function () {
-    const nextBtn = document.getElementById("next-btn");
-    if (nextBtn) {
-        nextBtn.addEventListener("click", () => {
-            if (window.currentStep === 2 && !document.getElementById("waybill-id").value) {
-                const quotationId = document.getElementById("quotation-id").value;
 
-                if (quotationId) {
-                    fetch(`/quotation/${quotationId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            const quotation = data.quotation;
-                            document.getElementById("project-name").value = quotation.project_name;
-                            document.getElementById("buyer-name").value = quotation.customer_name;
-                            document.getElementById("buyer-address").value = quotation.customer_address;
-                            document.getElementById("buyer-phone").value = quotation.customer_phone;
-                            const itemsTableBody = document.querySelector("#items-table tbody");
-                            itemsTableBody.innerHTML = "";
-                            const itemsContainer = document.getElementById("items-container");
-                            itemsContainer.innerHTML = "";
-                            let itemSno = 1;
-
-                            quotation.items.forEach(item => {
-                                addItemFromData(item, itemSno);
-                                itemSno++;
-                            });
-                        })
-                        .catch(error => {
-                            console.error("Error:", error);
-                            window.electronAPI.showAlert1("Failed to fetch quotation.");
-                        });
-                }
-            }
-        });
-    }
-});
 
 // Setup add item button listener after DOM loads
 document.addEventListener('DOMContentLoaded', function () {
