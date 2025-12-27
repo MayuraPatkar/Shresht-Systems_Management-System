@@ -278,7 +278,8 @@ function createInvoiceCard(invoice) {
     const total = computeEffectiveTotal(invoice);
     const paidSoFar = Number(invoice.total_paid_amount || 0);
     const dueAmount = Number((total - paidSoFar).toFixed(2));
-    const percentPaid = total > 0 ? Math.round((paidSoFar / total) * 100) : (paidSoFar > 0 ? 100 : 0);
+    let percentPaid = total > 0 ? Math.round((paidSoFar / total) * 100) : (paidSoFar > 0 ? 100 : 0);
+    percentPaid = Math.max(0, Math.min(percentPaid, 100));
     
     // Format the date for display
     const dateToFormat = invoice.invoice_date || invoice.createdAt;
@@ -314,8 +315,8 @@ function createInvoiceCard(invoice) {
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-1">
                                 <h3 class="text-lg font-bold text-gray-900 truncate">${invoice.project_name}</h3>
-                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold ${isPaid ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">
-                                    ${isPaid ? 'PAID' : 'PENDING'}
+                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge ${isPaid ? 'bg-green-100 text-green-700' : isPartial ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}">
+                                    ${status.toUpperCase()}
                                 </span>
                             </div>
                             <div class="flex items-center gap-2">
@@ -352,23 +353,23 @@ function createInvoiceCard(invoice) {
                             <!-- Total Row -->
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
-                                <span class="text-base font-bold" style="color: ${isPaid ? '#059669' : '#2563eb'};">₹${formatIndian(total, 2)}</span>
+                                <span class="text-base font-bold card-total-amount" style="color: ${isPaid ? '#059669' : '#2563eb'};">₹${formatIndian(total, 2)}</span>
                             </div>
                             <!-- Progress Bar -->
-                            <div class="w-full h-1.5 rounded-full mb-2" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
-                                <div class="h-1.5 rounded-full" style="width: ${percentPaid}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
+                            <div class="w-full h-1.5 rounded-full mb-2 card-progress-outer" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
+                                <div class="h-1.5 rounded-full card-progress-fill" style="width: ${percentPaid}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
                             </div>
                             <!-- Due/Paid Row -->
                             <div class="flex items-center justify-between">
                                 ${total > 0 ? (dueAmount > 0 ? `
-                                <span class="text-xs font-medium uppercase tracking-wide" style="color: #dc2626;">Balance Due</span>
-                                <span class="text-base font-bold" style="color: #dc2626;">₹${formatIndian(dueAmount, 2)}</span>
+                                <span class="text-xs font-medium uppercase tracking-wide">Balance Due</span>
+                                <span class="text-base font-bold card-due-amount" style="color: #dc2626;">₹${formatIndian(dueAmount, 2)}</span>
                                 ` : `
                                 <span class="text-xs font-medium" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
-                                <span class="text-base font-bold" style="color: #059669;">₹${formatIndian(paidSoFar, 2)}</span>
+                                <span class="text-base font-bold card-due-amount" style="color: #059669;">₹${formatIndian(paidSoFar, 2)}</span>
                                 `) : `
                                 <span class="text-xs font-medium" style="color: #2563eb;">No Charges</span>
-                                <span class="text-base font-bold" style="color: #2563eb;">₹0.00</span>
+                                <span class="text-base font-bold card-due-amount" style="color: #2563eb;">₹0.00</span>
                                 `}
                             </div>
                         </div>
@@ -474,6 +475,72 @@ function createInvoiceCard(invoice) {
             }
         });
     }
+
+    // If the provided list document lacks items and the computed total is zero, fetch full invoice details to compute accurate totals
+    (async () => {
+        try {
+            if (total === 0 && !(invoice.items_duplicate && invoice.items_duplicate.length) && !(invoice.items_original && invoice.items_original.length)) {
+                const resp = await fetch(`/invoice/${invoice.invoice_id}`);
+                if (!resp.ok) return;
+                const data = await resp.json();
+                const full = data.invoice;
+
+                // Compute effective total from full document
+                const computeEffectiveTotalFull = (inv) => {
+                    const dup = Number(inv.total_amount_duplicate || 0);
+                    if (dup > 0) return dup;
+                    const items = inv.items_duplicate && inv.items_duplicate.length > 0 ? inv.items_duplicate : (inv.items_original || []);
+                    const nonItems = inv.non_items_duplicate && inv.non_items_duplicate.length > 0 ? inv.non_items_duplicate : (inv.non_items_original || []);
+                    let subtotal = 0;
+                    let tax = 0;
+                    for (const it of items) {
+                        const qty = Number(it.quantity || 0);
+                        const unit = Number(it.unit_price || 0);
+                        const rate = Number(it.rate || 0);
+                        const taxable = qty * unit;
+                        subtotal += taxable;
+                        tax += taxable * (rate / 100);
+                    }
+                    for (const nit of nonItems) {
+                        const price = Number(nit.price || 0);
+                        const rate = Number(nit.rate || 0);
+                        subtotal += price;
+                        tax += price * (rate / 100);
+                    }
+                    return Number((subtotal + tax).toFixed(2));
+                };
+
+                const effective = computeEffectiveTotalFull(full);
+                const paid = Number(full.total_paid_amount || 0);
+                const due = Number((effective - paid).toFixed(2));
+                const percent = effective > 0 ? Math.round((paid / effective) * 100) : (paid > 0 ? 100 : 0);
+
+                // Update card DOM
+                const totalEl = invoiceCard.querySelector('.card-total-amount');
+                const fillEl = invoiceCard.querySelector('.card-progress-fill');
+                const outerEl = invoiceCard.querySelector('.card-progress-outer');
+                const dueEl = invoiceCard.querySelector('.card-due-amount');
+                const badge = invoiceCard.querySelector('.card-status-badge');
+
+                if (totalEl) totalEl.textContent = `₹${formatIndian(effective, 2)}`;
+                const percentClamped = Math.max(0, Math.min(percent, 100));
+                if (fillEl) fillEl.style.width = `${percentClamped}%`;
+                if (outerEl) outerEl.style.backgroundColor = due > 0 ? '#fecaca' : '#bbf7d0';
+                if (dueEl) dueEl.textContent = due > 0 ? `₹${formatIndian(due, 2)}` : `₹${formatIndian(paid, 2)}`;
+
+                if (badge) {
+                    const newStatus = (effective > 0 && paid >= effective) ? 'PAID' : (paid > 0 ? 'PARTIAL' : 'UNPAID');
+                    badge.textContent = newStatus;
+                    badge.classList.remove('bg-green-100','text-green-700','bg-yellow-100','text-yellow-700','bg-orange-100','text-orange-700');
+                    if (newStatus === 'PAID') badge.classList.add('bg-green-100','text-green-700');
+                    else if (newStatus === 'PARTIAL') badge.classList.add('bg-yellow-100','text-yellow-700');
+                    else badge.classList.add('bg-orange-100','text-orange-700');
+                }
+            }
+        } catch (err) {
+            console.error('Error enriching invoice card:', err);
+        }
+    })();
 
     return invoiceCard;
 }
