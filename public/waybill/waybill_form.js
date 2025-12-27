@@ -660,19 +660,31 @@ async function generatePreview() {
 
     const itemColumns = ['Sl. No', 'Description', 'HSN Code', 'Qty', 'Unit Price', 'Tax Rate', 'Total'];
 
-    // Build the complete document
-    const documentHTML = await buildSimpleDocument({
-        documentId: waybillId,
-        documentType: 'WAY BILL',
-        buyerInfo: buyerInfoHTML,
-        infoSection: infoSectionHTML,
-        itemsHTML: itemsHTML,
-        itemColumns: itemColumns,
-        footerMessage: 'This is a computer-generated way bill',
-        additionalSections: [totalsHTML]
-    });
+    // Reuse the Invoice-style paginated preview (generateViewPreviewHTML builds pages and writes to #view-preview-content)
+    const wayBillObj = {
+        waybill_id: waybillId,
+        waybill_date: waybillDate,
+        project_name: projectName,
+        customer_name: buyerName,
+        customer_address: buyerAddress,
+        customer_phone: buyerPhone,
+        customer_email: buyerEmail,
+        transport_mode: transportMode,
+        vehicle_number: vehicleNumber,
+        place_supply: placeSupply,
+        items: items.map(it => ({
+            description: it.description,
+            HSN_SAC: it.HSN_SAC,
+            quantity: Number(it.quantity) || 0,
+            unit_price: Number(it.unit_price) || 0,
+            rate: Number(it.rate) || 0
+        }))
+    };
 
-    document.getElementById("preview-content").innerHTML = documentHTML;
+    // generateViewPreviewHTML writes the paginated HTML into #view-preview-content
+    await generateViewPreviewHTML(wayBillObj);
+    const viewHTML = document.getElementById('view-preview-content')?.innerHTML || '';
+    document.getElementById("preview-content").innerHTML = viewHTML;
 }
 
 // Function to collect form data and send to server
