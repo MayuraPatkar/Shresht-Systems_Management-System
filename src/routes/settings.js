@@ -1039,7 +1039,7 @@ router.get("/system-info", asyncHandler(async (req, res) => {
         res.json({
             success: true,
             system: {
-                app_name: package.name || 'Shresht Systems Management',
+                app_name: 'Shresht Systems Management Systems',
                 app_version: package.version || '1.0.0',
                 node_version: process.version,
                 platform: os.platform(),
