@@ -420,11 +420,11 @@ function createInvoiceCard(invoice) {
                             <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit Duplicate">
-                                <i class="fas fa-edit"></i>
-                            </button>
                             <button class="action-btn edit-original-btn px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all border border-teal-200 hover:border-teal-400" title="Edit Original">
                                 <i class="fas fa-file-signature"></i>
+                            </button>
+                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit Duplicate">
+                                <i class="fas fa-edit"></i>
                             </button>
                             <button class="action-btn payment-btn px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" title="Payment">
                                 <i class="fas fa-credit-card"></i>
