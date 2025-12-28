@@ -240,7 +240,8 @@ body {
 }
 
 .doc-standard .third-section .info-section {
-    text-align: right;
+    text-align: left;
+    align-items: flex-start;
 }
 
 .doc-standard .third-section p {
