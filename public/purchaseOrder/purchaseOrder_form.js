@@ -724,6 +724,8 @@ async function generatePreview() {
         itemPages.push(currentPageItemsHTML);
     }
 
+    const formattedDate = await formatDate(purchaseDate);
+
     // Generate pages
     const pagesHTML = itemPages.map((pageHTML, index) => {
         const isLastPage = index === itemPages.length - 1;
@@ -749,7 +751,12 @@ async function generatePreview() {
     </div>
 
         <div class="second-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
             <p>Purchase Order-${purchaseOrderId}</p>
+            <div style="text-align:right;"> 
+                        <p><strong>Date:</strong> ${formattedDate || new Date().toLocaleDateString()}</p>
+                    </div>
+                    </div>
         </div>
 
         ${index === 0 ? `
@@ -763,7 +770,6 @@ async function generatePreview() {
             </div>
             <div class="order-info">
                 <p><strong>Purchase Invoice ID:</strong> ${purchaseInvoiceId}</p>
-                <p><strong>Date:</strong> ${purchaseDate}</p>
             </div>
         </div>
         ` : ''}

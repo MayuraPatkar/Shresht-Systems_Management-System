@@ -150,8 +150,7 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
         <div class="second-section">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <p>PURCHASE ORDER-${purchaseOrder.purchase_order_id || purchaseOrder.Id || ""}</p>
-                    <div style="text-align:right;">
-                        
+                    <div style="text-align:right;"> 
                         <p><strong>Date:</strong> ${formattedDate || new Date().toLocaleDateString()}</p>
                     </div>
                 </div>
