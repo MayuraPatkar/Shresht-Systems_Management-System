@@ -2,7 +2,9 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    overflow: hidden;
+    /* Allow page-level scrolling; prevents content from being clipped on short viewports */
+    overflow: auto;
+    -webkit-font-smoothing: antialiased;
 }
 
 .sidebar {
@@ -13,7 +15,10 @@ body {
 }
 
 main {
-    height: 100vh;
+    /* Ensure main takes remaining viewport height beneath the fixed header (h-24 = 6rem)
+       so inner scrolling works and document previews are fully accessible. */
+    min-height: calc(100vh - 6rem);
+    max-height: calc(100vh - 6rem);
     overflow-y: auto;
     overflow-x: hidden;
 }
