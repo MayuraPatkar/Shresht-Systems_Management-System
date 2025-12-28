@@ -247,8 +247,21 @@ function createInvoiceCard(invoice) {
     invoiceCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
     
     const status = (invoice.payment_status || 'Unpaid');
-    const isPaid = status === 'Paid';
-    const isPartial = status === 'Partial';
+    // Normalize stored status for comparisons
+    const _statusNorm = String(status).toLowerCase().trim();
+
+    // Derive payment flags from both stored status and actual amounts to avoid inconsistencies
+    const paidSoFar = Number(invoice.total_paid_amount || 0);
+    const effectiveTotal = (() => {
+        const dup = Number(invoice.total_amount_duplicate || 0);
+        if (dup > 0) return dup;
+        // Fallback will be computed below via computeEffectiveTotal when needed
+        return null;
+    })();
+
+    // We'll compute `total` below; for now set placeholders — real values will overwrite if computedTotal exists
+    let isPaid = _statusNorm === 'paid';
+    let isPartial = _statusNorm === 'partial';
 
     // Compute effective total: prefer total_amount_duplicate, fallback to computed from items/non-items
     const computeEffectiveTotal = (inv) => {
@@ -275,11 +288,37 @@ function createInvoiceCard(invoice) {
         return Number((subtotal + tax).toFixed(2));
     };
 
-    const total = computeEffectiveTotal(invoice);
-    const paidSoFar = Number(invoice.total_paid_amount || 0);
+    const total = effectiveTotal !== null ? effectiveTotal : computeEffectiveTotal(invoice);
+    // Ensure paidSoFar is defined (in case it was overwritten above)
+    const paidSoFarFinal = paidSoFar;
     const dueAmount = Number((total - paidSoFar).toFixed(2));
-    let percentPaid = total > 0 ? Math.round((paidSoFar / total) * 100) : (paidSoFar > 0 ? 100 : 0);
+    let percentPaid = total > 0 ? Math.round((paidSoFarFinal / total) * 100) : (paidSoFarFinal > 0 ? 100 : 0);
     percentPaid = Math.max(0, Math.min(percentPaid, 100));
+
+    // Re-evaluate payment flags, but prefer the stored `payment_status` when it's explicitly Partial or Paid.
+    const EPS = 0.01;
+    // default
+    isPaid = false;
+    isPartial = false;
+
+    if (_statusNorm === 'partial') {
+        isPartial = true;
+    } else if (_statusNorm === 'paid') {
+        isPaid = true;
+    } else {
+        // derive from numeric values when stored status is not explicit
+        if (total > 0) {
+            if (paidSoFarFinal + EPS >= total) {
+                isPaid = true;
+            } else if (paidSoFarFinal > 0) {
+                isPartial = true;
+            }
+        } else {
+            if (paidSoFarFinal > 0) {
+                isPartial = true;
+            }
+        }
+    }
     
     // Format the date for display
     const dateToFormat = invoice.invoice_date || invoice.createdAt;
@@ -349,11 +388,11 @@ function createInvoiceCard(invoice) {
                     <!-- Amount Section -->
                     ${userRole === 'admin' ? `
                     <div class="flex items-center px-4 border-r border-gray-200">
-                        <div class="rounded-lg p-3 w-[200px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#bfdbfe'};">
+                        <div class="rounded-lg p-3 w-[200px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
                             <!-- Total Row -->
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
-                                <span class="text-base font-bold card-total-amount" style="color: ${isPaid ? '#059669' : '#2563eb'};">₹${formatIndian(total, 2)}</span>
+                                <span class="text-base font-bold card-total-amount" style="color: ${isPaid ? '#059669' : '#dc2626'};">₹${formatIndian(total, 2)}</span>
                             </div>
                             <!-- Progress Bar -->
                             <div class="w-full h-1.5 rounded-full mb-2 card-progress-outer" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
@@ -361,15 +400,12 @@ function createInvoiceCard(invoice) {
                             </div>
                             <!-- Due/Paid Row -->
                             <div class="flex items-center justify-between">
-                                ${total > 0 ? (dueAmount > 0 ? `
-                                <span class="text-xs font-medium uppercase tracking-wide">Balance Due</span>
-                                <span class="text-base font-bold card-due-amount" style="color: #dc2626;">₹${formatIndian(dueAmount, 2)}</span>
-                                ` : `
+                                ${isPaid ? `
                                 <span class="text-xs font-medium" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
                                 <span class="text-base font-bold card-due-amount" style="color: #059669;">₹${formatIndian(paidSoFar, 2)}</span>
-                                `) : `
-                                <span class="text-xs font-medium" style="color: #2563eb;">No Charges</span>
-                                <span class="text-base font-bold card-due-amount" style="color: #2563eb;">₹0.00</span>
+                                ` : `
+                                <span class="text-xs font-medium uppercase tracking-wide">Balance Due</span>
+                                <span class="text-base font-bold card-due-amount" style="color: #dc2626;">₹${formatIndian(Math.max(0, dueAmount), 2)}</span>
                                 `}
                             </div>
                         </div>
