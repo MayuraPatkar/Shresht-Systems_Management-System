@@ -128,7 +128,7 @@ async function generateGSTReport() {
                 } else {
                     alert('No data found for the selected period.');
                 }
-                // Reset UI
+                // Reset UI completely
                 document.getElementById('gst-report-body').innerHTML = `
                     <tr>
                         <td colspan="6" class="text-center py-8 text-gray-500">
@@ -137,6 +137,10 @@ async function generateGSTReport() {
                         </td>
                     </tr>
                 `;
+                document.getElementById('gst-report-summary').style.display = 'none';
+                document.getElementById('gst-invoice-details').style.display = 'none';
+                document.getElementById('print-gst-report').style.display = 'none';
+                document.getElementById('save-gst-pdf').style.display = 'none';
                 return;
             }
 
