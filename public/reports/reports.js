@@ -92,7 +92,8 @@ function updateDeleteButtonText() {
         'all': 'Delete All',
         'stock': 'Delete Stock',
         'gst': 'Delete GST',
-        'data_worksheet': 'Delete Worksheets'
+        'data_worksheet': 'Delete Worksheets',
+        'purchase_gst': 'Delete Purchase GST'
     };
 
     deleteText.textContent = filterLabels[currentReportFilter] || 'Delete All';
@@ -118,6 +119,7 @@ function setupBackButtons() {
     document.getElementById('back-to-reports-stock')?.addEventListener('click', () => showReportSection('home'));
     document.getElementById('back-to-reports-gst')?.addEventListener('click', () => showReportSection('home'));
     document.getElementById('back-to-reports-worksheet')?.addEventListener('click', () => showReportSection('home'));
+    document.getElementById('back-to-reports-purchase-gst')?.addEventListener('click', () => showReportSection('home'));
 }
 
 /**
@@ -139,6 +141,7 @@ function showReportSection(reportType) {
     document.getElementById('stock-report-section').style.display = 'none';
     document.getElementById('gst-report-section').style.display = 'none';
     document.getElementById('data-worksheet-section').style.display = 'none';
+    document.getElementById('purchase-gst-report-section').style.display = 'none';
 
     // Show the selected section
     switch (reportType) {
@@ -153,6 +156,11 @@ function showReportSection(reportType) {
         case 'dataWorksheet':
             document.getElementById('data-worksheet-section').style.display = 'block';
             initDataWorksheetReport();
+            break;
+        case 'purchaseGst':
+        case 'purchase_gst':
+            document.getElementById('purchase-gst-report-section').style.display = 'block';
+            initPurchaseGSTReport();
             break;
         default:
             document.getElementById('reports-home').style.display = 'block';
@@ -276,7 +284,8 @@ function getReportColor(reportType) {
     const colors = {
         'stock': 'blue',
         'gst': 'green',
-        'data_worksheet': 'purple'
+        'data_worksheet': 'purple',
+        'purchase_gst': 'orange'
     };
     return colors[reportType] || 'gray';
 }
@@ -290,7 +299,8 @@ function getReportIcon(reportType) {
     const icons = {
         'stock': 'fa-boxes',
         'gst': 'fa-file-invoice-dollar',
-        'data_worksheet': 'fa-solar-panel'
+        'data_worksheet': 'fa-solar-panel',
+        'purchase_gst': 'fa-shopping-cart'
     };
     return icons[reportType] || 'fa-file-alt';
 }
@@ -318,6 +328,8 @@ async function viewReport(reportId) {
                 loadSavedStockReport(report);
             } else if (type === 'data_worksheet' && typeof loadWorksheet === 'function') {
                 loadWorksheet(reportId);
+            } else if (type === 'purchase_gst' && typeof loadSavedPurchaseGSTReport === 'function') {
+                loadSavedPurchaseGSTReport(report);
             }
         } else {
             showNotification('Report not found', 'error');
@@ -363,7 +375,8 @@ async function deleteAllReports() {
         'all': 'ALL reports',
         'stock': 'all Stock reports',
         'gst': 'all GST reports',
-        'data_worksheet': 'all Worksheet reports'
+        'data_worksheet': 'all Worksheet reports',
+        'purchase_gst': 'all Purchase GST reports'
     };
 
     const confirmMessage = `Are you sure you want to delete ${filterLabels[currentReportFilter] || 'ALL reports'}? This action cannot be undone.`;

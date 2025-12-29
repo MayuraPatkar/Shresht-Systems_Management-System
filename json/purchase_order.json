@@ -7,7 +7,9 @@
     "supplier_phone": "080-22334455",
     "supplier_email": "sales@suryasolar.com",
     "supplier_GSTIN": "29AAAAA1111A1Z9",
-    "purchase_date": "2025-11-05T00:00:00Z",
+    "purchase_date": {
+      "$date": "2025-11-05T00:00:00Z"
+    },
     "items": [
       {
         "description": "Solar Panel 550W Mono PERC",
@@ -48,7 +50,9 @@
     "supplier_phone": "022-98765432",
     "supplier_email": "orders@visiontech.co.in",
     "supplier_GSTIN": "27BBBBB2222B1Z8",
-    "purchase_date": "2025-11-06T00:00:00Z",
+    "purchase_date": {
+      "$date": "2025-11-06T00:00:00Z"
+    },
     "items": [
       {
         "description": "4MP Bullet Camera",
@@ -100,7 +104,9 @@
     "supplier_phone": "044-55667788",
     "supplier_email": "sales@electrolink.com",
     "supplier_GSTIN": "33CCCCC3333C1Z7",
-    "purchase_date": "2025-12-01T00:00:00Z",
+    "purchase_date": {
+      "$date": "2025-12-01T00:00:00Z"
+    },
     "items": [
       {
         "description": "Solar DC Wire 4 sq.mm Red",
@@ -152,7 +158,9 @@
     "supplier_phone": "080-22334455",
     "supplier_email": "sales@suryasolar.com",
     "supplier_GSTIN": "29AAAAA1111A1Z9",
-    "purchase_date": "2025-12-01T00:00:00Z",
+    "purchase_date": {
+      "$date": "2025-12-01T00:00:00Z"
+    },
     "items": [
       {
         "description": "150Ah Solar Battery",
@@ -193,7 +201,9 @@
     "supplier_phone": "022-98765432",
     "supplier_email": "orders@visiontech.co.in",
     "supplier_GSTIN": "27BBBBB2222B1Z8",
-    "purchase_date": "2025-12-05T00:00:00Z",
+    "purchase_date": {
+      "$date": "2025-12-05T00:00:00Z"
+    },
     "items": [
       {
         "description": "2MP Dome Camera",
