@@ -6,6 +6,9 @@
 // Current active report section
 let currentReportSection = 'home';
 
+// Current report filter (all, stock, gst, data_worksheet)
+let currentReportFilter = 'all';
+
 /**
  * Initialize reports module on page load
  */
@@ -30,7 +33,69 @@ function initReports() {
     loadRecentReports();
 
     // Set up refresh button
-    document.getElementById('refresh-reports')?.addEventListener('click', loadRecentReports);
+    document.getElementById('refresh-reports')?.addEventListener('click', () => loadRecentReports());
+
+    // Set up delete all reports button
+    document.getElementById('delete-all-reports')?.addEventListener('click', deleteAllReports);
+
+    // Set up filter tabs
+    setupFilterTabs();
+}
+
+/**
+ * Set up filter tab click handlers
+ */
+function setupFilterTabs() {
+    const filterTabs = document.querySelectorAll('.report-filter-tab');
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const filter = this.getAttribute('data-filter');
+            setReportFilter(filter);
+        });
+    });
+}
+
+/**
+ * Set the current report filter and reload reports
+ * @param {string} filter - Filter type (all, stock, gst, data_worksheet)
+ */
+function setReportFilter(filter) {
+    currentReportFilter = filter;
+
+    // Update tab styling
+    const filterTabs = document.querySelectorAll('.report-filter-tab');
+    filterTabs.forEach(tab => {
+        if (tab.getAttribute('data-filter') === filter) {
+            tab.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+            tab.classList.add('bg-indigo-600', 'text-white');
+        } else {
+            tab.classList.remove('bg-indigo-600', 'text-white');
+            tab.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+        }
+    });
+
+    // Update delete button text
+    updateDeleteButtonText();
+
+    // Reload reports with new filter
+    loadRecentReports();
+}
+
+/**
+ * Update the delete button text based on current filter
+ */
+function updateDeleteButtonText() {
+    const deleteText = document.getElementById('delete-all-text');
+    if (!deleteText) return;
+
+    const filterLabels = {
+        'all': 'Delete All',
+        'stock': 'Delete Stock',
+        'gst': 'Delete GST',
+        'data_worksheet': 'Delete Worksheets'
+    };
+
+    deleteText.textContent = filterLabels[currentReportFilter] || 'Delete All';
 }
 
 /**
@@ -133,7 +198,13 @@ async function loadRecentReports() {
             </div>
         `;
 
-        const response = await fetch('/reports/saved');
+        // Build URL with filter parameter
+        let url = '/reports/saved';
+        if (currentReportFilter && currentReportFilter !== 'all') {
+            url += `?type=${currentReportFilter}`;
+        }
+
+        const response = await fetch(url);
         const data = await response.json();
 
         if (data.success && data.reports && data.reports.length > 0) {
@@ -284,9 +355,51 @@ window.deleteReport = function (reportId) {
     });
 };
 
+/**
+ * Delete all saved reports (contextual based on current filter)
+ */
+async function deleteAllReports() {
+    const filterLabels = {
+        'all': 'ALL reports',
+        'stock': 'all Stock reports',
+        'gst': 'all GST reports',
+        'data_worksheet': 'all Worksheet reports'
+    };
+
+    const confirmMessage = `Are you sure you want to delete ${filterLabels[currentReportFilter] || 'ALL reports'}? This action cannot be undone.`;
+
+    showConfirm(confirmMessage, async (response) => {
+        if (response === 'Yes') {
+            try {
+                // Build URL with filter parameter
+                let url = '/reports/all';
+                if (currentReportFilter && currentReportFilter !== 'all') {
+                    url += `?type=${currentReportFilter}`;
+                }
+
+                const res = await fetch(url, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showNotification(`Successfully deleted ${data.deletedCount} report(s)`, 'success');
+                    loadRecentReports();
+                } else {
+                    showNotification('Failed to delete reports', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting reports:', error);
+                showNotification('Failed to delete reports', 'error');
+            }
+        }
+    });
+}
+
 // Make functions global for inline onclick handlers
 window.viewReport = viewReport;
 window.loadRecentReports = loadRecentReports;
+window.deleteAllReports = deleteAllReports;
 
 /**
  * Show a notification message

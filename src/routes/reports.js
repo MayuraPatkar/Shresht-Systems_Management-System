@@ -527,6 +527,33 @@ router.get('/saved', async (req, res) => {
 });
 
 /**
+ * DELETE /reports/all
+ * Delete all saved reports (filtered by type)
+ */
+router.delete('/all', async (req, res) => {
+    try {
+        const { type } = req.query;
+
+        const query = { status: 'generated' };
+        if (type) {
+            query.report_type = type;
+        }
+
+        const result = await Report.deleteMany(query);
+
+        logger.info(`Deleted ${result.deletedCount} reports${type ? ` of type: ${type}` : ''}`);
+        res.json({
+            success: true,
+            message: type ? `All ${type} reports deleted successfully` : 'All reports deleted successfully',
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        logger.error('Error deleting reports:', error);
+        res.status(500).json({ success: false, error: 'Failed to delete reports' });
+    }
+});
+
+/**
  * GET /reports/:id
  * Get a specific saved report by ID
  */
