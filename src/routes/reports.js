@@ -275,7 +275,7 @@ router.get('/gst', async (req, res) => {
                     'parameters.year': reportYear
                 };
 
-                const reportName = `${monthName} ${reportYear} GST Report`;
+                const reportName = `${monthName} ${reportYear} Invoice GST Report`;
                 const updateData = {
                     report_type: 'gst',
                     report_name: reportName,
