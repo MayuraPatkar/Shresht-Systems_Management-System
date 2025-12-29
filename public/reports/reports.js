@@ -89,11 +89,11 @@ function updateDeleteButtonText() {
     if (!deleteText) return;
 
     const filterLabels = {
-        'all': 'Delete All',
-        'stock': 'Delete Stock',
-        'gst': 'Delete GST',
+        'all': 'Delete All Reports',
+        'stock': 'Delete Stock Reports',
+        'gst': 'Delete Invoice GST Reports',
         'data_worksheet': 'Delete Worksheets',
-        'purchase_gst': 'Delete Purchase GST'
+        'purchase_gst': 'Delete Purchase GST Reports'
     };
 
     deleteText.textContent = filterLabels[currentReportFilter] || 'Delete All';
