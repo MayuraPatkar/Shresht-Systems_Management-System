@@ -211,9 +211,10 @@ router.get('/gst', async (req, res) => {
 
         invoices.forEach(invoice => {
             // Process original items
-            const items = invoice.items_original || invoice.items_duplicate || [];
+            const items = invoice.items_original || [];
+
             items.forEach(item => {
-                const rate = item.rate || 0;
+                const rate = parseFloat(item.rate) || 0;
                 const taxableValue = (item.quantity || 0) * (item.unit_price || 0);
                 const cgst = (taxableValue * rate / 2) / 100;
                 const sgst = (taxableValue * rate / 2) / 100;
@@ -246,9 +247,10 @@ router.get('/gst', async (req, res) => {
             });
 
             // Process non-items (installation charges, etc.)
-            const nonItems = invoice.non_items_original || invoice.non_items_duplicate || [];
+            const nonItems = invoice.non_items_original || [];
+
             nonItems.forEach(item => {
-                const rate = item.rate || 0;
+                const rate = parseFloat(item.rate) || 0;
                 const taxableValue = item.price || 0;
                 const cgst = (taxableValue * rate / 2) / 100;
                 const sgst = (taxableValue * rate / 2) / 100;
