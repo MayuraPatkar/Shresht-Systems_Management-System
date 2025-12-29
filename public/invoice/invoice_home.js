@@ -675,71 +675,50 @@ async function handleSearch() {
 // Payment functionality
 async function payment(id) {
     const invoiceId = id;
-    document.getElementById('view-preview').style.display = 'none';
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'none';
-    document.getElementById('view').style.display = 'none';
-    document.getElementById('payment-container').style.display = 'flex';
-    
-    // Store invoiceId for payment form submission
-    window.currentPaymentInvoiceId = invoiceId;
-    
-    // Set default payment date to today and disallow future dates
-    const paymentDateInput = document.getElementById('payment-date');
-    if (paymentDateInput) {
-        const today = new Date().toISOString().split('T')[0];
-        paymentDateInput.value = today;
-        paymentDateInput.max = today;
-    }
 
-    // Ensure paid amount input has proper constraints
-    const paidAmountInput = document.getElementById('paid-amount');
-    if (paidAmountInput) {
-        paidAmountInput.setAttribute('min', '0.01');
-        paidAmountInput.setAttribute('step', '0.01');
-        paidAmountInput.setAttribute('inputmode', 'decimal');
-    }
-    
-    // Fetch invoice to get due amount (use computed total if stored total is absent)
+    // Fetch invoice first to determine due amount
     try {
         const response = await fetchDocumentById('invoice', invoiceId);
-        if (response && response.invoice) {
-            const invoice = response.invoice;
-            // Compute effective total similar to card
-            const computeEffectiveTotalLocal = (inv) => {
-                const dup = Number(inv.total_amount_duplicate || 0);
-                if (dup > 0) return dup;
-                const items = inv.items_duplicate && inv.items_duplicate.length > 0 ? inv.items_duplicate : (inv.items_original || []);
-                const nonItems = inv.non_items_duplicate && inv.non_items_duplicate.length > 0 ? inv.non_items_duplicate : (inv.non_items_original || []);
-                let subtotal = 0;
-                let tax = 0;
-                for (const it of items) {
-                    const qty = Number(it.quantity || 0);
-                    const unit = Number(it.unit_price || 0);
-                    const rate = Number(it.rate || 0);
-                    const taxable = qty * unit;
-                    subtotal += taxable;
-                    tax += taxable * (rate / 100);
-                }
-                for (const nit of nonItems) {
-                    const price = Number(nit.price || 0);
-                    const rate = Number(nit.rate || 0);
-                    subtotal += price;
-                    tax += price * (rate / 100);
-                }
-                return Number((subtotal + tax).toFixed(2));
-            };
+        if (!response || !response.invoice) {
+            window.electronAPI.showAlert1('Invoice not found.');
+            return;
+        }
 
-            const totalAmount = computeEffectiveTotalLocal(invoice);
-            const paidAmount = Number(invoice.total_paid_amount || 0);
-            const dueAmount = Number((totalAmount - paidAmount).toFixed(2));
-            const dueAmountElement = document.getElementById('payment-due-amount');
-            if (dueAmountElement) {
-                dueAmountElement.textContent = `₹ ${formatIndian(dueAmount, 2)}`;
-            }
+        const invoice = response.invoice;
+        const totalAmount = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
+        const paidAmount = invoice.total_paid_amount || 0;
+        const dueAmount = totalAmount - paidAmount;
+
+        // If there's no due amount, alert the user and do not open payment modal
+        if (!dueAmount || dueAmount <= 0) {
+            window.electronAPI.showAlert1('There is no outstanding due on this invoice.');
+            return;
+        }
+
+        // Show payment UI only when due exists
+        document.getElementById('view-preview').style.display = 'none';
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('new').style.display = 'none';
+        document.getElementById('view').style.display = 'none';
+        document.getElementById('payment-container').style.display = 'flex';
+
+        // Store invoiceId for payment form submission
+        window.currentPaymentInvoiceId = invoiceId;
+
+        // Set default payment date to today
+        const paymentDateInput = document.getElementById('payment-date');
+        if (paymentDateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            paymentDateInput.value = today;
+        }
+
+        const dueAmountElement = document.getElementById('payment-due-amount');
+        if (dueAmountElement) {
+            dueAmountElement.textContent = `₹ ${formatIndian(dueAmount, 2)}`;
         }
     } catch (error) {
         console.error('Error fetching invoice for payment:', error);
+        window.electronAPI.showAlert1('Failed to fetch invoice details.');
     }
 }
 
