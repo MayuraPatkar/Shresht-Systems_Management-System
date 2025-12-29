@@ -45,13 +45,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Restore active tab from sessionStorage or default to pending
     const savedTab = sessionStorage.getItem('serviceActiveTab') || 'pending';
     const savedFilter = sessionStorage.getItem('serviceSearchFilter') || 'all';
-    
+
     // Set filter dropdown value
     const filterDropdown = document.getElementById('search-filter');
     if (filterDropdown) {
         filterDropdown.value = savedFilter;
     }
-    
+
     // Initialize tab
     switchTab(savedTab);
 
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     svcSearchInput?.addEventListener('input', debounce(() => {
         handleSearch();
     }, 300));
-    
+
     // Filter dropdown change
     document.getElementById('search-filter')?.addEventListener('change', (event) => {
         sessionStorage.setItem('serviceSearchFilter', event.target.value);
@@ -89,12 +89,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Home button
     document.getElementById('home-btn')?.addEventListener('click', showHome);
-    
+
     // Initialize keyboard shortcuts
     initShortcutsModal();
     initServiceFilters();
     document.addEventListener('keydown', handleServiceKeyboardShortcuts, true);
-    
+
     // Check for URL params for cross-module navigation
     const urlParams = new URLSearchParams(window.location.search);
     const historyInvoiceId = urlParams.get('history');
@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function getServiceStageLabel(stage) {
     const stages = [
         '1st Service',
-        '2nd Service', 
+        '2nd Service',
         '3rd Service',
         '4th Service',
         '5th Service',
@@ -170,30 +170,30 @@ function switchTab(tabName) {
     const historyTab = document.getElementById('tab-service-history');
     const pendingContent = document.getElementById('pending-services-content');
     const historyContent = document.getElementById('service-history-content');
-    
+
     // Save to sessionStorage
     sessionStorage.setItem('serviceActiveTab', tabName);
-    
+
     if (tabName === 'pending') {
         // Update tab buttons
         pendingTab.className = 'flex-1 px-6 py-4 text-center font-semibold text-blue-600 bg-blue-50 border-b-2 border-blue-600 transition-all';
         historyTab.className = 'flex-1 px-6 py-4 text-center font-semibold text-gray-600 hover:bg-gray-50 transition-all';
-        
+
         // Show/hide content
         pendingContent.style.display = 'grid';
         historyContent.style.display = 'none';
-        
+
         // Load pending services
         loadPendingServices();
     } else if (tabName === 'history') {
         // Update tab buttons
         pendingTab.className = 'flex-1 px-6 py-4 text-center font-semibold text-gray-600 hover:bg-gray-50 transition-all';
         historyTab.className = 'flex-1 px-6 py-4 text-center font-semibold text-blue-600 bg-blue-50 border-b-2 border-blue-600 transition-all';
-        
+
         // Show/hide content
         pendingContent.style.display = 'none';
         historyContent.style.display = 'grid';
-        
+
         // Load service history
         loadServiceHistory();
     }
@@ -203,7 +203,7 @@ function switchTab(tabName) {
 function createPendingServiceDiv(service) {
     const div = document.createElement("div");
     div.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
-    
+
     // Calculate service due date by adding service_month to invoice_date or createdAt
     let serviceDate = 'N/A';
     if (service.service_month && (service.invoice_date || service.createdAt)) {
@@ -216,9 +216,9 @@ function createPendingServiceDiv(service) {
             day: 'numeric'
         });
     }
-    
+
     const feeAmount = service.fee_amount ? `₹${parseFloat(service.fee_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : 'N/A';
-    
+
     div.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
@@ -283,7 +283,7 @@ function createPendingServiceDiv(service) {
 function createServiceHistoryDiv(service) {
     const div = document.createElement("div");
     div.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
-    
+
     const serviceDate = formatDateIndian(service.service_date);
     const grandTotal = formatIndianCurrency(service.total_amount_with_tax);
     const stageBadgeColors = [
@@ -296,7 +296,7 @@ function createServiceHistoryDiv(service) {
     const len = stageBadgeColors.length;
     const idx = Math.max(0, ((((Number(service.service_stage) || 0) - 1) % len) + len) % len);
     const badgeColor = stageBadgeColors[idx];
-    
+
     div.innerHTML = `
         <div class="flex">
             <div class="w-1.5 bg-gradient-to-b from-green-500 to-emerald-600"></div>
@@ -365,7 +365,7 @@ function createServiceHistoryDiv(service) {
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="delete-service px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" data-id="${service.service_id}" title="Delete Service">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                         <button class="print-service px-3 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" data-id="${service.service_id}" title="Print Service">
                             <i class="fas fa-print"></i>
@@ -639,9 +639,9 @@ async function handleSearch() {
 // Display pending search results
 function displayPendingSearchResults(results, query) {
     if (!pendingServicesDiv) return;
-    
+
     pendingServicesDiv.innerHTML = "";
-    
+
     if (results.length === 0) {
         pendingServicesDiv.innerHTML = `
             <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
@@ -651,16 +651,16 @@ function displayPendingSearchResults(results, query) {
         `;
         return;
     }
-    
+
     results.forEach(service => pendingServicesDiv.appendChild(createPendingServiceDiv(service)));
 }
 
 // Display history search results
 function displayHistorySearchResults(results, query) {
     if (!serviceHistoryDiv) return;
-    
+
     serviceHistoryDiv.innerHTML = "";
-    
+
     if (results.length === 0) {
         serviceHistoryDiv.innerHTML = `
             <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
@@ -670,7 +670,7 @@ function displayHistorySearchResults(results, query) {
         `;
         return;
     }
-    
+
     results.forEach(service => serviceHistoryDiv.appendChild(createServiceHistoryDiv(service)));
 }
 
@@ -725,7 +725,7 @@ async function openService(serviceId) {
         await getId();
 
         showNew();
-        
+
         // Reset to step 1 and update UI (use global changeStep from globalScript.js)
         if (typeof changeStep === 'function') {
             changeStep(1);
@@ -799,32 +799,32 @@ async function deleteService(serviceId) {
     } else {
         showConfirm('Delete this service record? This will decrement the invoice service stage.', async (response) => {
             if (response !== 'Yes') return;
-            
+
             await performDelete();
         });
         return;
     }
-    
+
     await performDelete();
-    
+
     async function performDelete() {
         try {
             const response = await fetch(`/service/${serviceId}`, {
                 method: 'DELETE'
             });
-            
+
             if (!response.ok) {
                 throw new Error('Failed to delete service');
             }
-            
+
             const data = await response.json();
-            
+
             if (typeof showAlert === 'function') {
                 showAlert(data.message || 'Service deleted successfully');
             } else {
                 window.electronAPI?.showAlert1(data.message || 'Service deleted successfully');
             }
-            
+
             // Reload service history
             loadServiceHistory();
         } catch (error) {
@@ -841,10 +841,10 @@ async function editService(serviceId) {
         if (!response.ok) {
             throw new Error('Failed to fetch service');
         }
-        
+
         const data = await response.json();
         const service = data.service;
-        
+
         // Populate form with service data
         if (typeof populateFormWithServiceData === 'function') {
             populateFormWithServiceData(service);
@@ -866,7 +866,7 @@ function showHome() {
     document.getElementById('view').style.display = 'none';
     currentStep = 1;
     resetForm();
-    
+
     // Restore active tab and reload data
     const activeTab = sessionStorage.getItem('serviceActiveTab') || 'pending';
     switchTab(activeTab);
@@ -876,7 +876,7 @@ function showNew() {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
     currentStep = 1;
-    
+
     // Update UI using global changeStep
     if (typeof changeStep === 'function') {
         changeStep(1);
