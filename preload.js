@@ -23,8 +23,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Print document event
     handlePrintEvent: (content, mode, name) => {
         if (content) {
-            ipcRenderer.send("PrintDoc", { content, mode, name });
+            return ipcRenderer.invoke("PrintDoc", { content, mode, name });
         }
+        return Promise.resolve({ success: false, error: 'No content' });
     },
 
     // Print quotation event (legacy spelling maintained for compatibility)
@@ -66,7 +67,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Auto-updater APIs
     checkForUpdates: () => ipcRenderer.invoke("manual-check-update"),
     installUpdate: () => ipcRenderer.invoke("install-update"),
-    
+
     // Listen for auto-update events
     onUpdateAvailable: (callback) => {
         if (isValidCallback(callback)) {
@@ -99,7 +100,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     showMessageBox: (options) => ipcRenderer.invoke('show-message-box', options),
     // Open the configured backup folder in the OS file manager
     openBackupFolder: () => ipcRenderer.invoke('open-backup-folder'),
-    
+
     // Get safe app configuration (non-sensitive values only)
     // NEVER expose API tokens or secrets through this!
     getAppConfig: () => ipcRenderer.invoke('get-app-config'),

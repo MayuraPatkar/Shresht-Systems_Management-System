@@ -16,15 +16,32 @@ let gstReportData = {
 function initGSTReport() {
     // Populate year dropdown
     populateYearDropdown();
-    
+
     // Set current month
     const currentMonth = new Date().getMonth() + 1;
     document.getElementById('gst-month').value = currentMonth;
-    
+
     // Set up event handlers
     document.getElementById('generate-gst-report')?.addEventListener('click', generateGSTReport);
     document.getElementById('print-gst-report')?.addEventListener('click', printGSTReport);
     document.getElementById('save-gst-pdf')?.addEventListener('click', saveGSTReportPDF);
+
+    // Reset state and UI
+    gstReportData = { summary: null, hsnBreakdown: [], invoices: [] };
+    document.getElementById('gst-report-summary').style.display = 'none';
+    document.getElementById('gst-invoice-details').style.display = 'none';
+    document.getElementById('print-gst-report').style.display = 'none';
+    document.getElementById('save-gst-pdf').style.display = 'none';
+
+    // Reset table to initial state
+    document.getElementById('gst-report-body').innerHTML = `
+        <tr>
+            <td colspan="6" class="text-center py-8 text-gray-500">
+                <i class="fas fa-file-invoice-dollar text-4xl text-gray-300 mb-3"></i>
+                <p>Select month and year to generate report</p>
+            </td>
+        </tr>
+    `;
 }
 
 /**
@@ -33,7 +50,7 @@ function initGSTReport() {
 function populateYearDropdown() {
     const yearSelect = document.getElementById('gst-year');
     const currentYear = new Date().getFullYear();
-    
+
     yearSelect.innerHTML = '';
     for (let year = currentYear; year >= currentYear - 5; year--) {
         const option = document.createElement('option');
@@ -49,9 +66,9 @@ function populateYearDropdown() {
 async function generateGSTReport() {
     const month = document.getElementById('gst-month').value;
     const year = document.getElementById('gst-year').value;
-    
+
     const tbody = document.getElementById('gst-report-body');
-    
+
     // Show loading state
     tbody.innerHTML = `
         <tr>
@@ -61,12 +78,12 @@ async function generateGSTReport() {
             </td>
         </tr>
     `;
-    
+
     try {
         // Try to fetch from reports API first
         const response = await fetch(`/reports/gst?month=${month}&year=${year}`);
         const data = await response.json();
-        
+
         if (data.success && data.report) {
             // Map backend response to frontend expected structure
             const report = data.report;
@@ -77,6 +94,14 @@ async function generateGSTReport() {
                     totalSGST: report.summary.total_sgst || 0,
                     totalGST: report.summary.total_tax || 0
                 },
+                // Support new tax_rate_breakdown
+                taxRateBreakdown: (report.tax_rate_breakdown || []).map(item => ({
+                    rate: item.rate,
+                    description: item.description,
+                    taxableValue: item.taxable_value || 0,
+                    cgst: item.cgst || 0,
+                    sgst: item.sgst || 0
+                })),
                 hsnBreakdown: (report.hsn_breakdown || []).map(item => ({
                     hsn: item.hsn_sac || 'N/A',
                     description: item.description || `GST @ ${item.rate || 0}%`,
@@ -95,6 +120,30 @@ async function generateGSTReport() {
                 }))
             };
             gstReportData = mappedReport;
+
+            // Check for empty data
+            if (!gstReportData.invoices || gstReportData.invoices.length === 0) {
+                if (window.electronAPI && window.electronAPI.showAlert1) {
+                    window.electronAPI.showAlert1('No data found for the selected period.');
+                } else {
+                    alert('No data found for the selected period.');
+                }
+                // Reset UI completely
+                document.getElementById('gst-report-body').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-file-invoice-dollar text-4xl text-gray-300 mb-3"></i>
+                            <p>No data found for the selected period</p>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('gst-report-summary').style.display = 'none';
+                document.getElementById('gst-invoice-details').style.display = 'none';
+                document.getElementById('print-gst-report').style.display = 'none';
+                document.getElementById('save-gst-pdf').style.display = 'none';
+                return;
+            }
+
             renderGSTReport(mappedReport);
         } else {
             // Fallback: Generate from invoices
@@ -112,12 +161,12 @@ async function generateGSTReport() {
  */
 async function generateGSTReportFromInvoices(month, year) {
     const tbody = document.getElementById('gst-report-body');
-    
+
     try {
         // Fetch all invoices
         const response = await fetch('/invoice/all');
         const invoices = await response.json();
-        
+
         if (!invoices || invoices.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -131,14 +180,14 @@ async function generateGSTReportFromInvoices(month, year) {
             document.getElementById('gst-invoice-details').style.display = 'none';
             return;
         }
-        
+
         // Filter invoices by month and year
         const filteredInvoices = invoices.filter(inv => {
             const invoiceDate = new Date(inv.invoice_date || inv.date || inv.createdAt);
-            return invoiceDate.getMonth() + 1 === parseInt(month) && 
-                   invoiceDate.getFullYear() === parseInt(year);
+            return invoiceDate.getMonth() + 1 === parseInt(month) &&
+                invoiceDate.getFullYear() === parseInt(year);
         });
-        
+
         if (filteredInvoices.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -152,45 +201,48 @@ async function generateGSTReportFromInvoices(month, year) {
             document.getElementById('gst-invoice-details').style.display = 'none';
             return;
         }
-        
-        // Calculate HSN-wise breakdown
-        const hsnMap = new Map();
+
+        // Calculate tax-rate-wise breakdown
+        // Only stock items are included; non-items (services, installation) are excluded
+        const rateMap = new Map();
         let totalTaxableValue = 0;
         let totalCGST = 0;
         let totalSGST = 0;
-        
+
         filteredInvoices.forEach(invoice => {
-            const items = invoice.items || [];
+            // Use items_original for stock items only
+            const items = invoice.items_original || invoice.items || [];
             items.forEach(item => {
-                const hsn = item.hsn_sac || item.hsn || 'N/A';
-                const taxableValue = parseFloat(item.rate) || 0;
-                const gstRate = parseFloat(item.gst) || 18; // Default 18%
+                const gstRate = parseFloat(item.rate) || 0;
+                const taxableValue = (item.quantity || 0) * (item.unit_price || 0);
                 const cgst = (taxableValue * gstRate / 2) / 100;
                 const sgst = (taxableValue * gstRate / 2) / 100;
-                
-                if (hsnMap.has(hsn)) {
-                    const existing = hsnMap.get(hsn);
+
+                const rateKey = gstRate.toString();
+                if (rateMap.has(rateKey)) {
+                    const existing = rateMap.get(rateKey);
                     existing.taxableValue += taxableValue;
                     existing.cgst += cgst;
                     existing.sgst += sgst;
                 } else {
-                    hsnMap.set(hsn, {
-                        hsn: hsn,
-                        description: item.description || item.item_name || 'Item',
+                    rateMap.set(rateKey, {
+                        rate: gstRate,
+                        description: `GST @ ${gstRate}%`,
                         taxableValue: taxableValue,
                         cgst: cgst,
                         sgst: sgst
                     });
                 }
-                
+
                 totalTaxableValue += taxableValue;
                 totalCGST += cgst;
                 totalSGST += sgst;
             });
         });
-        
-        const hsnBreakdown = Array.from(hsnMap.values());
-        
+
+        // Convert to array and sort by rate (descending)
+        const taxRateBreakdown = Array.from(rateMap.values()).sort((a, b) => b.rate - a.rate);
+
         const reportData = {
             summary: {
                 totalTaxableValue,
@@ -198,7 +250,7 @@ async function generateGSTReportFromInvoices(month, year) {
                 totalSGST,
                 totalGST: totalCGST + totalSGST
             },
-            hsnBreakdown,
+            taxRateBreakdown, // Tax rate grouped breakdown
             invoices: filteredInvoices.map(inv => ({
                 invoice_id: inv.invoice_id || inv._id,
                 date: inv.invoice_date || inv.date,
@@ -209,10 +261,10 @@ async function generateGSTReportFromInvoices(month, year) {
                 total: inv.grand_total || inv.grandTotal || 0
             }))
         };
-        
+
         gstReportData = reportData;
         renderGSTReport(reportData);
-        
+
     } catch (error) {
         console.error('Error fetching invoices:', error);
         tbody.innerHTML = `
@@ -229,11 +281,14 @@ async function generateGSTReportFromInvoices(month, year) {
 
 /**
  * Render GST report data
- * @param {Object} data - Report data with summary, hsnBreakdown, and invoices
+ * @param {Object} data - Report data with summary, taxRateBreakdown, and invoices
  */
 function renderGSTReport(data) {
-    const { summary, hsnBreakdown, invoices } = data;
-    
+    const { summary, taxRateBreakdown, hsnBreakdown, invoices } = data;
+
+    // Use taxRateBreakdown if available, otherwise fallback to hsnBreakdown for legacy support
+    const breakdownList = taxRateBreakdown || hsnBreakdown || [];
+
     // Update summary
     if (summary) {
         document.getElementById('summary-taxable').textContent = formatCurrency(summary.totalTaxableValue || 0);
@@ -242,31 +297,45 @@ function renderGSTReport(data) {
         document.getElementById('summary-total-gst').textContent = formatCurrency(summary.totalGST || 0);
         document.getElementById('gst-report-summary').style.display = 'grid';
     }
-    
-    // Render HSN breakdown table
+
+    // Render Tax Rate Breakdown table
     const tbody = document.getElementById('gst-report-body');
-    
-    if (!hsnBreakdown || hsnBreakdown.length === 0) {
+    const tableHeader = document.querySelector('#gst-report-table thead tr th:first-child');
+    const sectionTitle = document.getElementById('gst-breakdown-title');
+
+    // Always use Tax Rate grouping for GST reports
+    if (tableHeader) {
+        tableHeader.textContent = 'Tax Rate';
+    }
+    if (sectionTitle) {
+        sectionTitle.textContent = 'Tax Rate Wise Breakdown';
+    }
+
+    if (!breakdownList || breakdownList.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center py-8 text-gray-500">
                     <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
-                    <p>No HSN/SAC data found</p>
+                    <p>No data found</p>
                 </td>
             </tr>
         `;
     } else {
-        tbody.innerHTML = hsnBreakdown.map(item => `
+        tbody.innerHTML = breakdownList.map(item => {
+            // Display Rate (e.g. 18%) or HSN code
+            const firstColValue = item.rate !== undefined ? `${item.rate}%` : (item.hsn || item.hsn_sac || 'N/A');
+
+            return `
             <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 border-b font-medium">${item.hsn}</td>
+                <td class="px-4 py-3 border-b font-medium">${firstColValue}</td>
                 <td class="px-4 py-3 border-b">${item.description}</td>
                 <td class="px-4 py-3 border-b text-right">${formatCurrency(item.taxableValue)}</td>
                 <td class="px-4 py-3 border-b text-right">${formatCurrency(item.cgst)}</td>
                 <td class="px-4 py-3 border-b text-right">${formatCurrency(item.sgst)}</td>
                 <td class="px-4 py-3 border-b text-right font-medium">${formatCurrency(item.cgst + item.sgst)}</td>
             </tr>
-        `).join('');
-        
+        `}).join('');
+
         // Add total row
         tbody.innerHTML += `
             <tr class="bg-gray-100 font-bold">
@@ -278,12 +347,12 @@ function renderGSTReport(data) {
             </tr>
         `;
     }
-    
+
     // Render invoice details
     const invoiceTbody = document.getElementById('gst-invoice-body');
     if (invoices && invoices.length > 0) {
         document.getElementById('gst-invoice-details').style.display = 'block';
-        
+
         invoiceTbody.innerHTML = invoices.map(inv => `
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3 border-b font-medium">${inv.invoice_id}</td>
@@ -298,7 +367,7 @@ function renderGSTReport(data) {
     } else {
         document.getElementById('gst-invoice-details').style.display = 'none';
     }
-    
+
     // Show print/PDF buttons
     document.getElementById('print-gst-report').style.display = 'flex';
     document.getElementById('save-gst-pdf').style.display = 'flex';
@@ -310,8 +379,8 @@ function renderGSTReport(data) {
  * @returns {string} Month name
  */
 function getMonthName(month) {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                    'July', 'August', 'September', 'October', 'November', 'December'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
     return months[month - 1] || '';
 }
 
@@ -322,20 +391,25 @@ function getMonthName(month) {
 function generateGSTReportHTML() {
     const month = document.getElementById('gst-month').value;
     const year = document.getElementById('gst-year').value;
-    const { summary, hsnBreakdown, invoices } = gstReportData;
-    
-    // HSN breakdown table
-    const hsnTableContent = hsnBreakdown.map(item => `
+    const { summary, taxRateBreakdown, hsnBreakdown, invoices } = gstReportData;
+
+    // Always use tax rate breakdown for GST reports
+    const breakdownList = taxRateBreakdown || hsnBreakdown || [];
+
+    // Breakdown table - always grouped by Tax Rate
+    const tableContent = breakdownList.map(item => {
+        const rateValue = item.rate !== undefined ? `${item.rate}%` : 'N/A';
+        return `
         <tr>
-            <td>${item.hsn}</td>
+            <td>${rateValue}</td>
             <td>${item.description}</td>
             <td class="text-right">${formatCurrency(item.taxableValue)}</td>
             <td class="text-right">${formatCurrency(item.cgst)}</td>
             <td class="text-right">${formatCurrency(item.sgst)}</td>
             <td class="text-right">${formatCurrency(item.cgst + item.sgst)}</td>
         </tr>
-    `).join('');
-    
+    `}).join('');
+
     // Invoice details table
     const invoiceTableContent = invoices.map(inv => `
         <tr>
@@ -348,7 +422,7 @@ function generateGSTReportHTML() {
             <td class="text-right">${formatCurrency(inv.total)}</td>
         </tr>
     `).join('');
-    
+
     const content = `
         <div class="report-summary">
             <div class="summary-item">
@@ -369,11 +443,11 @@ function generateGSTReportHTML() {
             </div>
         </div>
         
-        <h3 style="margin: 30px 0 15px; font-size: 16px; color: #374151;">HSN/SAC Wise Breakdown</h3>
+        <h3 style="margin: 30px 0 15px; font-size: 16px; color: #374151;">Tax Rate Wise Breakdown</h3>
         <table class="report-table">
             <thead>
                 <tr>
-                    <th>HSN/SAC</th>
+                    <th>Tax Rate</th>
                     <th>Description</th>
                     <th class="text-right">Taxable Value</th>
                     <th class="text-right">CGST</th>
@@ -382,7 +456,7 @@ function generateGSTReportHTML() {
                 </tr>
             </thead>
             <tbody>
-                ${hsnTableContent}
+                ${tableContent}
                 <tr class="total-row">
                     <td colspan="2">Total</td>
                     <td class="text-right">${formatCurrency(summary.totalTaxableValue)}</td>
@@ -411,9 +485,9 @@ function generateGSTReportHTML() {
             </tbody>
         </table>
     `;
-    
+
     const subtitle = `Period: ${getMonthName(parseInt(month))} ${year}`;
-    
+
     return generatePrintableReport('Monthly GST Report', content, { subtitle });
 }
 
@@ -435,3 +509,55 @@ function saveGSTReportPDF() {
     const filename = `gst-report-${getMonthName(parseInt(month))}-${year}`;
     saveReportPDF(html, filename);
 }
+
+/**
+ * Load a saved GST report into the view
+ * @param {Object} report - Complete report object from database
+ */
+window.loadSavedGSTReport = function (report) {
+    if (!report || !report.data) return;
+
+    const data = report.data;
+    const params = report.parameters || {};
+
+    // Set parameters
+    if (params.month) document.getElementById('gst-month').value = params.month;
+    if (params.year) document.getElementById('gst-year').value = params.year;
+
+    // Set global data
+    gstReportData = {
+        summary: {
+            totalTaxableValue: data.summary.total_taxable_value || 0,
+            totalCGST: data.summary.total_cgst || 0,
+            totalSGST: data.summary.total_sgst || 0,
+            totalGST: data.summary.total_tax || 0
+        },
+        // Support both new tax_rate_breakdown and legacy hsn_breakdown
+        taxRateBreakdown: (data.tax_rate_breakdown || []).map(item => ({
+            rate: item.rate,
+            description: item.description,
+            taxableValue: item.taxable_value || 0,
+            cgst: item.cgst || 0,
+            sgst: item.sgst || 0
+        })),
+        hsnBreakdown: (data.hsn_breakdown || []).map(item => ({
+            hsn: item.hsn_sac || 'N/A',
+            description: item.description || `GST @ ${item.rate || 0}%`,
+            taxableValue: item.taxable_value || 0,
+            cgst: item.cgst || 0,
+            sgst: item.sgst || 0
+        })),
+        invoices: (data.invoice_breakdown || []).map(inv => ({
+            invoice_id: inv.invoice_id,
+            date: inv.invoice_date,
+            customer: inv.customer_name || 'Unknown',
+            taxableValue: inv.taxable_value || 0,
+            cgst: inv.cgst || 0,
+            sgst: inv.sgst || 0,
+            total: inv.total_value || 0
+        }))
+    };
+
+    // Render report
+    renderGSTReport(gstReportData);
+};

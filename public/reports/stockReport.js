@@ -14,15 +14,18 @@ function initStockReport() {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
-    
+
     document.getElementById('stock-start-date').valueAsDate = startDate;
     document.getElementById('stock-end-date').valueAsDate = endDate;
-    
+
     // Set up event handlers
     document.getElementById('generate-stock-report')?.addEventListener('click', generateStockReport);
     document.getElementById('clear-stock-filters')?.addEventListener('click', clearStockFilters);
     document.getElementById('print-stock-report')?.addEventListener('click', printStockReport);
     document.getElementById('save-stock-pdf')?.addEventListener('click', saveStockReportPDF);
+
+    // Reset filter and UI state
+    clearStockFilters();
 }
 
 /**
@@ -32,12 +35,12 @@ function clearStockFilters() {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
-    
+
     document.getElementById('stock-start-date').valueAsDate = startDate;
     document.getElementById('stock-end-date').valueAsDate = endDate;
     document.getElementById('stock-movement-type').value = 'all';
     document.getElementById('stock-item-filter').value = '';
-    
+
     // Reset table
     document.getElementById('stock-report-body').innerHTML = `
         <tr>
@@ -47,7 +50,7 @@ function clearStockFilters() {
             </td>
         </tr>
     `;
-    
+
     // Hide summary and buttons
     document.getElementById('stock-report-summary').style.display = 'none';
     document.getElementById('print-stock-report').style.display = 'none';
@@ -62,9 +65,9 @@ async function generateStockReport() {
     const endDate = document.getElementById('stock-end-date').value;
     const movementType = document.getElementById('stock-movement-type').value;
     const itemFilter = document.getElementById('stock-item-filter').value;
-    
+
     const tbody = document.getElementById('stock-report-body');
-    
+
     // Show loading state
     tbody.innerHTML = `
         <tr>
@@ -74,7 +77,7 @@ async function generateStockReport() {
             </td>
         </tr>
     `;
-    
+
     try {
         // Build query params
         const params = new URLSearchParams();
@@ -82,12 +85,24 @@ async function generateStockReport() {
         if (endDate) params.append('endDate', endDate);
         if (movementType && movementType !== 'all') params.append('type', movementType);
         if (itemFilter) params.append('item', itemFilter);
-        
+
         const response = await fetch(`/reports/stock?${params.toString()}`);
         const data = await response.json();
-        
+
         if (data.success && data.movements) {
             stockReportData = data.movements;
+
+            if (stockReportData.length === 0) {
+                if (window.electronAPI && window.electronAPI.showAlert1) {
+                    window.electronAPI.showAlert1('No stock movements found for the selected criteria.');
+                } else {
+                    alert('No stock movements found for the selected criteria.');
+                }
+                // Reset UI logic is handled by renderStockReport when empty, but we want the alert first
+                renderStockReport([], data.summary);
+                return;
+            }
+
             renderStockReport(data.movements, data.summary);
         } else {
             // If no data from StockMovement, try to generate from stock entries
@@ -112,12 +127,12 @@ async function generateStockReport() {
  */
 async function generateStockReportFromStock(startDate, endDate, movementType, itemFilter) {
     const tbody = document.getElementById('stock-report-body');
-    
+
     try {
         // Fetch stock data
         const response = await fetch('/stock/all');
         const data = await response.json();
-        
+
         if (data && data.length > 0) {
             // Transform stock data into movement-like format
             let movements = data.map(stock => ({
@@ -129,7 +144,7 @@ async function generateStockReportFromStock(startDate, endDate, movementType, it
                 reference_id: stock._id,
                 notes: `Initial stock entry - ${stock.item_id || ''}`
             }));
-            
+
             // Apply filters
             if (startDate) {
                 const start = new Date(startDate);
@@ -144,7 +159,7 @@ async function generateStockReportFromStock(startDate, endDate, movementType, it
                 const filter = itemFilter.toLowerCase();
                 movements = movements.filter(m => m.item_name.toLowerCase().includes(filter));
             }
-            
+
             // Calculate summary
             const summary = {
                 total_in: movements.reduce((sum, m) => sum + (m.movement_type === 'in' ? m.quantity_change : 0), 0),
@@ -152,7 +167,7 @@ async function generateStockReportFromStock(startDate, endDate, movementType, it
                 total_adjustments: movements.reduce((sum, m) => sum + (m.movement_type === 'adjustment' ? m.quantity_change : 0), 0)
             };
             summary.net_change = summary.total_in - summary.total_out + summary.total_adjustments;
-            
+
             stockReportData = movements;
             renderStockReport(movements, summary);
         } else {
@@ -185,7 +200,7 @@ async function generateStockReportFromStock(startDate, endDate, movementType, it
  */
 function renderStockReport(movements, summary) {
     const tbody = document.getElementById('stock-report-body');
-    
+
     if (!movements || movements.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -200,16 +215,16 @@ function renderStockReport(movements, summary) {
         document.getElementById('save-stock-pdf').style.display = 'none';
         return;
     }
-    
+
     // Render table rows
     tbody.innerHTML = movements.map(movement => {
-        const typeClass = movement.movement_type === 'in' ? 'text-green-600' : 
-                          movement.movement_type === 'out' ? 'text-red-600' : 'text-yellow-600';
+        const typeClass = movement.movement_type === 'in' ? 'text-green-600' :
+            movement.movement_type === 'out' ? 'text-red-600' : 'text-yellow-600';
         const typeIcon = movement.movement_type === 'in' ? 'fa-arrow-down' :
-                         movement.movement_type === 'out' ? 'fa-arrow-up' : 'fa-exchange-alt';
-        const quantityPrefix = movement.movement_type === 'in' ? '+' : 
-                               movement.movement_type === 'out' ? '-' : '';
-        
+            movement.movement_type === 'out' ? 'fa-arrow-up' : 'fa-exchange-alt';
+        const quantityPrefix = movement.movement_type === 'in' ? '+' :
+            movement.movement_type === 'out' ? '-' : '';
+
         return `
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3 border-b">${formatDateIndian(movement.timestamp)}</td>
@@ -230,7 +245,7 @@ function renderStockReport(movements, summary) {
             </tr>
         `;
     }).join('');
-    
+
     // Update summary
     if (summary) {
         document.getElementById('summary-stock-in').textContent = summary.total_in || 0;
@@ -239,7 +254,7 @@ function renderStockReport(movements, summary) {
         document.getElementById('summary-net-change').textContent = summary.net_change || 0;
         document.getElementById('stock-report-summary').style.display = 'grid';
     }
-    
+
     // Show print/PDF buttons
     document.getElementById('print-stock-report').style.display = 'flex';
     document.getElementById('save-stock-pdf').style.display = 'flex';
@@ -252,15 +267,15 @@ function renderStockReport(movements, summary) {
 function generateStockReportHTML() {
     const startDate = document.getElementById('stock-start-date').value;
     const endDate = document.getElementById('stock-end-date').value;
-    
+
     const summaryIn = document.getElementById('summary-stock-in').textContent;
     const summaryOut = document.getElementById('summary-stock-out').textContent;
     const summaryAdj = document.getElementById('summary-adjustments').textContent;
     const summaryNet = document.getElementById('summary-net-change').textContent;
-    
+
     const tableContent = stockReportData.map(movement => {
-        const quantityPrefix = movement.movement_type === 'in' ? '+' : 
-                               movement.movement_type === 'out' ? '-' : '';
+        const quantityPrefix = movement.movement_type === 'in' ? '+' :
+            movement.movement_type === 'out' ? '-' : '';
         return `
             <tr>
                 <td>${formatDateIndian(movement.timestamp)}</td>
@@ -272,7 +287,7 @@ function generateStockReportHTML() {
             </tr>
         `;
     }).join('');
-    
+
     const content = `
         <div class="report-summary">
             <div class="summary-item">
@@ -309,9 +324,9 @@ function generateStockReportHTML() {
             </tbody>
         </table>
     `;
-    
+
     const subtitle = `Period: ${formatDateIndian(startDate)} to ${formatDateIndian(endDate)}`;
-    
+
     return generatePrintableReport('Stock Movement Report', content, { subtitle });
 }
 
@@ -331,3 +346,58 @@ function saveStockReportPDF() {
     const filename = `stock-report-${new Date().getTime()}`;
     saveReportPDF(html, filename);
 }
+
+/**
+ * Load a saved stock report into the view
+ * @param {Object} report - Complete report object from database
+ */
+window.loadSavedStockReport = function (report) {
+    if (!report || !report.data) return;
+
+    // Set parameters
+    if (report.parameters) {
+        if (report.parameters.start_date) {
+            document.getElementById('stock-start-date').value = report.parameters.start_date.split('T')[0];
+        }
+        if (report.parameters.end_date) {
+            document.getElementById('stock-end-date').value = report.parameters.end_date.split('T')[0];
+        }
+        if (report.parameters.movement_type) {
+            document.getElementById('stock-movement-type').value = report.parameters.movement_type;
+        }
+        if (report.parameters.item_name) {
+            document.getElementById('stock-item-filter').value = report.parameters.item_name;
+        }
+    }
+
+    // Set global data
+    stockReportData = report.data.movements || [];
+
+    // Custom summary object based on saved data structure 
+    // The renderStockReport function expects summary object with total_in, total_out, etc.
+    let summary = report.data.summary;
+
+    // The saved summary structure might be different based on how it was saved in backend
+    // In backend: 
+    // summary: {
+    //    in: { total_quantity: ..., count: ... },
+    //    out: { total_quantity: ..., count: ... },
+    //    adjustment: { total_quantity: ..., count: ... }
+    // }
+    // But renderStockReport expects:
+    // { total_in, total_out, total_adjustments, net_change }
+
+    if (summary && summary.in && summary.out) {
+        // Convert from backend format to frontend render format
+        const renderSummary = {
+            total_in: summary.in.total_quantity || 0,
+            total_out: summary.out.total_quantity || 0,
+            total_adjustments: summary.adjustment ? summary.adjustment.total_quantity : 0
+        };
+        renderSummary.net_change = renderSummary.total_in - renderSummary.total_out + renderSummary.total_adjustments;
+        summary = renderSummary;
+    }
+
+    // Render report
+    renderStockReport(stockReportData, summary);
+};

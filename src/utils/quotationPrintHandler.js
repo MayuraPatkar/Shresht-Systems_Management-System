@@ -152,7 +152,7 @@ ${processedQuotationStyles4}
             /data-src=["']\.\.\/assets\/shresht-systems-payment-QR-code\.jpg["']/g,
             /srcset=["']\.\.\/assets\/shresht-systems-payment-QR-code\.jpg["']/g
         ], assets.qrCodeBase64);
-        
+
         // Also handle paths that might have different formats
         processed = processed.replace(/src=["']\.\.\\assets\\icon\.png["']/g, `src="${assets.iconPngDataUri}"`);
         processed = processed.replace(/src=["']\.\.\\assets\\icon2\.png["']/g, `src="${assets.iconDataUri}"`);
@@ -380,17 +380,17 @@ ${processedQuotationStyles4}
 
         try {
             await win.loadFile(tempHtmlPath);
-            
+
             // Wait for fonts
             try {
                 await win.webContents.executeJavaScript('document.fonts.ready');
             } catch (e) {
                 logger.warn('Font readiness wait failed', { error: e.message });
             }
-            
+
             // Small delay for rendering
             await new Promise(resolve => setTimeout(resolve, 500));
-            
+
             return { win, tempHtmlPath };
         } catch (error) {
             if (!win.isDestroyed()) win.close();
@@ -530,31 +530,37 @@ function setupQuotationHandlers(mainWindow, ipcMain) {
     });
 
     // Handle general document print/PDF requests (reusing the same handler for now)
-    ipcMain.on('PrintDoc', async (event, { content, mode, name }) => {
+    // Handle general document print/PDF requests (reusing the same handler for now)
+    ipcMain.handle('PrintDoc', async (event, { content, mode, name }) => {
         try {
             if (mode === 'print') {
                 safeSend(event.sender, 'printStarted');
                 const result = await quotationPrintHandler.print(content, { mainWindow });
                 if (!result.success) {
                     safeSend(event.sender, 'printFailed', { error: result.error });
+                    return { success: false, error: result.error };
                 } else {
                     safeSend(event.sender, 'printDone');
+                    return { success: true };
                 }
             } else if (mode === 'savePDF') {
-                const { filePath } = await dialog.showSaveDialog(mainWindow, {
+                const { filePath, canceled } = await dialog.showSaveDialog(mainWindow, {
                     title: 'Save PDF',
                     defaultPath: `${name}.pdf`,
                     filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
                 });
 
-                if (filePath) {
-                    const result = await quotationPrintHandler.generatePDF(content, filePath);
-                    safeSend(event.sender, 'PDFSaved', result);
+                if (canceled || !filePath) {
+                    return { success: false, canceled: true };
                 }
+
+                const result = await quotationPrintHandler.generatePDF(content, filePath);
+                // safeSend(event.sender, 'PDFSaved', result); // Legacy
+                return result;
             }
         } catch (error) {
             logger.error('Error in Document print handler', { error });
-            safeSend(event.sender, 'printProcessError', { error: error.message });
+            return { success: false, error: error.message };
         }
     });
 

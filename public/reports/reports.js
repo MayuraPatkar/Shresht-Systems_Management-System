@@ -9,7 +9,7 @@ let currentReportSection = 'home';
 /**
  * Initialize reports module on page load
  */
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initReports();
 });
 
@@ -19,16 +19,16 @@ document.addEventListener('DOMContentLoaded', function() {
 function initReports() {
     // Set up report card click handlers
     setupReportCards();
-    
+
     // Set up back button handlers
     setupBackButtons();
-    
+
     // Set up home button
     setupHomeButton();
-    
+
     // Load recent reports
     loadRecentReports();
-    
+
     // Set up refresh button
     document.getElementById('refresh-reports')?.addEventListener('click', loadRecentReports);
 }
@@ -39,7 +39,7 @@ function initReports() {
 function setupReportCards() {
     const reportCards = document.querySelectorAll('.report-card');
     reportCards.forEach(card => {
-        card.addEventListener('click', function() {
+        card.addEventListener('click', function () {
             const reportType = this.getAttribute('data-report');
             showReportSection(reportType);
         });
@@ -74,9 +74,9 @@ function showReportSection(reportType) {
     document.getElementById('stock-report-section').style.display = 'none';
     document.getElementById('gst-report-section').style.display = 'none';
     document.getElementById('data-worksheet-section').style.display = 'none';
-    
+
     // Show the selected section
-    switch(reportType) {
+    switch (reportType) {
         case 'stock':
             document.getElementById('stock-report-section').style.display = 'block';
             initStockReport();
@@ -93,8 +93,29 @@ function showReportSection(reportType) {
             document.getElementById('reports-home').style.display = 'block';
             loadRecentReports();
     }
-    
+
     currentReportSection = reportType;
+}
+
+/**
+ * Load recent reports from the server
+ */
+/**
+ * Get report title based on type
+ * @param {string} reportType 
+ * @returns {string} Human-readable title
+ */
+function getReportTitle(report) {
+    // If report has a custom name (saved from backend), use it
+    if (report.report_name) return report.report_name;
+
+    // Fallback to type-based title
+    const titles = {
+        'stock': 'Stock Report',
+        'gst': 'Monthly GST Report',
+        'data_worksheet': 'Data Worksheet'
+    };
+    return titles[report.report_type] || 'Report';
 }
 
 /**
@@ -103,7 +124,7 @@ function showReportSection(reportType) {
 async function loadRecentReports() {
     const container = document.getElementById('recent-reports');
     if (!container) return;
-    
+
     try {
         container.innerHTML = `
             <div class="text-center py-4">
@@ -111,32 +132,49 @@ async function loadRecentReports() {
                 <p class="text-gray-500 mt-2">Loading recent reports...</p>
             </div>
         `;
-        
+
         const response = await fetch('/reports/saved');
         const data = await response.json();
-        
+
         if (data.success && data.reports && data.reports.length > 0) {
-            container.innerHTML = data.reports.map(report => `
+            container.innerHTML = data.reports.map(report => {
+                const dateObj = new Date(report.generated_at || report.created_at);
+                const dateStr = dateObj.toLocaleDateString('en-IN');
+                const timeStr = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+                return `
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
                     <div class="flex items-center gap-4">
                         <div class="bg-${getReportColor(report.report_type)}-100 p-3 rounded-lg">
                             <i class="fas ${getReportIcon(report.report_type)} text-${getReportColor(report.report_type)}-600 text-xl"></i>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-gray-800">${getReportTitle(report.report_type)}</h4>
-                            <p class="text-sm text-gray-500">Generated: ${formatDateIndian(report.created_at)}</p>
+                            <h4 class="font-semibold text-gray-800">${getReportTitle(report)}</h4>
+                            <p class="text-sm text-gray-500">Generated on: ${dateStr}, ${timeStr}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="viewReport('${report._id}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                        <button class="view-report-btn bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700" data-id="${report._id}">
                             <i class="fas fa-eye"></i> View
                         </button>
-                        <button onclick="deleteReport('${report._id}')" class="bg-red-100 text-red-600 px-3 py-1 rounded text-sm hover:bg-red-200">
+                        <button class="delete-report-btn bg-red-100 text-red-600 px-3 py-1 rounded text-sm hover:bg-red-200" data-id="${report._id}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
+
+            // Add event delegation for buttons
+            container.onclick = function (e) {
+                const viewBtn = e.target.closest('.view-report-btn');
+                const deleteBtn = e.target.closest('.delete-report-btn');
+
+                if (viewBtn) {
+                    viewReport(viewBtn.getAttribute('data-id'));
+                } else if (deleteBtn) {
+                    deleteReport(deleteBtn.getAttribute('data-id'));
+                }
+            };
         } else {
             container.innerHTML = `
                 <div class="text-center text-gray-500 py-8">
@@ -187,20 +225,6 @@ function getReportIcon(reportType) {
 }
 
 /**
- * Get report title based on type
- * @param {string} reportType 
- * @returns {string} Human-readable title
- */
-function getReportTitle(reportType) {
-    const titles = {
-        'stock': 'Stock Report',
-        'gst': 'Monthly GST Report',
-        'data_worksheet': 'Data Worksheet'
-    };
-    return titles[reportType] || 'Report';
-}
-
-/**
  * View a saved report
  * @param {string} reportId 
  */
@@ -208,11 +232,22 @@ async function viewReport(reportId) {
     try {
         const response = await fetch(`/reports/${reportId}`);
         const data = await response.json();
-        
+
         if (data.success && data.report) {
+            const report = data.report;
+            const type = report.report_type;
+
             // Show report based on type
-            showReportSection(data.report.report_type.replace('_', ''));
-            // Populate data - this would be handled by the specific report modules
+            showReportSection(type.replace('_', ''));
+
+            // Populate data based on type
+            if (type === 'gst' && typeof loadSavedGSTReport === 'function') {
+                loadSavedGSTReport(report);
+            } else if (type === 'stock' && typeof loadSavedStockReport === 'function') {
+                loadSavedStockReport(report);
+            } else if (type === 'data_worksheet' && typeof loadWorksheet === 'function') {
+                loadWorksheet(reportId);
+            }
         } else {
             showNotification('Report not found', 'error');
         }
@@ -226,26 +261,32 @@ async function viewReport(reportId) {
  * Delete a saved report
  * @param {string} reportId 
  */
-async function deleteReport(reportId) {
-    if (!confirm('Are you sure you want to delete this report?')) return;
-    
-    try {
-        const response = await fetch(`/reports/${reportId}`, {
-            method: 'DELETE'
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            showNotification('Report deleted successfully', 'success');
-            loadRecentReports();
-        } else {
-            showNotification('Failed to delete report', 'error');
+window.deleteReport = function (reportId) {
+    showConfirm('Are you sure you want to delete this report?', async (response) => {
+        if (response === 'Yes') {
+            try {
+                const res = await fetch(`/reports/${reportId}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showNotification('Report deleted successfully', 'success');
+                    loadRecentReports();
+                } else {
+                    showNotification('Failed to delete report', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting report:', error);
+                showNotification('Failed to delete report', 'error');
+            }
         }
-    } catch (error) {
-        console.error('Error deleting report:', error);
-        showNotification('Failed to delete report', 'error');
-    }
-}
+    });
+};
+
+// Make functions global for inline onclick handlers
+window.viewReport = viewReport;
+window.loadRecentReports = loadRecentReports;
 
 /**
  * Show a notification message
@@ -259,13 +300,12 @@ function showNotification(message, type = 'info') {
     } else {
         // Create a toast notification
         const toast = document.createElement('div');
-        toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
-            type === 'success' ? 'bg-green-600' : 
+        toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-600' :
             type === 'error' ? 'bg-red-600' : 'bg-blue-600'
-        } text-white font-medium`;
+            } text-white font-medium`;
         toast.textContent = message;
         document.body.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.remove();
         }, 3000);
@@ -281,7 +321,7 @@ function showNotification(message, type = 'info') {
  */
 function generatePrintableReport(title, content, options = {}) {
     const today = new Date().toLocaleDateString('en-IN');
-    
+
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -473,10 +513,19 @@ function printReport(htmlContent, filename) {
  * @param {string} htmlContent 
  * @param {string} filename 
  */
-function saveReportPDF(htmlContent, filename) {
+async function saveReportPDF(htmlContent, filename) {
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        window.electronAPI.handlePrintEvent(htmlContent, 'savePDF', filename);
-        showNotification('PDF saved successfully!', 'success');
+        try {
+            const result = await window.electronAPI.handlePrintEvent(htmlContent, 'savePDF', filename);
+            if (result && result.success) {
+                showNotification('PDF saved successfully!', 'success');
+            } else if (result && result.error) {
+                showNotification(`Failed to save PDF: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('PDF save error:', error);
+            showNotification('Failed to save PDF', 'error');
+        }
     } else {
         showNotification('PDF save requires Electron environment', 'error');
     }
@@ -489,7 +538,7 @@ function saveReportPDF(htmlContent, filename) {
  */
 function formatCurrency(amount) {
     if (typeof formatIndian === 'function') {
-        return '₹' + formatIndian(amount);
+        return '₹' + formatIndian(amount, 2);
     }
     return '₹' + amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

@@ -327,11 +327,11 @@ function setupIPCHandlers() {
     try {
       const packageJson = require('./package.json');
       const currentVersion = packageJson.version;
-      
+
       // Check last seen version from app settings
       const store = require('electron').app;
       const lastSeenVersion = store.lastSeenVersion || null;
-      
+
       return {
         success: true,
         currentVersion: currentVersion,
@@ -349,15 +349,15 @@ function setupIPCHandlers() {
     try {
       const packageJson = require('./package.json');
       const currentVersion = packageJson.version;
-      
+
       // Store last seen version in app
       const store = require('electron').app;
       store.lastSeenVersion = currentVersion;
-      
+
       // Also save to a file for persistence across app restarts
       const settingsPath = path.join(app.getPath('userData'), 'app-settings.json');
       let settings = {};
-      
+
       try {
         if (fs.existsSync(settingsPath)) {
           settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
@@ -365,12 +365,12 @@ function setupIPCHandlers() {
       } catch (e) {
         // Ignore read errors, start fresh
       }
-      
+
       settings.lastSeenVersion = currentVersion;
       settings.lastSeenAt = new Date().toISOString();
-      
+
       fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-      
+
       logger.info(`Changelog marked as seen for version ${currentVersion}`);
       return { success: true, version: currentVersion };
     } catch (error) {
@@ -384,10 +384,10 @@ function setupIPCHandlers() {
     try {
       const packageJson = require('./package.json');
       const currentVersion = packageJson.version;
-      
+
       const settingsPath = path.join(app.getPath('userData'), 'app-settings.json');
       let lastSeenVersion = null;
-      
+
       try {
         if (fs.existsSync(settingsPath)) {
           const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
@@ -396,7 +396,7 @@ function setupIPCHandlers() {
       } catch (e) {
         // Ignore read errors
       }
-      
+
       return {
         success: true,
         currentVersion: currentVersion,
@@ -448,12 +448,13 @@ async function createWindow() {
     mainWindow.once('ready-to-show', () => {
       mainWindow.show();
       mainWindow.maximize();
+      //mainWindow.webContents.openDevTools();
     });
 
     // Enhanced frontend loading with retry logic
     const maxRetries = 5;
     let retries = 0;
-    
+
     // Get the actual server port (set by app.whenReady)
     const serverPort = global.serverPort || 3000;
     const serverUrl = `http://localhost:${serverPort}`;
@@ -531,17 +532,17 @@ async function createWindow() {
 app.whenReady().then(async () => {
   // Setup IPC handlers FIRST before anything else loads
   setupIPCHandlers();
-  
+
   // Start Express server with proper error handling
   try {
     const server = require("./server");
-    
+
     // Wait for server to be ready and get the actual port
     const { port: actualPort } = await server.serverReady;
-    
+
     // Store the actual port globally for use in window creation
     global.serverPort = actualPort;
-    
+
     logger.info(`Express server started successfully on port ${actualPort}`);
 
     createWindow();
@@ -558,10 +559,10 @@ app.whenReady().then(async () => {
 
     // Show error dialog to user with more details
     const { dialog } = require('electron');
-    
+
     let errorMessage = 'Failed to start the backend server';
     let errorDetail = 'The application may not function properly. Please check the logs.';
-    
+
     // Check for port-related errors
     if (err.code === 'ENOPORTS') {
       errorMessage = 'No available ports found';
@@ -570,7 +571,7 @@ app.whenReady().then(async () => {
       errorMessage = 'Port conflict detected';
       errorDetail = err.message;
     }
-    
+
     const result = await dialog.showMessageBox({
       type: 'error',
       title: 'Server Error',
