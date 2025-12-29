@@ -246,40 +246,7 @@ router.get('/gst', async (req, res) => {
                 totalInvoiceValue += (taxableValue + cgst + sgst);
             });
 
-            // Process non-items (installation charges, etc.)
-            const nonItems = invoice.non_items_original || [];
-
-            nonItems.forEach(item => {
-                const rate = parseFloat(item.rate) || 0;
-                const taxableValue = item.price || 0;
-                const cgst = (taxableValue * rate / 2) / 100;
-                const sgst = (taxableValue * rate / 2) / 100;
-
-                const key = rate.toString();
-
-                if (!rateBreakdown[key]) {
-                    rateBreakdown[key] = {
-                        rate: rate,
-                        description: `GST @ ${rate}%`,
-                        taxable_value: 0,
-                        cgst: 0,
-                        sgst: 0,
-                        total_tax: 0,
-                        total_value: 0
-                    };
-                }
-
-                rateBreakdown[key].taxable_value += taxableValue;
-                rateBreakdown[key].cgst += cgst;
-                rateBreakdown[key].sgst += sgst;
-                rateBreakdown[key].total_tax += (cgst + sgst);
-                rateBreakdown[key].total_value += (taxableValue + cgst + sgst);
-
-                totalTaxableValue += taxableValue;
-                totalCGST += cgst;
-                totalSGST += sgst;
-                totalInvoiceValue += (taxableValue + cgst + sgst);
-            });
+            // Non-items (installation charges, services, etc.) are intentionally excluded from GST reports
         });
 
         // Convert to array and sort by rate (descending)

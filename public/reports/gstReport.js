@@ -198,14 +198,16 @@ async function generateGSTReportFromInvoices(month, year) {
             return;
         }
 
-        // Calculate HSN-wise breakdown
+        // Calculate tax-rate-wise breakdown
+        // Only items are included; non-items (services, installation) are excluded
         const hsnMap = new Map();
         let totalTaxableValue = 0;
         let totalCGST = 0;
         let totalSGST = 0;
 
         filteredInvoices.forEach(invoice => {
-            const items = invoice.items || [];
+            // Use items_original for items
+            const items = invoice.items_original || invoice.items || [];
             items.forEach(item => {
                 const hsn = item.hsn_sac || item.hsn || 'N/A';
                 const taxableValue = parseFloat(item.rate) || 0;
