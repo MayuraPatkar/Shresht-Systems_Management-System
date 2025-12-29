@@ -315,57 +315,93 @@ try {
  */
 async function startServer() {
     try {
-        // Find an available port
-        const { port, source } = await findAvailablePort({
-            defaultPort: config.port,
-            maxRetries: config.portMaxRetries,
-            useCache: config.portCacheEnabled,
-            logger: logger
-        });
+        // We'll allow a few binding attempts in case of a race where
+        // the port was available during detection but got taken before listen.
+        const maxBindAttempts = Math.min(Math.max(config.portMaxRetries || 3, 1), 5);
+        let attempt = 0;
 
-        actualPort = port;
+        while (attempt < maxBindAttempts) {
+            attempt += 1;
 
-        // Start the server on the detected port
-        return new Promise((resolve, reject) => {
-            server = exServer.listen(port, () => {
-                // Print startup banner
-                printStartupBanner({
-                    port: actualPort,
-                    source: source,
-                    appName: config.appName,
-                    appVersion: config.appVersion,
-                    logger: logger
+            // Find an available port using the existing port finder
+            const { port, source } = await findAvailablePort({
+                defaultPort: config.port,
+                maxRetries: config.portMaxRetries,
+                useCache: config.portCacheEnabled,
+                logger: logger
+            });
+
+            actualPort = port;
+
+            // Try to start the server on the detected port
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    // Attempt to listen
+                    const tempServer = exServer.listen(port, () => {
+                        // Print startup banner
+                        printStartupBanner({
+                            port: actualPort,
+                            source: source,
+                            appName: config.appName,
+                            appVersion: config.appVersion,
+                            logger: logger
+                        });
+
+                        logger.info(`Server started at ${new Date().toISOString()}`);
+                        logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+                        logger.info(`Process ID: ${process.pid}`);
+
+                        // Update the outer-scope server reference
+                        server = tempServer;
+                        resolve({ server: tempServer, port: actualPort });
+                    });
+
+                    // Handle server startup errors for this attempt
+                    const onError = (error) => {
+                        if (error.syscall !== 'listen') {
+                            reject(error);
+                            return;
+                        }
+                        const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+                        switch (error.code) {
+                            case 'EACCES':
+                                logger.error(`${bind} requires elevated privileges`);
+                                reject(new Error(`${bind} requires elevated privileges`));
+                                break;
+                            case 'EADDRINUSE':
+                                logger.warn(`${bind} is already in use (race). Will retry detection. Attempt ${attempt}/${maxBindAttempts}`);
+                                reject(Object.assign(new Error(`${bind} is already in use`), { code: 'EADDRINUSE' }));
+                                break;
+                            default:
+                                logger.error('Server error:', error);
+                                reject(error);
+                        }
+                    };
+
+                    tempServer.on('error', onError);
                 });
 
-                logger.info(`Server started at ${new Date().toISOString()}`);
-                logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-                logger.info(`Process ID: ${process.pid}`);
-
-                resolve({ server, port: actualPort });
-            });
-
-            // Handle server startup errors
-            server.on('error', (error) => {
-                if (error.syscall !== 'listen') {
-                    reject(error);
-                    return;
+                // If we get here, listening succeeded
+                return result;
+            } catch (err) {
+                // If the error is an EADDRINUSE, loop and try again (findAvailablePort will pick another)
+                if (err && err.code === 'EADDRINUSE') {
+                    logger.info('Retrying port detection due to EADDRINUSE...');
+                    // small delay to reduce tight loop
+                    await new Promise(r => setTimeout(r, 250));
+                    continue;
                 }
-                const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
-                switch (error.code) {
-                    case 'EACCES':
-                        logger.error(`${bind} requires elevated privileges`);
-                        reject(new Error(`${bind} requires elevated privileges`));
-                        break;
-                    case 'EADDRINUSE':
-                        logger.error(`${bind} is already in use`);
-                        reject(new Error(`${bind} is already in use`));
-                        break;
-                    default:
-                        logger.error('Server error:', error);
-                        reject(error);
-                }
-            });
-        });
+
+                // For other errors, rethrow
+                throw err;
+            }
+        }
+
+        // Exhausted attempts
+        const err = new Error(`Failed to bind to a port after ${maxBindAttempts} attempts due to address-in-use errors.`);
+        err.code = 'EADDRINUSE_RETRIES_EXHAUSTED';
+        logger.error(err.message);
+        throw err;
     } catch (error) {
         logger.error('Failed to start server:', error);
         throw error;
