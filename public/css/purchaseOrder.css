@@ -2,8 +2,7 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    /* Allow page-level scrolling; prevents content from being clipped on short viewports */
-    overflow: auto;
+    overflow: hidden;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -15,10 +14,7 @@ body {
 }
 
 main {
-    /* Ensure main takes remaining viewport height beneath the fixed header (h-24 = 6rem)
-       so inner scrolling works and document previews are fully accessible. */
-    min-height: calc(100vh - 6rem);
-    max-height: calc(100vh - 6rem);
+    height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
 }
