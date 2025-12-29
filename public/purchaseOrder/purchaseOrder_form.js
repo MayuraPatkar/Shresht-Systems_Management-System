@@ -25,7 +25,7 @@ async function fetchSuppliers() {
 function initSupplierAutocomplete() {
     const supplierNameInput = document.getElementById('supplier-name');
     if (!supplierNameInput) return;
-    
+
     // Create suggestions list if it doesn't exist
     let suggestionsContainer = supplierNameInput.parentElement.querySelector('.supplier-suggestions');
     if (!suggestionsContainer) {
@@ -34,17 +34,17 @@ function initSupplierAutocomplete() {
         supplierNameInput.parentElement.style.position = 'relative';
         supplierNameInput.parentElement.appendChild(suggestionsContainer);
     }
-    
-    supplierNameInput.addEventListener('input', function() {
+
+    supplierNameInput.addEventListener('input', function () {
         showSupplierSuggestions(this, suggestionsContainer);
     });
-    
-    supplierNameInput.addEventListener('keydown', function(event) {
+
+    supplierNameInput.addEventListener('keydown', function (event) {
         handleSupplierKeyboardNavigation(event, this, suggestionsContainer);
     });
-    
+
     // Close suggestions when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (!supplierNameInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
             suggestionsContainer.style.display = 'none';
         }
@@ -55,43 +55,43 @@ function showSupplierSuggestions(input, suggestionsList) {
     const query = input.value.toLowerCase().trim();
     suggestionsList.innerHTML = '';
     selectedSupplierIndex = -1;
-    
+
     if (query.length === 0) {
         suggestionsList.style.display = 'none';
         return;
     }
-    
-    const filtered = supplierData.filter(s => 
+
+    const filtered = supplierData.filter(s =>
         s.name && s.name.toLowerCase().includes(query)
     );
-    
+
     if (filtered.length === 0) {
         suggestionsList.style.display = 'none';
         return;
     }
-    
+
     suggestionsList.style.display = 'block';
-    
+
     filtered.forEach((supplier, index) => {
         const li = document.createElement('li');
         li.innerHTML = `<strong>${supplier.name}</strong><br><small style="color: #666;">${supplier.address || ''}</small>`;
         li.style.padding = '8px 12px';
         li.style.cursor = 'pointer';
         li.style.borderBottom = '1px solid #eee';
-        
-        li.onclick = function() {
+
+        li.onclick = function () {
             fillSupplierDetails(supplier);
             suggestionsList.style.display = 'none';
             selectedSupplierIndex = -1;
         };
-        
-        li.onmouseenter = function() {
+
+        li.onmouseenter = function () {
             li.style.backgroundColor = '#f0f0f0';
         };
-        li.onmouseleave = function() {
+        li.onmouseleave = function () {
             li.style.backgroundColor = '';
         };
-        
+
         suggestionsList.appendChild(li);
     });
 }
@@ -99,7 +99,7 @@ function showSupplierSuggestions(input, suggestionsList) {
 function handleSupplierKeyboardNavigation(event, input, suggestionsList) {
     const items = suggestionsList.querySelectorAll('li');
     if (items.length === 0) return;
-    
+
     if (event.key === 'ArrowDown') {
         event.preventDefault();
         selectedSupplierIndex = (selectedSupplierIndex + 1) % items.length;
@@ -164,7 +164,7 @@ function updateSupplierSelection(items) {
             item.style.backgroundColor = '';
         }
     });
-    
+
     // Scroll selected item into view
     if (selectedSupplierIndex >= 0 && items[selectedSupplierIndex]) {
         items[selectedSupplierIndex].scrollIntoView({ block: 'nearest' });
@@ -305,18 +305,18 @@ async function fillPurchaseOrderItem(itemName, element) {
             // Row 2 inputs: company, type, category
             const row1Inputs = element.querySelectorAll('.item-row-1 input');
             const row2Inputs = element.querySelectorAll('.item-row-2 input');
-            
+
             // Row 1: [0]=description, [1]=HSN, [2]=qty, [3]=unit_price, [4]=rate
             if (row1Inputs[1]) row1Inputs[1].value = stockData.HSN_SAC || "";
             // Leave qty blank (user needs to enter)
             if (row1Inputs[3]) row1Inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
             if (row1Inputs[4]) row1Inputs[4].value = stockData.GST || 0;
-            
+
             // Row 2: [0]=company, [1]=type, [2]=category
             if (row2Inputs[0]) row2Inputs[0].value = stockData.company || "";
             if (row2Inputs[1]) row2Inputs[1].value = stockData.type || "";
             if (row2Inputs[2]) row2Inputs[2].value = stockData.category || "";
-            
+
             // Trigger input events to sync with table
             [...row1Inputs, ...row2Inputs].forEach(input => {
                 input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -381,7 +381,7 @@ async function fillPurchaseOrderItem(itemName, element) {
             if (card) {
                 const row1Inputs = card.querySelectorAll('.item-row-1 input');
                 const row2Inputs = card.querySelectorAll('.item-row-2 input');
-                
+
                 if (row1Inputs[1]) row1Inputs[1].value = stockData.HSN_SAC || "";
                 if (row1Inputs[3]) row1Inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
                 if (row1Inputs[4]) row1Inputs[4].value = stockData.GST || 0;
@@ -418,31 +418,31 @@ async function openPurchaseOrder(purchaseOrderId) {
         return `${year}-${month}-${day}`;
     };
 
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'block';
-        document.getElementById('new-purchase').style.display = 'none';
-        document.getElementById('view-preview').style.display = 'block';
-        document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
+    document.getElementById('home').style.display = 'none';
+    document.getElementById('new').style.display = 'block';
+    document.getElementById('new-purchase').style.display = 'none';
+    document.getElementById('view-preview').style.display = 'block';
+    document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
 
-        document.getElementById('id').value = purchaseOrder.purchase_order_id;
-        document.getElementById('purchase-invoice-id').value = purchaseOrder.purchase_invoice_id;
-        document.getElementById('purchase-date').value = formatDateForInput(purchaseOrder.purchase_date);
-        document.getElementById('supplier-name').value = purchaseOrder.supplier_name;
-        document.getElementById('supplier-address').value = purchaseOrder.supplier_address;
-        document.getElementById('supplier-phone').value = purchaseOrder.supplier_phone;
-        document.getElementById('supplier-email').value = purchaseOrder.supplier_email;
-        document.getElementById('supplier-GSTIN').value = purchaseOrder.supplier_GSTIN;
+    document.getElementById('id').value = purchaseOrder.purchase_order_id;
+    document.getElementById('purchase-invoice-id').value = purchaseOrder.purchase_invoice_id;
+    document.getElementById('purchase-date').value = formatDateForInput(purchaseOrder.purchase_date);
+    document.getElementById('supplier-name').value = purchaseOrder.supplier_name;
+    document.getElementById('supplier-address').value = purchaseOrder.supplier_address;
+    document.getElementById('supplier-phone').value = purchaseOrder.supplier_phone;
+    document.getElementById('supplier-email').value = purchaseOrder.supplier_email;
+    document.getElementById('supplier-GSTIN').value = purchaseOrder.supplier_GSTIN;
 
-        const itemsTableBody = document.querySelector("#items-table tbody");
-        itemsTableBody.innerHTML = "";
-        const itemsContainer = document.getElementById("items-container");
-        itemsContainer.innerHTML = "";
-        let sno = 1;
-        (purchaseOrder.items || []).forEach(item => {
-            // Create card
-            const card = document.createElement("div");
-            card.className = "item-card";
-            card.innerHTML = `
+    const itemsTableBody = document.querySelector("#items-table tbody");
+    itemsTableBody.innerHTML = "";
+    const itemsContainer = document.getElementById("items-container");
+    itemsContainer.innerHTML = "";
+    let sno = 1;
+    (purchaseOrder.items || []).forEach(item => {
+        // Create card
+        const card = document.createElement("div");
+        card.className = "item-card";
+        card.innerHTML = `
                 <div class="item-row-1">
                     <div class="item-number">${sno}</div>
                     <div class="item-field description">
@@ -464,7 +464,7 @@ async function openPurchaseOrder(purchaseOrderId) {
                         <input type="number" value="${item.rate}" placeholder="GST %" min="0" step="0.01">
                     </div>
                     <button type="button" class="remove-item-btn">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
                 <div class="item-row-2">
@@ -510,43 +510,43 @@ async function openPurchaseOrder(purchaseOrderId) {
                 <td><input type="number" value="${item.quantity}" min="1" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="number" value="${item.unit_price}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="number" value="${item.rate}" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-                <td><button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
-            itemsTableBody.appendChild(row);
-            
-            // Sync card inputs with table inputs using new two-row layout
-            // Card Row 1: description, hsn, qty, unit_price, rate
-            // Card Row 2: company, type, category
-            // Table: description, hsn, company, type, category, qty, unit_price, rate
-            const row1Inputs = card.querySelectorAll('.item-row-1 input');
-            const row2Inputs = card.querySelectorAll('.item-row-2 input');
-            const tableInputs = row.querySelectorAll('input');
-            
-            const inputMapping = [
-                { card: row1Inputs[0], table: tableInputs[0] }, // description
-                { card: row1Inputs[1], table: tableInputs[1] }, // hsn
-                { card: row2Inputs[0], table: tableInputs[2] }, // company
-                { card: row2Inputs[1], table: tableInputs[3] }, // type
-                { card: row2Inputs[2], table: tableInputs[4] }, // category
-                { card: row1Inputs[2], table: tableInputs[5] }, // qty
-                { card: row1Inputs[3], table: tableInputs[6] }, // unit_price
-                { card: row1Inputs[4], table: tableInputs[7] }, // rate
-            ];
-            
-            inputMapping.forEach(({ card: cardInput, table: tableInput }) => {
-                if (cardInput && tableInput) {
-                    cardInput.addEventListener('input', () => {
-                        tableInput.value = cardInput.value;
-                    });
-                }
-            });
-            
-            // Add remove button event listener
-            const removeBtn = card.querySelector(".remove-item-btn");
-            removeBtn.addEventListener("click", function() {
-                card.remove();
-                row.remove();
-            });
+        itemsTableBody.appendChild(row);
+
+        // Sync card inputs with table inputs using new two-row layout
+        // Card Row 1: description, hsn, qty, unit_price, rate
+        // Card Row 2: company, type, category
+        // Table: description, hsn, company, type, category, qty, unit_price, rate
+        const row1Inputs = card.querySelectorAll('.item-row-1 input');
+        const row2Inputs = card.querySelectorAll('.item-row-2 input');
+        const tableInputs = row.querySelectorAll('input');
+
+        const inputMapping = [
+            { card: row1Inputs[0], table: tableInputs[0] }, // description
+            { card: row1Inputs[1], table: tableInputs[1] }, // hsn
+            { card: row2Inputs[0], table: tableInputs[2] }, // company
+            { card: row2Inputs[1], table: tableInputs[3] }, // type
+            { card: row2Inputs[2], table: tableInputs[4] }, // category
+            { card: row1Inputs[2], table: tableInputs[5] }, // qty
+            { card: row1Inputs[3], table: tableInputs[6] }, // unit_price
+            { card: row1Inputs[4], table: tableInputs[7] }, // rate
+        ];
+
+        inputMapping.forEach(({ card: cardInput, table: tableInput }) => {
+            if (cardInput && tableInput) {
+                cardInput.addEventListener('input', () => {
+                    tableInput.value = cardInput.value;
+                });
+            }
+        });
+
+        // Add remove button event listener
+        const removeBtn = card.querySelector(".remove-item-btn");
+        removeBtn.addEventListener("click", function () {
+            card.remove();
+            row.remove();
+        });
 
         sno++;
     });
@@ -607,7 +607,7 @@ async function generatePreview() {
     // Fetch company data from database
     const companyData = await window.companyConfig.getCompanyInfo();
     const bank = companyData.bank_details || {};
-    
+
     if (!purchaseOrderId) purchaseOrderId = document.getElementById('id').value;
     const purchaseDate = document.getElementById("purchase-date").value || new Date().toLocaleDateString();
     const purchaseInvoiceId = document.getElementById("purchase-invoice-id").value || purchaseOrderId;
@@ -981,12 +981,12 @@ if (addItemBtn) {
         const container = document.getElementById("items-container");
         const tableBody = document.querySelector("#items-table tbody");
         const itemNumber = tableBody.children.length + 1;
-    
-    // Create card element
-    const card = document.createElement("div");
-    card.className = "item-card";
-    
-    card.innerHTML = `
+
+        // Create card element
+        const card = document.createElement("div");
+        card.className = "item-card";
+
+        card.innerHTML = `
         <div class="item-row-1">
             <div class="item-number">${itemNumber}</div>
             <div class="item-field description">
@@ -1060,7 +1060,7 @@ if (addItemBtn) {
         <td><input type="number" placeholder="Qty" min="1" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><input type="number" placeholder="Unit Price" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-        <td><button type="button" class="remove-item-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button></td>
+        <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
     `;
         tableBody.appendChild(row);
 
@@ -1087,7 +1087,7 @@ if (addItemBtn) {
         // Table order: Description, HSN/SAC, Company, Type, Category, Qty, Unit Price, Rate
         const cardInputs = card.querySelectorAll("input");
         const tableInputs = row.querySelectorAll("input");
-        
+
         // Mapping: card index -> table index
         const cardToTableMap = {
             0: 0,  // Description -> Description
@@ -1108,6 +1108,48 @@ if (addItemBtn) {
                 }
             });
         });
+
+        // Add remove button event listener for CARD
+        const cardRemoveBtn = card.querySelector(".remove-item-btn");
+        if (cardRemoveBtn) {
+            cardRemoveBtn.addEventListener("click", function () {
+                card.remove();
+                row.remove();
+                // Renumber remaining items
+                renumberItems();
+            });
+        }
+
+        // Add remove button event listener for TABLE ROW
+        const tableRemoveBtn = row.querySelector(".remove-item-btn");
+        if (tableRemoveBtn) {
+            tableRemoveBtn.addEventListener("click", function () {
+                card.remove();
+                row.remove();
+                // Renumber remaining items
+                renumberItems();
+            });
+        }
+    });
+}
+
+// Helper function to renumber items after deletion
+function renumberItems() {
+    const cards = document.querySelectorAll("#items-container .item-card");
+    const tableRows = document.querySelectorAll("#items-table tbody tr");
+
+    cards.forEach((card, index) => {
+        const numberBadge = card.querySelector(".item-number");
+        if (numberBadge) {
+            numberBadge.textContent = index + 1;
+        }
+    });
+
+    tableRows.forEach((row, index) => {
+        const numberBadge = row.querySelector(".item-number");
+        if (numberBadge) {
+            numberBadge.textContent = index + 1;
+        }
     });
 }
 
