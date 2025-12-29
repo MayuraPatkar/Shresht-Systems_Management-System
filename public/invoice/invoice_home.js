@@ -404,7 +404,7 @@ function createInvoiceCard(invoice) {
                                 <span class="text-xs font-medium card-payment-label" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
                                 <span class="text-base font-bold card-due-amount" style="color: #059669;">₹${formatIndian(paidSoFar, 2)}</span>
                                 ` : `
-                                <span class="text-xs font-medium uppercase tracking-wide card-payment-label">Balance Due</span>
+                                <span class="text-xs font-medium uppercase tracking-wide card-payment-label" style="color: #dc2626;">Balance Due</span>
                                 <span class="text-base font-bold card-due-amount" style="color: #dc2626;">₹${formatIndian(Math.max(0, dueAmount), 2)}</span>
                                 `}
                             </div>
@@ -576,7 +576,7 @@ function createInvoiceCard(invoice) {
                         labelEl.classList.remove('uppercase', 'tracking-wide');
                     } else {
                         labelEl.textContent = 'Balance Due';
-                        labelEl.style.color = '';
+                        labelEl.style.color = '#dc2626';
                         labelEl.classList.add('uppercase', 'tracking-wide');
                     }
                 }
