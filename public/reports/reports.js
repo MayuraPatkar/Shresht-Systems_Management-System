@@ -538,7 +538,7 @@ async function saveReportPDF(htmlContent, filename) {
  */
 function formatCurrency(amount) {
     if (typeof formatIndian === 'function') {
-        return '₹' + formatIndian(amount);
+        return '₹' + formatIndian(amount, 2);
     }
     return '₹' + amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
