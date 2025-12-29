@@ -407,6 +407,17 @@ async function openPurchaseOrder(purchaseOrderId) {
 
     const purchaseOrder = data.purchaseOrder;
 
+    // Helper function to format date to YYYY-MM-DD for input fields
+    const formatDateForInput = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "";
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
         document.getElementById('new-purchase').style.display = 'none';
@@ -415,7 +426,7 @@ async function openPurchaseOrder(purchaseOrderId) {
 
         document.getElementById('id').value = purchaseOrder.purchase_order_id;
         document.getElementById('purchase-invoice-id').value = purchaseOrder.purchase_invoice_id;
-        document.getElementById('purchase-date').value = formatDate(purchaseOrder.purchase_date);
+        document.getElementById('purchase-date').value = formatDateForInput(purchaseOrder.purchase_date);
         document.getElementById('supplier-name').value = purchaseOrder.supplier_name;
         document.getElementById('supplier-address').value = purchaseOrder.supplier_address;
         document.getElementById('supplier-phone').value = purchaseOrder.supplier_phone;
