@@ -199,31 +199,31 @@ async function generateGSTReportFromInvoices(month, year) {
         }
 
         // Calculate tax-rate-wise breakdown
-        // Only items are included; non-items (services, installation) are excluded
-        const hsnMap = new Map();
+        // Only stock items are included; non-items (services, installation) are excluded
+        const rateMap = new Map();
         let totalTaxableValue = 0;
         let totalCGST = 0;
         let totalSGST = 0;
 
         filteredInvoices.forEach(invoice => {
-            // Use items_original for items
+            // Use items_original for stock items only
             const items = invoice.items_original || invoice.items || [];
             items.forEach(item => {
-                const hsn = item.hsn_sac || item.hsn || 'N/A';
-                const taxableValue = parseFloat(item.rate) || 0;
-                const gstRate = parseFloat(item.gst) || 18; // Default 18%
+                const gstRate = parseFloat(item.rate) || 0;
+                const taxableValue = (item.quantity || 0) * (item.unit_price || 0);
                 const cgst = (taxableValue * gstRate / 2) / 100;
                 const sgst = (taxableValue * gstRate / 2) / 100;
 
-                if (hsnMap.has(hsn)) {
-                    const existing = hsnMap.get(hsn);
+                const rateKey = gstRate.toString();
+                if (rateMap.has(rateKey)) {
+                    const existing = rateMap.get(rateKey);
                     existing.taxableValue += taxableValue;
                     existing.cgst += cgst;
                     existing.sgst += sgst;
                 } else {
-                    hsnMap.set(hsn, {
-                        hsn: hsn,
-                        description: item.description || item.item_name || 'Item',
+                    rateMap.set(rateKey, {
+                        rate: gstRate,
+                        description: `GST @ ${gstRate}%`,
                         taxableValue: taxableValue,
                         cgst: cgst,
                         sgst: sgst
@@ -236,7 +236,8 @@ async function generateGSTReportFromInvoices(month, year) {
             });
         });
 
-        const hsnBreakdown = Array.from(hsnMap.values());
+        // Convert to array and sort by rate (descending)
+        const taxRateBreakdown = Array.from(rateMap.values()).sort((a, b) => b.rate - a.rate);
 
         const reportData = {
             summary: {
@@ -245,7 +246,7 @@ async function generateGSTReportFromInvoices(month, year) {
                 totalSGST,
                 totalGST: totalCGST + totalSGST
             },
-            taxRateBreakdown, // Use taxRateBreakdown
+            taxRateBreakdown, // Tax rate grouped breakdown
             invoices: filteredInvoices.map(inv => ({
                 invoice_id: inv.invoice_id || inv._id,
                 date: inv.invoice_date || inv.date,
@@ -293,18 +294,17 @@ function renderGSTReport(data) {
         document.getElementById('gst-report-summary').style.display = 'grid';
     }
 
-    // Render Breakdown table (Tax Rate / HSN)
+    // Render Tax Rate Breakdown table
     const tbody = document.getElementById('gst-report-body');
     const tableHeader = document.querySelector('#gst-report-table thead tr th:first-child');
     const sectionTitle = document.getElementById('gst-breakdown-title');
 
+    // Always use Tax Rate grouping for GST reports
     if (tableHeader) {
-        // If data has 'rate' property, it's the new format, otherwise assume HSN
-        const isRateGrouped = breakdownList.length > 0 && breakdownList[0].rate !== undefined;
-        tableHeader.textContent = isRateGrouped ? 'Tax Rate' : 'HSN/SAC';
-        if (sectionTitle) {
-            sectionTitle.textContent = isRateGrouped ? 'Tax Rate Wise Breakdown' : 'HSN/SAC Wise Breakdown';
-        }
+        tableHeader.textContent = 'Tax Rate';
+    }
+    if (sectionTitle) {
+        sectionTitle.textContent = 'Tax Rate Wise Breakdown';
     }
 
     if (!breakdownList || breakdownList.length === 0) {
@@ -389,16 +389,15 @@ function generateGSTReportHTML() {
     const year = document.getElementById('gst-year').value;
     const { summary, taxRateBreakdown, hsnBreakdown, invoices } = gstReportData;
 
+    // Always use tax rate breakdown for GST reports
     const breakdownList = taxRateBreakdown || hsnBreakdown || [];
-    const isRateGrouped = breakdownList.length > 0 && breakdownList[0].rate !== undefined;
-    const firstColHeader = isRateGrouped ? 'Tax Rate' : 'HSN/SAC';
 
-    // Breakdown table
+    // Breakdown table - always grouped by Tax Rate
     const tableContent = breakdownList.map(item => {
-        const firstColValue = item.rate !== undefined ? `${item.rate}%` : (item.hsn || item.hsn_sac || 'N/A');
+        const rateValue = item.rate !== undefined ? `${item.rate}%` : 'N/A';
         return `
         <tr>
-            <td>${firstColValue}</td>
+            <td>${rateValue}</td>
             <td>${item.description}</td>
             <td class="text-right">${formatCurrency(item.taxableValue)}</td>
             <td class="text-right">${formatCurrency(item.cgst)}</td>
@@ -440,11 +439,11 @@ function generateGSTReportHTML() {
             </div>
         </div>
         
-        <h3 style="margin: 30px 0 15px; font-size: 16px; color: #374151;">${isRateGrouped ? 'Tax Rate Wise Breakdown' : 'HSN/SAC Wise Breakdown'}</h3>
+        <h3 style="margin: 30px 0 15px; font-size: 16px; color: #374151;">Tax Rate Wise Breakdown</h3>
         <table class="report-table">
             <thead>
                 <tr>
-                    <th>${firstColHeader}</th>
+                    <th>Tax Rate</th>
                     <th>Description</th>
                     <th class="text-right">Taxable Value</th>
                     <th class="text-right">CGST</th>
