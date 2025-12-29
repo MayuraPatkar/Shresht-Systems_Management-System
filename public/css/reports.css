@@ -3,6 +3,21 @@
  * Styling for the Reports section including cards, tables, and print layouts
  */
 
+/* Ensure sidebar matches other pages */
+.sidebar {
+    width: 280px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Main content scrolling to match layout */
+main {
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 /* ============================================
    Report Cards Grid
    ============================================ */
