@@ -154,6 +154,7 @@ function showReportSection(reportType) {
             initGSTReport();
             break;
         case 'dataWorksheet':
+        case 'data_worksheet':
             document.getElementById('data-worksheet-section').style.display = 'block';
             initDataWorksheetReport();
             break;
@@ -318,8 +319,8 @@ async function viewReport(reportId) {
             const report = data.report;
             const type = report.report_type;
 
-            // Show report based on type
-            showReportSection(type.replace('_', ''));
+            // Show report based on type - use type directly since showReportSection handles both formats
+            showReportSection(type);
 
             // Populate data based on type
             if (type === 'gst' && typeof loadSavedGSTReport === 'function') {

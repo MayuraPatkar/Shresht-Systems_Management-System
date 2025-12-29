@@ -8,7 +8,7 @@ const reportSchema = new mongoose.Schema({
     report_type: {
         type: String,
         required: true,
-        enum: ['stock', 'gst', 'data_worksheet', 'sales', 'purchase', 'custom'],
+        enum: ['stock', 'gst', 'purchase_gst', 'data_worksheet', 'sales', 'purchase', 'custom'],
         index: true
     },
     report_name: {
