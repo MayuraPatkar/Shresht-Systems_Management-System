@@ -401,10 +401,10 @@ function createInvoiceCard(invoice) {
                             <!-- Due/Paid Row -->
                             <div class="flex items-center justify-between">
                                 ${isPaid ? `
-                                <span class="text-xs font-medium" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
+                                <span class="text-xs font-medium card-payment-label" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
                                 <span class="text-base font-bold card-due-amount" style="color: #059669;">₹${formatIndian(paidSoFar, 2)}</span>
                                 ` : `
-                                <span class="text-xs font-medium uppercase tracking-wide">Balance Due</span>
+                                <span class="text-xs font-medium uppercase tracking-wide card-payment-label">Balance Due</span>
                                 <span class="text-base font-bold card-due-amount" style="color: #dc2626;">₹${formatIndian(Math.max(0, dueAmount), 2)}</span>
                                 `}
                             </div>
@@ -562,7 +562,24 @@ function createInvoiceCard(invoice) {
                 const percentClamped = Math.max(0, Math.min(percent, 100));
                 if (fillEl) fillEl.style.width = `${percentClamped}%`;
                 if (outerEl) outerEl.style.backgroundColor = due > 0 ? '#fecaca' : '#bbf7d0';
-                if (dueEl) dueEl.textContent = due > 0 ? `₹${formatIndian(due, 2)}` : `₹${formatIndian(paid, 2)}`;
+                if (dueEl) {
+                    dueEl.textContent = due > 0 ? `₹${formatIndian(due, 2)}` : `₹${formatIndian(paid, 2)}`;
+                    dueEl.style.color = due > 0 ? '#dc2626' : '#059669';
+                }
+
+                // Update payment label (Fully Paid vs Balance Due)
+                const labelEl = invoiceCard.querySelector('.card-payment-label');
+                if (labelEl) {
+                    if (due <= 0) {
+                        labelEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Fully Paid';
+                        labelEl.style.color = '#059669';
+                        labelEl.classList.remove('uppercase', 'tracking-wide');
+                    } else {
+                        labelEl.textContent = 'Balance Due';
+                        labelEl.style.color = '';
+                        labelEl.classList.add('uppercase', 'tracking-wide');
+                    }
+                }
 
                 if (badge) {
                     const newStatus = (effective > 0 && paid >= effective) ? 'PAID' : (paid > 0 ? 'PARTIAL' : 'UNPAID');
@@ -913,6 +930,10 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 `;
             }
+
+            // Re-enable payment button for next payment
+            paymentBtn.disabled = false;
+            paymentBtn.innerHTML = originalBtnText;
 
             // Close payment modal and return to home
             document.getElementById('payment-container').style.display = 'none';
