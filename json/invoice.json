@@ -1,9 +1,14 @@
 [
   {
-    "quotation_id": "QT-SOL-2025-001",
-    "invoice_id": "INV-2526-001",
+    "_id": {
+      "$oid": "6952528070f7ec7156666ca4"
+    },
+    "quotation_id": "QUO25110500",
+    "invoice_id": "INV25110500",
     "project_name": "3kW Rooftop Solar System",
-    "invoice_date": "2025-11-05T10:00:00Z",
+    "invoice_date": {
+      "$date": "2025-11-05T00:00:00.000Z"
+    },
     "po_number": "PO-RSharma-001",
     "po_date": "2025-11-01T00:00:00Z",
     "Waybill_id": "WB-2526-001",
@@ -19,14 +24,20 @@
         "HSN_SAC": "8541",
         "quantity": 6,
         "unit_price": 13500,
-        "rate": 12
+        "rate": 12,
+        "_id": {
+          "$oid": "695252d33280bb94c60324e5"
+        }
       },
       {
         "description": "3kW Grid-Tie Inverter",
         "HSN_SAC": "8504",
         "quantity": 1,
         "unit_price": 22000,
-        "rate": 12
+        "rate": 12,
+        "_id": {
+          "$oid": "695252d33280bb94c60324e6"
+        }
       }
     ],
     "items_duplicate": [
@@ -49,7 +60,10 @@
       {
         "description": "Installation & Commissioning",
         "price": 15000,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252d33280bb94c60324e7"
+        }
       }
     ],
     "non_items_duplicate": [
@@ -79,14 +93,29 @@
       }
     ],
     "payment_status": "Paid",
-    "createdAt": "2025-11-05T10:00:00Z",
-    "updatedAt": "2025-11-05T10:00:00Z"
+    "createdAt": {
+      "$date": "2025-12-29T10:07:15.215Z"
+    },
+    "updatedAt": {
+      "$date": "2025-12-29T10:07:15.215Z"
+    },
+    "__v": 1,
+    "dc_date": null,
+    "dc_number": "",
+    "margin": 0,
+    "service_month": 0,
+    "service_stage": 0
   },
   {
-    "quotation_id": "QT-CCTV-2025-002",
-    "invoice_id": "INV-2526-002",
+    "_id": {
+      "$oid": "6952528070f7ec7156666ca5"
+    },
+    "quotation_id": "QUO25110501",
+    "invoice_id": "INV25110501",
     "project_name": "Office Security Camera Setup",
-    "invoice_date": "2025-11-06T11:00:00Z",
+    "invoice_date": {
+      "$date": "2025-11-05T00:00:00.000Z"
+    },
     "Waybill_id": "WB-2526-002",
     "customer_name": "Priya Fernandes",
     "customer_address": "45, Colaba, Mumbai, 400005",
@@ -100,21 +129,30 @@
         "HSN_SAC": "8525",
         "quantity": 4,
         "unit_price": 2400,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252cf3280bb94c60324be"
+        }
       },
       {
         "description": "8-Channel NVR",
         "HSN_SAC": "8521",
         "quantity": 1,
         "unit_price": 6000,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252cf3280bb94c60324bf"
+        }
       },
       {
         "description": "1TB Surveillance HDD",
         "HSN_SAC": "8471",
         "quantity": 1,
         "unit_price": 3200,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252cf3280bb94c60324c0"
+        }
       }
     ],
     "items_duplicate": [
@@ -144,7 +182,10 @@
       {
         "description": "Installation & Configuration",
         "price": 5000,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252cf3280bb94c60324c1"
+        }
       }
     ],
     "non_items_duplicate": [
@@ -168,14 +209,31 @@
       }
     ],
     "payment_status": "Partial",
-    "createdAt": "2025-11-06T11:00:00Z",
-    "updatedAt": "2025-11-06T11:00:00Z"
+    "createdAt": {
+      "$date": "2025-12-29T10:07:11.150Z"
+    },
+    "updatedAt": {
+      "$date": "2025-12-29T10:07:11.150Z"
+    },
+    "__v": 1,
+    "dc_date": null,
+    "dc_number": "",
+    "margin": 0,
+    "po_date": null,
+    "po_number": "",
+    "service_month": 0,
+    "service_stage": 0
   },
   {
-    "quotation_id": "QT-HYB-2025-003",
-    "invoice_id": "INV-2526-003",
+    "_id": {
+      "$oid": "6952528070f7ec7156666ca6"
+    },
+    "quotation_id": "QUO25120100",
+    "invoice_id": "INV25120100",
     "project_name": "Farmhouse Solar & Security",
-    "invoice_date": "2025-11-07T14:00:00Z",
+    "invoice_date": {
+      "$date": "2025-12-01T00:00:00.000Z"
+    },
     "Waybill_id": "WB-2526-003",
     "customer_name": "Arjun Reddy",
     "customer_address": "22, Jubilee Hills, Hyderabad, 500033",
@@ -189,21 +247,30 @@
         "HSN_SAC": "8541",
         "quantity": 4,
         "unit_price": 13500,
-        "rate": 12
+        "rate": 12,
+        "_id": {
+          "$oid": "695252ca3280bb94c603248f"
+        }
       },
       {
         "description": "150Ah Solar Battery",
         "HSN_SAC": "8507",
         "quantity": 2,
         "unit_price": 14000,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252ca3280bb94c6032490"
+        }
       },
       {
         "description": "Wi-Fi Smart Camera 2MP",
         "HSN_SAC": "8525",
         "quantity": 3,
         "unit_price": 2400,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252ca3280bb94c6032491"
+        }
       }
     ],
     "items_duplicate": [
@@ -233,7 +300,10 @@
       {
         "description": "System Integration Service",
         "price": 10000,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252ca3280bb94c6032492"
+        }
       }
     ],
     "non_items_duplicate": [
@@ -250,14 +320,31 @@
     "total_paid_amount": 0,
     "payments": [],
     "payment_status": "Unpaid",
-    "createdAt": "2025-11-07T14:00:00Z",
-    "updatedAt": "2025-11-07T14:00:00Z"
+    "createdAt": {
+      "$date": "2025-12-29T10:07:06.501Z"
+    },
+    "updatedAt": {
+      "$date": "2025-12-29T10:07:06.501Z"
+    },
+    "__v": 1,
+    "dc_date": null,
+    "dc_number": "",
+    "margin": 0,
+    "po_date": null,
+    "po_number": "",
+    "service_month": 0,
+    "service_stage": 0
   },
   {
-    "quotation_id": "QT-SOL-2025-004",
-    "invoice_id": "INV-2526-004",
+    "_id": {
+      "$oid": "6952528070f7ec7156666ca7"
+    },
+    "quotation_id": "QUO25120101",
+    "invoice_id": "INV25120101",
     "project_name": "10kW Commercial Solar Plant",
-    "invoice_date": "2025-11-08T09:00:00Z",
+    "invoice_date": {
+      "$date": "2025-12-01T00:00:00.000Z"
+    },
     "po_number": "ME-PO-10045",
     "po_date": "2025-11-02T00:00:00Z",
     "Waybill_id": "WB-2526-004",
@@ -273,14 +360,20 @@
         "HSN_SAC": "8541",
         "quantity": 18,
         "unit_price": 13200,
-        "rate": 12
+        "rate": 12,
+        "_id": {
+          "$oid": "695252c03280bb94c6032463"
+        }
       },
       {
         "description": "10kW Grid-Tie Inverter",
         "HSN_SAC": "8504",
         "quantity": 1,
         "unit_price": 75000,
-        "rate": 12
+        "rate": 12,
+        "_id": {
+          "$oid": "695252c03280bb94c6032464"
+        }
       }
     ],
     "items_duplicate": [
@@ -303,7 +396,10 @@
       {
         "description": "Installation & Liasioning",
         "price": 53000,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252c03280bb94c6032465"
+        }
       }
     ],
     "non_items_duplicate": [
@@ -333,14 +429,29 @@
       }
     ],
     "payment_status": "Paid",
-    "createdAt": "2025-11-08T09:00:00Z",
-    "updatedAt": "2025-11-08T09:00:00Z"
+    "createdAt": {
+      "$date": "2025-12-29T10:06:56.601Z"
+    },
+    "updatedAt": {
+      "$date": "2025-12-29T10:06:56.601Z"
+    },
+    "__v": 2,
+    "dc_date": null,
+    "dc_number": "",
+    "margin": 0,
+    "service_month": 0,
+    "service_stage": 0
   },
   {
-    "quotation_id": "QT-CCTV-2025-005",
-    "invoice_id": "INV-2526-005",
+    "_id": {
+      "$oid": "6952528070f7ec7156666ca8"
+    },
+    "quotation_id": "QUO25120500",
+    "invoice_id": "INV25120500",
     "project_name": "Home CCTV System Upgrade",
-    "invoice_date": "2025-11-08T11:00:00Z",
+    "invoice_date": {
+      "$date": "2025-12-05T00:00:00.000Z"
+    },
     "Waybill_id": "WB-2526-005",
     "customer_name": "Sunita Rao",
     "customer_address": "8, Anna Nagar, Chennai, 600040",
@@ -370,14 +481,20 @@
         "HSN_SAC": "8525",
         "quantity": 4,
         "unit_price": 4200,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252ad3280bb94c603240b"
+        }
       },
       {
         "description": "8-Channel DVR",
         "HSN_SAC": "8521",
         "quantity": 1,
         "unit_price": 5500,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252ad3280bb94c603240c"
+        }
       }
     ],
     "non_items_original": [
@@ -391,7 +508,10 @@
       {
         "description": "Installation Service",
         "price": 3500,
-        "rate": 18
+        "rate": 18,
+        "_id": {
+          "$oid": "695252ad3280bb94c603240d"
+        }
       }
     ],
     "total_amount_original": 30444,
@@ -408,7 +528,19 @@
       }
     ],
     "payment_status": "Partial",
-    "createdAt": "2025-11-08T11:00:00Z",
-    "updatedAt": "2025-11-08T11:00:00Z"
+    "createdAt": {
+      "$date": "2025-12-29T10:06:37.740Z"
+    },
+    "updatedAt": {
+      "$date": "2025-12-29T10:06:37.740Z"
+    },
+    "__v": 1,
+    "dc_date": null,
+    "dc_number": "",
+    "margin": 0,
+    "po_date": null,
+    "po_number": "",
+    "service_month": 0,
+    "service_stage": 0
   }
 ]

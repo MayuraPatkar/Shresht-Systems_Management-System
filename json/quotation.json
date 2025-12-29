@@ -1,6 +1,6 @@
 [
   {
-    "quotation_id": "QT-SOL-2025-001",
+    "quotation_id": "QUO25110100",
     "quotation_date": "2025-11-01T10:00:00Z",
     "project_name": "3kW Rooftop Solar System",
     "customer_name": "Ravi Sharma",
@@ -61,11 +61,15 @@
       "All equipment supplied is covered under the manufacturer's standard warranty."
     ],
     "termsAndConditions": "Lead Time: Delivery and installation will be completed within the stipulated timeline as per mutual agreement. Payment Terms: 50% advance upon order confirmation. 40% before dispatch of materials. 10% after successful installation and commissioning. Warranty: All equipment supplied is covered under the manufacturer's standard warranty. Quote Validity: 30 days from the date of issue.",
-    "createdAt": "2025-11-01T10:00:00Z",
-    "updatedAt": "2025-11-01T10:00:00Z"
+    "createdAt": {
+      "$date": "2025-11-01T10:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2025-11-01T10:00:00Z"
+    }
   },
   {
-    "quotation_id": "QT-CCTV-2025-002",
+    "quotation_id": "QUO25110200",
     "quotation_date": "2025-11-02T11:30:00Z",
     "project_name": "Office Security Camera Setup",
     "customer_name": "Priya Fernandes",
@@ -132,12 +136,16 @@
       "All equipment supplied is covered under the manufacturer's standard warranty."
     ],
     "termsAndConditions": "Lead Time: Delivery and installation will be completed within the stipulated timeline as per mutual agreement. Payment Terms: 50% advance upon order confirmation. 40% before dispatch of materials. 10% after successful installation and commissioning. Warranty: All equipment supplied is covered under the manufacturer's standard warranty. Quote Validity: 30 days from the date of issue.",
-    "createdAt": "2025-11-02T11:30:00Z",
-    "updatedAt": "2025-11-02T11:30:00Z"
+    "createdAt": {
+      "$date": "2025-11-02T11:30:00Z"
+    },
+    "updatedAt": {
+      "$date": "2025-11-02T11:30:00Z"
+    }
   },
   {
-    "quotation_id": "QT-HYB-2025-003",
-    "quotation_date": "2025-11-03T09:00:00Z",
+    "quotation_id": "QUO25120100",
+    "quotation_date": "2025-12-01T09:00:00Z",
     "project_name": "Farmhouse Solar & Security",
     "customer_name": "Arjun Reddy",
     "customer_address": "22, Jubilee Hills, Hyderabad, 500033",
@@ -203,12 +211,16 @@
       "Payment terms: 50% advance upon order confirmation, 40% before dispatch, and 10% after installation."
     ],
     "termsAndConditions": "Lead Time: Delivery and installation will be completed within the stipulated timeline as per mutual agreement. Payment Terms: 50% advance upon order confirmation. 40% before dispatch of materials. 10% after successful installation and commissioning. Warranty: All equipment supplied is covered under the manufacturer's standard warranty. Quote Validity: 30 days from the date of issue.",
-    "createdAt": "2025-11-03T09:00:00Z",
-    "updatedAt": "2025-11-03T09:00:00Z"
+    "createdAt": {
+      "$date": "2025-12-01T09:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2025-12-01T09:00:00Z"
+    }
   },
   {
-    "quotation_id": "QT-SOL-2025-004",
-    "quotation_date": "2025-11-04T14:00:00Z",
+    "quotation_id": "QUO25120101",
+    "quotation_date": "2025-12-01T14:00:00Z",
     "project_name": "10kW Commercial Solar Plant",
     "customer_name": "Mehta Enterprises",
     "customer_address": "77, GIDC, Vapi, Gujarat, 396195",
@@ -282,12 +294,16 @@
       "All equipment supplied is covered under the manufacturer's standard warranty."
     ],
     "termsAndConditions": "Lead Time: Delivery and installation will be completed within the stipulated timeline as per mutual agreement. Payment Terms: 50% advance upon order confirmation. 40% before dispatch of materials. 10% after successful installation and commissioning. Warranty: All equipment supplied is covered under the manufacturer's standard warranty. Quote Validity: 30 days from the date of issue.",
-    "createdAt": "2025-11-04T14:00:00Z",
-    "updatedAt": "2025-11-04T14:00:00Z"
+    "createdAt": {
+      "$date": "2025-12-01T14:00:00Z"
+    },
+    "updatedAt": {
+      "$date": "2025-12-01T14:00:00Z"
+    }
   },
   {
-    "quotation_id": "QT-CCTV-2025-005",
-    "quotation_date": "2025-11-05T16:30:00Z",
+    "quotation_id": "QUO25120500",
+    "quotation_date": "2025-12-05T16:30:00Z",
     "project_name": "Home CCTV System Upgrade",
     "customer_name": "Sunita Rao",
     "customer_address": "8, Anna Nagar, Chennai, 600040",
@@ -344,7 +360,11 @@
       "All equipment supplied is covered under the manufacturer's standard warranty."
     ],
     "termsAndConditions": "Lead Time: Delivery and installation will be completed within the stipulated timeline as per mutual agreement. Payment Terms: 50% advance upon order confirmation. 40% before dispatch of materials. 10% after successful installation and commissioning. Warranty: All equipment supplied is covered under the manufacturer's standard warranty. Quote Validity: 30 days from the date of issue.",
-    "createdAt": "2025-11-05T16:30:00Z",
-    "updatedAt": "2025-11-05T16:30:00Z"
+    "createdAt": {
+      "$date": "2025-12-05T16:30:00Z"
+    },
+    "updatedAt": {
+      "$date": "2025-12-05T16:30:00Z"
+    }
   }
 ]
