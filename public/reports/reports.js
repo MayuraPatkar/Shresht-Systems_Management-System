@@ -380,34 +380,61 @@ async function deleteAllReports() {
         'purchase_gst': 'all Purchase GST reports'
     };
 
-    const confirmMessage = `Are you sure you want to delete ${filterLabels[currentReportFilter] || 'ALL reports'}? This action cannot be undone.`;
+    const noReportsLabels = {
+        'all': 'No reports to delete',
+        'stock': 'No Stock reports to delete',
+        'gst': 'No Invoice GST reports to delete',
+        'data_worksheet': 'No Worksheets to delete',
+        'purchase_gst': 'No Purchase GST reports to delete'
+    };
 
-    showConfirm(confirmMessage, async (response) => {
-        if (response === 'Yes') {
-            try {
-                // Build URL with filter parameter
-                let url = '/reports/all';
-                if (currentReportFilter && currentReportFilter !== 'all') {
-                    url += `?type=${currentReportFilter}`;
-                }
+    try {
+        // First check if there are any reports to delete
+        let checkUrl = '/reports/saved';
+        if (currentReportFilter && currentReportFilter !== 'all') {
+            checkUrl += `?type=${currentReportFilter}`;
+        }
 
-                const res = await fetch(url, {
-                    method: 'DELETE'
-                });
-                const data = await res.json();
+        const checkRes = await fetch(checkUrl);
+        const checkData = await checkRes.json();
 
-                if (data.success) {
-                    showNotification(`Successfully deleted ${data.deletedCount} report(s)`, 'success');
-                    loadRecentReports();
-                } else {
+        if (!checkData.success || !checkData.reports || checkData.reports.length === 0) {
+            showNotification(noReportsLabels[currentReportFilter] || 'No reports to delete', 'info');
+            return;
+        }
+
+        const confirmMessage = `Are you sure you want to delete ${filterLabels[currentReportFilter] || 'ALL reports'}? This action cannot be undone.`;
+
+        showConfirm(confirmMessage, async (response) => {
+            if (response === 'Yes') {
+                try {
+                    // Build URL with filter parameter
+                    let url = '/reports/all';
+                    if (currentReportFilter && currentReportFilter !== 'all') {
+                        url += `?type=${currentReportFilter}`;
+                    }
+
+                    const res = await fetch(url, {
+                        method: 'DELETE'
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        showNotification(`Successfully deleted ${data.deletedCount} report(s)`, 'success');
+                        loadRecentReports();
+                    } else {
+                        showNotification('Failed to delete reports', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting reports:', error);
                     showNotification('Failed to delete reports', 'error');
                 }
-            } catch (error) {
-                console.error('Error deleting reports:', error);
-                showNotification('Failed to delete reports', 'error');
             }
-        }
-    });
+        });
+    } catch (error) {
+        console.error('Error checking reports:', error);
+        showNotification('Failed to check reports', 'error');
+    }
 }
 
 // Make functions global for inline onclick handlers
