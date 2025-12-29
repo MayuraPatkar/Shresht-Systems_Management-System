@@ -375,7 +375,7 @@ async function deleteAllReports() {
     const filterLabels = {
         'all': 'ALL reports',
         'stock': 'all Stock reports',
-        'gst': 'all GST reports',
+        'gst': 'all Invoice GST reports',
         'data_worksheet': 'all Worksheet reports',
         'purchase_gst': 'all Purchase GST reports'
     };
