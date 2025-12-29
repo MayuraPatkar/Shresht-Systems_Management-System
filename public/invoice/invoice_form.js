@@ -182,7 +182,7 @@ window.beforeStepAdvance = async function (step) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <button type="button" class="remove-item-btn">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
                 itemsContainer.appendChild(card);
@@ -211,7 +211,7 @@ window.beforeStepAdvance = async function (step) {
 
                 // Add remove button event listener
                 const removeBtn = card.querySelector(".remove-item-btn");
-                removeBtn.addEventListener("click", function() {
+                removeBtn.addEventListener("click", function () {
                     card.remove();
                     row.remove();
                 });
@@ -236,7 +236,7 @@ window.beforeStepAdvance = async function (step) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <button type="button" class="remove-item-btn">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
                 nonItemsContainer.appendChild(card);
@@ -263,7 +263,7 @@ window.beforeStepAdvance = async function (step) {
 
                 // Add remove button event listener
                 const removeBtn = card.querySelector(".remove-item-btn");
-                removeBtn.addEventListener("click", function() {
+                removeBtn.addEventListener("click", function () {
                     card.remove();
                     row.remove();
                 });
@@ -363,7 +363,7 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <button type="button" class="remove-item-btn">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
                 itemsContainer.appendChild(card);
@@ -416,7 +416,7 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <button type="button" class="remove-item-btn">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
                 nonItemsContainer.appendChild(card);
@@ -476,7 +476,7 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <button type="button" class="remove-item-btn">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
                 itemsContainer.appendChild(card);
@@ -529,7 +529,7 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <button type="button" class="remove-item-btn">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 `;
                 nonItemsContainer.appendChild(card);
@@ -756,7 +756,7 @@ async function generatePreview() {
     // Fetch company data from database
     const company = await window.companyConfig.getCompanyInfo();
     const bank = company.bank_details || {};
-    
+
     if (!invoiceId) invoiceId = document.getElementById('id').value;
     const projectName = document.getElementById("project-name").value;
     const poNumber = document.getElementById("purchase-order-number").value || '';
