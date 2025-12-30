@@ -5,6 +5,7 @@
 
 // Stock report state
 let stockReportData = [];
+let stockReportInitialized = false;
 
 /**
  * Initialize stock report section
@@ -18,11 +19,14 @@ function initStockReport() {
     document.getElementById('stock-start-date').valueAsDate = startDate;
     document.getElementById('stock-end-date').valueAsDate = endDate;
 
-    // Set up event handlers
-    document.getElementById('generate-stock-report')?.addEventListener('click', generateStockReport);
-    document.getElementById('clear-stock-filters')?.addEventListener('click', clearStockFilters);
-    document.getElementById('print-stock-report')?.addEventListener('click', printStockReport);
-    document.getElementById('save-stock-pdf')?.addEventListener('click', saveStockReportPDF);
+    // Set up event handlers (only once)
+    if (!stockReportInitialized) {
+        document.getElementById('generate-stock-report')?.addEventListener('click', generateStockReport);
+        document.getElementById('clear-stock-filters')?.addEventListener('click', clearStockFilters);
+        document.getElementById('print-stock-report')?.addEventListener('click', printStockReport);
+        document.getElementById('save-stock-pdf')?.addEventListener('click', saveStockReportPDF);
+        stockReportInitialized = true;
+    }
 
     // Reset filter and UI state
     clearStockFilters();
