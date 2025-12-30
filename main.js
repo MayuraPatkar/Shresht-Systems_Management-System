@@ -41,6 +41,11 @@ global.dialogEmitter = new EventEmitter();
 autoUpdater.autoDownload = true; // Automatically download updates
 autoUpdater.autoInstallOnAppQuit = true; // Install on quit
 
+// Pre-release configuration:
+// - Default to false (stable releases only)
+// - User can enable pre-releases via Settings -> About -> "Include pre-release versions" checkbox
+autoUpdater.allowPrerelease = false;
+
 // Auto-updater event listeners
 autoUpdater.on('checking-for-update', () => {
   logger.info('Checking for updates...');
@@ -74,8 +79,9 @@ autoUpdater.on('update-downloaded', (info) => {
     mainWindow.webContents.send('update-downloaded', info);
   }
 
-  // Show dialog to user
-  dialog.showMessageBox(mainWindow, {
+  // Show dialog to user (with null safety to prevent crashes)
+  const parentWindow = mainWindow && !mainWindow.isDestroyed() ? mainWindow : null;
+  dialog.showMessageBox(parentWindow, {
     type: 'info',
     title: 'Update Ready',
     message: 'A new version has been downloaded. The application will restart to install the update.',
@@ -244,9 +250,10 @@ function setupIPCHandlers() {
   });
 
   // Handle manual update check requests from renderer
-  ipcMain.handle('manual-check-update', async () => {
+  ipcMain.handle('manual-check-update', async (event, options = {}) => {
     try {
-      logger.info('Manual update check requested');
+      const allowPrerelease = options.allowPrerelease || false;
+      logger.info(`Manual update check requested (allowPrerelease: ${allowPrerelease})`);
 
       // Check if in development mode (unpacked app)
       if (!app.isPackaged) {
@@ -257,6 +264,10 @@ function setupIPCHandlers() {
           isDevelopment: true
         };
       }
+
+      // Configure pre-release based on user preference
+      autoUpdater.allowPrerelease = allowPrerelease;
+      logger.info(`Auto-updater configured: allowPrerelease=${allowPrerelease}`);
 
       const result = await autoUpdater.checkForUpdates();
 
@@ -547,13 +558,6 @@ app.whenReady().then(async () => {
 
     createWindow();
 
-    // Check for updates after window is created (only in production)
-    if (process.env.NODE_ENV !== "development") {
-      logger.info('Checking for updates automatically...');
-      setTimeout(() => {
-        autoUpdater.checkForUpdatesAndNotify();
-      }, 3000); // Wait 3 seconds after app start
-    }
   } catch (err) {
     logger.error("Failed to start Express server:", err);
 
