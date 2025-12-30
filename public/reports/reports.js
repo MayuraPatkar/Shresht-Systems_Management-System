@@ -89,10 +89,11 @@ function updateDeleteButtonText() {
     if (!deleteText) return;
 
     const filterLabels = {
-        'all': 'Delete All',
-        'stock': 'Delete Stock',
-        'gst': 'Delete GST',
-        'data_worksheet': 'Delete Worksheets'
+        'all': 'Delete All Reports',
+        'stock': 'Delete Stock Reports',
+        'gst': 'Delete Invoice GST Reports',
+        'data_worksheet': 'Delete Worksheets',
+        'purchase_gst': 'Delete Purchase GST Reports'
     };
 
     deleteText.textContent = filterLabels[currentReportFilter] || 'Delete All';
@@ -118,6 +119,7 @@ function setupBackButtons() {
     document.getElementById('back-to-reports-stock')?.addEventListener('click', () => showReportSection('home'));
     document.getElementById('back-to-reports-gst')?.addEventListener('click', () => showReportSection('home'));
     document.getElementById('back-to-reports-worksheet')?.addEventListener('click', () => showReportSection('home'));
+    document.getElementById('back-to-reports-purchase-gst')?.addEventListener('click', () => showReportSection('home'));
 }
 
 /**
@@ -139,6 +141,7 @@ function showReportSection(reportType) {
     document.getElementById('stock-report-section').style.display = 'none';
     document.getElementById('gst-report-section').style.display = 'none';
     document.getElementById('data-worksheet-section').style.display = 'none';
+    document.getElementById('purchase-gst-report-section').style.display = 'none';
 
     // Show the selected section
     switch (reportType) {
@@ -151,8 +154,14 @@ function showReportSection(reportType) {
             initGSTReport();
             break;
         case 'dataWorksheet':
+        case 'data_worksheet':
             document.getElementById('data-worksheet-section').style.display = 'block';
             initDataWorksheetReport();
+            break;
+        case 'purchaseGst':
+        case 'purchase_gst':
+            document.getElementById('purchase-gst-report-section').style.display = 'block';
+            initPurchaseGSTReport();
             break;
         default:
             document.getElementById('reports-home').style.display = 'block';
@@ -276,7 +285,8 @@ function getReportColor(reportType) {
     const colors = {
         'stock': 'blue',
         'gst': 'green',
-        'data_worksheet': 'purple'
+        'data_worksheet': 'purple',
+        'purchase_gst': 'orange'
     };
     return colors[reportType] || 'gray';
 }
@@ -290,7 +300,8 @@ function getReportIcon(reportType) {
     const icons = {
         'stock': 'fa-boxes',
         'gst': 'fa-file-invoice-dollar',
-        'data_worksheet': 'fa-solar-panel'
+        'data_worksheet': 'fa-solar-panel',
+        'purchase_gst': 'fa-shopping-cart'
     };
     return icons[reportType] || 'fa-file-alt';
 }
@@ -308,8 +319,8 @@ async function viewReport(reportId) {
             const report = data.report;
             const type = report.report_type;
 
-            // Show report based on type
-            showReportSection(type.replace('_', ''));
+            // Show report based on type - use type directly since showReportSection handles both formats
+            showReportSection(type);
 
             // Populate data based on type
             if (type === 'gst' && typeof loadSavedGSTReport === 'function') {
@@ -318,6 +329,8 @@ async function viewReport(reportId) {
                 loadSavedStockReport(report);
             } else if (type === 'data_worksheet' && typeof loadWorksheet === 'function') {
                 loadWorksheet(reportId);
+            } else if (type === 'purchase_gst' && typeof loadSavedPurchaseGSTReport === 'function') {
+                loadSavedPurchaseGSTReport(report);
             }
         } else {
             showNotification('Report not found', 'error');
@@ -362,38 +375,66 @@ async function deleteAllReports() {
     const filterLabels = {
         'all': 'ALL reports',
         'stock': 'all Stock reports',
-        'gst': 'all GST reports',
-        'data_worksheet': 'all Worksheet reports'
+        'gst': 'all Invoice GST reports',
+        'data_worksheet': 'all Worksheet reports',
+        'purchase_gst': 'all Purchase GST reports'
     };
 
-    const confirmMessage = `Are you sure you want to delete ${filterLabels[currentReportFilter] || 'ALL reports'}? This action cannot be undone.`;
+    const noReportsLabels = {
+        'all': 'No reports to delete',
+        'stock': 'No Stock reports to delete',
+        'gst': 'No Invoice GST reports to delete',
+        'data_worksheet': 'No Worksheets to delete',
+        'purchase_gst': 'No Purchase GST reports to delete'
+    };
 
-    showConfirm(confirmMessage, async (response) => {
-        if (response === 'Yes') {
-            try {
-                // Build URL with filter parameter
-                let url = '/reports/all';
-                if (currentReportFilter && currentReportFilter !== 'all') {
-                    url += `?type=${currentReportFilter}`;
-                }
+    try {
+        // First check if there are any reports to delete
+        let checkUrl = '/reports/saved';
+        if (currentReportFilter && currentReportFilter !== 'all') {
+            checkUrl += `?type=${currentReportFilter}`;
+        }
 
-                const res = await fetch(url, {
-                    method: 'DELETE'
-                });
-                const data = await res.json();
+        const checkRes = await fetch(checkUrl);
+        const checkData = await checkRes.json();
 
-                if (data.success) {
-                    showNotification(`Successfully deleted ${data.deletedCount} report(s)`, 'success');
-                    loadRecentReports();
-                } else {
+        if (!checkData.success || !checkData.reports || checkData.reports.length === 0) {
+            showNotification(noReportsLabels[currentReportFilter] || 'No reports to delete', 'info');
+            return;
+        }
+
+        const confirmMessage = `Are you sure you want to delete ${filterLabels[currentReportFilter] || 'ALL reports'}? This action cannot be undone.`;
+
+        showConfirm(confirmMessage, async (response) => {
+            if (response === 'Yes') {
+                try {
+                    // Build URL with filter parameter
+                    let url = '/reports/all';
+                    if (currentReportFilter && currentReportFilter !== 'all') {
+                        url += `?type=${currentReportFilter}`;
+                    }
+
+                    const res = await fetch(url, {
+                        method: 'DELETE'
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        showNotification(`Successfully deleted ${data.deletedCount} report(s)`, 'success');
+                        loadRecentReports();
+                    } else {
+                        showNotification('Failed to delete reports', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting reports:', error);
                     showNotification('Failed to delete reports', 'error');
                 }
-            } catch (error) {
-                console.error('Error deleting reports:', error);
-                showNotification('Failed to delete reports', 'error');
             }
-        }
-    });
+        });
+    } catch (error) {
+        console.error('Error checking reports:', error);
+        showNotification('Failed to check reports', 'error');
+    }
 }
 
 // Make functions global for inline onclick handlers

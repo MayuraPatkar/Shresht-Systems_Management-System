@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Invoices, Stock, StockMovement, Report } = require('../models');
+const { Invoices, Purchases, Stock, StockMovement, Report } = require('../models');
 const logger = require('../utils/logger');
 
 /**
@@ -275,7 +275,7 @@ router.get('/gst', async (req, res) => {
                     'parameters.year': reportYear
                 };
 
-                const reportName = `${monthName} ${reportYear} GST Report`;
+                const reportName = `${monthName} ${reportYear} Invoice GST Report`;
                 const updateData = {
                     report_type: 'gst',
                     report_name: reportName,
@@ -400,6 +400,186 @@ router.get('/gst/summary', async (req, res) => {
 });
 
 // ============================================================================
+// PURCHASE GST REPORT ENDPOINTS
+// ============================================================================
+
+/**
+ * GET /reports/purchase-gst
+ * Get monthly GST report from purchase orders
+ */
+router.get('/purchase-gst', async (req, res) => {
+    try {
+        const { month, year } = req.query;
+
+        // Default to current month/year
+        const reportYear = parseInt(year) || new Date().getFullYear();
+        const reportMonth = parseInt(month) || new Date().getMonth() + 1;
+
+        // Calculate date range for the month
+        const startDate = new Date(reportYear, reportMonth - 1, 1);
+        const endDate = new Date(reportYear, reportMonth, 0, 23, 59, 59, 999);
+
+        // Get all purchase orders for the month
+        const purchaseOrders = await Purchases.find({
+            purchase_date: { $gte: startDate, $lte: endDate }
+        }).sort({ purchase_date: 1 });
+
+        // Calculate GST breakdown by Tax Rate
+        const rateBreakdown = {};
+        let totalTaxableValue = 0;
+        let totalCGST = 0;
+        let totalSGST = 0;
+        let totalIGST = 0;
+        let totalPurchaseValue = 0;
+
+        purchaseOrders.forEach(po => {
+            // Process items
+            const items = po.items || [];
+
+            items.forEach(item => {
+                const rate = parseFloat(item.rate) || 0;
+                const taxableValue = (item.quantity || 0) * (item.unit_price || 0);
+                const cgst = (taxableValue * rate / 2) / 100;
+                const sgst = (taxableValue * rate / 2) / 100;
+
+                // Use rate as key
+                const key = rate.toString();
+
+                if (!rateBreakdown[key]) {
+                    rateBreakdown[key] = {
+                        rate: rate,
+                        description: `GST @ ${rate}%`,
+                        taxable_value: 0,
+                        cgst: 0,
+                        sgst: 0,
+                        total_tax: 0,
+                        total_value: 0
+                    };
+                }
+
+                rateBreakdown[key].taxable_value += taxableValue;
+                rateBreakdown[key].cgst += cgst;
+                rateBreakdown[key].sgst += sgst;
+                rateBreakdown[key].total_tax += (cgst + sgst);
+                rateBreakdown[key].total_value += (taxableValue + cgst + sgst);
+
+                totalTaxableValue += taxableValue;
+                totalCGST += cgst;
+                totalSGST += sgst;
+                totalPurchaseValue += (taxableValue + cgst + sgst);
+            });
+        });
+
+        // Convert to array and sort by rate (descending)
+        const taxRateList = Object.values(rateBreakdown).sort((a, b) => b.rate - a.rate);
+
+        // Purchase order-wise breakdown
+        const purchaseBreakdown = purchaseOrders.map(po => {
+            // Calculate totals from items
+            let poTaxableValue = 0;
+            let poTax = 0;
+            (po.items || []).forEach(item => {
+                const itemTaxable = (item.quantity || 0) * (item.unit_price || 0);
+                const itemTax = (itemTaxable * (item.rate || 0)) / 100;
+                poTaxableValue += itemTaxable;
+                poTax += itemTax;
+            });
+
+            return {
+                purchase_order_id: po.purchase_order_id,
+                purchase_invoice_id: po.purchase_invoice_id,
+                purchase_date: po.purchase_date,
+                supplier_name: po.supplier_name,
+                taxable_value: poTaxableValue,
+                cgst: poTax / 2,
+                sgst: poTax / 2,
+                total_tax: poTax,
+                total_value: po.total_amount || (poTaxableValue + poTax)
+            };
+        });
+
+        // Save report to history
+        if (purchaseOrders.length > 0) {
+            try {
+                const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                const monthName = months[reportMonth - 1] || reportMonth;
+                const filter = {
+                    report_type: 'purchase_gst',
+                    'parameters.month': reportMonth,
+                    'parameters.year': reportYear
+                };
+
+                const reportName = `${monthName} ${reportYear} Purchase GST Report`;
+                const updateData = {
+                    report_type: 'purchase_gst',
+                    report_name: reportName,
+                    parameters: {
+                        month: reportMonth,
+                        year: reportYear
+                    },
+                    data: {
+                        summary: {
+                            total_purchase_orders: purchaseOrders.length,
+                            total_taxable_value: totalTaxableValue,
+                            total_cgst: totalCGST,
+                            total_sgst: totalSGST,
+                            total_igst: totalIGST,
+                            total_tax: totalCGST + totalSGST + totalIGST,
+                            total_purchase_value: totalPurchaseValue
+                        },
+                        tax_rate_breakdown: taxRateList,
+                        purchase_breakdown: purchaseBreakdown
+                    },
+                    summary: {
+                        total_records: purchaseOrders.length,
+                        total_value: totalPurchaseValue,
+                        custom: {
+                            month: reportMonth,
+                            year: reportYear
+                        }
+                    },
+                    generated_at: new Date(),
+                    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Reset expiry to 7 days
+                };
+
+                await Report.findOneAndUpdate(filter, updateData, {
+                    upsert: true,
+                    new: true,
+                    setDefaultsOnInsert: true
+                });
+            } catch (saveError) {
+                logger.error('Failed to save Purchase GST report to history:', saveError);
+                // continue even if saving fails, as the report data was generated successfully
+            }
+        }
+
+        res.json({
+            success: true,
+            report: {
+                month: reportMonth,
+                year: reportYear,
+                period: `${startDate.toLocaleDateString('en-IN')} - ${endDate.toLocaleDateString('en-IN')}`,
+                summary: {
+                    total_purchase_orders: purchaseOrders.length,
+                    total_taxable_value: totalTaxableValue,
+                    total_cgst: totalCGST,
+                    total_sgst: totalSGST,
+                    total_igst: totalIGST,
+                    total_tax: totalCGST + totalSGST + totalIGST,
+                    total_purchase_value: totalPurchaseValue
+                },
+                tax_rate_breakdown: taxRateList,
+                purchase_breakdown: purchaseBreakdown
+            },
+            generated_at: new Date()
+        });
+    } catch (error) {
+        logger.error('Error fetching Purchase GST report:', error);
+        res.status(500).json({ success: false, error: 'Failed to generate Purchase GST report' });
+    }
+});
+
+// ============================================================================
 // DATA WORKSHEET ENDPOINTS
 // ============================================================================
 
@@ -493,6 +673,13 @@ router.get('/list', async (req, res) => {
                 description: 'Solar installation calculation and savings worksheet',
                 icon: 'fa-solar-panel',
                 color: 'purple'
+            },
+            {
+                id: 'purchase-gst',
+                name: 'Purchase GST Report',
+                description: 'Monthly GST summary from purchase orders',
+                icon: 'fa-shopping-cart',
+                color: 'orange'
             }
         ];
 
