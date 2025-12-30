@@ -9,13 +9,14 @@
 function initDataWorksheetReport() {
     // Set default date
     document.getElementById('dw_date').valueAsDate = new Date();
-    
+
     // Set up event handlers
     document.getElementById('generate-worksheet')?.addEventListener('click', generateDataWorksheet);
     document.getElementById('clear-worksheet-form')?.addEventListener('click', clearWorksheetForm);
-    
-    // Load worksheet history
-    loadWorksheetHistory();
+
+    // Set up inline preview buttons
+    document.getElementById('print-worksheet-report')?.addEventListener('click', printWorksheetInline);
+    document.getElementById('save-worksheet-pdf')?.addEventListener('click', saveWorksheetPDFInline);
 }
 
 /**
@@ -27,89 +28,7 @@ function clearWorksheetForm() {
     document.getElementById('dw_unitsPerDay').value = 4;
 }
 
-/**
- * Load worksheet history
- */
-async function loadWorksheetHistory() {
-    const container = document.getElementById('worksheet-history');
-    if (!container) return;
-    
-    try {
-        const response = await fetch('/reports/data-worksheet/history');
-        const data = await response.json();
-        
-        if (data.success && data.worksheets && data.worksheets.length > 0) {
-            container.innerHTML = data.worksheets.map(ws => `
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-purple-100 p-2 rounded">
-                            <i class="fas fa-solar-panel text-purple-600"></i>
-                        </div>
-                        <div>
-                            <p class="font-medium text-gray-800">${ws.customerName || 'Customer'} - ${ws.systemSize}KW</p>
-                            <p class="text-sm text-gray-500">${formatDateIndian(ws.date)}</p>
-                        </div>
-                    </div>
-                    <button onclick="loadWorksheet('${ws._id}')" class="text-blue-600 hover:text-blue-700">
-                        <i class="fas fa-redo"></i> Load
-                    </button>
-                </div>
-            `).join('');
-        } else {
-            container.innerHTML = `
-                <div class="text-center text-gray-500 py-4">
-                    <i class="fas fa-file-alt text-3xl text-gray-300 mb-2"></i>
-                    <p>No worksheet history found</p>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Error loading worksheet history:', error);
-        container.innerHTML = `
-            <div class="text-center text-gray-500 py-4">
-                <i class="fas fa-file-alt text-3xl text-gray-300 mb-2"></i>
-                <p>No worksheet history found</p>
-            </div>
-        `;
-    }
-}
 
-/**
- * Load a saved worksheet
- * @param {string} worksheetId 
- */
-async function loadWorksheet(worksheetId) {
-    try {
-        const response = await fetch(`/reports/${worksheetId}`);
-        const data = await response.json();
-        
-        if (data.success && data.report && data.report.data) {
-            const ws = data.report.data;
-            
-            // Populate form fields
-            document.getElementById('dw_customerName').value = ws.customerName || '';
-            document.getElementById('dw_systemSize').value = ws.systemSize || '';
-            document.getElementById('dw_month').value = ws.month || '';
-            document.getElementById('dw_date').value = ws.date || '';
-            document.getElementById('dw_consumptionUnits').value = ws.consumptionUnits || '';
-            document.getElementById('dw_fuelCharges').value = ws.fuelCharges || '';
-            document.getElementById('dw_tax').value = ws.tax || '';
-            document.getElementById('dw_sanctionedLoad').value = ws.sanctionedLoad || '';
-            document.getElementById('dw_demandRate').value = ws.demandRate || '';
-            document.getElementById('dw_additionalCharges').value = ws.additionalCharges || '';
-            document.getElementById('dw_unitsPerDay').value = ws.unitsPerDay || 4;
-            document.getElementById('dw_avgConsumptionRate').value = ws.avgConsumptionRate || '';
-            document.getElementById('dw_sgyWithRate').value = ws.sgyWithRate || '';
-            document.getElementById('dw_sgyWithoutRate').value = ws.sgyWithoutRate || '';
-            document.getElementById('dw_exceedUnitRate').value = ws.exceedUnitRate || '';
-            
-            showNotification('Worksheet loaded successfully', 'success');
-        }
-    } catch (error) {
-        console.error('Error loading worksheet:', error);
-        showNotification('Failed to load worksheet', 'error');
-    }
-}
 
 /**
  * Generate data worksheet document
@@ -152,37 +71,36 @@ function generateDataWorksheet() {
     // Generate HTML document
     const documentHTML = generateWorksheetHTML(calculations, inputData, customerName, date, systemSize, month);
 
-    // Save worksheet to history
-    saveWorksheetToHistory({
-        customerName, systemSize, month, date,
-        consumptionUnits, fuelCharges, tax,
-        sanctionedLoad, demandRate, additionalCharges,
-        unitsPerDay, avgConsumptionRate,
-        sgyWithRate, sgyWithoutRate, exceedUnitRate
-    });
-
-    // Show preview with print/save options
-    showWorksheetPreview(documentHTML);
+    // Show inline preview
+    showInlineWorksheetPreview(documentHTML);
 }
 
 /**
- * Save worksheet to history
- * @param {Object} data - Worksheet data
+ * Show inline worksheet preview
+ * @param {string} documentHTML - HTML document to preview
  */
-async function saveWorksheetToHistory(data) {
-    try {
-        await fetch('/reports/data-worksheet', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-        // Reload history
-        loadWorksheetHistory();
-    } catch (error) {
-        console.error('Error saving worksheet to history:', error);
-    }
+function showInlineWorksheetPreview(documentHTML) {
+    const previewSection = document.getElementById('worksheet-preview-section');
+    const previewFrame = document.getElementById('worksheet-preview-frame');
+
+    if (!previewSection || !previewFrame) return;
+
+    // Store HTML for printing/saving
+    window.currentWorksheetHTML = documentHTML;
+
+    // Show the preview section
+    previewSection.style.display = 'block';
+
+    // Write content to iframe
+    const frameDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+    frameDoc.open();
+    frameDoc.write(documentHTML);
+    frameDoc.close();
+
+    // Scroll to preview
+    previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    showNotification('Worksheet generated successfully', 'success');
 }
 
 /**
@@ -275,7 +193,7 @@ function calculateWorksheetData(data) {
  */
 function generateWorksheetHTML(calc, data, customerName, date, systemSize, month) {
     const formattedDate = date ? formatDateIndian(date) : new Date().toLocaleDateString('en-IN');
-    
+
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -491,98 +409,23 @@ function generateWorksheetHTML(calc, data, customerName, date, systemSize, month
 }
 
 /**
- * Show worksheet preview modal
- * @param {string} documentHTML - HTML document to preview
+ * Print the worksheet document (inline preview button)
  */
-function showWorksheetPreview(documentHTML) {
-    // Remove existing preview if any
-    const existingPreview = document.getElementById('worksheetPreview');
-    if (existingPreview) {
-        existingPreview.remove();
-    }
-    
-    const previewModal = document.createElement('div');
-    previewModal.id = 'worksheetPreview';
-    previewModal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center overflow-hidden';
-    
-    previewModal.innerHTML = `
-        <div class="bg-white rounded-lg shadow-2xl w-full h-full max-w-7xl max-h-screen m-4 flex flex-col">
-            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 rounded-t-lg flex justify-between items-center">
-                <h2 class="text-xl font-bold flex items-center gap-2">
-                    <i class="fas fa-eye"></i>
-                    Document Preview
-                </h2>
-                <div class="flex gap-3">
-                    <button id="printWorksheetBtn" class="px-4 py-2 bg-white text-purple-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2">
-                        <i class="fas fa-print"></i>
-                        Print
-                    </button>
-                    <button id="saveWorksheetPDFBtn" class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center gap-2">
-                        <i class="fas fa-file-pdf"></i>
-                        Save PDF
-                    </button>
-                    <button id="closePreviewBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors flex items-center gap-2">
-                        <i class="fas fa-times"></i>
-                        Close
-                    </button>
-                </div>
-            </div>
-            <div class="flex-1 overflow-auto p-4 bg-gray-100">
-                <div id="worksheetPreviewContent" class="bg-white shadow-lg">
-                    ${documentHTML}
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(previewModal);
-    
-    // Store HTML for printing/saving
-    window.currentWorksheetHTML = documentHTML;
-    
-    // Add event listeners
-    document.getElementById('printWorksheetBtn').addEventListener('click', printWorksheet);
-    document.getElementById('saveWorksheetPDFBtn').addEventListener('click', saveWorksheetPDF);
-    document.getElementById('closePreviewBtn').addEventListener('click', closeWorksheetPreview);
-    
-    // Close on escape key
-    document.addEventListener('keydown', function escHandler(e) {
-        if (e.key === 'Escape') {
-            closeWorksheetPreview();
-            document.removeEventListener('keydown', escHandler);
-        }
-    });
-}
-
-/**
- * Close worksheet preview modal
- */
-function closeWorksheetPreview() {
-    const modal = document.getElementById('worksheetPreview');
-    if (modal) {
-        modal.remove();
-    }
-    window.currentWorksheetHTML = null;
-}
-
-/**
- * Print the worksheet document
- */
-function printWorksheet() {
+function printWorksheetInline() {
     if (window.currentWorksheetHTML) {
         printReport(window.currentWorksheetHTML, 'data-worksheet');
     }
 }
 
 /**
- * Save the worksheet as PDF
+ * Save the worksheet as PDF (inline preview button)
  */
-function saveWorksheetPDF() {
+function saveWorksheetPDFInline() {
     if (window.currentWorksheetHTML) {
         const customerName = document.getElementById('dw_customerName').value || 'customer';
         const systemSize = document.getElementById('dw_systemSize').value || 'solar';
         const filename = `data-worksheet-${customerName.replace(/\s+/g, '-')}-${systemSize}kw-${new Date().getTime()}`;
         saveReportPDF(window.currentWorksheetHTML, filename);
-        closeWorksheetPreview();
+        showNotification('PDF saved successfully', 'success');
     }
 }
