@@ -23,9 +23,14 @@ function initStockReport() {
     if (!stockReportInitialized) {
         document.getElementById('generate-stock-report')?.addEventListener('click', generateStockReport);
         document.getElementById('clear-stock-filters')?.addEventListener('click', clearStockFilters);
-        document.getElementById('print-stock-report')?.addEventListener('click', printStockReport);
         document.getElementById('save-stock-pdf')?.addEventListener('click', saveStockReportPDF);
         stockReportInitialized = true;
+
+        // Load item suggestions
+        loadStockItemSuggestions();
+
+        // Setup autocomplete
+        setupStockItemAutocomplete();
     }
 
     // Reset filter and UI state
@@ -425,3 +430,110 @@ window.loadSavedStockReport = function (report) {
     // Render report
     renderStockReport(stockReportData, summary);
 };
+
+
+
+// Autocomplete State
+let stockItemNames = [];
+let selectedSuggestionIndex = -1;
+
+/**
+ * Load stock item suggestions for autocomplete
+ */
+async function loadStockItemSuggestions() {
+    try {
+        const response = await fetch('/stock/get-names');
+        if (response.ok) {
+            stockItemNames = await response.json();
+        }
+    } catch (error) {
+        console.error('Error loading stock item suggestions:', error);
+    }
+}
+
+/**
+ * Setup autocomplete for stock item filter
+ */
+function setupStockItemAutocomplete() {
+    const input = document.getElementById('stock-item-filter');
+    const suggestionsList = document.getElementById('stock-item-suggestions-list');
+
+    if (!input || !suggestionsList) return;
+
+    // Input handler
+    input.addEventListener('input', function () {
+        const query = this.value.toLowerCase();
+        suggestionsList.innerHTML = '';
+        selectedSuggestionIndex = -1;
+
+        if (query.length === 0) {
+            suggestionsList.style.display = 'none';
+            return;
+        }
+
+        const filtered = stockItemNames.filter(item => item.toLowerCase().includes(query));
+
+        if (filtered.length === 0) {
+            suggestionsList.style.display = 'none';
+            return;
+        }
+
+        suggestionsList.style.display = 'block';
+
+        filtered.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            li.addEventListener('click', function () {
+                input.value = item;
+                suggestionsList.style.display = 'none';
+                selectedSuggestionIndex = -1;
+            });
+            suggestionsList.appendChild(li);
+        });
+    });
+
+    // Keyboard navigation
+    input.addEventListener('keydown', function (e) {
+        const items = suggestionsList.querySelectorAll('li');
+        if (items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedSuggestionIndex = (selectedSuggestionIndex + 1) % items.length;
+            updateSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedSuggestionIndex = (selectedSuggestionIndex - 1 + items.length) % items.length;
+            updateSelection(items);
+        } else if (e.key === 'Enter') {
+            if (suggestionsList.style.display !== 'none' && selectedSuggestionIndex >= 0) {
+                e.preventDefault();
+                input.value = items[selectedSuggestionIndex].textContent;
+                suggestionsList.style.display = 'none';
+                selectedSuggestionIndex = -1;
+            }
+        } else if (e.key === 'Escape') {
+            suggestionsList.style.display = 'none';
+            selectedSuggestionIndex = -1;
+        }
+    });
+
+    // Close on click outside
+    document.addEventListener('click', function (e) {
+        if (!input.contains(e.target) && !suggestionsList.contains(e.target)) {
+            suggestionsList.style.display = 'none';
+        }
+    });
+}
+
+function updateSelection(items) {
+    items.forEach((item, index) => {
+        if (index === selectedSuggestionIndex) {
+            item.classList.add('selected');
+            // Ensure visible in scroll
+            item.scrollIntoView({ block: 'nearest' });
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+}
