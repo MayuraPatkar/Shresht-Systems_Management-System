@@ -270,44 +270,44 @@
                         <i class="fas fa-history text-indigo-600 text-2xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Recent Reports</h2>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button id="delete-all-reports"
-                            class="group flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-600 bg-white border border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all shadow-sm"
-                            title="Delete All Reports">
-                            <i class="fas fa-trash-alt transition-transform group-hover:scale-110"></i>
-                            <span id="delete-all-text">Delete All</span>
-                        </button>
-
-                    </div>
                 </div>
 
-                <!-- Filter Tabs -->
-                <div class="flex items-center gap-2 mb-4 border-b border-gray-200 pb-3">
-                    <span class="text-sm text-gray-500 mr-2">Show:</span>
-                    <button
-                        class="report-filter-tab active px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-indigo-600 text-white"
-                        data-filter="all">
-                        All
-                    </button>
-                    <button
-                        class="report-filter-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        data-filter="stock">
-                        Stock
-                    </button>
-                    <button
-                        class="report-filter-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        data-filter="gst">
-                        Invoice GST
-                    </button>
-                    <button
-                        class="report-filter-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        data-filter="purchase_gst">
-                        Purchase GST
-                    </button>
-                    <button
-                        class="report-filter-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        data-filter="data_worksheet">
-                        Worksheet
+                <!-- Filter Tabs & Actions -->
+                <div class="flex items-center justify-between mb-4 border-b border-gray-200 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-500 mr-2">Show:</span>
+                        <button
+                            class="report-filter-tab active px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-indigo-600 text-white"
+                            data-filter="all">
+                            All
+                        </button>
+                        <button
+                            class="report-filter-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            data-filter="stock">
+                            Stock
+                        </button>
+                        <button
+                            class="report-filter-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            data-filter="gst">
+                            Invoice GST
+                        </button>
+                        <button
+                            class="report-filter-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            data-filter="purchase_gst">
+                            Purchase GST
+                        </button>
+                        <button
+                            class="report-filter-tab px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            data-filter="data_worksheet">
+                            Worksheet
+                        </button>
+                    </div>
+
+                    <button id="delete-all-reports"
+                        class="group flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-600 bg-white border border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all shadow-sm"
+                        title="Delete All Reports">
+                        <i class="fas fa-trash-alt transition-transform group-hover:scale-110"></i>
+                        <span id="delete-all-text">Delete All</span>
                     </button>
                 </div>
 

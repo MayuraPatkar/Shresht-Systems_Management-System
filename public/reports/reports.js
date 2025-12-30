@@ -244,7 +244,7 @@ async function loadRecentReports() {
                             </div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div class="flex items-center gap-3">
                         <button class="view-report-btn flex items-center gap-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition-all border border-indigo-100" data-id="${report._id}">
                             <i class="fas fa-eye"></i> View
                         </button>
