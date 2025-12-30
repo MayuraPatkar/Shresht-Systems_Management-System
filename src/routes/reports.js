@@ -46,18 +46,88 @@ router.get('/stock', async (req, res) => {
             .sort({ timestamp: -1 })
             .limit(1000);
 
-        // Calculate summary
-        const summary = await StockMovement.aggregate([
-            { $match: query },
-            {
-                $group: {
-                    _id: '$movement_type',
-                    total_quantity: { $sum: '$quantity_change' },
-                    total_value: { $sum: '$total_value' },
-                    count: { $sum: 1 }
-                }
+        // ------------------------------------------------------------------
+        // BACKFILL: Include Purchase Orders as "In" movements if missing
+        // ------------------------------------------------------------------
+
+        // 1. Get Purchase Orders in date range
+        const poQuery = {};
+        if (start_date || end_date) {
+            poQuery.purchase_date = {};
+            if (start_date) poQuery.purchase_date.$gte = new Date(start_date);
+            if (end_date) {
+                const endDate = new Date(end_date);
+                endDate.setHours(23, 59, 59, 999);
+                poQuery.purchase_date.$lte = endDate;
             }
-        ]);
+        }
+
+        const purchaseOrders = await Purchases.find(poQuery);
+
+        // 2. Identify POs that already have StockMovements (to avoid duplicates)
+        const recordedPOIds = new Set(
+            movements
+                .filter(m => m.reference_type === 'purchase_order')
+                .map(m => m.reference_id)
+        );
+
+        // 3. Convert untracked POs into movement objects
+        const poMovements = [];
+        purchaseOrders.forEach(po => {
+            // Skip if this PO is already tracked in StockMovements
+            if (recordedPOIds.has(po.purchase_order_id)) return;
+
+            if (po.items && Array.isArray(po.items)) {
+                po.items.forEach(item => {
+                    // Check item name filter
+                    if (item_name && item.description && !item.description.match(new RegExp(item_name, 'i'))) {
+                        return;
+                    }
+
+                    poMovements.push({
+                        timestamp: po.purchase_date || po.createdAt,
+                        item_name: item.description || 'Unknown Item',
+                        movement_type: 'in',
+                        quantity_change: Number(item.quantity) || 0,
+                        total_value: (Number(item.quantity) || 0) * (Number(item.unit_price) || 0),
+                        reference_type: 'purchase_order',
+                        reference_id: po.purchase_order_id,
+                        notes: 'Generated from Purchase Order history'
+                    });
+                });
+            }
+        });
+
+        // 4. Merge and Sort
+        const allMovements = [...movements, ...poMovements].sort((a, b) =>
+            new Date(b.timestamp) - new Date(a.timestamp)
+        );
+
+        // Calculate summary from ALL movements
+        const summary = {
+            in: { total_quantity: 0, total_value: 0, count: 0 },
+            out: { total_quantity: 0, total_value: 0, count: 0 },
+            adjustment: { total_quantity: 0, total_value: 0, count: 0 }
+        };
+
+        allMovements.forEach(m => {
+            const type = m.movement_type;
+            if (summary[type]) {
+                summary[type].total_quantity += (m.quantity_change || 0); // Keep sign for calculation, but handle display later
+                summary[type].total_value += (m.total_value || 0);
+                summary[type].count++;
+            }
+        });
+
+        // Backend summary structure normalization to match what frontend expects (optional, but good for consistency)
+        // Note: quantity_change for 'out' is often negative in DB, but summary usually wants magnitude. 
+        // Let's stick to simple summation here, frontend handles magnitude.
+        // Actually, let's make sure the summary matches the aggregate logic we replaced.
+
+        const summaryArray = Object.keys(summary).map(key => ({
+            _id: key,
+            ...summary[key]
+        }));
 
         // Get current stock levels for comparison
         const currentStock = await Stock.find({})
@@ -65,7 +135,7 @@ router.get('/stock', async (req, res) => {
             .sort({ item_name: 1 });
 
         // Save report to history
-        if (movements.length > 0) {
+        if (allMovements.length > 0) {
             try {
                 const reportName = `Stock Report - ${new Date().toLocaleDateString('en-IN')}`;
                 const report = new Report({
@@ -78,17 +148,17 @@ router.get('/stock', async (req, res) => {
                         movement_type
                     },
                     data: {
-                        movements,
+                        movements: allMovements,
                         summary: {
-                            in: summary.find(s => s._id === 'in') || { total_quantity: 0, total_value: 0, count: 0 },
-                            out: summary.find(s => s._id === 'out') || { total_quantity: 0, total_value: 0, count: 0 },
-                            adjustment: summary.find(s => s._id === 'adjustment') || { total_quantity: 0, total_value: 0, count: 0 }
+                            in: summary.in,
+                            out: summary.out,
+                            adjustment: summary.adjustment
                         },
                         currentStock
                     },
                     summary: {
-                        total_records: movements.length,
-                        total_value: summary.reduce((acc, curr) => acc + (curr.total_value || 0), 0)
+                        total_records: allMovements.length,
+                        total_value: summary.in.total_value + summary.out.total_value // Rough value calc
                     }
                 });
                 await report.save();
@@ -100,11 +170,11 @@ router.get('/stock', async (req, res) => {
 
         res.json({
             success: true,
-            movements,
+            movements: allMovements,
             summary: {
-                in: summary.find(s => s._id === 'in') || { total_quantity: 0, total_value: 0, count: 0 },
-                out: summary.find(s => s._id === 'out') || { total_quantity: 0, total_value: 0, count: 0 },
-                adjustment: summary.find(s => s._id === 'adjustment') || { total_quantity: 0, total_value: 0, count: 0 }
+                in: summary.in,
+                out: summary.out,
+                adjustment: summary.adjustment
             },
             currentStock,
             generated_at: new Date()
