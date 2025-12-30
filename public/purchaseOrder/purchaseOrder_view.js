@@ -3,7 +3,7 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
     // Fetch company data from database
     const companyData = await window.companyConfig.getCompanyInfo();
     const bank = companyData.bank_details || {};
-    
+
     let itemsHTML = "";
     let totalTaxableValue = 0;
     let totalCGST = 0;
@@ -93,10 +93,10 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
 
     // Split items into rows for pagination
     const itemRows = itemsHTML.split('</tr>').filter(row => row.trim().length > 0).map(row => row + '</tr>');
-    
+
     const ITEMS_PER_PAGE = 15;
     const SUMMARY_SECTION_ROW_COUNT = 8;
-    
+
     const itemPages = [];
     let currentPageItemsHTML = '';
     let currentPageRowCount = 0;
@@ -313,6 +313,8 @@ async function viewPurchaseOrder(purchaseOrderId) {
                 <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.description || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || item.hsn_sac || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${item.company || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${item.type || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.rate || '-'}%</td>
@@ -323,7 +325,7 @@ async function viewPurchaseOrder(purchaseOrderId) {
         // Calculate and set totals (professional 3-box layout)
         let subtotal = 0;
         let totalTax = 0;
-        
+
         (purchaseOrder.items || []).forEach(item => {
             const qty = parseFloat(item.quantity || 0);
             const unitPrice = parseFloat(item.unit_price || 0);
@@ -331,13 +333,13 @@ async function viewPurchaseOrder(purchaseOrderId) {
             const taxableValue = qty * unitPrice;
             const cgst = (taxableValue * rate / 2) / 100;
             const sgst = (taxableValue * rate / 2) / 100;
-            
+
             subtotal += taxableValue;
             totalTax += (cgst + sgst);
         });
-        
+
         const grandTotal = Math.round(subtotal + totalTax);
-        
+
         document.getElementById('view-subtotal').textContent = `₹ ${formatIndian(subtotal, 2)}`;
         document.getElementById('view-tax').textContent = totalTax > 0 ? `₹ ${formatIndian(totalTax, 2)}` : 'No Tax';
         document.getElementById('view-grand-total').textContent = `₹ ${formatIndian(grandTotal, 2)}`;
