@@ -335,7 +335,7 @@ async function viewReport(reportId) {
             } else if (type === 'stock' && typeof loadSavedStockReport === 'function') {
                 loadSavedStockReport(report);
             } else if (type === 'data_worksheet' && typeof loadWorksheet === 'function') {
-                loadWorksheet(reportId);
+                loadWorksheet(report);
             } else if (type === 'purchase_gst' && typeof loadSavedPurchaseGSTReport === 'function') {
                 loadSavedPurchaseGSTReport(report);
             }

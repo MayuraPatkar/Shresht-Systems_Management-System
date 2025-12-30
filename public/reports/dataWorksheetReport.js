@@ -41,8 +41,12 @@ function clearWorksheetForm() {
 
 /**
  * Generate data worksheet document
+ * @param {Event} e - Event object
+ * @param {boolean} saveToHistory - Whether to save to backend history
  */
-async function generateDataWorksheet() {
+async function generateDataWorksheet(e, saveToHistory = true) {
+    if (e && e.preventDefault) e.preventDefault();
+
     // Get form values
     const systemSize = parseFloat(document.getElementById('dw_systemSize').value);
     const month = document.getElementById('dw_month').value || 'July';
@@ -90,11 +94,72 @@ async function generateDataWorksheet() {
         console.error('Error fetching CSS:', error);
     }
 
+    // Save worksheet to backend history ONLY if requested
+    if (saveToHistory) {
+        try {
+            const payload = {
+                ...inputData,
+                ...calculations,
+                customerName
+            };
+
+            const saveResponse = await fetch('/reports/data-worksheet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (saveResponse.ok) {
+                // Reload recent reports list to show the new entry immediately
+                if (typeof loadRecentReports === 'function') {
+                    loadRecentReports();
+                }
+            } else {
+                console.error('Failed to save worksheet history');
+            }
+        } catch (error) {
+            console.error('Error saving worksheet history:', error);
+        }
+    }
+
     // Generate HTML document with CSS content passed in
     const documentHTML = generateWorksheetHTML(calculations, inputData, customerName, date, systemSize, month, cssContent);
 
     // Show inline preview
     showInlineWorksheetPreview(documentHTML);
+}
+
+/**
+ * Load a saved worksheet into the form and preview it
+ * @param {Object} report - The saved report object
+ */
+function loadWorksheet(report) {
+    if (!report || !report.data) return;
+
+    const data = report.data;
+
+    // Populate input fields
+    const fields = [
+        'systemSize', 'consumptionUnits', 'fuelCharges', 'tax',
+        'sanctionedLoad', 'demandRate', 'additionalCharges',
+        'unitsPerDay', 'avgConsumptionRate', 'sgyWithRate',
+        'sgyWithoutRate', 'exceedUnitRate'
+    ];
+
+    fields.forEach(field => {
+        if (document.getElementById(`dw_${field}`) && data[field] !== undefined) {
+            document.getElementById(`dw_${field}`).value = data[field];
+        }
+    });
+
+    if (document.getElementById('dw_month')) document.getElementById('dw_month').value = data.month || 'July';
+    if (document.getElementById('dw_customerName')) document.getElementById('dw_customerName').value = report.parameters.customer_name || 'Customer';
+
+    // Trigger generation (without saving)
+    // We pass null for event, and false for saveToHistory
+    generateDataWorksheet(null, false);
 }
 
 /**
