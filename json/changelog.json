@@ -3,8 +3,16 @@
     {
       "version": "3.5.1",
       "date": "2025-12-31",
-      "title": "Documentation Update",
+      "title": "Hotfix: Update System & Docs",
       "changes": [
+        {
+          "type": "bugfix",
+          "description": "Fixed a critical startup crash by converting the auto-update system to manual control"
+        },
+        {
+          "type": "feature",
+          "description": "Update Settings: Added a user-controlled option to toggle Pre-release builds"
+        },
         {
           "type": "bugfix",
           "description": "Fixed an issue where release notes for v3.5.0 were not displaying in the app"

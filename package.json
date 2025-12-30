@@ -1,6 +1,6 @@
 {
   "name": "shresht-systems-management-system",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "description": "Software for Shresht systems",
   "main": "main.js",
   "scripts": {
