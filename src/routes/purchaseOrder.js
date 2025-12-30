@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Purchases, Stock } = require('../models');
+const { Purchases, Stock, StockMovement } = require('../models');
 const logger = require('../utils/logger');
 
 // Import ID generator functions
@@ -140,8 +140,21 @@ router.post("/save-purchase-order", async (req, res) => {
                 if (!prevItem.description) continue;
                 let stockItem = await Stock.findOne({ item_name: prevItem.description });
                 if (stockItem) {
-                    stockItem.quantity = Number(stockItem.quantity || 0) - Number(prevItem.quantity || 0);
+                    const reversalQty = Number(prevItem.quantity || 0);
+                    stockItem.quantity = Number(stockItem.quantity || 0) - reversalQty;
                     await stockItem.save();
+
+                    // Record reversal movement
+                    await StockMovement.create({
+                        timestamp: new Date(),
+                        item_name: prevItem.description,
+                        movement_type: 'adjustment', // Use adjustment for corrections
+                        quantity_change: -reversalQty, // Negative for removal
+                        reference_type: 'purchase_order',
+                        reference_id: purchaseOrderId || purchaseOrder.purchase_order_id,
+                        notes: `PO Update: Reversing previous entry`,
+                        total_value: -(reversalQty * (Number(prevItem.unit_price) || 0))
+                    });
                 }
             }
         }
@@ -153,7 +166,8 @@ router.post("/save-purchase-order", async (req, res) => {
             let stockItem = await Stock.findOne({ item_name: item.description });
 
             if (stockItem) {
-                stockItem.quantity = Number(stockItem.quantity || 0) + Number(item.quantity || 0);
+                const addQty = Number(item.quantity || 0);
+                stockItem.quantity = Number(stockItem.quantity || 0) + addQty;
                 stockItem.unit_price = Number(item.unit_price) || stockItem.unit_price;
                 stockItem.GST = Number(item.rate) || stockItem.GST;
                 stockItem.specifications = item.specification || stockItem.specifications;
@@ -162,7 +176,21 @@ router.post("/save-purchase-order", async (req, res) => {
                 stockItem.type = item.type || stockItem.type;
                 stockItem.updatedAt = new Date();
                 await stockItem.save();
+
+                // Record 'in' movement
+                await StockMovement.create({
+                    timestamp: new Date(),
+                    item_name: item.description,
+                    movement_type: 'in',
+                    quantity_change: addQty,
+                    reference_type: 'purchase_order',
+                    reference_id: purchaseOrderId || (purchaseOrder ? purchaseOrder.purchase_order_id : 'NEW'),
+                    notes: `Purchase Order Received`,
+                    total_value: addQty * (Number(item.unit_price) || 0)
+                });
+
             } else {
+                const addQty = Number(item.quantity || 0);
                 await Stock.create({
                     item_name: item.description,
                     HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
@@ -172,10 +200,22 @@ router.post("/save-purchase-order", async (req, res) => {
                     unit_price: Number(item.unit_price) || 0,
                     GST: Number(item.rate) || 0,
                     margin: 0,
-                    quantity: Number(item.quantity) || 0,
+                    quantity: addQty,
                     type: item.type || 'material',
                     createdAt: new Date(),
                     updatedAt: new Date()
+                });
+
+                // Record 'in' movement for new item
+                await StockMovement.create({
+                    timestamp: new Date(),
+                    item_name: item.description,
+                    movement_type: 'in',
+                    quantity_change: addQty,
+                    reference_type: 'purchase_order',
+                    reference_id: purchaseOrderId || (purchaseOrder ? purchaseOrder.purchase_order_id : 'NEW'),
+                    notes: `Purchase Order Received (New Item)`,
+                    total_value: addQty * (Number(item.unit_price) || 0)
                 });
             }
         }

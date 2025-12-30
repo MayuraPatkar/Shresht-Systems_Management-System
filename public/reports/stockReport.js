@@ -85,10 +85,10 @@ async function generateStockReport() {
     try {
         // Build query params
         const params = new URLSearchParams();
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
-        if (movementType && movementType !== 'all') params.append('type', movementType);
-        if (itemFilter) params.append('item', itemFilter);
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+        if (movementType && movementType !== 'all') params.append('movement_type', movementType);
+        if (itemFilter) params.append('item_name', itemFilter);
 
         const response = await fetch(`/reports/stock?${params.toString()}`);
         const data = await response.json();
@@ -102,12 +102,32 @@ async function generateStockReport() {
                 } else {
                     alert('No stock movements found for the selected criteria.');
                 }
-                // Reset UI logic is handled by renderStockReport when empty, but we want the alert first
-                renderStockReport([], data.summary);
+
+                // Even with no data, we should try to render the (empty) summary if it exists, or zero it out
+                const emptySummary = { total_in: 0, total_out: 0, total_adjustments: 0, net_change: 0 };
+                renderStockReport([], emptySummary);
                 return;
             }
 
-            renderStockReport(data.movements, data.summary);
+            // Normalize summary from backend format to frontend format
+            // Backend returns: { in: { total_quantity: X }, out: { total_quantity: Y }, adjustment: { total_quantity: Z } }
+            // Frontend expects: { total_in: X, total_out: |Y|, total_adjustments: Z, net_change: X+Y+Z }
+            let summary = { total_in: 0, total_out: 0, total_adjustments: 0, net_change: 0 };
+
+            if (data.summary) {
+                const inQty = data.summary.in ? (data.summary.in.total_quantity || 0) : 0;
+                const outQty = data.summary.out ? (data.summary.out.total_quantity || 0) : 0;
+                const adjQty = data.summary.adjustment ? (data.summary.adjustment.total_quantity || 0) : 0;
+
+                summary.total_in = inQty;
+                summary.total_out = Math.abs(outQty); // Display 'out' as positive magnitude
+                summary.total_adjustments = adjQty;
+
+                // Net change is the algebraic sum (in is +, out is -, adj is +/-)
+                summary.net_change = inQty + outQty + adjQty;
+            }
+
+            renderStockReport(data.movements, summary);
         } else {
             // If no data from StockMovement, try to generate from stock entries
             await generateStockReportFromStock(startDate, endDate, movementType, itemFilter);
