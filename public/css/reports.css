@@ -3,6 +3,12 @@
  * Styling for the Reports section including cards, tables, and print layouts
  */
 
+/* Body styling to match other modules */
+body {
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
 /* Ensure sidebar matches other pages */
 .sidebar {
     width: 280px;
@@ -83,22 +89,30 @@ main {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
+/* Fade-in class for animation consistency with other modules */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
 /* ============================================
    Summary Cards
    ============================================ */
-#stock-report-summary > div,
-#gst-report-summary > div {
+#stock-report-summary>div,
+#gst-report-summary>div,
+#purchase-gst-report-summary>div {
     transition: transform 0.2s ease;
 }
 
-#stock-report-summary > div:hover,
-#gst-report-summary > div:hover {
+#stock-report-summary>div:hover,
+#gst-report-summary>div:hover,
+#purchase-gst-report-summary>div:hover {
     transform: scale(1.02);
 }
 
@@ -107,7 +121,9 @@ main {
    ============================================ */
 #stock-report-table,
 #gst-report-table,
-#gst-invoice-table {
+#gst-invoice-table,
+#purchase-gst-report-table,
+#purchase-gst-details-table {
     border-collapse: separate;
     border-spacing: 0;
     border-radius: 8px;
@@ -116,7 +132,9 @@ main {
 
 #stock-report-table thead,
 #gst-report-table thead,
-#gst-invoice-table thead {
+#gst-invoice-table thead,
+#purchase-gst-report-table thead,
+#purchase-gst-details-table thead {
     position: sticky;
     top: 0;
     z-index: 10;
@@ -124,7 +142,9 @@ main {
 
 #stock-report-table tbody tr:hover,
 #gst-report-table tbody tr:hover,
-#gst-invoice-table tbody tr:hover {
+#gst-invoice-table tbody tr:hover,
+#purchase-gst-report-table tbody tr:hover,
+#purchase-gst-details-table tbody tr:hover {
     background-color: #f8fafc;
 }
 
@@ -195,6 +215,7 @@ main {
         opacity: 0;
         transform: scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
@@ -204,11 +225,11 @@ main {
 /* ============================================
    Recent Reports Section
    ============================================ */
-#recent-reports > div {
+#recent-reports>div {
     transition: all 0.2s ease;
 }
 
-#recent-reports > div:hover {
+#recent-reports>div:hover {
     background-color: #f8fafc;
     transform: translateX(4px);
 }
@@ -225,24 +246,25 @@ main {
    Print Styles
    ============================================ */
 @media print {
+
     /* Hide non-printable elements */
     header,
     aside,
     #reports-home,
     .report-section button,
-    #worksheetPreview > div > div:first-child {
+    #worksheetPreview>div>div:first-child {
         display: none !important;
     }
-    
+
     main {
         margin-left: 0 !important;
         padding: 0 !important;
     }
-    
+
     .report-section {
         display: block !important;
     }
-    
+
     /* Table print styles */
     #stock-report-table,
     #gst-report-table,
@@ -250,7 +272,7 @@ main {
         font-size: 10pt;
         page-break-inside: avoid;
     }
-    
+
     #stock-report-table th,
     #gst-report-table th,
     #gst-invoice-table th {
@@ -258,18 +280,18 @@ main {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
-    
+
     /* Summary cards print */
-    #stock-report-summary > div,
-    #gst-report-summary > div {
+    #stock-report-summary>div,
+    #gst-report-summary>div {
         background-color: #f3f4f6 !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         color: #1f2937 !important;
     }
-    
-    #stock-report-summary > div p,
-    #gst-report-summary > div p {
+
+    #stock-report-summary>div p,
+    #gst-report-summary>div p {
         color: #1f2937 !important;
     }
 }
@@ -281,52 +303,55 @@ main {
     .report-cards-grid {
         grid-template-columns: 1fr;
     }
-    
+
     #stock-report-summary,
-    #gst-report-summary {
+    #gst-report-summary,
+    #purchase-gst-report-summary {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .dw-subsidy-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .dw-info-section {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 480px) {
+
     #stock-report-summary,
-    #gst-report-summary {
+    #gst-report-summary,
+    #purchase-gst-report-summary {
         grid-template-columns: 1fr;
     }
-    
+
     .dw-info-section {
         grid-template-columns: 1fr;
     }
 }
 
 /* ============================================
-   Scrollbar Styling
+   Scrollbar Styling - Global (matching other modules)
    ============================================ */
-.report-section *::-webkit-scrollbar {
+*::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 
-.report-section *::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
     background: #f1f5f9;
     border-radius: 4px;
 }
 
-.report-section *::-webkit-scrollbar-thumb {
-    background: #94a3b8;
+*::-webkit-scrollbar-thumb {
+    background: #2563eb;
     border-radius: 4px;
 }
 
-.report-section *::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
+*::-webkit-scrollbar-thumb:hover {
+    background: #1d4ed8;
 }
 
 /* ============================================
@@ -367,6 +392,7 @@ main {
         opacity: 0;
         transform: translateX(100%);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -377,6 +403,7 @@ main {
     from {
         opacity: 1;
     }
+
     to {
         opacity: 0;
     }
