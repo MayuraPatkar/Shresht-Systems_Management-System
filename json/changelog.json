@@ -1,6 +1,48 @@
 {
   "versions": [
     {
+      "version": "3.5.1",
+      "date": "2025-12-31",
+      "title": "Documentation Update",
+      "changes": [
+        {
+          "type": "bugfix",
+          "description": "Fixed an issue where release notes for v3.5.0 were not displaying in the app"
+        }
+      ]
+    },
+    {
+      "version": "3.5.0",
+      "date": "2025-12-31",
+      "title": "Reports, Copy & Polish",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Purchase Order GST Report: Generate tax summaries for supplier orders"
+        },
+        {
+          "type": "feature",
+          "description": "Copy Quotation: Duplicate existing quotations with a single click"
+        },
+        {
+          "type": "feature",
+          "description": "Persistent Report History: Recent reports are now saved to the database"
+        },
+        {
+          "type": "improvement",
+          "description": "View Redesign: Refreshed layouts across multiple modules"
+        },
+        {
+          "type": "improvement",
+          "description": "Settings Cleanup: Removed redundant options and improved organization"
+        },
+        {
+          "type": "bugfix",
+          "description": "Fixed validation and UI issues in Stock module"
+        }
+      ]
+    },
+    {
       "version": "3.4.1",
       "date": "2025-12-03",
       "title": "Reports, WhatsApp & Performance",
