@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const newSection = document.getElementById('new');
         const viewSection = document.getElementById('view');
         const paymentContainer = document.getElementById('payment-container');
-        
+
         // Show home, hide others
         if (homeSection) {
             homeSection.style.display = 'block';
@@ -78,22 +78,22 @@ document.addEventListener("DOMContentLoaded", () => {
         if (paymentContainer) {
             paymentContainer.style.display = 'none';
         }
-        
+
         // Show/hide buttons
         const newInvoiceBtn = document.getElementById('new-invoice');
         const viewPreviewBtn = document.getElementById('view-preview');
         if (newInvoiceBtn) newInvoiceBtn.style.display = 'block';
         if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
-        
+
         // Reset form if needed
         const form = document.getElementById('invoice-form');
         if (form) form.reset();
-        
+
         // Reset to step 1 if currentStep is defined
         if (typeof window.currentStep !== 'undefined') {
             window.currentStep = 1;
         }
-        
+
         // Reload invoices
         loadRecentInvoices();
     });
@@ -245,7 +245,7 @@ function createInvoiceCard(invoice) {
     const userRole = sessionStorage.getItem('userRole');
     const invoiceCard = document.createElement("div");
     invoiceCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
-    
+
     const status = (invoice.payment_status || 'Unpaid');
     // Normalize stored status for comparisons
     const _statusNorm = String(status).toLowerCase().trim();
@@ -319,7 +319,7 @@ function createInvoiceCard(invoice) {
             }
         }
     }
-    
+
     // Format the date for display
     const dateToFormat = invoice.invoice_date || invoice.createdAt;
     let formattedDate = '-';
@@ -336,11 +336,11 @@ function createInvoiceCard(invoice) {
             formattedDate = '-';
         }
     }
-    
+
     invoiceCard.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
-            <div class="w-1.5 bg-gradient-to-b ${isPaid ? 'from-green-500 to-emerald-600' : 'from-orange-500 to-amber-600'}"></div>
+            <div class="card-left-border w-1.5 bg-gradient-to-b ${isPaid ? 'from-green-500 to-emerald-600' : isPartial ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500'}"></div>
             
             <div class="flex-1 p-6">
                 <!-- Main Content Row -->
@@ -388,7 +388,7 @@ function createInvoiceCard(invoice) {
                     <!-- Amount Section -->
                     ${userRole === 'admin' ? `
                     <div class="flex items-center px-4 border-r border-gray-200">
-                        <div class="rounded-lg p-3 w-[200px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
+                        <div class="card-amount-box rounded-lg p-3 w-[200px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
                             <!-- Total Row -->
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
@@ -451,7 +451,7 @@ function createInvoiceCard(invoice) {
             </div>
         </div>
     `;
-    
+
     const copyElement = invoiceCard.querySelector('.copy-text');
     const viewBtn = invoiceCard.querySelector('.view-btn');
     const editBtn = invoiceCard.querySelector('.edit-btn');
@@ -462,12 +462,12 @@ function createInvoiceCard(invoice) {
     // Copy ID functionality
     if (copyElement) {
         copyElement.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(invoice.invoice_id);
-            showToast('ID Copied to Clipboard!');
-        } catch (err) {
-            console.error('Copy failed', err);
-        }
+            try {
+                await navigator.clipboard.writeText(invoice.invoice_id);
+                showToast('ID Copied to Clipboard!');
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
         });
     }
 
@@ -584,10 +584,38 @@ function createInvoiceCard(invoice) {
                 if (badge) {
                     const newStatus = (effective > 0 && paid >= effective) ? 'PAID' : (paid > 0 ? 'PARTIAL' : 'UNPAID');
                     badge.textContent = newStatus;
-                    badge.classList.remove('bg-green-100','text-green-700','bg-yellow-100','text-yellow-700','bg-orange-100','text-orange-700');
-                    if (newStatus === 'PAID') badge.classList.add('bg-green-100','text-green-700');
-                    else if (newStatus === 'PARTIAL') badge.classList.add('bg-yellow-100','text-yellow-700');
-                    else badge.classList.add('bg-orange-100','text-orange-700');
+                    badge.classList.remove('bg-green-100', 'text-green-700', 'bg-yellow-100', 'text-yellow-700', 'bg-orange-100', 'text-orange-700');
+                    if (newStatus === 'PAID') badge.classList.add('bg-green-100', 'text-green-700');
+                    else if (newStatus === 'PARTIAL') badge.classList.add('bg-yellow-100', 'text-yellow-700');
+                    else badge.classList.add('bg-orange-100', 'text-orange-700');
+
+                    // Update Left Border Gradient
+                    const borderEl = invoiceCard.querySelector('.card-left-border');
+                    if (borderEl) {
+                        borderEl.classList.remove('from-green-500', 'to-emerald-600', 'from-yellow-500', 'to-amber-500', 'from-orange-500', 'to-red-500', 'from-orange-500', 'to-amber-600');
+                        if (newStatus === 'PAID') {
+                            borderEl.classList.add('from-green-500', 'to-emerald-600');
+                        } else if (newStatus === 'PARTIAL') {
+                            borderEl.classList.add('from-yellow-500', 'to-amber-500');
+                        } else {
+                            borderEl.classList.add('from-orange-500', 'to-red-500');
+                        }
+                    }
+
+                    // Update Amount Box Styles
+                    const amountBox = invoiceCard.querySelector('.card-amount-box');
+                    if (amountBox) {
+                        if (newStatus === 'PAID') {
+                            amountBox.style.background = 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)';
+                            amountBox.style.border = '1px solid #a7f3d0';
+                        } else if (newStatus === 'PARTIAL') {
+                            amountBox.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+                            amountBox.style.border = '1px solid #fcd34d';
+                        } else {
+                            amountBox.style.background = 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)';
+                            amountBox.style.border = '1px solid #fecaca';
+                        }
+                    }
                 }
             }
         } catch (err) {
@@ -617,34 +645,34 @@ function showNewInvoiceForm() {
             sessionStorage.setItem('update-invoice', 'original');
         }
     });
-    
+
     // Reset to step 1
     if (typeof changeStep === 'function') {
         changeStep(1);
     }
-    
+
     // Clear any existing items from previous form sessions
     const itemsContainer = document.getElementById("items-container");
     const nonItemsContainer = document.getElementById("non-items-container");
     const itemsTableBody = document.querySelector("#items-table tbody");
     const nonItemsTableBody = document.querySelector("#non-items-table tbody");
-    
+
     if (itemsContainer) itemsContainer.innerHTML = "";
     if (nonItemsContainer) nonItemsContainer.innerHTML = "";
     if (itemsTableBody) itemsTableBody.innerHTML = "";
     if (nonItemsTableBody) nonItemsTableBody.innerHTML = "";
-    
+
     // Clear form inputs including ID field
     const form = document.getElementById('invoice-form');
     if (form) form.reset();
-    
+
     const idInput = document.getElementById('id');
     if (idInput) {
         idInput.value = '';
         idInput.readOnly = false;
         idInput.style.backgroundColor = '';
     }
-    
+
     // Set default invoice date to today
     const invoiceDateInput = document.getElementById('invoice-date');
     if (invoiceDateInput) {
@@ -664,7 +692,7 @@ async function handleSearch() {
         return;
     }
 
-    await searchDocuments('invoice', query, invoicesListDiv, createInvoiceCard, 
+    await searchDocuments('invoice', query, invoicesListDiv, createInvoiceCard,
         `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
             <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
             <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
@@ -733,9 +761,9 @@ document.getElementById('close-payment-modal')?.addEventListener('click', () => 
 document.getElementById('payment-mode')?.addEventListener('change', function () {
     const mode = this.value;
     let extraField = document.getElementById('extra-payment-details');
-    
+
     if (!extraField) return;
-    
+
     extraField.innerHTML = ''; // Clear previous
 
     if (mode === 'Cash') {
