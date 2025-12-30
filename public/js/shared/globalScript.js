@@ -736,11 +736,23 @@ async function updateSpecificationsTable() {
 
   // Store existing manually entered specifications to preserve them
   const existingSpecs = {};
+  // First, check specification cards (primary source for user input)
+  if (specificationsContainer) {
+    specificationsContainer.querySelectorAll('.spec-card').forEach(card => {
+      const descInput = card.querySelector('.spec-field.description input');
+      const specInput = card.querySelector('.spec-field.specification input');
+      if (descInput && specInput && descInput.value.trim()) {
+        existingSpecs[descInput.value.trim()] = specInput.value;
+      }
+    });
+  }
+  // Also check the table (fallback for any values we missed)
   if (itemsSpecificationTable) {
     itemsSpecificationTable.querySelectorAll('tr').forEach(row => {
       const description = row.cells[1].textContent.trim();
       const specInput = row.querySelector('input[placeholder="Specifications"], input[type="text"]');
-      if (specInput && description) {
+      // Only use table value if we don't already have a value from the card
+      if (specInput && description && !existingSpecs[description]) {
         existingSpecs[description] = specInput.value;
       }
     });

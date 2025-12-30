@@ -620,7 +620,7 @@ async function generatePreview() {
     const company = await window.companyConfig.getCompanyInfo();
     const bank = company.bank_details || {};
     const phoneStr = company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '');
-    
+
     if (!quotationId) {
         quotationId = document.getElementById('id').value;
     }
@@ -1316,6 +1316,24 @@ function toInputDate(value) {
 
 // Function to collect form data
 function collectFormData() {
+    // Helper function to get specification from either table or cards
+    const getSpecification = (desc) => {
+        // First, try to find in specification table
+        const specRow = Array.from(document.querySelectorAll("#items-specifications-table tbody tr"))
+            .find(spec => spec.querySelector("td:nth-child(2)")?.textContent === desc);
+        if (specRow) {
+            const specValue = specRow.querySelector("td:nth-child(3) input")?.value;
+            if (specValue) return specValue;
+        }
+        // Fallback: check specification cards
+        const specCard = Array.from(document.querySelectorAll("#specifications-container .spec-card"))
+            .find(card => card.querySelector(".spec-field.description input")?.value === desc);
+        if (specCard) {
+            return specCard.querySelector(".spec-field.specification input")?.value || "";
+        }
+        return "";
+    };
+
     return {
         quotation_id: document.getElementById("id").value,
         projectName: document.getElementById("project-name").value,
@@ -1330,25 +1348,13 @@ function collectFormData() {
             quantity: Number(row.querySelector("td:nth-child(4) input").value) || 0,
             unit_price: Number(row.querySelector("td:nth-child(5) input").value) || 0,
             rate: Number(row.querySelector("td:nth-child(6) input").value) || 0,
-            specification: (() => {
-                // Try to match specification from specifications table
-                const desc = row.querySelector("td:nth-child(2) input").value;
-                const specRow = Array.from(document.querySelectorAll("#items-specifications-table tbody tr"))
-                    .find(spec => spec.querySelector("td:nth-child(2)").textContent === desc);
-                return specRow ? specRow.querySelector("td:nth-child(3) input").value : "";
-            })()
+            specification: getSpecification(row.querySelector("td:nth-child(2) input").value)
         })),
         non_items: Array.from(document.querySelectorAll("#non-items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(2) input").value,
             price: Number(row.querySelector("td:nth-child(3) input").value) || 0,
             rate: Number(row.querySelector("td:nth-child(4) input").value) || 0,
-            specification: (() => {
-                // Try to match specification from specifications table
-                const desc = row.querySelector("td:nth-child(2) input").value;
-                const specRow = Array.from(document.querySelectorAll("#items-specifications-table tbody tr"))
-                    .find(spec => spec.querySelector("td:nth-child(2)").textContent === desc);
-                return specRow ? specRow.querySelector("td:nth-child(3) input").value : "";
-            })()
+            specification: getSpecification(row.querySelector("td:nth-child(2) input").value)
         })),
         totalTax: totalTax,
         totalAmountNoTax: totalAmountNoTax,
