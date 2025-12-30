@@ -106,7 +106,7 @@
         <!-- Reports Home Section -->
         <div id="reports-home">
             <!-- Page Title -->
-            <div class="mb-8">
+            <div class="mb-8 pt-6">
                 <h2 class="text-3xl font-bold text-gray-800 mb-2">Generate Reports</h2>
                 <p class="text-gray-600">Select a report type to generate detailed business insights</p>
             </div>
@@ -115,7 +115,7 @@
             <div class="report-cards-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
                 <!-- Stock Report Card -->
-                <div class="report-card bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
+                <div class="report-card bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full"
                     data-report="stock">
                     <div class="report-card-header bg-gradient-to-r from-blue-500 to-blue-600 p-6">
                         <div class="flex items-center gap-4">
@@ -128,19 +128,24 @@
                             </div>
                         </div>
                     </div>
-                    <div class="report-card-body p-6">
-                        <p class="text-gray-600 mb-4">Generate detailed reports on stock movements including additions,
-                            removals, and adjustments over a specified period.</p>
-                        <ul class="text-sm text-gray-500 space-y-2 mb-4">
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Item-wise
-                                stock tracking</li>
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Date range
-                                filters</li>
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Movement
-                                history</li>
-                        </ul>
+                    <div class="report-card-body p-6 flex flex-col flex-1 justify-between">
+                        <div>
+                            <p class="text-gray-600 mb-4">Generate detailed reports on stock movements including
+                                additions,
+                                removals, and adjustments over a specified period.</p>
+                            <ul class="text-sm text-gray-500 space-y-2 mb-4">
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>
+                                    Item-wise
+                                    stock tracking</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Date
+                                    range
+                                    filters</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Movement
+                                    history</li>
+                            </ul>
+                        </div>
                         <button
-                            class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                            class="generate-btn w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 mt-4">
                             <i class="fas fa-arrow-right"></i>
                             Generate Report
                         </button>
@@ -148,7 +153,7 @@
                 </div>
 
                 <!-- GST Report Card -->
-                <div class="report-card bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
+                <div class="report-card bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full"
                     data-report="gst">
                     <div class="report-card-header bg-gradient-to-r from-green-500 to-green-600 p-6">
                         <div class="flex items-center gap-4">
@@ -161,20 +166,23 @@
                             </div>
                         </div>
                     </div>
-                    <div class="report-card-body p-6">
-                        <p class="text-gray-600 mb-4">Generate monthly GST reports from invoices with Tax Rate-wise
-                            breakdown, tax
-                            calculations, and compliance-ready summaries.</p>
-                        <ul class="text-sm text-gray-500 space-y-2 mb-4">
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Monthly
-                                breakdown</li>
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Tax Rate
-                                wise summary</li>
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> CGST/SGST
-                                calculations</li>
-                        </ul>
+                    <div class="report-card-body p-6 flex flex-col flex-1 justify-between">
+                        <div>
+                            <p class="text-gray-600 mb-4">Generate monthly GST reports from invoices with Tax Rate-wise
+                                breakdown, tax
+                                calculations, and compliance-ready summaries.</p>
+                            <ul class="text-sm text-gray-500 space-y-2 mb-4">
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Monthly
+                                    breakdown</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Tax Rate
+                                    wise summary</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>
+                                    CGST/SGST
+                                    calculations</li>
+                            </ul>
+                        </div>
                         <button
-                            class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
+                            class="generate-btn w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2 mt-4">
                             <i class="fas fa-arrow-right"></i>
                             Generate Report
                         </button>
@@ -182,7 +190,7 @@
                 </div>
 
                 <!-- Purchase GST Report Card -->
-                <div class="report-card bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
+                <div class="report-card bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full"
                     data-report="purchaseGst">
                     <div class="report-card-header bg-gradient-to-r from-orange-500 to-amber-600 p-6">
                         <div class="flex items-center gap-4">
@@ -195,19 +203,21 @@
                             </div>
                         </div>
                     </div>
-                    <div class="report-card-body p-6">
-                        <p class="text-gray-600 mb-4">Generate monthly GST reports from purchase orders with Tax
-                            Rate-wise breakdown, tax calculations, and compliance-ready summaries.</p>
-                        <ul class="text-sm text-gray-500 space-y-2 mb-4">
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Monthly
-                                breakdown</li>
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Tax Rate
-                                wise summary</li>
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>
-                                CGST/SGST calculations</li>
-                        </ul>
+                    <div class="report-card-body p-6 flex flex-col flex-1 justify-between">
+                        <div>
+                            <p class="text-gray-600 mb-4">Generate monthly GST reports from purchase orders with Tax
+                                Rate-wise breakdown, tax calculations, and compliance-ready summaries.</p>
+                            <ul class="text-sm text-gray-500 space-y-2 mb-4">
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Monthly
+                                    breakdown</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Tax Rate
+                                    wise summary</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>
+                                    CGST/SGST calculations</li>
+                            </ul>
+                        </div>
                         <button
-                            class="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2">
+                            class="generate-btn w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 mt-4">
                             <i class="fas fa-arrow-right"></i>
                             Generate Report
                         </button>
@@ -215,7 +225,7 @@
                 </div>
 
                 <!-- Data Worksheet Report Card -->
-                <div class="report-card bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
+                <div class="report-card bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full"
                     data-report="dataWorksheet">
                     <div class="report-card-header bg-gradient-to-r from-purple-500 to-purple-600 p-6">
                         <div class="flex items-center gap-4">
@@ -228,19 +238,22 @@
                             </div>
                         </div>
                     </div>
-                    <div class="report-card-body p-6">
-                        <p class="text-gray-600 mb-4">Generate comprehensive solar installation worksheets with energy
-                            calculations, savings estimates, and subsidy details.</p>
-                        <ul class="text-sm text-gray-500 space-y-2 mb-4">
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Solar
-                                production estimates</li>
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> PM SGY
-                                subsidy comparison</li>
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Monthly
-                                savings calculation</li>
-                        </ul>
+                    <div class="report-card-body p-6 flex flex-col flex-1 justify-between">
+                        <div>
+                            <p class="text-gray-600 mb-4">Generate comprehensive solar installation worksheets with
+                                energy
+                                calculations, savings estimates, and subsidy details.</p>
+                            <ul class="text-sm text-gray-500 space-y-2 mb-4">
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Solar
+                                    production estimates</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> PM SGY
+                                    subsidy comparison</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Monthly
+                                    savings calculation</li>
+                            </ul>
+                        </div>
                         <button
-                            class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2">
+                            class="generate-btn w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 mt-4">
                             <i class="fas fa-arrow-right"></i>
                             Generate Report
                         </button>
@@ -312,9 +325,7 @@
         <!-- Stock Report Section -->
         <div id="stock-report-section" class="report-section" style="display: none;">
             <div class="flex items-center gap-4 mb-6">
-                <button id="back-to-reports-stock" class="bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-gray-300">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
+
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Stock Report</h2>
                     <p class="text-gray-600">View stock movements and inventory changes</p>
@@ -466,9 +477,7 @@
         <!-- GST Report Section -->
         <div id="gst-report-section" class="report-section" style="display: none;">
             <div class="flex items-center gap-4 mb-6">
-                <button id="back-to-reports-gst" class="bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-gray-300">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
+
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Monthly GST Report</h2>
                     <p class="text-gray-600">Invoice-based tax summary and breakdown</p>
@@ -654,10 +663,7 @@
         <!-- Purchase GST Report Section -->
         <div id="purchase-gst-report-section" class="report-section" style="display: none;">
             <div class="flex items-center gap-4 mb-6">
-                <button id="back-to-reports-purchase-gst"
-                    class="bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-gray-300">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
+
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Monthly Purchase GST Report</h2>
                     <p class="text-gray-600">Purchase order tax summary and breakdown</p>
@@ -843,10 +849,7 @@
         <!-- Data Worksheet Section -->
         <div id="data-worksheet-section" class="report-section" style="display: none;">
             <div class="flex items-center gap-4 mb-6">
-                <button id="back-to-reports-worksheet"
-                    class="bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-gray-300">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
+
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Data Worksheet</h2>
                     <p class="text-gray-600">Solar installation calculator and analysis</p>

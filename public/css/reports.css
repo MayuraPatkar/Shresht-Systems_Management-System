@@ -7,6 +7,14 @@
 body {
     font-family: 'Inter', sans-serif;
     overflow: hidden;
+    -webkit-user-select: none;
+    /* Safari */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* IE10+/Edge */
+    user-select: none;
+    /* Standard */
 }
 
 /* Ensure sidebar matches other pages */
@@ -35,7 +43,6 @@ main {
 
 .report-card {
     transition: all 0.3s ease;
-    cursor: pointer;
 }
 
 .report-card:hover {
@@ -75,6 +82,16 @@ main {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+/* Generate Report Button */
+.generate-btn {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.generate-btn:active {
+    transform: scale(0.98);
 }
 
 /* ============================================

@@ -103,11 +103,18 @@ function updateDeleteButtonText() {
  * Set up report card click handlers
  */
 function setupReportCards() {
-    const reportCards = document.querySelectorAll('.report-card');
-    reportCards.forEach(card => {
-        card.addEventListener('click', function () {
-            const reportType = this.getAttribute('data-report');
-            showReportSection(reportType);
+    // We now attach listeners to the buttons specifically, not the whole card
+    const generateButtons = document.querySelectorAll('.generate-btn');
+
+    generateButtons.forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation(); // Prevent bubbling
+            // Find the parent card to get the report type
+            const card = this.closest('.report-card');
+            if (card) {
+                const reportType = card.getAttribute('data-report');
+                showReportSection(reportType);
+            }
         });
     });
 }
