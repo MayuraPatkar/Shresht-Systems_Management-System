@@ -671,9 +671,7 @@ async function saveReportPDF(htmlContent, filename) {
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         try {
             const result = await window.electronAPI.handlePrintEvent(htmlContent, 'savePDF', filename);
-            if (result && result.success) {
-                showNotification('PDF saved successfully!', 'success');
-            } else if (result && result.error) {
+            if (result && result.error) {
                 showNotification(`Failed to save PDF: ${result.error}`, 'error');
             }
         } catch (error) {

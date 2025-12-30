@@ -858,7 +858,7 @@
                 <form id="dataWorksheetForm" class="space-y-6">
 
                     <!-- Basic Information -->
-                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 border-l-4 border-l-blue-500 shadow-sm">
                         <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
                             <i class="fas fa-info-circle text-blue-600"></i>
                             Basic Information
@@ -890,7 +890,7 @@
                     </div>
 
                     <!-- Consumption Data -->
-                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 border-l-4 border-l-green-500 shadow-sm">
                         <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
                             <i class="fas fa-bolt text-green-600"></i>
                             Consumption & Charges
@@ -916,7 +916,8 @@
                     </div>
 
                     <!-- Demand Charges -->
-                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <div
+                        class="bg-white p-6 rounded-lg border border-gray-200 border-l-4 border-l-yellow-500 shadow-sm">
                         <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
                             <i class="fas fa-charging-station text-yellow-600"></i>
                             Demand Charges
@@ -945,7 +946,8 @@
                     </div>
 
                     <!-- Solar Production -->
-                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <div
+                        class="bg-white p-6 rounded-lg border border-gray-200 border-l-4 border-l-purple-500 shadow-sm">
                         <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
                             <i class="fas fa-sun text-purple-600"></i>
                             Solar Production Details
@@ -969,7 +971,8 @@
                     </div>
 
                     <!-- PM SGY Subsidy Details -->
-                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <div
+                        class="bg-white p-6 rounded-lg border border-gray-200 border-l-4 border-l-orange-500 shadow-sm">
                         <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
                             <i class="fas fa-hand-holding-usd text-orange-600"></i>
                             PM SGY Subsidy Details
@@ -997,10 +1000,6 @@
 
                     <!-- Action Buttons -->
                     <div class="flex justify-end gap-3">
-                        <button type="button" id="clear-worksheet-form"
-                            class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition-colors">
-                            <i class="fas fa-times mr-2"></i>Clear Form
-                        </button>
                         <button type="button" id="generate-worksheet"
                             class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition-colors">
                             <i class="fas fa-file-pdf mr-2"></i>Generate Document
@@ -1012,25 +1011,28 @@
             <!-- Worksheet Preview -->
             <div id="worksheet-preview-section" class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mt-6"
                 style="display: none;">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-eye text-purple-600"></i>
+                <div class="flex items-center justify-between mb-4 border-b border-gray-200 pb-4">
+                    <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-eye text-blue-600"></i>
                         Worksheet Preview
                     </h3>
-                    <div class="flex gap-3">
-                        <button id="print-worksheet-report"
-                            class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-medium flex items-center gap-2">
-                            <i class="fas fa-print"></i>
-                            Print
-                        </button>
-                        <button id="save-worksheet-pdf"
-                            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium flex items-center gap-2">
-                            <i class="fas fa-file-pdf"></i>
-                            Save PDF
-                        </button>
-                    </div>
                 </div>
-                <div id="worksheet-preview-content"></div>
+
+                <div id="worksheet-preview-content"
+                    class="mb-6 overflow-x-auto bg-gray-50 p-4 rounded border border-gray-200"></div>
+
+                <div class="flex justify-end gap-4 border-t border-gray-200 pt-4">
+                    <button id="print-worksheet-report"
+                        class="bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-800 font-semibold flex items-center gap-2 shadow-sm transition-colors">
+                        <i class="fas fa-print"></i>
+                        Print Document
+                    </button>
+                    <button id="save-worksheet-pdf"
+                        class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-semibold flex items-center gap-2 shadow-sm transition-colors">
+                        <i class="fas fa-file-pdf"></i>
+                        Save as PDF
+                    </button>
+                </div>
             </div>
         </div>
 

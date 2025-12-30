@@ -42,7 +42,7 @@ function clearWorksheetForm() {
 /**
  * Generate data worksheet document
  */
-function generateDataWorksheet() {
+async function generateDataWorksheet() {
     // Get form values
     const systemSize = parseFloat(document.getElementById('dw_systemSize').value);
     const month = document.getElementById('dw_month').value || 'July';
@@ -77,8 +77,21 @@ function generateDataWorksheet() {
     // Perform calculations
     const calculations = calculateWorksheetData(inputData);
 
-    // Generate HTML document
-    const documentHTML = generateWorksheetHTML(calculations, inputData, customerName, date, systemSize, month);
+    // Fetch CSS content for inline embedding (ensures PDF styling works)
+    let cssContent = '';
+    try {
+        const response = await fetch('../css/dataWorksheetPreview.css');
+        if (response.ok) {
+            cssContent = await response.text();
+        } else {
+            console.error('Failed to load CSS for PDF generation');
+        }
+    } catch (error) {
+        console.error('Error fetching CSS:', error);
+    }
+
+    // Generate HTML document with CSS content passed in
+    const documentHTML = generateWorksheetHTML(calculations, inputData, customerName, date, systemSize, month, cssContent);
 
     // Show inline preview
     showInlineWorksheetPreview(documentHTML);
@@ -100,13 +113,11 @@ function showInlineWorksheetPreview(documentHTML) {
     // Show the preview section
     previewSection.style.display = 'block';
 
-    // Inject the content directly (it now includes the link tag)
+    // Inject the content directly
     previewContent.innerHTML = documentHTML;
 
     // Scroll to preview
     previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-    showNotification('Worksheet generated successfully', 'success');
 }
 
 /**
@@ -127,7 +138,7 @@ function saveWorksheetPDFInline() {
         const systemSize = document.getElementById('dw_systemSize').value || 'solar';
         const filename = `data-worksheet-${customerName.replace(/\s+/g, '-')}-${systemSize}kw-${new Date().getTime()}`;
         saveReportPDF(window.currentWorksheetHTML, filename);
-        showNotification('PDF saved successfully', 'success');
+        // Notification handled in reports.js saveReportPDF
     }
 }
 
@@ -217,18 +228,22 @@ function calculateWorksheetData(data) {
  * @param {string} date - Date of worksheet
  * @param {number} systemSize - Solar system size
  * @param {string} month - Month of analysis
+ * @param {string} cssContent - CSS content to inline
  * @returns {string} HTML document
  */
-function generateWorksheetHTML(calc, data, customerName, date, systemSize, month) {
+function generateWorksheetHTML(calc, data, customerName, date, systemSize, month, cssContent = '') {
     const formattedDate = date ? formatDateIndian(date) : new Date().toLocaleDateString('en-IN');
 
-    // Clean, professional, simple layout (A4 optimized) meant for both preview and print
-    // Styles are now in ../css/dataWorksheetPreview.css
+    // If CSS content is provided (for PDF), use inline style. 
+    // Otherwise fallback to link (for preview, though we try to always fetch now).
+    // Note: We include both for robustness if fetching fails, but inline is preferred for PDF.
+
+    // We remove newlines to minimize string issues if any, but CSS is usually fine.
+
     return `
     <!-- Scoped Wrapper for Preview -->
     <div class="dw-print-scope">
-        <!-- Link the external CSS for printing contexts -->
-        <link rel="stylesheet" href="../css/dataWorksheetPreview.css">
+        ${cssContent ? `<style>${cssContent}</style>` : '<link rel="stylesheet" href="../css/dataWorksheetPreview.css">'}
 
         <div class="dw-wrapper">
             <div class="dw-header-section">
