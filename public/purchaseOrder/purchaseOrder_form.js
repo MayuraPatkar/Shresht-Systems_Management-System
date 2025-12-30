@@ -7,6 +7,64 @@ let supplierData = [];
 let supplierNames = [];
 let selectedSupplierIndex = -1;
 
+// Company and Category suggestions
+let companySuggestionList = [];
+let categorySuggestionList = [];
+
+async function fetchCompanyAndCategorySuggestions() {
+    try {
+        const response = await fetch('/stock/all');
+        if (response.ok) {
+            const stockData = await response.json();
+            companySuggestionList = [...new Set(stockData.map(s => s.company).filter(Boolean))];
+            categorySuggestionList = [...new Set(stockData.map(s => s.category).filter(Boolean))];
+        }
+    } catch (error) {
+        console.error('Error fetching company/category suggestions:', error);
+    }
+}
+
+function setupGenericAutocomplete(input, dataList) {
+    let suggestionsContainer = input.parentElement.querySelector('.suggestions');
+    if (!suggestionsContainer) {
+        suggestionsContainer = document.createElement('ul');
+        suggestionsContainer.className = 'suggestions';
+        input.parentElement.style.position = 'relative';
+        input.parentElement.appendChild(suggestionsContainer);
+    }
+
+    input.addEventListener('input', function () {
+        const query = this.value.toLowerCase();
+        suggestionsContainer.innerHTML = '';
+        if (query.length === 0) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+        const filtered = dataList.filter(item => item.toLowerCase().includes(query));
+        if (filtered.length === 0) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+        suggestionsContainer.style.display = 'block';
+        filtered.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            li.onclick = function () {
+                input.value = item;
+                suggestionsContainer.style.display = 'none';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            };
+            suggestionsContainer.appendChild(li);
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!input.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+}
+
 // Fetch supplier data on load
 async function fetchSuppliers() {
     try {
@@ -182,6 +240,7 @@ function fillSupplierDetails(supplier) {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchSuppliers();
+    fetchCompanyAndCategorySuggestions();
     initSupplierAutocomplete();
 
     // Add sanitization for supplier phone and email
@@ -470,13 +529,19 @@ async function openPurchaseOrder(purchaseOrderId) {
                 <div class="item-row-2">
                     <div class="row-spacer"></div>
                     <div class="item-field">
-                        <input type="text" value="${item.company || ''}" placeholder="Company">
+                        <div style="position: relative;">
+                            <input type="text" value="${item.company || ''}" placeholder="Company" class="item-company">
+                            <ul class="suggestions"></ul>
+                        </div>
                     </div>
                     <div class="item-field">
                         <input type="text" value="${item.type || ''}" placeholder="Type">
                     </div>
                     <div class="item-field">
-                        <input type="text" value="${item.category || ''}" placeholder="Category">
+                        <div style="position: relative;">
+                            <input type="text" value="${item.category || ''}" placeholder="Category" class="item-category">
+                            <ul class="suggestions"></ul>
+                        </div>
                     </div>
                     <div class="row-spacer"></div>
                 </div>
@@ -496,6 +561,12 @@ async function openPurchaseOrder(purchaseOrderId) {
                 handleKeyboardNavigationPO(event, cardInput, cardSuggestions);
             });
         }
+
+        // Setup autocomplete for Company and Category
+        const cardCompany = card.querySelector(".item-company");
+        const cardCategory = card.querySelector(".item-category");
+        if (cardCompany) setupGenericAutocomplete(cardCompany, companySuggestionList);
+        if (cardCategory) setupGenericAutocomplete(cardCategory, categorySuggestionList);
 
         // Create hidden table row
         const row = document.createElement("tr");
@@ -1014,13 +1085,19 @@ if (addItemBtn) {
         <div class="item-row-2">
             <div class="row-spacer"></div>
             <div class="item-field">
-                <input type="text" placeholder="Company">
+                <div style="position: relative;">
+                    <input type="text" placeholder="Company" class="item-company">
+                    <ul class="suggestions"></ul>
+                </div>
             </div>
             <div class="item-field">
-                <input type="text" placeholder="Type">
+                <input type="text" placeholder="Type" value="Material">
             </div>
             <div class="item-field">
-                <input type="text" placeholder="Category">
+                <div style="position: relative;">
+                    <input type="text" placeholder="Category" class="item-category">
+                    <ul class="suggestions"></ul>
+                </div>
             </div>
             <div class="row-spacer"></div>
         </div>
@@ -1043,6 +1120,12 @@ if (addItemBtn) {
             handleKeyboardNavigationPO(event, cardInput, cardSuggestions);
         });
 
+        // Setup autocomplete for Company and Category
+        const cardCompany = card.querySelector(".item-company");
+        const cardCategory = card.querySelector(".item-category");
+        if (cardCompany) setupGenericAutocomplete(cardCompany, companySuggestionList);
+        if (cardCategory) setupGenericAutocomplete(cardCategory, categorySuggestionList);
+
         // Also add to hidden table for backward compatibility
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -1055,7 +1138,7 @@ if (addItemBtn) {
         </td>
         <td><input type="text" placeholder="HSN/SAC" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><input type="text" placeholder="Company" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-        <td><input type="text" placeholder="Type" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+        <td><input type="text" placeholder="Type" value="Material" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><input type="text" placeholder="Category" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><input type="number" placeholder="Qty" min="1" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
         <td><input type="number" placeholder="Unit Price" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
