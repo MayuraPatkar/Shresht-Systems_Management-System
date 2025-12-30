@@ -32,8 +32,7 @@ function initReports() {
     // Load recent reports
     loadRecentReports();
 
-    // Set up refresh button
-    document.getElementById('refresh-reports')?.addEventListener('click', () => loadRecentReports());
+
 
     // Set up delete all reports button
     document.getElementById('delete-all-reports')?.addEventListener('click', deleteAllReports);
@@ -230,26 +229,32 @@ async function loadRecentReports() {
                 const timeStr = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
                 return `
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 group">
                     <div class="flex items-center gap-4">
-                        <div class="bg-${getReportColor(report.report_type)}-100 p-3 rounded-lg">
-                            <i class="fas ${getReportIcon(report.report_type)} text-${getReportColor(report.report_type)}-600 text-xl"></i>
+                        <div class="bg-${getReportColor(report.report_type)}-50 p-3 rounded-xl border border-${getReportColor(report.report_type)}-100">
+                            <i class="fas ${getReportIcon(report.report_type)} text-${getReportColor(report.report_type)}-600 text-lg"></i>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-gray-800">${getReportTitle(report)}</h4>
-                            <p class="text-sm text-gray-500">Generated on: ${dateStr}, ${timeStr}</p>
+                            <h4 class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">${getReportTitle(report)}</h4>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-medium">
+                                    ${dateStr}
+                                </span>
+                                <span class="text-xs text-gray-400 font-medium">${timeStr}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button class="view-report-btn bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700" data-id="${report._id}">
+                    <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <button class="view-report-btn flex items-center gap-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition-all border border-indigo-100" data-id="${report._id}">
                             <i class="fas fa-eye"></i> View
                         </button>
-                        <button class="delete-report-btn bg-red-100 text-red-600 px-3 py-1 rounded text-sm hover:bg-red-200" data-id="${report._id}">
-                            <i class="fas fa-trash"></i>
+                        <button class="delete-report-btn text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-all" data-id="${report._id}" title="Delete Report">
+                            <i class="fas fa-trash-alt text-lg"></i>
                         </button>
                     </div>
                 </div>
-            `}).join('');
+            `;
+            }).join('');
 
             // Add event delegation for buttons
             container.onclick = function (e) {
