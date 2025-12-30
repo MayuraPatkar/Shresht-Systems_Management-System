@@ -20,10 +20,10 @@ function getChangeTypeIcon(type) {
 function formatChangelogDate(dateStr) {
     try {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-IN', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+        return date.toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
     } catch (e) {
         return dateStr;
@@ -37,31 +37,31 @@ async function showChangelogModal() {
     const modal = document.getElementById('changelog-modal');
     const content = document.getElementById('changelog-modal-content');
     const versionText = document.getElementById('changelog-version-text');
-    
+
     if (!modal || !content) return;
-    
+
     try {
         const result = await window.electronAPI.getChangelog();
-        
+
         if (!result.success || !result.changelog || !result.changelog.versions || result.changelog.versions.length === 0) {
             // No changelog available, don't show modal
             return;
         }
-        
+
         const latestVersion = result.changelog.versions[0];
-        
+
         // Update version text
         if (versionText) {
             versionText.textContent = `Version ${latestVersion.version} • ${formatChangelogDate(latestVersion.date)}`;
         }
-        
+
         // Build changelog content
         let html = `
             <div class="space-y-4">
                 <h3 class="text-lg font-bold text-gray-800">${latestVersion.title || 'New Release'}</h3>
                 <ul class="space-y-3">
         `;
-        
+
         latestVersion.changes.forEach(change => {
             html += `
                 <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
@@ -70,7 +70,7 @@ async function showChangelogModal() {
                 </li>
             `;
         });
-        
+
         html += `
                 </ul>
                 <p class="text-sm text-gray-500 text-center pt-2">
@@ -79,12 +79,12 @@ async function showChangelogModal() {
                 </p>
             </div>
         `;
-        
+
         content.innerHTML = html;
-        
+
         // Show modal
         modal.classList.remove('hidden');
-        
+
     } catch (error) {
         console.error('Failed to show changelog modal:', error);
     }
@@ -98,7 +98,7 @@ async function hideChangelogModal() {
     if (modal) {
         modal.classList.add('hidden');
     }
-    
+
     try {
         await window.electronAPI.markChangelogSeen();
     } catch (error) {
@@ -112,7 +112,7 @@ async function hideChangelogModal() {
 async function checkAndShowChangelog() {
     try {
         const result = await window.electronAPI.shouldShowChangelog();
-        
+
         if (result.success && result.showChangelog) {
             showChangelogModal();
         }
@@ -125,10 +125,10 @@ async function checkAndShowChangelog() {
 document.addEventListener('DOMContentLoaded', () => {
     // Close button
     document.getElementById('close-changelog-modal')?.addEventListener('click', hideChangelogModal);
-    
+
     // Dismiss button
     document.getElementById('dismiss-changelog')?.addEventListener('click', hideChangelogModal);
-    
+
     // Check if we should show changelog on startup
     checkAndShowChangelog();
 });
@@ -200,12 +200,12 @@ function performLogin() {
                 // Save user role and username in sessionStorage
                 sessionStorage.setItem('userRole', result.role);
                 sessionStorage.setItem('username', result.username);
-                
+
                 // Show success state
                 loginBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Success! Redirecting...';
                 loginBtn.classList.remove('gradient-bg');
                 loginBtn.classList.add('bg-green-600');
-                
+
                 // Redirect to dashboard
                 setTimeout(() => {
                     window.location = '/dashboard';
@@ -222,7 +222,7 @@ function performLogin() {
         .catch(error => {
             console.error('Login error:', error);
             window.electronAPI.showAlert1("Connection error. Please try again.");
-            
+
             // Reset button
             loginBtn.disabled = false;
             loginBtn.innerHTML = originalContent;
@@ -231,6 +231,16 @@ function performLogin() {
 
 // Enter key handler for login
 document.addEventListener("keydown", function (event) {
+    // Check if the changelog modal is visible first
+    const changelogModal = document.getElementById('changelog-modal');
+    if (changelogModal && !changelogModal.classList.contains('hidden')) {
+        if (event.key === "Enter" || event.key === "Escape") {
+            event.preventDefault();
+            hideChangelogModal();
+        }
+        return; // Stop further execution if changelog modal is open
+    }
+
     // Check if the auth container is visible
     const authContainer = document.getElementById('auth-container');
     if (authContainer && !authContainer.classList.contains('hidden')) {
