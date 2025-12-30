@@ -65,10 +65,10 @@ function getChangeTypeBadge(type) {
 function formatChangelogDate(dateStr) {
     try {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-IN', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+        return date.toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
     } catch (e) {
         return dateStr;
@@ -81,10 +81,10 @@ function formatChangelogDate(dateStr) {
 async function loadChangelog() {
     const container = document.getElementById('changelog-container');
     if (!container) return;
-    
+
     try {
         const result = await window.electronAPI.getChangelog();
-        
+
         if (!result.success || !result.changelog || !result.changelog.versions) {
             container.innerHTML = `
                 <div class="text-center py-8 text-gray-500">
@@ -94,9 +94,9 @@ async function loadChangelog() {
             `;
             return;
         }
-        
+
         const versions = result.changelog.versions;
-        
+
         if (versions.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-8 text-gray-500">
@@ -106,12 +106,12 @@ async function loadChangelog() {
             `;
             return;
         }
-        
+
         let html = '';
-        
+
         versions.forEach((version, index) => {
             const isLatest = index === 0;
-            
+
             html += `
                 <div class="border rounded-lg ${isLatest ? 'border-teal-300 bg-teal-50' : 'border-gray-200 bg-white'} p-4">
                     <div class="flex items-center justify-between mb-3">
@@ -138,9 +138,9 @@ async function loadChangelog() {
                 </div>
             `;
         });
-        
+
         container.innerHTML = html;
-        
+
     } catch (error) {
         console.error('Failed to load changelog:', error);
         container.innerHTML = `
@@ -166,7 +166,7 @@ function loadDatabaseStats() {
                 document.getElementById("db-size").textContent = s.database_size_mb + ' MB';
                 document.getElementById("storage-size").textContent = s.storage_size_mb + ' MB';
                 document.getElementById("total-docs").textContent = s.total_documents.toLocaleString();
-                
+
                 // Update collection counts
                 const collections = s.collections || {};
                 document.getElementById("count-invoices").textContent = collections.invoices || 0;
@@ -199,10 +199,10 @@ function refreshDatabaseStats() {
  */
 function initSystemModule() {
     document.getElementById("refresh-stats-button")?.addEventListener("click", refreshDatabaseStats);
-    
+
     // Initialize auto-update functionality
     initAutoUpdate();
-    
+
     // Load changelog when About section is shown
     loadChangelog();
 }
@@ -216,9 +216,9 @@ function updateStatus(message, type = 'info') {
     const statusContainer = document.getElementById('update-status-container');
     const statusIcon = document.getElementById('update-status-icon');
     const statusText = document.getElementById('update-status-text');
-    
+
     if (!statusContainer || !statusIcon || !statusText) return;
-    
+
     // Update icon and colors based on type
     const configs = {
         'info': { icon: 'fa-info-circle', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', iconColor: 'text-blue-600' },
@@ -227,9 +227,9 @@ function updateStatus(message, type = 'info') {
         'error': { icon: 'fa-times-circle', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconColor: 'text-red-600' },
         'downloading': { icon: 'fa-download', bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', iconColor: 'text-purple-600' }
     };
-    
+
     const config = configs[type] || configs['info'];
-    
+
     // Update classes
     statusContainer.className = `${config.bg} p-4 rounded-lg border ${config.border}`;
     statusIcon.className = `fas ${config.icon} ${config.iconColor}`;
@@ -244,9 +244,9 @@ function toggleProgressBar(show, percent = 0, text = '') {
     const container = document.getElementById('update-progress-container');
     const bar = document.getElementById('update-progress-bar');
     const progressText = document.getElementById('update-progress-text');
-    
+
     if (!container || !bar || !progressText) return;
-    
+
     if (show) {
         container.classList.remove('hidden');
         bar.style.width = `${percent}%`;
@@ -262,16 +262,16 @@ function toggleProgressBar(show, percent = 0, text = '') {
 function showUpdateInfo(info) {
     const container = document.getElementById('update-info');
     const details = document.getElementById('update-details');
-    
+
     if (!container || !details) return;
-    
+
     container.classList.remove('hidden');
-    
+
     let html = '';
     if (info.version) html += `<div><strong>Version:</strong> ${info.version}</div>`;
     if (info.releaseDate) html += `<div><strong>Release Date:</strong> ${new Date(info.releaseDate).toLocaleDateString()}</div>`;
     if (info.releaseName) html += `<div><strong>Release:</strong> ${info.releaseName}</div>`;
-    
+
     details.innerHTML = html;
 }
 
@@ -289,19 +289,23 @@ function hideUpdateInfo() {
 async function checkForUpdates() {
     const checkButton = document.getElementById('check-updates-button');
     const installButton = document.getElementById('install-update-button');
-    
+    const prereleaseCheckbox = document.getElementById('allow-prerelease-checkbox');
+
     if (!checkButton) return;
-    
+
+    // Get pre-release preference from checkbox
+    const allowPrerelease = prereleaseCheckbox ? prereleaseCheckbox.checked : false;
+
     // Disable button and show checking status
     checkButton.disabled = true;
     checkButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking for updates...';
     updateStatus('Checking for updates...', 'info');
     hideUpdateInfo();
     installButton?.classList.add('hidden');
-    
+
     try {
-        const result = await window.electronAPI.checkForUpdates();
-        
+        const result = await window.electronAPI.checkForUpdates({ allowPrerelease });
+
         if (result.success) {
             // Check result will trigger update events via IPC
         } else {
@@ -336,68 +340,68 @@ function installUpdate() {
 function initAutoUpdate() {
     const checkButton = document.getElementById('check-updates-button');
     const installButton = document.getElementById('install-update-button');
-    
+
     // Add click handlers
     checkButton?.addEventListener('click', checkForUpdates);
     installButton?.addEventListener('click', installUpdate);
-    
+
     // Listen for update events from main process
     window.electronAPI.onUpdateAvailable((info) => {
         updateStatus('A new update is available and is being downloaded...', 'downloading');
         showUpdateInfo(info);
         toggleProgressBar(true, 0, 'Starting download...');
-        
+
         // Re-enable check button
         if (checkButton) {
             checkButton.disabled = false;
             checkButton.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Check for Updates';
         }
     });
-    
+
     window.electronAPI.onUpdateNotAvailable((info) => {
         updateStatus('You are running the latest version!', 'success');
         toggleProgressBar(false);
         hideUpdateInfo();
-        
+
         // Re-enable check button
         if (checkButton) {
             checkButton.disabled = false;
             checkButton.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Check for Updates';
         }
     });
-    
+
     window.electronAPI.onUpdateDownloadProgress((progress) => {
         const percent = Math.round(progress.percent);
         const downloaded = (progress.transferred / 1024 / 1024).toFixed(2);
         const total = (progress.total / 1024 / 1024).toFixed(2);
         const speed = (progress.bytesPerSecond / 1024 / 1024).toFixed(2);
-        
+
         toggleProgressBar(true, percent, `Downloading: ${downloaded}MB / ${total}MB (${speed}MB/s)`);
         updateStatus(`Downloading update: ${percent}% complete`, 'downloading');
     });
-    
+
     window.electronAPI.onUpdateDownloaded((info) => {
         updateStatus('Update downloaded successfully! Ready to install.', 'success');
         toggleProgressBar(false);
-        
+
         // Show install button
         if (installButton) {
             installButton.classList.remove('hidden');
         }
-        
+
         // Re-enable check button
         if (checkButton) {
             checkButton.disabled = false;
             checkButton.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Check for Updates';
         }
     });
-    
+
     window.electronAPI.onUpdateError((error) => {
         console.error('Update error:', error);
         updateStatus('Error during update: ' + error, 'error');
         toggleProgressBar(false);
         hideUpdateInfo();
-        
+
         // Re-enable check button
         if (checkButton) {
             checkButton.disabled = false;
