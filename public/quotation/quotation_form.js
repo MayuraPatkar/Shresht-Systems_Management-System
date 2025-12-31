@@ -616,6 +616,24 @@ async function generateFilePages(files) {
 
 // Function to generate the preview for both tax rate and without tax rate
 async function generatePreview() {
+    // Capture any existing user edits BEFORE regenerating the preview
+    // This preserves user modifications to contenteditable fields
+    const existingContent = {
+        subject: document.querySelector("#preview-content .quotation-letter-content p[contenteditable]")?.innerText.replace("Subject:", "").trim() || null,
+        letter_1: document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[1]?.innerText.trim() || null,
+        letter_2: (() => {
+            const items = document.querySelectorAll("#preview-content .quotation-letter-content ul[contenteditable] li");
+            return items.length > 0 ? Array.from(items).map(li => li.innerText.trim()) : null;
+        })(),
+        letter_3: document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[2]?.innerText.trim() || null,
+        notes: (() => {
+            const items = document.querySelector("#preview-content .notes-section ul")?.querySelectorAll("li");
+            return items && items.length > 0 ? Array.from(items).map(li => li.innerText.trim()) : null;
+        })(),
+        termsAndConditions: document.querySelector("#preview-content .terms-section")?.innerHTML.trim() || null,
+        headline: document.querySelector("#preview-content .headline-section p[contenteditable]")?.innerText.trim() || null
+    };
+
     // Fetch company data from database
     const company = await window.companyConfig.getCompanyInfo();
     const bank = company.bank_details || {};
@@ -1253,6 +1271,36 @@ async function generatePreview() {
         }
     }
 
+    // Restore any previously captured user edits to the contenteditable elements
+    // This runs AFTER the preview HTML has been regenerated
+    if (existingContent.subject !== null) {
+        const subjectEl = document.querySelector("#preview-content .quotation-letter-content p[contenteditable]");
+        if (subjectEl) subjectEl.innerHTML = `<strong>Subject:</strong> ${existingContent.subject}`;
+    }
+    if (existingContent.letter_1 !== null) {
+        const letter1El = document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[1];
+        if (letter1El) letter1El.innerText = existingContent.letter_1;
+    }
+    if (existingContent.letter_2 !== null) {
+        const letter2El = document.querySelector("#preview-content .quotation-letter-content ul[contenteditable]");
+        if (letter2El) letter2El.innerHTML = existingContent.letter_2.map(li => `<li>${li}</li>`).join('');
+    }
+    if (existingContent.letter_3 !== null) {
+        const letter3El = document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[2];
+        if (letter3El) letter3El.innerText = existingContent.letter_3;
+    }
+    if (existingContent.notes !== null) {
+        const notesEl = document.querySelector("#preview-content .notes-section ul");
+        if (notesEl) notesEl.innerHTML = existingContent.notes.map(li => `<li>${li}</li>`).join('');
+    }
+    if (existingContent.termsAndConditions !== null) {
+        const termsEl = document.querySelector("#preview-content .terms-section");
+        if (termsEl) termsEl.innerHTML = existingContent.termsAndConditions;
+    }
+    if (existingContent.headline !== null) {
+        const headlineEl = document.querySelector("#preview-content .headline-section p[contenteditable]");
+        if (headlineEl) headlineEl.innerHTML = `<u>${existingContent.headline}</u>`;
+    }
 }
 
 
@@ -1363,13 +1411,13 @@ function collectFormData() {
         // Include duplicated_from for audit trail if this is a duplicated quotation
         duplicated_from: sessionStorage.getItem('duplicated_from') || null,
 
-        subject: document.querySelector(".quotation-letter-content p[contenteditable]")?.innerText.replace("Subject:", "").trim() || '',
-        letter_1: document.querySelectorAll(".quotation-letter-content p[contenteditable]")[1]?.innerText.trim() || '',
-        letter_2: Array.from(document.querySelectorAll(".quotation-letter-content ul[contenteditable] li") || []).map(li => li.innerText.trim()),
-        letter_3: document.querySelectorAll(".quotation-letter-content p[contenteditable]")[2]?.innerText.trim() || '',
-        notes: Array.from(document.querySelector(".notes-section ul")?.querySelectorAll("li") || []).map(li => li.innerText.trim()),
-        termsAndConditions: document.querySelector(".terms-section")?.innerHTML.trim() || '',
-        headline: document.querySelector(".headline-section p[contenteditable]")?.innerText.trim() || ''
+        subject: document.querySelector("#preview-content .quotation-letter-content p[contenteditable]")?.innerText.replace("Subject:", "").trim() || '',
+        letter_1: document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[1]?.innerText.trim() || '',
+        letter_2: Array.from(document.querySelectorAll("#preview-content .quotation-letter-content ul[contenteditable] li") || []).map(li => li.innerText.trim()),
+        letter_3: document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[2]?.innerText.trim() || '',
+        notes: Array.from(document.querySelector("#preview-content .notes-section ul")?.querySelectorAll("li") || []).map(li => li.innerText.trim()),
+        termsAndConditions: document.querySelector("#preview-content .terms-section")?.innerHTML.trim() || '',
+        headline: document.querySelector("#preview-content .headline-section p[contenteditable]")?.innerText.trim() || ''
     };
 }
 
