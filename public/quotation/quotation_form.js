@@ -228,9 +228,14 @@ async function openQuotation(quotationId) {
                     <div class="non-item-field rate">
                         <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
                     </div>
-                    <button type="button" class="remove-item-btn" title="Remove Item">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <div class="item-actions">
+                        <button type="button" class="insert-item-btn" title="Insert Item Below">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="remove-item-btn" title="Remove Item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 `;
             nonItemsContainer.appendChild(card);
 
@@ -253,6 +258,15 @@ async function openQuotation(quotationId) {
                 updateNonItemNumbers();
                 updateSpecificationsTable();
             });
+
+            // Add insert button event listener
+            const insertBtn = card.querySelector(".insert-item-btn");
+            if (insertBtn) {
+                insertBtn.addEventListener("click", function () {
+                    const currentIndex = Array.from(nonItemsContainer.children).indexOf(card);
+                    addNonItem(currentIndex + 1);
+                });
+            }
 
             // Add listener for description change to update specifications
             const descriptionInput = card.querySelector('.non-item-field.description input');
@@ -505,9 +519,14 @@ async function cloneQuotation(sourceQuotationId) {
                     <div class="non-item-field rate">
                         <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
                     </div>
-                    <button type="button" class="remove-item-btn" title="Remove Item">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <div class="item-actions">
+                        <button type="button" class="insert-item-btn" title="Insert Item Below">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="remove-item-btn" title="Remove Item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 `;
                 nonItemsContainer.appendChild(card);
 
@@ -530,6 +549,15 @@ async function cloneQuotation(sourceQuotationId) {
                     updateNonItemNumbers();
                     updateSpecificationsTable();
                 });
+
+                // Add insert button event listener
+                const insertBtn = card.querySelector(".insert-item-btn");
+                if (insertBtn) {
+                    insertBtn.addEventListener("click", function () {
+                        const currentIndex = Array.from(nonItemsContainer.children).indexOf(card);
+                        addNonItem(currentIndex + 1);
+                    });
+                }
 
                 // Description change listener
                 const descriptionInput = card.querySelector('.non-item-field.description input');
