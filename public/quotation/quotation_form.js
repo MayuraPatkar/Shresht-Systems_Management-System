@@ -1479,91 +1479,7 @@ function collectFormData() {
     };
 }
 
-// Function to load existing quotation data
-async function loadQuotationForEditing(id) {
-    try {
-        const response = await fetch(`/quotation/${id}`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch quotation data for editing.');
-        }
-        const data = await response.json();
-        const quotation = data.quotation;
 
-        // Populate basic info
-        document.getElementById('id').value = quotation.quotation_id;
-        quotationId = quotation.quotation_id;
-        document.getElementById('project-name').value = quotation.project_name || '';
-        document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
-        document.getElementById('buyer-name').value = quotation.customer_name || '';
-        document.getElementById('buyer-address').value = quotation.customer_address || '';
-        document.getElementById('buyer-phone').value = quotation.customer_phone || '';
-        document.getElementById('buyer-email').value = quotation.customer_email || '';
-
-        // Populate items table
-        const itemsTableBody = document.querySelector("#items-table tbody");
-        itemsTableBody.innerHTML = ''; // Clear existing rows
-        (quotation.items || []).forEach(item => {
-            const row = itemsTableBody.insertRow();
-            row.innerHTML = `
-                <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Enter item description"></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="Enter HSN/SAC"></td>
-                <td><input type="number" value="${item.quantity || 0}" min="1" placeholder="Enter quantity"></td>
-                <td><input type="number" value="${item.unit_price || 0}" placeholder="Enter unit price"></td>
-                <td><input type="number" value="${item.rate || 0}" placeholder="Enter rate" step="0.01"></td>
-                <td><button class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
-            `;
-            row.querySelector(".remove-item-btn").addEventListener("click", () => row.remove());
-        });
-
-        // Populate non-items table
-        const nonItemsTableBody = document.querySelector("#non-items-table tbody");
-        nonItemsTableBody.innerHTML = ''; // Clear existing rows
-        (quotation.non_items || []).forEach(item => {
-            const row = nonItemsTableBody.insertRow();
-            row.innerHTML = `
-                <td><div class="item-number">${nonItemsTableBody.rows.length}</div></td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description"></td>
-                <td><input type="number" value="${item.price || 0}" placeholder="Price"></td>
-                <td><input type="number" value="${item.rate || 0}" placeholder="Rate" step="0.01"></td>
-                <td><button class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
-            `;
-            row.querySelector(".remove-item-btn").addEventListener("click", () => row.remove());
-        });
-
-        // Populate specifications table
-        const specTableBody = document.querySelector("#items-specifications-table tbody");
-        specTableBody.innerHTML = ''; // Clear existing rows
-        const allItems = [...(quotation.items || []), ...(quotation.non_items || [])];
-        allItems.forEach((item, index) => {
-            const row = specTableBody.insertRow();
-            row.innerHTML = `
-                <td><div class="item-number">${index + 1}</div></td>
-                <td>${item.description || ''}</td>
-                <td><input type="text" value="${item.specification || ''}" placeholder="Enter specifications"></td>
-             `;
-        });
-
-        // Generate the preview with the loaded data
-        await generatePreview();
-
-        // Inject the saved editable content into the newly generated preview
-        const previewContent = document.getElementById('preview-content');
-        previewContent.querySelector(".headline-section p[contenteditable]").innerHTML = `<u>${quotation.headline || ''}</u>`;
-        previewContent.querySelector(".quotation-letter-content p[contenteditable]").innerHTML = `<strong>Subject:</strong> ${quotation.subject || ''}`;
-        previewContent.querySelectorAll(".quotation-letter-content p[contenteditable]")[1].innerText = quotation.letter_1 || '';
-        const letter2List = previewContent.querySelector(".quotation-letter-content ul[contenteditable]");
-        letter2List.innerHTML = (quotation.letter_2 || []).map(li => `<li>${li}</li>`).join('');
-        previewContent.querySelectorAll(".quotation-letter-content p[contenteditable]")[2].innerText = quotation.letter_3 || '';
-        previewContent.querySelector(".notes-section ul").innerHTML = (quotation.notes || []).map(li => `<li>${li}</li>`).join('');
-        previewContent.querySelector(".terms-section").innerHTML = quotation.termsAndConditions || '';
-
-
-    } catch (error) {
-        console.error("Error loading quotation for editing:", error);
-        window.electronAPI.showAlert1("Failed to load quotation data. Please try again.");
-    }
-}
 
 /**
  * Validates the current step before allowing navigation to the next.
@@ -1664,8 +1580,8 @@ window.validateCurrentStep = async function () {
             if (!isValid) return; // Stop checking if already failed
 
             const desc = card.querySelector('.item_name');
-            const qty = card.querySelector('input[placeholder="0"]'); // Quantity
-            const price = card.querySelector('input[placeholder="0.00"]'); // Price
+            const qty = card.querySelector('.item-field.qty input'); // Quantity
+            const price = card.querySelector('.item-field.price input'); // Price
 
             if (!desc.value.trim()) {
                 window.electronAPI.showAlert1(`Item #${index + 1}: Description is required.`);
@@ -1717,4 +1633,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Expose the function to be called from other scripts
-window.loadQuotationForEditing = loadQuotationForEditing;
