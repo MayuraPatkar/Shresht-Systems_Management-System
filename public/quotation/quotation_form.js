@@ -1313,6 +1313,7 @@ async function sendToServer(data, shouldPrint) {
     if (result) {
         sessionStorage.removeItem('duplicated_from');
         sessionStorage.removeItem('clone_content');
+        sessionStorage.setItem('currentTab-status', 'update');
     }
     return result;
 }
