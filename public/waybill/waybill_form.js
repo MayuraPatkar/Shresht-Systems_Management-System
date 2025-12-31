@@ -3,7 +3,7 @@ window.currentStep = 1;
 window.totalSteps = 6;
 
 // Change step function - made global for keyboard shortcuts
-window.changeStep = async function(step) {
+window.changeStep = async function (step) {
     document.getElementById(`step-${window.currentStep}`).classList.remove("active");
     window.currentStep = step;
     document.getElementById(`step-${window.currentStep}`).classList.add("active");
@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Helper function to add item with data (used by openWayBill and quotation fetch)
-function addItemFromData(item, itemSno) {
+function addItemFromData(item, itemSno, insertIndex) {
     const itemsContainer = document.getElementById("items-container");
     const itemsTableBody = document.querySelector("#items-table tbody");
 
@@ -334,11 +334,21 @@ function addItemFromData(item, itemSno) {
         <div class="item-field rate">
             <input type="number" value="${item.rate || ''}" placeholder="0" min="0" step="0.01">
         </div>
-        <button type="button" class="remove-item-btn" title="Remove Item">
-            <i class="fas fa-trash-alt"></i>
-        </button>
+        <div class="item-actions">
+            <button type="button" class="insert-item-btn" title="Insert Item Below">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button type="button" class="remove-item-btn" title="Remove Item">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
     `;
-    itemsContainer.appendChild(card);
+
+    if (typeof insertIndex === 'number' && insertIndex >= 0 && insertIndex < itemsContainer.children.length) {
+        itemsContainer.insertBefore(card, itemsContainer.children[insertIndex]);
+    } else {
+        itemsContainer.appendChild(card);
+    }
 
     // Create hidden table row
     const row = document.createElement("tr");
@@ -354,7 +364,12 @@ function addItemFromData(item, itemSno) {
         <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
         <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
     `;
-    itemsTableBody.appendChild(row);
+
+    if (typeof insertIndex === 'number' && insertIndex >= 0 && insertIndex < itemsTableBody.children.length) {
+        itemsTableBody.insertBefore(row, itemsTableBody.children[insertIndex]);
+    } else {
+        itemsTableBody.appendChild(row);
+    }
 
     // Sync card inputs with table inputs
     const cardInputs = card.querySelectorAll('input');
@@ -405,10 +420,24 @@ function addItemFromData(item, itemSno) {
         row.remove();
         renumberItems();
     });
+
+    // Add insert button event listener
+    const insertBtn = card.querySelector(".insert-item-btn");
+    if (insertBtn) {
+        insertBtn.addEventListener("click", function () {
+            const currentIndex = Array.from(itemsContainer.children).indexOf(card);
+            addItem(currentIndex + 1);
+        });
+    }
+
+    // Renumber if we inserted specifically
+    if (typeof insertIndex === 'number') {
+        renumberItems();
+    }
 }
 
 // Add a new empty item
-function addItem() {
+function addItem(insertIndex) {
     const itemsTableBody = document.querySelector("#items-table tbody");
     const itemSno = itemsTableBody.rows.length + 1;
 
@@ -418,7 +447,7 @@ function addItem() {
         quantity: '',
         unit_price: '',
         rate: ''
-    }, itemSno);
+    }, itemSno, insertIndex);
 }
 
 // --- Waybill-specific autocomplete implementation ---

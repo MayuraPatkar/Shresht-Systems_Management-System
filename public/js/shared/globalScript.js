@@ -266,9 +266,11 @@ async function fetchData() {
 fetchData(); // Load data at startup
 
 // Function to add a new item row to the table
-function addItem() {
+// Function to add a new item row to the table
+function addItem(insertAtIndex) {
   const container = document.getElementById("items-container");
   const tableBody = document.querySelector("#items-table tbody");
+  // Calculate item number based on total count (will be corrected by updateItemNumbers if inserting)
   const itemNumber = tableBody.children.length + 1;
 
   // Create card element
@@ -301,14 +303,23 @@ function addItem() {
       <input type="number" placeholder="0" min="0" step="0.01">
     </div>
     
-    <button type="button" class="remove-item-btn" title="Remove Item">
-      <i class="fas fa-trash-alt"></i>
-    </button>
+    <div class="item-actions">
+      <button type="button" class="insert-item-btn" title="Insert Item Below">
+        <i class="fas fa-plus"></i>
+      </button>
+      <button type="button" class="remove-item-btn" title="Remove Item">
+        <i class="fas fa-trash-alt"></i>
+      </button>
+    </div>
   `;
 
-  // Append card to container
+  // Insert card into container
   if (container) {
-    container.appendChild(card);
+    if (typeof insertAtIndex === 'number' && insertAtIndex >= 0 && insertAtIndex < container.children.length) {
+      container.insertBefore(card, container.children[insertAtIndex]);
+    } else {
+      container.appendChild(card);
+    }
   }
 
   // Also add to hidden table for backward compatibility
@@ -325,7 +336,13 @@ function addItem() {
     <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
   `;
-  tableBody.appendChild(row);
+
+  // Insert row into table
+  if (typeof insertAtIndex === 'number' && insertAtIndex >= 0 && insertAtIndex < tableBody.children.length) {
+    tableBody.insertBefore(row, tableBody.children[insertAtIndex]);
+  } else {
+    tableBody.appendChild(row);
+  }
 
   // Setup autocomplete for the card
   const cardInput = card.querySelector(".item_name");
@@ -393,9 +410,24 @@ function addItem() {
     updateItemNumbers();
     updateSpecificationsTable();
   });
+
+  // Handle insert button
+  const insertBtn = card.querySelector(".insert-item-btn");
+  if (insertBtn) {
+    insertBtn.addEventListener("click", function () {
+      // Get current index again as it might have changed
+      const currentIndex = Array.from(container.children).indexOf(card);
+      addItem(currentIndex + 1);
+    });
+  }
+
+  // If we inserted in the middle, we need to re-number everything
+  if (typeof insertAtIndex === 'number') {
+    updateItemNumbers();
+  }
 }
 
-function addNonItem() {
+function addNonItem(insertAtIndex) {
   const container = document.getElementById("non-items-container");
   const tableBody = document.querySelector("#non-items-table tbody");
   const itemNumber = tableBody.children.length + 1;
@@ -419,14 +451,23 @@ function addNonItem() {
       <input type="number" placeholder="0" min="0" step="0.01">
     </div>
     
-    <button type="button" class="remove-item-btn" title="Remove Item">
-      <i class="fas fa-trash-alt"></i>
-    </button>
+    <div class="item-actions">
+        <button type="button" class="insert-item-btn" title="Insert Item Below">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button type="button" class="remove-item-btn" title="Remove Item">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    </div>
   `;
 
-  // Append card to container
+  // Append or Insert card to container
   if (container) {
-    container.appendChild(card);
+    if (typeof insertAtIndex === 'number' && insertAtIndex >= 0 && insertAtIndex < container.children.length) {
+      container.insertBefore(card, container.children[insertAtIndex]);
+    } else {
+      container.appendChild(card);
+    }
   }
 
   // Also add to hidden table for backward compatibility
@@ -441,7 +482,13 @@ function addNonItem() {
     <td><input type="number" placeholder="Rate"></td>
     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
   `;
-  tableBody.appendChild(row);
+
+  // Insert or Append row
+  if (typeof insertAtIndex === 'number' && insertAtIndex >= 0 && insertAtIndex < tableBody.children.length) {
+    tableBody.insertBefore(row, tableBody.children[insertAtIndex]);
+  } else {
+    tableBody.appendChild(row);
+  }
 
   // Setup input for the card
   const cardInput = card.querySelector("input[placeholder*='Installation']");
@@ -476,6 +523,20 @@ function addNonItem() {
     updateNonItemNumbers();
     updateSpecificationsTable();
   });
+
+  // Handle insert button
+  const insertBtn = card.querySelector(".insert-item-btn");
+  if (insertBtn) {
+    insertBtn.addEventListener("click", function () {
+      const currentIndex = Array.from(container.children).indexOf(card);
+      addNonItem(currentIndex + 1);
+    });
+  }
+
+  // If inserted, renumber
+  if (typeof insertAtIndex === 'number') {
+    updateNonItemNumbers();
+  }
 }
 
 // Helper function to update item numbers after removal

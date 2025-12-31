@@ -522,9 +522,14 @@ async function openPurchaseOrder(purchaseOrderId) {
                     <div class="item-field rate">
                         <input type="number" value="${item.rate}" placeholder="GST %" min="0" step="0.01">
                     </div>
-                    <button type="button" class="remove-item-btn">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <div class="item-actions">
+                        <button type="button" class="insert-item-btn" title="Insert Item Below">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="remove-item-btn" title="Remove Item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="item-row-2">
                     <div class="row-spacer"></div>
@@ -617,7 +622,17 @@ async function openPurchaseOrder(purchaseOrderId) {
         removeBtn.addEventListener("click", function () {
             card.remove();
             row.remove();
+            renumberItems();
         });
+
+        // Add insert button event listener
+        const insertBtn = card.querySelector(".insert-item-btn");
+        if (insertBtn) {
+            insertBtn.addEventListener("click", function () {
+                const currentIndex = Array.from(itemsContainer.children).indexOf(card);
+                addPurchaseOrderItem(currentIndex + 1);
+            });
+        }
 
         sno++;
     });
@@ -1044,11 +1059,8 @@ if (addItemBtn) {
     const newAddItemBtn = addItemBtn.cloneNode(true);
     addItemBtn.parentNode.replaceChild(newAddItemBtn, addItemBtn);
 
-    // Add Purchase Order specific listener
-    newAddItemBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
+    // Function to add item to purchase order (supports insertion)
+    function addPurchaseOrderItem(insertIndex) {
         const container = document.getElementById("items-container");
         const tableBody = document.querySelector("#items-table tbody");
         const itemNumber = tableBody.children.length + 1;
@@ -1058,54 +1070,63 @@ if (addItemBtn) {
         card.className = "item-card";
 
         card.innerHTML = `
-        <div class="item-row-1">
-            <div class="item-number">${itemNumber}</div>
-            <div class="item-field description">
-                <div style="position: relative;">
-                    <input type="text" placeholder="Description" class="item_name" required>
-                    <ul class="suggestions"></ul>
-                </div>
+    <div class="item-row-1">
+        <div class="item-number">${itemNumber}</div>
+        <div class="item-field description">
+            <div style="position: relative;">
+                <input type="text" placeholder="Description" class="item_name" required>
+                <ul class="suggestions"></ul>
             </div>
-            <div class="item-field hsn">
-                <input type="text" placeholder="HSN/SAC" required>
-            </div>
-            <div class="item-field qty">
-                <input type="number" placeholder="Qty" min="1" required>
-            </div>
-            <div class="item-field rate">
-                <input type="number" placeholder="Unit Price" step="0.01" required>
-            </div>
-            <div class="item-field rate">
-                <input type="number" placeholder="GST %" min="0" step="0.01">
-            </div>
+        </div>
+        <div class="item-field hsn">
+            <input type="text" placeholder="HSN/SAC" required>
+        </div>
+        <div class="item-field qty">
+            <input type="number" placeholder="Qty" min="1" required>
+        </div>
+        <div class="item-field rate">
+            <input type="number" placeholder="Unit Price" step="0.01" required>
+        </div>
+        <div class="item-field rate">
+            <input type="number" placeholder="GST %" min="0" step="0.01">
+        </div>
+        <div class="item-actions">
+            <button type="button" class="insert-item-btn" title="Insert Item Below">
+                <i class="fas fa-plus"></i>
+            </button>
             <button type="button" class="remove-item-btn" title="Remove Item">
                 <i class="fas fa-trash-alt"></i>
             </button>
         </div>
-        <div class="item-row-2">
-            <div class="row-spacer"></div>
-            <div class="item-field">
-                <div style="position: relative;">
-                    <input type="text" placeholder="Company" class="item-company">
-                    <ul class="suggestions"></ul>
-                </div>
+    </div>
+    <div class="item-row-2">
+        <div class="row-spacer"></div>
+        <div class="item-field">
+            <div style="position: relative;">
+                <input type="text" placeholder="Company" class="item-company">
+                <ul class="suggestions"></ul>
             </div>
-            <div class="item-field">
-                <input type="text" placeholder="Type" value="Material">
-            </div>
-            <div class="item-field">
-                <div style="position: relative;">
-                    <input type="text" placeholder="Category" class="item-category">
-                    <ul class="suggestions"></ul>
-                </div>
-            </div>
-            <div class="row-spacer"></div>
         </div>
-    `;
+        <div class="item-field">
+            <input type="text" placeholder="Type" value="Material">
+        </div>
+        <div class="item-field">
+            <div style="position: relative;">
+                <input type="text" placeholder="Category" class="item-category">
+                <ul class="suggestions"></ul>
+            </div>
+        </div>
+        <div class="row-spacer"></div>
+    </div>
+`;
 
-        // Append card to container
+        // Insert or Append card
         if (container) {
-            container.appendChild(card);
+            if (typeof insertIndex === 'number' && insertIndex >= 0 && insertIndex < container.children.length) {
+                container.insertBefore(card, container.children[insertIndex]);
+            } else {
+                container.appendChild(card);
+            }
         }
 
         // Setup autocomplete for the card
@@ -1129,23 +1150,28 @@ if (addItemBtn) {
         // Also add to hidden table for backward compatibility
         const row = document.createElement("tr");
         row.innerHTML = `
-        <td class="text-center"><div class="item-number">${itemNumber}</div></td>
-        <td>
-            <div style="position: relative;">
-                <input type="text" placeholder="Item Description" class="item_name w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500" required>
-                <ul class="suggestions"></ul>
-            </div>
-        </td>
-        <td><input type="text" placeholder="HSN/SAC" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-        <td><input type="text" placeholder="Company" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-        <td><input type="text" placeholder="Type" value="Material" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-        <td><input type="text" placeholder="Category" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-        <td><input type="number" placeholder="Qty" min="1" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-        <td><input type="number" placeholder="Unit Price" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-        <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-        <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
-    `;
-        tableBody.appendChild(row);
+    <td class="text-center"><div class="item-number">${itemNumber}</div></td>
+    <td>
+        <div style="position: relative;">
+            <input type="text" placeholder="Item Description" class="item_name w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500" required>
+            <ul class="suggestions"></ul>
+        </div>
+    </td>
+    <td><input type="text" placeholder="HSN/SAC" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+    <td><input type="text" placeholder="Company" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+    <td><input type="text" placeholder="Type" value="Material" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+    <td><input type="text" placeholder="Category" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+    <td><input type="number" placeholder="Qty" min="1" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+    <td><input type="number" placeholder="Unit Price" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+    <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+    <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
+`;
+        // Insert or Append row
+        if (typeof insertIndex === 'number' && insertIndex >= 0 && insertIndex < tableBody.children.length) {
+            tableBody.insertBefore(row, tableBody.children[insertIndex]);
+        } else {
+            tableBody.appendChild(row);
+        }
 
         // Setup autocomplete for the table input
         const tableInput = row.querySelector(".item_name");
@@ -1166,8 +1192,6 @@ if (addItemBtn) {
         }
 
         // Sync all inputs from card to table with proper mapping
-        // Card order: Description, HSN/SAC, Qty, Unit Price, GST%, Company, Type, Category
-        // Table order: Description, HSN/SAC, Company, Type, Category, Qty, Unit Price, Rate
         const cardInputs = card.querySelectorAll("input");
         const tableInputs = row.querySelectorAll("input");
 
@@ -1203,6 +1227,15 @@ if (addItemBtn) {
             });
         }
 
+        // Add insert button event listener for CARD
+        const insertBtn = card.querySelector(".insert-item-btn");
+        if (insertBtn) {
+            insertBtn.addEventListener("click", function () {
+                const currentIndex = Array.from(container.children).indexOf(card);
+                addPurchaseOrderItem(currentIndex + 1);
+            });
+        }
+
         // Add remove button event listener for TABLE ROW
         const tableRemoveBtn = row.querySelector(".remove-item-btn");
         if (tableRemoveBtn) {
@@ -1213,6 +1246,17 @@ if (addItemBtn) {
                 renumberItems();
             });
         }
+
+        if (typeof insertIndex === 'number') {
+            renumberItems();
+        }
+    }
+
+    // Add Purchase Order specific listener
+    newAddItemBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        addPurchaseOrderItem();
     });
 }
 

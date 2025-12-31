@@ -249,7 +249,15 @@
 }
 
 /* Remove Button */
-.remove-item-btn {
+/* Item Actions */
+.item-actions {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+/* Action Buttons */
+.remove-item-btn, .insert-item-btn {
     background: transparent;
     color: #9ca3af;
     padding: 0.5rem;
@@ -272,7 +280,13 @@
     border-color: #fecaca;
 }
 
-.remove-item-btn i {
+.insert-item-btn:hover {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #bfdbfe;
+}
+
+.remove-item-btn i, .insert-item-btn i {
     pointer-events: none;
 }
 

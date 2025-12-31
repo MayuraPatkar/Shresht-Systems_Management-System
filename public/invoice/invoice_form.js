@@ -181,9 +181,14 @@ window.beforeStepAdvance = async function (step) {
                     <div class="item-field rate">
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
-                    <button type="button" class="remove-item-btn">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <div class="item-actions">
+                        <button type="button" class="insert-item-btn" title="Insert Item Below">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="remove-item-btn" title="Remove Item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 `;
                 itemsContainer.appendChild(card);
 
@@ -214,7 +219,17 @@ window.beforeStepAdvance = async function (step) {
                 removeBtn.addEventListener("click", function () {
                     card.remove();
                     row.remove();
+                    updateItemNumbers();
                 });
+
+                // Add insert button event listener
+                const insertBtn = card.querySelector(".insert-item-btn");
+                if (insertBtn) {
+                    insertBtn.addEventListener("click", function () {
+                        const currentIndex = Array.from(itemsContainer.children).indexOf(card);
+                        addItem(currentIndex + 1);
+                    });
+                }
 
                 sno++;
             });
@@ -362,9 +377,14 @@ async function openInvoice(id) {
                     <div class="item-field rate">
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
-                    <button type="button" class="remove-item-btn">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <div class="item-actions">
+                        <button type="button" class="insert-item-btn" title="Insert Item Below">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="remove-item-btn" title="Remove Item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 `;
                 itemsContainer.appendChild(card);
 
@@ -395,7 +415,17 @@ async function openInvoice(id) {
                 removeBtn.addEventListener("click", function () {
                     card.remove();
                     row.remove();
+                    updateItemNumbers();
                 });
+
+                // Add insert button event listener
+                const insertBtn = card.querySelector(".insert-item-btn");
+                if (insertBtn) {
+                    insertBtn.addEventListener("click", function () {
+                        const currentIndex = Array.from(itemsContainer.children).indexOf(card);
+                        addItem(currentIndex + 1);
+                    });
+                }
 
                 s++;
             });
@@ -475,9 +505,14 @@ async function openInvoice(id) {
                     <div class="item-field rate">
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
-                    <button type="button" class="remove-item-btn">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <div class="item-actions">
+                        <button type="button" class="insert-item-btn" title="Insert Item Below">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="remove-item-btn" title="Remove Item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 `;
                 itemsContainer.appendChild(card);
 
@@ -508,7 +543,17 @@ async function openInvoice(id) {
                 removeBtn.addEventListener("click", function () {
                     card.remove();
                     row.remove();
+                    updateItemNumbers();
                 });
+
+                // Add insert button event listener
+                const insertBtn = card.querySelector(".insert-item-btn");
+                if (insertBtn) {
+                    insertBtn.addEventListener("click", function () {
+                        const currentIndex = Array.from(itemsContainer.children).indexOf(card);
+                        addItem(currentIndex + 1);
+                    });
+                }
 
                 s++;
             });
