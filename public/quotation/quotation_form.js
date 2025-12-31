@@ -289,13 +289,13 @@ async function openQuotation(quotationId) {
     });
 }
 
-// Duplicate a quotation - copies items and content but clears customer details
-async function duplicateQuotation(sourceQuotationId) {
+// Clone a quotation - copies items, content, and customer details
+async function cloneQuotation(sourceQuotationId) {
     try {
         // Fetch the source quotation
         const data = await fetchDocumentById('quotation', sourceQuotationId);
         if (!data) {
-            window.electronAPI.showAlert1("Failed to load quotation for duplication.");
+            window.electronAPI.showAlert1("Failed to load quotation for cloning.");
             return;
         }
 
@@ -310,7 +310,7 @@ async function duplicateQuotation(sourceQuotationId) {
             document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
         }
 
-        // Generate a new ID for the duplicate
+        // Generate a new ID for the clone
         const idResponse = await fetch("/quotation/generate-id");
         if (!idResponse.ok) throw new Error("Failed to generate new quotation ID");
         const { quotation_id: newId } = await idResponse.json();
@@ -326,7 +326,7 @@ async function duplicateQuotation(sourceQuotationId) {
         sessionStorage.setItem('duplicated_from', sourceQuotationId);
 
         // Store the source quotation content for preview generation
-        sessionStorage.setItem('duplicate_content', JSON.stringify({
+        sessionStorage.setItem('clone_content', JSON.stringify({
             subject: quotation.subject || '',
             letter_1: quotation.letter_1 || '',
             letter_2: quotation.letter_2 || [],
@@ -336,7 +336,7 @@ async function duplicateQuotation(sourceQuotationId) {
             termsAndConditions: quotation.termsAndConditions || ''
         }));
 
-        // Copy project name (append " (Copy)" to indicate duplicate)
+        // Copy project name (append " (Clone)" to indicate copy if desired, but user just asked for details)
         document.getElementById('project-name').value = quotation.project_name || '';
 
         // Set date to today
@@ -346,11 +346,11 @@ async function duplicateQuotation(sourceQuotationId) {
         const dd = String(today.getDate()).padStart(2, '0');
         document.getElementById('quotation-date').value = `${yyyy}-${mm}-${dd}`;
 
-        // Clear customer fields - user must enter new customer details
-        document.getElementById('buyer-name').value = '';
-        document.getElementById('buyer-address').value = '';
-        document.getElementById('buyer-phone').value = '';
-        document.getElementById('buyer-email').value = '';
+        // Copy customer fields - include customer details as requested
+        document.getElementById('buyer-name').value = quotation.customer_name || '';
+        document.getElementById('buyer-address').value = quotation.customer_address || '';
+        document.getElementById('buyer-phone').value = quotation.customer_phone || '';
+        document.getElementById('buyer-email').value = quotation.customer_email || '';
 
         // Get containers
         const itemsContainer = document.getElementById("items-container");
@@ -554,12 +554,12 @@ async function duplicateQuotation(sourceQuotationId) {
 
         // Show success toast
         if (typeof showToast === 'function') {
-            showToast(`Quotation duplicated from ${sourceQuotationId}. Please enter customer details.`);
+            showToast(`Quotation cloned from ${sourceQuotationId}.`);
         }
 
     } catch (error) {
-        console.error("Error duplicating quotation:", error);
-        window.electronAPI.showAlert1("Failed to duplicate quotation. Please try again.");
+        console.error("Error cloning quotation:", error);
+        window.electronAPI.showAlert1("Failed to clone quotation. Please try again.");
     }
 }
 
@@ -884,27 +884,28 @@ async function generatePreview() {
     const summaryPageHTML = ``;
 
     // const files = document.getElementById('files');
+    // const files = document.getElementById('files');
     const tabStatus = sessionStorage.getItem('currentTab-status');
-    const isDuplicate = tabStatus === 'duplicate';
+    const isClone = tabStatus === 'clone';
     const isUpdate = tabStatus === 'update';
 
     // Format the date for display (DD/MM/YYYY format)
     const formattedDate = formatDateIndian(quotationDate);
 
-    // Get duplicate content if in duplicate mode
-    let duplicateContent = null;
-    if (isDuplicate) {
+    // Get clone content if in clone mode
+    let cloneContent = null;
+    if (isClone) {
         try {
-            const storedContent = sessionStorage.getItem('duplicate_content');
+            const storedContent = sessionStorage.getItem('clone_content');
             if (storedContent) {
-                duplicateContent = JSON.parse(storedContent);
+                cloneContent = JSON.parse(storedContent);
             }
         } catch (e) {
-            console.error('Failed to parse duplicate content:', e);
+            console.error('Failed to parse clone content:', e);
         }
     }
 
-    if (!isUpdate && !isDuplicate) {
+    if (!isUpdate && !isClone) {
         document.getElementById("preview-content").innerHTML = `
     <div class="preview-container doc-quotation">
         ${headerHTML}
@@ -990,14 +991,14 @@ async function generatePreview() {
     </div>
     `;
         // generateFilePages(files)
-    } else if (isDuplicate && duplicateContent) {
-        // Duplicate mode - use content from source quotation stored in sessionStorage
+    } else if (isClone && cloneContent) {
+        // Clone mode - use content from source quotation stored in sessionStorage
         const itemsPageHTMLDup = itemPages.map((pageHTML, index) => {
             const isLastItemsPage = index === itemPages.length - 1;
             return `
         <div class="preview-container doc-quotation">
             ${headerHTML}
-            ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${duplicateContent.headline || 'Items and Charges'}</u></p></div>` : ''}
+            ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${cloneContent.headline || 'Items and Charges'}</u></p></div>` : ''}
             <div class="items-section">
                 <table class="items-table">
                     <thead>
@@ -1052,7 +1053,7 @@ async function generatePreview() {
             <div class="notes-section" contenteditable="true">
                 <p><strong>Notes:</strong></p>
                 <ul>
-                   ${(duplicateContent.notes || []).map(note => `<li>${note}</li>`).join('')}
+                   ${(cloneContent.notes || []).map(note => `<li>${note}</li>`).join('')}
                 </ul>
             </div>
             ` : ''}
@@ -1076,17 +1077,17 @@ async function generatePreview() {
               ${buyerName}<br>
               ${buyerAddress}<br>
               ${buyerPhone}<br>
-            <p contenteditable="true"><strong>Subject:</strong> ${duplicateContent.subject || ''}</p>
+            <p contenteditable="true"><strong>Subject:</strong> ${cloneContent.subject || ''}</p>
 
             <p>Dear ${buyerName},</p>
 
-            <p contenteditable="true">${duplicateContent.letter_1 || ''}</p>
+            <p contenteditable="true">${cloneContent.letter_1 || ''}</p>
             <p>Our proposal includes:</p>
             <ul contenteditable="true">
-                ${(duplicateContent.letter_2 || []).map(li => `<li>${li}</li>`).join('')}
+                ${(cloneContent.letter_2 || []).map(li => `<li>${li}</li>`).join('')}
             </ul>
             
-            <p contenteditable="true">${duplicateContent.letter_3 || ''}</p>
+            <p contenteditable="true">${cloneContent.letter_3 || ''}</p>
             
             <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
           
@@ -1109,7 +1110,7 @@ async function generatePreview() {
     <div class="preview-container doc-quotation">
         ${headerHTML}
         <div class="terms-section" contenteditable="true">
-            ${normalizeTermsHTML(duplicateContent.termsAndConditions || '')}
+            ${normalizeTermsHTML(cloneContent.termsAndConditions || '')}
         </div>
 
         <div class="closing-section">
@@ -1308,10 +1309,10 @@ async function generatePreview() {
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
     const result = await sendDocumentToServer("/quotation/save-quotation", data);
-    // Clear duplicate-related data from sessionStorage after successful save
+    // Clear clone-related data from sessionStorage after successful save
     if (result) {
         sessionStorage.removeItem('duplicated_from');
-        sessionStorage.removeItem('duplicate_content');
+        sessionStorage.removeItem('clone_content');
     }
     return result;
 }

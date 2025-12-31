@@ -279,7 +279,7 @@ function createQuotationCard(quotation) {
                         <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="action-btn duplicate-btn px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all border border-indigo-200 hover:border-indigo-400" title="Duplicate Quotation">
+                        <button class="action-btn duplicate-btn px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all border border-indigo-200 hover:border-indigo-400" title="Clone Quotation">
                             <i class="fas fa-copy"></i>
                         </button>
                         <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
@@ -316,8 +316,8 @@ function createQuotationCard(quotation) {
     });
 
     duplicateBtn.addEventListener('click', () => {
-        sessionStorage.setItem('currentTab-status', 'duplicate');
-        duplicateQuotation(quotation.quotation_id);
+        sessionStorage.setItem('currentTab-status', 'clone');
+        cloneQuotation(quotation.quotation_id);
     });
 
     editBtn.addEventListener('click', () => {
