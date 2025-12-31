@@ -58,7 +58,7 @@ function initViewTypeTabs() {
             if (viewType === currentViewType) return; // Already active
 
             updateViewTypeTabs(viewType);
-            
+
             // Re-render with cached quotation data
             if (cachedQuotation) {
                 await renderQuotationView(cachedQuotation, viewType);
@@ -87,7 +87,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
     const company = await window.companyConfig.getCompanyInfo();
     const bank = company.bank_details || {};
     const phoneStr = company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '');
-    
+
     let totalTaxableValue = 0;
     let totalTax = 0;
     let totalPrice = 0;
@@ -478,6 +478,13 @@ async function renderQuotationView(quotation, viewType) {
             console.warn('Non-items totals DOM elements not found', e);
         }
     }
+
+    // Add non-items totals to main totals
+    totalTaxable += view_nonItemsTaxable;
+    if (viewType === 2) {
+        totalTax += (view_nonItemsCGST + view_nonItemsSGST);
+    }
+    grandTotal += view_nonItemsGrandTotal;
 
     // Set totals (professional 3-box layout) - round off grand total
     const subtotal = totalTaxable;
