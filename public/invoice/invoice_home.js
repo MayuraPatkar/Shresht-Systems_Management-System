@@ -342,30 +342,30 @@ function createInvoiceCard(invoice) {
         <div class="flex">
             <div class="card-left-border w-1.5 bg-gradient-to-b ${isPaid ? 'from-green-500 to-emerald-600' : isPartial ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500'}"></div>
             
-            <div class="flex-1 p-6">
+            <div class="flex-1 p-6 min-w-0">
                 <!-- Main Content Row -->
-                <div class="flex items-center justify-between gap-6">
+                <div class="flex items-center gap-6">
                     
                     <!-- Left Section: Icon + Project Info -->
-                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                    <div class="flex items-center gap-4 min-w-0" style="flex: 1 1 350px; max-width: 450px;">
                         <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
                             <i class="fas fa-file-invoice-dollar text-2xl text-white"></i>
                         </div>
-                        <div class="flex-1 min-w-0">
+                        <div class="flex-1 min-w-0 overflow-hidden">
                             <div class="flex items-center gap-2 mb-1">
-                                <h3 class="text-lg font-bold text-gray-900 truncate">${invoice.project_name}</h3>
-                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge ${isPaid ? 'bg-green-100 text-green-700' : isPartial ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}">
+                                <h3 class="text-lg font-bold text-gray-900 truncate" title="${invoice.project_name}">${invoice.project_name}</h3>
+                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge flex-shrink-0 ${isPaid ? 'bg-green-100 text-green-700' : isPartial ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}">
                                     ${status.toUpperCase()}
                                 </span>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1 flex-shrink-0" title="Click to copy ID">
                                     <i class="fas fa-hashtag text-xs"></i>
                                     <span>${invoice.invoice_id}</span>
                                     <i class="fas fa-copy text-xs ml-1"></i>
                                 </p>
-                                <span class="text-gray-300">|</span>
-                                <p class="text-xs text-gray-500 inline-flex items-center gap-1">
+                                <span class="text-gray-300 flex-shrink-0">|</span>
+                                <p class="text-xs text-gray-500 inline-flex items-center gap-1 flex-shrink-0">
                                     <i class="fas fa-calendar-alt text-xs"></i>
                                     ${formattedDate}
                                 </p>
@@ -374,21 +374,21 @@ function createInvoiceCard(invoice) {
                     </div>
 
                     <!-- Middle Section: Customer Info -->
-                    <div class="flex items-center gap-3 flex-1 min-w-0 px-6 border-l border-r border-gray-200">
+                    <div class="flex items-center gap-3 min-w-0 px-6 border-l border-r border-gray-200" style="flex: 1 1 300px; max-width: 400px;">
                         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-user text-blue-600"></i>
                         </div>
-                        <div class="flex-1 min-w-0">
+                        <div class="flex-1 min-w-0 overflow-hidden">
                             <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Customer</p>
-                            <p class="text-sm font-semibold text-gray-900 truncate">${invoice.customer_name}</p>
-                            <p class="text-xs text-gray-600 truncate">${invoice.customer_address}</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate" title="${invoice.customer_name}">${invoice.customer_name}</p>
+                            <p class="text-xs text-gray-600 truncate" title="${invoice.customer_address}">${invoice.customer_address}</p>
                         </div>
                     </div>
 
                     <!-- Amount Section -->
                     ${userRole === 'admin' ? `
-                    <div class="flex items-center px-4 border-r border-gray-200">
-                        <div class="card-amount-box rounded-lg p-3 w-[200px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
+                    <div class="flex items-center px-4 border-r border-gray-200 flex-shrink-0">
+                        <div class="card-amount-box rounded-lg p-3 w-[280px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
                             <!-- Total Row -->
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
@@ -411,11 +411,11 @@ function createInvoiceCard(invoice) {
                         </div>
                     </div>
                     ` : `
-                    <div class="px-6 border-r border-gray-200"></div>
+                    <div class="flex-1"></div>
                     `}
 
                     <!-- Actions Section -->
-                    <div class="flex items-center gap-2 flex-shrink-0">
+                    <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
                         ${userRole === 'admin' ? `
                             <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
                                 <i class="fas fa-eye"></i>
