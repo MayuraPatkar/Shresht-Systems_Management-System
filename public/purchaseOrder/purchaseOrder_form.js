@@ -11,6 +11,13 @@ let selectedSupplierIndex = -1;
 let companySuggestionList = [];
 let categorySuggestionList = [];
 
+// Helper function to close all suggestion dropdowns
+function closeAllSuggestions() {
+    document.querySelectorAll('.suggestions').forEach(ul => {
+        ul.style.display = 'none';
+    });
+}
+
 async function fetchCompanyAndCategorySuggestions() {
     try {
         const response = await fetch('/stock/all');
@@ -32,15 +39,32 @@ function setupGenericAutocomplete(input, dataList) {
         input.parentElement.style.position = 'relative';
         input.parentElement.appendChild(suggestionsContainer);
     }
+    
+    // Track if input was from user typing or programmatic
+    let isUserTyping = false;
 
-    input.addEventListener('input', function () {
-        const query = this.value.toLowerCase();
+    input.addEventListener('keydown', function() {
+        isUserTyping = true;
+    });
+
+    input.addEventListener('input', function (e) {
+        // Only show suggestions if user is actually typing
+        if (!isUserTyping) {
+            isUserTyping = false;
+            return;
+        }
+        isUserTyping = false;
+        
+        // Close all other suggestions first
+        closeAllSuggestions();
+        
+        const query = this.value.toLowerCase().trim();
         suggestionsContainer.innerHTML = '';
         if (query.length === 0) {
             suggestionsContainer.style.display = 'none';
             return;
         }
-        const filtered = dataList.filter(item => item.toLowerCase().includes(query));
+        const filtered = dataList.filter(item => item && item.toLowerCase().includes(query));
         if (filtered.length === 0) {
             suggestionsContainer.style.display = 'none';
             return;
@@ -52,16 +76,24 @@ function setupGenericAutocomplete(input, dataList) {
             li.onclick = function () {
                 input.value = item;
                 suggestionsContainer.style.display = 'none';
-                input.dispatchEvent(new Event('input', { bubbles: true }));
+                // Don't trigger autocomplete on the other fields
+                isUserTyping = false;
             };
             suggestionsContainer.appendChild(li);
         });
     });
 
-    document.addEventListener('click', function (e) {
-        if (!input.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+    // Close suggestions when clicking outside
+    input.addEventListener('blur', function () {
+        // Delay to allow click on suggestion
+        setTimeout(() => {
             suggestionsContainer.style.display = 'none';
-        }
+        }, 200);
+    });
+
+    input.addEventListener('focus', function () {
+        // Don't auto-show on focus, only when typing
+        suggestionsContainer.style.display = 'none';
     });
 }
 
@@ -269,7 +301,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Override showSuggestions for purchase order to use fillPurchaseOrderItem
 function showSuggestionsPO(input, suggestionsList) {
-    const query = input.value.toLowerCase();
+    // Close all other suggestions first
+    closeAllSuggestions();
+    
+    const query = input.value.toLowerCase().trim();
     suggestionsList.innerHTML = ""; // Clear old suggestions
     selectedIndex = -1; // Reset index when showing new suggestions
 
@@ -278,7 +313,7 @@ function showSuggestionsPO(input, suggestionsList) {
         return;
     }
 
-    const filtered = data.filter(item => item.toLowerCase().includes(query));
+    const filtered = data.filter(item => item && typeof item === 'string' && item.toLowerCase().includes(query));
 
     if (filtered.length === 0) {
         suggestionsList.style.display = "none";
@@ -376,9 +411,13 @@ async function fillPurchaseOrderItem(itemName, element) {
             if (row2Inputs[1]) row2Inputs[1].value = stockData.type || "";
             if (row2Inputs[2]) row2Inputs[2].value = stockData.category || "";
 
-            // Trigger input events to sync with table
-            [...row1Inputs, ...row2Inputs].forEach(input => {
+            // Trigger input events to sync with table (but skip for company/category to avoid triggering autocomplete)
+            row1Inputs.forEach(input => {
                 input.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+            // For row2, only sync values without triggering autocomplete
+            row2Inputs.forEach(input => {
+                input.dispatchEvent(new Event('change', { bubbles: true }));
             });
 
             // Also update corresponding table row
