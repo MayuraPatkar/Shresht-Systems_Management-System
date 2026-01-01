@@ -744,6 +744,14 @@ async function payment(id) {
         if (dueAmountElement) {
             dueAmountElement.textContent = `₹ ${formatIndian(dueAmount, 2)}`;
         }
+
+        // Focus on the first input field
+        setTimeout(() => {
+            const firstInput = document.getElementById('paid-amount');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        }, 100);
     } catch (error) {
         console.error('Error fetching invoice for payment:', error);
         window.electronAPI.showAlert1('Failed to fetch invoice details.');
@@ -1131,6 +1139,60 @@ function handleQuotationKeyboardShortcuts(event) {
     const keyLower = event.key.toLowerCase();
     const isModifierPressed = event.ctrlKey || event.metaKey;
     const homeButton = document.getElementById('home-btn');
+
+    // Payment Modal Handling
+    const paymentContainer = document.getElementById('payment-container');
+    const isPaymentOpen = paymentContainer && paymentContainer.style.display !== 'none';
+
+    if (isPaymentOpen) {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            document.getElementById('close-payment-modal')?.click();
+            return;
+        }
+
+        if (event.key === 'Enter') {
+            // Allow default behavior for buttons (like close button)
+            if (document.activeElement.tagName === 'BUTTON') {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            document.getElementById('payment-btn')?.click();
+            return;
+        }
+
+        if (event.key === 'Tab') {
+            const focusableElements = paymentContainer.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusableElements.length > 0) {
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (event.shiftKey) {
+                    if (document.activeElement === firstElement) {
+                        event.preventDefault();
+                        lastElement.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastElement) {
+                        event.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            }
+            return;
+        }
+
+        // Block application shortcuts (Ctrl/Cmd/Alt) while modal is open
+        if (isModifierPressed || event.altKey) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+
+        return; // Allow other keys (typing)
+    }
 
     if (!shortcutsModalRef) {
         shortcutsModalRef = document.getElementById('shortcuts-modal');
