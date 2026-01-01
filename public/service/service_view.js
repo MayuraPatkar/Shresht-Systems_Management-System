@@ -526,6 +526,7 @@ async function viewServiceHistory(invoiceId) {
         timeline.innerHTML = '';
         
         if (services.length === 0) {
+            timeline.style.overflowY = 'hidden';
             timeline.innerHTML = `
                 <div class="text-center py-12">
                     <i class="fas fa-history text-6xl text-gray-300 mb-4"></i>
@@ -534,6 +535,9 @@ async function viewServiceHistory(invoiceId) {
             `;
             return;
         }
+        
+        // Enable scrolling when there's content
+        timeline.style.overflowY = 'auto';
         
         // Build timeline
         const timelineHTML = services.map((service, index) => {

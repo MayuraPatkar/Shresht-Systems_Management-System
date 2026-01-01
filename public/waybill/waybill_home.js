@@ -602,25 +602,25 @@ function createWayBillCard(wayBill) {
         <div class="flex">
             <div class="w-1.5 bg-gradient-to-b from-blue-500 to-cyan-600"></div>
             
-            <div class="flex-1 p-6">
+            <div class="flex-1 p-6 min-w-0">
                 <!-- Main Content Row -->
-                <div class="flex items-center justify-between gap-6">
+                <div class="flex items-center gap-4">
                     
                     <!-- Left Section: Icon + Project Info -->
-                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                    <div class="flex items-center gap-4 min-w-0 flex-shrink-0" style="width: 460px;">
                         <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
                             <i class="fas fa-route text-2xl text-white"></i>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-lg font-bold text-gray-900 mb-1 truncate">${wayBill.project_name}</h3>
-                            <div class="flex items-center gap-2">
-                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
+                        <div class="flex-1 min-w-0 overflow-hidden">
+                            <h3 class="text-lg font-bold text-gray-900 mb-1 truncate" title="${wayBill.project_name}">${wayBill.project_name}</h3>
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1 flex-shrink-0" title="Click to copy ID">
                                     <i class="fas fa-hashtag text-xs"></i>
                                     <span>${wayBill.waybill_id}</span>
                                     <i class="fas fa-copy text-xs ml-1"></i>
                                 </p>
-                                <span class="text-gray-300">|</span>
-                                <p class="text-xs text-gray-500 inline-flex items-center gap-1">
+                                <span class="text-gray-300 flex-shrink-0">|</span>
+                                <p class="text-xs text-gray-500 inline-flex items-center gap-1 flex-shrink-0">
                                     <i class="fas fa-calendar-alt text-xs"></i>
                                     ${formattedDate}
                                 </p>
@@ -629,30 +629,30 @@ function createWayBillCard(wayBill) {
                     </div>
 
                     <!-- Middle Section: Customer Info -->
-                    <div class="flex items-center gap-3 flex-1 min-w-0 px-6 border-l border-r border-gray-200">
+                    <div class="flex items-center gap-3 px-6 border-l border-r border-gray-200 flex-shrink-0" style="width: 460px;">
                         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-user text-blue-600"></i>
                         </div>
-                        <div class="flex-1 min-w-0">
+                        <div class="flex-1 min-w-0 overflow-hidden">
                             <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Customer</p>
-                            <p class="text-sm font-semibold text-gray-900 truncate">${wayBill.customer_name}</p>
-                            <p class="text-xs text-gray-600 truncate">${wayBill.customer_address}</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate" title="${wayBill.customer_name}">${wayBill.customer_name}</p>
+                            <p class="text-xs text-gray-600 truncate" title="${wayBill.customer_address}">${wayBill.customer_address}</p>
                         </div>
                     </div>
 
                     <!-- Destination Section -->
-                    <div class="flex items-center gap-3 px-6 border-r border-gray-200">
+                    <div class="flex items-center gap-3 px-6 border-r border-gray-200 flex-shrink-0" style="width: 300px;">
                         <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-map-marker-alt text-orange-600"></i>
                         </div>
-                        <div>
+                        <div class="flex-1 min-w-0 overflow-hidden">
                             <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Destination</p>
-                            <p class="text-sm font-bold text-gray-900">${wayBill.place_supply}</p>
+                            <p class="text-sm font-bold text-gray-900 truncate" title="${wayBill.place_supply}">${wayBill.place_supply}</p>
                         </div>
                     </div>
 
                     <!-- Actions Section -->
-                    <div class="flex items-center gap-2 flex-shrink-0">
+                    <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
                         <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
                             <i class="fas fa-eye"></i>
                         </button>
