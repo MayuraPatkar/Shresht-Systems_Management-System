@@ -77,6 +77,10 @@ const invoiceSchema = new mongoose.Schema({
     ],
     payment_status: { type: String, default: 'Unpaid', index: true },
 
+    // content
+    declaration: { type: String },
+    termsAndConditions: { type: String },
+
     createdAt: { type: Date, default: Date.now, index: true },
     updatedAt: { type: Date, default: Date.now },
 });

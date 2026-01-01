@@ -93,7 +93,9 @@ router.post("/save-invoice", async (req, res) => {
             totalAmountOriginal = 0,
             totalAmountDuplicate = 0,
             totalTaxOriginal = 0,
-            totalTaxDuplicate = 0
+            totalTaxDuplicate = 0,
+            declaration = '',
+            termsAndConditions = ''
         } = req.body;
 
         let total_amount_original = totalAmountOriginal;
@@ -197,6 +199,8 @@ router.post("/save-invoice", async (req, res) => {
                 total_amount_duplicate: total_amount_duplicate,
                 total_tax_original: total_tax_original,
                 total_tax_duplicate: total_tax_duplicate,
+                declaration: declaration,
+                termsAndConditions: termsAndConditions
             });
 
             const updatedInvoice = await existingInvoice.save();
@@ -254,6 +258,8 @@ router.post("/save-invoice", async (req, res) => {
                 total_amount_duplicate: total_amount_duplicate,
                 total_tax_original: total_tax_original,
                 total_tax_duplicate: total_tax_duplicate,
+                declaration: declaration,
+                termsAndConditions: termsAndConditions
             });
 
             const savedInvoice = await invoice.save();
