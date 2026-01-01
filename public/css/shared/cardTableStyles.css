@@ -12,6 +12,18 @@
     gap: 0.75rem;
 }
 
+/* Hide scrollbar when container is empty */
+#items-container:empty, #non-items-container:empty, #specifications-container:empty {
+    overflow: hidden;
+}
+
+/* Ensure containers without items don't show scrollbars */
+#items-container:not(:has(.item-card)), 
+#non-items-container:not(:has(.non-item-card)), 
+#specifications-container:not(:has(.spec-card)) {
+    overflow: hidden;
+}
+
 /* Column Headers */
 .items-header, .non-items-header, .specifications-header {
     display: flex;

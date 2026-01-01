@@ -147,6 +147,14 @@ function getServiceStageLabel(stage) {
     return stages[index] || `${displayStage}th Service`;
 }
 
+// Toggle scrollbar based on content
+function toggleScrollbar(hasContent) {
+    const main = document.querySelector('main');
+    if (main) {
+        main.style.overflowY = hasContent ? 'auto' : 'hidden';
+    }
+}
+
 // Helper: Format date to Indian format
 function formatDateIndian(dateStr) {
     if (!dateStr) return 'N/A';
@@ -491,16 +499,18 @@ function renderPendingServices(services) {
 
     if (!services || services.length === 0) {
         serviceListDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+            <div class="flex flex-col items-center justify-center py-12 fade-in">
                 <div class="text-blue-500 text-5xl mb-4"><i class="fas fa-clock"></i></div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Pending Services</h2>
                 <p class="text-gray-600">Invoices due for service will appear here</p>
             </div>
         `;
+        toggleScrollbar(false);
         return;
     }
 
     services.forEach(service => serviceListDiv.appendChild(createPendingServiceDiv(service)));
+    toggleScrollbar(true);
 }
 
 // Render service history
@@ -512,16 +522,18 @@ function renderServiceHistory(services) {
 
     if (services.length === 0) {
         serviceListDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+            <div class="flex flex-col items-center justify-center py-12 fade-in">
                 <div class="text-green-500 text-5xl mb-4"><i class="fas fa-history"></i></div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Service History</h2>
                 <p class="text-gray-600">Completed services will appear here</p>
             </div>
         `;
+        toggleScrollbar(false);
         return;
     }
 
     services.forEach(service => serviceListDiv.appendChild(createServiceHistoryDiv(service)));
+    toggleScrollbar(true);
 }
 
 // Initialize filter event listeners
