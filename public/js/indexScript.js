@@ -5,11 +5,11 @@
  */
 function getChangeTypeIcon(type) {
     const icons = {
-        'feature': '<i class="fas fa-star text-yellow-500"></i>',
-        'improvement': '<i class="fas fa-arrow-up text-blue-500"></i>',
-        'bugfix': '<i class="fas fa-bug text-red-500"></i>',
-        'security': '<i class="fas fa-shield-alt text-green-500"></i>',
-        'breaking': '<i class="fas fa-exclamation-triangle text-orange-500"></i>'
+        'feature': '<i class="fas fa-star text-green-600"></i>',
+        'improvement': '<i class="fas fa-arrow-up text-blue-600"></i>',
+        'bugfix': '<i class="fas fa-bug text-red-600"></i>',
+        'security': '<i class="fas fa-shield-alt text-purple-600"></i>',
+        'breaking': '<i class="fas fa-exclamation-triangle text-orange-600"></i>'
     };
     return icons[type] || '<i class="fas fa-circle text-gray-400"></i>';
 }
@@ -31,7 +31,7 @@ function formatChangelogDate(dateStr) {
 }
 
 /**
- * Shows the changelog modal with the latest version info
+ * Shows the changelog modal with version history
  */
 async function showChangelogModal() {
     const modal = document.getElementById('changelog-modal');
@@ -44,49 +44,82 @@ async function showChangelogModal() {
         const result = await window.electronAPI.getChangelog();
 
         if (!result.success || !result.changelog || !result.changelog.versions || result.changelog.versions.length === 0) {
-            // No changelog available, don't show modal
+            content.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fas fa-info-circle text-gray-300 text-4xl mb-3"></i>
+                    <p class="text-gray-500">No changelog available</p>
+                </div>
+            `;
+            modal.classList.remove('hidden');
             return;
         }
 
-        const latestVersion = result.changelog.versions[0];
+        const versions = result.changelog.versions;
+        const latestVersion = versions[0];
 
         // Update version text
         if (versionText) {
             versionText.textContent = `Version ${latestVersion.version} • ${formatChangelogDate(latestVersion.date)}`;
         }
 
-        // Build changelog content
-        let html = `
-            <div class="space-y-4">
-                <h3 class="text-lg font-bold text-gray-800">${latestVersion.title || 'New Release'}</h3>
-                <ul class="space-y-3">
-        `;
+        // Build clean list layout without cards
+        let html = '<div class="space-y-8">';
 
-        latestVersion.changes.forEach(change => {
+        versions.forEach((version, index) => {
+            const isLatest = index === 0;
+            
             html += `
-                <li class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <span class="mt-0.5">${getChangeTypeIcon(change.type)}</span>
-                    <span class="text-gray-700">${change.description}</span>
-                </li>
+                <div class="${isLatest ? '' : 'pt-8 border-t border-gray-200'}">
+                    <div class="flex items-center gap-3 mb-4">
+                        ${isLatest ? '<span class="px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded">LATEST</span>' : ''}
+                        <h3 class="text-xl font-bold text-gray-800">v${version.version}</h3>
+                        <span class="text-gray-400">•</span>
+                        <span class="text-gray-600 font-medium">${version.title || 'Release'}</span>
+                        <span class="text-gray-400 text-sm ml-auto">${formatChangelogDate(version.date)}</span>
+                    </div>
+                    <ul class="space-y-3 pl-1">
+            `;
+
+            version.changes.forEach(change => {
+                const typeConfig = {
+                    'feature': { bg: 'bg-green-100', text: 'text-green-700', icon: 'fa-plus', label: 'New' },
+                    'improvement': { bg: 'bg-blue-100', text: 'text-blue-700', icon: 'fa-arrow-up', label: 'Improved' },
+                    'bugfix': { bg: 'bg-red-100', text: 'text-red-700', icon: 'fa-bug', label: 'Fixed' },
+                    'security': { bg: 'bg-purple-100', text: 'text-purple-700', icon: 'fa-shield-alt', label: 'Security' },
+                    'breaking': { bg: 'bg-orange-100', text: 'text-orange-700', icon: 'fa-exclamation', label: 'Breaking' }
+                };
+                const config = typeConfig[change.type] || { bg: 'bg-gray-100', text: 'text-gray-700', icon: 'fa-circle', label: 'Update' };
+
+                html += `
+                    <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-20 px-2 py-1 ${config.bg} ${config.text} text-xs font-semibold rounded text-center">
+                            <i class="fas ${config.icon} mr-1"></i>${config.label}
+                        </span>
+                        <span class="text-gray-700 leading-relaxed">${change.description}</span>
+                    </li>
+                `;
+            });
+
+            html += `
+                    </ul>
+                </div>
             `;
         });
 
-        html += `
-                </ul>
-                <p class="text-sm text-gray-500 text-center pt-2">
-                    <i class="fas fa-info-circle mr-1"></i>
-                    View full release history in Settings → About
-                </p>
-            </div>
-        `;
-
+        html += '</div>';
         content.innerHTML = html;
-
-        // Show modal
         modal.classList.remove('hidden');
 
     } catch (error) {
         console.error('Failed to show changelog modal:', error);
+        content.innerHTML = `
+            <div class="text-center py-12">
+                <i class="fas fa-exclamation-triangle text-red-400 text-4xl mb-3"></i>
+                <p class="text-gray-700 font-medium">Error loading changelog</p>
+                <p class="text-gray-500 text-sm mt-1">${error.message}</p>
+            </div>
+        `;
+        modal.classList.remove('hidden');
     }
 }
 
@@ -95,8 +128,16 @@ async function showChangelogModal() {
  */
 async function hideChangelogModal() {
     const modal = document.getElementById('changelog-modal');
+    const newBadge = document.getElementById('new-badge');
+    
     if (modal) {
         modal.classList.add('hidden');
+        modal.classList.remove('fade-in');
+    }
+    
+    // Hide the new badge
+    if (newBadge) {
+        newBadge.classList.add('hidden');
     }
 
     try {
@@ -123,14 +164,33 @@ async function checkAndShowChangelog() {
 
 // Initialize changelog modal event listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // What's New button
+    const whatsNewBtn = document.getElementById('whats-new-btn');
+    const newBadge = document.getElementById('new-badge');
+    
+    whatsNewBtn?.addEventListener('click', () => {
+        showChangelogModal();
+        // Hide the new badge after clicking
+        if (newBadge) {
+            newBadge.classList.add('hidden');
+        }
+    });
+
     // Close button
     document.getElementById('close-changelog-modal')?.addEventListener('click', hideChangelogModal);
 
     // Dismiss button
     document.getElementById('dismiss-changelog')?.addEventListener('click', hideChangelogModal);
 
-    // Check if we should show changelog on startup
-    checkAndShowChangelog();
+    // Check if we should show changelog on startup and show badge
+    checkAndShowChangelog().then(() => {
+        // Check if there's a new version to show the badge
+        window.electronAPI.shouldShowChangelog().then(result => {
+            if (result.success && result.showChangelog && newBadge) {
+                newBadge.classList.remove('hidden');
+            }
+        }).catch(err => console.error('Failed to check changelog status:', err));
+    });
 });
 
 // --- LOGIN FUNCTIONALITY ---
