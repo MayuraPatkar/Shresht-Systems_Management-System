@@ -308,6 +308,32 @@ function setupIPCHandlers() {
     }
   });
 
+  // Handle request to open external URL in default browser
+  ipcMain.handle('open-external', async (event, url) => {
+    try {
+      const { shell } = require('electron');
+      
+      // Validate URL to prevent security issues
+      if (!url || typeof url !== 'string') {
+        logger.warn('Invalid URL provided to open-external');
+        return { success: false, message: 'Invalid URL' };
+      }
+
+      // Only allow http and https URLs
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        logger.warn('Blocked non-http URL:', url);
+        return { success: false, message: 'Only HTTP(S) URLs are allowed' };
+      }
+
+      await shell.openExternal(url);
+      logger.info('Opened external URL:', url);
+      return { success: true, url };
+    } catch (error) {
+      logger.error('Error opening external URL:', error);
+      return { success: false, message: error.message };
+    }
+  });
+
   // Handle install update request
   ipcMain.handle('install-update', () => {
     logger.info('Install update requested');

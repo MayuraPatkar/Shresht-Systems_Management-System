@@ -46,12 +46,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mayura01/shresht-systems-management-system.git"
+    "url": "https://github.com/MayuraPatkar/Shresht-Systems_Management-System.git"
   },
   "bugs": {
-    "url": "https://github.com/mayura01/shresht-systems-management-system/issues"
+    "url": "https://github.com/MayuraPatkar/Shresht-Systems_Management-System/issues"
   },
-  "homepage": "https://github.com/mayura01/shresht-systems-management-system#readme",
+  "homepage": "https://github.com/MayuraPatkar/Shresht-Systems_Management-System#readme",
   "build": {
     "appId": "com.app.SSMS",
     "productName": "SSMS",
