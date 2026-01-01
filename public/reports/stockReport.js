@@ -391,11 +391,20 @@ window.loadSavedStockReport = function (report) {
         if (report.parameters.end_date) {
             document.getElementById('stock-end-date').value = report.parameters.end_date.split('T')[0];
         }
-        if (report.parameters.movement_type) {
-            document.getElementById('stock-movement-type').value = report.parameters.movement_type;
+
+        // Handle filters (support both new nested structure and old flat structure)
+        const filters = report.parameters.filters || report.parameters;
+
+        if (filters.movement_type) {
+            document.getElementById('stock-movement-type').value = filters.movement_type;
+        } else {
+            document.getElementById('stock-movement-type').value = 'all';
         }
-        if (report.parameters.item_name) {
-            document.getElementById('stock-item-filter').value = report.parameters.item_name;
+        
+        if (filters.item_name) {
+            document.getElementById('stock-item-filter').value = filters.item_name;
+        } else {
+            document.getElementById('stock-item-filter').value = '';
         }
     }
 

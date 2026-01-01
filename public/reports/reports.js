@@ -199,6 +199,37 @@ function getReportTitle(report) {
 }
 
 /**
+ * Get report details string (date range, filters)
+ * @param {Object} report 
+ * @returns {string} Details string
+ */
+function getReportDetails(report) {
+    if (report.report_type === 'stock') {
+        const params = report.parameters || {};
+        const filters = params.filters || params; // Handle new vs old structure
+        
+        let details = [];
+        
+        if (params.start_date && params.end_date) {
+            const start = new Date(params.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            const end = new Date(params.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            details.push(`${start} - ${end}`);
+        }
+        
+        if (filters.item_name) {
+            details.push(`Item: ${filters.item_name}`);
+        }
+        
+        if (filters.movement_type && filters.movement_type !== 'all') {
+            details.push(`Type: ${filters.movement_type.charAt(0).toUpperCase() + filters.movement_type.slice(1)}`);
+        }
+        
+        return details.length > 0 ? details.join(' • ') : '';
+    }
+    return '';
+}
+
+/**
  * Load recent reports from the server
  */
 async function loadRecentReports() {
@@ -227,29 +258,41 @@ async function loadRecentReports() {
                 const dateObj = new Date(report.generated_at || report.created_at);
                 const dateStr = dateObj.toLocaleDateString('en-IN');
                 const timeStr = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                const reportDetails = getReportDetails(report);
 
                 return `
-                <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 group">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-${getReportColor(report.report_type)}-50 p-3 rounded-xl border border-${getReportColor(report.report_type)}-100">
-                            <i class="fas ${getReportIcon(report.report_type)} text-${getReportColor(report.report_type)}-600 text-lg"></i>
+                <div class="flex items-center justify-between p-5 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-200 group">
+                    <div class="flex items-center gap-5 flex-1">
+                        <div class="bg-${getReportColor(report.report_type)}-50 p-4 rounded-xl border-2 border-${getReportColor(report.report_type)}-100">
+                            <i class="fas ${getReportIcon(report.report_type)} text-${getReportColor(report.report_type)}-600 text-xl"></i>
                         </div>
-                        <div>
-                            <h4 class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">${getReportTitle(report)}</h4>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-medium">
-                                    ${dateStr}
-                                </span>
-                                <span class="text-xs text-gray-400 font-medium">${timeStr}</span>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-gray-900 text-base group-hover:text-indigo-600 transition-colors mb-2">${getReportTitle(report)}</h4>
+                            <div class="flex items-center gap-4 text-sm">
+                                ${reportDetails ? `
+                                <div class="flex items-center gap-2 text-gray-700">
+                                    <i class="fas fa-filter text-gray-400 text-xs"></i>
+                                    <span class="font-medium">${reportDetails}</span>
+                                </div>
+                                <span class="text-gray-300">•</span>
+                                ` : ''}
+                                <div class="flex items-center gap-2 text-gray-500">
+                                    <i class="fas fa-calendar-alt text-gray-400 text-xs"></i>
+                                    <span>${dateStr}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-gray-500">
+                                    <i class="fas fa-clock text-gray-400 text-xs"></i>
+                                    <span>${timeStr}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button class="view-report-btn flex items-center gap-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition-all border border-indigo-100" data-id="${report._id}">
+                    <div class="flex items-center gap-3 ml-6">
+                        <button class="view-report-btn flex items-center gap-2 bg-indigo-600 text-white hover:bg-indigo-700 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm hover:shadow-md" data-id="${report._id}">
                             <i class="fas fa-eye"></i> View
                         </button>
-                        <button class="delete-report-btn text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-all" data-id="${report._id}" title="Delete Report">
-                            <i class="fas fa-trash-alt text-lg"></i>
+                        <button class="delete-report-btn text-gray-400 hover:text-red-600 hover:bg-red-50 p-2.5 rounded-lg transition-all" data-id="${report._id}" title="Delete Report">
+                            <i class="fas fa-trash-alt text-base"></i>
                         </button>
                     </div>
                 </div>
