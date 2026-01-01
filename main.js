@@ -78,21 +78,7 @@ autoUpdater.on('update-downloaded', (info) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-downloaded', info);
   }
-
-  // Show dialog to user (with null safety to prevent crashes)
-  const parentWindow = mainWindow && !mainWindow.isDestroyed() ? mainWindow : null;
-  dialog.showMessageBox(parentWindow, {
-    type: 'info',
-    title: 'Update Ready',
-    message: 'A new version has been downloaded. The application will restart to install the update.',
-    buttons: ['Restart Now', 'Later'],
-    defaultId: 0
-  }).then((result) => {
-    if (result.response === 0) {
-      // Quit and install immediately
-      setImmediate(() => autoUpdater.quitAndInstall());
-    }
-  });
+  // Popup removed - user can restart via in-app restart button in settings
 });
 
 autoUpdater.on('error', (error) => {
