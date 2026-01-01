@@ -391,13 +391,13 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
             </div>
 
             <div class="sixth-section">
-                <div class="declaration" contenteditable="true">
+                <div class="declaration">
                     <p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
                 </div>
             </div>
 
             <div class="seventh-section">
-                <div class="terms-section" contenteditable="true">
+                <div class="terms-section">
                     <h3>Terms & Conditions:</h3>
                     <p>1. Payment should be made within 15 days from the date of invoice.</p>
                     <p>2. Interest @ 18% per annum will be charged for the delayed payment.</p>
