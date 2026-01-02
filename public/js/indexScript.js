@@ -267,9 +267,7 @@ function performLogin() {
                 sessionStorage.setItem('username', result.username);
                 sessionStorage.setItem('sessionTimeout', result.sessionTimeout || 30);
                 sessionStorage.setItem('loginTime', Date.now());
-
-                // Start session timeout monitor
-                startSessionMonitor();
+                sessionStorage.setItem('lastActivity', Date.now());
 
                 // Show success state
                 loginBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Success! Redirecting...';
@@ -407,66 +405,6 @@ function startLockoutCountdown(minutes, loginBtn, originalBtnContent) {
     // Disable login button
     loginBtn.disabled = true;
     loginBtn.innerHTML = '<i class="fas fa-lock mr-2"></i>Account Locked';
-}
-
-// Session timeout monitor
-let sessionTimeoutId = null;
-let activityCheckId = null;
-
-function startSessionMonitor() {
-    const sessionTimeout = parseInt(sessionStorage.getItem('sessionTimeout') || '30');
-    const loginTime = parseInt(sessionStorage.getItem('loginTime'));
-    
-    // Clear any existing timers
-    if (sessionTimeoutId) clearTimeout(sessionTimeoutId);
-    if (activityCheckId) clearInterval(activityCheckId);
-    
-    // Set timeout for session expiration
-    const timeoutMs = sessionTimeout * 60 * 1000;
-    sessionTimeoutId = setTimeout(() => {
-        handleSessionTimeout();
-    }, timeoutMs);
-    
-    // Check every minute if session should expire
-    activityCheckId = setInterval(() => {
-        const elapsed = Date.now() - loginTime;
-        if (elapsed >= timeoutMs) {
-            handleSessionTimeout();
-        }
-    }, 60000); // Check every minute
-}
-
-function handleSessionTimeout() {
-    // Clear timers
-    if (sessionTimeoutId) clearTimeout(sessionTimeoutId);
-    if (activityCheckId) clearInterval(activityCheckId);
-    
-    // Clear session
-    sessionStorage.clear();
-    
-    // Show alert and redirect to login
-    window.electronAPI.showAlert1("Session expired due to inactivity. Please login again.");
-    window.location = '/';
-}
-
-// Reset session timer on user activity
-let lastActivity = Date.now();
-const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart'];
-
-activityEvents.forEach(event => {
-    document.addEventListener(event, () => {
-        const now = Date.now();
-        // Only reset if more than 1 minute has passed since last activity
-        if (now - lastActivity > 60000) {
-            lastActivity = now;
-            sessionStorage.setItem('loginTime', now);
-        }
-    }, true);
-});
-
-// Start session monitor on page load if user is logged in
-if (sessionStorage.getItem('userRole') && sessionStorage.getItem('loginTime')) {
-    startSessionMonitor();
 }
 
 // Enter key handler for login

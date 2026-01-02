@@ -1092,4 +1092,87 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize drag-drop for specifications container (if exists)
     window.itemReorder.initDragDrop('specifications-container', updateSpecificationNumbers);
   }
+  
+  // Start session timeout monitor
+  startSessionMonitor();
+});
+
+// --- SESSION TIMEOUT FUNCTIONALITY ---
+
+let sessionTimeoutId = null;
+let activityCheckId = null;
+
+/**
+ * Starts the session timeout monitor
+ */
+function startSessionMonitor() {
+  // Check if user is logged in
+  const userRole = sessionStorage.getItem('userRole');
+  const loginTime = sessionStorage.getItem('loginTime');
+  
+  if (!userRole || !loginTime) {
+    return; // Not logged in, don't start monitor
+  }
+  
+  const sessionTimeout = parseInt(sessionStorage.getItem('sessionTimeout') || '30');
+  
+  // Clear any existing timers
+  if (sessionTimeoutId) clearTimeout(sessionTimeoutId);
+  if (activityCheckId) clearInterval(activityCheckId);
+  
+  // Set timeout for session expiration
+  const timeoutMs = sessionTimeout * 60 * 1000;
+  
+  // Check every minute if session should expire
+  activityCheckId = setInterval(() => {
+    const elapsed = Date.now() - parseInt(sessionStorage.getItem('loginTime'));
+    if (elapsed >= timeoutMs) {
+      handleSessionTimeout();
+    }
+  }, 60000); // Check every minute
+}
+
+/**
+ * Handles session timeout - logs out user
+ */
+function handleSessionTimeout() {
+  // Clear timers
+  if (sessionTimeoutId) clearTimeout(sessionTimeoutId);
+  if (activityCheckId) clearInterval(activityCheckId);
+  
+  // Clear session
+  sessionStorage.clear();
+  
+  // Show alert and redirect to login
+  if (window.electronAPI && window.electronAPI.showAlert1) {
+    window.electronAPI.showAlert1("Session expired due to inactivity. Please login again.");
+  }
+  
+  // Redirect to login page
+  setTimeout(() => {
+    window.location = '/';
+  }, 100);
+}
+
+/**
+ * Resets the session timer on user activity
+ */
+function resetSessionTimer() {
+  const loginTime = sessionStorage.getItem('loginTime');
+  if (loginTime) {
+    const now = Date.now();
+    const lastActivity = parseInt(sessionStorage.getItem('lastActivity') || loginTime);
+    
+    // Only reset if more than 1 minute has passed since last activity
+    if (now - lastActivity > 60000) {
+      sessionStorage.setItem('loginTime', now.toString());
+      sessionStorage.setItem('lastActivity', now.toString());
+    }
+  }
+}
+
+// Reset session timer on user activity
+const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+activityEvents.forEach(event => {
+  document.addEventListener(event, resetSessionTimer, true);
 });
