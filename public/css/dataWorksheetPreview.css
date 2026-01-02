@@ -18,9 +18,15 @@
 
 /* Container */
 .dw-wrapper {
-    padding: 20px;
+    padding: 10mm 10mm;
     border: 1px solid #ddd;
     background: white;
+}
+
+/* Page setup for PDF */
+@page {
+    size: A4;
+    margin: 5mm 5mm;
 }
 
 /* Header */
@@ -205,5 +211,11 @@
 
     body {
         background: white;
+        margin: 0;
+    }
+
+    @page {
+        size: A4;
+        margin: 5mm 5mm;
     }
 }

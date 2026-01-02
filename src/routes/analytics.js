@@ -14,12 +14,10 @@ router.get('/overview', async (req, res) => {
     const totalProjects = await Invoices.countDocuments();
     const totalQuotations = await Quotations.countDocuments();
 
-    // Count distinct projects with unpaid invoices (not invoice documents)
-    const unpaidProjectsResult = await Invoices.aggregate([
-      { $match: { payment_status: { $in: ['Unpaid', 'Partial'] } } },
-      { $group: { _id: '$project_name' } }
-    ]);
-    const totalUnpaid = unpaidProjectsResult.length;
+    // Count total unpaid invoices (not distinct projects)
+    const totalUnpaid = await Invoices.countDocuments({
+      payment_status: { $in: ['Unpaid', 'Partial'] }
+    });
 
     /* ────────────────────── Monthly invoice earnings (Paid) ───────────────── */
     // Calculate total earned: Sum of payments received in current month only
