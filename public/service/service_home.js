@@ -302,6 +302,9 @@ function createPendingServiceDiv(service) {
                         <button class="open-service px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400 font-medium" data-id="${service.invoice_id}" title="Open Service">
                             <i class="fas fa-folder-open mr-2"></i>Open
                         </button>
+                        <button class="close-service px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400 font-medium" data-id="${service.invoice_id}" title="Close Service">
+                            <i class="fas fa-times-circle mr-2"></i>Close
+                        </button>
                     </div>
                 </div>
             </div>
@@ -439,9 +442,6 @@ function createServiceHistoryDiv(service) {
                         </button>
                         <button class="payment-service px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" data-id="${service.service_id}" title="Payment">
                             <i class="fas fa-credit-card"></i>
-                        </button>
-                        <button class="delete-service px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" data-id="${service.service_id}" title="Delete">
-                            <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </div>
@@ -775,6 +775,8 @@ async function handleServiceListClick(event) {
 
     if (target.classList.contains("open-service")) {
         await openService(serviceId);
+    } else if (target.classList.contains("close-service")) {
+        await closeService(serviceId);
     } else if (target.classList.contains("view-service")) {
         if (typeof viewService === 'function') {
             await viewService(serviceId);
@@ -1111,6 +1113,34 @@ function handleKeyboardShortcuts(event) {
 }
 
 // Delete service with cascading effect
+async function closeService(invoiceId) {
+    window.electronAPI.showAlert2('Are you sure you want to close this service? This will set service month to 0.');
+    if (window.electronAPI) {
+        window.electronAPI.receiveAlertResponse(async (response) => {
+            if (response !== "Yes") return;
+
+            try {
+                const closeResponse = await fetch(`/invoice/close-service/${invoiceId}`, {
+                    method: 'POST'
+                });
+
+                if (!closeResponse.ok) {
+                    throw new Error('Failed to close service');
+                }
+
+                const data = await closeResponse.json();
+                window.electronAPI.showAlert1(data.message || 'Service closed successfully');
+                
+                // Reload pending services to reflect the change
+                loadPendingServices();
+            } catch (error) {
+                console.error('Error closing service:', error);
+                window.electronAPI.showAlert1('Failed to close service. Please try again.');
+            }
+        });
+    }
+}
+
 async function deleteService(serviceId) {
     if (typeof showConfirm !== 'function') {
         if (!confirm('Delete this service record? This will decrement the invoice service stage.')) {

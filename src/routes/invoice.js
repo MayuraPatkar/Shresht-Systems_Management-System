@@ -448,4 +448,29 @@ router.delete("/:invoiceId", async (req, res) => {
     }
 });
 
+// Close service - set service_month to 0
+router.post("/close-service/:invoiceId", async (req, res) => {
+    try {
+        const { invoiceId } = req.params;
+        
+        const invoice = await Invoices.findOne({ invoice_id: invoiceId });
+        if (!invoice) {
+            return res.status(404).json({ message: 'Invoice not found' });
+        }
+
+        // Set service_month to 0 to indicate service is closed
+        invoice.service_month = 0;
+        await invoice.save();
+
+        logger.info(`Service closed for invoice ${invoiceId}`);
+        res.status(200).json({ 
+            message: 'Service closed successfully. No further services will be scheduled.', 
+            invoice 
+        });
+    } catch (error) {
+        logger.error("Error closing service:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+});
+
 module.exports = router;
