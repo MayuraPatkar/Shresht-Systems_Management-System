@@ -277,10 +277,36 @@ function setupIPCHandlers() {
   ipcMain.handle('open-backup-folder', async () => {
     try {
       const { shell } = require('electron');
-      const folderPath = global.appPaths && global.appPaths.backups;
+      let folderPath = global.appPaths && global.appPaths.backups;
+
+      // Try to get custom backup location from settings
+      try {
+        // Ensure DB is connected
+        if (mongoose.connection.readyState === 1) {
+          let Settings;
+          try {
+            Settings = mongoose.model('Settings');
+          } catch (e) {
+            Settings = require('./src/models/Settings');
+          }
+          
+          const settings = await Settings.findOne();
+          if (settings && settings.backup && settings.backup.backup_location) {
+            folderPath = settings.backup.backup_location;
+          }
+        }
+      } catch (dbErr) {
+        logger.warn('Failed to fetch settings for backup folder:', dbErr);
+      }
+
       if (!folderPath) {
         logger.warn('Backup folder not configured');
         return { success: false, message: 'Backup folder not configured' };
+      }
+
+      // Resolve relative paths
+      if (!path.isAbsolute(folderPath)) {
+        folderPath = path.resolve(global.appPaths.root, folderPath);
       }
 
       const result = await shell.openPath(folderPath);
