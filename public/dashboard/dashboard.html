@@ -97,7 +97,8 @@
     </header>
 
     <!-- Sidebar -->
-    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24" style="width: 280px;">
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24"
+        style="width: 280px;">
         <!-- Navigation Links -->
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
@@ -162,7 +163,7 @@
 
     <!-- Main Content -->
     <main class="ml-[280px] pt-24 mt-6 p-8 no-select">
-        
+
         <!-- Date & Time Banner -->
         <section class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg shadow-md p-6 mb-6 fade-in">
             <div class="flex items-center justify-between">
@@ -190,27 +191,27 @@
                 <h2 class="text-xl font-semibold text-gray-800">Quick Actions</h2>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                <a href="../quotation/quotation.html?new=1" 
+                <a href="../quotation/quotation.html?new=1"
                     class="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200">
                     <i class="fas fa-file-alt text-blue-600 text-3xl"></i>
                     <span class="text-sm font-medium text-gray-700">New Quotation</span>
                 </a>
-                <a href="../invoice/invoice.html?new=1" 
+                <a href="../invoice/invoice.html?new=1"
                     class="flex flex-col items-center gap-2 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200">
                     <i class="fas fa-file-invoice text-green-600 text-3xl"></i>
                     <span class="text-sm font-medium text-gray-700">New Invoice</span>
                 </a>
-                <a href="../waybill/wayBill.html?new=1" 
+                <a href="../waybill/wayBill.html?new=1"
                     class="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200">
                     <i class="fas fa-truck text-purple-600 text-3xl"></i>
                     <span class="text-sm font-medium text-gray-700">New Waybill</span>
                 </a>
-                <a href="../stock/stock.html?new=1" 
+                <a href="../stock/stock.html?new=1"
                     class="flex flex-col items-center gap-2 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200">
                     <i class="fas fa-box text-orange-600 text-3xl"></i>
                     <span class="text-sm font-medium text-gray-700">Add Stock</span>
                 </a>
-                <a href="../service/service.html?new=1" 
+                <a href="../service/service.html?new=1"
                     class="flex flex-col items-center gap-2 p-4 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors border border-teal-200">
                     <i class="fas fa-wrench text-teal-600 text-3xl"></i>
                     <span class="text-sm font-medium text-gray-700">New Service</span>
@@ -220,7 +221,7 @@
 
         <!-- Statistics Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            
+
             <!-- Total Quotations Card -->
             <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500 fade-in">
                 <div class="flex items-center justify-between mb-4">
@@ -297,7 +298,7 @@
 
         <!-- Two Column Layout for Recent Activity and Stock Alerts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            
+
             <!-- Recent Activity Section -->
             <section class="bg-white rounded-lg shadow-md border border-gray-200 fade-in">
                 <div class="p-6 border-b border-gray-200">
@@ -306,7 +307,7 @@
                             <i class="fas fa-history text-indigo-600 text-2xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Recent Activity</h2>
                         </div>
-                        <button onclick="refreshActivity()" class="text-blue-600 hover:text-blue-700">
+                        <button id="refresh-activity-btn" class="text-blue-600 hover:text-blue-700">
                             <i class="fas fa-sync-alt"></i>
                         </button>
                     </div>
@@ -355,7 +356,7 @@
                     <i class="fas fa-tasks text-purple-600 text-2xl"></i>
                     <h2 class="text-xl font-semibold text-gray-800">Pending Tasks & Reminders</h2>
                 </div>
-                <button onclick="refreshTasks()" class="text-blue-600 hover:text-blue-700">
+                <button id="refresh-tasks-btn" class="text-blue-600 hover:text-blue-700">
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
@@ -441,10 +442,10 @@
     <script src="../js/shared/utils.js"></script>
     <script src="../js/shared/calculations.js"></script>
     <script src="../js/shared/ipc.js"></script>
-    
+
     <!-- Shared scripts -->
     <script src="../js/shared/globalScript.js"></script>
-    
+
     <!-- Module-specific scripts -->
     <script src="./dashboard.js"></script>
 </body>
