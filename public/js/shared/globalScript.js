@@ -276,6 +276,7 @@ function addItem(insertAtIndex) {
   // Create card element
   const card = document.createElement("div");
   card.className = "item-card";
+  card.setAttribute("draggable", "true");
 
   card.innerHTML = `
     <div class="item-number">${itemNumber}</div>
@@ -304,9 +305,6 @@ function addItem(insertAtIndex) {
     </div>
     
     <div class="item-actions">
-      <button type="button" class="insert-item-btn" title="Insert Item Below">
-        <i class="fas fa-plus"></i>
-      </button>
       <button type="button" class="remove-item-btn" title="Remove Item">
         <i class="fas fa-trash-alt"></i>
       </button>
@@ -411,16 +409,6 @@ function addItem(insertAtIndex) {
     updateSpecificationsTable();
   });
 
-  // Handle insert button
-  const insertBtn = card.querySelector(".insert-item-btn");
-  if (insertBtn) {
-    insertBtn.addEventListener("click", function () {
-      // Get current index again as it might have changed
-      const currentIndex = Array.from(container.children).indexOf(card);
-      addItem(currentIndex + 1);
-    });
-  }
-
   // If we inserted in the middle, we need to re-number everything
   if (typeof insertAtIndex === 'number') {
     updateItemNumbers();
@@ -435,6 +423,7 @@ function addNonItem(insertAtIndex) {
   // Create card element
   const card = document.createElement("div");
   card.className = "non-item-card";
+  card.setAttribute("draggable", "true");
 
   card.innerHTML = `
     <div class="item-number">${itemNumber}</div>
@@ -452,9 +441,6 @@ function addNonItem(insertAtIndex) {
     </div>
     
     <div class="item-actions">
-        <button type="button" class="insert-item-btn" title="Insert Item Below">
-            <i class="fas fa-plus"></i>
-        </button>
         <button type="button" class="remove-item-btn" title="Remove Item">
             <i class="fas fa-trash-alt"></i>
         </button>
@@ -523,15 +509,6 @@ function addNonItem(insertAtIndex) {
     updateNonItemNumbers();
     updateSpecificationsTable();
   });
-
-  // Handle insert button
-  const insertBtn = card.querySelector(".insert-item-btn");
-  if (insertBtn) {
-    insertBtn.addEventListener("click", function () {
-      const currentIndex = Array.from(container.children).indexOf(card);
-      addNonItem(currentIndex + 1);
-    });
-  }
 
   // If inserted, renumber
   if (typeof insertAtIndex === 'number') {
@@ -1046,5 +1023,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (e) {
     console.error('Auto-open new form handler failed:', e);
+  }
+});
+
+// Initialize drag-drop reordering for item containers
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if itemReorder is available (script must be loaded before this)
+  if (window.itemReorder && typeof window.itemReorder.initDragDrop === 'function') {
+    // Initialize drag-drop for items container
+    window.itemReorder.initDragDrop('items-container', updateItemNumbers);
+    // Initialize drag-drop for non-items container
+    window.itemReorder.initDragDrop('non-items-container', updateNonItemNumbers);
+    // Initialize drag-drop for specifications container (if exists)
+    window.itemReorder.initDragDrop('specifications-container', updateSpecificationNumbers);
   }
 });

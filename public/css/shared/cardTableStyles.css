@@ -302,6 +302,30 @@
     pointer-events: none;
 }
 
+/* Drag and Drop States */
+.item-card.dragging,
+.non-item-card.dragging,
+.spec-card.dragging {
+    opacity: 0.5;
+    border: 2px dashed #3b82f6;
+    background: #eff6ff;
+}
+
+.item-card.drag-over,
+.non-item-card.drag-over,
+.spec-card.drag-over {
+    border-top: 3px solid #3b82f6;
+    margin-top: -2px;
+    padding-top: calc(0.75rem + 2px);
+}
+
+/* Draggable cursor */
+.item-card[draggable="true"],
+.non-item-card[draggable="true"],
+.spec-card[draggable="true"] {
+    cursor: default;
+}
+
 /* Autocomplete Suggestions */
 .suggestions {
     position: absolute;

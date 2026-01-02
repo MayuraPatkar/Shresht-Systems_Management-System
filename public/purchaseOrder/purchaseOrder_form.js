@@ -540,6 +540,7 @@ async function openPurchaseOrder(purchaseOrderId) {
         // Create card
         const card = document.createElement("div");
         card.className = "item-card";
+        card.setAttribute("draggable", "true");
         card.innerHTML = `
                 <div class="item-row-1">
                     <div class="item-number">${sno}</div>
@@ -562,9 +563,6 @@ async function openPurchaseOrder(purchaseOrderId) {
                         <input type="number" value="${item.rate}" placeholder="GST %" min="0" step="0.01">
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -663,15 +661,6 @@ async function openPurchaseOrder(purchaseOrderId) {
             row.remove();
             renumberItems();
         });
-
-        // Add insert button event listener
-        const insertBtn = card.querySelector(".insert-item-btn");
-        if (insertBtn) {
-            insertBtn.addEventListener("click", function () {
-                const currentIndex = Array.from(itemsContainer.children).indexOf(card);
-                addPurchaseOrderItem(currentIndex + 1);
-            });
-        }
 
         sno++;
     });
@@ -1107,6 +1096,7 @@ if (addItemBtn) {
         // Create card element
         const card = document.createElement("div");
         card.className = "item-card";
+        card.setAttribute("draggable", "true");
 
         card.innerHTML = `
     <div class="item-row-1">
@@ -1130,9 +1120,6 @@ if (addItemBtn) {
             <input type="number" placeholder="GST %" min="0" step="0.01">
         </div>
         <div class="item-actions">
-            <button type="button" class="insert-item-btn" title="Insert Item Below">
-                <i class="fas fa-plus"></i>
-            </button>
             <button type="button" class="remove-item-btn" title="Remove Item">
                 <i class="fas fa-trash-alt"></i>
             </button>
@@ -1266,15 +1253,6 @@ if (addItemBtn) {
             });
         }
 
-        // Add insert button event listener for CARD
-        const insertBtn = card.querySelector(".insert-item-btn");
-        if (insertBtn) {
-            insertBtn.addEventListener("click", function () {
-                const currentIndex = Array.from(container.children).indexOf(card);
-                addPurchaseOrderItem(currentIndex + 1);
-            });
-        }
-
         // Add remove button event listener for TABLE ROW
         const tableRemoveBtn = row.querySelector(".remove-item-btn");
         if (tableRemoveBtn) {
@@ -1403,5 +1381,9 @@ window.validateCurrentStep = async function () {
     return true;
 };
 
-
-
+// Initialize drag-drop reordering for purchase order items
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.itemReorder && typeof window.itemReorder.initDragDrop === 'function') {
+        window.itemReorder.initDragDrop('items-container', renumberItems);
+    }
+});

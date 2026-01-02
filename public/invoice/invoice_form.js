@@ -163,6 +163,7 @@ window.beforeStepAdvance = async function (step) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${sno}</div>
                     <div class="item-field description">
@@ -184,9 +185,6 @@ window.beforeStepAdvance = async function (step) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -224,15 +222,6 @@ window.beforeStepAdvance = async function (step) {
                     updateItemNumbers();
                 });
 
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(itemsContainer.children).indexOf(card);
-                        addItem(currentIndex + 1);
-                    });
-                }
-
                 sno++;
             });
 
@@ -241,6 +230,7 @@ window.beforeStepAdvance = async function (step) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "non-item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${sno}</div>
                     <div class="non-item-field description">
@@ -253,9 +243,6 @@ window.beforeStepAdvance = async function (step) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -289,15 +276,6 @@ window.beforeStepAdvance = async function (step) {
                     card.remove();
                     row.remove();
                 });
-
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(nonItemsContainer.children).indexOf(card);
-                        addNonItem(currentIndex + 1);
-                    });
-                }
 
                 sno++;
             });
@@ -377,6 +355,7 @@ async function openInvoice(id) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${s}</div>
                     <div class="item-field description">
@@ -398,9 +377,6 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -437,15 +413,6 @@ async function openInvoice(id) {
                     row.remove();
                     updateItemNumbers();
                 });
-
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(itemsContainer.children).indexOf(card);
-                        addItem(currentIndex + 1);
-                    });
-                }
 
                 s++;
             });
@@ -454,6 +421,7 @@ async function openInvoice(id) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "non-item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${s}</div>
                     <div class="non-item-field description">
@@ -466,9 +434,6 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -503,15 +468,6 @@ async function openInvoice(id) {
                     row.remove();
                 });
 
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(nonItemsContainer.children).indexOf(card);
-                        addNonItem(currentIndex + 1);
-                    });
-                }
-
                 s++;
             });
         } else {
@@ -519,6 +475,7 @@ async function openInvoice(id) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${s}</div>
                     <div class="item-field description">
@@ -540,9 +497,6 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -580,15 +534,6 @@ async function openInvoice(id) {
                     updateItemNumbers();
                 });
 
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(itemsContainer.children).indexOf(card);
-                        addItem(currentIndex + 1);
-                    });
-                }
-
                 s++;
             });
 
@@ -596,6 +541,7 @@ async function openInvoice(id) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "non-item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${s}</div>
                     <div class="non-item-field description">
@@ -608,9 +554,6 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -644,15 +587,6 @@ async function openInvoice(id) {
                     card.remove();
                     row.remove();
                 });
-
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(nonItemsContainer.children).indexOf(card);
-                        addNonItem(currentIndex + 1);
-                    });
-                }
 
                 s++;
             });
