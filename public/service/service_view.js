@@ -572,87 +572,117 @@ async function generateServicePreview(service, invoice) {
 // View service history for an invoice (modal)
 async function viewServiceHistory(invoiceId) {
     try {
+        const modal = document.getElementById('service-history-modal');
+        const timeline = document.getElementById('service-history-timeline');
+        const subtitle = document.getElementById('service-history-subtitle');
+        
+        // Show modal with loading state
+        modal.style.display = 'flex';
+        subtitle.textContent = 'Loading...';
+        timeline.innerHTML = `
+            <div class="flex items-center justify-center py-16">
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin text-blue-500 text-4xl mb-4"></i>
+                    <p class="text-gray-500">Loading service history...</p>
+                </div>
+            </div>
+        `;
+        
         const response = await fetch(`/service/history/${invoiceId}`);
         if (!response.ok) throw new Error("Failed to fetch service history");
         
         const data = await response.json();
         const services = data.services || [];
         
-        // Show modal
-        const modal = document.getElementById('service-history-modal');
-        const timeline = document.getElementById('service-history-timeline');
-        
-        modal.style.display = 'flex';
-        timeline.innerHTML = '';
+        // Update subtitle
+        subtitle.textContent = `Invoice: ${invoiceId} • ${services.length} service(s) completed`;
         
         if (services.length === 0) {
-            timeline.style.overflowY = 'hidden';
             timeline.innerHTML = `
-                <div class="text-center py-12">
-                    <i class="fas fa-history text-6xl text-gray-300 mb-4"></i>
-                    <p class="text-xl font-semibold text-gray-600">No service history found for this invoice</p>
+                <div class="flex flex-col items-center justify-center py-20">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-inbox text-gray-400 text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">No Service Records</h3>
+                    <p class="text-gray-500">No service history found for this invoice</p>
                 </div>
             `;
             return;
         }
         
-        // Enable scrolling when there's content
-        timeline.style.overflowY = 'auto';
+        // Get stage colors
+        const getStageColors = (stage) => {
+            const colors = [
+                { bg: 'bg-blue-500', light: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: 'text-blue-500' },
+                { bg: 'bg-green-500', light: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: 'text-green-500' },
+                { bg: 'bg-purple-500', light: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', icon: 'text-purple-500' },
+                { bg: 'bg-orange-500', light: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', icon: 'text-orange-500' },
+                { bg: 'bg-teal-500', light: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', icon: 'text-teal-500' }
+            ];
+            return colors[Math.max(0, (stage - 1) % colors.length)];
+        };
         
-        // Build timeline
-        const timelineHTML = services.map((service, index) => {
-            const isLast = index === services.length - 1;
+        // Build modern card-based layout
+        const servicesHTML = services.map((service, index) => {
             const serviceStage = service.service_stage || 0;
             const stageLabel = getServiceStageLabel(serviceStage);
             const serviceDate = service.service_date ? formatDateIndian(service.service_date) : 'N/A';
             const grandTotal = formatIndianCurrency(service.total_amount_with_tax || 0);
-            
-            const stageBadgeColors = [
-                'bg-blue-500',
-                'bg-green-500',
-                'bg-purple-500',
-                'bg-orange-500',
-                'bg-teal-500'
-            ];
-            const colorIndex = Math.max(0, (serviceStage - 1) % stageBadgeColors.length);
-            const dotColor = stageBadgeColors[colorIndex];
-            const badgeColorName = dotColor.split('-')[1] || 'blue';
+            const colors = getStageColors(serviceStage);
             
             return `
-                <div class="flex gap-4 mb-6 ${isLast ? '' : 'pb-6 border-l-2 border-gray-200 ml-4'}">
-                    <div class="relative">
-                        <div class="w-8 h-8 rounded-full ${dotColor} flex items-center justify-center shadow-lg -ml-[17px]">
-                            <i class="fas fa-wrench text-white text-sm"></i>
+                <div class="group bg-white rounded-xl border-2 ${colors.border} hover:shadow-xl transition-all duration-300 overflow-hidden">
+                    <!-- Card Header -->
+                    <div class="${colors.light} px-6 py-4 border-b ${colors.border} flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 ${colors.bg} rounded-lg flex items-center justify-center shadow-lg">
+                                <span class="text-white font-bold text-lg">${index + 1}</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold ${colors.text}">${stageLabel}</h3>
+                                <p class="text-sm text-gray-600 font-medium">Service ID: <span class="${colors.icon}">${service.service_id || 'N/A'}</span></p>
+                            </div>
+                        </div>
+                        <div class="px-4 py-2 ${colors.bg} text-white rounded-lg text-sm font-semibold shadow-md">
+                            ${ordinalSuffix(index + 1)} Service
                         </div>
                     </div>
-                    <div class="flex-1 bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-all">
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-900">${stageLabel}</h3>
-                                <p class="text-sm text-gray-600">Service ID: <span class="font-semibold text-blue-600">${service.service_id || 'N/A'}</span></p>
+                    
+                    <!-- Card Body -->
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 gap-6 mb-6">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 ${colors.light} rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-calendar-alt ${colors.icon}"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Service Date</p>
+                                    <p class="text-gray-900 font-bold text-base">${serviceDate}</p>
+                                </div>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-sm font-semibold bg-${badgeColorName}-100 text-${badgeColorName}-700">
-                                ${stageLabel}
-                            </span>
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-rupee-sign text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Amount</p>
+                                    <p class="text-green-600 font-bold text-xl">${grandTotal}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Service Date</p>
-                                <p class="font-semibold text-gray-800">${serviceDate}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Amount</p>
-                                <p class="font-semibold text-green-600 text-lg">${grandTotal}</p>
-                            </div>
-                        </div>
+                        
                         ${service.notes ? `
-                        <div class="mb-4">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Notes</p>
-                            <p class="text-sm text-gray-700">${service.notes}</p>
+                        <div class="${colors.light} rounded-lg p-4 mb-4 border ${colors.border}">
+                            <div class="flex items-start gap-2 mb-2">
+                                <i class="fas fa-sticky-note ${colors.icon} mt-1"></i>
+                                <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Notes</p>
+                            </div>
+                            <p class="text-sm text-gray-700 leading-relaxed">${service.notes}</p>
                         </div>
                         ` : ''}
+                        
                         <button data-service-id="${service.service_id}" 
-                            class="view-service-details-btn px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2 text-sm font-medium">
+                            class="view-service-details-btn w-full px-6 py-3 ${colors.bg} text-white rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2 font-semibold shadow-md hover:shadow-lg">
                             <i class="fas fa-eye"></i>
                             View Details
                         </button>
@@ -662,19 +692,35 @@ async function viewServiceHistory(invoiceId) {
         }).join('');
         
         timeline.innerHTML = `
-            <div class="mb-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Service History for Invoice: ${invoiceId}</h3>
-                <p class="text-gray-600">${services.length} service(s) completed</p>
-            </div>
-            <div class="mt-6">
-                ${timelineHTML}
+            <div class="grid grid-cols-1 gap-6">
+                ${servicesHTML}
             </div>
         `;
         
     } catch (error) {
         console.error("Error fetching service history:", error);
+        const timeline = document.getElementById('service-history-timeline');
+        timeline.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-20">
+                <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">Failed to Load</h3>
+                <p class="text-gray-500">Unable to fetch service history</p>
+            </div>
+        `;
         window.electronAPI?.showAlert1("Failed to load service history");
     }
+}
+
+// Helper function to add ordinal suffix (1st, 2nd, 3rd, etc.)
+function ordinalSuffix(num) {
+    const j = num % 10;
+    const k = num % 100;
+    if (j === 1 && k !== 11) return num + "st";
+    if (j === 2 && k !== 12) return num + "nd";
+    if (j === 3 && k !== 13) return num + "rd";
+    return num + "th";
 }
 
 // Close modal event listener

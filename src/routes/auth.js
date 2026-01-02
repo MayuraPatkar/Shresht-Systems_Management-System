@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const { Admin } = require('../models');
+const { Admin, Settings } = require('../models');
 const logger = require('../utils/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
 const validators = require('../middleware/validators');
@@ -10,27 +10,73 @@ const validators = require('../middleware/validators');
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
+        // Get security settings
+        const settings = await Settings.findOne();
+        const maxAttempts = settings?.security?.max_login_attempts || 5;
+        const lockoutDuration = settings?.security?.lockout_duration || 15; // minutes
+
         // Fetch the user document from the collection
         const user = await Admin.findOne(username ? { username } : {});
         if (!user || user.username !== username) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
+        // Check if account is locked
+        if (user.lockUntil && user.lockUntil > Date.now()) {
+            const remainingTime = Math.ceil((user.lockUntil - Date.now()) / 60000);
+            logger.warn(`Login attempt on locked account: ${user.username}`);
+            return res.status(423).json({ 
+                success: false, 
+                message: `Account is locked. Try again in ${remainingTime} minute(s).`,
+                locked: true,
+                remainingTime
+            });
+        }
+
         // Use bcrypt to compare hashed passwords
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
-            logger.warn('Authentication failed due to invalid password');
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+            // Increment login attempts
+            user.loginAttempts = (user.loginAttempts || 0) + 1;
+            
+            // Lock account if max attempts reached
+            if (user.loginAttempts >= maxAttempts) {
+                user.lockUntil = new Date(Date.now() + lockoutDuration * 60000);
+                await user.save();
+                logger.warn(`Account locked due to failed login attempts: ${user.username}`);
+                return res.status(423).json({ 
+                    success: false, 
+                    message: `Account locked for ${lockoutDuration} minutes due to too many failed attempts.`,
+                    locked: true,
+                    remainingTime: lockoutDuration
+                });
+            }
+            
+            await user.save();
+            const attemptsRemaining = maxAttempts - user.loginAttempts;
+            logger.warn(`Authentication failed for ${user.username}. Attempts remaining: ${attemptsRemaining}`);
+            return res.status(401).json({ 
+                success: false, 
+                message: `Invalid credentials. ${attemptsRemaining} attempt(s) remaining.`,
+                attemptsRemaining
+            });
         }
 
-        const role = user.role; // Fixed: added const declaration
+        // Reset login attempts on successful login
+        user.loginAttempts = 0;
+        user.lockUntil = null;
+        user.lastLogin = new Date();
+        await user.save();
+
+        const role = user.role;
 
         logger.info(`Login successful for ${role}: ${user.username}`);
         res.status(200).json({
             success: true,
             message: 'Login successful',
             role: role,
-            username: user.username
+            username: user.username,
+            sessionTimeout: settings?.security?.session_timeout || 30
         });
     } catch (error) {
         logger.error('Error during login:', error);

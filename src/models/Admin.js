@@ -22,8 +22,17 @@ const adminSchema = new mongoose.Schema({
         IFSC_code: { type: String },
         branch: { type: String },
     },
+    // Security fields
+    loginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date },
+    lastLogin: { type: Date },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+});
+
+// Virtual for checking if account is locked
+adminSchema.virtual('isLocked').get(function() {
+    return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
 // Update timestamp on save

@@ -753,19 +753,30 @@
     </div>
 
     <!-- Service History Modal -->
-    <div id="service-history-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center" style="display: none;">
-        <div class="bg-white rounded-lg shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-                    <i class="fas fa-history"></i>
-                    Service History
-                </h2>
-                <button id="close-history-modal" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all">
+    <div id="service-history-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm z-50 flex items-center justify-center" style="display: none;">
+        <div class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl max-w-5xl w-full mx-4 max-h-[92vh] overflow-hidden border border-gray-200">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 px-8 py-6 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                        <i class="fas fa-history text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Service History</h2>
+                        <p class="text-blue-100 text-sm" id="service-history-subtitle">Loading...</p>
+                    </div>
+                </div>
+                <button id="close-history-modal" class="w-10 h-10 flex items-center justify-center text-white hover:bg-white hover:bg-opacity-20 rounded-xl transition-all duration-200">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            <div class="p-6 max-h-[70vh]" id="service-history-timeline">
-                <!-- Service history timeline will be loaded here -->
+            
+            <!-- Content -->
+            <div class="p-8 max-h-[calc(92vh-120px)] overflow-y-auto" id="service-history-timeline">
+                <!-- Service history will be loaded here -->
+                <div class="flex items-center justify-center py-16">
+                    <i class="fas fa-spinner fa-spin text-blue-500 text-4xl"></i>
+                </div>
             </div>
         </div>
     </div>

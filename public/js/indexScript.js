@@ -226,6 +226,8 @@ document.getElementById('login-btn').addEventListener('click', (e) => {
 });
 
 // Perform login function
+let lockoutCountdownInterval = null;
+
 function performLogin() {
     // Get user inputs
     const username = document.getElementById('username').value.trim();
@@ -233,9 +235,12 @@ function performLogin() {
 
     // Validate inputs
     if (!username || !password) {
-        window.electronAPI.showAlert1("Please enter both username and password");
+        showLoginMessage('Please enter both username and password', 'error');
         return;
     }
+
+    // Clear any existing messages
+    hideLoginMessage();
 
     // Disable button and show loading state
     const loginBtn = document.getElementById('login-btn');
@@ -257,9 +262,12 @@ function performLogin() {
         .then(response => response.json())
         .then(result => {
             if (result && result.success) {
-                // Save user role and username in sessionStorage
+                // Save user role, username, and session info in sessionStorage
                 sessionStorage.setItem('userRole', result.role);
                 sessionStorage.setItem('username', result.username);
+                sessionStorage.setItem('sessionTimeout', result.sessionTimeout || 30);
+                sessionStorage.setItem('loginTime', Date.now());
+                sessionStorage.setItem('lastActivity', Date.now());
 
                 // Show success state
                 loginBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Success! Redirecting...';
@@ -271,22 +279,132 @@ function performLogin() {
                     window.location = '/dashboard';
                 }, 500);
             } else {
-                // Show error
-                window.electronAPI.showAlert1("Invalid username or password");
-
-                // Reset button
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = originalContent;
+                // Handle different error types
+                if (result.locked) {
+                    // Account is locked - show countdown
+                    const remainingMinutes = result.remainingTime || 15;
+                    startLockoutCountdown(remainingMinutes, loginBtn, originalContent);
+                } else if (result.attemptsRemaining !== undefined) {
+                    // Show remaining attempts warning
+                    showLoginMessage(
+                        result.message || 'Invalid credentials',
+                        'warning',
+                        `${result.attemptsRemaining} attempt(s) remaining before account lockout`
+                    );
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = originalContent;
+                } else {
+                    // Generic error
+                    showLoginMessage(result.message || 'Invalid username or password', 'error');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = originalContent;
+                }
             }
         })
         .catch(error => {
             console.error('Login error:', error);
-            window.electronAPI.showAlert1("Connection error. Please try again.");
+            showLoginMessage('Connection error. Please try again.', 'error');
 
             // Reset button
             loginBtn.disabled = false;
             loginBtn.innerHTML = originalContent;
         });
+}
+
+// Show login message on card
+function showLoginMessage(message, type = 'info', subtitle = null) {
+    const messageContainer = document.getElementById('login-message');
+    const messageIcon = document.getElementById('login-message-icon');
+    const messageText = document.getElementById('login-message-text');
+    const messageSubtitle = document.getElementById('login-message-subtitle');
+
+    // Set message content
+    messageText.textContent = message;
+    
+    if (subtitle) {
+        messageSubtitle.textContent = subtitle;
+        messageSubtitle.classList.remove('hidden');
+    } else {
+        messageSubtitle.classList.add('hidden');
+    }
+
+    // Remove all type classes
+    messageContainer.classList.remove('bg-red-50', 'border-red-200', 'text-red-700');
+    messageContainer.classList.remove('bg-yellow-50', 'border-yellow-200', 'text-yellow-700');
+    messageContainer.classList.remove('bg-blue-50', 'border-blue-200', 'text-blue-700');
+    messageContainer.classList.remove('bg-green-50', 'border-green-200', 'text-green-700');
+    messageIcon.classList.remove('text-red-500', 'text-yellow-500', 'text-blue-500', 'text-green-500');
+    messageIcon.classList.remove('fa-exclamation-circle', 'fa-exclamation-triangle', 'fa-info-circle', 'fa-check-circle', 'fa-clock');
+
+    // Apply type-specific styles
+    if (type === 'error') {
+        messageContainer.classList.add('bg-red-50', 'border-red-200', 'text-red-700');
+        messageIcon.classList.add('fa-exclamation-circle', 'text-red-500');
+    } else if (type === 'warning') {
+        messageContainer.classList.add('bg-yellow-50', 'border-yellow-200', 'text-yellow-700');
+        messageIcon.classList.add('fa-exclamation-triangle', 'text-yellow-500');
+    } else if (type === 'success') {
+        messageContainer.classList.add('bg-green-50', 'border-green-200', 'text-green-700');
+        messageIcon.classList.add('fa-check-circle', 'text-green-500');
+    } else if (type === 'locked') {
+        messageContainer.classList.add('bg-red-50', 'border-red-200', 'text-red-700');
+        messageIcon.classList.add('fa-clock', 'text-red-500');
+    } else {
+        messageContainer.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-700');
+        messageIcon.classList.add('fa-info-circle', 'text-blue-500');
+    }
+
+    // Show the message
+    messageContainer.classList.remove('hidden');
+}
+
+// Hide login message
+function hideLoginMessage() {
+    const messageContainer = document.getElementById('login-message');
+    messageContainer.classList.add('hidden');
+}
+
+// Start lockout countdown
+function startLockoutCountdown(minutes, loginBtn, originalBtnContent) {
+    // Clear any existing countdown
+    if (lockoutCountdownInterval) {
+        clearInterval(lockoutCountdownInterval);
+    }
+
+    let remainingSeconds = minutes * 60;
+    
+    const updateCountdown = () => {
+        if (remainingSeconds <= 0) {
+            clearInterval(lockoutCountdownInterval);
+            lockoutCountdownInterval = null;
+            hideLoginMessage();
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = originalBtnContent;
+            showLoginMessage('Account unlocked. You may try logging in again.', 'success');
+            setTimeout(hideLoginMessage, 5000);
+            return;
+        }
+
+        const mins = Math.floor(remainingSeconds / 60);
+        const secs = remainingSeconds % 60;
+        const timeString = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+        showLoginMessage(
+            'Account Locked',
+            'locked',
+            `Too many failed login attempts. Please wait ${timeString} before trying again.`
+        );
+
+        remainingSeconds--;
+    };
+
+    // Update immediately and then every second
+    updateCountdown();
+    lockoutCountdownInterval = setInterval(updateCountdown, 1000);
+
+    // Disable login button
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="fas fa-lock mr-2"></i>Account Locked';
 }
 
 // Enter key handler for login

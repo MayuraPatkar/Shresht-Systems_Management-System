@@ -49,13 +49,8 @@ const settingsSchema = new mongoose.Schema({
     // Security Settings
     security: {
         session_timeout: { type: Number, default: 30 }, // minutes
-        password_min_length: { type: Number, default: 8 },
-        password_require_uppercase: { type: Boolean, default: true },
-        password_require_number: { type: Boolean, default: true },
-        password_require_special: { type: Boolean, default: false },
         max_login_attempts: { type: Number, default: 5 },
         lockout_duration: { type: Number, default: 15 }, // minutes
-        enable_2fa: { type: Boolean, default: false },
     },
 
     // Notification Settings
