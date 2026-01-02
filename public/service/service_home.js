@@ -170,7 +170,7 @@ function formatDateIndian(dateStr) {
 // Helper: Format currency in Indian style
 function formatIndianCurrency(amount) {
     if (!amount && amount !== 0) return 'N/A';
-    return `₹${parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // Tab switching function
@@ -306,78 +306,104 @@ function createServiceHistoryDiv(service) {
     const idx = Math.max(0, ((((Number(service.service_stage) || 0) - 1) % len) + len) % len);
     const badgeColor = stageBadgeColors[idx];
 
+    // Payment Status Logic
+    const totalPaid = service.total_paid_amount || 0;
+    const totalAmount = service.total_amount_with_tax || 0;
+    const dueAmount = totalAmount - totalPaid;
+    let isPaid = totalPaid >= totalAmount && totalAmount > 0;
+    let isPartial = totalPaid > 0 && !isPaid;
+    let paymentStatus = isPaid ? 'Paid' : isPartial ? 'Partial' : 'Unpaid';
+    let statusBadgeColor = isPaid ? 'bg-green-100 text-green-700' : isPartial ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700';
+    
+    // Calculate payment percentage for progress bar
+    let percentPaid = totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : (totalPaid > 0 ? 100 : 0);
+    percentPaid = Math.max(0, Math.min(percentPaid, 100));
+
     div.innerHTML = `
+        <!-- Left Border Accent -->
         <div class="flex">
-            <div class="w-1.5 bg-gradient-to-b from-green-500 to-emerald-600"></div>
+            <div class="w-1.5 bg-gradient-to-b ${isPaid ? 'from-green-500 to-emerald-600' : isPartial ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500'}"></div>
             
-            <div class="flex-1 p-6">
-                <div class="flex items-center justify-between gap-6">
+            <div class="flex-1 p-6 min-w-0">
+                <!-- Main Content Row -->
+                <div class="flex items-center gap-6">
                     
                     <!-- Left Section: Icon + Service Info -->
-                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                    <div class="flex items-center gap-4 min-w-0" style="flex: 1 1 350px; max-width: 450px;">
                         <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-md flex-shrink-0">
                             <i class="fas fa-check-circle text-2xl text-white"></i>
                         </div>
-                        <div class="flex-1 min-w-0">
+                        <div class="flex-1 min-w-0 overflow-hidden">
                             <div class="flex items-center gap-2 mb-1">
-                                <h3 class="text-lg font-bold text-gray-900 truncate">${service.project_name || 'N/A'}</h3>
-                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold ${badgeColor}">
+                                <h3 class="text-lg font-bold text-gray-900 truncate" title="${service.project_name || 'N/A'}">${service.project_name || 'N/A'}</h3>
+                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold ${badgeColor} flex-shrink-0">
                                     ${getServiceStageLabel(service.service_stage)}
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-600">${service.customer_name || 'N/A'}</p>
-                            <p class="text-xs text-gray-500 mt-1">
-                                <i class="fas fa-hashtag"></i> ${service.service_id}
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <p class="text-sm text-gray-600 truncate" title="${service.customer_name || 'N/A'}">${service.customer_name || 'N/A'}</p>
+                                <span class="text-gray-300 flex-shrink-0">|</span>
+                                <p class="text-xs text-gray-500 inline-flex items-center gap-1 flex-shrink-0">
+                                    <i class="fas fa-hashtag text-xs"></i>
+                                    ${service.service_id}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Section: Invoice & Date Info -->
+                    <div class="flex items-center gap-3 min-w-0 px-6 border-l border-r border-gray-200" style="flex: 1 1 300px; max-width: 400px;">
+                        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-file-invoice text-blue-600"></i>
+                        </div>
+                        <div class="flex-1 min-w-0 overflow-hidden">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Invoice</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate" title="${service.invoice_id}">${service.invoice_id}</p>
+                            <p class="text-xs text-gray-600 inline-flex items-center gap-1">
+                                <i class="fas fa-calendar text-xs"></i>
+                                ${serviceDate}
                             </p>
                         </div>
                     </div>
 
-                    <!-- Middle Section: Invoice Info -->
-                    <div class="flex items-center gap-3 flex-1 min-w-0 px-6 border-l border-r border-gray-200">
-                        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-file-invoice text-blue-600"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Invoice</p>
-                            <p class="text-sm font-semibold text-gray-900">${service.invoice_id}</p>
-                        </div>
-                    </div>
-
-                    <!-- Date & Amount Section -->
-                    <div class="flex items-center gap-6 px-6 border-r border-gray-200">
-                        <div class="flex items-center gap-2">
-                            <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-calendar text-orange-600"></i>
+                    <!-- Amount Section -->
+                    <div class="flex items-center px-4 border-r border-gray-200 flex-shrink-0">
+                        <div class="rounded-lg p-3 w-[280px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
+                            <!-- Total Row -->
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
+                                <span class="text-base font-bold" style="color: ${isPaid ? '#059669' : '#dc2626'};">₹${grandTotal}</span>
                             </div>
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Date</p>
-                                <p class="text-sm font-bold text-gray-900">${serviceDate}</p>
+                            <!-- Progress Bar -->
+                            <div class="w-full h-1.5 rounded-full mb-2" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
+                                <div class="h-1.5 rounded-full" style="width: ${percentPaid}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
                             </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-rupee-sign text-green-600"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Amount</p>
-                                <p class="text-sm font-bold text-gray-900">${grandTotal}</p>
+                            <!-- Due/Paid Row -->
+                            <div class="flex items-center justify-between">
+                                ${isPaid ? `
+                                <span class="text-xs font-medium" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
+                                <span class="text-base font-bold" style="color: #059669;">₹${formatIndianCurrency(totalPaid)}</span>
+                                ` : `
+                                <span class="text-xs font-medium uppercase tracking-wide" style="color: #dc2626;">Balance Due</span>
+                                <span class="text-base font-bold" style="color: #dc2626;">₹${formatIndianCurrency(Math.max(0, dueAmount))}</span>
+                                `}
                             </div>
                         </div>
                     </div>
 
                     <!-- Actions Section -->
                     <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
-                        <button class="view-service px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" data-id="${service.service_id}" title="View Service">
+                        <button class="view-service px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" data-id="${service.service_id}" title="View">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="edit-service px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" data-id="${service.service_id}" title="Edit Service">
+                        <button class="edit-service px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" data-id="${service.service_id}" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="delete-service px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" data-id="${service.service_id}" title="Delete Service">
-                            <i class="fas fa-trash-alt"></i>
+                        <button class="payment-service px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" data-id="${service.service_id}" title="Payment">
+                            <i class="fas fa-credit-card"></i>
                         </button>
-                        <button class="print-service px-3 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" data-id="${service.service_id}" title="Print Service">
-                            <i class="fas fa-print"></i>
+                        <button class="delete-service px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" data-id="${service.service_id}" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </div>
@@ -689,7 +715,8 @@ function displayHistorySearchResults(results, query) {
 
 // Handle click events on the service list
 async function handleServiceListClick(event) {
-    const target = event.target;
+    // Handle clicks on child elements (like icons)
+    const target = event.target.closest('button') || event.target;
     const serviceId = target.getAttribute("data-id");
 
     if (!serviceId) return;
@@ -711,8 +738,236 @@ async function handleServiceListClick(event) {
                 document.getElementById('print-service-btn')?.click();
             }, 500);
         }
+    } else if (target.classList.contains("payment-service")) {
+        openPaymentModal(serviceId);
     }
 }
+
+// Payment Modal Logic
+let currentPaymentServiceId = null;
+
+async function openPaymentModal(serviceId) {
+    currentPaymentServiceId = serviceId;
+    
+    // Find service in loaded history
+    const service = allServiceHistory.find(s => s.service_id === serviceId);
+    
+    if (!service) {
+        window.electronAPI.showAlert1('Service not found.');
+        return;
+    }
+
+    const total = service.total_amount_with_tax || 0;
+    const paid = service.total_paid_amount || 0;
+    const due = total - paid;
+
+    if (due <= 0) {
+        window.electronAPI.showAlert1('No outstanding due for this service.');
+        return;
+    }
+
+    // Show Modal
+    const modal = document.getElementById('payment-container');
+    modal.style.display = 'flex';
+    
+    // Update UI
+    document.getElementById('payment-due-amount').textContent = `₹${formatIndianCurrency(due)}`;
+    document.getElementById('paid-amount').value = '';
+    document.getElementById('payment-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('payment-mode').value = 'Cash';
+    document.getElementById('cash-location').value = '';
+    
+    // Handle payment mode change
+    const paymentModeSelect = document.getElementById('payment-mode');
+    const extraDetailsDiv = document.getElementById('extra-payment-details');
+    const extraDetailsLabel = extraDetailsDiv.querySelector('label');
+    const extraDetailsInput = document.getElementById('cash-location');
+
+    // Reset event listener to avoid duplicates
+    const newPaymentModeSelect = paymentModeSelect.cloneNode(true);
+    paymentModeSelect.parentNode.replaceChild(newPaymentModeSelect, paymentModeSelect);
+    
+    newPaymentModeSelect.addEventListener('change', function() {
+        const mode = this.value;
+        if (mode === 'Cash') {
+            extraDetailsDiv.style.display = 'block';
+            extraDetailsLabel.innerHTML = '<i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Cash Location';
+            extraDetailsInput.placeholder = 'Enter cash location';
+        } else if (mode === 'Cheque' || mode === 'Bank Transfer' || mode === 'UPI') {
+            extraDetailsDiv.style.display = 'block';
+            extraDetailsLabel.innerHTML = '<i class="fas fa-info-circle text-gray-500 mr-1"></i>Reference Number';
+            extraDetailsInput.placeholder = 'Enter reference number';
+        } else {
+            extraDetailsDiv.style.display = 'none';
+        }
+    });
+    
+    // Trigger change event to set initial state
+    newPaymentModeSelect.dispatchEvent(new Event('change'));
+
+    // Focus on the first input field
+    setTimeout(() => {
+        const firstInput = document.getElementById('paid-amount');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }, 100);
+}
+
+// Close Payment Modal
+document.getElementById('close-payment-modal')?.addEventListener('click', () => {
+    document.getElementById('payment-container').style.display = 'none';
+});
+
+// Save Payment
+document.getElementById('payment-btn')?.addEventListener('click', async () => {
+    const paymentBtn = document.getElementById('payment-btn');
+
+    // Prevent double submission
+    if (paymentBtn.disabled) return;
+
+    const paidAmountInput = document.getElementById('paid-amount');
+    const paidAmount = parseFloat(paidAmountInput?.value) || 0;
+    const paymentDate = document.getElementById('payment-date').value;
+    const paymentMode = document.getElementById('payment-mode').value;
+
+    // Re-fetch service to get the latest due amount
+    let dueAmount = null;
+    try {
+        const serviceResp = await fetch(`/service/${currentPaymentServiceId}`);
+        if (serviceResp.ok) {
+            const data = await serviceResp.json();
+            const service = data.service;
+            const totalAmount = service.total_amount_with_tax || 0;
+            const paidSoFar = service.total_paid_amount || 0;
+            dueAmount = Number((totalAmount - paidSoFar).toFixed(2));
+        }
+    } catch (err) {
+        console.error('Error fetching service for validation:', err);
+    }
+
+    // Basic validations
+    if (!currentPaymentServiceId) {
+        window.electronAPI.showAlert1('Service not selected for payment.');
+        return;
+    }
+
+    if (!paymentDate) {
+        window.electronAPI.showAlert1('Please select a payment date.');
+        return;
+    }
+
+    const today = new Date();
+    const enteredDate = new Date(paymentDate + 'T00:00:00');
+    if (isNaN(enteredDate.getTime())) {
+        window.electronAPI.showAlert1('Invalid payment date.');
+        return;
+    }
+    if (enteredDate > today) {
+        window.electronAPI.showAlert1('Payment date cannot be in the future.');
+        return;
+    }
+
+    if (!paymentMode) {
+        window.electronAPI.showAlert1('Please select a payment method.');
+        return;
+    }
+
+    if (paidAmount <= 0 || isNaN(paidAmount)) {
+        window.electronAPI.showAlert1('Please enter a valid paid amount greater than 0.');
+        paidAmountInput?.focus();
+        return;
+    }
+
+    if (dueAmount !== null && paidAmount > dueAmount) {
+        window.electronAPI.showAlert1(`Paid amount cannot exceed due amount (₹ ${formatIndianCurrency(dueAmount)}).`);
+        paidAmountInput?.focus();
+        return;
+    }
+
+    // Extra info validations based on payment method
+    let extraInfo = '';
+    if (paymentMode === 'Cash') {
+        extraInfo = document.getElementById('cash-location')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter cash location.');
+            return;
+        }
+    } else if (paymentMode === 'UPI') {
+        extraInfo = document.getElementById('cash-location')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter UPI transaction ID.');
+            return;
+        }
+    } else if (paymentMode === 'Cheque') {
+        extraInfo = document.getElementById('cash-location')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter cheque number.');
+            return;
+        }
+    } else if (paymentMode === 'Bank Transfer') {
+        extraInfo = document.getElementById('cash-location')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter bank details.');
+            return;
+        }
+    }
+
+    const data = {
+        serviceId: currentPaymentServiceId,
+        paidAmount: paidAmount,
+        paymentDate: paymentDate,
+        paymentMode: paymentMode,
+        paymentExtra: extraInfo,
+    };
+
+    // Disable button while processing
+    paymentBtn.disabled = true;
+    const originalBtnText = paymentBtn.innerHTML;
+    paymentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    try {
+        const response = await fetch('/service/save-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            window.electronAPI.showAlert1(`Error: ${result.message || "Unknown error occurred."}`);
+            paymentBtn.disabled = false;
+            paymentBtn.innerHTML = originalBtnText;
+        } else {
+            window.electronAPI.showAlert1("Payment saved successfully!");
+            document.getElementById('paid-amount').value = '';
+            // Reset payment date to today
+            const paymentDateEl = document.getElementById('payment-date');
+            if (paymentDateEl) paymentDateEl.value = new Date().toISOString().split('T')[0];
+            document.getElementById('payment-mode').value = 'Cash';
+            document.getElementById('cash-location').value = '';
+
+            // Re-enable payment button for next payment
+            paymentBtn.disabled = false;
+            paymentBtn.innerHTML = originalBtnText;
+
+            // Close modal after short delay
+            setTimeout(() => {
+                document.getElementById('payment-container').style.display = 'none';
+                // Reload service history
+                loadServiceHistory();
+            }, 500);
+        }
+    } catch (error) {
+        console.error("Error saving payment:", error);
+        window.electronAPI.showAlert1("An error occurred while saving payment.");
+        paymentBtn.disabled = false;
+        paymentBtn.innerHTML = originalBtnText;
+    }
+});
 
 // Open a service form
 async function openService(serviceId) {
@@ -1073,6 +1328,60 @@ function handleServiceKeyboardShortcuts(event) {
     const keyLower = event.key.toLowerCase();
     const isModifierPressed = event.ctrlKey || event.metaKey;
     const homeButton = document.getElementById('home-btn');
+
+    // Payment Modal Handling
+    const paymentContainer = document.getElementById('payment-container');
+    const isPaymentOpen = paymentContainer && paymentContainer.style.display !== 'none';
+
+    if (isPaymentOpen) {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            document.getElementById('close-payment-modal')?.click();
+            return;
+        }
+
+        if (event.key === 'Enter') {
+            // Allow default behavior for buttons (like close button)
+            if (document.activeElement.tagName === 'BUTTON') {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            document.getElementById('payment-btn')?.click();
+            return;
+        }
+
+        if (event.key === 'Tab') {
+            const focusableElements = paymentContainer.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusableElements.length > 0) {
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (event.shiftKey) {
+                    if (document.activeElement === firstElement) {
+                        event.preventDefault();
+                        lastElement.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastElement) {
+                        event.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            }
+            return;
+        }
+
+        // Block application shortcuts (Ctrl/Cmd/Alt) while modal is open
+        if (isModifierPressed || event.altKey) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+
+        return; // Allow other keys (typing)
+    }
 
     if (!shortcutsModalRef) {
         shortcutsModalRef = document.getElementById('shortcuts-modal');

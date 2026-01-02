@@ -320,6 +320,43 @@
                     </div>
                 </div>
 
+                <!-- Payment Details Section -->
+                <section class="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200 fade-in" id="view-payment-section" style="display: none;">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                        <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+                            <span class="block text-sm font-medium text-green-600 mb-1">Total Paid</span>
+                            <span class="text-green-900 font-bold text-xl" id="view-total-paid">₹ 0.00</span>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
+                            <span class="block text-sm font-medium text-red-600 mb-1">Balance Due</span>
+                            <span class="text-red-900 font-bold text-xl" id="view-balance-due">₹ 0.00</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border border-gray-300 rounded-lg">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Payment Date</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Mode</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Paid Amount</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="view-payments-tbody">
+                                <!-- Payments will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
                 <!-- Totals Section -->
                 <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 border border-blue-200">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -535,6 +572,38 @@
                         <div id="preview-content" class="mb-6">
                             <!-- Preview will be dynamically generated -->
                         </div>
+
+                        <!-- Payment Details Section (Added dynamically) -->
+                        <section id="view-payment-section" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in mt-6 hidden">
+                            <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                                <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
+                                <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <span class="block text-sm font-medium text-gray-600 mb-1">Payment Status</span>
+                                    <span class="text-gray-900 font-semibold" id="view-payment-status">-</span>
+                                </div>
+                                <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
+                                    <span class="block text-sm font-medium text-red-600 mb-1">Balance Due</span>
+                                    <span class="text-red-900 font-bold text-xl" id="view-balance-due">-</span>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table id="view-payment-table" class="w-full border border-gray-300 rounded-lg">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Date</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Mode</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Amount</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </section>
+
                         <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
                             <button type="button" id="save-btn"
                                 class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium">
@@ -714,6 +783,72 @@
                 </button>
             </div>
             <div id="shortcuts-content" class="p-6 space-y-6"></div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="payment-container fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50"
+        id="payment-container" style="display: none;">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-money-bill-wave text-green-600"></i>
+                    Payment Details
+                </h1>
+                <button type="button" id="close-payment-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Amount Due Display -->
+                <div class="bg-red-50 p-4 rounded-lg border border-red-200 flex justify-between items-center">
+                    <span class="text-red-700 font-medium">Total Amount Due:</span>
+                    <span id="payment-due-amount" class="text-2xl font-bold text-red-700">₹ 0.00</span>
+                </div>
+
+                <!-- Payment Form -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="paid-amount" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>Amount Paid
+                        </label>
+                        <input type="number" id="paid-amount" placeholder="Enter amount"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="payment-date" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar text-gray-500 mr-1"></i>Payment Date
+                        </label>
+                        <input type="date" id="payment-date"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="payment-mode" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-credit-card text-gray-500 mr-1"></i>Payment Method
+                        </label>
+                        <select id="payment-mode" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="Cash">Cash</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="UPI">UPI</option>
+                        </select>
+                    </div>
+                    <div id="extra-payment-details">
+                        <label for="cash-location" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Cash Location
+                        </label>
+                        <input type="text" id="cash-location" placeholder="Enter cash location"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <button id="payment-btn"
+                        class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Save Payment
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
