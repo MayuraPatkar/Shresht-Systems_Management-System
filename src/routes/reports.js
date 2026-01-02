@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Invoices, Purchases, Stock, StockMovement, Report } = require('../models');
+const { Invoices, Purchases, Stock, StockMovement, Report, service } = require('../models');
 const logger = require('../utils/logger');
 
 /**
@@ -50,56 +50,116 @@ router.get('/stock', async (req, res) => {
         // BACKFILL: Include Purchase Orders as "In" movements if missing
         // ------------------------------------------------------------------
 
-        // 1. Get Purchase Orders in date range
-        const poQuery = {};
-        if (start_date || end_date) {
-            poQuery.purchase_date = {};
-            if (start_date) poQuery.purchase_date.$gte = new Date(start_date);
-            if (end_date) {
-                const endDate = new Date(end_date);
-                endDate.setHours(23, 59, 59, 999);
-                poQuery.purchase_date.$lte = endDate;
+        let poMovements = [];
+
+        // Only fetch POs if we are looking for 'in' or 'all' movements
+        if (!movement_type || movement_type === 'all' || movement_type === 'in') {
+            // 1. Get Purchase Orders in date range
+            const poQuery = {};
+            if (start_date || end_date) {
+                poQuery.purchase_date = {};
+                if (start_date) poQuery.purchase_date.$gte = new Date(start_date);
+                if (end_date) {
+                    const endDate = new Date(end_date);
+                    endDate.setHours(23, 59, 59, 999);
+                    poQuery.purchase_date.$lte = endDate;
+                }
             }
+
+            const purchaseOrders = await Purchases.find(poQuery);
+
+            // 2. Identify POs that already have StockMovements (to avoid duplicates)
+            const recordedPOIds = new Set(
+                movements
+                    .filter(m => m.reference_type === 'purchase_order')
+                    .map(m => m.reference_id)
+            );
+
+            // 3. Convert untracked POs into movement objects
+            purchaseOrders.forEach(po => {
+                // Skip if this PO is already tracked in StockMovements
+                if (recordedPOIds.has(po.purchase_order_id)) return;
+
+                if (po.items && Array.isArray(po.items)) {
+                    po.items.forEach(item => {
+                        // Check item name filter
+                        if (item_name && item.description && !item.description.match(new RegExp(item_name, 'i'))) {
+                            return;
+                        }
+
+                        poMovements.push({
+                            timestamp: po.purchase_date || po.createdAt,
+                            item_name: item.description || 'Unknown Item',
+                            movement_type: 'in',
+                            quantity_change: Number(item.quantity) || 0,
+                            total_value: (Number(item.quantity) || 0) * (Number(item.unit_price) || 0),
+                            reference_type: 'purchase_order',
+                            reference_id: po.purchase_order_id,
+                            notes: 'Generated from Purchase Order history'
+                        });
+                    });
+                }
+            });
         }
 
-        const purchaseOrders = await Purchases.find(poQuery);
+        // ------------------------------------------------------------------
+        // BACKFILL: Include Services as "Out" movements if missing
+        // ------------------------------------------------------------------
 
-        // 2. Identify POs that already have StockMovements (to avoid duplicates)
-        const recordedPOIds = new Set(
-            movements
-                .filter(m => m.reference_type === 'purchase_order')
-                .map(m => m.reference_id)
-        );
+        let serviceMovements = [];
 
-        // 3. Convert untracked POs into movement objects
-        const poMovements = [];
-        purchaseOrders.forEach(po => {
-            // Skip if this PO is already tracked in StockMovements
-            if (recordedPOIds.has(po.purchase_order_id)) return;
-
-            if (po.items && Array.isArray(po.items)) {
-                po.items.forEach(item => {
-                    // Check item name filter
-                    if (item_name && item.description && !item.description.match(new RegExp(item_name, 'i'))) {
-                        return;
-                    }
-
-                    poMovements.push({
-                        timestamp: po.purchase_date || po.createdAt,
-                        item_name: item.description || 'Unknown Item',
-                        movement_type: 'in',
-                        quantity_change: Number(item.quantity) || 0,
-                        total_value: (Number(item.quantity) || 0) * (Number(item.unit_price) || 0),
-                        reference_type: 'purchase_order',
-                        reference_id: po.purchase_order_id,
-                        notes: 'Generated from Purchase Order history'
-                    });
-                });
+        // Only fetch Services if we are looking for 'out' or 'all' movements
+        if (!movement_type || movement_type === 'all' || movement_type === 'out') {
+            // 1. Get Services in date range
+            const serviceQuery = {};
+            if (start_date || end_date) {
+                serviceQuery.service_date = {};
+                if (start_date) serviceQuery.service_date.$gte = new Date(start_date);
+                if (end_date) {
+                    const endDate = new Date(end_date);
+                    endDate.setHours(23, 59, 59, 999);
+                    serviceQuery.service_date.$lte = endDate;
+                }
             }
-        });
+
+            const services = await service.find(serviceQuery);
+
+            // 2. Identify Services that already have StockMovements
+            const recordedServiceIds = new Set(
+                movements
+                    .filter(m => m.reference_type === 'service')
+                    .map(m => m.reference_id)
+            );
+
+            // 3. Convert untracked Services into movement objects
+            services.forEach(srv => {
+                // Skip if this Service is already tracked
+                if (recordedServiceIds.has(srv.service_id)) return;
+
+                if (srv.items && Array.isArray(srv.items)) {
+                    srv.items.forEach(item => {
+                        // Check item name filter
+                        if (item_name && item.description && !item.description.match(new RegExp(item_name, 'i'))) {
+                            return;
+                        }
+
+                        serviceMovements.push({
+                            timestamp: srv.service_date || srv.createdAt,
+                            item_name: item.description || 'Unknown Item',
+                            movement_type: 'out',
+                            quantity_change: Number(item.quantity) || 0,
+                            total_value: (Number(item.quantity) || 0) * (Number(item.unit_price) || 0),
+                            reference_type: 'service',
+                            reference_id: srv.service_id,
+                            notes: 'Generated from Service history'
+                        });
+                    });
+                }
+            });
+        }
 
         // 4. Merge and Sort
-        const allMovements = [...movements, ...poMovements].sort((a, b) =>
+        const allMovements = [...movements, ...poMovements, ...serviceMovements].sort((a, b) =>
             new Date(b.timestamp) - new Date(a.timestamp)
         );
 
