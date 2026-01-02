@@ -32,6 +32,31 @@ function checkBackupToolsStatus() {
         });
 }
 
+/**
+ * Loads the last backup timestamp from settings and updates the status display
+ */
+function loadLastBackupStatus() {
+    fetch('/settings/preferences')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.settings) {
+                const s = data.settings;
+                const statusElement = document.getElementById("backup-status");
+                
+                if (statusElement && s.backup?.last_backup) {
+                    const lastBackupDate = new Date(s.backup.last_backup);
+                    if (!isNaN(lastBackupDate.getTime())) {
+                        statusElement.innerHTML = `Last backup: <span class="font-semibold">${lastBackupDate.toLocaleString()}</span>`;
+                        statusElement.className = "text-green-700 font-medium";
+                    }
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Failed to load last backup status:', err);
+        });
+}
+
 // --- DATA EXPORT ---
 
 /**
@@ -376,4 +401,7 @@ function initBackupModule() {
     document.getElementById("google-drive-backup")?.addEventListener("click", handleGoogleDriveBackup);
     document.getElementById("manual-backup-button")?.addEventListener("click", handleManualBackup);
     document.getElementById("manual-backup-open-folder")?.addEventListener("click", handleOpenBackupFolder);
+    
+    // Load initial status
+    loadLastBackupStatus();
 }

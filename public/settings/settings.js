@@ -82,6 +82,9 @@ document.getElementById("change-password-button1")?.addEventListener("click", ()
 // Data Backup section
 document.getElementById("data-control-button")?.addEventListener("click", () => {
     toggleSection("data-backup-section");
+    if (typeof loadLastBackupStatus === 'function') {
+        loadLastBackupStatus();
+    }
 });
 
 // Preferences section
