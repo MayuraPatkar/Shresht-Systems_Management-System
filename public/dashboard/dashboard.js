@@ -306,7 +306,14 @@ function formatTimeAgo(date) {
     if (!date) return 'Unknown';
     const now = new Date();
     const past = new Date(date);
+
+    // Handle invalid dates
+    if (isNaN(past.getTime())) return 'Unknown';
+
     const seconds = Math.floor((now - past) / 1000);
+
+    // Handle future dates
+    if (seconds < 0) return past.toLocaleDateString();
 
     if (seconds < 60) return 'Just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
