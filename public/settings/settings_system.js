@@ -107,37 +107,34 @@ async function loadChangelog() {
             return;
         }
 
-        let html = '';
-
-        versions.forEach((version, index) => {
-            const isLatest = index === 0;
-
-            html += `
-                <div class="border rounded-lg ${isLatest ? 'border-teal-300 bg-teal-50' : 'border-gray-200 bg-white'} p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-3">
-                            <span class="px-3 py-1 rounded-full text-sm font-semibold ${isLatest ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700'}">
-                                v${version.version}
-                            </span>
-                            ${isLatest ? '<span class="text-xs text-teal-600 font-medium uppercase">Current</span>' : ''}
-                        </div>
-                        <span class="text-sm text-gray-500">${formatChangelogDate(version.date)}</span>
+        // Display only the current version (first in array)
+        const currentVersion = versions[0];
+        
+        const html = `
+            <div class="border rounded-lg border-teal-300 bg-teal-50 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="px-3 py-1 rounded-full text-sm font-semibold bg-teal-600 text-white">
+                            v${currentVersion.version}
+                        </span>
+                        <span class="text-xs text-teal-600 font-medium uppercase">Current Version</span>
                     </div>
-                    
-                    <h4 class="font-semibold text-gray-800 mb-3">${version.title || 'Release'}</h4>
-                    
-                    <ul class="space-y-2">
-                        ${version.changes.map(change => `
-                            <li class="flex items-start gap-2">
-                                ${getChangeTypeIcon(change.type)}
-                                <span class="text-gray-700 text-sm">${change.description}</span>
-                                <span class="text-xs px-2 py-0.5 rounded ${getChangeTypeBadge(change.type)} capitalize">${change.type}</span>
-                            </li>
-                        `).join('')}
-                    </ul>
+                    <span class="text-sm text-gray-500">${formatChangelogDate(currentVersion.date)}</span>
                 </div>
-            `;
-        });
+                
+                <h4 class="font-semibold text-gray-800 mb-3">${currentVersion.title || 'Release'}</h4>
+                
+                <ul class="space-y-2">
+                    ${currentVersion.changes.map(change => `
+                        <li class="flex items-start gap-2">
+                            ${getChangeTypeIcon(change.type)}
+                            <span class="text-gray-700 text-sm flex-1">${change.description}</span>
+                            <span class="text-xs px-2 py-0.5 rounded ${getChangeTypeBadge(change.type)} capitalize flex-shrink-0">${change.type}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        `;
 
         container.innerHTML = html;
 
