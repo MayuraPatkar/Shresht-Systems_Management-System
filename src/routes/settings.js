@@ -1036,6 +1036,19 @@ router.get("/system-info", asyncHandler(async (req, res) => {
         const package = require('../../package.json');
         const os = require('os');
         
+        // Format uptime
+        const uptimeSeconds = Math.floor(process.uptime());
+        const days = Math.floor(uptimeSeconds / 86400);
+        const hours = Math.floor((uptimeSeconds % 86400) / 3600);
+        const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+        const seconds = uptimeSeconds % 60;
+        
+        let uptimeFormatted = '';
+        if (days > 0) uptimeFormatted += `${days}d `;
+        if (hours > 0 || days > 0) uptimeFormatted += `${hours}h `;
+        if (minutes > 0 || hours > 0 || days > 0) uptimeFormatted += `${minutes}m `;
+        uptimeFormatted += `${seconds}s`;
+        
         res.json({
             success: true,
             system: {
@@ -1046,7 +1059,7 @@ router.get("/system-info", asyncHandler(async (req, res) => {
                 arch: os.arch(),
                 total_memory: (os.totalmem() / (1024 ** 3)).toFixed(2) + ' GB',
                 free_memory: (os.freemem() / (1024 ** 3)).toFixed(2) + ' GB',
-                uptime: Math.floor(process.uptime()) + ' seconds'
+                uptime: uptimeFormatted.trim()
             }
         });
     } catch (error) {

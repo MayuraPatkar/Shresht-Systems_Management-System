@@ -619,6 +619,30 @@ function updateNonItemNumbers() {
   });
 }
 
+// Helper function to update specification numbers after removal/reorder
+function updateSpecificationNumbers() {
+  const specCards = document.querySelectorAll("#specifications-container .item-card, #specifications-container .specification-card");
+  specCards.forEach((card, index) => {
+    const itemNumberElement = card.querySelector(".item-number");
+    if (itemNumberElement) {
+      itemNumberElement.textContent = index + 1;
+    }
+  });
+
+  const tableRows = document.querySelectorAll("#specifications-table tbody tr");
+  tableRows.forEach((row, index) => {
+    const badge = row.querySelector("td:first-child .item-number");
+    if (badge) {
+      badge.textContent = index + 1;
+    } else {
+      const cell = row.querySelector("td:first-child");
+      if (cell) {
+        cell.textContent = index + 1;
+      }
+    }
+  });
+}
+
 // Function to show suggestions
 function showSuggestions(input, suggestionsList) {
   const query = input.value.toLowerCase();

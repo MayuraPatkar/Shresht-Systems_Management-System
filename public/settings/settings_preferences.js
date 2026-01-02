@@ -27,7 +27,6 @@ function loadPreferences() {
                 // Backup settings
                 document.getElementById("backup-auto-enabled").checked = s.backup?.auto_backup_enabled || false;
                 document.getElementById("backup-frequency").value = s.backup?.backup_frequency || 'daily';
-                document.getElementById("backup-time").value = s.backup?.backup_time || '02:00';
                 document.getElementById("backup-retention").value = s.backup?.retention_days || 30;
                 document.getElementById("backup-location").value = s.backup?.backup_location || (window.process ? window.process.env.BACKUP_DIR || './backups' : './backups');
             }
@@ -56,7 +55,6 @@ function savePreferences() {
         backup: {
             auto_backup_enabled: document.getElementById("backup-auto-enabled").checked,
             backup_frequency: document.getElementById("backup-frequency").value,
-            backup_time: document.getElementById("backup-time").value,
             retention_days: parseInt(document.getElementById("backup-retention").value),
             backup_location: document.getElementById("backup-location").value
         }

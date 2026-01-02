@@ -27,9 +27,11 @@ const { app, BrowserWindow, ipcMain, screen, dialog } = require("electron");
 const path = require("path");
 const logger = require("./src/utils/logger");
 const fs = require("fs");
+const mongoose = require('mongoose');
 const { autoUpdater } = require("electron-updater");
 const { handlePrintEvent } = require("./src/utils/printHandler");
 const { setupQuotationHandlers } = require("./src/utils/quotationPrintHandler");
+const autoBackup = require("./src/utils/backup");
 require('./src/utils/alertHandler');
 const EventEmitter = require("events");
 
@@ -609,12 +611,138 @@ app.whenReady().then(async () => {
 // Graceful shutdown handling
 let isQuitting = false;
 
-app.on("before-quit", async (event) => {
-  if (!isQuitting) {
-    setTimeout(() => {
-      app.quit();
-    }, 1000);
+async function performBackupOnClose() {
+  try {
+    // Ensure DB is connected
+    if (mongoose.connection.readyState !== 1) {
+      return;
+    }
+
+    // Get Settings
+    let Settings;
+    try {
+      Settings = mongoose.model('Settings');
+    } catch (e) {
+      try {
+        Settings = require('./src/models/Settings');
+      } catch (err) {
+        logger.error('Could not load Settings model for backup:', err);
+        return;
+      }
+    }
+
+    const settings = await Settings.findOne();
+    if (!settings || !settings.backup || !settings.backup.auto_backup_enabled) {
+      return;
+    }
+
+    const { backup_frequency, last_backup } = settings.backup;
+    const now = new Date();
+    let shouldBackup = false;
+
+    if (backup_frequency === 'on_close') {
+      shouldBackup = true;
+    } else if (backup_frequency === 'daily') {
+      if (!last_backup || (now - new Date(last_backup)) > 20 * 60 * 60 * 1000 || new Date(last_backup).getDate() !== now.getDate()) {
+        shouldBackup = true;
+      }
+    } else if (backup_frequency === 'weekly') {
+      if (!last_backup || (now - new Date(last_backup)) > 6 * 24 * 60 * 60 * 1000) {
+        shouldBackup = true;
+      }
+    } else if (backup_frequency === 'monthly') {
+      if (!last_backup || (now - new Date(last_backup)) > 28 * 24 * 60 * 60 * 1000) {
+        shouldBackup = true;
+      }
+    }
+
+    if (shouldBackup) {
+      logger.info(`Performing on-close backup (Reason: ${backup_frequency})...`);
+      
+      // Create a small splash window to inform user
+      let splash = new BrowserWindow({
+        width: 400,
+        height: 200,
+        frame: false,
+        alwaysOnTop: true,
+        resizable: false,
+        center: true,
+        skipTaskbar: true,
+        webPreferences: { nodeIntegration: false, contextIsolation: true }
+      });
+      
+      const htmlContent = `
+        <style>
+          body { margin: 0; overflow: hidden; }
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        </style>
+        <div id="container" style="font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #fff; border: 2px solid #2563eb; box-sizing: border-box; padding: 20px; text-align: center;">
+          <h3 id="title" style="margin: 0 0 15px 0; color: #1e40af; font-size: 18px;">Backing up data...</h3>
+          <div id="message" style="font-size: 14px; color: #4b5563; margin-bottom: 15px;">Please wait, do not close the application.</div>
+          <div id="spinner" style="border: 3px solid #f3f3f3; border-top: 3px solid #2563eb; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;"></div>
+        </div>
+      `;
+      
+      splash.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`);
+
+      try {
+        // Wait a moment for window to render
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        await autoBackup();
+        
+        // Update last_backup
+        settings.backup.last_backup = new Date();
+        await settings.save();
+        logger.info('On-close backup completed successfully');
+
+        // Show success message
+        if (!splash.isDestroyed()) {
+          await splash.webContents.executeJavaScript(`
+            document.getElementById('title').textContent = 'Backup Complete!';
+            document.getElementById('title').style.color = '#059669';
+            document.getElementById('message').textContent = 'Your data has been safely backed up.';
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('container').style.borderColor = '#059669';
+          `);
+        }
+
+        // Keep visible for 1 seconds
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+      } catch (err) {
+        logger.error('On-close backup failed:', err);
+        if (!splash.isDestroyed()) {
+          try {
+            await splash.webContents.executeJavaScript(`
+              document.getElementById('title').textContent = 'Backup Failed';
+              document.getElementById('title').style.color = '#dc2626';
+              document.getElementById('message').textContent = 'Please check logs for details.';
+              document.getElementById('spinner').style.display = 'none';
+              document.getElementById('container').style.borderColor = '#dc2626';
+            `);
+          } catch (e) { /* ignore */ }
+        }
+        // Keep error visible for 3 seconds
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      } finally {
+        if (splash && !splash.isDestroyed()) splash.close();
+      }
+    }
+  } catch (error) {
+    logger.error('Error in performBackupOnClose:', error);
   }
+}
+
+app.on("before-quit", async (event) => {
+  if (isQuitting) return;
+
+  event.preventDefault();
+  isQuitting = true;
+  
+  await performBackupOnClose();
+  
+  app.exit(0);
 });
 
 // Quit the app when all windows are closed (except on macOS)

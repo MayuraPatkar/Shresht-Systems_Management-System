@@ -605,7 +605,7 @@ function createWayBillCard(wayBill) {
             
             <div class="flex-1 p-6 min-w-0">
                 <!-- Main Content Row -->
-                <div class="flex items-center gap-4">
+                <div class="flex items-center">
                     
                     <!-- Left Section: Icon + Project Info -->
                     <div class="flex items-center gap-4 min-w-0 flex-shrink-0" style="width: 460px;">
