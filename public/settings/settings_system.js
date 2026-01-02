@@ -451,3 +451,31 @@ if (document.readyState === 'loading') {
 } else {
     setupExternalLinks();
 }
+
+// --- LOGS DOWNLOAD ---
+
+function setupLogDownloads() {
+    const downloadAppLogsBtn = document.getElementById('download-app-logs-button');
+    const downloadErrorLogsBtn = document.getElementById('download-error-logs-button');
+
+    if (downloadAppLogsBtn) {
+        downloadAppLogsBtn.addEventListener('click', () => downloadLogs('app'));
+    }
+
+    if (downloadErrorLogsBtn) {
+        downloadErrorLogsBtn.addEventListener('click', () => downloadLogs('error'));
+    }
+}
+
+function downloadLogs(type) {
+    // Use window.location.href to trigger download
+    // This works because the backend sends Content-Disposition: attachment
+    window.location.href = `/settings/download-logs?type=${type}`;
+}
+
+// Initialize log downloads when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupLogDownloads);
+} else {
+    setupLogDownloads();
+}
