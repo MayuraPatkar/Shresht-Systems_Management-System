@@ -103,6 +103,59 @@ router.get('/stock', async (req, res) => {
         }
 
         // ------------------------------------------------------------------
+        // BACKFILL: Include Stock Items as "In" movements if missing
+        // ------------------------------------------------------------------
+
+        let stockBackfill = [];
+
+        if (!movement_type || movement_type === 'all' || movement_type === 'in') {
+            // 1. Get all Stock items
+            // Note: We don't filter by date here because we need to check createdAt in memory
+            // to match the specific logic, or we could filter in query.
+            // Let's filter in memory to be safe with the "tracked" check.
+            const allStock = await Stock.find({});
+
+            // 2. Identify Stock items that already have StockMovements of type 'stock'
+            // We check against the fetched 'movements' array.
+            // Risk: If the movement fell out of the 1000 limit, we might duplicate.
+            // But for recent items (within date range), they should be there.
+            const trackedStockIds = new Set(
+                movements
+                    .filter(m => m.reference_type === 'stock')
+                    .map(m => m.reference_id)
+            );
+
+            // 3. Convert untracked Stock items into movement objects
+            allStock.forEach(item => {
+                // Skip if this Stock item is already tracked
+                if (trackedStockIds.has(item._id.toString())) return;
+
+                // Apply Date Filters to the creation date
+                const itemDate = new Date(item.createdAt);
+                if (start_date && itemDate < new Date(start_date)) return;
+                if (end_date) {
+                    const endDateObj = new Date(end_date);
+                    endDateObj.setHours(23, 59, 59, 999);
+                    if (itemDate > endDateObj) return;
+                }
+
+                // Apply Item Name Filter
+                if (item_name && !item.item_name.match(new RegExp(item_name, 'i'))) return;
+
+                stockBackfill.push({
+                    timestamp: item.createdAt,
+                    item_name: item.item_name,
+                    movement_type: 'in',
+                    quantity_change: item.quantity, // Using current quantity as best guess for legacy
+                    total_value: (item.quantity || 0) * (item.unit_price || 0),
+                    reference_type: 'stock',
+                    reference_id: item._id,
+                    notes: 'Initial stock (Legacy/Backfilled)'
+                });
+            });
+        }
+
+        // ------------------------------------------------------------------
         // BACKFILL: Include Services as "Out" movements if missing
         // ------------------------------------------------------------------
 
@@ -159,7 +212,7 @@ router.get('/stock', async (req, res) => {
         }
 
         // 4. Merge and Sort
-        const allMovements = [...movements, ...poMovements, ...serviceMovements].sort((a, b) =>
+        const allMovements = [...movements, ...poMovements, ...stockBackfill, ...serviceMovements].sort((a, b) =>
             new Date(b.timestamp) - new Date(a.timestamp)
         );
 
