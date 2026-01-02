@@ -40,6 +40,20 @@ const SERVICE_SHORTCUT_GROUPS = [
 let shortcutsModalRef = null;
 const isMac = navigator.userAgent.toLowerCase().includes('mac');
 
+// Global toast notification function
+function showToast(message) {
+    let toast = document.getElementById('global-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'global-toast';
+        toast.style.cssText = 'display:none;position:fixed;bottom:20px;right:20px;background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;';
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+}
+
 // Note: currentStep and totalSteps are declared in globalScript.js and used here
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -238,7 +252,7 @@ function createPendingServiceDiv(service) {
                 <div class="flex items-center gap-6">
                     
                     <!-- Left Section: Icon + Project Info -->
-                    <div class="flex items-center gap-4 min-w-0" style="flex: 1 1 350px; max-width: 650px;">
+                    <div class="flex items-center gap-4 min-w-0" style="flex: 1 1 350px; max-width: 450px;">
                         <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
                             <i class="fas fa-wrench text-2xl text-white"></i>
                         </div>
@@ -246,15 +260,23 @@ function createPendingServiceDiv(service) {
                             <div class="flex items-center gap-2 mb-1">
                                 <h3 class="text-lg font-bold text-gray-900 truncate" title="${service.project_name || 'Unnamed Project'}">${service.project_name || 'Unnamed Project'}</h3>
                                 <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 flex-shrink-0">
-                                    #${service.invoice_id}-S${service.service_stage + 1}
+                                    Pending
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-600 truncate" title="${service.customer_name || 'N/A'}">${service.customer_name || 'N/A'}</p>
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1 flex-shrink-0" title="Click to copy Invoice ID">
+                                    <i class="fas fa-hashtag text-xs"></i>
+                                    <span>${service.invoice_id}-S${service.service_stage + 1}</span>
+                                    <i class="fas fa-copy text-xs ml-1"></i>
+                                </p>
+                                <span class="text-gray-300 flex-shrink-0">|</span>
+                                <p class="text-xs text-gray-500 truncate" title="${service.customer_name || 'N/A'}">${service.customer_name || 'N/A'}</p>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Middle Section: Address -->
-                    <div class="flex items-center gap-3 min-w-0 px-6 border-l border-r border-gray-200" style="flex: 1 1 300px; max-width: 450px;">
+                    <div class="flex items-center gap-3 min-w-0 px-6 border-l border-r border-gray-200" style="flex: 1 1 300px; max-width: 400px;">
                         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-map-marker-alt text-blue-600"></i>
                         </div>
@@ -265,13 +287,13 @@ function createPendingServiceDiv(service) {
                     </div>
 
                     <!-- Date Section -->
-                    <div class="flex items-center gap-3 px-6 border-r border-gray-200 flex-shrink-0">
+                    <div class="flex items-center gap-3 px-6 border-r border-gray-200 flex-shrink-0" style="width: 200px;">
                         <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-calendar-check text-orange-600"></i>
                         </div>
-                        <div>
+                        <div class="flex-1 min-w-0 overflow-hidden">
                             <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Service Due</p>
-                            <p class="text-sm font-bold text-gray-900">${serviceDate}</p>
+                            <p class="text-sm font-bold text-gray-900 truncate" title="${serviceDate}">${serviceDate}</p>
                         </div>
                     </div>
 
@@ -285,6 +307,21 @@ function createPendingServiceDiv(service) {
             </div>
         </div>
     `;
+    
+    // Add copy ID functionality
+    const copyElement = div.querySelector('.copy-text');
+    if (copyElement) {
+        copyElement.addEventListener('click', async () => {
+            try {
+                const idText = `${service.invoice_id}-S${service.service_stage + 1}`;
+                await navigator.clipboard.writeText(idText);
+                showToast('ID Copied to Clipboard!');
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+        });
+    }
+    
     return div;
 }
 
@@ -341,17 +378,21 @@ function createServiceHistoryDiv(service) {
                                 </span>
                             </div>
                             <div class="flex items-center gap-2 overflow-hidden">
-                                <p class="text-sm text-gray-600 truncate" title="${service.customer_name || 'N/A'}">${service.customer_name || 'N/A'}</p>
+                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1 flex-shrink-0" title="Click to copy Service ID">
+                                    <i class="fas fa-hashtag text-xs"></i>
+                                    <span>${service.service_id}</span>
+                                    <i class="fas fa-copy text-xs ml-1"></i>
+                                </p>
                                 <span class="text-gray-300 flex-shrink-0">|</span>
                                 <p class="text-xs text-gray-500 inline-flex items-center gap-1 flex-shrink-0">
-                                    <i class="fas fa-hashtag text-xs"></i>
-                                    ${service.service_id}
+                                    <i class="fas fa-calendar text-xs"></i>
+                                    ${serviceDate}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Middle Section: Invoice & Date Info -->
+                    <!-- Middle Section: Invoice & Customer Info -->
                     <div class="flex items-center gap-3 min-w-0 px-6 border-l border-r border-gray-200" style="flex: 1 1 300px; max-width: 400px;">
                         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-file-invoice text-blue-600"></i>
@@ -359,10 +400,7 @@ function createServiceHistoryDiv(service) {
                         <div class="flex-1 min-w-0 overflow-hidden">
                             <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Invoice</p>
                             <p class="text-sm font-semibold text-gray-900 truncate" title="${service.invoice_id}">${service.invoice_id}</p>
-                            <p class="text-xs text-gray-600 inline-flex items-center gap-1">
-                                <i class="fas fa-calendar text-xs"></i>
-                                ${serviceDate}
-                            </p>
+                            <p class="text-xs text-gray-600 truncate" title="${service.customer_name || 'N/A'}">${service.customer_name || 'N/A'}</p>
                         </div>
                     </div>
 
@@ -410,6 +448,20 @@ function createServiceHistoryDiv(service) {
             </div>
         </div>
     `;
+    
+    // Add copy ID functionality
+    const copyElement = div.querySelector('.copy-text');
+    if (copyElement) {
+        copyElement.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(service.service_id);
+                showToast('ID Copied to Clipboard!');
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+        });
+    }
+    
     return div;
 }
 
