@@ -34,6 +34,18 @@ const serviceSchema = new mongoose.Schema({
     
     // Notes and remarks
     notes: { type: String },
+
+    // Payment Tracking
+    payments: [
+        {
+            payment_date: { type: Date },
+            paid_amount: { type: Number },
+            payment_mode: { type: String },
+            extra_details: { type: String },
+        }
+    ],
+    total_paid_amount: { type: Number, default: 0 },
+    payment_status: { type: String, default: 'Unpaid', index: true },
     
     createdAt: { type: Date, default: Date.now, index: true },
     updatedAt: { type: Date, default: Date.now },
@@ -43,6 +55,21 @@ const serviceSchema = new mongoose.Schema({
 serviceSchema.pre('save', function() {
     this.updatedAt = Date.now();
 });
+
+// Helper method to update payment status
+serviceSchema.methods.updatePaymentStatus = function() {
+    const totalDue = this.total_amount_with_tax || 0;
+    const totalPaid = this.total_paid_amount || 0;
+
+    // Use a small epsilon for float comparison if needed, but simple comparison usually works for currency
+    if (totalDue > 0 && totalPaid >= totalDue) {
+        this.payment_status = 'Paid';
+    } else if (totalPaid > 0) {
+        this.payment_status = 'Partial';
+    } else {
+        this.payment_status = 'Unpaid';
+    }
+};
 
 // Index for faster queries
 serviceSchema.index({ invoice_id: 1, service_stage: 1 });

@@ -37,7 +37,7 @@ function formatDateIndian(dateStr) {
 // Helper: Format currency in Indian style
 function formatIndianCurrency(amount) {
     if (!amount && amount !== 0) return 'N/A';
-    return `₹${parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // View individual service record
@@ -164,6 +164,66 @@ async function viewService(serviceId) {
         document.getElementById('view-subtotal').textContent = formatIndianCurrency(service.total_amount_no_tax);
         document.getElementById('view-tax').textContent = formatIndianCurrency(service.total_tax);
         document.getElementById('view-grand-total').textContent = formatIndianCurrency(service.total_amount_with_tax);
+
+        // Populate Payment Details
+        const paymentSection = document.getElementById('view-payment-section');
+        const paymentsTbody = document.getElementById('view-payments-tbody');
+        const totalPaidEl = document.getElementById('view-total-paid');
+        const balanceDueEl = document.getElementById('view-balance-due');
+
+        if (service.payments && service.payments.length > 0) {
+            paymentSection.style.display = 'block';
+            paymentsTbody.innerHTML = '';
+            
+            service.payments.forEach(payment => {
+                const row = document.createElement('tr');
+                let reference = '-';
+                if (payment.payment_mode === 'Cash' && payment.extra_details) {
+                    reference = `<i class="fas fa-map-marker-alt text-gray-400 mr-1"></i>${payment.extra_details}`;
+                } else if (payment.extra_details) {
+                    reference = `<span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded">${payment.extra_details}</span>`;
+                }
+
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-900 border-b">${formatDateIndian(payment.payment_date)}</td>
+                    <td class="px-4 py-3 text-sm border-b">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                            ${payment.payment_mode}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900 border-b">₹ ${formatIndianCurrency(payment.paid_amount || 0)}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600 border-b">${reference}</td>
+                `;
+                paymentsTbody.appendChild(row);
+            });
+
+            const totalPaid = service.total_paid_amount || 0;
+            const grandTotal = service.total_amount_with_tax || 0;
+            const balanceDue = grandTotal - totalPaid;
+
+            totalPaidEl.textContent = `₹ ${formatIndianCurrency(totalPaid)}`;
+            
+            if (balanceDue <= 0) {
+                balanceDueEl.parentElement.classList.remove('bg-red-50', 'border-red-200');
+                balanceDueEl.parentElement.classList.add('bg-green-50', 'border-green-200');
+                balanceDueEl.classList.remove('text-red-900');
+                balanceDueEl.classList.add('text-green-900');
+                balanceDueEl.previousElementSibling.classList.remove('text-red-600');
+                balanceDueEl.previousElementSibling.classList.add('text-green-600');
+                balanceDueEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Paid';
+            } else {
+                balanceDueEl.parentElement.classList.remove('bg-green-50', 'border-green-200');
+                balanceDueEl.parentElement.classList.add('bg-red-50', 'border-red-200');
+                balanceDueEl.classList.remove('text-green-900');
+                balanceDueEl.classList.add('text-red-900');
+                balanceDueEl.previousElementSibling.classList.remove('text-green-600');
+                balanceDueEl.previousElementSibling.classList.add('text-red-600');
+                balanceDueEl.textContent = `₹ ${formatIndianCurrency(balanceDue)}`;
+            }
+        } else {
+            paymentSection.style.display = 'none';
+        }
         
         // Generate print preview using existing generateServicePreview
         generateServicePreview(service, invoice);
