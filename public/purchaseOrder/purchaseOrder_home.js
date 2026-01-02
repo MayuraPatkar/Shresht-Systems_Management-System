@@ -28,6 +28,7 @@ const PURCHASEORDER_SHORTCUT_GROUPS = [
             { label: 'View Preview', keys: ['Ctrl', 'P'] },
             { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
             { label: 'Add Item', keys: ['Ctrl', 'I'] },
+            { label: 'Delete Item', keys: ['Ctrl', 'Delete'] },
             { label: 'Go Home', keys: ['Ctrl', 'H'] },
             { label: 'Focus Search', keys: ['Ctrl', 'F'] }
         ]
@@ -201,25 +202,25 @@ function createPurchaseOrderDiv(purchaseOrder) {
         <div class="flex">
             <div class="w-1.5 bg-gradient-to-b from-purple-500 to-indigo-600"></div>
             
-            <div class="flex-1 p-6">
+            <div class="flex-1 p-6 min-w-0">
                 <!-- Main Content Row -->
-                <div class="flex items-center justify-between gap-6">
+                <div class="flex items-center gap-4">
                     
                     <!-- Left Section: Icon + Supplier Info -->
-                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                    <div class="flex items-center gap-4 min-w-0 flex-shrink-0" style="width: 400px;">
                         <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md flex-shrink-0">
                             <i class="fas fa-shopping-cart text-2xl text-white"></i>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-lg font-bold text-gray-900 mb-1 truncate">${purchaseOrder.supplier_name}</h3>
-                            <div class="flex items-center gap-2">
-                                <p class="text-sm text-gray-600 cursor-pointer hover:text-purple-600 copy-text transition-colors inline-flex items-center gap-1" title="Click to copy ID">
+                        <div class="flex-1 min-w-0 overflow-hidden">
+                            <h3 class="text-lg font-bold text-gray-900 mb-1 truncate" title="${purchaseOrder.supplier_name}">${purchaseOrder.supplier_name}</h3>
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <p class="text-sm text-gray-600 cursor-pointer hover:text-purple-600 copy-text transition-colors inline-flex items-center gap-1 flex-shrink-0" title="Click to copy ID">
                                     <i class="fas fa-hashtag text-xs"></i>
                                     <span>${purchaseOrder.purchase_order_id}</span>
                                     <i class="fas fa-copy text-xs ml-1"></i>
                                 </p>
-                                <span class="text-gray-300">|</span>
-                                <p class="text-xs text-gray-500 inline-flex items-center gap-1">
+                                <span class="text-gray-300 flex-shrink-0">|</span>
+                                <p class="text-xs text-gray-500 inline-flex items-center gap-1 flex-shrink-0">
                                     <i class="fas fa-calendar-alt text-xs"></i>
                                     ${formattedDate}
                                 </p>
@@ -228,29 +229,28 @@ function createPurchaseOrderDiv(purchaseOrder) {
                     </div>
 
                     <!-- Middle Section: Address -->
-                    <div class="flex items-center gap-3 flex-1 min-w-0 px-6 border-l border-r border-gray-200">
+                    <div class="flex items-center gap-3 px-6 border-l border-r border-gray-200 flex-shrink-0" style="width: 500px;">
                         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-map-marker-alt text-blue-600"></i>
                         </div>
-                        <div class="flex-1 min-w-0">
+                        <div class="flex-1 min-w-0 overflow-hidden">
                             <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Address</p>
-                            <p class="text-sm font-semibold text-gray-900 truncate">${purchaseOrder.supplier_address}</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate" title="${purchaseOrder.supplier_address}">${purchaseOrder.supplier_address}</p>
                         </div>
                     </div>
 
                     <!-- Amount Section -->
-                    <div class="flex items-center gap-3 px-6 border-r border-gray-200">
-                        <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-rupee-sign text-green-600"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Amount</p>
-                            <p class="text-lg font-bold text-green-600">₹ ${formatIndian(purchaseOrder.total_amount, 2)}</p>
+                    <div class="flex items-center px-4 border-r border-gray-200 flex-shrink-0">
+                        <div class="rounded-lg p-3 w-[300px]" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #bbf7d0;">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Amount</span>
+                                <span class="text-lg font-bold text-green-600">₹${formatIndian(purchaseOrder.total_amount, 2)}</span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Actions Section -->
-                    <div class="flex items-center gap-2 flex-shrink-0">
+                    <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
                         <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
                             <i class="fas fa-eye"></i>
                         </button>

@@ -410,3 +410,72 @@ function initAutoUpdate() {
     });
 }
 
+// --- EXTERNAL LINKS HANDLER ---
+
+/**
+ * Sets up external link handlers for opening URLs in default browser
+ */
+function setupExternalLinks() {
+    document.querySelectorAll('.external-link').forEach(link => {
+        link.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const url = link.getAttribute('data-url');
+            
+            if (!url) {
+                console.error('No URL specified for external link');
+                return;
+            }
+
+            try {
+                if (window.electronAPI && window.electronAPI.openExternal) {
+                    const result = await window.electronAPI.openExternal(url);
+                    if (!result || !result.success) {
+                        console.error('Failed to open URL:', result?.message || 'Unknown error');
+                        alert('Failed to open link. Please try again.');
+                    }
+                } else {
+                    console.error('electronAPI.openExternal not available');
+                    alert('External links are not available in this environment.');
+                }
+            } catch (error) {
+                console.error('Error opening external link:', error);
+                alert('Failed to open link: ' + error.message);
+            }
+        });
+    });
+}
+
+// Initialize external links when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupExternalLinks);
+} else {
+    setupExternalLinks();
+}
+
+// --- LOGS DOWNLOAD ---
+
+function setupLogDownloads() {
+    const downloadAppLogsBtn = document.getElementById('download-app-logs-button');
+    const downloadErrorLogsBtn = document.getElementById('download-error-logs-button');
+
+    if (downloadAppLogsBtn) {
+        downloadAppLogsBtn.addEventListener('click', () => downloadLogs('app'));
+    }
+
+    if (downloadErrorLogsBtn) {
+        downloadErrorLogsBtn.addEventListener('click', () => downloadLogs('error'));
+    }
+}
+
+function downloadLogs(type) {
+    // Use window.location.href to trigger download
+    // This works because the backend sends Content-Disposition: attachment
+    window.location.href = `/settings/download-logs?type=${type}`;
+}
+
+// Initialize log downloads when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupLogDownloads);
+} else {
+    setupLogDownloads();
+}

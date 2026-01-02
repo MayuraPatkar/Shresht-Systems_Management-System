@@ -101,6 +101,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Open the configured backup folder in the OS file manager
     openBackupFolder: () => ipcRenderer.invoke('open-backup-folder'),
 
+    // Open external URL in default browser
+    openExternal: (url) => {
+        if (isValidString(url)) {
+            return ipcRenderer.invoke('open-external', url);
+        }
+        return Promise.resolve({ success: false, error: 'Invalid URL' });
+    },
+
     // Get safe app configuration (non-sensitive values only)
     // NEVER expose API tokens or secrets through this!
     getAppConfig: () => ipcRenderer.invoke('get-app-config'),

@@ -12,6 +12,18 @@
     gap: 0.75rem;
 }
 
+/* Hide scrollbar when container is empty */
+#items-container:empty, #non-items-container:empty, #specifications-container:empty {
+    overflow: hidden;
+}
+
+/* Ensure containers without items don't show scrollbars */
+#items-container:not(:has(.item-card)), 
+#non-items-container:not(:has(.non-item-card)), 
+#specifications-container:not(:has(.spec-card)) {
+    overflow: hidden;
+}
+
 /* Column Headers */
 .items-header, .non-items-header, .specifications-header {
     display: flex;
@@ -288,6 +300,30 @@
 
 .remove-item-btn i, .insert-item-btn i {
     pointer-events: none;
+}
+
+/* Drag and Drop States */
+.item-card.dragging,
+.non-item-card.dragging,
+.spec-card.dragging {
+    opacity: 0.5;
+    border: 2px dashed #3b82f6;
+    background: #eff6ff;
+}
+
+.item-card.drag-over,
+.non-item-card.drag-over,
+.spec-card.drag-over {
+    border-top: 3px solid #3b82f6;
+    margin-top: -2px;
+    padding-top: calc(0.75rem + 2px);
+}
+
+/* Draggable cursor */
+.item-card[draggable="true"],
+.non-item-card[draggable="true"],
+.spec-card[draggable="true"] {
+    cursor: default;
 }
 
 /* Autocomplete Suggestions */

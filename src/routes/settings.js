@@ -1060,4 +1060,33 @@ router.get("/system-info", asyncHandler(async (req, res) => {
 }));
 
 
+// Download logs
+router.get('/download-logs', async (req, res) => {
+    try {
+        const logType = req.query.type || 'app';
+        const logFileName = logType === 'error' ? 'error.log' : 'app.log';
+        const logPath = path.join(process.cwd(), 'logs', logFileName);
+
+        // Check if file exists
+        try {
+            await fs.access(logPath);
+        } catch (error) {
+            return res.status(404).json({ success: false, message: 'Log file not found' });
+        }
+
+        res.download(logPath, logFileName, (err) => {
+            if (err) {
+                logger.error('Error downloading log file:', err);
+                if (!res.headersSent) {
+                    res.status(500).json({ success: false, message: 'Error downloading log file' });
+                }
+            }
+        });
+    } catch (error) {
+        logger.error('Error in download-logs route:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+
 module.exports = router;

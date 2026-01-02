@@ -115,6 +115,7 @@ async function openQuotation(quotationId) {
         if (itemsContainer) {
             const card = document.createElement("div");
             card.className = "item-card";
+            card.setAttribute("draggable", "true");
             card.innerHTML = `
                     <div class="item-number">${index + 1}</div>
                     <div class="item-field description">
@@ -136,9 +137,7 @@ async function openQuotation(quotationId) {
                         <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
+
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -188,15 +187,6 @@ async function openQuotation(quotationId) {
                 updateItemNumbers();
                 updateSpecificationsTable();
             });
-
-            // Add insert button event listener
-            const insertBtn = card.querySelector(".insert-item-btn");
-            if (insertBtn) {
-                insertBtn.addEventListener("click", function () {
-                    const currentIndex = Array.from(itemsContainer.children).indexOf(card);
-                    addItem(currentIndex + 1);
-                });
-            }
         }
     });
 
@@ -217,6 +207,7 @@ async function openQuotation(quotationId) {
         if (nonItemsContainer) {
             const card = document.createElement("div");
             card.className = "non-item-card";
+            card.setAttribute("draggable", "true");
             card.innerHTML = `
                     <div class="item-number">${index + 1}</div>
                     <div class="non-item-field description">
@@ -229,9 +220,6 @@ async function openQuotation(quotationId) {
                         <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -258,15 +246,6 @@ async function openQuotation(quotationId) {
                 updateNonItemNumbers();
                 updateSpecificationsTable();
             });
-
-            // Add insert button event listener
-            const insertBtn = card.querySelector(".insert-item-btn");
-            if (insertBtn) {
-                insertBtn.addEventListener("click", function () {
-                    const currentIndex = Array.from(nonItemsContainer.children).indexOf(card);
-                    addNonItem(currentIndex + 1);
-                });
-            }
 
             // Add listener for description change to update specifications
             const descriptionInput = card.querySelector('.non-item-field.description input');
@@ -413,6 +392,7 @@ async function cloneQuotation(sourceQuotationId) {
             if (itemsContainer) {
                 const card = document.createElement("div");
                 card.className = "item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${index + 1}</div>
                     <div class="item-field description">
@@ -434,9 +414,6 @@ async function cloneQuotation(sourceQuotationId) {
                         <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -481,15 +458,6 @@ async function cloneQuotation(sourceQuotationId) {
                     updateItemNumbers();
                     updateSpecificationsTable();
                 });
-
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(itemsContainer.children).indexOf(card);
-                        addItem(currentIndex + 1);
-                    });
-                }
             }
         });
 
@@ -508,6 +476,7 @@ async function cloneQuotation(sourceQuotationId) {
             if (nonItemsContainer) {
                 const card = document.createElement("div");
                 card.className = "non-item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${index + 1}</div>
                     <div class="non-item-field description">
@@ -520,9 +489,6 @@ async function cloneQuotation(sourceQuotationId) {
                         <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -549,15 +515,6 @@ async function cloneQuotation(sourceQuotationId) {
                     updateNonItemNumbers();
                     updateSpecificationsTable();
                 });
-
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(nonItemsContainer.children).indexOf(card);
-                        addNonItem(currentIndex + 1);
-                    });
-                }
 
                 // Description change listener
                 const descriptionInput = card.querySelector('.non-item-field.description input');

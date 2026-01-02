@@ -167,6 +167,61 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+// Keyboard shortcuts for item management (Add/Delete items)
+document.addEventListener("keydown", function (event) {
+  // Ctrl + I: Add Item
+  if ((event.ctrlKey || event.metaKey) && (event.key === 'i' || event.key === 'I')) {
+    event.preventDefault(); // Prevent default (e.g., Italics)
+    
+    // Check if we are in a context where adding items makes sense
+    // Try standard item button first
+    const addItemBtn = document.getElementById('add-item-btn');
+    if (addItemBtn && !addItemBtn.disabled && addItemBtn.offsetParent !== null) {
+      addItemBtn.click();
+      
+      // Focus the new input after a short delay
+      setTimeout(() => {
+        const inputs = document.querySelectorAll('#items-container .item_name, #items-table .item_name');
+        if (inputs.length > 0) {
+          inputs[inputs.length - 1].focus();
+        }
+      }, 50);
+      return;
+    }
+
+    // Try non-item button if standard item button isn't available/visible
+    const addNonItemBtn = document.getElementById('add-non-item-btn');
+    if (addNonItemBtn && !addNonItemBtn.disabled && addNonItemBtn.offsetParent !== null) {
+      addNonItemBtn.click();
+       // Focus the new input after a short delay
+       setTimeout(() => {
+        const inputs = document.querySelectorAll('#non-items-container input[type="text"], #non-items-table input[type="text"]');
+        if (inputs.length > 0) {
+          inputs[inputs.length - 1].focus();
+        }
+      }, 50);
+    }
+  }
+
+  // Ctrl + Delete: Delete Focused Row
+  if ((event.ctrlKey || event.metaKey) && event.key === 'Delete') {
+    const activeElement = document.activeElement;
+    
+    // Find the closest item card or table row
+    // Check for item-card, non-item-card, spec-card, or table row
+    const container = activeElement.closest('.item-card, .non-item-card, .spec-card, tr');
+    
+    if (container) {
+      // Look for a remove button within this container
+      const removeBtn = container.querySelector('.remove-item-btn');
+      if (removeBtn) {
+        event.preventDefault();
+        removeBtn.click(); // Triggers the existing logic that handles both card & row removal
+      }
+    }
+  }
+});
+
 // Event listener for the "Next" button
 const nextBtn = document.getElementById("next-btn");
 if (nextBtn) {
@@ -276,6 +331,7 @@ function addItem(insertAtIndex) {
   // Create card element
   const card = document.createElement("div");
   card.className = "item-card";
+  card.setAttribute("draggable", "true");
 
   card.innerHTML = `
     <div class="item-number">${itemNumber}</div>
@@ -304,9 +360,6 @@ function addItem(insertAtIndex) {
     </div>
     
     <div class="item-actions">
-      <button type="button" class="insert-item-btn" title="Insert Item Below">
-        <i class="fas fa-plus"></i>
-      </button>
       <button type="button" class="remove-item-btn" title="Remove Item">
         <i class="fas fa-trash-alt"></i>
       </button>
@@ -411,16 +464,6 @@ function addItem(insertAtIndex) {
     updateSpecificationsTable();
   });
 
-  // Handle insert button
-  const insertBtn = card.querySelector(".insert-item-btn");
-  if (insertBtn) {
-    insertBtn.addEventListener("click", function () {
-      // Get current index again as it might have changed
-      const currentIndex = Array.from(container.children).indexOf(card);
-      addItem(currentIndex + 1);
-    });
-  }
-
   // If we inserted in the middle, we need to re-number everything
   if (typeof insertAtIndex === 'number') {
     updateItemNumbers();
@@ -435,6 +478,7 @@ function addNonItem(insertAtIndex) {
   // Create card element
   const card = document.createElement("div");
   card.className = "non-item-card";
+  card.setAttribute("draggable", "true");
 
   card.innerHTML = `
     <div class="item-number">${itemNumber}</div>
@@ -452,9 +496,6 @@ function addNonItem(insertAtIndex) {
     </div>
     
     <div class="item-actions">
-        <button type="button" class="insert-item-btn" title="Insert Item Below">
-            <i class="fas fa-plus"></i>
-        </button>
         <button type="button" class="remove-item-btn" title="Remove Item">
             <i class="fas fa-trash-alt"></i>
         </button>
@@ -523,15 +564,6 @@ function addNonItem(insertAtIndex) {
     updateNonItemNumbers();
     updateSpecificationsTable();
   });
-
-  // Handle insert button
-  const insertBtn = card.querySelector(".insert-item-btn");
-  if (insertBtn) {
-    insertBtn.addEventListener("click", function () {
-      const currentIndex = Array.from(container.children).indexOf(card);
-      addNonItem(currentIndex + 1);
-    });
-  }
 
   // If inserted, renumber
   if (typeof insertAtIndex === 'number') {
@@ -1046,5 +1078,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (e) {
     console.error('Auto-open new form handler failed:', e);
+  }
+});
+
+// Initialize drag-drop reordering for item containers
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if itemReorder is available (script must be loaded before this)
+  if (window.itemReorder && typeof window.itemReorder.initDragDrop === 'function') {
+    // Initialize drag-drop for items container
+    window.itemReorder.initDragDrop('items-container', updateItemNumbers);
+    // Initialize drag-drop for non-items container
+    window.itemReorder.initDragDrop('non-items-container', updateNonItemNumbers);
+    // Initialize drag-drop for specifications container (if exists)
+    window.itemReorder.initDragDrop('specifications-container', updateSpecificationNumbers);
   }
 });

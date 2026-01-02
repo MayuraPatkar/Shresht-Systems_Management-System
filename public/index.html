@@ -84,50 +84,83 @@
         .input-with-icon {
             padding-left: 40px;
         }
+
+        /* Blue scrollbar for changelog modal */
+        #changelog-modal *::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #changelog-modal *::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 5px;
+        }
+
+        #changelog-modal *::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 5px;
+        }
+
+        #changelog-modal *::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
+        }
+
     </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
 
-    <!-- Changelog Modal -->
+    <!-- What's New Button -->
+    <button id="whats-new-btn" 
+        class="fixed top-6 right-6 z-40 bg-white text-gray-700 px-4 py-2.5 rounded-lg font-medium shadow-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all flex items-center gap-2">
+        <i class="fas fa-gift text-blue-500"></i>
+        <span>What's New</span>
+        <span id="new-badge" class="hidden px-1.5 py-0.5 bg-blue-600 text-white text-xs font-bold rounded">NEW</span>
+    </button>
+
+    <!-- Changelog Modal - Full Screen Clean Design -->
     <div id="changelog-modal" class="fixed inset-0 z-50 hidden">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
-        
-        <!-- Modal Content -->
-        <div class="absolute inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden fade-in">
-                <!-- Header -->
-                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-5 text-white">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-white bg-opacity-20 rounded-lg">
-                                <i class="fas fa-rocket text-xl"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-xl font-bold">What's New!</h2>
-                                <p id="changelog-version-text" class="text-sm text-blue-100">Version update</p>
-                            </div>
+        <!-- Modal Content - Full Screen -->
+        <div class="absolute inset-0 bg-gray-50 flex flex-col">
+            <!-- Header -->
+            <div class="px-8 py-5 bg-white border-b border-gray-200 flex-shrink-0">
+                <div class="flex items-center justify-between max-w-5xl mx-auto">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-blue-100 rounded-xl">
+                            <i class="fas fa-gift text-2xl text-blue-600"></i>
                         </div>
-                        <button id="close-changelog-modal" class="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors">
-                            <i class="fas fa-times text-xl"></i>
-                        </button>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">What's New</h2>
+                            <p id="changelog-version-text" class="text-sm text-gray-500">Latest updates and improvements</p>
+                        </div>
                     </div>
+                    <button id="close-changelog-modal" 
+                        class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
                 </div>
-                
-                <!-- Body -->
-                <div id="changelog-modal-content" class="p-6 overflow-y-auto max-h-[50vh]">
+            </div>
+            
+            <!-- Body - Scrollable Content -->
+            <div class="flex-1 overflow-y-auto px-8 py-6">
+                <div id="changelog-modal-content" class="max-w-5xl mx-auto">
                     <!-- Content will be populated dynamically -->
-                    <div class="flex items-center justify-center py-8">
-                        <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                    <div class="flex items-center justify-center py-12">
+                        <i class="fas fa-spinner fa-spin text-blue-500 text-3xl"></i>
                     </div>
                 </div>
-                
-                <!-- Footer -->
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                    <button id="dismiss-changelog" class="w-full gradient-bg text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all">
-                        <i class="fas fa-check mr-2"></i>
-                        Got it, let's go!
+            </div>
+            
+            <!-- Footer -->
+            <div class="px-8 py-4 bg-white border-t border-gray-200 flex-shrink-0">
+                <div class="flex items-center justify-between max-w-5xl mx-auto">
+                    <p class="text-sm text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Full history available in Settings → About
+                    </p>
+                    <button id="dismiss-changelog" 
+                        class="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all flex items-center gap-2">
+                        <i class="fas fa-check"></i>
+                        Got it!
                     </button>
                 </div>
             </div>
@@ -141,7 +174,7 @@
             <!-- Left Side - Branding -->
             <div class="slide-in-left hidden lg:flex flex-col items-center justify-center space-y-8 p-12">
                 <div class="logo-glow">
-                    <img src="./assets/logo.png" alt="Shresht System Logo" class="h-96 w-auto object-contain">
+                    <img src="./assets/icon.png" alt="Shresht System Logo" class="h-96 w-auto object-contain">
                 </div>
                 <div class="text-center space-y-4">
                     <h1 class="text-5xl font-extrabold text-gray-800 tracking-tight">Shresht Systems</h1>

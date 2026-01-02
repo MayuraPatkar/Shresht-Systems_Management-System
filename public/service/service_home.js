@@ -30,6 +30,7 @@ const SERVICE_SHORTCUT_GROUPS = [
             { label: 'Save Service', keys: ['Ctrl', 'S'] },
             { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
             { label: 'Add Item', keys: ['Ctrl', 'I'] },
+            { label: 'Delete Item', keys: ['Ctrl', 'Delete'] },
             { label: 'Go Home', keys: ['Ctrl', 'H'] },
             { label: 'Focus Search', keys: ['Ctrl', 'F'] }
         ]
@@ -147,6 +148,14 @@ function getServiceStageLabel(stage) {
     return stages[index] || `${displayStage}th Service`;
 }
 
+// Toggle scrollbar based on content
+function toggleScrollbar(hasContent) {
+    const main = document.querySelector('main');
+    if (main) {
+        main.style.overflowY = hasContent ? 'auto' : 'hidden';
+    }
+}
+
 // Helper: Format date to Indian format
 function formatDateIndian(dateStr) {
     if (!dateStr) return 'N/A';
@@ -224,39 +233,39 @@ function createPendingServiceDiv(service) {
         <div class="flex">
             <div class="w-1.5 bg-gradient-to-b from-blue-500 to-cyan-600"></div>
             
-            <div class="flex-1 p-6">
+            <div class="flex-1 p-6 min-w-0">
                 <!-- Main Content Row -->
-                <div class="flex items-center justify-between gap-6">
+                <div class="flex items-center gap-6">
                     
                     <!-- Left Section: Icon + Project Info -->
-                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                    <div class="flex items-center gap-4 min-w-0" style="flex: 1 1 350px; max-width: 650px;">
                         <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
                             <i class="fas fa-wrench text-2xl text-white"></i>
                         </div>
-                        <div class="flex-1 min-w-0">
+                        <div class="flex-1 min-w-0 overflow-hidden">
                             <div class="flex items-center gap-2 mb-1">
-                                <h3 class="text-lg font-bold text-gray-900 truncate">${service.project_name || 'Unnamed Project'}</h3>
-                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-700">
+                                <h3 class="text-lg font-bold text-gray-900 truncate" title="${service.project_name || 'Unnamed Project'}">${service.project_name || 'Unnamed Project'}</h3>
+                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 flex-shrink-0">
                                     #${service.invoice_id}-S${service.service_stage + 1}
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-600">${service.customer_name || 'N/A'}</p>
+                            <p class="text-sm text-gray-600 truncate" title="${service.customer_name || 'N/A'}">${service.customer_name || 'N/A'}</p>
                         </div>
                     </div>
 
                     <!-- Middle Section: Address -->
-                    <div class="flex items-center gap-3 flex-1 min-w-0 px-6 border-l border-r border-gray-200">
+                    <div class="flex items-center gap-3 min-w-0 px-6 border-l border-r border-gray-200" style="flex: 1 1 300px; max-width: 450px;">
                         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-map-marker-alt text-blue-600"></i>
                         </div>
-                        <div class="flex-1 min-w-0">
+                        <div class="flex-1 min-w-0 overflow-hidden">
                             <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Address</p>
-                            <p class="text-sm font-semibold text-gray-900 truncate">${service.customer_address || 'N/A'}</p>
+                            <p class="text-sm font-semibold text-gray-900 truncate" title="${service.customer_address || 'N/A'}">${service.customer_address || 'N/A'}</p>
                         </div>
                     </div>
 
                     <!-- Date Section -->
-                    <div class="flex items-center gap-3 px-6 border-r border-gray-200">
+                    <div class="flex items-center gap-3 px-6 border-r border-gray-200 flex-shrink-0">
                         <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-calendar-check text-orange-600"></i>
                         </div>
@@ -267,7 +276,7 @@ function createPendingServiceDiv(service) {
                     </div>
 
                     <!-- Actions Section -->
-                    <div class="flex items-center gap-2 flex-shrink-0">
+                    <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
                         <button class="open-service px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400 font-medium" data-id="${service.invoice_id}" title="Open Service">
                             <i class="fas fa-folder-open mr-2"></i>Open
                         </button>
@@ -357,7 +366,7 @@ function createServiceHistoryDiv(service) {
                     </div>
 
                     <!-- Actions Section -->
-                    <div class="flex items-center gap-2 flex-shrink-0">
+                    <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
                         <button class="view-service px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" data-id="${service.service_id}" title="View Service">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -491,16 +500,18 @@ function renderPendingServices(services) {
 
     if (!services || services.length === 0) {
         serviceListDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+            <div class="flex flex-col items-center justify-center py-12 fade-in">
                 <div class="text-blue-500 text-5xl mb-4"><i class="fas fa-clock"></i></div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Pending Services</h2>
                 <p class="text-gray-600">Invoices due for service will appear here</p>
             </div>
         `;
+        toggleScrollbar(false);
         return;
     }
 
     services.forEach(service => serviceListDiv.appendChild(createPendingServiceDiv(service)));
+    toggleScrollbar(true);
 }
 
 // Render service history
@@ -512,16 +523,18 @@ function renderServiceHistory(services) {
 
     if (services.length === 0) {
         serviceListDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+            <div class="flex flex-col items-center justify-center py-12 fade-in">
                 <div class="text-green-500 text-5xl mb-4"><i class="fas fa-history"></i></div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Service History</h2>
                 <p class="text-gray-600">Completed services will appear here</p>
             </div>
         `;
+        toggleScrollbar(false);
         return;
     }
 
     services.forEach(service => serviceListDiv.appendChild(createServiceHistoryDiv(service)));
+    toggleScrollbar(true);
 }
 
 // Initialize filter event listeners

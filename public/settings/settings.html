@@ -1059,6 +1059,29 @@
                     </div>
                 </div>
 
+                <!-- System Logs Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-file-alt text-gray-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">System Logs</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="text-sm text-gray-600">Download system logs for troubleshooting and debugging purposes.</p>
+                        <div class="flex gap-3">
+                            <button type="button" id="download-app-logs-button"
+                                class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2">
+                                <i class="fas fa-download"></i>
+                                App Logs
+                            </button>
+                            <button type="button" id="download-error-logs-button"
+                                class="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Error Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Update Check Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                     <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
@@ -1240,10 +1263,19 @@
                             <strong>© 2025 Shresht Systems Management System</strong><br>
                             All rights reserved. This software is open source.
                         </p>
-                        <div class="flex gap-4 mt-4">
-                            <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Documentation</a>
-                            <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Support</a>
-                            <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Report Issue</a>
+                        <div class="flex flex-wrap gap-4 mt-4">
+                            <a href="javascript:void(0)" data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System" class="external-link text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2">
+                                <i class="fab fa-github"></i>
+                                GitHub Repository
+                            </a>
+                            <a href="javascript:void(0)" data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System/wiki" class="external-link text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2">
+                                <i class="fas fa-book"></i>
+                                Documentation
+                            </a>
+                            <a href="javascript:void(0)" data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System/issues" class="external-link text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2">
+                                <i class="fas fa-bug"></i>
+                                Report Issue
+                            </a>
                         </div>
                     </div>
                 </div>

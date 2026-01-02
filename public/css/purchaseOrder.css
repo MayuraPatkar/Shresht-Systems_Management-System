@@ -172,10 +172,10 @@ main {
     gap: 1rem;
 }
 
-/* First row: # + Description + HSN + Qty + Unit Price + Rate + Delete */
+/* First row: # + Description + HSN + Qty + Unit Price + Rate + Actions */
 #new .item-card .item-row-1 {
     display: grid;
-    grid-template-columns: 40px 2.5fr 1fr 0.7fr 0.9fr 0.7fr 40px;
+    grid-template-columns: 40px 2.5fr 1fr 0.7fr 0.9fr 0.7fr 80px;
     gap: 0.75rem;
     align-items: center;
 }
@@ -183,7 +183,7 @@ main {
 /* Second row: Company + Type + Category (with spacers to align) */
 #new .item-card .item-row-2 {
     display: grid;
-    grid-template-columns: 40px 1fr 1fr 1fr 40px;
+    grid-template-columns: 40px 1fr 1fr 1fr 80px;
     gap: 0.75rem;
     align-items: center;
     padding-top: 0.25rem;
@@ -191,9 +191,9 @@ main {
     margin-top: 0.25rem;
 }
 
-/* Spacer to align with item number and delete button */
+/* Spacer to align with item number and action buttons */
 #new .item-card .row-spacer {
-    width: 40px;
+    width: 80px;
 }
 
 /* Item number badge */
@@ -270,13 +270,17 @@ main {
 /* Responsive adjustments for two-row layout */
 @media (max-width: 1200px) {
     #new .item-card .item-row-1 {
-        grid-template-columns: 36px 2fr 0.9fr 0.6fr 0.8fr 0.6fr 36px;
+        grid-template-columns: 36px 2fr 0.9fr 0.6fr 0.8fr 0.6fr 72px;
         gap: 0.5rem;
     }
 
     #new .item-card .item-row-2 {
-        grid-template-columns: 36px 1fr 1fr 1fr 36px;
+        grid-template-columns: 36px 1fr 1fr 1fr 72px;
         gap: 0.5rem;
+    }
+    
+    #new .item-card .row-spacer {
+        width: 72px;
     }
 
     #new .item-card .item-field input {

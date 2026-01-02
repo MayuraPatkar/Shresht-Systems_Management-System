@@ -138,14 +138,18 @@ router.get('/stock', async (req, res) => {
         if (allMovements.length > 0) {
             try {
                 const reportName = `Stock Report - ${new Date().toLocaleDateString('en-IN')}`;
-                const report = new Report({
+                
+                // Prepare report data
+                const reportData = {
                     report_type: 'stock',
                     report_name: reportName,
                     parameters: {
-                        start_date,
-                        end_date,
-                        item_name,
-                        movement_type
+                        start_date: start_date ? new Date(start_date) : undefined,
+                        end_date: end_date ? new Date(end_date) : undefined,
+                        filters: {
+                            item_name: item_name || null,
+                            movement_type: movement_type || null
+                        }
                     },
                     data: {
                         movements: allMovements,
@@ -159,9 +163,36 @@ router.get('/stock', async (req, res) => {
                     summary: {
                         total_records: allMovements.length,
                         total_value: summary.in.total_value + summary.out.total_value // Rough value calc
-                    }
-                });
-                await report.save();
+                    },
+                    generated_at: new Date(),
+                    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Reset expiry
+                };
+
+                // Build query to find existing report with same parameters
+                const query = {
+                    report_type: 'stock',
+                    'parameters.filters.item_name': item_name || null,
+                    'parameters.filters.movement_type': movement_type || null
+                };
+
+                if (start_date) {
+                    query['parameters.start_date'] = new Date(start_date);
+                } else {
+                    query['parameters.start_date'] = { $exists: false };
+                }
+
+                if (end_date) {
+                    query['parameters.end_date'] = new Date(end_date);
+                } else {
+                    query['parameters.end_date'] = { $exists: false };
+                }
+
+                // Upsert: Update if exists, Insert if not
+                await Report.findOneAndUpdate(
+                    query,
+                    reportData,
+                    { upsert: true, new: true, setDefaultsOnInsert: true }
+                );
             } catch (saveError) {
                 logger.error('Failed to save stock report to history:', saveError);
                 // continue even if saving fails, as the report data was generated successfully

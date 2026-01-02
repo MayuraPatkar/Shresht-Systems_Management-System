@@ -4,6 +4,8 @@ let totalAmountOriginal = 0;
 let totalAmountDuplicate = 0;
 let totalTaxOriginal = 0;
 let totalTaxDuplicate = 0;
+let currentDeclaration = "";
+let currentTermsAndConditions = "";
 
 document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
@@ -161,6 +163,7 @@ window.beforeStepAdvance = async function (step) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${sno}</div>
                     <div class="item-field description">
@@ -182,9 +185,6 @@ window.beforeStepAdvance = async function (step) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -222,15 +222,6 @@ window.beforeStepAdvance = async function (step) {
                     updateItemNumbers();
                 });
 
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(itemsContainer.children).indexOf(card);
-                        addItem(currentIndex + 1);
-                    });
-                }
-
                 sno++;
             });
 
@@ -239,6 +230,7 @@ window.beforeStepAdvance = async function (step) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "non-item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${sno}</div>
                     <div class="non-item-field description">
@@ -251,9 +243,6 @@ window.beforeStepAdvance = async function (step) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -287,15 +276,6 @@ window.beforeStepAdvance = async function (step) {
                     card.remove();
                     row.remove();
                 });
-
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(nonItemsContainer.children).indexOf(card);
-                        addNonItem(currentIndex + 1);
-                    });
-                }
 
                 sno++;
             });
@@ -356,6 +336,10 @@ async function openInvoice(id) {
         document.getElementById('consignee-name').value = invoice.consignee_name || '';
         document.getElementById('consignee-address').value = invoice.consignee_address || '';
 
+        // Populate content fields
+        currentDeclaration = invoice.declaration || "";
+        currentTermsAndConditions = invoice.termsAndConditions || "";
+
         const itemsTableBody = document.querySelector("#items-table tbody");
         itemsTableBody.innerHTML = "";
         const itemsContainer = document.getElementById("items-container");
@@ -371,6 +355,7 @@ async function openInvoice(id) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${s}</div>
                     <div class="item-field description">
@@ -392,9 +377,6 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -431,15 +413,6 @@ async function openInvoice(id) {
                     row.remove();
                     updateItemNumbers();
                 });
-
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(itemsContainer.children).indexOf(card);
-                        addItem(currentIndex + 1);
-                    });
-                }
 
                 s++;
             });
@@ -448,6 +421,7 @@ async function openInvoice(id) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "non-item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${s}</div>
                     <div class="non-item-field description">
@@ -460,9 +434,6 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -497,15 +468,6 @@ async function openInvoice(id) {
                     row.remove();
                 });
 
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(nonItemsContainer.children).indexOf(card);
-                        addNonItem(currentIndex + 1);
-                    });
-                }
-
                 s++;
             });
         } else {
@@ -513,6 +475,7 @@ async function openInvoice(id) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${s}</div>
                     <div class="item-field description">
@@ -534,9 +497,6 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -574,15 +534,6 @@ async function openInvoice(id) {
                     updateItemNumbers();
                 });
 
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(itemsContainer.children).indexOf(card);
-                        addItem(currentIndex + 1);
-                    });
-                }
-
                 s++;
             });
 
@@ -590,6 +541,7 @@ async function openInvoice(id) {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "non-item-card";
+                card.setAttribute("draggable", "true");
                 card.innerHTML = `
                     <div class="item-number">${s}</div>
                     <div class="non-item-field description">
@@ -602,9 +554,6 @@ async function openInvoice(id) {
                         <input type="number" value="${item.rate}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
-                        <button type="button" class="insert-item-btn" title="Insert Item Below">
-                            <i class="fas fa-plus"></i>
-                        </button>
                         <button type="button" class="remove-item-btn" title="Remove Item">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -638,15 +587,6 @@ async function openInvoice(id) {
                     card.remove();
                     row.remove();
                 });
-
-                // Add insert button event listener
-                const insertBtn = card.querySelector(".insert-item-btn");
-                if (insertBtn) {
-                    insertBtn.addEventListener("click", function () {
-                        const currentIndex = Array.from(nonItemsContainer.children).indexOf(card);
-                        addNonItem(currentIndex + 1);
-                    });
-                }
 
                 s++;
             });
@@ -840,6 +780,21 @@ function calculateInvoice(itemsTable) {
 
 // Function to generate the invoice preview
 async function generatePreview() {
+    // Capture current edits if they exist in the preview container
+    const previewContainer = document.getElementById('preview-content');
+    if (previewContainer) {
+        const declarationEl = previewContainer.querySelector('.declaration');
+        const termsEl = previewContainer.querySelector('.terms-section');
+        
+        // Only update if the element exists and has content (to avoid overwriting with null/empty on first load)
+        if (declarationEl && declarationEl.innerHTML.trim() !== "") {
+            currentDeclaration = declarationEl.innerHTML;
+        }
+        if (termsEl && termsEl.innerHTML.trim() !== "") {
+            currentTermsAndConditions = termsEl.innerHTML;
+        }
+    }
+
     // Fetch company data from database
     const company = await window.companyConfig.getCompanyInfo();
     const bank = company.bank_details || {};
@@ -996,16 +951,17 @@ async function generatePreview() {
 
             <div class="sixth-section">
                 <div class="declaration" contenteditable="true">
-                    <p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+                    ${currentDeclaration ? currentDeclaration : `<p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>`}
                 </div>
             </div>
 
             <div class="seventh-section">
                 <div class="terms-section" contenteditable="true">
+                    ${currentTermsAndConditions ? currentTermsAndConditions : `
                     <h4>Terms & Conditions:</h4>
                     <p>1. Payment should be made within 15 days from the date of invoice.</p>
                     <p>2. Interest @ 18% per annum will be charged for the delayed payment.</p>
-                    <p>3. Goods once sold will not be taken back.</p>
+                    <p>3. Goods once sold will not be taken back.</p>`}
                 </div>
             </div>
 
@@ -1079,6 +1035,16 @@ function collectFormData() {
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
     const { finalTotal } = calculateInvoice(itemsTable);
 
+    // Scrape content from preview if available
+    const previewContainer = document.getElementById('preview-content');
+    if (previewContainer) {
+        const declarationEl = previewContainer.querySelector('.declaration');
+        const termsEl = previewContainer.querySelector('.terms-section');
+        
+        if (declarationEl) currentDeclaration = declarationEl.innerHTML;
+        if (termsEl) currentTermsAndConditions = termsEl.innerHTML;
+    }
+
     return {
         type: sessionStorage.getItem('update-invoice'),
         projectName: document.getElementById("project-name").value,
@@ -1096,6 +1062,8 @@ function collectFormData() {
         buyerEmail: document.getElementById("buyer-email").value,
         consigneeName: document.getElementById("consignee-name").value,
         consigneeAddress: document.getElementById("consignee-address").value,
+        declaration: currentDeclaration,
+        termsAndConditions: currentTermsAndConditions,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(2) input").value,
             HSN_SAC: row.querySelector("td:nth-child(3) input").value,

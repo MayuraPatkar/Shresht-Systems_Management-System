@@ -314,6 +314,7 @@ function addItemFromData(item, itemSno, insertIndex) {
     // Create card
     const card = document.createElement("div");
     card.className = "item-card";
+    card.setAttribute("draggable", "true");
     card.innerHTML = `
         <div class="item-number">${itemSno}</div>
         <div class="item-field description">
@@ -335,9 +336,6 @@ function addItemFromData(item, itemSno, insertIndex) {
             <input type="number" value="${item.rate || ''}" placeholder="0" min="0" step="0.01">
         </div>
         <div class="item-actions">
-            <button type="button" class="insert-item-btn" title="Insert Item Below">
-                <i class="fas fa-plus"></i>
-            </button>
             <button type="button" class="remove-item-btn" title="Remove Item">
                 <i class="fas fa-trash-alt"></i>
             </button>
@@ -420,15 +418,6 @@ function addItemFromData(item, itemSno, insertIndex) {
         row.remove();
         renumberItems();
     });
-
-    // Add insert button event listener
-    const insertBtn = card.querySelector(".insert-item-btn");
-    if (insertBtn) {
-        insertBtn.addEventListener("click", function () {
-            const currentIndex = Array.from(itemsContainer.children).indexOf(card);
-            addItem(currentIndex + 1);
-        });
-    }
 
     // Renumber if we inserted specifically
     if (typeof insertIndex === 'number') {
@@ -794,3 +783,10 @@ function collectFormData() {
 async function getId() {
     return getWaybillId();
 }
+
+// Initialize drag-drop reordering for waybill items
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.itemReorder && typeof window.itemReorder.initDragDrop === 'function') {
+        window.itemReorder.initDragDrop('items-container', renumberItems);
+    }
+});
