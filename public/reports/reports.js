@@ -32,13 +32,21 @@ function initReports() {
     // Load recent reports
     loadRecentReports();
 
-
-
     // Set up delete all reports button
     document.getElementById('delete-all-reports')?.addEventListener('click', deleteAllReports);
 
     // Set up filter tabs
     setupFilterTabs();
+
+    // Check for URL parameter to auto-view a specific report
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewReportId = urlParams.get('view');
+    if (viewReportId) {
+        // Auto-view the report after a short delay to ensure everything is loaded
+        setTimeout(() => {
+            viewReport(viewReportId);
+        }, 100);
+    }
 }
 
 /**
@@ -207,23 +215,23 @@ function getReportDetails(report) {
     if (report.report_type === 'stock') {
         const params = report.parameters || {};
         const filters = params.filters || params; // Handle new vs old structure
-        
+
         let details = [];
-        
+
         if (params.start_date && params.end_date) {
             const start = new Date(params.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
             const end = new Date(params.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
             details.push(`${start} - ${end}`);
         }
-        
+
         if (filters.item_name) {
             details.push(`Item: ${filters.item_name}`);
         }
-        
+
         if (filters.movement_type && filters.movement_type !== 'all') {
             details.push(`Type: ${filters.movement_type.charAt(0).toUpperCase() + filters.movement_type.slice(1)}`);
         }
-        
+
         return details.length > 0 ? details.join(' • ') : '';
     }
     return '';

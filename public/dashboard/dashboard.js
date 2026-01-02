@@ -243,7 +243,7 @@ function loadRecentActivity() {
                     title: r.report_name || typeLabel,
                     description: typeLabel,
                     time: r.generated_at || r.createdAt || new Date(),
-                    link: `../reports/reports.html`
+                    link: `../reports/reports.html?view=${encodeURIComponent(r._id || '')}`
                 });
             });
 
