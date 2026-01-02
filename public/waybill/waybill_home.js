@@ -93,6 +93,7 @@ const WAYBILL_SHORTCUT_GROUPS = [
             { label: 'View Preview', keys: ['Ctrl', 'P'] },
             { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
             { label: 'Add Item', keys: ['Ctrl', 'I'] },
+            { label: 'Delete Item', keys: ['Ctrl', 'Delete'] },
             { label: 'Go Home', keys: ['Ctrl', 'H'] },
             { label: 'Focus Search', keys: ['Ctrl', 'F'] }
         ]

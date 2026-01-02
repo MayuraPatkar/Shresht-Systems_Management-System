@@ -167,6 +167,61 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+// Keyboard shortcuts for item management (Add/Delete items)
+document.addEventListener("keydown", function (event) {
+  // Ctrl + I: Add Item
+  if ((event.ctrlKey || event.metaKey) && (event.key === 'i' || event.key === 'I')) {
+    event.preventDefault(); // Prevent default (e.g., Italics)
+    
+    // Check if we are in a context where adding items makes sense
+    // Try standard item button first
+    const addItemBtn = document.getElementById('add-item-btn');
+    if (addItemBtn && !addItemBtn.disabled && addItemBtn.offsetParent !== null) {
+      addItemBtn.click();
+      
+      // Focus the new input after a short delay
+      setTimeout(() => {
+        const inputs = document.querySelectorAll('#items-container .item_name, #items-table .item_name');
+        if (inputs.length > 0) {
+          inputs[inputs.length - 1].focus();
+        }
+      }, 50);
+      return;
+    }
+
+    // Try non-item button if standard item button isn't available/visible
+    const addNonItemBtn = document.getElementById('add-non-item-btn');
+    if (addNonItemBtn && !addNonItemBtn.disabled && addNonItemBtn.offsetParent !== null) {
+      addNonItemBtn.click();
+       // Focus the new input after a short delay
+       setTimeout(() => {
+        const inputs = document.querySelectorAll('#non-items-container input[type="text"], #non-items-table input[type="text"]');
+        if (inputs.length > 0) {
+          inputs[inputs.length - 1].focus();
+        }
+      }, 50);
+    }
+  }
+
+  // Ctrl + Delete: Delete Focused Row
+  if ((event.ctrlKey || event.metaKey) && event.key === 'Delete') {
+    const activeElement = document.activeElement;
+    
+    // Find the closest item card or table row
+    // Check for item-card, non-item-card, spec-card, or table row
+    const container = activeElement.closest('.item-card, .non-item-card, .spec-card, tr');
+    
+    if (container) {
+      // Look for a remove button within this container
+      const removeBtn = container.querySelector('.remove-item-btn');
+      if (removeBtn) {
+        event.preventDefault();
+        removeBtn.click(); // Triggers the existing logic that handles both card & row removal
+      }
+    }
+  }
+});
+
 // Event listener for the "Next" button
 const nextBtn = document.getElementById("next-btn");
 if (nextBtn) {
