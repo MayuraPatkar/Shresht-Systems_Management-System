@@ -228,7 +228,7 @@ function createQuotationCard(quotation) {
             
             <div class="flex-1 p-6 min-w-0">
                 <!-- Main Content Row -->
-                <div class="flex items-center gap-6">
+                <div class="flex items-center">
                     
                     <!-- Left Section: Icon + Project Info -->
                     <div class="flex items-center gap-4 min-w-0" style="flex: 1 1 350px; max-width: 450px;">
