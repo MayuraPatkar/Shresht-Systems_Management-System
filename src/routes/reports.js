@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Invoices, Purchases, Stock, StockMovement, Report } = require('../models');
+const { Invoices, Purchases, Stock, StockMovement, Report, service } = require('../models');
 const logger = require('../utils/logger');
 
 /**
@@ -50,56 +50,169 @@ router.get('/stock', async (req, res) => {
         // BACKFILL: Include Purchase Orders as "In" movements if missing
         // ------------------------------------------------------------------
 
-        // 1. Get Purchase Orders in date range
-        const poQuery = {};
-        if (start_date || end_date) {
-            poQuery.purchase_date = {};
-            if (start_date) poQuery.purchase_date.$gte = new Date(start_date);
-            if (end_date) {
-                const endDate = new Date(end_date);
-                endDate.setHours(23, 59, 59, 999);
-                poQuery.purchase_date.$lte = endDate;
+        let poMovements = [];
+
+        // Only fetch POs if we are looking for 'in' or 'all' movements
+        if (!movement_type || movement_type === 'all' || movement_type === 'in') {
+            // 1. Get Purchase Orders in date range
+            const poQuery = {};
+            if (start_date || end_date) {
+                poQuery.purchase_date = {};
+                if (start_date) poQuery.purchase_date.$gte = new Date(start_date);
+                if (end_date) {
+                    const endDate = new Date(end_date);
+                    endDate.setHours(23, 59, 59, 999);
+                    poQuery.purchase_date.$lte = endDate;
+                }
             }
+
+            const purchaseOrders = await Purchases.find(poQuery);
+
+            // 2. Identify POs that already have StockMovements (to avoid duplicates)
+            const recordedPOIds = new Set(
+                movements
+                    .filter(m => m.reference_type === 'purchase_order')
+                    .map(m => m.reference_id)
+            );
+
+            // 3. Convert untracked POs into movement objects
+            purchaseOrders.forEach(po => {
+                // Skip if this PO is already tracked in StockMovements
+                if (recordedPOIds.has(po.purchase_order_id)) return;
+
+                if (po.items && Array.isArray(po.items)) {
+                    po.items.forEach(item => {
+                        // Check item name filter
+                        if (item_name && item.description && !item.description.match(new RegExp(item_name, 'i'))) {
+                            return;
+                        }
+
+                        poMovements.push({
+                            timestamp: po.purchase_date || po.createdAt,
+                            item_name: item.description || 'Unknown Item',
+                            movement_type: 'in',
+                            quantity_change: Number(item.quantity) || 0,
+                            total_value: (Number(item.quantity) || 0) * (Number(item.unit_price) || 0),
+                            reference_type: 'purchase_order',
+                            reference_id: po.purchase_order_id,
+                            notes: 'Generated from Purchase Order history'
+                        });
+                    });
+                }
+            });
         }
 
-        const purchaseOrders = await Purchases.find(poQuery);
+        // ------------------------------------------------------------------
+        // BACKFILL: Include Stock Items as "In" movements if missing
+        // ------------------------------------------------------------------
 
-        // 2. Identify POs that already have StockMovements (to avoid duplicates)
-        const recordedPOIds = new Set(
-            movements
-                .filter(m => m.reference_type === 'purchase_order')
-                .map(m => m.reference_id)
-        );
+        let stockBackfill = [];
 
-        // 3. Convert untracked POs into movement objects
-        const poMovements = [];
-        purchaseOrders.forEach(po => {
-            // Skip if this PO is already tracked in StockMovements
-            if (recordedPOIds.has(po.purchase_order_id)) return;
+        if (!movement_type || movement_type === 'all' || movement_type === 'in') {
+            // 1. Get all Stock items
+            // Note: We don't filter by date here because we need to check createdAt in memory
+            // to match the specific logic, or we could filter in query.
+            // Let's filter in memory to be safe with the "tracked" check.
+            const allStock = await Stock.find({});
 
-            if (po.items && Array.isArray(po.items)) {
-                po.items.forEach(item => {
-                    // Check item name filter
-                    if (item_name && item.description && !item.description.match(new RegExp(item_name, 'i'))) {
-                        return;
-                    }
+            // 2. Identify Stock items that already have StockMovements of type 'stock'
+            // We check against the fetched 'movements' array.
+            // Risk: If the movement fell out of the 1000 limit, we might duplicate.
+            // But for recent items (within date range), they should be there.
+            const trackedStockIds = new Set(
+                movements
+                    .filter(m => m.reference_type === 'stock')
+                    .map(m => m.reference_id)
+            );
 
-                    poMovements.push({
-                        timestamp: po.purchase_date || po.createdAt,
-                        item_name: item.description || 'Unknown Item',
-                        movement_type: 'in',
-                        quantity_change: Number(item.quantity) || 0,
-                        total_value: (Number(item.quantity) || 0) * (Number(item.unit_price) || 0),
-                        reference_type: 'purchase_order',
-                        reference_id: po.purchase_order_id,
-                        notes: 'Generated from Purchase Order history'
-                    });
+            // 3. Convert untracked Stock items into movement objects
+            allStock.forEach(item => {
+                // Skip if this Stock item is already tracked
+                if (trackedStockIds.has(item._id.toString())) return;
+
+                // Apply Date Filters to the creation date
+                const itemDate = new Date(item.createdAt);
+                if (start_date && itemDate < new Date(start_date)) return;
+                if (end_date) {
+                    const endDateObj = new Date(end_date);
+                    endDateObj.setHours(23, 59, 59, 999);
+                    if (itemDate > endDateObj) return;
+                }
+
+                // Apply Item Name Filter
+                if (item_name && !item.item_name.match(new RegExp(item_name, 'i'))) return;
+
+                stockBackfill.push({
+                    timestamp: item.createdAt,
+                    item_name: item.item_name,
+                    movement_type: 'in',
+                    quantity_change: item.quantity, // Using current quantity as best guess for legacy
+                    total_value: (item.quantity || 0) * (item.unit_price || 0),
+                    reference_type: 'stock',
+                    reference_id: item._id,
+                    notes: 'Initial stock (Legacy/Backfilled)'
                 });
+            });
+        }
+
+        // ------------------------------------------------------------------
+        // BACKFILL: Include Services as "Out" movements if missing
+        // ------------------------------------------------------------------
+
+        let serviceMovements = [];
+
+        // Only fetch Services if we are looking for 'out' or 'all' movements
+        if (!movement_type || movement_type === 'all' || movement_type === 'out') {
+            // 1. Get Services in date range
+            const serviceQuery = {};
+            if (start_date || end_date) {
+                serviceQuery.service_date = {};
+                if (start_date) serviceQuery.service_date.$gte = new Date(start_date);
+                if (end_date) {
+                    const endDate = new Date(end_date);
+                    endDate.setHours(23, 59, 59, 999);
+                    serviceQuery.service_date.$lte = endDate;
+                }
             }
-        });
+
+            const services = await service.find(serviceQuery);
+
+            // 2. Identify Services that already have StockMovements
+            const recordedServiceIds = new Set(
+                movements
+                    .filter(m => m.reference_type === 'service')
+                    .map(m => m.reference_id)
+            );
+
+            // 3. Convert untracked Services into movement objects
+            services.forEach(srv => {
+                // Skip if this Service is already tracked
+                if (recordedServiceIds.has(srv.service_id)) return;
+
+                if (srv.items && Array.isArray(srv.items)) {
+                    srv.items.forEach(item => {
+                        // Check item name filter
+                        if (item_name && item.description && !item.description.match(new RegExp(item_name, 'i'))) {
+                            return;
+                        }
+
+                        serviceMovements.push({
+                            timestamp: srv.service_date || srv.createdAt,
+                            item_name: item.description || 'Unknown Item',
+                            movement_type: 'out',
+                            quantity_change: Number(item.quantity) || 0,
+                            total_value: (Number(item.quantity) || 0) * (Number(item.unit_price) || 0),
+                            reference_type: 'service',
+                            reference_id: srv.service_id,
+                            notes: 'Generated from Service history'
+                        });
+                    });
+                }
+            });
+        }
 
         // 4. Merge and Sort
-        const allMovements = [...movements, ...poMovements].sort((a, b) =>
+        const allMovements = [...movements, ...poMovements, ...stockBackfill, ...serviceMovements].sort((a, b) =>
             new Date(b.timestamp) - new Date(a.timestamp)
         );
 

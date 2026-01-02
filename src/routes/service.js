@@ -187,20 +187,16 @@ router.post('/save-service', async (req, res) => {
         // 2. Deduct stock for service items
         if (items && items.length > 0) {
             for (let item of items) {
-                const stockItem = await Stock.findOne({ item_name: item.description });
-                if (stockItem) {
-                    stockItem.quantity -= item.quantity;
-                    await stockItem.save();
-                    // Log stock movement
-                    await logStockMovement(
-                        item.description,
-                        item.quantity,
-                        'out',
-                        'service',
-                        newServiceId,
-                        `Deducted for service: ${newServiceId}`
-                    );
-                }
+                await Stock.updateOne({ item_name: item.description }, { $inc: { quantity: -item.quantity } });
+                // Log stock movement
+                await logStockMovement(
+                    item.description,
+                    item.quantity,
+                    'out',
+                    'service',
+                    newServiceId,
+                    `Deducted for service: ${newServiceId}`
+                );
             }
         }
 
@@ -266,19 +262,15 @@ router.put('/update-service', async (req, res) => {
             }
             // Deduct stock for new items
             for (let item of items) {
-                const stockItem = await Stock.findOne({ item_name: item.description });
-                if (stockItem) {
-                    stockItem.quantity -= item.quantity;
-                    await stockItem.save();
-                    await logStockMovement(
-                        item.description,
-                        item.quantity,
-                        'out',
-                        'service',
-                        service_id,
-                        `Deducted for service update: ${service_id}`
-                    );
-                }
+                await Stock.updateOne({ item_name: item.description }, { $inc: { quantity: -item.quantity } });
+                await logStockMovement(
+                    item.description,
+                    item.quantity,
+                    'out',
+                    'service',
+                    service_id,
+                    `Deducted for service update: ${service_id}`
+                );
             }
         }
 
