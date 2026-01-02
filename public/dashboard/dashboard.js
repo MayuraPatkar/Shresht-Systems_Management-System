@@ -149,6 +149,7 @@ function loadRecentActivity() {
             const activities = [];
 
             // Process quotations
+            // Note: Use createdAt (when saved) for Recent Activity, not quotation_date (user-selected date)
             (quotations || []).slice(0, 5).forEach(q => {
                 activities.push({
                     type: 'quotation',
@@ -156,7 +157,7 @@ function loadRecentActivity() {
                     color: 'blue',
                     title: `Quotation #${q.quotation_id || 'N/A'}`,
                     description: q.project_name || 'No project name',
-                    time: q.quotation_date || q.createdAt || new Date(),
+                    time: q.createdAt || q.quotation_date || new Date(),
                     link: `../quotation/quotation.html?view=${encodeURIComponent(q.quotation_id || '')}`
                 });
             });
@@ -169,7 +170,7 @@ function loadRecentActivity() {
                     color: 'green',
                     title: `Invoice #${i.invoice_id || 'N/A'}`,
                     description: i.project_name || 'No project name',
-                    time: i.invoice_date || i.createdAt || new Date(),
+                    time: i.createdAt || i.invoice_date || new Date(),
                     link: `../invoice/invoice.html?view=${encodeURIComponent(i.invoice_id || '')}`
                 });
             });
@@ -182,7 +183,7 @@ function loadRecentActivity() {
                     color: 'purple',
                     title: `Waybill #${w.waybill_id || 'N/A'}`,
                     description: w.project_name || 'No project name',
-                    time: w.waybill_date || w.createdAt || new Date(),
+                    time: w.createdAt || w.waybill_date || new Date(),
                     link: `../waybill/wayBill.html?view=${encodeURIComponent(w.waybill_id || '')}`
                 });
             });
@@ -195,7 +196,7 @@ function loadRecentActivity() {
                     color: 'teal',
                     title: `Service #${s.service_id || 'N/A'}`,
                     description: s.project_name || s.customer_name || 'No description',
-                    time: s.service_date || s.createdAt || new Date(),
+                    time: s.createdAt || s.service_date || new Date(),
                     link: `../service/service.html?view=${encodeURIComponent(s.service_id || '')}`
                 });
             });
