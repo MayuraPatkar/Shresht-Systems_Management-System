@@ -45,6 +45,14 @@ function toggleSection(sectionId) {
         "about-section"
     ];
     
+    // Cleanup when leaving about section
+    const currentAboutSection = document.getElementById("about-section");
+    if (currentAboutSection && !currentAboutSection.classList.contains('hidden') && sectionId !== "about-section") {
+        if (typeof cleanupSystemModule === 'function') {
+            cleanupSystemModule();
+        }
+    }
+    
     sections.forEach((id) => {
         const sectionElement = document.getElementById(id);
         if (sectionElement) {
@@ -106,4 +114,5 @@ document.getElementById("about-button")?.addEventListener("click", () => {
     loadSystemInfo();
     loadDatabaseStats();
     loadChangelog();
+    startSystemInfoUpdates();
 });

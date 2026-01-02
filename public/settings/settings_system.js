@@ -5,8 +5,10 @@
 
 // --- SYSTEM INFORMATION ---
 
+let systemInfoInterval = null;
+
 /**
- * Loads system information from the server
+ * Loads system information from the server (static info)
  */
 function loadSystemInfo() {
     fetch('/settings/system-info')
@@ -19,14 +21,56 @@ function loadSystemInfo() {
                 document.getElementById("node-version").textContent = s.node_version || '-';
                 document.getElementById("platform").textContent = s.platform || '-';
                 document.getElementById("total-memory").textContent = s.total_memory || '-';
-                document.getElementById("free-memory").textContent = s.free_memory || '-';
                 document.getElementById("arch").textContent = s.arch || '-';
-                document.getElementById("uptime").textContent = s.uptime || '-';
+                
+                // Load dynamic values initially
+                updateDynamicSystemInfo();
             }
         })
         .catch(err => {
             console.error('Failed to load system info:', err);
         });
+}
+
+/**
+ * Updates real-time system information (memory and uptime)
+ */
+function updateDynamicSystemInfo() {
+    fetch('/settings/system-info')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.system) {
+                const s = data.system;
+                document.getElementById("free-memory").textContent = s.free_memory || '-';
+                document.getElementById("uptime").textContent = s.uptime || '-';
+            }
+        })
+        .catch(err => {
+            console.error('Failed to update dynamic system info:', err);
+        });
+}
+
+/**
+ * Starts real-time updates for memory and uptime
+ */
+function startSystemInfoUpdates() {
+    // Clear any existing interval
+    if (systemInfoInterval) {
+        clearInterval(systemInfoInterval);
+    }
+    
+    // Update every 1 second
+    systemInfoInterval = setInterval(updateDynamicSystemInfo, 1000);
+}
+
+/**
+ * Stops real-time updates
+ */
+function stopSystemInfoUpdates() {
+    if (systemInfoInterval) {
+        clearInterval(systemInfoInterval);
+        systemInfoInterval = null;
+    }
 }
 
 // --- CHANGELOG DISPLAY ---
@@ -202,6 +246,16 @@ function initSystemModule() {
 
     // Load changelog when About section is shown
     loadChangelog();
+    
+    // Start real-time system info updates
+    startSystemInfoUpdates();
+}
+
+/**
+ * Cleanup function to stop intervals when leaving about section
+ */
+function cleanupSystemModule() {
+    stopSystemInfoUpdates();
 }
 
 // --- AUTO-UPDATE FUNCTIONALITY ---
