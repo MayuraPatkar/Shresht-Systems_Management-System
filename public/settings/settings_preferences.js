@@ -99,13 +99,8 @@ function loadSecuritySettings() {
                 const s = data.settings.security || {};
 
                 document.getElementById("security-session-timeout").value = s.session_timeout || 30;
-                document.getElementById("security-password-length").value = s.password_min_length || 8;
-                document.getElementById("security-password-uppercase").checked = s.password_require_uppercase !== false;
-                document.getElementById("security-password-number").checked = s.password_require_number !== false;
-                document.getElementById("security-password-special").checked = s.password_require_special || false;
                 document.getElementById("security-max-attempts").value = s.max_login_attempts || 5;
                 document.getElementById("security-lockout-duration").value = s.lockout_duration || 15;
-                document.getElementById("security-enable-2fa").checked = s.enable_2fa || false;
             }
         })
         .catch(err => {
@@ -125,13 +120,8 @@ function saveSecuritySettings() {
     const security = {
         security: {
             session_timeout: parseInt(document.getElementById("security-session-timeout").value),
-            password_min_length: parseInt(document.getElementById("security-password-length").value),
-            password_require_uppercase: document.getElementById("security-password-uppercase").checked,
-            password_require_number: document.getElementById("security-password-number").checked,
-            password_require_special: document.getElementById("security-password-special").checked,
             max_login_attempts: parseInt(document.getElementById("security-max-attempts").value),
-            lockout_duration: parseInt(document.getElementById("security-lockout-duration").value),
-            enable_2fa: document.getElementById("security-enable-2fa").checked
+            lockout_duration: parseInt(document.getElementById("security-lockout-duration").value)
         }
     };
 
