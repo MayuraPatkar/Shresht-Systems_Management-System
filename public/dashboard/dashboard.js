@@ -142,7 +142,7 @@ function loadRecentActivity() {
         fetchWithRetry('/quotation/all').catch(() => []),
         fetchWithRetry('/invoice/all').catch(() => []),
         fetchWithRetry('/waybill/all').catch(() => []),
-        fetchWithRetry('/service/all').catch(() => []),
+        fetchWithRetry('/service/recent-services').catch(() => ({ services: [] })),
         fetchWithRetry('/reports/saved?limit=10').catch(() => ({ reports: [] }))
     ])
         .then(([quotations, invoices, waybills, services, reportsData]) => {
@@ -189,7 +189,8 @@ function loadRecentActivity() {
             });
 
             // Process services
-            (services || []).slice(0, 5).forEach(s => {
+            const servicesList = services?.services || services || [];
+            (Array.isArray(servicesList) ? servicesList : []).slice(0, 5).forEach(s => {
                 activities.push({
                     type: 'service',
                     icon: 'fa-wrench',
