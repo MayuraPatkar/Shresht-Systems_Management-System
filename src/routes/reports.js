@@ -251,7 +251,7 @@ router.get('/stock', async (req, res) => {
         if (allMovements.length > 0) {
             try {
                 const reportName = `Stock Report - ${new Date().toLocaleDateString('en-IN')}`;
-                
+
                 // Prepare report data
                 const reportData = {
                     report_type: 'stock',
@@ -914,11 +914,11 @@ router.get('/saved', async (req, res) => {
     try {
         const { type, limit = 10 } = req.query;
 
-        const query = { status: 'generated' };
+        const query = {};
         if (type) query.report_type = type;
 
         const reports = await Report.find(query)
-            .select('report_type report_name parameters summary generated_at')
+            .select('report_type report_name parameters summary generated_at createdAt')
             .sort({ generated_at: -1 })
             .limit(parseInt(limit));
 
