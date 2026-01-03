@@ -499,15 +499,15 @@ router.get('/gst', async (req, res) => {
         // Save report to history
         if (invoices.length > 0) {
             try {
-                const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                const monthName = months[reportMonth - 1] || reportMonth;
+                const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const shortMonthName = shortMonths[reportMonth - 1] || reportMonth;
                 const filter = {
                     report_type: 'gst',
                     'parameters.month': reportMonth,
                     'parameters.year': reportYear
                 };
 
-                const reportName = `${monthName} ${reportYear} Invoice GST Report`;
+                const reportName = `Invoice GST Report - ${shortMonthName} ${reportYear}`;
                 const updateData = {
                     report_type: 'gst',
                     report_name: reportName,
@@ -733,15 +733,15 @@ router.get('/purchase-gst', async (req, res) => {
         // Save report to history
         if (purchaseOrders.length > 0) {
             try {
-                const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                const monthName = months[reportMonth - 1] || reportMonth;
+                const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const shortMonthName = shortMonths[reportMonth - 1] || reportMonth;
                 const filter = {
                     report_type: 'purchase_gst',
                     'parameters.month': reportMonth,
                     'parameters.year': reportYear
                 };
 
-                const reportName = `${monthName} ${reportYear} Purchase GST Report`;
+                const reportName = `Purchase GST Report - ${shortMonthName} ${reportYear}`;
                 const updateData = {
                     report_type: 'purchase_gst',
                     report_name: reportName,
