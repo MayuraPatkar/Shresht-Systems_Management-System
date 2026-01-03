@@ -224,73 +224,66 @@ function createQuotationCard(quotation) {
     quotationCard.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
-            <div class="w-1.5 bg-gradient-to-b from-purple-500 to-indigo-600"></div>
-            
-            <div class="flex-1 p-6 min-w-0">
-                <!-- Main Content Row -->
-                <div class="flex items-center">
-                    
-                    <!-- Left Section: Icon + Project Info -->
-                    <div class="flex items-center gap-4 min-w-0" style="flex: 1 1 350px; max-width: 450px;">
-                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md flex-shrink-0">
-                            <i class="fas fa-file-invoice text-2xl text-white"></i>
-                        </div>
-                        <div class="flex-1 min-w-0 overflow-hidden">
-                            <h3 class="text-lg font-bold text-gray-900 mb-1 truncate" title="${quotation.project_name}">${quotation.project_name}</h3>
-                            <div class="flex items-center gap-2 overflow-hidden">
-                                <p class="text-sm text-gray-600 cursor-pointer hover:text-purple-600 copy-text transition-colors inline-flex items-center gap-1 flex-shrink-0" title="Click to copy ID">
-                                    <i class="fas fa-hashtag text-xs"></i>
-                                    <span>${quotation.quotation_id}</span>
-                                    <i class="fas fa-copy text-xs ml-1"></i>
-                                </p>
-                                <span class="text-gray-300 flex-shrink-0">|</span>
-                                <p class="text-xs text-gray-500 inline-flex items-center gap-1 flex-shrink-0">
-                                    <i class="fas fa-calendar-alt text-xs"></i>
-                                    ${formattedDate}
-                                </p>
-                            </div>
-                        </div>
+            <div class="w-1.5 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-l-lg"></div>
+            <div class="relative p-5 flex-1">
+            <!-- Top Row: Header with Title & Actions -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-200">
+                        <i class="fas fa-file-invoice text-lg text-white"></i>
                     </div>
-
-                    <!-- Middle Section: Customer Info -->
-                    <div class="flex items-center gap-3 min-w-0 px-6 border-l border-r border-gray-200" style="flex: 1 1 300px; max-width: 400px;">
-                        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-user text-blue-600"></i>
-                        </div>
-                        <div class="flex-1 min-w-0 overflow-hidden">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Customer</p>
-                            <p class="text-sm font-semibold text-gray-900 truncate" title="${quotation.customer_name || '-'}">${quotation.customer_name || '-'}</p>
-                            <p class="text-xs text-gray-600 truncate" title="${quotation.customer_address || '-'}">${quotation.customer_address || '-'}</p>
-                        </div>
-                    </div>
-
-                    <!-- Amount Section -->
-                    <div class="flex items-center px-8 border-r border-gray-200 flex-shrink-0">
-                        <div class="rounded-lg p-3 w-[300px]" style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); border: 1px solid #e9d5ff;">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Amount</span>
-                                <span class="text-lg font-bold text-purple-600">₹${formatIndian(quotation.total_amount_tax || 0, 2)}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Actions Section -->
-                    <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
-                        <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="action-btn duplicate-btn px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all border border-indigo-200 hover:border-indigo-400" title="Clone Quotation">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                        <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 truncate" title="${quotation.project_name}">${quotation.project_name}</h3>
                     </div>
                 </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center gap-2">
+                    <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn duplicate-btn px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all border border-indigo-200 hover:border-indigo-400" title="Clone Quotation">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
             </div>
+            
+            <!-- ID & Date Row -->
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-sm font-bold text-gray-800 cursor-pointer hover:text-purple-600 copy-text transition-colors" title="Click to copy ID">
+                    ${quotation.quotation_id}
+                    <i class="fas fa-copy text-xs ml-1 opacity-50"></i>
+                </span>
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                <span class="text-xs text-gray-500">
+                    <i class="fas fa-calendar-alt mr-1"></i>${formattedDate}
+                </span>
+            </div>
+            
+            <!-- Bottom Row: Customer & Amount -->
+            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-blue-600 text-xs"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-medium text-gray-800 truncate" title="${quotation.customer_name || '-'}">${quotation.customer_name || '-'}</p>
+                        <p class="text-xs text-gray-500 truncate" title="${quotation.customer_address || '-'}">${quotation.customer_address || '-'}</p>
+                    </div>
+                </div>
+                
+                <div class="flex-shrink-0 ml-4 text-right">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Total</p>
+                    <p class="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">₹${formatIndian(quotation.total_amount_tax || 0, 2)}</p>
+                </div>
+            </div>
+        </div>
         </div>
     `;
 
