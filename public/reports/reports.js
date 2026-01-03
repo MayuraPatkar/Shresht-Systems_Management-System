@@ -212,28 +212,7 @@ function getReportTitle(report) {
  * @returns {string} Details string
  */
 function getReportDetails(report) {
-    if (report.report_type === 'stock') {
-        const params = report.parameters || {};
-        const filters = params.filters || params; // Handle new vs old structure
-
-        let details = [];
-
-        if (params.start_date && params.end_date) {
-            const start = new Date(params.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-            const end = new Date(params.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-            details.push(`${start} - ${end}`);
-        }
-
-        if (filters.item_name) {
-            details.push(`Item: ${filters.item_name}`);
-        }
-
-        if (filters.movement_type && filters.movement_type !== 'all') {
-            details.push(`Type: ${filters.movement_type.charAt(0).toUpperCase() + filters.movement_type.slice(1)}`);
-        }
-
-        return details.length > 0 ? details.join(' • ') : '';
-    }
+    // Placeholder function to add report details and future extensibility if needed
     return '';
 }
 

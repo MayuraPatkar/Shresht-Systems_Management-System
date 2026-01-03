@@ -250,7 +250,25 @@ router.get('/stock', async (req, res) => {
         // Save report to history
         if (allMovements.length > 0) {
             try {
-                const reportName = `Stock Report - ${new Date().toLocaleDateString('en-IN')}`;
+                // Build report name with filter options
+                let reportNameParts = ['Stock Report'];
+
+                // Add date range (always specified for stock reports)
+                const startFormatted = new Date(start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                const endFormatted = new Date(end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                reportNameParts.push(`${startFormatted} to ${endFormatted}`);
+
+                // Add movement type if specified
+                if (movement_type && movement_type !== 'all') {
+                    reportNameParts.push(`Type: ${movement_type.charAt(0).toUpperCase() + movement_type.slice(1)}`);
+                }
+
+                // Add item name if specified
+                if (item_name) {
+                    reportNameParts.push(`Item: ${item_name}`);
+                }
+
+                const reportName = reportNameParts.join(' - ');
 
                 // Prepare report data
                 const reportData = {
