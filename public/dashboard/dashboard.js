@@ -150,7 +150,7 @@ function loadRecentActivity() {
             const activities = [];
 
             // Process quotations
-            // Note: Use createdAt (when saved) for Recent Activity, not quotation_date (user-selected date)
+            // Note: Use updatedAt first for sorting (recently modified items), then createdAt
             (quotations || []).slice(0, 5).forEach(q => {
                 activities.push({
                     type: 'quotation',
@@ -158,7 +158,7 @@ function loadRecentActivity() {
                     color: 'blue',
                     title: `Quotation #${q.quotation_id || 'N/A'}`,
                     description: q.project_name || 'No project name',
-                    time: q.createdAt || q.quotation_date || new Date(),
+                    time: q.updatedAt || q.createdAt || q.quotation_date || new Date(),
                     link: `../quotation/quotation.html?view=${encodeURIComponent(q.quotation_id || '')}`
                 });
             });
@@ -171,7 +171,7 @@ function loadRecentActivity() {
                     color: 'green',
                     title: `Invoice #${i.invoice_id || 'N/A'}`,
                     description: i.project_name || 'No project name',
-                    time: i.createdAt || i.invoice_date || new Date(),
+                    time: i.updatedAt || i.createdAt || i.invoice_date || new Date(),
                     link: `../invoice/invoice.html?view=${encodeURIComponent(i.invoice_id || '')}`
                 });
             });
@@ -184,7 +184,7 @@ function loadRecentActivity() {
                     color: 'purple',
                     title: `Waybill #${w.waybill_id || 'N/A'}`,
                     description: w.project_name || 'No project name',
-                    time: w.createdAt || w.waybill_date || new Date(),
+                    time: w.updatedAt || w.createdAt || w.waybill_date || new Date(),
                     link: `../waybill/wayBill.html?view=${encodeURIComponent(w.waybill_id || '')}`
                 });
             });
@@ -198,7 +198,7 @@ function loadRecentActivity() {
                     color: 'teal',
                     title: `Service #${s.service_id || 'N/A'}`,
                     description: s.project_name || s.customer_name || 'No description',
-                    time: s.createdAt || s.service_date || new Date(),
+                    time: s.updatedAt || s.createdAt || s.service_date || new Date(),
                     link: `../service/service.html?view=${encodeURIComponent(s.service_id || '')}`
                 });
             });
@@ -213,7 +213,7 @@ function loadRecentActivity() {
                     color: 'red',
                     title: `Purchase #${p.purchase_order_id || 'N/A'}`,
                     description: p.supplier_name || 'No supplier',
-                    time: p.createdAt || p.purchase_date || new Date(),
+                    time: p.updatedAt || p.createdAt || p.purchase_date || new Date(),
                     link: `../purchaseOrder/purchaseOrder.html?view=${encodeURIComponent(p.purchase_order_id || '')}`
                 });
             });
