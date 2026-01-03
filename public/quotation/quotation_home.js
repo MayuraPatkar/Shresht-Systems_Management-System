@@ -474,7 +474,7 @@ function isPreviewStepActive() {
     return currentStep === totalSteps;
 }
 
-function runOnPreviewStep(callback) {
+async function runOnPreviewStep(callback) {
     if (typeof callback !== 'function') {
         return;
     }
@@ -483,24 +483,23 @@ function runOnPreviewStep(callback) {
         return;
     }
 
-    const switchToPreview = () => {
+    const switchToPreview = async () => {
         if (typeof changeStep === 'function' && typeof totalSteps !== 'undefined') {
             changeStep(totalSteps);
         }
         if (typeof generatePreview === 'function') {
-            generatePreview();
+            await generatePreview();
         }
     };
 
     if (!isPreviewStepActive()) {
-        switchToPreview();
+        await switchToPreview();
     } else if (typeof generatePreview === 'function') {
-        generatePreview();
+        await generatePreview();
     }
 
-    setTimeout(() => {
-        callback();
-    }, 0);
+    // Run callback after preview is fully generated
+    callback();
 }
 
 function isItemsStepActive() {
