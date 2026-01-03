@@ -831,6 +831,26 @@ async function openPaymentModal(serviceId) {
     document.getElementById('payment-mode').value = 'Cash';
     document.getElementById('cash-location').value = '';
     
+    // Setup autofill button to fill full due amount
+    const autofillBtn = document.getElementById('autofill-full-amount');
+    if (autofillBtn) {
+        // Remove existing listener to avoid duplicates
+        const newAutofillBtn = autofillBtn.cloneNode(true);
+        autofillBtn.parentNode.replaceChild(newAutofillBtn, autofillBtn);
+        
+        newAutofillBtn.addEventListener('click', () => {
+            const paidAmountInput = document.getElementById('paid-amount');
+            if (paidAmountInput && due > 0) {
+                paidAmountInput.value = due.toFixed(2);
+                // Visual feedback
+                paidAmountInput.classList.add('ring-2', 'ring-green-500');
+                setTimeout(() => {
+                    paidAmountInput.classList.remove('ring-2', 'ring-green-500');
+                }, 500);
+            }
+        });
+    }
+    
     // Handle payment mode change
     const paymentModeSelect = document.getElementById('payment-mode');
     const extraDetailsDiv = document.getElementById('extra-payment-details');

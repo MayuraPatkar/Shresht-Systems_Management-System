@@ -746,6 +746,26 @@ async function payment(id) {
             dueAmountElement.textContent = `₹ ${formatIndian(dueAmount, 2)}`;
         }
 
+        // Setup autofill button to fill full due amount
+        const autofillBtn = document.getElementById('autofill-full-amount');
+        if (autofillBtn) {
+            // Remove existing listener to avoid duplicates
+            const newAutofillBtn = autofillBtn.cloneNode(true);
+            autofillBtn.parentNode.replaceChild(newAutofillBtn, autofillBtn);
+            
+            newAutofillBtn.addEventListener('click', () => {
+                const paidAmountInput = document.getElementById('paid-amount');
+                if (paidAmountInput && dueAmount > 0) {
+                    paidAmountInput.value = dueAmount.toFixed(2);
+                    // Visual feedback
+                    paidAmountInput.classList.add('ring-2', 'ring-green-500');
+                    setTimeout(() => {
+                        paidAmountInput.classList.remove('ring-2', 'ring-green-500');
+                    }, 500);
+                }
+            });
+        }
+
         // Focus on the first input field
         setTimeout(() => {
             const firstInput = document.getElementById('paid-amount');
