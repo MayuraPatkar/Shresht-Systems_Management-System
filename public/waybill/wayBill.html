@@ -31,20 +31,24 @@
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div class="flex items-center gap-2">
-                    <select id="date-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                    <select id="date-filter"
+                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
                         <option value="all">All Dates</option>
                         <option value="today">Today</option>
                         <option value="week">This Week</option>
                         <option value="month">This Month</option>
                         <option value="custom">Custom Range</option>
                     </select>
-                    <select id="sort-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                    <select id="sort-filter"
+                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
                         <option value="date-desc">Latest First</option>
                         <option value="date-asc">Oldest First</option>
                         <option value="name-asc">Name A-Z</option>
                         <option value="destination-asc">Destination A-Z</option>
                     </select>
-                    <button id="clear-filters" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm" title="Clear Filters">
+                    <button id="clear-filters"
+                        class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                        title="Clear Filters">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -182,14 +186,16 @@
                         <div class="space-y-4">
                             <div>
                                 <label for="project-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-briefcase text-gray-500 mr-1"></i>Project Name <span class="text-red-500">*</span>
+                                    <i class="fas fa-briefcase text-gray-500 mr-1"></i>Project Name <span
+                                        class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="project-name" required placeholder="Enter project name"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             </div>
                             <div>
                                 <label for="waybill-id" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-barcode text-gray-500 mr-1"></i>Way Bill ID <span class="text-red-500">*</span>
+                                    <i class="fas fa-barcode text-gray-500 mr-1"></i>Way Bill ID <span
+                                        class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="waybill-id" required placeholder="Enter way bill ID"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
@@ -198,7 +204,8 @@
                                 <label for="waybill-date" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-calendar-alt text-gray-500 mr-1"></i>Way Bill Date
                                 </label>
-                                <input type="date" id="waybill-date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <input type="date" id="waybill-date"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             </div>
                         </div>
                     </div>
@@ -214,30 +221,35 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="md:col-span-2">
                                 <label for="buyer-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-user text-gray-500 mr-1"></i>Buyer Name <span class="text-red-500">*</span>
+                                    <i class="fas fa-user text-gray-500 mr-1"></i>Buyer Name <span
+                                        class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="buyer-name" required placeholder="Enter buyer name"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <div class="md:col-span-2">
                                 <label for="buyer-address" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address <span class="text-red-500">*</span>
+                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address <span
+                                        class="text-red-500">*</span>
                                 </label>
                                 <textarea id="buyer-address" required rows="3" placeholder="Enter complete address"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
                             </div>
                             <div>
                                 <label for="buyer-phone" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number <span class="text-red-500">*</span>
+                                    <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number <span
+                                        class="text-red-500">*</span>
                                 </label>
-                                <input type="tel" id="buyer-phone" required placeholder="Enter phone number" inputmode="numeric" maxlength="10" pattern="[0-9]{10}"
+                                <input type="tel" id="buyer-phone" required placeholder="Enter phone number"
+                                    inputmode="numeric" maxlength="10" pattern="[0-9]{10}"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <div>
                                 <label for="buyer-email" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-envelope text-gray-500 mr-1"></i>Email
                                 </label>
-                                <input type="email" id="buyer-email" placeholder="Enter email address" maxlength="254" pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+                                <input type="email" id="buyer-email" placeholder="Enter email address" maxlength="254"
+                                    pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                         </div>
@@ -268,7 +280,8 @@
                             </div>
                             <div>
                                 <label for="place-supply" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-pin text-gray-500 mr-1"></i>Place to Supply <span class="text-red-500">*</span>
+                                    <i class="fas fa-map-pin text-gray-500 mr-1"></i>Place to Supply <span
+                                        class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="place-supply" required placeholder="Enter destination"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
@@ -284,7 +297,7 @@
                             <i class="fas fa-list text-teal-600 text-2xl"></i>
                             <h2 class="text-2xl font-semibold text-gray-800">Item List</h2>
                         </div>
-                        
+
                         <!-- Column Headers -->
                         <div class="items-header">
                             <div class="header-number">#</div>
@@ -295,21 +308,35 @@
                             <div class="header-field rate">Tax Rate</div>
                             <div class="header-action"></div>
                         </div>
-                        
+
                         <!-- Items Container for Cards -->
                         <div id="items-container"></div>
-                        
+
                         <div class="overflow-x-auto">
                             <table id="items-table" class="w-full border-collapse">
                                 <thead>
                                     <tr class="bg-gray-50">
-                                        <th class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 w-20">Sl. No</th>
-                                        <th class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 min-w-[200px]">Description</th>
-                                        <th class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 w-32">HSN Code</th>
-                                        <th class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 w-24">Qty</th>
-                                        <th class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 w-32">Unit Price</th>
-                                        <th class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 w-28">Tax Rate</th>
-                                        <th class="border border-gray-300 px-4 py-3 text-center text-base font-semibold text-gray-700 w-28">Action</th>
+                                        <th
+                                            class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 w-20">
+                                            Sl. No</th>
+                                        <th
+                                            class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 min-w-[200px]">
+                                            Description</th>
+                                        <th
+                                            class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 w-32">
+                                            HSN Code</th>
+                                        <th
+                                            class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 w-24">
+                                            Qty</th>
+                                        <th
+                                            class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 w-32">
+                                            Unit Price</th>
+                                        <th
+                                            class="border border-gray-300 px-4 py-3 text-left text-base font-semibold text-gray-700 w-28">
+                                            Tax Rate</th>
+                                        <th
+                                            class="border border-gray-300 px-4 py-3 text-center text-base font-semibold text-gray-700 w-28">
+                                            Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -380,7 +407,7 @@
         <!-- View Way Bill Section -->
         <div id="view" class="no-select">
             <div id="project-details-view" class="w-full max-w-6xl mx-auto px-4 space-y-6">
-                
+
                 <!-- Project Details Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
@@ -461,12 +488,24 @@
                         <table id="view-items-table" class="w-full border-collapse">
                             <thead>
                                 <tr class="bg-gray-50">
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Sl. No</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b min-w-[250px]">Description</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN Code</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax Rate</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Sl. No</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b min-w-[250px]">
+                                        Description</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        HSN Code</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Qty</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Unit Price</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Tax Rate</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -541,25 +580,28 @@
         </div>
     </div>
 
-<!-- Scripts -->
-<!-- Shared utilities -->
-<script src="../js/shared/utils.js"></script>
-<script src="../js/shared/calculations.js"></script>
-<script src="../js/shared/filterUtils.js"></script>
-<script src="../js/shared/ipc.js"></script>
-<script src="../js/shared/keyboardNavigation.js"></script>
-<script src="../js/shared/documentManager.js"></script>
-<script src="../js/shared/sectionRenderers.js"></script>
-<script src="../js/shared/documentBuilder.js"></script>
-<script src="../js/shared/itemReorder.js"></script>
+    <!-- Scripts -->
+    <!-- Shared utilities -->
+    <script src="../js/shared/utils.js"></script>
+    <script src="../js/shared/calculations.js"></script>
+    <script src="../js/shared/filterUtils.js"></script>
+    <script src="../js/shared/ipc.js"></script>
+    <script src="../js/shared/keyboardNavigation.js"></script>
+    <script src="../js/shared/documentManager.js"></script>
+    <script src="../js/shared/sectionRenderers.js"></script>
+    <script src="../js/shared/documentBuilder.js"></script>
+    <script src="../js/shared/itemReorder.js"></script>
 
-<!-- Company config -->
-<script src="../js/shared/companyConfig.js"></script>
+    <!-- Company config -->
+    <script src="../js/shared/companyConfig.js"></script>
 
-<!-- Module-specific scripts -->
-<script src="/waybill/waybill_form.js"></script>
-<script src="/waybill/waybill_home.js"></script>
-<script src="/waybill/waybill_view.js"></script>
+    <!-- Shared scripts -->
+    <script src="../js/shared/globalScript.js"></script>
+
+    <!-- Module-specific scripts -->
+    <script src="/waybill/waybill_form.js"></script>
+    <script src="/waybill/waybill_home.js"></script>
+    <script src="/waybill/waybill_view.js"></script>
 </body>
 
 </html>
