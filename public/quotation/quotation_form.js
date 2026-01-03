@@ -822,7 +822,7 @@ async function generatePreview() {
         return `
         <div class="preview-container doc-quotation">
             ${headerHTML}
-            ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>5KW Solar Systems</u></p></div>` : ''}
+            ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${projectName || 'Items and Charges'}</u></p></div>` : ''}
             <div class="items-section">
                 <table class="items-table">
                     <thead>

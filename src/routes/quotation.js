@@ -149,7 +149,7 @@ router.post("/save-quotation", async (req, res) => {
                 letter_1,
                 letter_2,
                 letter_3,
-                headline,
+                headline: projectName,
                 notes,
                 termsAndConditions,
                 duplicated_from, // Audit trail for duplicated quotations

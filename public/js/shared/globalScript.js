@@ -172,13 +172,13 @@ document.addEventListener("keydown", function (event) {
   // Ctrl + I: Add Item
   if ((event.ctrlKey || event.metaKey) && (event.key === 'i' || event.key === 'I')) {
     event.preventDefault(); // Prevent default (e.g., Italics)
-    
+
     // Check if we are in a context where adding items makes sense
     // Try standard item button first
     const addItemBtn = document.getElementById('add-item-btn');
     if (addItemBtn && !addItemBtn.disabled && addItemBtn.offsetParent !== null) {
       addItemBtn.click();
-      
+
       // Focus the new input after a short delay
       setTimeout(() => {
         const inputs = document.querySelectorAll('#items-container .item_name, #items-table .item_name');
@@ -193,8 +193,8 @@ document.addEventListener("keydown", function (event) {
     const addNonItemBtn = document.getElementById('add-non-item-btn');
     if (addNonItemBtn && !addNonItemBtn.disabled && addNonItemBtn.offsetParent !== null) {
       addNonItemBtn.click();
-       // Focus the new input after a short delay
-       setTimeout(() => {
+      // Focus the new input after a short delay
+      setTimeout(() => {
         const inputs = document.querySelectorAll('#non-items-container input[type="text"], #non-items-table input[type="text"]');
         if (inputs.length > 0) {
           inputs[inputs.length - 1].focus();
@@ -206,11 +206,11 @@ document.addEventListener("keydown", function (event) {
   // Ctrl + Delete: Delete Focused Row
   if ((event.ctrlKey || event.metaKey) && event.key === 'Delete') {
     const activeElement = document.activeElement;
-    
+
     // Find the closest item card or table row
     // Check for item-card, non-item-card, spec-card, or table row
     const container = activeElement.closest('.item-card, .non-item-card, .spec-card, tr');
-    
+
     if (container) {
       // Look for a remove button within this container
       const removeBtn = container.querySelector('.remove-item-btn');
@@ -1041,40 +1041,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const isNewQuery = searchParams.has('new') || window.location.hash === '#new';
     const viewId = searchParams.get('view') || searchParams.get('id') || null;
 
-    if ((isNewQuery || window.location.hash === '#new') && typeof window.showNewDocumentForm === 'function') {
+    if (isNewQuery || window.location.hash === '#new') {
       // Set a sensible currentTab value based on pathname so shared UI can reflect active module
       const path = window.location.pathname.toLowerCase();
-      let formOptions = { homeId: 'home', formId: 'new', viewId: 'view' };
+      let newButtonId = null;
 
       if (path.includes('/quotation')) {
         sessionStorage.setItem('currentTab', 'quotation');
-        formOptions.newButtonId = 'new-quotation';
-        formOptions.previewButtonId = 'view-preview';
+        newButtonId = 'new-quotation';
       } else if (path.includes('/invoice')) {
         sessionStorage.setItem('currentTab', 'invoice');
-        formOptions.newButtonId = 'new-invoice';
-        formOptions.previewButtonId = 'view-preview';
+        newButtonId = 'new-invoice';
       } else if (path.includes('/purchaseorder')) {
         sessionStorage.setItem('currentTab', 'purchaseorder');
-        formOptions.newButtonId = 'new-purchaseOrder';
-        formOptions.previewButtonId = 'view-preview';
-      } else if (path.includes('/service')) {
-        sessionStorage.setItem('currentTab', 'service');
-        formOptions.newButtonId = 'new-service';
-        formOptions.previewButtonId = 'view-preview';
+        newButtonId = 'new-purchase';
       } else if (path.includes('/stock')) {
         sessionStorage.setItem('currentTab', 'stock');
-        formOptions.newButtonId = 'new-stock';
-        // Stock doesn't have preview button
+        newButtonId = 'newStockItemBtn';
+      } else if (path.includes('/waybill')) {
+        sessionStorage.setItem('currentTab', 'waybill');
+        newButtonId = 'new-waybill-btn';
       }
 
-      // Call the generic form opener with proper options
-      try {
-        window.showNewDocumentForm(formOptions);
-      } catch (err) {
-        // If the generic call fails, attempt a safe fallback by clicking the module's new button
-        const newBtn = document.querySelector('[id^="new-"]');
-        if (newBtn) newBtn.click();
+      // Simply click the module's "New" button to trigger its dedicated handler
+      // This ensures all initialization logic stays in one place per module
+      // Use setTimeout to allow module-specific scripts (loaded after globalScript.js) to set up their handlers
+      if (newButtonId) {
+        setTimeout(() => {
+          try {
+            const newBtn = document.getElementById(newButtonId);
+            if (newBtn) {
+              newBtn.click();
+            } else {
+              const errorMsg = `Could not find "New" button (id: ${newButtonId}). The form could not be opened automatically.`;
+              console.error('[globalScript.js] URL new parameter handler:', errorMsg);
+              if (window.electronAPI && window.electronAPI.showAlert1) {
+                window.electronAPI.showAlert1(errorMsg);
+              }
+            }
+          } catch (err) {
+            const errorMsg = `Failed to open new form: ${err.message}`;
+            console.error('[globalScript.js] URL new parameter handler error:', err);
+            if (window.electronAPI && window.electronAPI.showAlert1) {
+              window.electronAPI.showAlert1(errorMsg);
+            }
+          }
+        }, 0);
       }
     }
 
@@ -1106,7 +1118,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Initialize drag-drop reordering for item containers
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   // Check if itemReorder is available (script must be loaded before this)
   if (window.itemReorder && typeof window.itemReorder.initDragDrop === 'function') {
     // Initialize drag-drop for items container
@@ -1122,7 +1134,7 @@ document.addEventListener('DOMContentLoaded', function() {
       window.itemReorder.initDragDrop('specifications-container', updateSpecificationNumbers);
     }
   }
-  
+
   // Start session timeout monitor
   startSessionMonitor();
 });
@@ -1139,20 +1151,20 @@ function startSessionMonitor() {
   // Check if user is logged in
   const userRole = sessionStorage.getItem('userRole');
   const loginTime = sessionStorage.getItem('loginTime');
-  
+
   if (!userRole || !loginTime) {
     return; // Not logged in, don't start monitor
   }
-  
+
   const sessionTimeout = parseInt(sessionStorage.getItem('sessionTimeout') || '30');
-  
+
   // Clear any existing timers
   if (sessionTimeoutId) clearTimeout(sessionTimeoutId);
   if (activityCheckId) clearInterval(activityCheckId);
-  
+
   // Set timeout for session expiration
   const timeoutMs = sessionTimeout * 60 * 1000;
-  
+
   // Check every minute if session should expire
   activityCheckId = setInterval(() => {
     const elapsed = Date.now() - parseInt(sessionStorage.getItem('loginTime'));
@@ -1169,15 +1181,15 @@ function handleSessionTimeout() {
   // Clear timers
   if (sessionTimeoutId) clearTimeout(sessionTimeoutId);
   if (activityCheckId) clearInterval(activityCheckId);
-  
+
   // Clear session
   sessionStorage.clear();
-  
+
   // Show alert and redirect to login
   if (window.electronAPI && window.electronAPI.showAlert1) {
     window.electronAPI.showAlert1("Session expired due to inactivity. Please login again.");
   }
-  
+
   // Redirect to login page
   setTimeout(() => {
     window.location = '/';
@@ -1192,7 +1204,7 @@ function resetSessionTimer() {
   if (loginTime) {
     const now = Date.now();
     const lastActivity = parseInt(sessionStorage.getItem('lastActivity') || loginTime);
-    
+
     // Only reset if more than 1 minute has passed since last activity
     if (now - lastActivity > 60000) {
       sessionStorage.setItem('loginTime', now.toString());
