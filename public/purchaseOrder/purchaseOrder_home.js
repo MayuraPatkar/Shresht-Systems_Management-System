@@ -60,6 +60,18 @@ document.addEventListener("DOMContentLoaded", () => {
     initShortcutsModal();
     initPurchaseOrderFilters();
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
+
+    // Check for URL params for cross-module navigation (from Dashboard Recent Activity)
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewPurchaseOrderId = urlParams.get('view');
+    if (viewPurchaseOrderId) {
+        // Delay to ensure DOM is ready
+        setTimeout(() => {
+            if (typeof viewPurchaseOrder === 'function') {
+                viewPurchaseOrder(viewPurchaseOrderId);
+            }
+        }, 300);
+    }
 });
 
 // Load recent purchase orders from the server
@@ -179,7 +191,7 @@ function renderPurchaseOrders(purchaseOrders) {
 function createPurchaseOrderDiv(purchaseOrder) {
     const purchaseOrderDiv = document.createElement("div");
     purchaseOrderDiv.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-400 overflow-hidden fade-in";
-    
+
     // Format the date for display
     const dateToFormat = purchaseOrder.purchase_date || purchaseOrder.createdAt;
     let formattedDate = '-';
@@ -196,7 +208,7 @@ function createPurchaseOrderDiv(purchaseOrder) {
             formattedDate = '-';
         }
     }
-    
+
     purchaseOrderDiv.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
@@ -339,7 +351,7 @@ async function handleSearch() {
         return;
     }
 
-    await searchDocuments('purchaseOrder', query, purchaseOrderListDiv, createPurchaseOrderDiv, 
+    await searchDocuments('purchaseOrder', query, purchaseOrderListDiv, createPurchaseOrderDiv,
         `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
             <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
             <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>

@@ -143,9 +143,10 @@ function loadRecentActivity() {
         fetchWithRetry('/invoice/all').catch(() => []),
         fetchWithRetry('/waybill/all').catch(() => []),
         fetchWithRetry('/service/recent-services').catch(() => ({ services: [] })),
-        fetchWithRetry('/reports/saved?limit=10').catch(() => ({ reports: [] }))
+        fetchWithRetry('/reports/saved?limit=10').catch(() => ({ reports: [] })),
+        fetchWithRetry('/purchaseOrder/recent-purchase-orders').catch(() => ({ purchaseOrders: [] }))
     ])
-        .then(([quotations, invoices, waybills, services, reportsData]) => {
+        .then(([quotations, invoices, waybills, services, reportsData, purchaseOrdersData]) => {
             const activities = [];
 
             // Process quotations
@@ -199,6 +200,21 @@ function loadRecentActivity() {
                     description: s.project_name || s.customer_name || 'No description',
                     time: s.createdAt || s.service_date || new Date(),
                     link: `../service/service.html?view=${encodeURIComponent(s.service_id || '')}`
+                });
+            });
+
+            // Process purchase orders
+            // API returns { purchaseOrder: [...] }
+            const purchaseOrders = purchaseOrdersData?.purchaseOrder || purchaseOrdersData || [];
+            (Array.isArray(purchaseOrders) ? purchaseOrders : []).slice(0, 5).forEach(p => {
+                activities.push({
+                    type: 'purchase',
+                    icon: 'fa-shopping-cart',
+                    color: 'red',
+                    title: `Purchase #${p.purchase_order_id || 'N/A'}`,
+                    description: p.supplier_name || 'No supplier',
+                    time: p.createdAt || p.purchase_date || new Date(),
+                    link: `../purchaseOrder/purchaseOrder.html?view=${encodeURIComponent(p.purchase_order_id || '')}`
                 });
             });
 
@@ -281,7 +297,8 @@ function displayRecentActivity(activities) {
         orange: { bg: 'bg-orange-100', text: 'text-orange-600', border: 'border-orange-500' },
         indigo: { bg: 'bg-indigo-100', text: 'text-indigo-600', border: 'border-indigo-500' },
         pink: { bg: 'bg-pink-100', text: 'text-pink-600', border: 'border-pink-500' },
-        cyan: { bg: 'bg-cyan-100', text: 'text-cyan-600', border: 'border-cyan-500' }
+        cyan: { bg: 'bg-cyan-100', text: 'text-cyan-600', border: 'border-cyan-500' },
+        red: { bg: 'bg-red-100', text: 'text-red-600', border: 'border-red-500' }
     };
 
     container.innerHTML = activities.map(activity => {
