@@ -229,7 +229,7 @@ function createPurchaseOrderDiv(purchaseOrder) {
                     </div>
 
                     <!-- Middle Section: Address -->
-                    <div class="flex items-center gap-3 px-6 border-l border-r border-gray-200 flex-shrink-0" style="width: 500px;">
+                    <div class="flex items-center gap-3 px-6 border-l border-r border-gray-200 flex-shrink-0" style="width: 400px;">
                         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-map-marker-alt text-blue-600"></i>
                         </div>

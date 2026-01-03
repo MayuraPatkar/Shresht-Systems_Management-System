@@ -15,7 +15,7 @@ const purchaseSchema = new mongoose.Schema({
             specification: { type: String },
             HSN_SAC: { type: String },
             company: { type: String },
-            type: { type: String },
+            type: { type: String, enum: ['Material', 'Asset'], default: 'Material' },
             category: { type: String },
             quantity: { type: Number },
             unit_price: { type: Number },
