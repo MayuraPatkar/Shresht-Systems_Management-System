@@ -577,7 +577,10 @@ async function openPurchaseOrder(purchaseOrderId) {
                         </div>
                     </div>
                     <div class="item-field">
-                        <input type="text" value="${item.type || ''}" placeholder="Type">
+                        <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="Material" ${(!item.type || item.type === 'Material') ? 'selected' : ''}>Material</option>
+                            <option value="Asset" ${item.type === 'Asset' ? 'selected' : ''}>Asset</option>
+                        </select>
                     </div>
                     <div class="item-field">
                         <div style="position: relative;">
@@ -618,7 +621,12 @@ async function openPurchaseOrder(purchaseOrderId) {
                 <td><input type="text" value="${item.description}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="text" value="${item.HSN_SAC}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="text" value="${item.company || ''}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-                <td><input type="text" value="${item.type || ''}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                <td>
+                    <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="Material" ${(!item.type || item.type === 'Material') ? 'selected' : ''}>Material</option>
+                        <option value="Asset" ${item.type === 'Asset' ? 'selected' : ''}>Asset</option>
+                    </select>
+                </td>
                 <td><input type="text" value="${item.category || ''}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="number" value="${item.quantity}" min="1" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                 <td><input type="number" value="${item.unit_price}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
@@ -629,38 +637,47 @@ async function openPurchaseOrder(purchaseOrderId) {
 
         // Sync card inputs with table inputs using new two-row layout
         // Card Row 1: description, hsn, qty, unit_price, rate
-        // Card Row 2: company, type, category
-        // Table: description, hsn, company, type, category, qty, unit_price, rate
+        // Card Row 2: company, type (select), category
+        // Table: description, hsn, company, type (select), category, qty, unit_price, rate
         const row1Inputs = card.querySelectorAll('.item-row-1 input');
         const row2Inputs = card.querySelectorAll('.item-row-2 input');
+        const row2Selects = card.querySelectorAll('.item-row-2 select');
         const tableInputs = row.querySelectorAll('input');
+        const tableSelects = row.querySelectorAll('select');
 
         const inputMapping = [
             { card: row1Inputs[0], table: tableInputs[0] }, // description
             { card: row1Inputs[1], table: tableInputs[1] }, // hsn
             { card: row2Inputs[0], table: tableInputs[2] }, // company
-            { card: row2Inputs[1], table: tableInputs[3] }, // type
-            { card: row2Inputs[2], table: tableInputs[4] }, // category
-            { card: row1Inputs[2], table: tableInputs[5] }, // qty
-            { card: row1Inputs[3], table: tableInputs[6] }, // unit_price
-            { card: row1Inputs[4], table: tableInputs[7] }, // rate
+            { card: row2Selects[0], table: tableSelects[0] }, // type
+            { card: row2Inputs[1], table: tableInputs[3] }, // category
+            { card: row1Inputs[2], table: tableInputs[4] }, // qty
+            { card: row1Inputs[3], table: tableInputs[5] }, // unit_price
+            { card: row1Inputs[4], table: tableInputs[6] }, // rate
         ];
 
         inputMapping.forEach(({ card: cardInput, table: tableInput }) => {
             if (cardInput && tableInput) {
+                // Sync card -> table
                 cardInput.addEventListener('input', () => {
                     tableInput.value = cardInput.value;
+                });
+                // Sync table -> card
+                tableInput.addEventListener('input', () => {
+                    cardInput.value = tableInput.value;
                 });
             }
         });
 
         // Add remove button event listener
         const removeBtn = card.querySelector(".remove-item-btn");
-        removeBtn.addEventListener("click", function () {
-            card.remove();
-            row.remove();
-            renumberItems();
-        });
+        if (removeBtn) {
+            removeBtn.addEventListener("click", function () {
+                card.remove();
+                row.remove();
+                renumberItems();
+            });
+        }
 
         sno++;
     });
@@ -745,7 +762,7 @@ async function generatePreview() {
         const description = row.cells[1]?.querySelector("input")?.value || "-";
         const hsnSac = row.cells[2]?.querySelector("input")?.value || "-";
         const company = row.cells[3]?.querySelector("input")?.value || "-";
-        const type = row.cells[4]?.querySelector("input")?.value || "-";
+        const type = row.cells[4]?.querySelector("select")?.value || "-";
         const category = row.cells[5]?.querySelector("input")?.value || "-";
         const qty = parseFloat(row.cells[6]?.querySelector("input")?.value || "0");
         const unitPrice = parseFloat(row.cells[7]?.querySelector("input")?.value || "0");
@@ -1005,7 +1022,7 @@ function collectFormData() {
                 description: row.querySelector("td:nth-child(2) input").value,
                 HSN_SAC: row.querySelector("td:nth-child(3) input").value,
                 company: row.querySelector("td:nth-child(4) input").value,
-                type: row.querySelector("td:nth-child(5) input").value,
+                type: row.querySelector("td:nth-child(5) select").value,
                 category: row.querySelector("td:nth-child(6) input").value,
                 quantity: row.querySelector("td:nth-child(7) input").value,
                 unit_price: row.querySelector("td:nth-child(8) input").value,
@@ -1134,7 +1151,10 @@ if (addItemBtn) {
             </div>
         </div>
         <div class="item-field">
-            <input type="text" placeholder="Type" value="Material">
+            <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="Material" selected>Material</option>
+                <option value="Asset">Asset</option>
+            </select>
         </div>
         <div class="item-field">
             <div style="position: relative;">
@@ -1185,7 +1205,12 @@ if (addItemBtn) {
     </td>
     <td><input type="text" placeholder="HSN/SAC" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
     <td><input type="text" placeholder="Company" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-    <td><input type="text" placeholder="Type" value="Material" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+    <td>
+        <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <option value="Material" selected>Material</option>
+            <option value="Asset">Asset</option>
+        </select>
+    </td>
     <td><input type="text" placeholder="Category" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
     <td><input type="number" placeholder="Qty" min="1" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
     <td><input type="number" placeholder="Unit Price" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
@@ -1217,29 +1242,38 @@ if (addItemBtn) {
             });
         }
 
-        // Sync all inputs from card to table with proper mapping
-        const cardInputs = card.querySelectorAll("input");
-        const tableInputs = row.querySelectorAll("input");
+        // Sync card inputs with table inputs using new two-row layout
+        // Card Row 1: description, hsn, qty, unit_price, rate
+        // Card Row 2: company, type (select), category
+        // Table: description, hsn, company, type (select), category, qty, unit_price, rate
+        const row1Inputs = card.querySelectorAll('.item-row-1 input');
+        const row2Inputs = card.querySelectorAll('.item-row-2 input');
+        const row2Selects = card.querySelectorAll('.item-row-2 select');
+        const tableInputs = row.querySelectorAll('input');
+        const tableSelects = row.querySelectorAll('select');
 
-        // Mapping: card index -> table index
-        const cardToTableMap = {
-            0: 0,  // Description -> Description
-            1: 1,  // HSN/SAC -> HSN/SAC
-            2: 5,  // Qty -> Qty
-            3: 6,  // Unit Price -> Unit Price
-            4: 7,  // GST% -> Rate
-            5: 2,  // Company -> Company
-            6: 3,  // Type -> Type
-            7: 4   // Category -> Category
-        };
+        const inputMapping = [
+            { card: row1Inputs[0], table: tableInputs[0] }, // description
+            { card: row1Inputs[1], table: tableInputs[1] }, // hsn
+            { card: row2Inputs[0], table: tableInputs[2] }, // company
+            { card: row2Selects[0], table: tableSelects[0] }, // type
+            { card: row2Inputs[1], table: tableInputs[3] }, // category
+            { card: row1Inputs[2], table: tableInputs[4] }, // qty
+            { card: row1Inputs[3], table: tableInputs[5] }, // unit_price
+            { card: row1Inputs[4], table: tableInputs[6] }, // rate
+        ];
 
-        cardInputs.forEach((input, cardIndex) => {
-            input.addEventListener("input", () => {
-                const tableIndex = cardToTableMap[cardIndex];
-                if (tableIndex !== undefined && tableInputs[tableIndex]) {
-                    tableInputs[tableIndex].value = input.value;
-                }
-            });
+        inputMapping.forEach(({ card: cardInput, table: tableInput }) => {
+            if (cardInput && tableInput) {
+                // Sync card -> table
+                cardInput.addEventListener("input", () => {
+                    tableInput.value = cardInput.value;
+                });
+                // Sync table -> card
+                tableInput.addEventListener("input", () => {
+                    cardInput.value = tableInput.value;
+                });
+            }
         });
 
         // Add remove button event listener for CARD

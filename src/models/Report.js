@@ -19,7 +19,7 @@ const reportSchema = new mongoose.Schema({
         // Flexible parameters based on report type
         start_date: Date,
         end_date: Date,
-        month: Number,
+        month: mongoose.Schema.Types.Mixed,
         year: Number,
         filters: mongoose.Schema.Types.Mixed
     },

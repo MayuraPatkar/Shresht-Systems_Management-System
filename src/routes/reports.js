@@ -816,9 +816,11 @@ router.post('/data-worksheet', async (req, res) => {
             },
             data: worksheetData,
             summary: {
-                system_size: worksheetData.systemSize,
-                monthly_production: worksheetData.systemSize * (worksheetData.unitsPerDay || 4) * 30,
-                monthly_savings: worksheetData.monthlySavings
+                custom: {
+                    system_size: worksheetData.systemSize,
+                    monthly_production: worksheetData.systemSize * (worksheetData.unitsPerDay || 4) * 30,
+                    monthly_savings: worksheetData.monthlySavings
+                }
             }
         });
 

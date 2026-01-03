@@ -234,9 +234,9 @@ function createPendingServiceDiv(service) {
         const serviceDueDate = new Date(baseDate);
         serviceDueDate.setMonth(serviceDueDate.getMonth() + service.service_month);
         serviceDate = serviceDueDate.toLocaleDateString('en-IN', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
         });
     }
 
@@ -245,66 +245,57 @@ function createPendingServiceDiv(service) {
     div.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
-            <div class="w-1.5 bg-gradient-to-b from-blue-500 to-cyan-600"></div>
-            
-            <div class="flex-1 p-6 min-w-0">
-                <!-- Main Content Row -->
-                <div class="flex items-center">
-                    
-                    <!-- Left Section: Icon + Project Info -->
-                    <div class="flex items-center gap-4 min-w-0" style="flex: 1 1 350px; max-width: 450px;">
-                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
-                            <i class="fas fa-wrench text-2xl text-white"></i>
+            <div class="card-left-border w-1.5 bg-gradient-to-b from-blue-500 to-cyan-600 rounded-l-lg"></div>
+            <div class="relative p-5 flex-1">
+                <!-- Top Row: Header with Title & Actions -->
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-200">
+                            <i class="fas fa-wrench text-lg text-white"></i>
                         </div>
-                        <div class="flex-1 min-w-0 overflow-hidden">
-                            <div class="flex items-center gap-2 mb-1">
+                        <div>
+                            <div class="flex items-center gap-2">
                                 <h3 class="text-lg font-bold text-gray-900 truncate" title="${service.project_name || 'Unnamed Project'}">${service.project_name || 'Unnamed Project'}</h3>
                                 <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 flex-shrink-0">
-                                    Pending
+                                    PENDING
                                 </span>
                             </div>
-                            <div class="flex items-center gap-2 overflow-hidden">
-                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1 flex-shrink-0" title="Click to copy Invoice ID">
-                                    <i class="fas fa-hashtag text-xs"></i>
-                                    <span>${service.invoice_id}-S${service.service_stage + 1}</span>
-                                    <i class="fas fa-copy text-xs ml-1"></i>
-                                </p>
-                                <span class="text-gray-300 flex-shrink-0">|</span>
-                                <p class="text-xs text-gray-500 truncate" title="${service.customer_name || 'N/A'}">${service.customer_name || 'N/A'}</p>
-                            </div>
                         </div>
                     </div>
-
-                    <!-- Middle Section: Address -->
-                    <div class="flex items-center gap-3 min-w-0 px-6 border-l border-r border-gray-200" style="flex: 1 1 300px; max-width: 400px;">
-                        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-map-marker-alt text-blue-600"></i>
-                        </div>
-                        <div class="flex-1 min-w-0 overflow-hidden">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Address</p>
-                            <p class="text-sm font-semibold text-gray-900 truncate" title="${service.customer_address || 'N/A'}">${service.customer_address || 'N/A'}</p>
-                        </div>
-                    </div>
-
-                    <!-- Date Section -->
-                    <div class="flex items-center gap-3 px-6 border-r border-gray-200 flex-shrink-0" style="width: 200px;">
-                        <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-calendar-check text-orange-600"></i>
-                        </div>
-                        <div class="flex-1 min-w-0 overflow-hidden">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Service Due</p>
-                            <p class="text-sm font-bold text-gray-900 truncate" title="${serviceDate}">${serviceDate}</p>
-                        </div>
-                    </div>
-
-                    <!-- Actions Section -->
-                    <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
-                        <button class="open-service px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400 font-medium" data-id="${service.invoice_id}" title="Open Service">
-                            <i class="fas fa-folder-open mr-2"></i>Open
+                    
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2">
+                        <button class="open-service px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" data-id="${service.invoice_id}" title="Open Service">
+                            <i class="fas fa-folder-open"></i>
                         </button>
-                        <button class="close-service px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400 font-medium" data-id="${service.invoice_id}" title="Close Service">
-                            <i class="fas fa-times-circle mr-2"></i>Close
+                        <button class="close-service px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" data-id="${service.invoice_id}" title="Close Service">
+                            <i class="fas fa-times-circle"></i>
                         </button>
+                    </div>
+                </div>
+                
+                <!-- ID & Date Row -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-sm font-bold text-gray-800 cursor-pointer hover:text-blue-600 copy-text transition-colors" title="Click to copy ID">
+                        ${service.invoice_id}-S${service.service_stage + 1}
+                        <i class="fas fa-copy text-xs ml-1 opacity-50"></i>
+                    </span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                    <span class="text-xs text-gray-500">
+                        <i class="fas fa-calendar-alt mr-1"></i>Due: ${serviceDate}
+                    </span>
+                </div>
+                
+                <!-- Bottom Row: Customer & Fee Info -->
+                <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user text-blue-600 text-xs"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-800 truncate" title="${service.customer_name || 'N/A'}">${service.customer_name || 'N/A'}</p>
+                            <p class="text-xs text-gray-500 truncate" title="${service.customer_address || 'N/A'}">${service.customer_address || 'N/A'}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -330,6 +321,7 @@ function createPendingServiceDiv(service) {
 
 // Create service history card (for completed service records)
 function createServiceHistoryDiv(service) {
+    const userRole = sessionStorage.getItem('userRole');
     const div = document.createElement("div");
     div.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
 
@@ -353,7 +345,6 @@ function createServiceHistoryDiv(service) {
     let isPaid = totalPaid >= totalAmount && totalAmount > 0;
     let isPartial = totalPaid > 0 && !isPaid;
     let paymentStatus = isPaid ? 'Paid' : isPartial ? 'Partial' : 'Unpaid';
-    let statusBadgeColor = isPaid ? 'bg-green-100 text-green-700' : isPartial ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700';
     
     // Calculate payment percentage for progress bar
     let percentPaid = totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : (totalPaid > 0 ? 100 : 0);
@@ -362,78 +353,29 @@ function createServiceHistoryDiv(service) {
     div.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
-            <div class="w-1.5 bg-gradient-to-b ${isPaid ? 'from-green-500 to-emerald-600' : isPartial ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500'}"></div>
-            
-            <div class="flex-1 p-6 min-w-0">
-                <!-- Main Content Row -->
-                <div class="flex items-center">
-                    
-                    <!-- Left Section: Icon + Service Info -->
-                    <div class="flex items-center gap-4 min-w-0" style="flex: 1 1 350px; max-width: 450px;">
-                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-md flex-shrink-0">
-                            <i class="fas fa-check-circle text-2xl text-white"></i>
+            <div class="card-left-border w-1.5 bg-gradient-to-b ${isPaid ? 'from-green-500 to-emerald-600' : isPartial ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500'} rounded-l-lg"></div>
+            <div class="relative p-5 flex-1">
+                <!-- Top Row: Header with Title & Actions -->
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-200">
+                            <i class="fas fa-check-circle text-lg text-white"></i>
                         </div>
-                        <div class="flex-1 min-w-0 overflow-hidden">
-                            <div class="flex items-center gap-2 mb-1">
+                        <div>
+                            <div class="flex items-center gap-2">
                                 <h3 class="text-lg font-bold text-gray-900 truncate" title="${service.project_name || 'N/A'}">${service.project_name || 'N/A'}</h3>
                                 <span class="px-2 py-0.5 rounded-md text-xs font-semibold ${badgeColor} flex-shrink-0">
                                     ${getServiceStageLabel(service.service_stage)}
                                 </span>
-                            </div>
-                            <div class="flex items-center gap-2 overflow-hidden">
-                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1 flex-shrink-0" title="Click to copy Service ID">
-                                    <i class="fas fa-hashtag text-xs"></i>
-                                    <span>${service.service_id}</span>
-                                    <i class="fas fa-copy text-xs ml-1"></i>
-                                </p>
-                                <span class="text-gray-300 flex-shrink-0">|</span>
-                                <p class="text-xs text-gray-500 inline-flex items-center gap-1 flex-shrink-0">
-                                    <i class="fas fa-calendar text-xs"></i>
-                                    ${serviceDate}
-                                </p>
+                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge flex-shrink-0 ${isPaid ? 'bg-green-100 text-green-700' : isPartial ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}">
+                                    ${paymentStatus.toUpperCase()}
+                                </span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Middle Section: Invoice & Customer Info -->
-                    <div class="flex items-center gap-3 min-w-0 px-6 border-l border-r border-gray-200" style="flex: 1 1 300px; max-width: 400px;">
-                        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-file-invoice text-blue-600"></i>
-                        </div>
-                        <div class="flex-1 min-w-0 overflow-hidden">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Invoice</p>
-                            <p class="text-sm font-semibold text-gray-900 truncate" title="${service.invoice_id}">${service.invoice_id}</p>
-                            <p class="text-xs text-gray-600 truncate" title="${service.customer_name || 'N/A'}">${service.customer_name || 'N/A'}</p>
-                        </div>
-                    </div>
-
-                    <!-- Amount Section -->
-                    <div class="flex items-center px-4 border-r border-gray-200 flex-shrink-0">
-                        <div class="rounded-lg p-3 w-[280px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
-                            <!-- Total Row -->
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
-                                <span class="text-base font-bold" style="color: ${isPaid ? '#059669' : '#dc2626'};">₹${grandTotal}</span>
-                            </div>
-                            <!-- Progress Bar -->
-                            <div class="w-full h-1.5 rounded-full mb-2" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
-                                <div class="h-1.5 rounded-full" style="width: ${percentPaid}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
-                            </div>
-                            <!-- Due/Paid Row -->
-                            <div class="flex items-center justify-between">
-                                ${isPaid ? `
-                                <span class="text-xs font-medium" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
-                                <span class="text-base font-bold" style="color: #059669;">₹${formatIndianCurrency(totalPaid)}</span>
-                                ` : `
-                                <span class="text-xs font-medium uppercase tracking-wide" style="color: #dc2626;">Balance Due</span>
-                                <span class="text-base font-bold" style="color: #dc2626;">₹${formatIndianCurrency(Math.max(0, dueAmount))}</span>
-                                `}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Actions Section -->
-                    <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
+                    
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2">
                         <button class="view-service px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" data-id="${service.service_id}" title="View">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -444,6 +386,66 @@ function createServiceHistoryDiv(service) {
                             <i class="fas fa-credit-card"></i>
                         </button>
                     </div>
+                </div>
+                
+                <!-- ID & Date Row -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-sm font-bold text-gray-800 cursor-pointer hover:text-blue-600 copy-text transition-colors" title="Click to copy ID">
+                        ${service.service_id}
+                        <i class="fas fa-copy text-xs ml-1 opacity-50"></i>
+                    </span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                    <span class="text-xs text-gray-500">
+                        <i class="fas fa-calendar-alt mr-1"></i>${serviceDate}
+                    </span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                    <span class="text-xs text-gray-500">
+                        <i class="fas fa-file-invoice mr-1"></i>${service.invoice_id}
+                    </span>
+                </div>
+                
+                <!-- Bottom Row: Customer & Amount -->
+                <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user text-blue-600 text-xs"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-800 truncate" title="${service.customer_name || 'N/A'}">${service.customer_name || 'N/A'}</p>
+                            <p class="text-xs text-gray-500 truncate" title="${service.customer_address || 'N/A'}">${service.customer_address || 'N/A'}</p>
+                        </div>
+                    </div>
+                    
+                    ${userRole === 'admin' ? `
+                    <div class="flex-shrink-0 ml-4">
+                        <div class="card-amount-box rounded-lg p-3 min-w-[300px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
+                            <!-- Total Row -->
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
+                                <span class="text-base font-bold card-total-amount" style="color: ${isPaid ? '#059669' : '#dc2626'};">₹${grandTotal}</span>
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="w-full h-1.5 rounded-full mb-2 card-progress-outer" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
+                                <div class="h-1.5 rounded-full card-progress-fill" style="width: ${percentPaid}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
+                            </div>
+                            <!-- Due/Paid Row -->
+                            <div class="flex items-center justify-between">
+                                ${isPaid ? `
+                                <span class="text-xs font-medium card-payment-label" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
+                                <span class="text-base font-bold card-due-amount" style="color: #059669;">₹${formatIndianCurrency(totalPaid)}</span>
+                                ` : `
+                                <span class="text-xs font-medium uppercase tracking-wide card-payment-label" style="color: #dc2626;">Balance Due</span>
+                                <span class="text-base font-bold card-due-amount" style="color: #dc2626;">₹${formatIndianCurrency(Math.max(0, dueAmount))}</span>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                    ` : `
+                    <div class="flex-shrink-0 ml-4 text-right">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Total</p>
+                        <p class="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹${grandTotal}</p>
+                    </div>
+                    `}
                 </div>
             </div>
         </div>
@@ -830,6 +832,26 @@ async function openPaymentModal(serviceId) {
     document.getElementById('payment-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('payment-mode').value = 'Cash';
     document.getElementById('cash-location').value = '';
+    
+    // Setup autofill button to fill full due amount
+    const autofillBtn = document.getElementById('autofill-full-amount');
+    if (autofillBtn) {
+        // Remove existing listener to avoid duplicates
+        const newAutofillBtn = autofillBtn.cloneNode(true);
+        autofillBtn.parentNode.replaceChild(newAutofillBtn, autofillBtn);
+        
+        newAutofillBtn.addEventListener('click', () => {
+            const paidAmountInput = document.getElementById('paid-amount');
+            if (paidAmountInput && due > 0) {
+                paidAmountInput.value = due.toFixed(2);
+                // Visual feedback
+                paidAmountInput.classList.add('ring-2', 'ring-green-500');
+                setTimeout(() => {
+                    paidAmountInput.classList.remove('ring-2', 'ring-green-500');
+                }, 500);
+            }
+        });
+    }
     
     // Handle payment mode change
     const paymentModeSelect = document.getElementById('payment-mode');

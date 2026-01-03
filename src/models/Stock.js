@@ -10,7 +10,7 @@ const stockSchema = new mongoose.Schema({
     margin: { type: Number, default: 0 },
     quantity: { type: Number, required: true },
     min_quantity: { type: Number, default: 5 },
-    type: { type: String, required: true, index: true },
+    type: { type: String, required: true, index: true, enum: ['Material', 'Asset'], default: 'Material' },
     category: { type: String, index: true },
     createdAt: { type: Date, default: Date.now, index: true },
     updatedAt: { type: Date, default: Date.now },

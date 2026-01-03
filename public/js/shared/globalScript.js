@@ -1110,11 +1110,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Check if itemReorder is available (script must be loaded before this)
   if (window.itemReorder && typeof window.itemReorder.initDragDrop === 'function') {
     // Initialize drag-drop for items container
-    window.itemReorder.initDragDrop('items-container', updateItemNumbers);
+    if (document.getElementById('items-container')) {
+      window.itemReorder.initDragDrop('items-container', updateItemNumbers);
+    }
     // Initialize drag-drop for non-items container
-    window.itemReorder.initDragDrop('non-items-container', updateNonItemNumbers);
+    if (document.getElementById('non-items-container')) {
+      window.itemReorder.initDragDrop('non-items-container', updateNonItemNumbers);
+    }
     // Initialize drag-drop for specifications container (if exists)
-    window.itemReorder.initDragDrop('specifications-container', updateSpecificationNumbers);
+    if (document.getElementById('specifications-container')) {
+      window.itemReorder.initDragDrop('specifications-container', updateSpecificationNumbers);
+    }
   }
   
   // Start session timeout monitor

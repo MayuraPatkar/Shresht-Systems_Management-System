@@ -624,7 +624,7 @@ function openEditModal(item) {
     document.getElementById('editHsnCode').value = item.HSN_SAC || '';
     document.getElementById('editCompany').value = item.company || '';
     document.getElementById('editCategory').value = item.category || '';
-    document.getElementById('editType').value = item.type || 'material';
+    document.getElementById('editType').value = item.type || 'Material';
     document.getElementById('editUnitPrice').value = item.unit_price || '';
     document.getElementById('editQuantity').value = item.quantity || '';
     document.getElementById('editGstRate').value = item.GST || '';

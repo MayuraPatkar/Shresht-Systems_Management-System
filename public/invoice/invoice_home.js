@@ -341,115 +341,115 @@ function createInvoiceCard(invoice) {
     invoiceCard.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
-            <div class="card-left-border w-1.5 bg-gradient-to-b ${isPaid ? 'from-green-500 to-emerald-600' : isPartial ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500'}"></div>
-            
-            <div class="flex-1 p-6 min-w-0">
-                <!-- Main Content Row -->
-                <div class="flex items-center">
-                    
-                    <!-- Left Section: Icon + Project Info -->
-                    <div class="flex items-center gap-4 min-w-0" style="flex: 1 1 350px; max-width: 450px;">
-                        <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md flex-shrink-0">
-                            <i class="fas fa-file-invoice-dollar text-2xl text-white"></i>
-                        </div>
-                        <div class="flex-1 min-w-0 overflow-hidden">
-                            <div class="flex items-center gap-2 mb-1">
-                                <h3 class="text-lg font-bold text-gray-900 truncate" title="${invoice.project_name}">${invoice.project_name}</h3>
-                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge flex-shrink-0 ${isPaid ? 'bg-green-100 text-green-700' : isPartial ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}">
-                                    ${status.toUpperCase()}
-                                </span>
-                            </div>
-                            <div class="flex items-center gap-2 overflow-hidden">
-                                <p class="text-sm text-gray-600 cursor-pointer hover:text-blue-600 copy-text transition-colors inline-flex items-center gap-1 flex-shrink-0" title="Click to copy ID">
-                                    <i class="fas fa-hashtag text-xs"></i>
-                                    <span>${invoice.invoice_id}</span>
-                                    <i class="fas fa-copy text-xs ml-1"></i>
-                                </p>
-                                <span class="text-gray-300 flex-shrink-0">|</span>
-                                <p class="text-xs text-gray-500 inline-flex items-center gap-1 flex-shrink-0">
-                                    <i class="fas fa-calendar-alt text-xs"></i>
-                                    ${formattedDate}
-                                </p>
-                            </div>
-                        </div>
+            <div class="card-left-border w-1.5 bg-gradient-to-b ${isPaid ? 'from-green-500 to-emerald-600' : isPartial ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500'} rounded-l-lg"></div>
+            <div class="relative p-5 flex-1">
+            <!-- Top Row: Header with Title & Actions -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-200">
+                        <i class="fas fa-file-invoice-dollar text-lg text-white"></i>
                     </div>
-
-                    <!-- Middle Section: Customer Info -->
-                    <div class="flex items-center gap-3 min-w-0 px-6 border-l border-r border-gray-200" style="flex: 1 1 300px; max-width: 400px;">
-                        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-user text-blue-600"></i>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-lg font-bold text-gray-900 truncate" title="${invoice.project_name}">${invoice.project_name}</h3>
+                            <span class="px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge flex-shrink-0 ${isPaid ? 'bg-green-100 text-green-700' : isPartial ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}">
+                                ${status.toUpperCase()}
+                            </span>
                         </div>
-                        <div class="flex-1 min-w-0 overflow-hidden">
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Customer</p>
-                            <p class="text-sm font-semibold text-gray-900 truncate" title="${invoice.customer_name}">${invoice.customer_name}</p>
-                            <p class="text-xs text-gray-600 truncate" title="${invoice.customer_address}">${invoice.customer_address}</p>
-                        </div>
-                    </div>
-
-                    <!-- Amount Section -->
-                    ${userRole === 'admin' ? `
-                    <div class="flex items-center px-4 border-r border-gray-200 flex-shrink-0">
-                        <div class="card-amount-box rounded-lg p-3 w-[280px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
-                            <!-- Total Row -->
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
-                                <span class="text-base font-bold card-total-amount" style="color: ${isPaid ? '#059669' : '#dc2626'};">₹${formatIndian(total, 2)}</span>
-                            </div>
-                            <!-- Progress Bar -->
-                            <div class="w-full h-1.5 rounded-full mb-2 card-progress-outer" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
-                                <div class="h-1.5 rounded-full card-progress-fill" style="width: ${percentPaid}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
-                            </div>
-                            <!-- Due/Paid Row -->
-                            <div class="flex items-center justify-between">
-                                ${isPaid ? `
-                                <span class="text-xs font-medium card-payment-label" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
-                                <span class="text-base font-bold card-due-amount" style="color: #059669;">₹${formatIndian(paidSoFar, 2)}</span>
-                                ` : `
-                                <span class="text-xs font-medium uppercase tracking-wide card-payment-label" style="color: #dc2626;">Balance Due</span>
-                                <span class="text-base font-bold card-due-amount" style="color: #dc2626;">₹${formatIndian(Math.max(0, dueAmount), 2)}</span>
-                                `}
-                            </div>
-                        </div>
-                    </div>
-                    ` : `
-                    <div class="flex-1"></div>
-                    `}
-
-                    <!-- Actions Section -->
-                    <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
-                        ${userRole === 'admin' ? `
-                            <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn edit-original-btn px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all border border-teal-200 hover:border-teal-400" title="Edit Original">
-                                <i class="fas fa-file-signature"></i>
-                            </button>
-                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit Duplicate">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn payment-btn px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" title="Payment">
-                                <i class="fas fa-credit-card"></i>
-                            </button>
-                            <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        ` : userRole === 'manager' ? `
-                            <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn payment-btn px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" title="Payment">
-                                <i class="fas fa-credit-card"></i>
-                            </button>
-                            <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        ` : ''}
                     </div>
                 </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center gap-2">
+                    ${userRole === 'admin' ? `
+                        <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn edit-original-btn px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all border border-teal-200 hover:border-teal-400" title="Edit Original">
+                            <i class="fas fa-file-signature"></i>
+                        </button>
+                        <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit Duplicate">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn payment-btn px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" title="Payment">
+                            <i class="fas fa-credit-card"></i>
+                        </button>
+                        <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    ` : userRole === 'manager' ? `
+                        <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn payment-btn px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" title="Payment">
+                            <i class="fas fa-credit-card"></i>
+                        </button>
+                        <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    ` : ''}
+                </div>
             </div>
+            
+            <!-- ID & Date Row -->
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-sm font-bold text-gray-800 cursor-pointer hover:text-blue-600 copy-text transition-colors" title="Click to copy ID">
+                    ${invoice.invoice_id}
+                    <i class="fas fa-copy text-xs ml-1 opacity-50"></i>
+                </span>
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                <span class="text-xs text-gray-500">
+                    <i class="fas fa-calendar-alt mr-1"></i>${formattedDate}
+                </span>
+            </div>
+            
+            <!-- Bottom Row: Customer & Amount -->
+            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-blue-600 text-xs"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-medium text-gray-800 truncate" title="${invoice.customer_name}">${invoice.customer_name}</p>
+                        <p class="text-xs text-gray-500 truncate" title="${invoice.customer_address}">${invoice.customer_address}</p>
+                    </div>
+                </div>
+                
+                ${userRole === 'admin' ? `
+                <div class="flex-shrink-0 ml-4">
+                    <div class="card-amount-box rounded-lg p-3 min-w-[300px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
+                        <!-- Total Row -->
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
+                            <span class="text-base font-bold card-total-amount" style="color: ${isPaid ? '#059669' : '#dc2626'};">₹${formatIndian(total, 2)}</span>
+                        </div>
+                        <!-- Progress Bar -->
+                        <div class="w-full h-1.5 rounded-full mb-2 card-progress-outer" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
+                            <div class="h-1.5 rounded-full card-progress-fill" style="width: ${percentPaid}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
+                        </div>
+                        <!-- Due/Paid Row -->
+                        <div class="flex items-center justify-between">
+                            ${isPaid ? `
+                            <span class="text-xs font-medium card-payment-label" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
+                            <span class="text-base font-bold card-due-amount" style="color: #059669;">₹${formatIndian(paidSoFar, 2)}</span>
+                            ` : `
+                            <span class="text-xs font-medium uppercase tracking-wide card-payment-label" style="color: #dc2626;">Balance Due</span>
+                            <span class="text-base font-bold card-due-amount" style="color: #dc2626;">₹${formatIndian(Math.max(0, dueAmount), 2)}</span>
+                            `}
+                        </div>
+                    </div>
+                </div>
+                ` : `
+                <div class="flex-shrink-0 ml-4 text-right">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Total</p>
+                    <p class="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">₹${formatIndian(total, 2)}</p>
+                </div>
+                `}
+            </div>
+        </div>
         </div>
     `;
 
@@ -744,6 +744,26 @@ async function payment(id) {
         const dueAmountElement = document.getElementById('payment-due-amount');
         if (dueAmountElement) {
             dueAmountElement.textContent = `₹ ${formatIndian(dueAmount, 2)}`;
+        }
+
+        // Setup autofill button to fill full due amount
+        const autofillBtn = document.getElementById('autofill-full-amount');
+        if (autofillBtn) {
+            // Remove existing listener to avoid duplicates
+            const newAutofillBtn = autofillBtn.cloneNode(true);
+            autofillBtn.parentNode.replaceChild(newAutofillBtn, autofillBtn);
+            
+            newAutofillBtn.addEventListener('click', () => {
+                const paidAmountInput = document.getElementById('paid-amount');
+                if (paidAmountInput && dueAmount > 0) {
+                    paidAmountInput.value = dueAmount.toFixed(2);
+                    // Visual feedback
+                    paidAmountInput.classList.add('ring-2', 'ring-green-500');
+                    setTimeout(() => {
+                        paidAmountInput.classList.remove('ring-2', 'ring-green-500');
+                    }, 500);
+                }
+            });
         }
 
         // Focus on the first input field
