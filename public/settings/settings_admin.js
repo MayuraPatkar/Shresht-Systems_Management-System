@@ -305,6 +305,19 @@ function initAdminModule() {
     document.getElementById("change-username-button")?.addEventListener("click", handleChangeUsername);
     document.getElementById("change-password-button")?.addEventListener("click", handleChangePassword);
     
+    // Add keyboard navigation for username change
+    document.getElementById("username")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleChangeUsername();
+    });
+
+    // Add keyboard navigation for password change
+    const passwordFields = ["old-password", "new-password", "confirm-password"];
+    passwordFields.forEach(id => {
+        document.getElementById(id)?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") handleChangePassword();
+        });
+    });
+    
     // Logout
     document.getElementById("logout-button")?.addEventListener("click", handleLogout);
 }
