@@ -1213,7 +1213,11 @@ function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
     currentPaymentIndex = paymentIndex;
     isEditingPayment = paymentIndex !== null && paymentData !== null;
     
-    const service = ServiceState.completedServices.find(s => s.service_id === serviceId);
+    // Try to find service in all available lists
+    const service = ServiceState.completedServices.find(s => s.service_id === serviceId) || 
+                    ServiceState.dueServices.find(s => s.service_id === serviceId) ||
+                    ServiceState.allServices.find(s => s.service_id === serviceId);
+
     if (!service) {
         showToast('Service not found', 'error');
         return;
@@ -1222,6 +1226,12 @@ function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
     const total = service.total_amount_with_tax || 0;
     const paid = service.total_paid_amount || 0;
     const due = Math.max(0, total - paid);
+
+    // Validation: Check if there is due amount (unless editing)
+    if (!isEditingPayment && due <= 0) {
+        window.electronAPI.showAlert1('There is no outstanding due on this service.');
+        return;
+    }
 
     // Update modal title and button based on mode
     const modalTitle = document.getElementById('payment-modal-title');
