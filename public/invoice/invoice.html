@@ -749,9 +749,14 @@
 
                 <!-- Payment Details Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
+                        </div>
+                        <button id="view-add-payment-btn" class="text-sm bg-green-50 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 border border-green-200 transition-colors flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Add Payment
+                        </button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div class="bg-gray-50 p-4 rounded-lg">

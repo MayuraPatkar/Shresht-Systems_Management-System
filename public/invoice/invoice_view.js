@@ -564,17 +564,48 @@ async function renderInvoiceView(invoice, userRole, viewType) {
     const detailPaymentsTableBody = document.querySelector("#view-payment-table tbody");
     if (detailPaymentsTableBody) {
         detailPaymentsTableBody.innerHTML = "";
-        for (const item of (invoice.payments || [])) {
-            const row = document.createElement("tr");
-            row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
-            row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-900">${formatDateIndian(item.payment_date) || '-'}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.extra_details ? item.extra_details : '-'}</td>
-                `;
-            detailPaymentsTableBody.appendChild(row);
+        if (!invoice.payments || invoice.payments.length === 0) {
+            detailPaymentsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                        <div class="flex flex-col items-center justify-center gap-2">
+                            <i class="fas fa-receipt text-gray-300 text-3xl"></i>
+                            <p>No payment records found</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        } else {
+            for (const item of (invoice.payments || [])) {
+                const row = document.createElement("tr");
+                row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-900">${formatDateIndian(item.payment_date) || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.extra_details ? item.extra_details : '-'}</td>
+                    `;
+                detailPaymentsTableBody.appendChild(row);
+            }
         }
+    }
+
+    // Add Payment Button Handler
+    const addPaymentBtn = document.getElementById('view-add-payment-btn');
+    if (addPaymentBtn) {
+        const newBtn = addPaymentBtn.cloneNode(true);
+        addPaymentBtn.parentNode.replaceChild(newBtn, addPaymentBtn);
+        
+        newBtn.addEventListener('click', () => {
+            if (typeof payment === 'function') {
+                payment(invoice.invoice_id);
+            } else {
+                console.error('payment function not found');
+                if (window.electronAPI && window.electronAPI.showAlert1) {
+                    window.electronAPI.showAlert1('Payment function not available');
+                }
+            }
+        });
     }
 
     // Item List

@@ -705,6 +705,13 @@ async function handleSearch() {
 async function payment(id) {
     const invoiceId = id;
 
+    // Determine return view before hiding everything
+    if (document.getElementById('view') && window.getComputedStyle(document.getElementById('view')).display !== 'none') {
+        window.paymentReturnView = 'view';
+    } else {
+        window.paymentReturnView = 'home';
+    }
+
     // Fetch invoice first to determine due amount
     try {
         const response = await fetchDocumentById('invoice', invoiceId);
@@ -782,8 +789,19 @@ async function payment(id) {
 // Close payment modal handler
 document.getElementById('close-payment-modal')?.addEventListener('click', () => {
     document.getElementById('payment-container').style.display = 'none';
-    document.getElementById('home').style.display = 'block';
-    loadRecentInvoices();
+    
+    if (window.paymentReturnView === 'view') {
+        document.getElementById('view').style.display = 'block';
+        // Refresh view to show any changes (if they paid and didn't close via success path, though unlikely)
+        // Or just return to view state
+        const userRole = sessionStorage.getItem('userRole');
+        if (typeof viewInvoice === 'function' && window.currentPaymentInvoiceId) {
+             viewInvoice(window.currentPaymentInvoiceId, userRole);
+        }
+    } else {
+        document.getElementById('home').style.display = 'block';
+        loadRecentInvoices();
+    }
 });
 
 // Payment mode change handler
@@ -971,11 +989,20 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
             paymentBtn.disabled = false;
             paymentBtn.innerHTML = originalBtnText;
 
-            // Close payment modal and return to home
+            // Close payment modal and return to appropriate view
             document.getElementById('payment-container').style.display = 'none';
-            document.getElementById('home').style.display = 'block';
-            // Reload invoices to reflect updated payment status
-            loadRecentInvoices();
+            
+            if (window.paymentReturnView === 'view') {
+                document.getElementById('view').style.display = 'block';
+                const userRole = sessionStorage.getItem('userRole');
+                if (typeof viewInvoice === 'function' && window.currentPaymentInvoiceId) {
+                     viewInvoice(window.currentPaymentInvoiceId, userRole);
+                }
+            } else {
+                document.getElementById('home').style.display = 'block';
+                // Reload invoices to reflect updated payment status
+                loadRecentInvoices();
+            }
         }
     } catch (error) {
         console.error("Error:", error);
