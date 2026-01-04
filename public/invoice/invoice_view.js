@@ -567,7 +567,7 @@ async function renderInvoiceView(invoice, userRole, viewType) {
         if (!invoice.payments || invoice.payments.length === 0) {
             detailPaymentsTableBody.innerHTML = `
                 <tr>
-                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">
                         <div class="flex flex-col items-center justify-center gap-2">
                             <i class="fas fa-receipt text-gray-300 text-3xl"></i>
                             <p>No payment records found</p>
@@ -576,7 +576,7 @@ async function renderInvoiceView(invoice, userRole, viewType) {
                 </tr>
             `;
         } else {
-            for (const item of (invoice.payments || [])) {
+            invoice.payments.forEach((item, index) => {
                 const row = document.createElement("tr");
                 row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                 row.innerHTML = `
@@ -584,9 +584,40 @@ async function renderInvoiceView(invoice, userRole, viewType) {
                         <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
                         <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.extra_details ? item.extra_details : '-'}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <div class="flex items-center gap-2">
+                                <button type="button" class="edit-payment-btn text-blue-600 hover:text-blue-800 p-1" data-invoice-id="${invoice.invoice_id}" data-payment-index="${index}" title="Edit Payment">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="delete-payment-btn text-red-600 hover:text-red-800 p-1" data-invoice-id="${invoice.invoice_id}" data-payment-index="${index}" title="Delete Payment">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
                     `;
                 detailPaymentsTableBody.appendChild(row);
-            }
+            });
+
+            // Add event listeners for edit/delete buttons
+            detailPaymentsTableBody.querySelectorAll('.edit-payment-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const invoiceId = btn.dataset.invoiceId;
+                    const paymentIndex = parseInt(btn.dataset.paymentIndex, 10);
+                    if (typeof editPayment === 'function') {
+                        editPayment(invoiceId, paymentIndex);
+                    }
+                });
+            });
+
+            detailPaymentsTableBody.querySelectorAll('.delete-payment-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const invoiceId = btn.dataset.invoiceId;
+                    const paymentIndex = parseInt(btn.dataset.paymentIndex, 10);
+                    if (typeof deletePayment === 'function') {
+                        deletePayment(invoiceId, paymentIndex);
+                    }
+                });
+            });
         }
     }
 

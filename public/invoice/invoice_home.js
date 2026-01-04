@@ -701,9 +701,14 @@ async function handleSearch() {
         </div>`);
 }
 
-// Payment functionality
-async function payment(id) {
+// Payment functionality - supports both add and edit mode
+async function payment(id, editIndex = null, editData = null) {
     const invoiceId = id;
+
+    // Store edit mode info
+    window.paymentEditMode = editIndex !== null;
+    window.paymentEditIndex = editIndex;
+    window.paymentEditOriginalAmount = editData ? editData.paid_amount : 0;
 
     // Determine return view before hiding everything
     if (document.getElementById('view') && window.getComputedStyle(document.getElementById('view')).display !== 'none') {
@@ -723,10 +728,13 @@ async function payment(id) {
         const invoice = response.invoice;
         const totalAmount = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
         const paidAmount = invoice.total_paid_amount || 0;
-        const dueAmount = totalAmount - paidAmount;
+        // In edit mode, add back the original payment amount to due
+        const dueAmount = window.paymentEditMode 
+            ? (totalAmount - paidAmount + window.paymentEditOriginalAmount)
+            : (totalAmount - paidAmount);
 
-        // If there's no due amount, alert the user and do not open payment modal
-        if (!dueAmount || dueAmount <= 0) {
+        // If there's no due amount (and not in edit mode), alert the user
+        if (!window.paymentEditMode && (!dueAmount || dueAmount <= 0)) {
             window.electronAPI.showAlert1('There is no outstanding due on this invoice.');
             return;
         }
@@ -741,22 +749,50 @@ async function payment(id) {
         // Store invoiceId for payment form submission
         window.currentPaymentInvoiceId = invoiceId;
 
-        // Reset form fields
+        // Update modal title and button text based on mode
+        const modalTitle = document.querySelector('#payment-container h2');
+        const paymentBtn = document.getElementById('payment-btn');
+        if (window.paymentEditMode) {
+            if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-edit text-blue-600 mr-2"></i>Edit Payment';
+            if (paymentBtn) paymentBtn.innerHTML = '<i class="fas fa-save"></i> Update Payment';
+        } else {
+            if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-money-bill-wave text-green-600 mr-2"></i>Add Payment';
+            if (paymentBtn) paymentBtn.innerHTML = '<i class="fas fa-save"></i> Save Payment';
+        }
+
+        // Set form fields - either from editData or reset
         const paidAmountInput = document.getElementById('paid-amount');
-        if (paidAmountInput) paidAmountInput.value = '';
+        if (paidAmountInput) {
+            paidAmountInput.value = editData ? editData.paid_amount : '';
+        }
 
         const paymentModeSelect = document.getElementById('payment-mode');
         if (paymentModeSelect) {
-            paymentModeSelect.value = 'Cash';
+            paymentModeSelect.value = editData ? editData.payment_mode : 'Cash';
             paymentModeSelect.dispatchEvent(new Event('change'));
         }
 
-        // Set default payment date to today
+        // Set payment date
         const paymentDateInput = document.getElementById('payment-date');
         if (paymentDateInput) {
-            const today = new Date().toISOString().split('T')[0];
-            paymentDateInput.value = today;
+            if (editData && editData.payment_date) {
+                const editDate = new Date(editData.payment_date);
+                paymentDateInput.value = editDate.toISOString().split('T')[0];
+            } else {
+                const today = new Date().toISOString().split('T')[0];
+                paymentDateInput.value = today;
+            }
         }
+
+        // Set extra details after mode change triggers the field creation
+        setTimeout(() => {
+            if (editData && editData.extra_details) {
+                const extraFieldInput = document.querySelector('#extra-payment-details input');
+                if (extraFieldInput) {
+                    extraFieldInput.value = editData.extra_details;
+                }
+            }
+        }, 50);
 
         const dueAmountElement = document.getElementById('payment-due-amount');
         if (dueAmountElement) {
@@ -794,6 +830,67 @@ async function payment(id) {
         console.error('Error fetching invoice for payment:', error);
         window.electronAPI.showAlert1('Failed to fetch invoice details.');
     }
+}
+
+// Edit existing payment
+async function editPayment(invoiceId, paymentIndex) {
+    try {
+        const response = await fetchDocumentById('invoice', invoiceId);
+        if (!response || !response.invoice) {
+            window.electronAPI.showAlert1('Invoice not found.');
+            return;
+        }
+
+        const invoice = response.invoice;
+        if (!invoice.payments || paymentIndex >= invoice.payments.length) {
+            window.electronAPI.showAlert1('Payment not found.');
+            return;
+        }
+
+        const paymentData = invoice.payments[paymentIndex];
+        payment(invoiceId, paymentIndex, paymentData);
+    } catch (error) {
+        console.error('Error fetching payment for edit:', error);
+        window.electronAPI.showAlert1('Failed to fetch payment details.');
+    }
+}
+
+// Delete payment with confirmation
+async function deletePayment(invoiceId, paymentIndex) {
+    // Show confirmation dialog
+    window.electronAPI.showAlert2(
+        'Are you sure you want to delete this payment? This action cannot be undone.',
+        'Delete Payment'
+    );
+
+    // Wait for response
+    window.electronAPI.receiveAlertResponse(async (response) => {
+        if (response === 1) { // User confirmed
+            try {
+                const res = await fetch(`/invoice/delete-payment/${invoiceId}/${paymentIndex}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    window.electronAPI.showAlert1(`Error: ${data.message || 'Failed to delete payment.'}`);
+                    return;
+                }
+
+                window.electronAPI.showAlert1('Payment deleted successfully.');
+
+                // Refresh the view
+                const userRole = sessionStorage.getItem('userRole');
+                if (typeof viewInvoice === 'function') {
+                    viewInvoice(invoiceId, userRole);
+                }
+            } catch (error) {
+                console.error('Error deleting payment:', error);
+                window.electronAPI.showAlert1('Failed to delete payment.');
+            }
+        }
+    });
 }
 
 // Close payment modal handler
@@ -878,7 +975,11 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
             const invoice = invResp.invoice;
             const totalAmount = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
             const paidSoFar = invoice.total_paid_amount || 0;
-            dueAmount = Number((totalAmount - paidSoFar).toFixed(2));
+            // In edit mode, add back the original payment amount to due
+            const adjustedDue = window.paymentEditMode 
+                ? (totalAmount - paidSoFar + window.paymentEditOriginalAmount)
+                : (totalAmount - paidSoFar);
+            dueAmount = Number(adjustedDue.toFixed(2));
         }
     } catch (err) {
         console.error('Error fetching invoice for validation:', err);
@@ -959,14 +1060,23 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
         paymentExtra: extraInfo,
     };
 
+    // Add payment index if in edit mode
+    if (window.paymentEditMode) {
+        data.paymentIndex = window.paymentEditIndex;
+    }
+
     // Disable button while processing
     paymentBtn.disabled = true;
     const originalBtnText = paymentBtn.innerHTML;
     paymentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
     try {
-        const response = await fetch("/invoice/save-payment", {
-            method: "POST",
+        // Use different endpoint based on edit mode
+        const endpoint = window.paymentEditMode ? "/invoice/update-payment" : "/invoice/save-payment";
+        const method = window.paymentEditMode ? "PUT" : "POST";
+        
+        const response = await fetch(endpoint, {
+            method: method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
@@ -978,7 +1088,13 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
             paymentBtn.disabled = false;
             paymentBtn.innerHTML = originalBtnText;
         } else {
-            window.electronAPI.showAlert1("Payment Saved!");
+            window.electronAPI.showAlert1(window.paymentEditMode ? "Payment Updated!" : "Payment Saved!");
+            
+            // Reset edit mode
+            window.paymentEditMode = false;
+            window.paymentEditIndex = null;
+            window.paymentEditOriginalAmount = 0;
+            
             document.getElementById("paid-amount").value = '';
             // Reset payment date to today
             const paymentDateEl = document.getElementById('payment-date');

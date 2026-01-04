@@ -398,6 +398,137 @@ router.post("/save-payment", async (req, res) => {
     }
 });
 
+// Update existing payment
+router.put("/update-payment", async (req, res) => {
+    try {
+        const {
+            invoiceId,
+            paymentIndex,
+            paymentMode,
+            paymentDate,
+            paidAmount = 0,
+            paymentExtra = ''
+        } = req.body;
+
+        const invoice = await Invoices.findOne({ invoice_id: invoiceId });
+        if (!invoice) {
+            return res.status(404).json({ message: "Invoice not found" });
+        }
+
+        if (!invoice.payments || paymentIndex < 0 || paymentIndex >= invoice.payments.length) {
+            return res.status(404).json({ message: "Payment not found" });
+        }
+
+        // Update the payment at the specified index
+        invoice.payments[paymentIndex] = {
+            payment_date: paymentDate,
+            paid_amount: Number(paidAmount),
+            payment_mode: paymentMode,
+            extra_details: paymentExtra || ''
+        };
+
+        // Recalculate total_paid_amount
+        invoice.total_paid_amount = (invoice.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
+
+        // Recalculate payment status
+        const computeTotalDue = (inv) => {
+            let subtotal = 0;
+            let tax = 0;
+            const items = [...(inv.items || []), ...(inv.non_items || [])];
+            for (const item of items) {
+                const qty = parseFloat(item.quantity || 0);
+                const unitPrice = parseFloat(item.unit_price || 0);
+                const rate = parseFloat(item.rate || 0);
+                const price = qty * unitPrice;
+                subtotal += price;
+                tax += price * (rate / 100);
+            }
+            return Number((subtotal + tax).toFixed(2));
+        };
+
+        const totalDue = computeTotalDue(invoice);
+
+        if (totalDue > 0 && invoice.total_paid_amount >= totalDue) {
+            invoice.payment_status = 'Paid';
+        } else if (invoice.total_paid_amount > 0) {
+            invoice.payment_status = 'Partial';
+        } else {
+            invoice.payment_status = 'Unpaid';
+        }
+
+        if (typeof invoice.updatePaymentStatus === 'function') {
+            invoice.updatePaymentStatus();
+        }
+
+        await invoice.save();
+
+        res.status(200).json({ message: "Payment updated successfully." });
+    } catch (error) {
+        console.error("Error updating payment:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+});
+
+// Delete a payment
+router.delete("/delete-payment/:invoiceId/:paymentIndex", async (req, res) => {
+    try {
+        const { invoiceId, paymentIndex } = req.params;
+        const index = parseInt(paymentIndex, 10);
+
+        const invoice = await Invoices.findOne({ invoice_id: invoiceId });
+        if (!invoice) {
+            return res.status(404).json({ message: "Invoice not found" });
+        }
+
+        if (!invoice.payments || index < 0 || index >= invoice.payments.length) {
+            return res.status(404).json({ message: "Payment not found" });
+        }
+
+        // Remove the payment at the specified index
+        invoice.payments.splice(index, 1);
+
+        // Recalculate total_paid_amount
+        invoice.total_paid_amount = (invoice.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
+
+        // Recalculate payment status
+        const computeTotalDue = (inv) => {
+            let subtotal = 0;
+            let tax = 0;
+            const items = [...(inv.items || []), ...(inv.non_items || [])];
+            for (const item of items) {
+                const qty = parseFloat(item.quantity || 0);
+                const unitPrice = parseFloat(item.unit_price || 0);
+                const rate = parseFloat(item.rate || 0);
+                const price = qty * unitPrice;
+                subtotal += price;
+                tax += price * (rate / 100);
+            }
+            return Number((subtotal + tax).toFixed(2));
+        };
+
+        const totalDue = computeTotalDue(invoice);
+
+        if (totalDue > 0 && invoice.total_paid_amount >= totalDue) {
+            invoice.payment_status = 'Paid';
+        } else if (invoice.total_paid_amount > 0) {
+            invoice.payment_status = 'Partial';
+        } else {
+            invoice.payment_status = 'Unpaid';
+        }
+
+        if (typeof invoice.updatePaymentStatus === 'function') {
+            invoice.updatePaymentStatus();
+        }
+
+        await invoice.save();
+
+        res.status(200).json({ message: "Payment deleted successfully." });
+    } catch (error) {
+        console.error("Error deleting payment:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+});
+
 // Search invoice
 router.get('/search/:query', async (req, res) => {
     const { query } = req.params;

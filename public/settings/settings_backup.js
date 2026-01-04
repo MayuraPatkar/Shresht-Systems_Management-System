@@ -19,11 +19,7 @@ function checkBackupToolsStatus() {
                 
                 if (!allToolsAvailable) {
                     console.warn('Some MongoDB tools are not available:', tools);
-                    const statusElement = document.getElementById("backup-status");
-                    if (statusElement) {
-                        statusElement.className = "text-orange-700 font-medium";
-                        statusElement.innerText = "Warning: Some MongoDB backup tools are not installed. Native backup will be used.";
-                    }
+                    // Status element reserved for last backup timestamp only
                 }
             }
         })
@@ -66,7 +62,6 @@ function loadLastBackupStatus() {
  */
 function handleExportData() {
     const selectedElement = document.querySelector('input[name="export-data"]:checked');
-    const statusElement = document.getElementById("backup-status");
     const exportButton = document.getElementById("export-data-button");
     
     if (!selectedElement) {
@@ -78,9 +73,6 @@ function handleExportData() {
     const originalContent = exportButton.innerHTML;
     exportButton.disabled = true;
     exportButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
-    
-    statusElement.innerText = `Exporting ${selected} data...`;
-    statusElement.className = "text-blue-700 font-medium";
 
     fetch(`/settings/backup/export/${selected}`)
         .then(res => {
@@ -91,19 +83,20 @@ function handleExportData() {
         })
         .then(data => {
             if (data.success) {
-                statusElement.className = "text-green-700 font-medium";
-                statusElement.innerText = data.message;
-                if (data.fileSize) {
-                    statusElement.innerText += ` (${(data.fileSize / 1024).toFixed(2)} KB)`;
+                // Skip alert for cancelled exports or empty messages
+                if (data.message && !data.message.includes('cancelled') && !data.message.includes('No data found')) {
+                    let msg = data.message;
+                    if (data.fileSize) {
+                        msg += ` (${(data.fileSize / 1024).toFixed(2)} KB)`;
+                    }
+                    window.electronAPI.showAlert1(msg);
                 }
             } else {
-                statusElement.className = "text-red-700 font-medium";
-                statusElement.innerText = `Export failed: ${data.message}`;
+                window.electronAPI.showAlert1(`Export failed: ${data.message}`);
             }
         })
         .catch(err => {
-            statusElement.className = "text-red-700 font-medium";
-            statusElement.innerText = `Export failed: ${err.message}`;
+            window.electronAPI.showAlert1(`Export failed: ${err.message}`);
             console.error('Export error:', err);
         })
         .finally(() => {
@@ -121,7 +114,6 @@ function handleExportData() {
  */
 function handleRestoreCollection() {
     const fileInput = document.getElementById("restore-collection-file");
-    const statusElement = document.getElementById("backup-status");
 
     if (fileInput.files.length === 0) {
         window.electronAPI.showAlert1("Please select a backup file.");
@@ -161,9 +153,6 @@ function handleRestoreCollection() {
     restoreButton.disabled = true;
     restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
 
-    statusElement.innerText = "Restoring collection...";
-    statusElement.className = "text-blue-700 font-medium";
-
     fetch("/settings/backup/restore-collection", {
         method: "POST",
         body: formData
@@ -176,20 +165,18 @@ function handleRestoreCollection() {
         })
         .then(data => {
             if (data.success) {
-                statusElement.className = "text-green-700 font-medium";
-                statusElement.innerText = data.message;
+                let msg = data.message;
                 if (data.fileSize) {
-                    statusElement.innerText += ` (${(data.fileSize / 1024).toFixed(2)} KB processed)`;
+                    msg += ` (${(data.fileSize / 1024).toFixed(2)} KB processed)`;
                 }
+                window.electronAPI.showAlert1(msg);
                 fileInput.value = "";
             } else {
-                statusElement.className = "text-red-700 font-medium";
-                statusElement.innerText = `Restore failed: ${data.message}`;
+                window.electronAPI.showAlert1(`Restore failed: ${data.message}`);
             }
         })
         .catch(err => {
-            statusElement.className = "text-red-700 font-medium";
-            statusElement.innerText = `Restore failed: ${err.message}`;
+            window.electronAPI.showAlert1(`Restore failed: ${err.message}`);
             console.error('Restore error:', err);
         })
         .finally(() => {
@@ -207,7 +194,6 @@ function handleRestoreCollection() {
  */
 function handleRestoreDatabase() {
     const fileInput = document.getElementById("restore-database-file");
-    const statusElement = document.getElementById("backup-status");
 
     if (fileInput.files.length === 0) {
         window.electronAPI.showAlert1("Please select a backup file.");
@@ -237,7 +223,7 @@ function handleRestoreDatabase() {
     
     window.electronAPI.receiveAlertResponse((response) => {
         if (response === 'Yes' || response === true) {
-            performDatabaseRestore(file, statusElement);
+            performDatabaseRestore(file);
         }
     });
 }
@@ -245,12 +231,16 @@ function handleRestoreDatabase() {
 /**
  * Performs the actual database restore operation
  */
-function performDatabaseRestore(file, statusElement) {
+function performDatabaseRestore(file) {
     const formData = new FormData();
     formData.append("backupFile", file);
 
-    statusElement.innerText = "Restoring database...";
-    statusElement.className = "text-blue-700 font-medium";
+    const restoreButton = document.getElementById("restore-database-button");
+    const originalContent = restoreButton ? restoreButton.innerHTML : '';
+    if (restoreButton) {
+        restoreButton.disabled = true;
+        restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
+    }
 
     fetch("/settings/backup/restore-database", {
         method: "POST",
@@ -264,24 +254,28 @@ function performDatabaseRestore(file, statusElement) {
         })
         .then(data => {
             if (data.success) {
-                statusElement.className = "text-green-700 font-medium";
-                statusElement.innerText = data.message;
+                let msg = data.message;
                 if (data.warning) {
-                    statusElement.innerText += ` Warning: ${data.warning}`;
+                    msg += ` Warning: ${data.warning}`;
                 }
                 if (data.fileSize) {
-                    statusElement.innerText += ` (${(data.fileSize / 1024).toFixed(2)} KB processed)`;
+                    msg += ` (${(data.fileSize / 1024).toFixed(2)} KB processed)`;
                 }
+                window.electronAPI.showAlert1(msg);
                 document.getElementById("restore-database-file").value = "";
             } else {
-                statusElement.className = "text-red-700 font-medium";
-                statusElement.innerText = `Database restore failed: ${data.message}`;
+                window.electronAPI.showAlert1(`Database restore failed: ${data.message}`);
             }
         })
         .catch(err => {
-            statusElement.className = "text-orange-700 font-medium";
-            statusElement.innerText = `Database restore failed: ${err.message}`;
+            window.electronAPI.showAlert1(`Database restore failed: ${err.message}`);
             console.error('Database restore error:', err);
+        })
+        .finally(() => {
+            if (restoreButton) {
+                restoreButton.disabled = false;
+                restoreButton.innerHTML = originalContent;
+            }
         });
 }
 
@@ -301,7 +295,6 @@ function handleGoogleDriveBackup() {
  * a timestamped gzipped archive in the configured backup directory.
  */
 function handleManualBackup() {
-    const statusElement = document.getElementById("backup-status");
     const manualButton = document.getElementById("manual-backup-button");
 
     if (!manualButton) return;
@@ -322,34 +315,23 @@ function handleManualBackup() {
             manualButton.disabled = true;
             manualButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating backup...';
 
-            if (statusElement) {
-                statusElement.className = "text-blue-700 font-medium";
-                statusElement.innerText = 'Starting manual backup...';
-            }
-
             fetch('/settings/backup/manual', { method: 'POST' })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        if (statusElement) {
-                            statusElement.className = "text-green-700 font-medium";
-                            statusElement.innerText = `Backup created: ${data.path || ''}`;
-                            if (data.fileSize) {
-                                statusElement.innerText += ` (${(data.fileSize / (1024)).toFixed(2)} KB)`;
-                            }
+                        let msg = `Backup created: ${data.path || ''}`;
+                        if (data.fileSize) {
+                            msg += ` (${(data.fileSize / (1024)).toFixed(2)} KB)`;
                         }
+                        window.electronAPI.showAlert1(msg);
+                        // Refresh last backup status
+                        loadLastBackupStatus();
                     } else {
-                        if (statusElement) {
-                            statusElement.className = "text-red-700 font-medium";
-                            statusElement.innerText = `Backup failed: ${data.message || 'Unknown error'}`;
-                        }
+                        window.electronAPI.showAlert1(`Backup failed: ${data.message || 'Unknown error'}`);
                     }
                 })
                 .catch(err => {
-                    if (statusElement) {
-                        statusElement.className = "text-red-700 font-medium";
-                        statusElement.innerText = `Backup failed: ${err.message}`;
-                    }
+                    window.electronAPI.showAlert1(`Backup failed: ${err.message}`);
                     console.error('Manual backup error:', err);
                 })
                 .finally(() => {
@@ -365,7 +347,6 @@ function handleManualBackup() {
 
 // Open backup folder in file manager
 function handleOpenBackupFolder() {
-    const statusElement = document.getElementById("backup-status");
     const openButton = document.getElementById("manual-backup-open-folder");
 
     if (!openButton || !window.electronAPI || !window.electronAPI.openBackupFolder) {
@@ -390,25 +371,13 @@ function handleOpenBackupFolder() {
 
             window.electronAPI.openBackupFolder()
                 .then(result => {
-                    if (result && result.success) {
-                        if (statusElement) {
-                            statusElement.className = "text-green-700 font-medium";
-                            statusElement.innerText = `Opened backup folder: ${result.path}`;
-                        }
-                    } else {
+                    if (!result || !result.success) {
                         const msg = (result && result.message) ? result.message : 'Failed to open backup folder';
-                        if (statusElement) {
-                            statusElement.className = "text-red-700 font-medium";
-                            statusElement.innerText = `Error: ${msg}`;
-                        }
                         window.electronAPI.showAlert1(msg);
                     }
+                    // Success case - folder opens, no alert needed
                 })
                 .catch(err => {
-                    if (statusElement) {
-                        statusElement.className = "text-red-700 font-medium";
-                        statusElement.innerText = `Error opening backup folder: ${err.message}`;
-                    }
                     console.error('Open backup folder error:', err);
                     window.electronAPI.showAlert1('Failed to open backup folder: ' + (err.message || err));
                 })
