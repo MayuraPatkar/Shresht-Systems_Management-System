@@ -367,49 +367,78 @@ async function sendToServer(data) {
 
 // Save button handler
 async function handleSave() {
-    const serviceData = collectFormData();
-    const result = await sendToServer(serviceData);
-    if (result.success) {
-        // Handle next service question
-        const nextServiceAnswer = document.querySelector('input[name="question"]:checked')?.value || 'yes';
-        await updateNextService(document.getElementById('invoice-id').value, nextServiceAnswer);
+    const btn = document.getElementById("save-btn");
+    if (btn) btn.disabled = true;
 
-        window.electronAPI?.showAlert1("Service saved successfully.");
-        setTimeout(() => {
-            showHome();
-        }, 1500);
-    } else {
-        window.electronAPI?.showAlert1(result.message || "Failed to save service.");
+    try {
+        const serviceData = collectFormData();
+        const result = await sendToServer(serviceData);
+        if (result.success) {
+            // Handle next service question
+            const nextServiceAnswer = document.querySelector('input[name="question"]:checked')?.value || 'yes';
+            await updateNextService(document.getElementById('invoice-id').value, nextServiceAnswer);
+
+            window.electronAPI?.showAlert1("Service saved successfully.");
+            setTimeout(() => {
+                showHome();
+            }, 1500);
+        } else {
+            window.electronAPI?.showAlert1(result.message || "Failed to save service.");
+        }
+    } catch (error) {
+        console.error("Error saving service:", error);
+    } finally {
+        if (btn) setTimeout(() => btn.disabled = false, 1000);
     }
 }
 
 // Print button handler
 async function handlePrint() {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const serviceData = collectFormData();
-        await sendToServer(serviceData);
-        const invoiceId = document.getElementById('invoice-id').value;
-        const serviceRef = `${invoiceId}-S${serviceData.service_stage || 0}`;
-        const name = `Service-${serviceRef}`;
-        window.electronAPI.handlePrintEvent(previewContent, "print", name);
-    } else {
-        window.electronAPI?.showAlert1("Print functionality is not available.");
+    const btn = document.getElementById("print-btn");
+    if (btn) btn.disabled = true;
+
+    try {
+        const previewContent = document.getElementById("preview-content").innerHTML;
+        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+            const serviceData = collectFormData();
+            await sendToServer(serviceData);
+            const invoiceId = document.getElementById('invoice-id').value;
+            const serviceRef = `${invoiceId}-S${serviceData.service_stage || 0}`;
+            const name = `Service-${serviceRef}`;
+            window.electronAPI.handlePrintEvent(previewContent, "print", name);
+        } else {
+            window.electronAPI?.showAlert1("Print functionality is not available.");
+        }
+    } catch (error) {
+        console.error("Error printing:", error);
+        window.electronAPI?.showAlert1("Failed to print.");
+    } finally {
+        if (btn) setTimeout(() => btn.disabled = false, 1000);
     }
 }
 
 // Save PDF button handler
 async function handleSavePDF() {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const serviceData = collectFormData();
-        await sendToServer(serviceData);
-        const invoiceId = document.getElementById('invoice-id').value;
-        const serviceRef = `${invoiceId}-S${serviceData.service_stage || 0}`;
-        const name = `Service-${serviceRef}`;
-        window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
-    } else {
-        window.electronAPI?.showAlert1("Print functionality is not available.");
+    const btn = document.getElementById("save-pdf-btn");
+    if (btn) btn.disabled = true;
+
+    try {
+        const previewContent = document.getElementById("preview-content").innerHTML;
+        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+            const serviceData = collectFormData();
+            await sendToServer(serviceData);
+            const invoiceId = document.getElementById('invoice-id').value;
+            const serviceRef = `${invoiceId}-S${serviceData.service_stage || 0}`;
+            const name = `Service-${serviceRef}`;
+            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+        } else {
+            window.electronAPI?.showAlert1("Print functionality is not available.");
+        }
+    } catch (error) {
+        console.error("Error saving PDF:", error);
+        window.electronAPI?.showAlert1("Failed to save PDF.");
+    } finally {
+        if (btn) setTimeout(() => btn.disabled = false, 1000);
     }
 }
 
