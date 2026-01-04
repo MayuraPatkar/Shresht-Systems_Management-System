@@ -277,9 +277,9 @@ function setupIPCHandlers() {
   ipcMain.handle('open-backup-folder', async () => {
     try {
       const { shell } = require('electron');
-      let folderPath = global.appPaths && global.appPaths.backups;
+      let folderPath = null;
 
-      // Try to get custom backup location from settings
+      // Get backup location from settings only - no default fallback
       try {
         // Ensure DB is connected
         if (mongoose.connection.readyState === 1) {
@@ -292,7 +292,11 @@ function setupIPCHandlers() {
           
           const settings = await Settings.findOne();
           if (settings && settings.backup && settings.backup.backup_location) {
-            folderPath = settings.backup.backup_location;
+            const loc = settings.backup.backup_location;
+            // Ignore default ./backups path
+            if (loc !== './backups' && loc !== '.\\backups') {
+              folderPath = loc;
+            }
           }
         }
       } catch (dbErr) {
@@ -301,7 +305,7 @@ function setupIPCHandlers() {
 
       if (!folderPath) {
         logger.warn('Backup folder not configured');
-        return { success: false, message: 'Backup folder not configured' };
+        return { success: false, message: 'Backup folder not configured. Please set a backup location in Settings -> Preferences.' };
       }
 
       // Resolve relative paths

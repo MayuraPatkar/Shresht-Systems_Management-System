@@ -622,7 +622,8 @@ router.post("/backup/manual", asyncHandler(async (req, res) => {
         const settings = await Settings.findOne();
         const backupLocation = settings?.backup?.backup_location;
 
-        if (!backupLocation) {
+        // Check if location is configured and not the default ./backups
+        if (!backupLocation || backupLocation === './backups' || backupLocation === '.\\backups') {
             return res.status(400).json({ 
                 success: false, 
                 message: 'Backup location not configured. Please set a backup location in Preferences.' 

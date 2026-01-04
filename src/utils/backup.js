@@ -18,26 +18,13 @@ function createBackup(customPath) {
     return new Promise((resolve, reject) => {
     const config = require("../config/config");
 
-    // Priority: customPath -> env BACKUP_DIR -> global.appPaths -> config.backupDir -> Electron userData -> local backups
-    const envBackupDir = process.env.BACKUP_DIR;
-    let backupDir = customPath || envBackupDir || (global.appPaths && global.appPaths.backups) || config.backupDir;
+    // Priority: customPath is required - no default fallback
+    let backupDir = customPath;
 
     if (!backupDir) {
-        try {
-            // Try to detect Electron's userData path when running inside Electron
-            // eslint-disable-next-line global-require
-            const { app } = require("electron");
-            if (app && typeof app.getPath === "function") {
-                backupDir = path.join(app.getPath("userData"), "backups");
-            }
-        } catch (e) {
-            // not running in Electron or electron not available
-        }
-    }
-
-    // Last-resort: keep a relative backups folder (useful for dev/server-only runs)
-    if (!backupDir) {
-        backupDir = path.join(__dirname, "../../backups");
+        const errorMsg = 'Backup location not configured. Please set a backup location in Settings -> Preferences.';
+        logger.error(errorMsg);
+        return reject(new Error(errorMsg));
     }
 
     // Ensure the directory exists and has restrictive permissions where possible

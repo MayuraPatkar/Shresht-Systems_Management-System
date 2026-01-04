@@ -78,15 +78,20 @@ async function scheduleFromSettings(settings) {
         const frequency = cfg.backup_frequency || 'daily';
         const timeStr = cfg.backup_time || '02:00';
         const retention = Number(cfg.retention_days || cfg.retention_days === 0 ? cfg.retention_days : 30);
-        const location = cfg.backup_location || process.env.BACKUP_DIR || null;
+        const location = cfg.backup_location || null;
 
         if (!enabled) {
             logger.info('Auto backup is disabled in settings');
             return;
         }
 
-        // Set environment overrides for the backup utility so it uses user-selected values
-        if (location) process.env.BACKUP_DIR = location;
+        // Backup location is required - no default fallback
+        if (!location) {
+            logger.warn('Auto backup is enabled but no backup location is configured. Skipping.');
+            return;
+        }
+
+        // Set environment overrides for retention
         if (!Number.isNaN(retention)) process.env.BACKUP_RETENTION_DAYS = String(retention);
 
         const now = new Date();
@@ -101,11 +106,11 @@ async function scheduleFromSettings(settings) {
             } else {
                 isRunning = true;
                 try {
-                    // Ensure env overrides are applied each run (in case they were changed externally)
-                    if (location) process.env.BACKUP_DIR = location;
+                    // Set retention env override
                     if (!Number.isNaN(retention)) process.env.BACKUP_RETENTION_DAYS = String(retention);
 
-                    await Promise.resolve(autoBackup());
+                    // Pass location directly to autoBackup
+                    await Promise.resolve(autoBackup(location));
 
                     // Update settings.last_backup timestamp
                     try {

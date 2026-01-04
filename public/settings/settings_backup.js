@@ -312,7 +312,8 @@ function handleManualBackup() {
         .then(data => {
             const location = data.settings?.backup?.backup_location;
             
-            if (!location || !location.trim()) {
+            // Also check for default ./backups which should be treated as unconfigured
+            if (!location || !location.trim() || location === './backups' || location === '.\\backups') {
                 window.electronAPI.showAlert1("Please configure a backup location in Preferences before creating a backup.");
                 return;
             }
@@ -368,41 +369,57 @@ function handleOpenBackupFolder() {
     const openButton = document.getElementById("manual-backup-open-folder");
 
     if (!openButton || !window.electronAPI || !window.electronAPI.openBackupFolder) {
-        window.showAlert('Open folder not available in this environment');
+        window.electronAPI.showAlert1('Open folder not available in this environment');
         return;
     }
 
-    openButton.disabled = true;
-    openButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
-
-    window.electronAPI.openBackupFolder()
-        .then(result => {
-            if (result && result.success) {
-                if (statusElement) {
-                    statusElement.className = "text-green-700 font-medium";
-                    statusElement.innerText = `Opened backup folder: ${result.path}`;
-                }
-            } else {
-                const msg = (result && result.message) ? result.message : 'Failed to open backup folder';
-                if (statusElement) {
-                    statusElement.className = "text-red-700 font-medium";
-                    statusElement.innerText = `Error: ${msg}`;
-                }
-                window.showAlert(msg);
+    // First check if backup location is configured
+    fetch('/settings/preferences')
+        .then(res => res.json())
+        .then(data => {
+            const location = data.settings?.backup?.backup_location;
+            
+            // Also check for default ./backups which should be treated as unconfigured
+            if (!location || !location.trim() || location === './backups' || location === '.\\backups') {
+                window.electronAPI.showAlert1("Please configure a backup location in Preferences before opening backup folder.");
+                return;
             }
+
+            openButton.disabled = true;
+            openButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
+
+            window.electronAPI.openBackupFolder()
+                .then(result => {
+                    if (result && result.success) {
+                        if (statusElement) {
+                            statusElement.className = "text-green-700 font-medium";
+                            statusElement.innerText = `Opened backup folder: ${result.path}`;
+                        }
+                    } else {
+                        const msg = (result && result.message) ? result.message : 'Failed to open backup folder';
+                        if (statusElement) {
+                            statusElement.className = "text-red-700 font-medium";
+                            statusElement.innerText = `Error: ${msg}`;
+                        }
+                        window.electronAPI.showAlert1(msg);
+                    }
+                })
+                .catch(err => {
+                    if (statusElement) {
+                        statusElement.className = "text-red-700 font-medium";
+                        statusElement.innerText = `Error opening backup folder: ${err.message}`;
+                    }
+                    console.error('Open backup folder error:', err);
+                    window.electronAPI.showAlert1('Failed to open backup folder: ' + (err.message || err));
+                })
+                .finally(() => {
+                    openButton.disabled = false;
+                    openButton.innerHTML = '<i class="fas fa-folder-open"></i>\n                            Open Backup Folder'.trim();
+                });
         })
         .catch(err => {
-            if (statusElement) {
-                statusElement.className = "text-red-700 font-medium";
-                statusElement.innerText = `Error opening backup folder: ${err.message}`;
-            }
-            console.error('Open backup folder error:', err);
-            window.showAlert('Failed to open backup folder: ' + (err.message || err));
-        })
-        .finally(() => {
-            openButton.disabled = false;
-            // restore button text
-            openButton.innerHTML = '<i class="fas fa-folder-open"></i>\n                            Open Backup Folder'.trim();
+            console.error('Failed to check preferences:', err);
+            window.electronAPI.showAlert1("Failed to verify backup settings. Please try again.");
         });
 }
 
