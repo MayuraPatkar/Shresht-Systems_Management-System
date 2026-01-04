@@ -6,7 +6,15 @@ window.totalSteps = 6;
 window.changeStep = async function (step) {
     document.getElementById(`step-${window.currentStep}`).classList.remove("active");
     window.currentStep = step;
-    document.getElementById(`step-${window.currentStep}`).classList.add("active");
+    const nextStepEl = document.getElementById(`step-${window.currentStep}`);
+    nextStepEl.classList.add("active");
+
+    // Focus first input
+    const firstInput = nextStepEl.querySelector('input, select, textarea');
+    if (firstInput) {
+        setTimeout(() => firstInput.focus(), 50);
+    }
+
     updateNavigation();
     document.getElementById("step-indicator").textContent = `Step ${window.currentStep} of ${window.totalSteps}`;
 

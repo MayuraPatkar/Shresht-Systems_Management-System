@@ -59,6 +59,9 @@ function toggleSection(sectionId) {
             if (id === sectionId) {
                 sectionElement.classList.remove('hidden');
                 sectionElement.classList.add('fade-in');
+                // Focus first input
+                const firstInput = sectionElement.querySelector('input, select, textarea');
+                if (firstInput) setTimeout(() => firstInput.focus(), 50);
             } else {
                 sectionElement.classList.add('hidden');
                 sectionElement.classList.remove('fade-in');

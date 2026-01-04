@@ -157,29 +157,40 @@ function showReportSection(reportType) {
     document.getElementById('data-worksheet-section').style.display = 'none';
     document.getElementById('purchase-gst-report-section').style.display = 'none';
 
+    let activeSection = null;
+
     // Show the selected section
     switch (reportType) {
         case 'stock':
-            document.getElementById('stock-report-section').style.display = 'block';
+            activeSection = document.getElementById('stock-report-section');
+            activeSection.style.display = 'block';
             initStockReport();
             break;
         case 'gst':
-            document.getElementById('gst-report-section').style.display = 'block';
+            activeSection = document.getElementById('gst-report-section');
+            activeSection.style.display = 'block';
             initGSTReport();
             break;
         case 'dataWorksheet':
         case 'data_worksheet':
-            document.getElementById('data-worksheet-section').style.display = 'block';
+            activeSection = document.getElementById('data-worksheet-section');
+            activeSection.style.display = 'block';
             initDataWorksheetReport();
             break;
         case 'purchaseGst':
         case 'purchase_gst':
-            document.getElementById('purchase-gst-report-section').style.display = 'block';
+            activeSection = document.getElementById('purchase-gst-report-section');
+            activeSection.style.display = 'block';
             initPurchaseGSTReport();
             break;
         default:
             document.getElementById('reports-home').style.display = 'block';
             loadRecentReports();
+    }
+
+    if (activeSection) {
+        const firstInput = activeSection.querySelector('input, select, textarea');
+        if (firstInput) setTimeout(() => firstInput.focus(), 50);
     }
 
     currentReportSection = reportType;

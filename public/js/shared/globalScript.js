@@ -276,7 +276,14 @@ function changeStep(step) {
 
   if (currentStepEl) currentStepEl.classList.remove("active");
   currentStep = step;
-  if (nextStepEl) nextStepEl.classList.add("active");
+  if (nextStepEl) {
+    nextStepEl.classList.add("active");
+    // Focus first input
+    const firstInput = nextStepEl.querySelector('input, select, textarea');
+    if (firstInput) {
+        setTimeout(() => firstInput.focus(), 50);
+    }
+  }
   updateNavigation();
   if (stepIndicator) stepIndicator.textContent = `Step ${currentStep} of ${totalSteps}`;
 }

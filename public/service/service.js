@@ -650,6 +650,14 @@ function showNewForm(invoiceId = null) {
     document.getElementById('form-icon').innerHTML = '<i class="fas fa-plus text-white text-xl"></i>';
     
     showSection('section-form');
+    
+    // Focus first input
+    const formSection = document.getElementById('section-form');
+    if (formSection) {
+        const firstInput = formSection.querySelector('input, select, textarea');
+        if (firstInput) setTimeout(() => firstInput.focus(), 50);
+    }
+
     updateURL({ new: 'true', invoice: invoiceId });
 
     // Pre-select invoice if provided

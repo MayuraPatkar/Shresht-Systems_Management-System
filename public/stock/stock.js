@@ -3,7 +3,11 @@ let currentStockData = [];
 
 function showModal(modalId) {
     const el = document.getElementById(modalId);
-    if (el) el.classList.remove('hidden');
+    if (el) {
+        el.classList.remove('hidden');
+        const firstInput = el.querySelector('input, select, textarea');
+        if (firstInput) setTimeout(() => firstInput.focus(), 50);
+    }
 }
 
 function hideModal(modalId) {
