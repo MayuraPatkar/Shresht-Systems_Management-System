@@ -302,6 +302,53 @@
     pointer-events: none;
 }
 
+/* Drag Handle Styles */
+.drag-handle {
+    position: absolute;
+    left: -28px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    border-radius: 4px;
+    z-index: 10;
+}
+
+.drag-handle i {
+    pointer-events: none;
+}
+
+.drag-handle:hover {
+    color: #6b7280;
+    background: #f3f4f6;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+    color: #3b82f6;
+}
+
+/* Show drag handle on card hover */
+.item-card:hover .drag-handle,
+.non-item-card:hover .drag-handle,
+.spec-card:hover .drag-handle {
+    opacity: 1;
+}
+
+/* Ensure cards have relative positioning for absolute handle */
+.item-card,
+.non-item-card,
+.spec-card {
+    position: relative;
+}
+
 /* Drag and Drop States */
 .item-card.dragging,
 .non-item-card.dragging,
@@ -309,6 +356,13 @@
     opacity: 0.5;
     border: 2px dashed #3b82f6;
     background: #eff6ff;
+}
+
+.item-card.dragging .drag-handle,
+.non-item-card.dragging .drag-handle,
+.spec-card.dragging .drag-handle {
+    opacity: 1;
+    cursor: grabbing;
 }
 
 .item-card.drag-over,
@@ -319,7 +373,7 @@
     padding-top: calc(0.75rem + 2px);
 }
 
-/* Draggable cursor */
+/* Draggable cursor - default cursor on card, grab only on handle */
 .item-card[draggable="true"],
 .non-item-card[draggable="true"],
 .spec-card[draggable="true"] {

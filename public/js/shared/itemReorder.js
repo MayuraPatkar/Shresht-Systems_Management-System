@@ -12,6 +12,7 @@
 
     let draggedElement = null;
     let draggedElementIndex = null;
+    let isHandleClicked = false;
 
     /**
      * Initialize drag and drop on a container
@@ -26,6 +27,8 @@
         }
 
         // Use event delegation on the container for better performance
+        container.addEventListener('mousedown', handleMouseDown);
+        container.addEventListener('mouseup', handleMouseUp);
         container.addEventListener('dragstart', handleDragStart);
         container.addEventListener('dragend', handleDragEnd);
         container.addEventListener('dragover', handleDragOver);
@@ -48,9 +51,33 @@
         card.setAttribute('draggable', 'true');
     }
 
+    function handleMouseDown(e) {
+        // Check if the mouse down is on a drag handle
+        if (e.target.closest('.drag-handle')) {
+            isHandleClicked = true;
+        } else {
+            isHandleClicked = false;
+        }
+    }
+
+    function handleMouseUp(e) {
+        isHandleClicked = false;
+    }
+
     function handleDragStart(e) {
+        // Check if drag started from the drag handle
+        // We use the flag because e.target in dragstart is the draggable element (card), not the handle
+        if (!isHandleClicked) {
+            // Not starting from drag handle - prevent the drag
+            e.preventDefault();
+            return;
+        }
+
         const card = e.target.closest('.item-card, .non-item-card, .spec-card');
-        if (!card) return;
+        if (!card) {
+            e.preventDefault();
+            return;
+        }
 
         draggedElement = card;
         draggedElementIndex = Array.from(card.parentElement.children).indexOf(card);
@@ -66,6 +93,7 @@
     }
 
     function handleDragEnd(e) {
+        isHandleClicked = false;
         const card = e.target.closest('.item-card, .non-item-card, .spec-card');
         if (!card) return;
 

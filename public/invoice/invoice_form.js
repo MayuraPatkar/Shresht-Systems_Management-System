@@ -165,6 +165,9 @@ window.beforeStepAdvance = async function (step) {
                 card.className = "item-card";
                 card.setAttribute("draggable", "true");
                 card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${sno}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
@@ -232,6 +235,9 @@ window.beforeStepAdvance = async function (step) {
                 card.className = "non-item-card";
                 card.setAttribute("draggable", "true");
                 card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${sno}</div>
                     <div class="non-item-field description">
                         <input type="text" value="${item.description}" placeholder="Description" required>
@@ -357,6 +363,9 @@ async function openInvoice(id) {
                 card.className = "item-card";
                 card.setAttribute("draggable", "true");
                 card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${s}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
@@ -423,6 +432,9 @@ async function openInvoice(id) {
                 card.className = "non-item-card";
                 card.setAttribute("draggable", "true");
                 card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${s}</div>
                     <div class="non-item-field description">
                         <input type="text" value="${item.description}" placeholder="Description" required>
@@ -477,6 +489,9 @@ async function openInvoice(id) {
                 card.className = "item-card";
                 card.setAttribute("draggable", "true");
                 card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${s}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
@@ -543,6 +558,9 @@ async function openInvoice(id) {
                 card.className = "non-item-card";
                 card.setAttribute("draggable", "true");
                 card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${s}</div>
                     <div class="non-item-field description">
                         <input type="text" value="${item.description}" placeholder="Description" required>

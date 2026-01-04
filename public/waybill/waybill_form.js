@@ -316,6 +316,9 @@ function addItemFromData(item, itemSno, insertIndex) {
     card.className = "item-card";
     card.setAttribute("draggable", "true");
     card.innerHTML = `
+        <div class="drag-handle" title="Drag to reorder">
+            <i class="fas fa-grip-vertical"></i>
+        </div>
         <div class="item-number">${itemSno}</div>
         <div class="item-field description">
             <div style="position: relative;">

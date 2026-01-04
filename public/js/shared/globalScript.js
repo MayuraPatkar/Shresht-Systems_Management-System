@@ -334,6 +334,9 @@ function addItem(insertAtIndex) {
   card.setAttribute("draggable", "true");
 
   card.innerHTML = `
+    <div class="drag-handle" title="Drag to reorder">
+      <i class="fas fa-grip-vertical"></i>
+    </div>
     <div class="item-number">${itemNumber}</div>
     
     <div class="item-field description">
@@ -481,6 +484,9 @@ function addNonItem(insertAtIndex) {
   card.setAttribute("draggable", "true");
 
   card.innerHTML = `
+    <div class="drag-handle" title="Drag to reorder">
+      <i class="fas fa-grip-vertical"></i>
+    </div>
     <div class="item-number">${itemNumber}</div>
     
     <div class="non-item-field description">
@@ -936,7 +942,11 @@ async function updateSpecificationsTable() {
     if (specificationsContainer) {
       const card = document.createElement('div');
       card.className = 'spec-card';
+      card.setAttribute('draggable', 'true');
       card.innerHTML = `
+        <div class="drag-handle" title="Drag to reorder">
+          <i class="fas fa-grip-vertical"></i>
+        </div>
         <div class="item-number">${specIndex}</div>
         
         <div class="spec-field description">

@@ -542,6 +542,9 @@ async function openPurchaseOrder(purchaseOrderId) {
         card.className = "item-card";
         card.setAttribute("draggable", "true");
         card.innerHTML = `
+                <div class="drag-handle" title="Drag to reorder">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
                 <div class="item-row-1">
                     <div class="item-number">${sno}</div>
                     <div class="item-field description">
@@ -1065,7 +1068,11 @@ async function populateSpecifications() {
         // Create card
         const card = document.createElement("div");
         card.className = "spec-card";
+        card.setAttribute("draggable", "true");
         card.innerHTML = `
+            <div class="drag-handle" title="Drag to reorder">
+                <i class="fas fa-grip-vertical"></i>
+            </div>
             <div class="item-number">${index + 1}</div>
             <div class="spec-field description">
                 <input type="text" value="${description}" readonly>
@@ -1116,6 +1123,9 @@ if (addItemBtn) {
         card.setAttribute("draggable", "true");
 
         card.innerHTML = `
+    <div class="drag-handle" title="Drag to reorder">
+        <i class="fas fa-grip-vertical"></i>
+    </div>
     <div class="item-row-1">
         <div class="item-number">${itemNumber}</div>
         <div class="item-field description">

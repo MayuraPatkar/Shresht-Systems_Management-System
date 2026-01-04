@@ -117,6 +117,9 @@ async function openQuotation(quotationId) {
             card.className = "item-card";
             card.setAttribute("draggable", "true");
             card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${index + 1}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
@@ -209,6 +212,9 @@ async function openQuotation(quotationId) {
             card.className = "non-item-card";
             card.setAttribute("draggable", "true");
             card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${index + 1}</div>
                     <div class="non-item-field description">
                         <input type="text" placeholder="e.g., Installation Charges" value="${item.description || ''}" required>
@@ -273,7 +279,11 @@ async function openQuotation(quotationId) {
         if (specificationsContainer) {
             const card = document.createElement('div');
             card.className = 'spec-card';
+            card.setAttribute('draggable', 'true');
             card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${index + 1}</div>
                     <div class="spec-field description">
                         <input type="text" value="${item.description || ''}" readonly style="background: #f9fafb; cursor: not-allowed;">
@@ -394,6 +404,9 @@ async function cloneQuotation(sourceQuotationId) {
                 card.className = "item-card";
                 card.setAttribute("draggable", "true");
                 card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${index + 1}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
@@ -478,6 +491,9 @@ async function cloneQuotation(sourceQuotationId) {
                 card.className = "non-item-card";
                 card.setAttribute("draggable", "true");
                 card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${index + 1}</div>
                     <div class="non-item-field description">
                         <input type="text" placeholder="e.g., Installation Charges" value="${item.description || ''}" required>
@@ -541,7 +557,11 @@ async function cloneQuotation(sourceQuotationId) {
             if (specificationsContainer) {
                 const card = document.createElement('div');
                 card.className = 'spec-card';
+                card.setAttribute('draggable', 'true');
                 card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
                     <div class="item-number">${index + 1}</div>
                     <div class="spec-field description">
                         <input type="text" value="${item.description || ''}" readonly style="background: #f9fafb; cursor: not-allowed;">
