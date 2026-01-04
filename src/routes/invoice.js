@@ -432,14 +432,23 @@ router.put("/update-payment", async (req, res) => {
 
         // Recalculate payment status
         const computeTotalDue = (inv) => {
+            const dup = Number(inv.total_amount_duplicate || 0);
+            if (dup > 0) return dup;
+            const items = inv.items_duplicate && inv.items_duplicate.length > 0 ? inv.items_duplicate : (inv.items_original || []);
+            const nonItems = inv.non_items_duplicate && inv.non_items_duplicate.length > 0 ? inv.non_items_duplicate : (inv.non_items_original || []);
             let subtotal = 0;
             let tax = 0;
-            const items = [...(inv.items || []), ...(inv.non_items || [])];
-            for (const item of items) {
-                const qty = parseFloat(item.quantity || 0);
-                const unitPrice = parseFloat(item.unit_price || 0);
-                const rate = parseFloat(item.rate || 0);
-                const price = qty * unitPrice;
+            for (const it of items) {
+                const qty = Number(it.quantity || 0);
+                const unit = Number(it.unit_price || 0);
+                const rate = Number(it.rate || 0);
+                const taxable = qty * unit;
+                subtotal += taxable;
+                tax += taxable * (rate / 100);
+            }
+            for (const nit of nonItems) {
+                const price = Number(nit.price || 0);
+                const rate = Number(nit.rate || 0);
                 subtotal += price;
                 tax += price * (rate / 100);
             }
@@ -492,14 +501,23 @@ router.delete("/delete-payment/:invoiceId/:paymentIndex", async (req, res) => {
 
         // Recalculate payment status
         const computeTotalDue = (inv) => {
+            const dup = Number(inv.total_amount_duplicate || 0);
+            if (dup > 0) return dup;
+            const items = inv.items_duplicate && inv.items_duplicate.length > 0 ? inv.items_duplicate : (inv.items_original || []);
+            const nonItems = inv.non_items_duplicate && inv.non_items_duplicate.length > 0 ? inv.non_items_duplicate : (inv.non_items_original || []);
             let subtotal = 0;
             let tax = 0;
-            const items = [...(inv.items || []), ...(inv.non_items || [])];
-            for (const item of items) {
-                const qty = parseFloat(item.quantity || 0);
-                const unitPrice = parseFloat(item.unit_price || 0);
-                const rate = parseFloat(item.rate || 0);
-                const price = qty * unitPrice;
+            for (const it of items) {
+                const qty = Number(it.quantity || 0);
+                const unit = Number(it.unit_price || 0);
+                const rate = Number(it.rate || 0);
+                const taxable = qty * unit;
+                subtotal += taxable;
+                tax += taxable * (rate / 100);
+            }
+            for (const nit of nonItems) {
+                const price = Number(nit.price || 0);
+                const rate = Number(nit.rate || 0);
                 subtotal += price;
                 tax += price * (rate / 100);
             }
