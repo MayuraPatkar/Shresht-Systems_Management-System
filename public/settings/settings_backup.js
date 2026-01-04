@@ -232,13 +232,14 @@ function handleRestoreDatabase() {
 
     // Confirm action with user
     window.electronAPI.showAlert2(
-        "Are you sure you want to restore the entire database? This will replace ALL existing data!",
-        (response) => {
-            if (response === 'Yes' || response === true) {
-                performDatabaseRestore(file, statusElement);
-            }
-        }
+        "Are you sure you want to restore the entire database? This will replace ALL existing data!"
     );
+    
+    window.electronAPI.receiveAlertResponse((response) => {
+        if (response === 'Yes' || response === true) {
+            performDatabaseRestore(file, statusElement);
+        }
+    });
 }
 
 /**
@@ -305,43 +306,59 @@ function handleManualBackup() {
 
     if (!manualButton) return;
 
-    const originalContent = manualButton.innerHTML;
-    manualButton.disabled = true;
-    manualButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating backup...';
-
-    if (statusElement) {
-        statusElement.className = "text-blue-700 font-medium";
-        statusElement.innerText = 'Starting manual backup...';
-    }
-
-    fetch('/settings/backup/manual', { method: 'POST' })
+    // Check if backup location is set
+    fetch('/settings/preferences')
         .then(res => res.json())
         .then(data => {
-            if (data.success) {
-                if (statusElement) {
-                    statusElement.className = "text-green-700 font-medium";
-                    statusElement.innerText = `Backup created: ${data.path || ''}`;
-                    if (data.fileSize) {
-                        statusElement.innerText += ` (${(data.fileSize / (1024)).toFixed(2)} KB)`;
-                    }
-                }
-            } else {
-                if (statusElement) {
-                    statusElement.className = "text-red-700 font-medium";
-                    statusElement.innerText = `Backup failed: ${data.message || 'Unknown error'}`;
-                }
+            const location = data.settings?.backup?.backup_location;
+            
+            if (!location || !location.trim()) {
+                window.electronAPI.showAlert1("Please configure a backup location in Preferences before creating a backup.");
+                return;
             }
+
+            const originalContent = manualButton.innerHTML;
+            manualButton.disabled = true;
+            manualButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating backup...';
+
+            if (statusElement) {
+                statusElement.className = "text-blue-700 font-medium";
+                statusElement.innerText = 'Starting manual backup...';
+            }
+
+            fetch('/settings/backup/manual', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if (statusElement) {
+                            statusElement.className = "text-green-700 font-medium";
+                            statusElement.innerText = `Backup created: ${data.path || ''}`;
+                            if (data.fileSize) {
+                                statusElement.innerText += ` (${(data.fileSize / (1024)).toFixed(2)} KB)`;
+                            }
+                        }
+                    } else {
+                        if (statusElement) {
+                            statusElement.className = "text-red-700 font-medium";
+                            statusElement.innerText = `Backup failed: ${data.message || 'Unknown error'}`;
+                        }
+                    }
+                })
+                .catch(err => {
+                    if (statusElement) {
+                        statusElement.className = "text-red-700 font-medium";
+                        statusElement.innerText = `Backup failed: ${err.message}`;
+                    }
+                    console.error('Manual backup error:', err);
+                })
+                .finally(() => {
+                    manualButton.disabled = false;
+                    manualButton.innerHTML = originalContent;
+                });
         })
         .catch(err => {
-            if (statusElement) {
-                statusElement.className = "text-red-700 font-medium";
-                statusElement.innerText = `Backup failed: ${err.message}`;
-            }
-            console.error('Manual backup error:', err);
-        })
-        .finally(() => {
-            manualButton.disabled = false;
-            manualButton.innerHTML = originalContent;
+            console.error('Failed to check preferences:', err);
+            window.electronAPI.showAlert1("Failed to verify backup settings. Please try again.");
         });
 }
 

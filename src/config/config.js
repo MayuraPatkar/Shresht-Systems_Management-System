@@ -25,7 +25,7 @@ module.exports = {
     },
 
     // Backup
-    backupDir: process.env.BACKUP_DIR || './backups',
+    backupDir: process.env.BACKUP_DIR || '',
     autoBackupEnabled: process.env.AUTO_BACKUP_ENABLED === 'true' || false,
     mongoDumpPath: process.env.MONGO_DUMP_PATH || 'mongodump',
 

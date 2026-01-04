@@ -28,7 +28,13 @@ function loadPreferences() {
                 document.getElementById("backup-auto-enabled").checked = s.backup?.auto_backup_enabled || false;
                 document.getElementById("backup-frequency").value = s.backup?.backup_frequency || 'daily';
                 document.getElementById("backup-retention").value = s.backup?.retention_days || 30;
-                document.getElementById("backup-location").value = s.backup?.backup_location || (window.process ? window.process.env.BACKUP_DIR || './backups' : './backups');
+                
+                // If location is explicitly set to default './backups', treat it as empty to force user selection
+                let location = s.backup?.backup_location || '';
+                if (location === './backups' || location === '.\\backups') {
+                    location = '';
+                }
+                document.getElementById("backup-location").value = location;
             }
         })
         .catch(err => {
@@ -42,6 +48,16 @@ function loadPreferences() {
 function savePreferences() {
     const saveButton = document.getElementById("save-preferences-button");
     const originalContent = saveButton.innerHTML;
+
+    // Validate backup location if auto-backup is enabled
+    const autoBackupEnabled = document.getElementById("backup-auto-enabled").checked;
+    const backupLocation = document.getElementById("backup-location").value;
+
+    if (autoBackupEnabled && !backupLocation.trim()) {
+        window.electronAPI.showAlert1("Please select a backup location before enabling auto backup.");
+        return;
+    }
+
     saveButton.disabled = true;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 

@@ -617,7 +617,19 @@ router.post("/backup/restore-database", upload.single("backupFile"), asyncHandle
 // Manual backup trigger (creates a gzipped mongodump archive)
 router.post("/backup/manual", asyncHandler(async (req, res) => {
     try {
-        const info = await backupUtil();
+        // Fetch backup location from settings
+        const { Settings } = require('../models');
+        const settings = await Settings.findOne();
+        const backupLocation = settings?.backup?.backup_location;
+
+        if (!backupLocation) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Backup location not configured. Please set a backup location in Preferences.' 
+            });
+        }
+
+        const info = await backupUtil(backupLocation);
         return res.json({
             success: true,
             message: 'Backup created successfully',

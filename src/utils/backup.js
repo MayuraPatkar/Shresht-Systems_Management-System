@@ -11,15 +11,16 @@ const logger = require("./logger");
 /**
  * Creates a gzipped backup of the 'shreshtSystems' MongoDB database.
  * The backup file is saved with a timestamp into the '../backups' directory.
+ * @param {string} [customPath] - Optional custom path to save the backup
  */
-function createBackup() {
+function createBackup(customPath) {
     // 1. Load configuration and determine backup directory.
     return new Promise((resolve, reject) => {
     const config = require("../config/config");
 
-    // Priority: env BACKUP_DIR -> global.appPaths -> config.backupDir -> Electron userData -> local backups
+    // Priority: customPath -> env BACKUP_DIR -> global.appPaths -> config.backupDir -> Electron userData -> local backups
     const envBackupDir = process.env.BACKUP_DIR;
-    let backupDir = envBackupDir || (global.appPaths && global.appPaths.backups) || config.backupDir;
+    let backupDir = customPath || envBackupDir || (global.appPaths && global.appPaths.backups) || config.backupDir;
 
     if (!backupDir) {
         try {

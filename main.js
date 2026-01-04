@@ -111,10 +111,10 @@ const appPath = app.isPackaged ? userDataPath : __dirname;
 
 // Set up directory paths
 const logDir = path.join(appPath, "logs");
-const backupDir = path.join(appPath, "backups");
+// const backupDir = path.join(appPath, "backups"); // Removed default backup dir creation
 
 // Ensure required directories exist
-[logDir, backupDir].forEach(dir => {
+[logDir].forEach(dir => {
   if (!fs.existsSync(dir)) {
     try {
       fs.mkdirSync(dir, { recursive: true });
@@ -127,7 +127,7 @@ const backupDir = path.join(appPath, "backups");
 // Make paths globally available
 global.appPaths = {
   logs: logDir,
-  backups: backupDir,
+  // backups: backupDir, // Removed default backup dir
   userData: userDataPath,
   root: appPath
 };
@@ -715,7 +715,7 @@ async function performBackupOnClose() {
         // Wait a moment for window to render
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        await autoBackup();
+        await autoBackup(settings.backup.backup_location);
         
         // Update last_backup
         settings.backup.last_backup = new Date();
