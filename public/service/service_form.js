@@ -178,6 +178,10 @@ function resetForm() {
     const previewContent = document.getElementById('preview-content');
     if (previewContent) previewContent.innerHTML = '';
 
+    // Reset global variables for preview
+    window.currentServiceDeclaration = "";
+    window.currentServiceTerms = "";
+
     // Reset all steps
     for (let i = 1; i <= totalSteps; i++) {
         const stepEl = document.getElementById(`step-${i}`);
@@ -279,6 +283,23 @@ function collectFormData() {
     const isEditing = isEditingFlag;
     const finalStage = isEditing ? currentStage : (currentStage + 1);
 
+    // Capture declaration and terms from preview if available
+    let declaration = window.currentServiceDeclaration || "";
+    let terms_and_conditions = window.currentServiceTerms || "";
+    
+    const previewContainer = document.getElementById('preview-content');
+    if (previewContainer) {
+        const declarationEl = previewContainer.querySelector('.declaration');
+        const termsEl = previewContainer.querySelector('.terms-section');
+        
+        if (declarationEl && declarationEl.innerHTML.trim() !== "") {
+            declaration = declarationEl.innerHTML;
+        }
+        if (termsEl && termsEl.innerHTML.trim() !== "") {
+            terms_and_conditions = termsEl.innerHTML;
+        }
+    }
+
     return {
         service_id: serviceId,
         invoice_id: document.getElementById("invoice-id").value,
@@ -296,7 +317,9 @@ function collectFormData() {
         total_amount_with_tax,
         fee_amount: total_amount_with_tax,
         service_date: document.getElementById("date")?.value || new Date().toISOString().slice(0, 10),
-        notes: `Service stage ${finalStage} completed on ${new Date(document.getElementById("date")?.value || new Date()).toLocaleDateString('en-IN')}`
+        notes: `Service stage ${finalStage} completed on ${new Date(document.getElementById("date")?.value || new Date()).toLocaleDateString('en-IN')}`,
+        declaration,
+        terms_and_conditions
     };
 }
 
@@ -486,6 +509,18 @@ function populateFormWithServiceData(service) {
                 }
             }
         });
+    }
+
+    // Populate global variables for preview
+    if (service.declaration) {
+        window.currentServiceDeclaration = service.declaration;
+    } else {
+        window.currentServiceDeclaration = "";
+    }
+    if (service.terms_and_conditions) {
+        window.currentServiceTerms = service.terms_and_conditions;
+    } else {
+        window.currentServiceTerms = "";
     }
 }
 

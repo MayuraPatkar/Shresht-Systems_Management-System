@@ -163,7 +163,9 @@ router.post('/save-service', async (req, res) => {
             total_tax,
             total_amount_no_tax,
             total_amount_with_tax,
-            notes
+            notes,
+            declaration,
+            terms_and_conditions
         } = req.body;
 
         // Generate the permanent ID now (increments the counter)
@@ -181,7 +183,9 @@ router.post('/save-service', async (req, res) => {
             total_tax: total_tax || 0,
             total_amount_no_tax: total_amount_no_tax || 0,
             total_amount_with_tax: total_amount_with_tax || 0,
-            notes: notes || ''
+            notes: notes || '',
+            declaration: declaration || '',
+            terms_and_conditions: terms_and_conditions || ''
         });
 
         // 2. Deduct stock for service items
@@ -238,7 +242,9 @@ router.put('/update-service', async (req, res) => {
             total_tax,
             total_amount_no_tax,
             total_amount_with_tax,
-            notes
+            notes,
+            declaration,
+            terms_and_conditions
         } = req.body;
 
         const existingService = await service.findOne({ service_id });
@@ -285,6 +291,8 @@ router.put('/update-service', async (req, res) => {
         existingService.total_amount_no_tax = total_amount_no_tax !== undefined ? total_amount_no_tax : existingService.total_amount_no_tax;
         existingService.total_amount_with_tax = total_amount_with_tax !== undefined ? total_amount_with_tax : existingService.total_amount_with_tax;
         existingService.notes = notes !== undefined ? notes : existingService.notes;
+        existingService.declaration = declaration !== undefined ? declaration : existingService.declaration;
+        existingService.terms_and_conditions = terms_and_conditions !== undefined ? terms_and_conditions : existingService.terms_and_conditions;
 
         await existingService.save();
 

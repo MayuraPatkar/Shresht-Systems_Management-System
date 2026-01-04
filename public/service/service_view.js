@@ -539,16 +539,18 @@ async function generateServicePreview(service, invoice) {
 
             <div class="sixth-section">
                 <div class="declaration" contenteditable="true">
-                    <p>We declare that this service receipt shows the actual service charges and that all particulars are true and correct.</p>
+                    ${service.declaration || `<p>We declare that this service receipt shows the actual service charges and that all particulars are true and correct.</p>`}
                 </div>
             </div>
 
             <div class="seventh-section">
                 <div class="terms-section" contenteditable="true">
+                    ${service.terms_and_conditions || `
                     <h3>Terms & Conditions:</h3>
                     <p>1. Payment should be made within 15 days from the date of service.</p>
                     <p>2. Interest @ 18% per annum will be charged for the delayed payment.</p>
                     <p>3. All services are subject to our standard terms and conditions.</p>
+                    `}
                 </div>
             </div>
 
@@ -756,8 +758,27 @@ window.viewService = viewService;
 window.viewServiceHistory = viewServiceHistory;
 window.getServiceStageLabel = getServiceStageLabel;
 
+// Global variables to store current edits
+window.currentServiceDeclaration = "";
+window.currentServiceTerms = "";
+
 // Original generatePreview function (for form preview - keep existing functionality)
 async function generatePreview() {
+    // Capture current edits if they exist in the preview container
+    const previewContainer = document.getElementById('preview-content');
+    if (previewContainer) {
+        const declarationEl = previewContainer.querySelector('.declaration');
+        const termsEl = previewContainer.querySelector('.terms-section');
+        
+        // Only update if the element exists and has content
+        if (declarationEl && declarationEl.innerHTML.trim() !== "") {
+            window.currentServiceDeclaration = declarationEl.innerHTML;
+        }
+        if (termsEl && termsEl.innerHTML.trim() !== "") {
+            window.currentServiceTerms = termsEl.innerHTML;
+        }
+    }
+
     // Fetch company data from database
     const company = await window.companyConfig.getCompanyInfo();
     const bank = company.bank_details || {};
@@ -1060,17 +1081,19 @@ async function generatePreview() {
 
             <div class="sixth-section">
                 <div class="declaration" contenteditable="true">
-                    <p>This service receipt confirms payment received for the services described above. All particulars are true and correct.</p>
+                    ${window.currentServiceDeclaration || `<p>This service receipt confirms payment received for the services described above. All particulars are true and correct.</p>`}
                 </div>
             </div>
 
             <div class="seventh-section">
                 <div class="terms-section" contenteditable="true">
+                    ${window.currentServiceTerms || `
                     <h4>Service Notes:</h4>
                     <p>1. This is service receipt for stage ${serviceStage + 1}</p>
                     <p>2. Service performed as per schedule and agreement</p>
                     <p>3. Next service will be scheduled as per contract terms</p>
                     <p>4. For any queries, please contact us at the above contact details</p>
+                    `}
                 </div>
             </div>
 
@@ -1088,7 +1111,6 @@ async function generatePreview() {
         `;
     }).join('');
 
-    const previewContainer = document.getElementById("preview-content");
     if (!previewContainer) {
         console.error("Preview container not found");
         return;
