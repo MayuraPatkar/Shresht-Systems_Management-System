@@ -147,6 +147,15 @@ function saveSecuritySettings() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
+                // Update session storage with new timeout
+                const newTimeout = security.security.session_timeout;
+                sessionStorage.setItem('sessionTimeout', newTimeout);
+                
+                // Restart session monitor if available
+                if (typeof startSessionMonitor === 'function') {
+                    startSessionMonitor();
+                }
+
                 window.electronAPI.showAlert1("Security settings saved successfully!");
             } else {
                 window.electronAPI.showAlert1(`Failed to save: ${data.message}`);
