@@ -865,7 +865,7 @@ async function deletePayment(invoiceId, paymentIndex) {
 
     // Wait for response
     window.electronAPI.receiveAlertResponse(async (response) => {
-        if (response === 1) { // User confirmed
+        if (response === "Yes") { // User confirmed
             try {
                 const res = await fetch(`/invoice/delete-payment/${invoiceId}/${paymentIndex}`, {
                     method: 'DELETE'
