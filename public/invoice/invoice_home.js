@@ -741,6 +741,16 @@ async function payment(id) {
         // Store invoiceId for payment form submission
         window.currentPaymentInvoiceId = invoiceId;
 
+        // Reset form fields
+        const paidAmountInput = document.getElementById('paid-amount');
+        if (paidAmountInput) paidAmountInput.value = '';
+
+        const paymentModeSelect = document.getElementById('payment-mode');
+        if (paymentModeSelect) {
+            paymentModeSelect.value = 'Cash';
+            paymentModeSelect.dispatchEvent(new Event('change'));
+        }
+
         // Set default payment date to today
         const paymentDateInput = document.getElementById('payment-date');
         if (paymentDateInput) {
