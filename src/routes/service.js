@@ -41,7 +41,12 @@ router.get('/generate-id', async (req, res) => {
 // Route to get all services (invoices with service_month > 0)
 router.get('/all', async (req, res) => {
     try {
-        const services = await Invoices.find({ service_month: { $ne: 0 } }).sort({ createdAt: -1 });
+        const services = await Invoices.find({
+            $or: [
+                { service_status: { $in: ['Active', 'Paused'] } },
+                { service_status: { $exists: false }, service_month: { $ne: 0 } }
+            ]
+        }).sort({ createdAt: -1 });
         return res.status(200).json(services);
     } catch (error) {
         logger.error("Error fetching services:", error);
@@ -53,14 +58,25 @@ router.get('/all', async (req, res) => {
 router.get('/get-service', async (req, res) => {
     try {
         const currentDate = moment();
-        const projects = await Invoices.find({ service_month: { $ne: 0 } });
+        const projects = await Invoices.find({
+            $or: [
+                { service_status: 'Active' },
+                { service_status: { $exists: false }, service_month: { $ne: 0 } }
+            ]
+        });
 
         const filteredProjects = projects.filter(project => {
-            if (!project.createdAt && !project.invoice_date) return false;
             if (!project.service_month) return false;
 
-            const createdDate = moment(project.invoice_date || project.createdAt);
-            const targetDate = createdDate.clone().add(project.service_month, 'months');
+            let targetDate;
+            if (project.next_service_date) {
+                targetDate = moment(project.next_service_date);
+            } else {
+                // Fallback for legacy data: Invoice Date + service_month
+                const createdDate = moment(project.invoice_date || project.createdAt);
+                targetDate = createdDate.clone().add(project.service_month, 'months');
+            }
+
             return currentDate.isSameOrAfter(targetDate, 'day');
         });
 
@@ -81,12 +97,11 @@ router.post('/update-nextService', async (req, res) => {
         if (!project) return res.status(404).json({ error: "Project not found" });
 
         if (next_service === "yes") {
-            project.service_month = project.service_month * 2;
-            await project.save();
+            project.service_status = 'Active';
         } else {
-            project.service_month = 0;
-            await project.save();
+            project.service_status = 'Paused';
         }
+        await project.save();
 
         res.json({ message: "Service updated successfully" });
     } catch (error) {
@@ -163,7 +178,9 @@ router.post('/save-service', async (req, res) => {
             total_tax,
             total_amount_no_tax,
             total_amount_with_tax,
-            notes
+            notes,
+            declaration,
+            terms_and_conditions
         } = req.body;
 
         // Generate the permanent ID now (increments the counter)
@@ -181,7 +198,9 @@ router.post('/save-service', async (req, res) => {
             total_tax: total_tax || 0,
             total_amount_no_tax: total_amount_no_tax || 0,
             total_amount_with_tax: total_amount_with_tax || 0,
-            notes: notes || ''
+            notes: notes || '',
+            declaration: declaration || '',
+            terms_and_conditions: terms_and_conditions || ''
         });
 
         // 2. Deduct stock for service items
@@ -209,8 +228,15 @@ router.post('/save-service', async (req, res) => {
             const existingStage = Number(invoice.service_stage || 0);
             const incomingStage = Number(service_stage || 0);
             invoice.service_stage = Math.max(existingStage, incomingStage);
-            await invoice.save();
         }
+
+        // Update next_service_date based on service interval
+        if (invoice.service_month > 0) {
+            const currentServiceDate = moment(service_date);
+            invoice.next_service_date = currentServiceDate.add(invoice.service_month, 'months').toDate();
+        }
+
+        await invoice.save();
 
         return res.json({
             message: "Service saved and invoice service_stage updated successfully",
@@ -238,7 +264,9 @@ router.put('/update-service', async (req, res) => {
             total_tax,
             total_amount_no_tax,
             total_amount_with_tax,
-            notes
+            notes,
+            declaration,
+            terms_and_conditions
         } = req.body;
 
         const existingService = await service.findOne({ service_id });
@@ -285,6 +313,8 @@ router.put('/update-service', async (req, res) => {
         existingService.total_amount_no_tax = total_amount_no_tax !== undefined ? total_amount_no_tax : existingService.total_amount_no_tax;
         existingService.total_amount_with_tax = total_amount_with_tax !== undefined ? total_amount_with_tax : existingService.total_amount_with_tax;
         existingService.notes = notes !== undefined ? notes : existingService.notes;
+        existingService.declaration = declaration !== undefined ? declaration : existingService.declaration;
+        existingService.terms_and_conditions = terms_and_conditions !== undefined ? terms_and_conditions : existingService.terms_and_conditions;
 
         await existingService.save();
 
@@ -314,11 +344,20 @@ router.get('/search/:query', async (req, res) => {
         const currentDate = moment();
 
         const projects = await Invoices.find({
-            service_month: { $ne: 0 },
-            $or: [
-                { customer_name: { $regex: query, $options: 'i' } },
-                { project_name: { $regex: query, $options: 'i' } },
-                { invoice_id: { $regex: query, $options: 'i' } }
+            $and: [
+                {
+                    $or: [
+                        { service_status: 'Active' },
+                        { service_status: { $exists: false }, service_month: { $ne: 0 } }
+                    ]
+                },
+                {
+                    $or: [
+                        { customer_name: { $regex: query, $options: 'i' } },
+                        { project_name: { $regex: query, $options: 'i' } },
+                        { invoice_id: { $regex: query, $options: 'i' } }
+                    ]
+                }
             ]
         });
 
@@ -335,6 +374,23 @@ router.get('/search/:query', async (req, res) => {
     } catch (error) {
         logger.error("Error searching services:", error);
         res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// Get services with pending payments
+router.get('/pending-payments', async (req, res) => {
+    try {
+        const pendingServices = await service.find({
+            payment_status: { $ne: 'Paid' }
+        }).lean();
+
+        res.status(200).json({
+            message: 'Pending payment services retrieved successfully',
+            services: pendingServices
+        });
+    } catch (error) {
+        logger.error('Error retrieving pending payment services:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -508,6 +564,35 @@ router.delete('/:serviceId', async (req, res) => {
     } catch (error) {
         logger.error('Error deleting service:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Toggle service status (Active/Paused)
+router.post('/toggle-status', async (req, res) => {
+    try {
+        const { invoiceId, status } = req.body;
+        
+        const project = await Invoices.findOne({ invoice_id: invoiceId });
+        if (!project) return res.status(404).json({ error: "Project not found" });
+
+        // If status is provided, use it. Otherwise toggle.
+        if (status) {
+            project.service_status = status;
+        } else {
+            project.service_status = (project.service_status === 'Paused') ? 'Active' : 'Paused';
+        }
+
+        await project.save();
+        
+        logger.info(`Service status updated for ${invoiceId}: ${project.service_status}`);
+        res.json({ 
+            message: `Service ${project.service_status === 'Paused' ? 'paused' : 'resumed'} successfully`,
+            status: project.service_status 
+        });
+
+    } catch (error) {
+        logger.error("Error toggling service status:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 

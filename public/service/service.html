@@ -13,6 +13,314 @@
     <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
     <link rel="stylesheet" href="../css/service.css">
     <title>Service</title>
+    <style>
+        /* Master-Detail Layout */
+        .service-container {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 1rem;
+            height: calc(100vh - 10rem);
+            overflow: hidden;
+        }
+        
+        .service-list-panel {
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+        
+        .service-detail-panel {
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            overflow-y: auto;
+        }
+        
+        /* List Panel Sections */
+        .list-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        
+        .list-tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .list-tab {
+            flex: 1;
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .list-tab.active {
+            color: #2563eb;
+            background: #eff6ff;
+            border-bottom-color: #2563eb;
+        }
+        
+        .list-tab:hover:not(.active) {
+            background: #f3f4f6;
+        }
+        
+        .list-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem;
+        }
+        
+        /* Service Card in List */
+        .service-card {
+            padding: 0.875rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .service-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+        }
+        
+        .service-card.selected {
+            border-color: #2563eb;
+            background: #eff6ff;
+            border-width: 2px;
+        }
+        
+        .service-card .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .service-card .card-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.9rem;
+            line-height: 1.2;
+        }
+        
+        .service-card .card-subtitle {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.125rem;
+        }
+        
+        .service-card .status-badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .service-card .card-meta {
+            display: flex;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 0.25rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .quick-action-btn {
+            flex: 1;
+            padding: 0.4rem;
+            border-radius: 0.375rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.2rem;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .quick-action-btn.view { background: #eff6ff; color: #2563eb; }
+        .quick-action-btn.view:hover { background: #dbeafe; border-color: #3b82f6; }
+        .quick-action-btn.edit { background: #f3e8ff; color: #7c3aed; }
+        .quick-action-btn.edit:hover { background: #e9d5ff; border-color: #8b5cf6; }
+        .quick-action-btn.payment { background: #dcfce7; color: #16a34a; }
+        .quick-action-btn.payment:hover { background: #bbf7d0; border-color: #22c55e; }
+        .quick-action-btn.print { background: #fef3c7; color: #d97706; }
+        .quick-action-btn.print:hover { background: #fde68a; border-color: #f59e0b; }
+        .quick-action-btn.delete { background: #fee2e2; color: #dc2626; }
+        .quick-action-btn.delete:hover { background: #fecaca; border-color: #ef4444; }
+        
+        /* Detail Panel States */
+        .detail-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #9ca3af;
+        }
+        
+        .detail-content {
+            padding: 1.5rem;
+        }
+        
+        .detail-section {
+            display: none;
+            height: 100%;
+        }
+        
+        .detail-section.active {
+            display: block;
+        }
+        
+        /* Form Steps */
+        .form-step {
+            display: none;
+        }
+        
+        .form-step.active {
+            display: block;
+        }
+        
+        /* Invoice Search Dropdown */
+        .invoice-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 20;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .invoice-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .invoice-option:hover {
+            background: #eff6ff;
+        }
+        
+        .invoice-option .inv-id {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .invoice-option .inv-details {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        
+        /* Item Row */
+        .item-row {
+            display: grid;
+            grid-template-columns: 1fr 80px 80px 80px 80px 40px;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+        
+        .item-row input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        
+        .item-row input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Stats Card Hover */
+        .stats-grid > div:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        /* Selected Card State */
+        .service-card.selected {
+            border-color: #3b82f6;
+            background: linear-gradient(to right, #eff6ff, #fff);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Button Loading State */
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Filter Popover */
+        #filter-popover {
+            position: absolute;
+            z-index: 30;
+            min-width: 200px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        
+        /* Smooth Focus Transitions */
+        input:focus, select:focus, textarea:focus {
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        /* Link Style for View Invoice */
+        #view-invoice-id {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        #view-invoice-id:hover {
+            color: #1d4ed8;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .service-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .service-list-panel {
+                max-height: 50vh;
+            }
+            
+            .service-detail-panel {
+                min-height: 50vh;
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100">
@@ -24,44 +332,25 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Service</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-4xl mx-8">
+            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     <input type="text" id="search-input" placeholder="Search services..."
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <div class="flex items-center gap-2">
-                    <select id="search-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
-                        <option value="all">All Services</option>
-                        <option value="pending">Pending Only</option>
-                        <option value="history">History Only</option>
-                    </select>
-                    <select id="date-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
-                        <option value="all">All Dates</option>
-                        <option value="today">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                        <option value="custom">Custom Range</option>
-                    </select>
-                    <select id="sort-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
-                        <option value="date-desc">Latest First</option>
-                        <option value="date-asc">Oldest First</option>
-                        <option value="amount-desc">High to Low</option>
-                        <option value="amount-asc">Low to High</option>
-                    </select>
-                    <button id="clear-filters" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm" title="Clear Filters">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
+                <button id="filter-btn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2 font-medium border border-gray-300">
+                    <i class="fas fa-filter"></i>
+                    <span class="hidden sm:inline">Filter</span>
+                </button>
             </div>
             <div class="flex items-center gap-3">
-                <button id="home-btn"
-                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
-                    <i class="fas fa-home"></i>
-                    Home
+                <button id="new-service-btn"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                    <i class="fas fa-plus"></i>
+                    New Service
                 </button>
                 <button id="shortcuts-btn"
-                    class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 flex items-center gap-2 font-medium"
+                    class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -73,812 +362,554 @@
     <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
         <nav class="flex-1 p-4 overflow-y-auto">
             <div class="flex flex-col gap-2">
-                <a href="../dashboard/dashboard.html" id="dashboard"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-th-large w-8 text-center"></i>
-                    <span>Dashboard</span>
+                <a href="../dashboard/dashboard.html" id="dashboard" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-th-large w-8 text-center"></i><span>Dashboard</span>
                 </a>
-                <a href="../quotation/quotation.html" id="quotation"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-file-alt w-8 text-center"></i>
-                    <span>Quotation</span>
+                <a href="../quotation/quotation.html" id="quotation" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-alt w-8 text-center"></i><span>Quotation</span>
                 </a>
-                <a href="../invoice/invoice.html" id="invoice"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
-                    <span>Bill / Invoice</span>
+                <a href="../invoice/invoice.html" id="invoice" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i><span>Bill / Invoice</span>
                 </a>
-                <a href="../waybill/wayBill.html" id="wayBill"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-route w-8 text-center"></i>
-                    <span>Way Bill</span>
+                <a href="../waybill/wayBill.html" id="waybill" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-route w-8 text-center"></i><span>Way Bill</span>
                 </a>
-                <a href="#" id="service"
-                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
-                    <i class="fas fa-wrench w-8 text-center"></i>
-                    <span>Service</span>
+                <a href="#" id="service" class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-wrench w-8 text-center"></i><span>Service</span>
                 </a>
-                <a href="../purchaseOrder/purchaseOrder.html" id="purchase-bill"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-shopping-cart w-8 text-center"></i>
-                    <span>Purchase Bill</span>
+                <a href="../purchaseOrder/purchaseOrder.html" id="purchaseOrder" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i><span>Purchase Bill</span>
                 </a>
-                <a href="../stock/stock.html" id="stock"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-box w-8 text-center"></i>
-                    <span>Stock</span>
+                <a href="../stock/stock.html" id="stock" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-box w-8 text-center"></i><span>Stock</span>
                 </a>
-                <a href="../comms/comms.html" id="comms"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-comments w-8 text-center"></i>
-                    <span>Comms</span>
+                <a href="../comms/comms.html" id="comms" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-comments w-8 text-center"></i><span>Comms</span>
                 </a>
-                <a href="../reports/reports.html" id="reports"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-chart-bar w-8 text-center"></i>
-                    <span>Reports</span>
+                <a href="../reports/reports.html" id="reports" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-chart-bar w-8 text-center"></i><span>Reports</span>
                 </a>
-                <a href="../calculations/calculations.html" id="calculations"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-calculator w-8 text-center"></i>
-                    <span>Calculations</span>
+                <a href="../calculations/calculations.html" id="calculations" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-calculator w-8 text-center"></i><span>Calculations</span>
                 </a>
-                <a href="../settings/settings.html" id="settings"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-cog w-8 text-center"></i>
-                    <span>Settings</span>
+                <a href="../settings/settings.html" id="settings" class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-cog w-8 text-center"></i><span>Settings</span>
                 </a>
             </div>
         </nav>
     </aside>
 
-    <!-- Main Content -->
-    <main class="ml-[280px] pt-24 mt-6 p-8">
-
-        <!-- Home View - Service List -->
-        <div id="home">
-            <!-- Tab Navigation -->
-            <div class="bg-white rounded-lg shadow-md mb-6 border border-gray-200">
-                <div class="flex border-b border-gray-200">
-                    <button id="tab-pending-services" 
-                        class="flex-1 px-6 py-4 text-center font-semibold text-blue-600 bg-blue-50 border-b-2 border-blue-600 transition-all">
-                        <i class="fas fa-clock mr-2"></i>Pending Services
-                    </button>
-                    <button id="tab-service-history" 
-                        class="flex-1 px-6 py-4 text-center font-semibold text-gray-600 hover:bg-gray-50 transition-all">
-                        <i class="fas fa-history mr-2"></i>Service History
-                    </button>
-                </div>
-            </div>
-
-            <!-- Pending Services Tab Content -->
-            <div id="pending-services-content" class="records grid grid-cols-1 gap-4">
-                <!-- Pending services will be loaded dynamically -->
-            </div>
-
-            <!-- Service History Tab Content -->
-            <div id="service-history-content" class="records grid grid-cols-1 gap-4" style="display: none;">
-                <!-- Service history will be loaded dynamically -->
-            </div>
-        </div>
-
-        <!-- View Service Section -->
-        <div id="view" style="display: none;">
-            <div class="max-w-6xl mx-auto">
-                <!-- View Header -->
-                <div class="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                            <i class="fas fa-wrench text-blue-600"></i>
-                            Service Details
-                        </h2>
-                        <div class="flex items-center gap-3">
-                            <button id="view-service-history-btn" 
-                                class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-history"></i>
-                                Service History
-                            </button>
-                            <button id="print-service-btn" 
-                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-print"></i>
-                                Print
-                            </button>
-                            <button id="save-service-pdf-btn" 
-                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-file-pdf"></i>
-                                Save PDF
-                            </button>
-                            <button id="close-view-btn" 
-                                class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-times"></i>
-                                Close
-                            </button>
+    <!-- Main Content - Master-Detail Layout -->
+    <main class="ml-[280px] pt-24 mt-6 px-8 pt-8 pb-0">
+        <div class="service-container">
+            
+            <!-- Left Panel: Service List -->
+            <div class="service-list-panel">
+                <!-- Stats Header -->
+                <div class="list-header">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-600">Service Overview</span>
+                        <span id="service-count" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">0</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="flex-1 bg-orange-50 rounded-lg p-2 text-center border border-orange-200">
+                            <div id="due-count" class="text-lg font-bold text-orange-600">0</div>
+                            <div class="text-xs text-orange-600">Due</div>
+                        </div>
+                        <div class="flex-1 bg-yellow-50 rounded-lg p-2 text-center border border-yellow-200">
+                            <div id="paused-count" class="text-lg font-bold text-yellow-600">0</div>
+                            <div class="text-xs text-yellow-600">Paused</div>
+                        </div>
+                        <div class="flex-1 bg-green-50 rounded-lg p-2 text-center border border-green-200">
+                            <div id="completed-count" class="text-lg font-bold text-green-600">0</div>
+                            <div class="text-xs text-green-600">Done</div>
                         </div>
                     </div>
                 </div>
-
-                <!-- View Content Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    <!-- Service Information Card -->
-                    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
-                            <i class="fas fa-info-circle text-blue-600"></i>
-                            Service Information
-                        </h3>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="text-sm font-medium text-gray-500">Service ID</label>
-                                <p id="view-service-id" class="text-gray-800 font-semibold"></p>
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-500">Invoice ID</label>
-                                <p id="view-invoice-id" class="text-blue-600 font-semibold cursor-pointer hover:underline"></p>
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-500">Service Date</label>
-                                <p id="view-service-date" class="text-gray-800"></p>
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-500">Service Stage</label>
-                                <p id="view-service-stage" class="inline-block px-3 py-1 rounded-full text-sm font-semibold"></p>
-                            </div>
-                        </div>
+                
+                <!-- Tabs -->
+                <div class="list-tabs">
+                    <div class="list-tab active" data-tab="due">
+                        <i class="fas fa-clock mr-1"></i>Due
                     </div>
-
-                    <!-- Customer Details Card -->
-                    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
-                            <i class="fas fa-user text-green-600"></i>
-                            Customer Details
-                        </h3>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="text-sm font-medium text-gray-500">Customer Name</label>
-                                <p id="view-customer-name" class="text-gray-800 font-semibold"></p>
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-500">Phone</label>
-                                <p id="view-customer-phone" class="text-gray-800"></p>
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-500">Address</label>
-                                <p id="view-customer-address" class="text-gray-800"></p>
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-500">GSTIN</label>
-                                <p id="view-customer-gstin" class="text-gray-800"></p>
-                            </div>
-                        </div>
+                    <div class="list-tab" data-tab="all">
+                        <i class="fas fa-list mr-1"></i>All
                     </div>
-
-                    <!-- Project Details Card -->
-                    <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
-                            <i class="fas fa-project-diagram text-purple-600"></i>
-                            Project Details
-                        </h3>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="text-sm font-medium text-gray-500">Project Name</label>
-                                <p id="view-project-name" class="text-gray-800 font-semibold"></p>
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-500">Notes</label>
-                                <p id="view-notes" class="text-gray-800"></p>
-                            </div>
-                        </div>
+                    <div class="list-tab" data-tab="completed">
+                        <i class="fas fa-check mr-1"></i>Completed
                     </div>
                 </div>
-
-                <!-- Items Table -->
-                <div class="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
-                        <i class="fas fa-list text-orange-600"></i>
-                        Service Items
-                    </h3>
-                    <div class="overflow-x-auto">
-                        <table id="view-service-items-table" class="w-full">
-                            <thead class="bg-gray-50 border-b border-gray-200">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">S.No</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Description</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">HSN/SAC</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Quantity</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Unit Price</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">GST %</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="view-items-tbody" class="divide-y divide-gray-200">
-                                <!-- Items will be populated here -->
-                            </tbody>
-                        </table>
+                
+                <!-- List Content -->
+                <div class="list-content" id="service-list">
+                    <div class="flex flex-col items-center justify-center py-8 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <span class="text-sm">Loading services...</span>
                     </div>
                 </div>
-
-                <!-- Non-Items Table -->
-                <div class="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200" id="view-non-items-section" style="display: none;">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
-                        <i class="fas fa-tags text-teal-600"></i>
-                        Additional Charges
-                    </h3>
-                    <div class="overflow-x-auto">
-                        <table id="view-service-non-items-table" class="w-full">
-                            <thead class="bg-gray-50 border-b border-gray-200">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">S.No</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Description</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Price</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">GST %</th>
-                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="view-non-items-tbody" class="divide-y divide-gray-200">
-                                <!-- Non-items will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Payment Details Section -->
-                <section class="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200 fade-in" id="view-payment-section" style="display: none;">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div class="bg-green-50 p-4 rounded-lg border-2 border-green-200">
-                            <span class="block text-sm font-medium text-green-600 mb-1">Total Paid</span>
-                            <span class="text-green-900 font-bold text-xl" id="view-total-paid">₹ 0.00</span>
-                        </div>
-                        <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
-                            <span class="block text-sm font-medium text-red-600 mb-1">Balance Due</span>
-                            <span class="text-red-900 font-bold text-xl" id="view-balance-due">₹ 0.00</span>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Payment Date</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Mode</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Paid Amount</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Details</th>
-                                </tr>
-                            </thead>
-                            <tbody id="view-payments-tbody">
-                                <!-- Payments will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Totals Section -->
-                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 border border-blue-200">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="text-center">
-                            <label class="text-sm font-medium text-gray-600 block mb-2">Subtotal (Before Tax)</label>
-                            <p id="view-subtotal" class="text-2xl font-bold text-gray-800"></p>
-                        </div>
-                        <div class="text-center">
-                            <label class="text-sm font-medium text-gray-600 block mb-2">Total Tax</label>
-                            <p id="view-tax" class="text-2xl font-bold text-orange-600"></p>
-                        </div>
-                        <div class="text-center">
-                            <label class="text-sm font-medium text-gray-600 block mb-2">Grand Total</label>
-                            <p id="view-grand-total" class="text-3xl font-bold text-green-600"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Print Preview Container (hidden) -->
-                <div id="view-service-preview-content" style="display: none;"></div>
-            </div>
-        </div>
-
-        <!-- New/Edit Service Form -->
-        <div id="new">
-            <form id="service-form" class="max-w-5xl mx-auto">
-                <input type="hidden" id="service-id" value="">
-                <input type="hidden" id="service-stage" value="">
-                <input type="hidden" id="is-editing" value="false">
-
-                <!-- Step 1: Service Details -->
-                <div class="steps active" id="step-1">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-wrench text-blue-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Service Details</h2>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
-                                <label for="invoice-id" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-file-invoice text-gray-500 mr-1"></i>Invoice ID <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="invoice-id" readonly
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="project-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-project-diagram text-gray-500 mr-1"></i>Project Name <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="project-name" readonly
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-user text-gray-500 mr-1"></i>Customer Name <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="name" readonly
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-phone text-gray-500 mr-1"></i>Phone <span class="text-red-500">*</span>
-                                </label>
-                                <input type="tel" id="phone" readonly inputmode="numeric" maxlength="10" pattern="[0-9]{10}"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-envelope text-gray-500 mr-1"></i>Email
-                                </label>
-                                <input type="email" id="email" readonly maxlength="254" pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed">
-                            </div>
-                            <div>
-                                <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="address" readonly
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="date" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-calendar text-gray-500 mr-1"></i>Service Date <span class="text-red-500">*</span>
-                                </label>
-                                <input type="date" id="date" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-question-circle text-gray-500 mr-1"></i>Is There Next Service?
-                                </label>
-                                <div class="flex gap-6">
-                                    <div class="flex items-center">
-                                        <input type="radio" name="question" id="question-yes" value="yes" checked
-                                            class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-                                        <label for="question-yes" class="ml-2 text-sm font-medium text-gray-700">Yes</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input type="radio" name="question" id="question-no" value="no"
-                                            class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-                                        <label for="question-no" class="ml-2 text-sm font-medium text-gray-700">No</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 2: Item List -->
-                <div class="steps" id="step-2">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-list-ul text-green-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Service Items</h2>
-                        </div>
-                        
-                        <!-- Column Headers -->
-                        <div class="items-header">
-                            <div class="header-number">#</div>
-                            <div class="header-field description">Description</div>
-                            <div class="header-field hsn">HSN/SAC</div>
-                            <div class="header-field qty">Quantity</div>
-                            <div class="header-field price">Unit Price</div>
-                            <div class="header-field rate">Tax %</div>
-                            <div class="header-action"></div>
-                        </div>
-                        
-                        <!-- Items Container (Card-based) -->
-                        <div id="items-container">
-                            <!-- Items will be dynamically added here as cards -->
-                        </div>
-                        
-                        <!-- Hidden table for backward compatibility -->
-                        <table id="items-table" style="display: none;">
-                            <thead>
-                                <tr>
-                                    <th>S. No</th>
-                                    <th>Description</th>
-                                    <th>HSN/SAC</th>
-                                    <th>Qty</th>
-                                    <th>Unit Price</th>
-                                    <th>Rate</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Items will be synced here for data collection -->
-                            </tbody>
-                        </table>
-                        
-                        <button type="button" id="add-item-btn"
-                            class="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all">
-                            <i class="fas fa-plus"></i>
-                            Add Item
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Step 3: Non-Items -->
-                <div class="steps" id="step-3">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-plus-circle text-indigo-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Other Charges</h2>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-4">Add installation, shipping, or any other charges here.</p>
-                        
-                        <!-- Column Headers -->
-                        <div class="non-items-header">
-                            <div class="header-number">#</div>
-                            <div class="header-field description">Description</div>
-                            <div class="header-field price">Price</div>
-                            <div class="header-field rate">Tax %</div>
-                            <div class="header-action"></div>
-                        </div>
-                        
-                        <!-- Non-Items Container (Card-based) -->
-                        <div id="non-items-container">
-                            <!-- Non-items will be dynamically added here as cards -->
-                        </div>
-                        
-                        <!-- Hidden table for backward compatibility -->
-                        <table id="non-items-table" style="display: none;">
-                            <thead>
-                                <tr>
-                                    <th>S. No</th>
-                                    <th>Description</th>
-                                    <th>Price</th>
-                                    <th>Rate</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Non-items will be synced here for data collection -->
-                            </tbody>
-                        </table>
-                        
-                        <button type="button" id="add-non-item-btn"
-                            class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all">
-                            <i class="fas fa-plus"></i>
-                            Add Charge
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Step 4: Preview -->
-                <div class="steps" id="step-4">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-eye text-indigo-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
-                        </div>
-                        <div id="preview-content" class="mb-6">
-                            <!-- Preview will be dynamically generated -->
-                        </div>
-
-                        <!-- Payment Details Section (Added dynamically) -->
-                        <section id="view-payment-section" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in mt-6 hidden">
-                            <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                                <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
-                                <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <span class="block text-sm font-medium text-gray-600 mb-1">Payment Status</span>
-                                    <span class="text-gray-900 font-semibold" id="view-payment-status">-</span>
-                                </div>
-                                <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
-                                    <span class="block text-sm font-medium text-red-600 mb-1">Balance Due</span>
-                                    <span class="text-red-900 font-bold text-xl" id="view-balance-due">-</span>
-                                </div>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table id="view-payment-table" class="w-full border border-gray-300 rounded-lg">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Date</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Mode</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Amount</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Details</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </section>
-
-                        <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
-                            <button type="button" id="save-btn"
-                                class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-save"></i>
-                                Save
-                            </button>
-                            <button type="button" id="print-btn"
-                                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-print"></i>
-                                Print
-                            </button>
-                            <button type="button" id="save-pdf-btn"
-                                class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-file-pdf"></i>
-                                Save as PDF
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Navigation -->
-                <div class="bg-white rounded-lg shadow-md p-6 mt-6 border border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <button type="button" id="prev-btn" disabled
-                            class="bg-gray-300 text-gray-600 px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 flex items-center gap-2">
-                            <i class="fas fa-arrow-left"></i>
-                            Previous
-                        </button>
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-stream text-blue-600"></i>
-                            <span id="step-indicator" class="text-lg font-semibold text-gray-700">Step 1 of 4</span>
-                        </div>
-                        <button type="button" id="next-btn"
-                            class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 flex items-center gap-2">
-                            Next
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-    </main>
-
-    <!-- Keyboard Shortcuts Modal -->
-    <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-keyboard text-2xl"></i>
-                    <h2 class="text-xl font-semibold">Keyboard Shortcuts</h2>
-                </div>
-                <button id="close-shortcuts" class="text-white hover:text-gray-200">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <!-- Navigation Shortcuts -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-arrows-alt text-blue-600"></i>
-                        Navigation
-                    </h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Next Step</span>
-                            <div class="flex gap-2">
-                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Enter</kbd>
-                                <span class="text-gray-400">or</span>
-                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">→</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Previous Step</span>
-                            <div class="flex gap-2">
-                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Backspace</kbd>
-                                <span class="text-gray-400">or</span>
-                                <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">←</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Go Back/Cancel</span>
-                            <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Esc</kbd>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Shortcuts -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-bolt text-yellow-600"></i>
-                        Actions
-                    </h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Go Home</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">H</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Save Service</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">S</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Print</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Shift</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">P</kbd>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Focus Search</span>
-                            <div class="flex gap-1">
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl</kbd>
-                                <span class="text-gray-400">+</span>
-                                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">F</kbd>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Help Shortcut -->
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <i class="fas fa-question-circle text-green-600"></i>
-                        Help
-                    </h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-700">Show This Help</span>
-                            <kbd class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">?</kbd>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Service History Modal -->
-    <div id="service-history-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm z-50 flex items-center justify-center" style="display: none;">
-        <div class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl max-w-5xl w-full mx-4 max-h-[92vh] overflow-hidden border border-gray-200">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 px-8 py-6 flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                        <i class="fas fa-history text-white text-xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-bold text-white">Service History</h2>
-                        <p class="text-blue-100 text-sm" id="service-history-subtitle">Loading...</p>
-                    </div>
-                </div>
-                <button id="close-history-modal" class="w-10 h-10 flex items-center justify-center text-white hover:bg-white hover:bg-opacity-20 rounded-xl transition-all duration-200">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
             </div>
             
-            <!-- Content -->
-            <div class="p-8 max-h-[calc(92vh-120px)] overflow-y-auto" id="service-history-timeline">
-                <!-- Service history will be loaded here -->
-                <div class="flex items-center justify-center py-16">
-                    <i class="fas fa-spinner fa-spin text-blue-500 text-4xl"></i>
+            <!-- Right Panel: Detail/Form View -->
+            <div class="service-detail-panel" id="detail-panel">
+                
+                <!-- Empty State (default) -->
+                <div class="detail-section active" id="section-empty">
+                    <div class="detail-empty">
+                        <i class="fas fa-hand-pointer text-6xl mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600 mb-2">Select a Service</h3>
+                        <p class="text-gray-500 text-center max-w-xs mb-4">Choose a service from the list to view details, or click "New Service" to create one.</p>
+                        <button id="empty-new-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                            <i class="fas fa-plus"></i>New Service
+                        </button>
+                    </div>
                 </div>
+                
+                <!-- View Mode -->
+                <div class="detail-section" id="section-view">
+                    <div class="detail-content">
+                        <!-- View Header -->
+                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                                    <i class="fas fa-wrench text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h2 id="view-title" class="text-xl font-bold text-gray-800">Service Details</h2>
+                                    <p id="view-subtitle" class="text-sm text-gray-500">INV-001 • 1st Service</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="view-history-btn" class="px-3 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 border border-purple-200" title="Service History">
+                                    <i class="fas fa-history"></i>
+                                </button>
+                                <button id="view-edit-btn" class="px-3 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 border border-purple-200" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button id="view-print-btn" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 border border-blue-200" title="Print">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                                <button id="view-pdf-btn" class="px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 border border-green-200" title="Save PDF">
+                                    <i class="fas fa-file-pdf"></i>
+                                </button>
+                                <button id="view-close-btn" class="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200" title="Close">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- View Content (dynamically populated) -->
+                        <div id="view-content">
+                            <!-- Customer Info -->
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-gray-500 mb-2">Customer</h4>
+                                    <p id="view-customer" class="font-semibold text-gray-800">-</p>
+                                    <p id="view-phone" class="text-sm text-gray-600">-</p>
+                                    <p id="view-address" class="text-sm text-gray-600">-</p>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-gray-500 mb-2">Service Info</h4>
+                                    <p><span class="text-gray-600">Date:</span> <span id="view-date" class="font-medium">-</span></p>
+                                    <p><span class="text-gray-600">Project:</span> <span id="view-project" class="font-medium">-</span></p>
+                                    <p><span class="text-gray-600">Invoice:</span> <span id="view-invoice-id" class="font-medium text-blue-600 cursor-pointer hover:underline">-</span></p>
+                                </div>
+                            </div>
+                            
+                            <!-- Items Table -->
+                            <div class="mb-6">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2"><i class="fas fa-tools mr-1"></i>Service Items</h4>
+                                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left text-gray-600">#</th>
+                                                <th class="px-4 py-2 text-left text-gray-600">Description</th>
+                                                <th class="px-4 py-2 text-right text-gray-600">Qty</th>
+                                                <th class="px-4 py-2 text-right text-gray-600">Rate</th>
+                                                <th class="px-4 py-2 text-right text-gray-600">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="view-items-tbody">
+                                            <tr><td colspan="5" class="px-4 py-4 text-center text-gray-400">No items</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Totals -->
+                            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-gray-600">Subtotal:</span>
+                                    <span id="view-subtotal" class="font-medium">₹ 0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-gray-600">Tax:</span>
+                                    <span id="view-tax" class="font-medium">₹ 0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-blue-200">
+                                    <span class="font-semibold text-gray-800">Grand Total:</span>
+                                    <span id="view-total" class="text-xl font-bold text-green-600">₹ 0.00</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Payment Details Card -->
+                            <section class="mt-6 bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                                <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
+                                        <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
+                                    </div>
+                                    <button id="view-add-payment-btn" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm flex items-center gap-2">
+                                        <i class="fas fa-plus"></i>Add Payment
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <span class="block text-sm font-medium text-gray-600 mb-1">Payment Status</span>
+                                        <span class="text-gray-900 font-semibold" id="view-payment-status">-</span>
+                                    </div>
+                                    <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
+                                        <span class="block text-sm font-medium text-red-600 mb-1">Balance Due</span>
+                                        <span class="text-red-900 font-bold text-xl" id="view-balance-due">-</span>
+                                    </div>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table id="view-payment-table" class="w-full border border-gray-300 rounded-lg">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Payment Date</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Mode</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Paid Amount</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Details</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="view-payment-tbody">
+                                            <!-- Items will be dynamically filled -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+                        </div>
+                        
+                        <!-- Hidden print preview container -->
+                        <div id="view-print-content" style="display: none;"></div>
+                    </div>
+                </div>
+                
+                <!-- Form Mode (New/Edit) -->
+                <div class="detail-section" id="section-form">
+                    <div class="detail-content">
+                        <form id="service-form">
+                            <input type="hidden" id="form-service-id" value="">
+                            <input type="hidden" id="form-invoice-id" value="">
+                            <input type="hidden" id="form-service-stage" value="">
+                            <input type="hidden" id="form-is-editing" value="false">
+                            
+                            <!-- Form Header -->
+                            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                                <div class="flex items-center gap-3">
+                                    <div id="form-icon" class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                                        <i class="fas fa-plus text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h2 id="form-title" class="text-xl font-bold text-gray-800">New Service</h2>
+                                        <p id="form-subtitle" class="text-sm text-gray-500">Create a service entry</p>
+                                    </div>
+                                </div>
+                                <button type="button" id="cancel-form-btn" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+                                    <i class="fas fa-times"></i>Cancel
+                                </button>
+                            </div>
+                            
+                            <!-- Step 1: Details & Items -->
+                            <div class="form-step active" id="form-step-1">
+                                <!-- Invoice Selection -->
+                                <div class="mb-6" id="invoice-selection-wrapper">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-file-invoice text-gray-500 mr-1"></i>Select Invoice <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="text" id="invoice-search" placeholder="Search by invoice ID, customer, or project..."
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            autocomplete="off">
+                                        <div id="invoice-dropdown" class="invoice-dropdown hidden"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Selected Invoice Info -->
+                                <div id="selected-invoice-info" class="hidden mb-6 bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-semibold text-blue-800" id="selected-inv-id">INV-001</span>
+                                        <button type="button" id="clear-invoice-btn" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                            <i class="fas fa-times mr-1"></i>Change
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 text-sm">
+                                        <div><span class="text-gray-600">Customer:</span> <span id="info-customer" class="font-medium">-</span></div>
+                                        <div><span class="text-gray-600">Project:</span> <span id="info-project" class="font-medium">-</span></div>
+                                        <div><span class="text-gray-600">Phone:</span> <span id="info-phone" class="font-medium">-</span></div>
+                                        <div><span class="text-gray-600">Next Stage:</span> <span id="info-stage" class="font-medium">-</span></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Service Details -->
+                                <div class="grid grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                                            <i class="fas fa-calendar text-gray-500 mr-1"></i>Service Date <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="date" id="service-date" required
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                                            <i class="fas fa-redo text-gray-500 mr-1"></i>Schedule Next?
+                                        </label>
+                                        <select id="next-service-select" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="yes">Yes, schedule next service</option>
+                                            <option value="no">No, pause schedule</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Items Section -->
+                                <div class="mb-6">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <label class="text-sm font-medium text-gray-700">
+                                            <i class="fas fa-tools text-gray-500 mr-1"></i>Service Items (Parts Used)
+                                        </label>
+                                        <button type="button" id="add-item-btn" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                            <i class="fas fa-plus mr-1"></i>Add Item
+                                        </button>
+                                    </div>
+                                    <div id="items-container">
+                                        <!-- Items will be added here -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Other Charges -->
+                                <div class="mb-6">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <label class="text-sm font-medium text-gray-700">
+                                            <i class="fas fa-plus-circle text-gray-500 mr-1"></i>Other Charges
+                                        </label>
+                                        <button type="button" id="add-charge-btn" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                                            <i class="fas fa-plus mr-1"></i>Add Charge
+                                        </button>
+                                    </div>
+                                    <div id="charges-container">
+                                        <!-- Charges will be added here -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Live Totals -->
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 mb-6">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-gray-600">Subtotal:</span>
+                                        <span id="live-subtotal" class="font-medium">₹ 0.00</span>
+                                    </div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-gray-600">Tax:</span>
+                                        <span id="live-tax" class="font-medium">₹ 0.00</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2 border-t border-gray-300">
+                                        <span class="font-semibold text-gray-800">Grand Total:</span>
+                                        <span id="live-total" class="text-xl font-bold text-green-600">₹ 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 2: Preview -->
+                            <div class="form-step" id="form-step-2">
+                                <div id="preview-content" class="border border-gray-200 rounded-lg p-4 mb-6 bg-white">
+                                    <!-- Preview will be generated here -->
+                                </div>
+                            </div>
+                            
+                            <!-- Form Navigation -->
+                            <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                                <button type="button" id="form-prev-btn" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium flex items-center gap-2 disabled:opacity-50" disabled>
+                                    <i class="fas fa-arrow-left"></i>Back
+                                </button>
+                                <span id="form-step-indicator" class="text-sm text-gray-500">Step 1 of 2</span>
+                                <div class="flex gap-2">
+                                    <button type="button" id="form-next-btn" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2">
+                                        Preview<i class="fas fa-arrow-right"></i>
+                                    </button>
+                                    <button type="button" id="form-save-btn" class="hidden px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center gap-2">
+                                        <i class="fas fa-save"></i>Save
+                                    </button>
+                                    <button type="button" id="form-print-btn" class="hidden px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                    <button type="button" id="form-pdf-btn" class="hidden px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- History Mode -->
+                <div class="detail-section" id="section-history">
+                    <div class="detail-content">
+                        <!-- History Header -->
+                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                                    <i class="fas fa-history text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-bold text-gray-800">Service History</h2>
+                                    <p id="history-subtitle" class="text-sm text-gray-500">Loading...</p>
+                                </div>
+                            </div>
+                            <button id="history-back-btn" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+                                <i class="fas fa-arrow-left"></i>Back
+                            </button>
+                        </div>
+                        
+                        <!-- History Content -->
+                        <div id="history-content" class="space-y-4">
+                            <div class="flex items-center justify-center py-8">
+                                <i class="fas fa-spinner fa-spin text-purple-500 text-3xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Keyboard Shortcuts Modal -->
-    <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shortcuts-panel">
-            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-keyboard text-2xl"></i>
-                    <h2 class="text-xl font-semibold">Keyboard Shortcuts</h2>
-                </div>
-                <button id="close-shortcuts" class="text-white hover:text-gray-200" aria-label="Close shortcuts modal">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            <div id="shortcuts-content" class="p-6 space-y-6"></div>
+    <!-- Filter Popover -->
+    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden" style="width: 280px;">
+        <h3 class="font-semibold text-gray-800 mb-3">Filter & Sort</h3>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+            <select id="date-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="all">All Dates</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
+            <select id="payment-status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="all">All Status</option>
+                <option value="paid">Paid</option>
+                <option value="unpaid">Unpaid</option>
+                <option value="partial">Partial</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+            <select id="sort-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="date-desc">Latest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="amount-desc">Amount: High to Low</option>
+                <option value="amount-asc">Amount: Low to High</option>
+            </select>
+        </div>
+        <div class="flex gap-2">
+            <button id="clear-filters-btn" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm">
+                Clear
+            </button>
+            <button id="apply-filters-btn" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">
+                Apply
+            </button>
         </div>
     </div>
 
     <!-- Payment Modal -->
-    <div class="payment-container fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50"
-        id="payment-container" style="display: none;">
-        <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-6">
-                <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-money-bill-wave text-green-600"></i>
-                    Payment Details
-                </h1>
-                <button type="button" id="close-payment-modal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times text-2xl"></i>
+    <div id="payment-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-money-bill-wave text-green-600"></i>Add Payment
+                </h2>
+                <button id="close-payment-btn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-
-            <div class="space-y-6">
-                <!-- Amount Due Display -->
-                <div class="bg-red-50 p-4 rounded-lg border border-red-200 flex justify-between items-center">
-                    <span class="text-red-700 font-medium">Total Amount Due:</span>
-                    <span id="payment-due-amount" class="text-2xl font-bold text-red-700">₹ 0.00</span>
+            <div class="p-6 space-y-4">
+                <div class="bg-red-50 p-3 rounded-lg border border-red-200 flex justify-between items-center">
+                    <span class="text-red-700 font-medium">Amount Due:</span>
+                    <span id="modal-due-amount" class="text-lg font-bold text-red-700">₹ 0.00</span>
                 </div>
-
-                <!-- Payment Form -->
-                <div class="space-y-4">
-                    <div>
-                        <label for="paid-amount" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>Amount Paid
-                        </label>
-                        <div class="flex gap-2">
-                            <input type="number" id="paid-amount" placeholder="Enter amount"
-                                class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <button type="button" id="autofill-full-amount" title="Fill Full Amount"
-                                class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">
-                                <i class="fas fa-coins"></i>
-                            </button>
-                        </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="modal-paid-amount" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter amount">
+                        <button type="button" id="modal-fill-amount" class="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200" title="Fill full amount">
+                            <i class="fas fa-coins"></i>
+                        </button>
                     </div>
-                    <div>
-                        <label for="payment-date" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-calendar text-gray-500 mr-1"></i>Payment Date
-                        </label>
-                        <input type="date" id="payment-date"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <div>
-                        <label for="payment-mode" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-credit-card text-gray-500 mr-1"></i>Payment Method
-                        </label>
-                        <select id="payment-mode" required
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="Cash">Cash</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="UPI">UPI</option>
-                        </select>
-                    </div>
-                    <div id="extra-payment-details">
-                        <label for="cash-location" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Cash Location
-                        </label>
-                        <input type="text" id="cash-location" placeholder="Enter cash location"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <button id="payment-btn"
-                        class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i>
-                        Save Payment
-                    </button>
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input type="date" id="modal-payment-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Method</label>
+                    <select id="modal-payment-mode" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Service</label>
+                    <textarea id="modal-payment-details" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Transaction ID, Cheque No, etc."></textarea>
+                </div>
+                <button id="save-payment-btn" class="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i>Save Payment
+                </button>
             </div>
         </div>
+    </div>
+
+    <!-- Service History Modal (Removed) -->
+    <!-- 
+    <div id="history-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden flex items-center justify-center">
+        ...
+    </div> 
+    -->
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-2xl max-w-lg w-full mx-4">
+            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
+                <h2 class="text-lg font-semibold"><i class="fas fa-keyboard mr-2"></i>Keyboard Shortcuts</h2>
+                <button id="close-shortcuts-btn" class="text-white hover:text-gray-200"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-3 text-sm">
+                <div class="flex justify-between"><span>New Service</span><kbd class="px-2 py-1 bg-gray-100 rounded border text-xs">Ctrl + N</kbd></div>
+                <div class="flex justify-between"><span>Save</span><kbd class="px-2 py-1 bg-gray-100 rounded border text-xs">Ctrl + S</kbd></div>
+                <div class="flex justify-between"><span>Print</span><kbd class="px-2 py-1 bg-gray-100 rounded border text-xs">Ctrl + Shift + P</kbd></div>
+                <div class="flex justify-between"><span>Search</span><kbd class="px-2 py-1 bg-gray-100 rounded border text-xs">Ctrl + F</kbd></div>
+                <div class="flex justify-between"><span>Go Home</span><kbd class="px-2 py-1 bg-gray-100 rounded border text-xs">Ctrl + H</kbd></div>
+                <div class="flex justify-between"><span>Cancel/Close</span><kbd class="px-2 py-1 bg-gray-100 rounded border text-xs">Esc</kbd></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50 flex items-center gap-2">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Success!</span>
     </div>
 
     <script src="../js/shared/utils.js"></script>
     <script src="../js/shared/filterUtils.js"></script>
     <script src="../js/shared/companyConfig.js"></script>
+    <script src="../js/shared/sectionRenderers.js"></script>
+    <script src="../js/shared/documentBuilder.js"></script>
     <script src="../js/shared/ipc.js"></script>
-    <script src="./service_home.js"></script>
-    <script src="./service_form.js"></script>
-    <script src="./service_view.js"></script>
-    <script src="../js/shared/itemReorder.js"></script>
-    <script src="../js/shared/globalScript.js"></script>
-    <script src="../js/shared/keyboardNavigation.js"></script>
+    <script src="./service.js"></script>
 </body>
 
 </html>

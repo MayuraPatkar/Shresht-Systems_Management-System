@@ -34,6 +34,8 @@ const serviceSchema = new mongoose.Schema({
     
     // Notes and remarks
     notes: { type: String },
+    declaration: { type: String },
+    terms_and_conditions: { type: String },
 
     // Payment Tracking
     payments: [

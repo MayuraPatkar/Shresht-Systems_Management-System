@@ -579,7 +579,7 @@ router.delete("/:invoiceId", async (req, res) => {
     }
 });
 
-// Close service - set service_month to 0
+// Close service - set service_status to Closed
 router.post("/close-service/:invoiceId", async (req, res) => {
     try {
         const { invoiceId } = req.params;
@@ -589,8 +589,8 @@ router.post("/close-service/:invoiceId", async (req, res) => {
             return res.status(404).json({ message: 'Invoice not found' });
         }
 
-        // Set service_month to 0 to indicate service is closed
-        invoice.service_month = 0;
+        // Set service_status to Closed
+        invoice.service_status = 'Closed';
         await invoice.save();
 
         logger.info(`Service closed for invoice ${invoiceId}`);

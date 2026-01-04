@@ -420,9 +420,10 @@ function loadPendingTasks() {
     Promise.all([
         fetchWithRetry('/invoice/all').catch(() => []),
         fetchWithRetry('/service/get-service').catch(() => ({ projects: [] })),
-        fetchWithRetry('/stock/all').catch(() => [])
+        fetchWithRetry('/stock/all').catch(() => []),
+        fetchWithRetry('/service/pending-payments').catch(() => ({ services: [] }))
     ])
-        .then(([invoices, serviceData, stockItems]) => {
+        .then(([invoices, serviceData, stockItems, pendingPaymentData]) => {
             const tasks = [];
 
             // Unpaid invoices
@@ -435,6 +436,19 @@ function loadPendingTasks() {
                     count: unpaidInvoices,
                     description: `${unpaidInvoices} invoice${unpaidInvoices > 1 ? 's' : ''} awaiting payment`,
                     link: '../invoice/invoice.html'
+                });
+            }
+
+            // Service Payment Pending
+            const pendingPaymentServices = (pendingPaymentData.services || []).length;
+            if (pendingPaymentServices > 0) {
+                tasks.push({
+                    icon: 'fa-file-invoice-dollar',
+                    color: 'red',
+                    title: 'Service Payments',
+                    count: pendingPaymentServices,
+                    description: `${pendingPaymentServices} service${pendingPaymentServices > 1 ? 's' : ''} awaiting payment`,
+                    link: '../service/service.html'
                 });
             }
 

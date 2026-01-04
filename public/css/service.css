@@ -1,37 +1,22 @@
 /* Service Module Styles */
-
 body {
     font-family: 'Inter', sans-serif;
     overflow: hidden;
-    height: 100vh;
-}
-
-main {
-    height: calc(100vh - 6rem);
-    overflow-y: auto;
 }
 
 .sidebar {
     width: 280px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
-/* Hide scrollbar when no services are present */
-#pending-services-content:empty,
-#service-history-content:empty {
-    min-height: 0;
-    height: auto;
+main {
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
-/* Remove scrollbar from main when content is empty */
-main:has(#pending-services-content:empty) {
-    overflow-y: hidden;
-}
-
-main:has(#service-history-content:empty) {
-    overflow-y: hidden;
-}
-
-/* Custom scrollbar */
 *::-webkit-scrollbar {
     width: 8px;
     height: 8px;
