@@ -256,9 +256,10 @@ function createPendingServiceDiv(service) {
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="text-lg font-bold text-gray-900 truncate" title="${service.project_name || 'Unnamed Project'}">${service.project_name || 'Unnamed Project'}</h3>
-                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 flex-shrink-0">
-                                    PENDING
-                                </span>
+                                ${service.service_status === 'Paused' ? 
+                                    `<span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-yellow-100 text-yellow-700 flex-shrink-0">PAUSED</span>` : 
+                                    `<span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-700 flex-shrink-0">PENDING</span>`
+                                }
                             </div>
                         </div>
                     </div>
@@ -1064,6 +1065,21 @@ async function openService(serviceId) {
         document.getElementById('phone').value = service.customer_phone || '';
         document.getElementById('email').value = service.customer_email || '';
         document.getElementById('service-stage').value = service.service_stage || 0;
+
+        // Set Next Service radio button based on status
+        const nextServiceYes = document.getElementById('question-yes');
+        const nextServiceNo = document.getElementById('question-no');
+        
+        const isClosedOrPaused = service.service_status === 'Paused' || 
+                                 service.service_status === 'Closed' || 
+                                 (!service.service_status && service.service_month === 0);
+
+        if (isClosedOrPaused) {
+            if (nextServiceNo) nextServiceNo.checked = true;
+        } else {
+            // Default to Yes for Active or undefined (legacy active)
+            if (nextServiceYes) nextServiceYes.checked = true;
+        }
 
         // Generate service ID for this new service entry
         await getId();

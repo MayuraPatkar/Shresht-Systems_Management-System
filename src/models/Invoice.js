@@ -22,6 +22,12 @@ const invoiceSchema = new mongoose.Schema({
 
     // service
     service_month: { type: Number, default: 0 },
+    service_status: { 
+        type: String, 
+        enum: ['Active', 'Paused', 'Closed'], 
+        default: 'Active' 
+    },
+    next_service_date: { type: Date },
     service_stage: { type: Number, default: 0 },
     margin: { type: Number, default: 0 },
 

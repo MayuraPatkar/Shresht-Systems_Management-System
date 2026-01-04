@@ -41,7 +41,12 @@ router.get('/generate-id', async (req, res) => {
 // Route to get all services (invoices with service_month > 0)
 router.get('/all', async (req, res) => {
     try {
-        const services = await Invoices.find({ service_month: { $ne: 0 } }).sort({ createdAt: -1 });
+        const services = await Invoices.find({
+            $or: [
+                { service_status: 'Active' },
+                { service_status: { $exists: false }, service_month: { $ne: 0 } }
+            ]
+        }).sort({ createdAt: -1 });
         return res.status(200).json(services);
     } catch (error) {
         logger.error("Error fetching services:", error);
@@ -53,7 +58,12 @@ router.get('/all', async (req, res) => {
 router.get('/get-service', async (req, res) => {
     try {
         const currentDate = moment();
-        const projects = await Invoices.find({ service_month: { $ne: 0 } });
+        const projects = await Invoices.find({
+            $or: [
+                { service_status: { $in: ['Active', 'Paused'] } },
+                { service_status: { $exists: false }, service_month: { $ne: 0 } }
+            ]
+        });
 
         const filteredProjects = projects.filter(project => {
             if (!project.createdAt && !project.invoice_date) return false;
@@ -81,12 +91,11 @@ router.post('/update-nextService', async (req, res) => {
         if (!project) return res.status(404).json({ error: "Project not found" });
 
         if (next_service === "yes") {
-            project.service_month = project.service_month * 2;
-            await project.save();
+            project.service_status = 'Active';
         } else {
-            project.service_month = 0;
-            await project.save();
+            project.service_status = 'Paused';
         }
+        await project.save();
 
         res.json({ message: "Service updated successfully" });
     } catch (error) {
@@ -322,11 +331,20 @@ router.get('/search/:query', async (req, res) => {
         const currentDate = moment();
 
         const projects = await Invoices.find({
-            service_month: { $ne: 0 },
-            $or: [
-                { customer_name: { $regex: query, $options: 'i' } },
-                { project_name: { $regex: query, $options: 'i' } },
-                { invoice_id: { $regex: query, $options: 'i' } }
+            $and: [
+                {
+                    $or: [
+                        { service_status: 'Active' },
+                        { service_status: { $exists: false }, service_month: { $ne: 0 } }
+                    ]
+                },
+                {
+                    $or: [
+                        { customer_name: { $regex: query, $options: 'i' } },
+                        { project_name: { $regex: query, $options: 'i' } },
+                        { invoice_id: { $regex: query, $options: 'i' } }
+                    ]
+                }
             ]
         });
 
