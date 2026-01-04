@@ -161,6 +161,105 @@ router.post("/save-payment", async (req, res) => {
     }
 });
 
+// Route to update an existing payment for a service
+router.put("/update-payment", async (req, res) => {
+    try {
+        const {
+            serviceId,
+            paymentIndex,
+            paymentMode,
+            paymentDate,
+            paidAmount = 0,
+            paymentExtra = ''
+        } = req.body;
+
+        const serviceRecord = await service.findOne({ service_id: serviceId });
+        if (!serviceRecord) {
+            return res.status(404).json({ message: "Service not found" });
+        }
+
+        if (!serviceRecord.payments || paymentIndex < 0 || paymentIndex >= serviceRecord.payments.length) {
+            return res.status(404).json({ message: "Payment not found" });
+        }
+
+        // Update the payment at the specified index
+        serviceRecord.payments[paymentIndex] = {
+            payment_date: paymentDate,
+            paid_amount: Number(paidAmount),
+            payment_mode: paymentMode,
+            extra_details: paymentExtra || ''
+        };
+
+        // Recalculate total_paid_amount
+        serviceRecord.total_paid_amount = (serviceRecord.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
+
+        // Update status
+        const totalDue = serviceRecord.total_amount_with_tax || 0;
+        if (totalDue > 0 && serviceRecord.total_paid_amount >= totalDue) {
+            serviceRecord.payment_status = 'Paid';
+        } else if (serviceRecord.total_paid_amount > 0) {
+            serviceRecord.payment_status = 'Partial';
+        } else {
+            serviceRecord.payment_status = 'Unpaid';
+        }
+
+        if (typeof serviceRecord.updatePaymentStatus === 'function') {
+            serviceRecord.updatePaymentStatus();
+        }
+
+        await serviceRecord.save();
+
+        res.status(200).json({ message: "Payment updated successfully." });
+    } catch (error) {
+        logger.error("Error updating payment:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+});
+
+// Route to delete a payment from a service
+router.delete("/delete-payment/:serviceId/:paymentIndex", async (req, res) => {
+    try {
+        const { serviceId, paymentIndex } = req.params;
+        const index = parseInt(paymentIndex, 10);
+
+        const serviceRecord = await service.findOne({ service_id: serviceId });
+        if (!serviceRecord) {
+            return res.status(404).json({ message: "Service not found" });
+        }
+
+        if (!serviceRecord.payments || index < 0 || index >= serviceRecord.payments.length) {
+            return res.status(404).json({ message: "Payment not found" });
+        }
+
+        // Remove the payment at the specified index
+        serviceRecord.payments.splice(index, 1);
+
+        // Recalculate total_paid_amount
+        serviceRecord.total_paid_amount = (serviceRecord.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
+
+        // Update status
+        const totalDue = serviceRecord.total_amount_with_tax || 0;
+        if (totalDue > 0 && serviceRecord.total_paid_amount >= totalDue) {
+            serviceRecord.payment_status = 'Paid';
+        } else if (serviceRecord.total_paid_amount > 0) {
+            serviceRecord.payment_status = 'Partial';
+        } else {
+            serviceRecord.payment_status = 'Unpaid';
+        }
+
+        if (typeof serviceRecord.updatePaymentStatus === 'function') {
+            serviceRecord.updatePaymentStatus();
+        }
+
+        await serviceRecord.save();
+
+        res.status(200).json({ message: "Payment deleted successfully." });
+    } catch (error) {
+        logger.error("Error deleting payment:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+});
+
 /**
  * Route: Create New Service Record
  * Description: Always creates a new service. Generates a fresh permanent ID here.

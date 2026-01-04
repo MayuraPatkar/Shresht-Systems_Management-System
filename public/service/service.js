@@ -581,16 +581,43 @@ async function viewService(serviceId) {
         // Payment History
         const paymentTbody = document.getElementById('view-payment-tbody');
         if (service.payments && service.payments.length > 0) {
-            paymentTbody.innerHTML = service.payments.map(p => `
+            paymentTbody.innerHTML = service.payments.map((p, index) => `
                 <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                     <td class="px-4 py-3 text-sm text-gray-900">${formatDateIndian(p.payment_date) || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${p.payment_mode || '-'}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(p.paid_amount, 2) || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-700">${p.extra_details ? p.extra_details : '-'}</td>
+                    <td class="px-4 py-3 text-sm">
+                        <div class="flex items-center gap-2">
+                            <button type="button" class="edit-payment-btn text-blue-600 hover:text-blue-800 p-1" data-service-id="${service.service_id}" data-payment-index="${index}" title="Edit Payment">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="delete-payment-btn text-red-600 hover:text-red-800 p-1" data-service-id="${service.service_id}" data-payment-index="${index}" title="Delete Payment">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
+
+            // Add event listeners for edit/delete buttons
+            paymentTbody.querySelectorAll('.edit-payment-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const serviceId = btn.dataset.serviceId;
+                    const paymentIndex = parseInt(btn.dataset.paymentIndex, 10);
+                    editPayment(serviceId, paymentIndex);
+                });
+            });
+
+            paymentTbody.querySelectorAll('.delete-payment-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const serviceId = btn.dataset.serviceId;
+                    const paymentIndex = parseInt(btn.dataset.paymentIndex, 10);
+                    deletePayment(serviceId, paymentIndex);
+                });
+            });
         } else {
-            paymentTbody.innerHTML = '<tr><td colspan="4" class="px-4 py-4 text-center text-gray-400">No payments recorded</td></tr>';
+            paymentTbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-400">No payments recorded</td></tr>';
         }
 
         showSection('section-view');
@@ -1178,9 +1205,13 @@ async function printService(serviceId, action = 'print') {
 // PAYMENT MODAL
 // ============================================================================
 let currentPaymentServiceId = null;
+let currentPaymentIndex = null;
+let isEditingPayment = false;
 
-function openPaymentModal(serviceId) {
+function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
     currentPaymentServiceId = serviceId;
+    currentPaymentIndex = paymentIndex;
+    isEditingPayment = paymentIndex !== null && paymentData !== null;
     
     const service = ServiceState.completedServices.find(s => s.service_id === serviceId);
     if (!service) {
@@ -1192,42 +1223,310 @@ function openPaymentModal(serviceId) {
     const paid = service.total_paid_amount || 0;
     const due = Math.max(0, total - paid);
 
+    // Update modal title and button based on mode
+    const modalTitle = document.getElementById('payment-modal-title');
+    const saveBtnText = document.getElementById('save-payment-btn-text');
+    
+    if (isEditingPayment) {
+        if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-edit text-blue-600 mr-2"></i>Edit Payment';
+        if (saveBtnText) saveBtnText.textContent = 'Update Payment';
+    } else {
+        if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-money-bill-wave text-green-600 mr-2"></i>Payment Details';
+        if (saveBtnText) saveBtnText.textContent = 'Save Payment';
+    }
+
     document.getElementById('modal-due-amount').textContent = `₹ ${formatNumber(due)}`;
-    document.getElementById('modal-paid-amount').value = '';
-    document.getElementById('modal-payment-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('modal-payment-mode').value = 'Cash';
-    document.getElementById('modal-payment-details').value = '';
+    
+    // Set form values
+    const paymentModeSelect = document.getElementById('modal-payment-mode');
+    if (isEditingPayment && paymentData) {
+        document.getElementById('modal-paid-amount').value = paymentData.paid_amount || '';
+        paymentModeSelect.value = paymentData.payment_mode || 'Cash';
+        
+        if (paymentData.payment_date) {
+            const editDate = new Date(paymentData.payment_date);
+            document.getElementById('modal-payment-date').value = editDate.toISOString().split('T')[0];
+        } else {
+            document.getElementById('modal-payment-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        // Trigger change event to update extra field based on payment mode
+        paymentModeSelect.dispatchEvent(new Event('change'));
+
+        // Set extra details after the field is created
+        setTimeout(() => {
+            if (paymentData.extra_details) {
+                const mode = paymentData.payment_mode || 'Cash';
+                let extraFieldInput = null;
+                if (mode === 'Cash') {
+                    extraFieldInput = document.getElementById('cash-location');
+                } else if (mode === 'UPI') {
+                    extraFieldInput = document.getElementById('upi-transaction-id');
+                } else if (mode === 'Cheque') {
+                    extraFieldInput = document.getElementById('cheque-number');
+                } else if (mode === 'Bank Transfer') {
+                    extraFieldInput = document.getElementById('bank-details');
+                }
+                if (extraFieldInput) {
+                    extraFieldInput.value = paymentData.extra_details;
+                }
+            }
+        }, 50);
+    } else {
+        document.getElementById('modal-paid-amount').value = '';
+        document.getElementById('modal-payment-date').value = new Date().toISOString().split('T')[0];
+        paymentModeSelect.value = 'Cash';
+
+        // Trigger change event to update extra field based on payment mode
+        paymentModeSelect.dispatchEvent(new Event('change'));
+    }
 
     document.getElementById('payment-modal').classList.remove('hidden');
 }
 
-async function savePayment() {
-    const btn = document.getElementById('save-payment-btn');
-    btn.disabled = true;
-
+// Edit existing payment
+async function editPayment(serviceId, paymentIndex) {
     try {
-        const amount = parseFloat(document.getElementById('modal-paid-amount').value);
-        if (!amount || amount <= 0) {
-            showToast('Please enter a valid amount', 'error');
+        const response = await fetch(`/service/${serviceId}`);
+        if (!response.ok) throw new Error('Failed to fetch service');
+        
+        const data = await response.json();
+        const service = data.service;
+        
+        if (!service || !service.payments || paymentIndex >= service.payments.length) {
+            showToast('Payment not found', 'error');
             return;
         }
 
-        const response = await fetch('/service/save-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                serviceId: currentPaymentServiceId,
-                paidAmount: amount,
-                paymentDate: document.getElementById('modal-payment-date').value,
-                paymentMode: document.getElementById('modal-payment-mode').value,
-                paymentExtra: document.getElementById('modal-payment-details').value
-            })
+        const paymentData = service.payments[paymentIndex];
+        openPaymentModal(serviceId, paymentIndex, paymentData);
+    } catch (error) {
+        console.error('Error fetching payment for edit:', error);
+        window.electronAPI.showAlert1('Failed to fetch payment details.');
+    }
+}
+
+// Delete payment with confirmation
+function deletePayment(serviceId, paymentIndex) {
+    if (window.electronAPI && window.electronAPI.showAlert2) {
+        window.electronAPI.showAlert2(
+            'Are you sure you want to delete this payment? This action cannot be undone.',
+            'Delete Payment'
+        );
+
+        window.electronAPI.receiveAlertResponse(async (response) => {
+            if (response === "Yes") {
+                try {
+                    const res = await fetch(`/service/delete-payment/${serviceId}/${paymentIndex}`, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        window.electronAPI.showAlert1(`Error: ${data.message || 'Failed to delete payment.'}`);
+                        return;
+                    }
+
+                    window.electronAPI.showAlert1('Payment deleted successfully.');
+
+                    // Reload data and refresh view
+                    await loadAllData();
+                    if (ServiceState.selectedServiceId === serviceId) {
+                        viewService(serviceId);
+                    }
+                } catch (error) {
+                    console.error('Error deleting payment:', error);
+                    window.electronAPI.showAlert1('Failed to delete payment.');
+                }
+            }
+        });
+    } else {
+        // Fallback for non-electron environment
+        if (confirm('Are you sure you want to delete this payment? This action cannot be undone.')) {
+            deletePaymentConfirmed(serviceId, paymentIndex);
+        }
+    }
+}
+
+async function deletePaymentConfirmed(serviceId, paymentIndex) {
+    try {
+        const res = await fetch(`/service/delete-payment/${serviceId}/${paymentIndex}`, {
+            method: 'DELETE'
         });
 
-        if (!response.ok) throw new Error('Failed to save payment');
+        const data = await res.json();
 
-        showToast('Payment saved successfully!');
+        if (!res.ok) {
+            window.electronAPI.showAlert1(`Error: ${data.message || 'Failed to delete payment.'}`);
+            return;
+        }
+
+        window.electronAPI.showAlert1('Payment deleted successfully.');
+
+        // Reload data and refresh view
+        await loadAllData();
+        if (ServiceState.selectedServiceId === serviceId) {
+            viewService(serviceId);
+        }
+    } catch (error) {
+        console.error('Error deleting payment:', error);
+        window.electronAPI.showAlert1('Failed to delete payment.');
+    }
+}
+
+async function savePayment() {
+    const btn = document.getElementById('save-payment-btn');
+    
+    // Prevent double submission
+    if (btn.disabled) return;
+    
+    const paidAmountInput = document.getElementById('modal-paid-amount');
+    const amount = parseFloat(paidAmountInput?.value) || 0;
+    const paymentDate = document.getElementById('modal-payment-date').value;
+    const paymentMode = document.getElementById('modal-payment-mode').value;
+
+    // Re-fetch service to get the latest due amount
+    let dueAmount = null;
+    let originalPaymentAmount = 0;
+    try {
+        const svcResp = await fetch(`/service/${currentPaymentServiceId}`);
+        if (svcResp.ok) {
+            const data = await svcResp.json();
+            const service = data.service;
+            if (service) {
+                const totalAmount = service.total_amount_with_tax || 0;
+                const paidSoFar = service.total_paid_amount || 0;
+                
+                // In edit mode, add back the original payment amount to due
+                if (isEditingPayment && currentPaymentIndex !== null && service.payments && service.payments[currentPaymentIndex]) {
+                    originalPaymentAmount = Number(service.payments[currentPaymentIndex].paid_amount || 0);
+                }
+                
+                const adjustedDue = isEditingPayment 
+                    ? (totalAmount - paidSoFar + originalPaymentAmount)
+                    : (totalAmount - paidSoFar);
+                dueAmount = Number(adjustedDue.toFixed(2));
+            }
+        }
+    } catch (err) {
+        console.error('Error fetching service for validation:', err);
+    }
+
+    // Basic validations
+    if (!currentPaymentServiceId) {
+        window.electronAPI.showAlert1('Service not selected for payment.');
+        return;
+    }
+
+    if (!paymentDate) {
+        window.electronAPI.showAlert1('Please select a payment date.');
+        return;
+    }
+
+    const today = new Date();
+    const enteredDate = new Date(paymentDate + 'T00:00:00');
+    if (isNaN(enteredDate.getTime())) {
+        window.electronAPI.showAlert1('Invalid payment date.');
+        return;
+    }
+    if (enteredDate > today) {
+        window.electronAPI.showAlert1('Payment date cannot be in the future.');
+        return;
+    }
+
+    if (!paymentMode) {
+        window.electronAPI.showAlert1('Please select a payment method.');
+        return;
+    }
+
+    if (amount <= 0 || isNaN(amount)) {
+        window.electronAPI.showAlert1('Please enter a valid paid amount greater than 0.');
+        paidAmountInput?.focus();
+        return;
+    }
+
+    if (dueAmount !== null && amount > dueAmount) {
+        window.electronAPI.showAlert1(`Paid amount cannot exceed due amount (₹ ${formatNumber(dueAmount)}).`);
+        paidAmountInput?.focus();
+        return;
+    }
+
+    // Extra info validations based on payment method
+    let extraInfo = '';
+    if (paymentMode === 'Cash') {
+        extraInfo = document.getElementById('cash-location')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter cash location.');
+            return;
+        }
+    } else if (paymentMode === 'UPI') {
+        extraInfo = document.getElementById('upi-transaction-id')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter UPI transaction ID.');
+            return;
+        }
+    } else if (paymentMode === 'Cheque') {
+        extraInfo = document.getElementById('cheque-number')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter cheque number.');
+            return;
+        }
+    } else if (paymentMode === 'Bank Transfer') {
+        extraInfo = document.getElementById('bank-details')?.value || '';
+        if (!extraInfo.trim()) {
+            window.electronAPI.showAlert1('Please enter bank details.');
+            return;
+        }
+    }
+
+    // Disable button while processing
+    btn.disabled = true;
+    const originalBtnText = document.getElementById('save-payment-btn-text').textContent;
+    document.getElementById('save-payment-btn-text').textContent = 'Saving...';
+
+    try {
+        let response;
+        if (isEditingPayment && currentPaymentIndex !== null) {
+            // Update existing payment
+            response = await fetch('/service/update-payment', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    serviceId: currentPaymentServiceId,
+                    paymentIndex: currentPaymentIndex,
+                    paidAmount: amount,
+                    paymentDate: paymentDate,
+                    paymentMode: paymentMode,
+                    paymentExtra: extraInfo
+                })
+            });
+        } else {
+            // Add new payment
+            response = await fetch('/service/save-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    serviceId: currentPaymentServiceId,
+                    paidAmount: amount,
+                    paymentDate: paymentDate,
+                    paymentMode: paymentMode,
+                    paymentExtra: extraInfo
+                })
+            });
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || (isEditingPayment ? 'Failed to update payment' : 'Failed to save payment'));
+        }
+
+        window.electronAPI.showAlert1(isEditingPayment ? 'Payment Updated!' : 'Payment Saved!');
         document.getElementById('payment-modal').classList.add('hidden');
+        
+        // Reset edit state
+        isEditingPayment = false;
+        currentPaymentIndex = null;
         
         // Reload data
         await loadAllData();
@@ -1237,9 +1536,10 @@ async function savePayment() {
 
     } catch (error) {
         console.error('Error saving payment:', error);
-        showToast('Failed to save payment', 'error');
+        window.electronAPI.showAlert1(`Error: ${error.message || (isEditingPayment ? 'Failed to update payment' : 'Failed to save payment')}`);
     } finally {
         btn.disabled = false;
+        document.getElementById('save-payment-btn-text').textContent = originalBtnText;
     }
 }
 
@@ -1486,6 +1786,25 @@ function initModalListeners() {
     // Payment modal
     document.getElementById('close-payment-btn')?.addEventListener('click', () => {
         document.getElementById('payment-modal').classList.add('hidden');
+        // Reset edit state on close
+        isEditingPayment = false;
+        currentPaymentIndex = null;
+        // Reset extra payment details to default Cash field
+        const extraField = document.getElementById('extra-payment-details');
+        if (extraField) {
+            extraField.innerHTML = `
+                <label for="cash-location" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Cash Location
+                </label>
+                <input type="text" id="cash-location" placeholder="Enter cash location"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            `;
+        }
+        // Reset payment mode to Cash
+        const paymentModeSelect = document.getElementById('modal-payment-mode');
+        if (paymentModeSelect) {
+            paymentModeSelect.value = 'Cash';
+        }
     });
     document.getElementById('modal-fill-amount')?.addEventListener('click', () => {
         const dueText = document.getElementById('modal-due-amount').textContent;
@@ -1493,6 +1812,50 @@ function initModalListeners() {
         document.getElementById('modal-paid-amount').value = due;
     });
     document.getElementById('save-payment-btn')?.addEventListener('click', savePayment);
+
+    // Payment mode change handler - dynamically update extra details field like invoice
+    document.getElementById('modal-payment-mode')?.addEventListener('change', function() {
+        const mode = this.value;
+        const extraField = document.getElementById('extra-payment-details');
+        
+        if (!extraField) return;
+
+        extraField.innerHTML = ''; // Clear previous
+
+        if (mode === 'Cash') {
+            extraField.innerHTML = `
+                <label for="cash-location" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Cash Location
+                </label>
+                <input type="text" id="cash-location" placeholder="Enter cash location"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            `;
+        } else if (mode === 'UPI') {
+            extraField.innerHTML = `
+                <label for="upi-transaction-id" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-mobile-alt text-gray-500 mr-1"></i>UPI Transaction ID
+                </label>
+                <input type="text" id="upi-transaction-id" placeholder="Enter UPI transaction ID"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            `;
+        } else if (mode === 'Cheque') {
+            extraField.innerHTML = `
+                <label for="cheque-number" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-money-check text-gray-500 mr-1"></i>Cheque Number
+                </label>
+                <input type="text" id="cheque-number" placeholder="Enter cheque number"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            `;
+        } else if (mode === 'Bank Transfer') {
+            extraField.innerHTML = `
+                <label for="bank-details" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-university text-gray-500 mr-1"></i>Bank Details
+                </label>
+                <input type="text" id="bank-details" placeholder="Enter bank details"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            `;
+        }
+    });
 
     // History section back button
     document.getElementById('history-back-btn')?.addEventListener('click', () => {
@@ -1561,7 +1924,66 @@ function initModalListeners() {
 
 function initKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
-        // Don't trigger if typing in input
+        const isModifierPressed = e.ctrlKey || e.metaKey;
+
+        // Payment Modal Handling - check if payment modal is open
+        const paymentModal = document.getElementById('payment-modal');
+        const isPaymentOpen = paymentModal && !paymentModal.classList.contains('hidden');
+
+        if (isPaymentOpen) {
+            // Escape - close payment modal
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('close-payment-btn')?.click();
+                return;
+            }
+
+            // Enter - submit payment (if not on a button)
+            if (e.key === 'Enter') {
+                // Allow default behavior for buttons (like close button)
+                if (document.activeElement.tagName === 'BUTTON') {
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('save-payment-btn')?.click();
+                return;
+            }
+
+            // Tab - trap focus within modal
+            if (e.key === 'Tab') {
+                const focusableElements = paymentModal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (focusableElements.length > 0) {
+                    const firstElement = focusableElements[0];
+                    const lastElement = focusableElements[focusableElements.length - 1];
+
+                    if (e.shiftKey) {
+                        if (document.activeElement === firstElement) {
+                            e.preventDefault();
+                            lastElement.focus();
+                        }
+                    } else {
+                        if (document.activeElement === lastElement) {
+                            e.preventDefault();
+                            firstElement.focus();
+                        }
+                    }
+                }
+                return;
+            }
+
+            // Block application shortcuts (Ctrl/Cmd/Alt) while modal is open
+            if (isModifierPressed || e.altKey) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+
+            return; // Allow other keys (typing)
+        }
+
+        // Don't trigger if typing in input (when payment modal is not open)
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
             if (e.key === 'Escape') {
                 e.target.blur();
@@ -1571,7 +1993,7 @@ function initKeyboardShortcuts() {
 
         // Escape - close modals or cancel
         if (e.key === 'Escape') {
-            const modals = ['payment-modal', 'shortcuts-modal'];
+            const modals = ['shortcuts-modal'];
             for (const id of modals) {
                 const modal = document.getElementById(id);
                 if (!modal?.classList.contains('hidden')) {
