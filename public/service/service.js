@@ -1247,10 +1247,41 @@ function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
 
     document.getElementById('modal-due-amount').textContent = `₹ ${formatNumber(due)}`;
     
+    // Calculate effective due for validation (add back current payment if editing)
+    let effectiveDue = due;
+    if (isEditingPayment && paymentData) {
+        effectiveDue += parseFloat(paymentData.paid_amount || 0);
+    }
+
     // Set form values
     const paymentModeSelect = document.getElementById('modal-payment-mode');
+    const paidAmountInput = document.getElementById('modal-paid-amount');
+
+    // Clone to remove old listeners and add validation
+    if (paidAmountInput) {
+        const newPaidAmountInput = paidAmountInput.cloneNode(true);
+        paidAmountInput.parentNode.replaceChild(newPaidAmountInput, paidAmountInput);
+        
+        newPaidAmountInput.addEventListener('input', function() {
+            const val = parseFloat(this.value);
+            if (val > effectiveDue) {
+                this.setCustomValidity(`Amount cannot exceed due amount (₹ ${formatNumber(effectiveDue)})`);
+                this.reportValidity();
+                this.classList.add('border-red-500', 'focus:ring-red-500');
+                this.classList.remove('border-gray-300', 'focus:ring-blue-500');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('border-red-500', 'focus:ring-red-500');
+                this.classList.add('border-gray-300', 'focus:ring-blue-500');
+            }
+        });
+    }
+
+    // Re-select after replacement
+    const currentPaidAmountInput = document.getElementById('modal-paid-amount');
+
     if (isEditingPayment && paymentData) {
-        document.getElementById('modal-paid-amount').value = paymentData.paid_amount || '';
+        if (currentPaidAmountInput) currentPaidAmountInput.value = paymentData.paid_amount || '';
         paymentModeSelect.value = paymentData.payment_mode || 'Cash';
         
         if (paymentData.payment_date) {

@@ -126,6 +126,13 @@ router.post("/save-payment", async (req, res) => {
             return res.status(404).json({ message: "Service not found" });
         }
 
+        const totalDue = serviceRecord.total_amount_with_tax || 0;
+        const currentPaid = (serviceRecord.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
+        
+        if (currentPaid + Number(paidAmount) > totalDue + 0.01) {
+             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - currentPaid).toFixed(2)})` });
+        }
+
         // Add the new payment
         serviceRecord.payments.push({
             payment_date: paymentDate,
@@ -182,6 +189,16 @@ router.put("/update-payment", async (req, res) => {
             return res.status(404).json({ message: "Payment not found" });
         }
 
+        const totalDue = serviceRecord.total_amount_with_tax || 0;
+        const otherPaymentsTotal = (serviceRecord.payments || []).reduce((sum, p, idx) => {
+            if (idx === Number(paymentIndex)) return sum;
+            return sum + Number(p.paid_amount || 0);
+        }, 0);
+        
+        if (otherPaymentsTotal + Number(paidAmount) > totalDue + 0.01) {
+             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - otherPaymentsTotal).toFixed(2)})` });
+        }
+
         // Update the payment at the specified index
         serviceRecord.payments[paymentIndex] = {
             payment_date: paymentDate,
@@ -194,7 +211,7 @@ router.put("/update-payment", async (req, res) => {
         serviceRecord.total_paid_amount = (serviceRecord.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
 
         // Update status
-        const totalDue = serviceRecord.total_amount_with_tax || 0;
+        // totalDue is already calculated above
         if (totalDue > 0 && serviceRecord.total_paid_amount >= totalDue) {
             serviceRecord.payment_status = 'Paid';
         } else if (serviceRecord.total_paid_amount > 0) {

@@ -763,7 +763,26 @@ async function payment(id, editIndex = null, editData = null) {
         // Set form fields - either from editData or reset
         const paidAmountInput = document.getElementById('paid-amount');
         if (paidAmountInput) {
-            paidAmountInput.value = editData ? editData.paid_amount : '';
+            // Clone to remove old listeners
+            const newPaidAmountInput = paidAmountInput.cloneNode(true);
+            paidAmountInput.parentNode.replaceChild(newPaidAmountInput, paidAmountInput);
+            
+            newPaidAmountInput.value = editData ? editData.paid_amount : '';
+
+            // Add validation listener
+            newPaidAmountInput.addEventListener('input', function() {
+                const val = parseFloat(this.value);
+                if (val > dueAmount) {
+                    this.setCustomValidity(`Amount cannot exceed due amount (₹ ${formatIndian(dueAmount, 2)})`);
+                    this.reportValidity();
+                    this.classList.add('border-red-500', 'focus:ring-red-500');
+                    this.classList.remove('border-gray-300', 'focus:ring-blue-500');
+                } else {
+                    this.setCustomValidity('');
+                    this.classList.remove('border-red-500', 'focus:ring-red-500');
+                    this.classList.add('border-gray-300', 'focus:ring-blue-500');
+                }
+            });
         }
 
         const paymentModeSelect = document.getElementById('payment-mode');

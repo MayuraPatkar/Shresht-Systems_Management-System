@@ -754,7 +754,7 @@
                             <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
                         </div>
-                        <button id="view-add-payment-btn" class="text-sm bg-green-50 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 border border-green-200 transition-colors flex items-center gap-2">
+                        <button id="view-add-payment-btn" class="text-sm bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 border border-green-700 transition-colors flex items-center gap-2">
                             <i class="fas fa-plus"></i> Add Payment
                         </button>
                     </div>
@@ -857,7 +857,7 @@
                                 <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>Paid Amount
                             </label>
                             <div class="flex gap-2">
-                                <input type="number" id="paid-amount" placeholder="Enter amount"
+                                <input type="number" id="paid-amount" placeholder="Enter amount" min="0" step="0.01"
                                     class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <button type="button" id="autofill-full-amount" title="Fill Full Amount"
                                     class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">

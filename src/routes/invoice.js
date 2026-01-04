@@ -337,17 +337,6 @@ router.post("/save-payment", async (req, res) => {
             return res.status(404).json({ message: "Invoice not found" });
         }
 
-        // Add the new payment
-        invoice.payments.push({
-            payment_date: paymentDate,
-            paid_amount: Number(paidAmount),
-            payment_mode: paymentMode,
-            extra_details: paymentExtra || ''
-        });
-
-        // Recalculate total_paid_amount from all payments to avoid drift
-        invoice.total_paid_amount = (invoice.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
-
         // Compute total due: prefer duplicate total, fallback to computed sum of items/non-items
         const computeTotalDue = (inv) => {
             const dup = Number(inv.total_amount_duplicate || 0);
@@ -374,6 +363,23 @@ router.post("/save-payment", async (req, res) => {
         };
 
         const totalDue = computeTotalDue(invoice);
+        const currentPaid = (invoice.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
+        
+        // Validate payment amount
+        if (currentPaid + Number(paidAmount) > totalDue + 0.01) { // Allow small float margin
+             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - currentPaid).toFixed(2)})` });
+        }
+
+        // Add the new payment
+        invoice.payments.push({
+            payment_date: paymentDate,
+            paid_amount: Number(paidAmount),
+            payment_mode: paymentMode,
+            extra_details: paymentExtra || ''
+        });
+
+        // Recalculate total_paid_amount from all payments to avoid drift
+        invoice.total_paid_amount = (invoice.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
 
         // Auto-determine payment status based on recalculated totals
         if (totalDue > 0 && invoice.total_paid_amount >= totalDue) {
@@ -419,18 +425,7 @@ router.put("/update-payment", async (req, res) => {
             return res.status(404).json({ message: "Payment not found" });
         }
 
-        // Update the payment at the specified index
-        invoice.payments[paymentIndex] = {
-            payment_date: paymentDate,
-            paid_amount: Number(paidAmount),
-            payment_mode: paymentMode,
-            extra_details: paymentExtra || ''
-        };
-
-        // Recalculate total_paid_amount
-        invoice.total_paid_amount = (invoice.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
-
-        // Recalculate payment status
+        // Compute total due
         const computeTotalDue = (inv) => {
             const dup = Number(inv.total_amount_duplicate || 0);
             if (dup > 0) return dup;
@@ -456,6 +451,27 @@ router.put("/update-payment", async (req, res) => {
         };
 
         const totalDue = computeTotalDue(invoice);
+        
+        // Calculate paid amount excluding the one being updated
+        const otherPaymentsTotal = (invoice.payments || []).reduce((sum, p, idx) => {
+            if (idx === Number(paymentIndex)) return sum;
+            return sum + Number(p.paid_amount || 0);
+        }, 0);
+        
+        if (otherPaymentsTotal + Number(paidAmount) > totalDue + 0.01) {
+             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - otherPaymentsTotal).toFixed(2)})` });
+        }
+
+        // Update the payment at the specified index
+        invoice.payments[paymentIndex] = {
+            payment_date: paymentDate,
+            paid_amount: Number(paidAmount),
+            payment_mode: paymentMode,
+            extra_details: paymentExtra || ''
+        };
+
+        // Recalculate total_paid_amount
+        invoice.total_paid_amount = (invoice.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
 
         if (totalDue > 0 && invoice.total_paid_amount >= totalDue) {
             invoice.payment_status = 'Paid';
