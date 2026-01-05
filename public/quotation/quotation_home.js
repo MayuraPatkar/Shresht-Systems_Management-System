@@ -546,7 +546,8 @@ function triggerAddEntry() {
 
 function triggerPrintAction() {
     const formPrintBtn = document.getElementById('print-btn');
-    if (formPrintBtn && isFormActive()) {
+    // Only trigger print if button exists, form is active, AND button is visible
+    if (formPrintBtn && isFormActive() && window.getComputedStyle(formPrintBtn).display !== 'none') {
         runOnPreviewStep(() => formPrintBtn.click());
         return true;
     }
