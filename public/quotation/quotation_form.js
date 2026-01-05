@@ -1364,9 +1364,17 @@ async function sendToServer(data, shouldPrint) {
 
 // Event listener for the "Save" button
 document.getElementById("save-btn").addEventListener("click", async () => {
+    const wasNewQuotation = sessionStorage.getItem('currentTab-status') !== 'update';
     const quotationData = collectFormData();
     const ok = await sendToServer(quotationData, false);
-    if (ok) window.electronAPI.showAlert1("Quotation saved successfully!");
+    if (ok) {
+        window.electronAPI.showAlert1("Quotation saved successfully!");
+        // Redirect to Home after saving a new quotation to prevent ID changes
+        if (wasNewQuotation) {
+            sessionStorage.removeItem('currentTab-status');
+            window.location = '/quotation';
+        }
+    }
 });
 
 // Event listener for the "Print" button
