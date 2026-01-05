@@ -6,6 +6,18 @@ let totalTaxOriginal = 0;
 let totalTaxDuplicate = 0;
 let currentDeclaration = "";
 let currentTermsAndConditions = "";
+let isCustomId = false; // Tracks if user manually entered a custom ID
+
+// Initialize listener for custom ID input
+document.addEventListener('DOMContentLoaded', () => {
+    const idInput = document.getElementById('id');
+    if (idInput) {
+        idInput.addEventListener('input', () => {
+            invoiceId = idInput.value.trim();
+            isCustomId = true; // User manually typed in the ID field
+        });
+    }
+});
 
 document.getElementById("view-preview").addEventListener("click", () => {
     changeStep(totalSteps);
@@ -353,7 +365,11 @@ async function openInvoice(id) {
             return `${year}-${month}-${day}`;
         };
 
-        document.getElementById('id').value = invoice.invoice_id;
+        const idInput = document.getElementById('id');
+        idInput.value = invoice.invoice_id;
+        idInput.readOnly = true;
+        idInput.style.backgroundColor = '#f3f4f6'; // Light gray to indicate disabled
+
         const quotationIdInput = document.getElementById('quotation-id');
         if (quotationIdInput) quotationIdInput.value = invoice.quotation_id || '';
         document.getElementById('invoice-date').value = formatDateForInput(invoice.invoice_date);
@@ -1128,6 +1144,7 @@ function collectFormData() {
         type: sessionStorage.getItem('update-invoice'),
         projectName: document.getElementById("project-name").value,
         invoiceId: document.getElementById("id").value,
+        isCustomId: isCustomId, // Flag to indicate user-provided custom ID
         quotationId: document.getElementById("quotation-id")?.value || '',
         invoiceDate: document.getElementById("invoice-date").value,
         poNumber: document.getElementById("purchase-order-number").value || '',
