@@ -230,7 +230,10 @@ async function generateStockReportFromStock(startDate, endDate, movementType, it
 function renderStockReport(movements, summary) {
     const tbody = document.getElementById('stock-report-body');
 
-    if (!movements || movements.length === 0) {
+    // Filter out adjustments from UI
+    const visibleMovements = movements ? movements.filter(m => m.movement_type !== 'adjustment') : [];
+
+    if (!visibleMovements || visibleMovements.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center py-8 text-gray-500">
@@ -246,7 +249,7 @@ function renderStockReport(movements, summary) {
     }
 
     // Render table rows
-    tbody.innerHTML = movements.map(movement => {
+    tbody.innerHTML = visibleMovements.map(movement => {
         const typeClass = movement.movement_type === 'in' ? 'text-green-600' :
             movement.movement_type === 'out' ? 'text-red-600' : 'text-yellow-600';
         const typeIcon = movement.movement_type === 'in' ? 'fa-arrow-down' :
@@ -255,9 +258,6 @@ function renderStockReport(movements, summary) {
         let quantityPrefix = '';
         if (movement.movement_type === 'in') quantityPrefix = '+';
         else if (movement.movement_type === 'out') quantityPrefix = '-';
-        else if (movement.movement_type === 'adjustment') {
-            quantityPrefix = movement.quantity_change >= 0 ? '+' : '-';
-        }
 
         return `
             <tr class="hover:bg-gray-50">
@@ -284,7 +284,7 @@ function renderStockReport(movements, summary) {
     if (summary) {
         document.getElementById('summary-stock-in').textContent = summary.total_in || 0;
         document.getElementById('summary-stock-out').textContent = summary.total_out || 0;
-        document.getElementById('summary-adjustments').textContent = summary.total_adjustments || 0;
+        // Adjustments hidden from UI
         document.getElementById('summary-net-change').textContent = summary.net_change || 0;
         document.getElementById('stock-report-summary').style.display = 'grid';
     }
