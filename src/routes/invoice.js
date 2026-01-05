@@ -148,7 +148,10 @@ router.post("/save-invoice", async (req, res) => {
 
             // Stock Logic: Only update stock if we're changing the 'original' copy
             if (type === 'original') {
-                // Revert previous items
+                // 1. Adjust Stock Quantities (Revert Old + Deduct New)
+                // We do this to ensure Stock collection is always accurate based on the Invoice content.
+
+                // A. Revert previous items (Add back to stock)
                 for (let prev of existingInvoice.items_original) {
                     if (!prev.description) continue;
                     const itemName = prev.description.trim();
@@ -162,18 +165,11 @@ router.post("/save-invoice", async (req, res) => {
                     if (stockItem) {
                         stockItem.quantity = (stockItem.quantity || 0) + Number(prev.quantity || 0);
                         await stockItem.save();
-                        
-                        await logStockMovement(
-                            stockItem.item_name, // Use actual DB name
-                            prev.quantity,
-                            'in',
-                            'invoice',
-                            invoiceId,
-                            `Reverted for invoice update: ${invoiceId}`
-                        );
+                        // NOTE: We do NOT create an adjustment movement here anymore.
                     }
                 }
-                // Deduct new items
+
+                // B. Deduct new items (Remove from stock)
                 for (let cur of items_original) {
                     if (!cur.description) continue;
                     const itemName = cur.description.trim();
@@ -187,16 +183,84 @@ router.post("/save-invoice", async (req, res) => {
                     if (stockItem) {
                         stockItem.quantity = (stockItem.quantity || 0) - Number(cur.quantity || 0);
                         await stockItem.save();
-                        
-                        await logStockMovement(
-                            stockItem.item_name, // Use actual DB name
-                            cur.quantity,
-                            'out',
-                            'invoice',
-                            invoiceId,
-                            `Deducted for invoice update: ${invoiceId}`
-                        );
                     }
+                }
+
+                // 2. Sync Stock Movements (Update Existing, Create New, Delete Removed)
+                // This ensures we don't create duplicate "Out" movements or "Adjustment" movements for edits.
+                
+                const currentInvoiceId = invoiceId || existingInvoice.invoice_id;
+                
+                // Fetch existing movements for this Invoice
+                const existingMovements = await StockMovement.find({
+                    reference_type: 'invoice',
+                    reference_id: currentInvoiceId
+                });
+
+                // Create a pool of available movements to match against
+                let movementPool = [...existingMovements];
+
+                for (let cur of items_original) {
+                    if (!cur.description) continue;
+                    const itemName = cur.description.trim();
+                    const qty = Number(cur.quantity || 0);
+
+                    // Find stock item to get correct name casing if possible
+                    let stockItem = await Stock.findOne({ item_name: itemName });
+                    if (!stockItem) {
+                        stockItem = await Stock.findOne({ item_name: { $regex: new RegExp(`^${itemName}$`, 'i') } });
+                    }
+                    const finalItemName = stockItem ? stockItem.item_name : itemName;
+
+                    // Find a matching movement in the pool
+                    // We match by item name (case-insensitive check might be safer but let's stick to direct match first or normalized)
+                    const matchIndex = movementPool.findIndex(m => 
+                        m.item_name === finalItemName || 
+                        m.item_name.toLowerCase() === finalItemName.toLowerCase()
+                    );
+
+                    if (matchIndex !== -1) {
+                        // UPDATE existing movement
+                        const movement = movementPool[matchIndex];
+                        movement.quantity_change = qty; // For 'out' movements, we store positive magnitude usually, but let's check creation logic
+                        // Creation logic uses 'quantity' directly. In 'out' movements, quantity_change is usually positive magnitude in this system based on previous code?
+                        // Let's check logStockMovement usage: logStockMovement(..., cur.quantity, 'out', ...)
+                        // And StockMovement model usually stores absolute value or signed?
+                        // Looking at previous code: quantity_change: quantityChange.
+                        // So it stores whatever is passed.
+                        // In renderStockReport, it handles signs based on type.
+                        // So we just store the absolute quantity here.
+                        
+                        movement.quantity_change = qty;
+                        // movement.notes = `Invoice Generated`; // Keep original notes
+                        await movement.save();
+                        
+                        // Remove from pool so we don't use it again
+                        movementPool.splice(matchIndex, 1);
+                    } else {
+                        // CREATE new movement
+                        // Only if stock item exists (consistent with previous logic) or should we always log?
+                        // Previous logic only logged if stockItem existed. Let's stick to that for safety, 
+                        // or maybe we should log even if stock doesn't exist to track the attempt?
+                        // The previous logic was: if (stockItem) { ... logStockMovement ... }
+                        // So we should probably check stockItem existence here too to be consistent.
+                        
+                        if (stockItem) {
+                            await logStockMovement(
+                                finalItemName,
+                                qty,
+                                'out',
+                                'invoice',
+                                currentInvoiceId,
+                                `Invoice Generated`
+                            );
+                        }
+                    }
+                }
+
+                // Delete any remaining movements in the pool (items removed from Invoice)
+                for (const unusedMovement of movementPool) {
+                    await StockMovement.deleteOne({ _id: unusedMovement._id });
                 }
             }
 
