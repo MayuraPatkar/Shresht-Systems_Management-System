@@ -84,11 +84,11 @@ async function openQuotation(quotationId) {
     idInput.readOnly = true;
     idInput.style.backgroundColor = '#f3f4f6'; // Light gray to indicate disabled
 
-    // Show Print and Save as PDF buttons for editing existing quotations
+    // Hide Print and Save as PDF buttons in form - only available in View mode
     const printBtn = document.getElementById('print-btn');
     const savePdfBtn = document.getElementById('save-pdf-btn');
-    if (printBtn) printBtn.style.display = '';
-    if (savePdfBtn) savePdfBtn.style.display = '';
+    if (printBtn) printBtn.style.display = 'none';
+    if (savePdfBtn) savePdfBtn.style.display = 'none';
 
     document.getElementById('project-name').value = quotation.project_name;
     // Use input-safe ISO date for the date field
