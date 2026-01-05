@@ -125,9 +125,12 @@ router.post("/save-quotation", async (req, res) => {
             // SCENARIO 2: CREATE NEW QUOTATION
             // ---------------------------------------------------------
 
-            // Use provided custom ID if given, otherwise generate a new one
+            // Check if user explicitly provided a custom ID
+            const { isCustomId = false } = req.body;
+
+            // Use provided custom ID only if user manually typed it, otherwise generate new
             let newId;
-            if (quotation_id && quotation_id.trim()) {
+            if (isCustomId && quotation_id && quotation_id.trim()) {
                 // Check if this custom ID already exists
                 const existingCustom = await Quotations.findOne({ quotation_id: quotation_id.trim() });
                 if (existingCustom) {

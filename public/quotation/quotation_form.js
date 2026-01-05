@@ -3,6 +3,7 @@ let quotationId = '';
 let totalAmountNoTax = 0;
 let totalAmountTax = 0;
 let totalTax = 0;
+let isCustomId = false; // Tracks if user manually entered a custom ID
 
 // Initialize the step indicator on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (idInput) {
         idInput.addEventListener('input', () => {
             quotationId = idInput.value.trim();
+            isCustomId = true; // User manually typed in the ID field
         });
     }
 });
@@ -346,6 +348,7 @@ async function cloneQuotation(sourceQuotationId) {
         idInput.readOnly = false;
         idInput.style.backgroundColor = ''; // Reset to default (editable)
         quotationId = newId;
+        isCustomId = false;
 
         // Store the source quotation ID for audit trail
         sessionStorage.setItem('duplicated_from', sourceQuotationId);
@@ -1427,6 +1430,7 @@ function collectFormData() {
 
     return {
         quotation_id: document.getElementById("id").value,
+        isCustomId: isCustomId, // True if user manually typed the ID
         projectName: document.getElementById("project-name").value,
         quotationDate: document.getElementById("quotation-date").value,
         buyerName: document.getElementById("buyer-name").value,
@@ -1491,7 +1495,9 @@ window.validateCurrentStep = async function () {
                         return false;
                     }
                 }
+                // 404 is expected for new custom IDs - this is the desired outcome
             } catch (error) {
+                // Network errors should block, but don't log 404s as errors
                 console.error("Error checking for duplicate quotation ID:", error);
                 window.electronAPI.showAlert1("Error verifying Quotation ID. Please try again.");
                 return false;

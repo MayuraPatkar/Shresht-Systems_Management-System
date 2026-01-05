@@ -366,7 +366,12 @@ function showNewQuotationForm() {
         if (idInput) {
             idInput.readOnly = false;
             idInput.style.backgroundColor = ''; // Reset to default
+            idInput.value = ''; // Clear any previous value
             idInput.focus();
+        }
+        // Reset custom ID flag (it's in quotation_form.js scope)
+        if (typeof isCustomId !== 'undefined') {
+            isCustomId = false;
         }
     }, 100);
 }
