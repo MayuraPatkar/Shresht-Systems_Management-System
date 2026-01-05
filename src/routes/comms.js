@@ -22,7 +22,7 @@ const CACHE_TTL_MS = 30 * 1000; // 30 seconds cache for credential lookups
 function invalidateWhatsAppCache() {
     cachedWhatsApp = null;
     cachedAt = 0;
-    logger.info('WhatsApp credentials cache invalidated');
+    logger.info('WhatsApp cache invalidated', { service: "messaging" });
 }
 
 async function resolveWhatsAppCredentials() {
@@ -30,13 +30,13 @@ async function resolveWhatsAppCredentials() {
 
     // Priorities: env -> secure store (keytar) -> settings DB -> config.pdfBaseUrl / defaults
     let token = process.env.WHATSAPP_TOKEN || (config.whatsapp && config.whatsapp.token) || '';
-    
+
     // Always try secure store if token not in env (it's the preferred storage)
     if (!token) {
         try {
             token = await secureStore.getWhatsAppToken();
         } catch (e) {
-            logger.warn('Failed to get WhatsApp token from secure store:', e && e.message);
+            logger.warn('Secure store lookup failed', { service: "messaging", error: e && e.message });
         }
     }
 
@@ -51,7 +51,7 @@ async function resolveWhatsAppCredentials() {
                 phoneNumberId = settings.whatsapp.phoneNumberId;
             }
         } catch (err) {
-            logger.warn('Failed to read WhatsApp phoneNumberId from settings:', err && err.message);
+            logger.warn('Settings DB lookup failed', { service: "messaging", error: err && err.message });
         }
     }
 
@@ -65,14 +65,15 @@ async function resolveWhatsAppCredentials() {
 
     cachedAt = Date.now();
     cachedWhatsApp = { token, phoneNumberId, pdfBaseUrl };
-    
+
     // Log configuration status (without exposing sensitive data)
-    logger.info('WhatsApp credentials resolved', { 
-        hasToken: !!token, 
+    logger.info('WhatsApp credentials resolved', {
+        service: "messaging",
+        hasToken: !!token,
         hasPhoneNumberId: !!phoneNumberId,
         hasPdfBaseUrl: !!pdfBaseUrl
     });
-    
+
     return cachedWhatsApp;
 }
 
@@ -96,7 +97,7 @@ async function getCompanyInfo() {
             website: admin.website || ''
         };
     } catch (error) {
-        logger.error('Error fetching company info:', error);
+        logger.error('Company info fetch failed', { service: "messaging", error: error.message });
         return {};
     }
 }
@@ -122,7 +123,7 @@ async function checkWhatsAppConfig() {
 async function sendWhatsAppMessage(phone, message) {
     // Validate WhatsApp configuration before sending
     // checkWhatsAppConfig(); // now resolved at runtime
-    
+
     const payload = {
         messaging_product: 'whatsapp',
         to: phone,
@@ -134,10 +135,10 @@ async function sendWhatsAppMessage(phone, message) {
         const creds = await resolveWhatsAppCredentials();
         if (!creds.token || !creds.phoneNumberId) throw new Error('WhatsApp is not configured');
         const { data } = await axios.post(
-                getWhatsAppApiUrl(creds.phoneNumberId, 'messages'),
-                payload,
-                { headers: { Authorization: `Bearer ${creds.token}` } }
-            );
+            getWhatsAppApiUrl(creds.phoneNumberId, 'messages'),
+            payload,
+            { headers: { Authorization: `Bearer ${creds.token}` } }
+        );
         console.log('WhatsApp message sent:', data);
         return data;
     } catch (err) {
@@ -252,7 +253,7 @@ router.post('/send-manual-reminder', async (req, res) => {
 async function sendSimpleMessageTemplate(phone, message) {
     // Validate WhatsApp configuration before sending
     // checkWhatsAppConfig();
-    
+
     const payload = {
         messaging_product: 'whatsapp',
         to: phone,
@@ -279,13 +280,15 @@ async function sendSimpleMessageTemplate(phone, message) {
             payload,
             { headers: { Authorization: `Bearer ${creds.token}` } }
         );
-        logger.info('Simple message sent successfully', { 
-            to: phone, 
-            messageId: data.messages?.[0]?.id 
+        logger.info('Simple message sent', {
+            service: "messaging",
+            to: phone,
+            messageId: data.messages?.[0]?.id
         });
         return data;
     } catch (err) {
         logger.error('WhatsApp API error (simple_message)', {
+            service: "messaging",
             error: err?.response?.data || err.message,
             phone
         });
@@ -314,14 +317,14 @@ async function sendSimpleMessageTemplate(phone, message) {
 async function sendDocumentTemplate(phone, docDetails) {
     // Validate WhatsApp configuration before sending
     await checkWhatsAppConfig();
-    
+
     const { documentType, customerName, referenceNo, date, amount, documentUrl } = docDetails;
-    
+
     // Document URL is required for this template
     if (!documentUrl) {
         throw new Error('Document URL is required. The WhatsApp template requires a PDF attachment.');
     }
-    
+
     // Build template components
     const components = [
         // Header component with document (REQUIRED)
@@ -349,7 +352,7 @@ async function sendDocumentTemplate(phone, docDetails) {
             ]
         }
     ];
-    
+
     const payload = {
         messaging_product: 'whatsapp',
         to: phone,
@@ -368,14 +371,15 @@ async function sendDocumentTemplate(phone, docDetails) {
             payload,
             { headers: { Authorization: `Bearer ${creds.token}` } }
         );
-        logger.info('Document template sent successfully', { 
-            to: phone, 
+        logger.info('Document template sent successfully', {
+            to: phone,
             referenceNo: docDetails.referenceNo,
-            messageId: data.messages?.[0]?.id 
+            messageId: data.messages?.[0]?.id
         });
         return data;
     } catch (err) {
         logger.error('WhatsApp API error (sending_documents)', {
+            service: "messaging",
             error: err?.response?.data || err.message,
             phone,
             referenceNo: docDetails.referenceNo
@@ -416,35 +420,35 @@ function formatAmountForTemplate(amount) {
 router.post('/send-invoice', async (req, res) => {
     const { phone, invoiceId, documentUrl: providedUrl } = req.body;
     if (!phone || !invoiceId) return res.status(400).json({ message: 'Phone and Invoice ID required.' });
-    
+
     try {
         const invoice = await Invoices.findOne({ invoice_id: invoiceId });
         if (!invoice) {
             logger.warn(`Invoice not found: ${invoiceId}`);
             return res.status(404).json({ message: `Invoice "${invoiceId}" not found. Please check the invoice ID.` });
         }
-        
+
         let documentUrl = providedUrl;
-        
+
         // If no URL provided, generate PDF and upload to cloud or use local URL
         if (!documentUrl) {
             const companyInfo = await getCompanyInfo();
             const pdfResult = await pdfGenerator.generateInvoicePDF(invoice, companyInfo);
-            
+
             if (!pdfResult.success) {
-                logger.error('Failed to generate invoice PDF:', { error: pdfResult.error, invoiceId });
-                return res.status(500).json({ 
-                    message: 'Failed to generate PDF.', 
-                    error: pdfResult.error 
+                logger.error('Invoice PDF generation failed', { service: "messaging", error: pdfResult.error, invoiceId });
+                return res.status(500).json({
+                    message: 'Failed to generate PDF.',
+                    error: pdfResult.error
                 });
             }
-            
+
             // Try to upload to cloud storage (Cloudinary) for public accessibility
             if (cloudStorage.isConfigured()) {
                 const uploadResult = await cloudStorage.uploadPDF(pdfResult.path, invoiceId);
                 if (uploadResult.success) {
                     documentUrl = uploadResult.url;
-                    logger.info(`Invoice PDF uploaded to cloud: ${documentUrl}`);
+                    logger.info('Invoice PDF uploaded to cloud', { service: "messaging", url: documentUrl, invoiceId });
 
                     // Remove local temp copy after successful cloud upload
                     try {
@@ -457,24 +461,24 @@ router.post('/send-invoice', async (req, res) => {
                     logger.warn(`Cloud upload failed, using local URL: ${uploadResult.error}`);
                 }
             }
-            
+
             // Fallback to local URL if cloud upload failed or not configured
             if (!documentUrl) {
                 const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
                 documentUrl = `${baseUrl}/documents/${pdfResult.filename}`;
-                
+
                 if (documentUrl.includes('localhost') || documentUrl.includes('127.0.0.1')) {
-                    logger.warn(`Invoice PDF URL uses localhost which may not be accessible by WhatsApp: ${documentUrl}`);
+                    logger.warn('Localhost URL may not be accessible', { service: "messaging", url: documentUrl });
                 }
             }
-            
-            logger.info(`Generated invoice PDF: ${documentUrl}`);
+
+            logger.info('Generated invoice PDF', { service: "messaging", url: documentUrl });
         }
-        
+
         const totalAmount = invoice.total_amount_original || invoice.total_amount_duplicate || 0;
         const customerName = invoice.customer_name || 'Customer';
         const invoiceDate = invoice.invoice_date || invoice.createdAt || new Date();
-        
+
         await sendDocumentTemplate(phone, {
             documentType: 'invoice',
             customerName: customerName,
@@ -483,16 +487,16 @@ router.post('/send-invoice', async (req, res) => {
             amount: formatAmountForTemplate(totalAmount),
             documentUrl: documentUrl
         });
-        
-        res.json({ 
+
+        res.json({
             message: 'Invoice sent via WhatsApp.',
             pdfUrl: documentUrl
         });
     } catch (err) {
-        logger.error('Error sending invoice:', { error: err?.response?.data || err.message, invoiceId });
-        res.status(500).json({ 
-            message: 'Failed to send invoice.', 
-            error: err?.response?.data || err.message 
+        logger.error('Invoice send failed', { service: "messaging", error: err?.response?.data || err.message, invoiceId });
+        res.status(500).json({
+            message: 'Failed to send invoice.',
+            error: err?.response?.data || err.message
         });
     }
 });
@@ -501,35 +505,35 @@ router.post('/send-invoice', async (req, res) => {
 router.post('/send-quotation', async (req, res) => {
     const { phone, quotationId, documentUrl: providedUrl } = req.body;
     if (!phone || !quotationId) return res.status(400).json({ message: 'Phone and Quotation ID required.' });
-    
+
     try {
         const quotation = await Quotations.findOne({ quotation_id: quotationId });
         if (!quotation) {
             logger.warn(`Quotation not found: ${quotationId}`);
             return res.status(404).json({ message: `Quotation "${quotationId}" not found. Please check the quotation ID.` });
         }
-        
+
         let documentUrl = providedUrl;
-        
+
         // If no URL provided, generate PDF and upload to cloud or use local URL
         if (!documentUrl) {
             const companyInfo = await getCompanyInfo();
             const pdfResult = await pdfGenerator.generateQuotationPDF(quotation, companyInfo);
-            
+
             if (!pdfResult.success) {
-                logger.error('Failed to generate quotation PDF:', { error: pdfResult.error, quotationId });
-                return res.status(500).json({ 
-                    message: 'Failed to generate PDF.', 
-                    error: pdfResult.error 
+                logger.error('Quotation PDF generation failed', { service: "messaging", error: pdfResult.error, quotationId });
+                return res.status(500).json({
+                    message: 'Failed to generate PDF.',
+                    error: pdfResult.error
                 });
             }
-            
+
             // Try to upload to cloud storage (Cloudinary) for public accessibility
             if (cloudStorage.isConfigured()) {
                 const uploadResult = await cloudStorage.uploadPDF(pdfResult.path, quotationId);
                 if (uploadResult.success) {
                     documentUrl = uploadResult.url;
-                    logger.info(`Quotation PDF uploaded to cloud: ${documentUrl}`);
+                    logger.info('Quotation PDF uploaded to cloud', { service: "messaging", url: documentUrl, quotationId });
 
                     // Remove local temp copy after successful cloud upload
                     try {
@@ -542,24 +546,24 @@ router.post('/send-quotation', async (req, res) => {
                     logger.warn(`Cloud upload failed, using local URL: ${uploadResult.error}`);
                 }
             }
-            
+
             // Fallback to local URL if cloud upload failed or not configured
             if (!documentUrl) {
                 const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
                 documentUrl = `${baseUrl}/documents/${pdfResult.filename}`;
-                
+
                 if (documentUrl.includes('localhost') || documentUrl.includes('127.0.0.1')) {
-                    logger.warn(`Quotation PDF URL uses localhost which may not be accessible by WhatsApp: ${documentUrl}`);
+                    logger.warn('Localhost URL may not be accessible', { service: "messaging", url: documentUrl });
                 }
             }
-            
-            logger.info(`Generated quotation PDF: ${documentUrl}`);
+
+            logger.info('Generated quotation PDF', { service: "messaging", url: documentUrl });
         }
-        
+
         const totalAmount = quotation.total_amount_tax || quotation.total_amount_no_tax || 0;
         const customerName = quotation.customer_name || 'Customer';
         const quotationDate = quotation.quotation_date || quotation.createdAt || new Date();
-        
+
         await sendDocumentTemplate(phone, {
             documentType: 'quotation',
             customerName: customerName,
@@ -568,16 +572,16 @@ router.post('/send-quotation', async (req, res) => {
             amount: formatAmountForTemplate(totalAmount),
             documentUrl: documentUrl
         });
-        
-        res.json({ 
+
+        res.json({
             message: 'Quotation sent via WhatsApp.',
             pdfUrl: documentUrl
         });
     } catch (err) {
         logger.error('Error sending quotation:', { error: err?.response?.data || err.message, quotationId });
-        res.status(500).json({ 
-            message: 'Failed to send quotation.', 
-            error: err?.response?.data || err.message 
+        res.status(500).json({
+            message: 'Failed to send quotation.',
+            error: err?.response?.data || err.message
         });
     }
 });
@@ -586,7 +590,7 @@ router.post('/send-quotation', async (req, res) => {
 // Can be used for waybills, purchase orders, or any other documents
 router.post('/send-document', async (req, res) => {
     const { phone, documentType, customerName, referenceNo, date, amount, documentUrl } = req.body;
-    
+
     // Validation
     if (!phone) return res.status(400).json({ message: 'Phone number is required.' });
     if (!documentUrl) return res.status(400).json({ message: 'Document URL is required. Please provide a publicly accessible URL to the document PDF.' });
@@ -595,7 +599,7 @@ router.post('/send-document', async (req, res) => {
     if (!referenceNo) return res.status(400).json({ message: 'Reference number is required.' });
     if (!date) return res.status(400).json({ message: 'Date is required.' });
     if (amount === undefined || amount === null) return res.status(400).json({ message: 'Amount is required.' });
-    
+
     try {
         await sendDocumentTemplate(phone, {
             documentType: documentType, // e.g., 'quotation', 'invoice', 'waybill', 'purchase order'
@@ -605,13 +609,13 @@ router.post('/send-document', async (req, res) => {
             amount: formatAmountForTemplate(parseFloat(amount) || 0),
             documentUrl: documentUrl
         });
-        
+
         res.json({ message: 'Document sent via WhatsApp.' });
     } catch (err) {
         console.error('Error sending document:', err);
-        res.status(500).json({ 
-            message: 'Failed to send document.', 
-            error: err?.response?.data || err.message 
+        res.status(500).json({
+            message: 'Failed to send document.',
+            error: err?.response?.data || err.message
         });
     }
 });
@@ -622,12 +626,12 @@ router.post('/send-message', async (req, res) => {
     if (!phoneNumber || !message) {
         return res.status(400).json({ message: 'Phone number and message are required.' });
     }
-    
+
     try {
         await sendSimpleMessageTemplate(phoneNumber, message);
         res.json({ message: 'Message sent successfully via WhatsApp.' });
     } catch (err) {
-        logger.error('Error sending message:', { error: err?.response?.data || err.message, phone: phoneNumber });
+        logger.error('Message send failed', { service: "messaging", error: err?.response?.data || err.message, phone: phoneNumber });
         res.status(500).json({ message: 'Failed to send message.', error: err?.response?.data || err.message });
     }
 });
@@ -639,14 +643,14 @@ router.post('/send-automated-reminders', async (req, res) => {
         const unpaidInvoices = await Invoices.find({
             payment_status: { $in: ['Unpaid', 'Partial'] }
         });
-        
+
         if (unpaidInvoices.length === 0) {
             return res.json({ message: 'No unpaid invoices found.' });
         }
-        
+
         let successCount = 0;
         let failCount = 0;
-        
+
         // Send reminders to each unpaid invoice
         for (const invoice of unpaidInvoices) {
             try {
@@ -654,7 +658,7 @@ router.post('/send-automated-reminders', async (req, res) => {
                 const totalPaid = invoice.total_paid_amount || 0;
                 const amountDue = Math.max(totalDue - totalPaid, 0);
                 const phone = invoice.customer_phone;
-                
+
                 if (phone && amountDue > 0) {
                     await sendPaymentReminder(phone, amountDue.toFixed(2));
                     successCount++;
@@ -664,8 +668,8 @@ router.post('/send-automated-reminders', async (req, res) => {
                 failCount++;
             }
         }
-        
-        res.json({ 
+
+        res.json({
             message: `Sent ${successCount} reminders successfully. ${failCount > 0 ? `${failCount} failed.` : ''}`,
             success: successCount,
             failed: failCount

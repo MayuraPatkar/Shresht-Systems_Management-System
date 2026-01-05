@@ -83,7 +83,7 @@ ${processedQuotationStyles4}
                 qrCodeBase64
             };
         } catch (error) {
-            logger.error('Error loading assets', { error });
+            logger.error('Asset load failed', { service: "print_handler", error: error.message });
             throw error;
         }
     }
@@ -374,7 +374,7 @@ ${processedQuotationStyles4}
             fs.writeFileSync(tempHtmlPath, fullHTML, 'utf8');
             this.tempFiles.add(tempHtmlPath);
         } catch (writeErr) {
-            logger.error('Failed to write temporary HTML file', { error: writeErr.message });
+            logger.error('Temp HTML write failed', { service: "print_handler", path: tempHtmlPath, error: writeErr.message });
             throw writeErr;
         }
 
@@ -385,7 +385,7 @@ ${processedQuotationStyles4}
             try {
                 await win.webContents.executeJavaScript('document.fonts.ready');
             } catch (e) {
-                logger.warn('Font readiness wait failed', { error: e.message });
+                logger.warn('Font readiness wait timeout', { service: "print_handler", error: e.message });
             }
 
             // Small delay for rendering
@@ -427,7 +427,7 @@ ${processedQuotationStyles4}
             }
 
         } catch (error) {
-            logger.error('Error printing', { error });
+            logger.error('Print process failed', { service: "print_handler", error: error.message });
             return { success: false, error: error.message };
         } finally {
             if (win && !win.isDestroyed()) {
@@ -457,11 +457,11 @@ ${processedQuotationStyles4}
             });
 
             fs.writeFileSync(outputPath, pdfData);
-            logger.info(`PDF generated successfully: ${outputPath}`);
+            logger.info('PDF generated', { service: "print_handler", path: outputPath });
             return { success: true, path: outputPath };
 
         } catch (error) {
-            logger.error('Error generating PDF', { error });
+            logger.error('PDF generation failed', { service: "print_handler", error: error.message });
             return { success: false, error: error.message };
         } finally {
             if (win && !win.isDestroyed()) {
@@ -477,7 +477,7 @@ ${processedQuotationStyles4}
                 fs.unlinkSync(path);
                 this.tempFiles.delete(path);
             } catch (e) {
-                logger.warn('Failed to delete temp file', { path, error: e.message });
+                logger.warn('Temp file cleanup failed', { service: "print_handler", path, error: e.message });
             }
         }
     }
@@ -524,7 +524,7 @@ function setupQuotationHandlers(mainWindow, ipcMain) {
                 }
             }
         } catch (error) {
-            logger.error('Error in Quotation print handler', { error });
+            logger.error('Quotation print handler error', { service: "print_handler", error: error.message });
             safeSend(event.sender, 'printProcessError', { error: error.message });
         }
     });
@@ -559,7 +559,7 @@ function setupQuotationHandlers(mainWindow, ipcMain) {
                 return result;
             }
         } catch (error) {
-            logger.error('Error in Document print handler', { error });
+            logger.error('Document print handler error', { service: "print_handler", error: error.message });
             return { success: false, error: error.message };
         }
     });
