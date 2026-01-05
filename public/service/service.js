@@ -243,11 +243,11 @@ function applyFilters(services) {
     if (ServiceState.filters.date !== 'all') {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        
+
         filtered = filtered.filter(s => {
             const date = new Date(s.service_date || s.invoice_date || s.createdAt);
             const itemDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            
+
             switch (ServiceState.filters.date) {
                 case 'today':
                     return itemDate.getTime() === today.getTime();
@@ -275,7 +275,7 @@ function applyFilters(services) {
     filtered.sort((a, b) => {
         const dateA = new Date(a.service_date || a.invoice_date || a.createdAt);
         const dateB = new Date(b.service_date || b.invoice_date || b.createdAt);
-        
+
         switch (ServiceState.filters.sort) {
             case 'date-asc':
                 return dateA - dateB;
@@ -300,11 +300,11 @@ function renderPendingCard(service) {
     const customerName = service.customer_name || 'N/A';
     const nextStage = (service.service_stage || 0) + 1;
     const stageLabel = getStageLabel(nextStage);
-    
+
     // Calculate due date
     let dueDate = 'N/A';
     let isDue = false;
-    
+
     if (service.next_service_date) {
         const d = new Date(service.next_service_date);
         dueDate = formatDateShort(d);
@@ -318,7 +318,7 @@ function renderPendingCard(service) {
 
     const isPaused = service.service_status === 'Paused';
     let statusBadge;
-    
+
     if (isPaused) {
         statusBadge = '<span class="status-badge bg-yellow-100 text-yellow-700">Paused</span>';
     } else if (isDue) {
@@ -367,13 +367,13 @@ function renderCompletedCard(service) {
     const stageLabel = getStageLabel(service.service_stage);
     const serviceDate = formatDateShort(service.service_date);
     const total = formatCurrency(service.total_amount_with_tax || 0);
-    
+
     // Payment status
     const paid = service.total_paid_amount || 0;
     const totalAmt = service.total_amount_with_tax || 0;
     const isPaid = paid >= totalAmt && totalAmt > 0;
     const isPartial = paid > 0 && !isPaid;
-    
+
     let paymentBadge = '<span class="status-badge bg-orange-100 text-orange-700">Unpaid</span>';
     if (isPaid) paymentBadge = '<span class="status-badge bg-green-100 text-green-700">Paid</span>';
     else if (isPartial) paymentBadge = '<span class="status-badge bg-yellow-100 text-yellow-700">Partial</span>';
@@ -432,7 +432,7 @@ function addCardEventListeners() {
     document.querySelectorAll('.service-card').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.quick-action-btn')) return; // Ignore if clicking action button
-            
+
             // Highlight selected card
             document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
@@ -488,10 +488,10 @@ function addCardEventListeners() {
 // ============================================================================
 function updateStats() {
     document.getElementById('due-count').textContent = ServiceState.dueServices.length;
-    document.getElementById('paused-count').textContent = 
+    document.getElementById('paused-count').textContent =
         ServiceState.allServices.filter(s => s.service_status === 'Paused').length;
     document.getElementById('completed-count').textContent = ServiceState.completedServices.length;
-    document.getElementById('service-count').textContent = 
+    document.getElementById('service-count').textContent =
         ServiceState.dueServices.length + ServiceState.completedServices.length;
 }
 
@@ -518,7 +518,7 @@ async function viewService(serviceId) {
     try {
         const response = await fetch(`/service/${serviceId}`);
         if (!response.ok) throw new Error('Failed to fetch service');
-        
+
         const data = await response.json();
         const service = data.service;
         const invoice = service.invoice_details || {};
@@ -527,7 +527,7 @@ async function viewService(serviceId) {
 
         // Update view content
         document.getElementById('view-title').textContent = `Service ${serviceId}`;
-        document.getElementById('view-subtitle').textContent = 
+        document.getElementById('view-subtitle').textContent =
             `${service.invoice_id} • ${getStageLabel(service.service_stage)}`;
 
         document.getElementById('view-customer').textContent = invoice.customer_name || service.customer_name || '-';
@@ -564,7 +564,7 @@ async function viewService(serviceId) {
         const balance = Math.max(0, total - paid);
         const isPaid = paid >= total && total > 0;
         const statusEl = document.getElementById('view-payment-status');
-        
+
         if (isPaid) {
             statusEl.textContent = 'Paid';
             statusEl.className = 'px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700';
@@ -638,19 +638,19 @@ async function viewService(serviceId) {
 // ============================================================================
 function showNewForm(invoiceId = null) {
     resetForm();
-    
+
     // Set default date to today
     document.getElementById('service-date').value = new Date().toISOString().split('T')[0];
 
     ServiceState.isEditing = false;
-    
+
     document.getElementById('form-title').textContent = 'New Service';
     document.getElementById('form-subtitle').textContent = 'Create a service entry';
     document.getElementById('form-icon').className = 'w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center';
     document.getElementById('form-icon').innerHTML = '<i class="fas fa-plus text-white text-xl"></i>';
-    
+
     showSection('section-form');
-    
+
     // Focus first input
     const formSection = document.getElementById('section-form');
     if (formSection) {
@@ -673,7 +673,7 @@ async function editService(serviceId) {
     try {
         const response = await fetch(`/service/${serviceId}`);
         if (!response.ok) throw new Error('Failed to fetch service');
-        
+
         const data = await response.json();
         const service = data.service;
 
@@ -721,12 +721,13 @@ function resetForm() {
     document.getElementById('form-invoice-id').value = '';
     document.getElementById('form-service-stage').value = '';
     document.getElementById('form-is-editing').value = 'false';
+    document.getElementById('next-service-month').value = '';
     document.getElementById('items-container').innerHTML = '';
     document.getElementById('charges-container').innerHTML = '';
     document.getElementById('selected-invoice-info').classList.add('hidden');
     document.getElementById('invoice-selection-wrapper').classList.remove('hidden');
     document.getElementById('invoice-search').value = '';
-    
+
     // Reset to step 1
     ServiceState.currentFormStep = 1;
     updateFormStep();
@@ -825,12 +826,15 @@ async function selectInvoice(invoiceId) {
 function populateInvoiceInfo(invoice) {
     document.getElementById('form-invoice-id').value = invoice.invoice_id;
     document.getElementById('form-service-stage').value = (invoice.service_stage || 0) + 1;
-    
+
     document.getElementById('selected-inv-id').textContent = invoice.invoice_id;
     document.getElementById('info-customer').textContent = invoice.customer_name || '-';
     document.getElementById('info-project').textContent = invoice.project_name || '-';
     document.getElementById('info-phone').textContent = invoice.customer_phone || '-';
     document.getElementById('info-stage').textContent = getStageLabel((invoice.service_stage || 0) + 1);
+
+    // Set the invoice's service_month as the default for next service month
+    document.getElementById('next-service-month').value = invoice.service_month || 0;
 
     document.getElementById('selected-invoice-info').classList.remove('hidden');
     document.getElementById('invoice-selection-wrapper').classList.add('hidden');
@@ -847,7 +851,7 @@ function addItemRow(data = {}) {
     const row = document.createElement('div');
     row.className = 'item-row';
     row.dataset.itemId = itemCounter;
-    
+
     row.innerHTML = `
         <input type="text" placeholder="Description" class="item-desc" value="${escapeHtml(data.description || '')}">
         <input type="text" placeholder="HSN" class="item-hsn" value="${escapeHtml(data.HSN_SAC || '')}">
@@ -877,7 +881,7 @@ function addChargeRow(data = {}) {
     const row = document.createElement('div');
     row.className = 'item-row';
     row.style.gridTemplateColumns = '1fr 100px 80px 40px';
-    
+
     row.innerHTML = `
         <input type="text" placeholder="Description" class="charge-desc" value="${escapeHtml(data.description || '')}">
         <input type="number" placeholder="Amount" class="charge-amount" value="${data.price || ''}" min="0">
@@ -908,7 +912,7 @@ function updateLiveTotals() {
         const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
         const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
         const taxRate = parseFloat(row.querySelector('.item-tax')?.value) || 0;
-        
+
         const lineTotal = qty * price;
         subtotal += lineTotal;
         tax += lineTotal * (taxRate / 100);
@@ -918,7 +922,7 @@ function updateLiveTotals() {
     document.querySelectorAll('#charges-container .item-row').forEach(row => {
         const amount = parseFloat(row.querySelector('.charge-amount')?.value) || 0;
         const taxRate = parseFloat(row.querySelector('.charge-tax')?.value) || 0;
-        
+
         subtotal += amount;
         tax += amount * (taxRate / 100);
     });
@@ -933,7 +937,7 @@ function collectFormData() {
     document.querySelectorAll('#items-container .item-row').forEach(row => {
         const desc = row.querySelector('.item-desc')?.value?.trim();
         if (!desc) return;
-        
+
         items.push({
             description: desc,
             HSN_SAC: row.querySelector('.item-hsn')?.value?.trim() || '',
@@ -947,7 +951,7 @@ function collectFormData() {
     document.querySelectorAll('#charges-container .item-row').forEach(row => {
         const desc = row.querySelector('.charge-desc')?.value?.trim();
         if (!desc) return;
-        
+
         nonItems.push({
             description: desc,
             price: parseFloat(row.querySelector('.charge-amount')?.value) || 0,
@@ -973,6 +977,7 @@ function collectFormData() {
         invoice_id: document.getElementById('form-invoice-id').value,
         service_date: document.getElementById('service-date').value,
         service_stage: parseInt(document.getElementById('form-service-stage').value) || 1,
+        next_service_month: parseInt(document.getElementById('next-service-month').value) || 0,
         items,
         non_items: nonItems,
         total_amount_no_tax: subtotal,
@@ -989,14 +994,14 @@ function collectFormData() {
 // ============================================================================
 function updateFormStep() {
     const step = ServiceState.currentFormStep;
-    
+
     document.querySelectorAll('.form-step').forEach((el, i) => {
         el.classList.toggle('active', i + 1 === step);
     });
 
     document.getElementById('form-step-indicator').textContent = `Step ${step} of 2`;
     document.getElementById('form-prev-btn').disabled = step === 1;
-    
+
     // Toggle buttons
     document.getElementById('form-next-btn').classList.toggle('hidden', step === 2);
     document.getElementById('form-save-btn').classList.toggle('hidden', step === 1);
@@ -1019,7 +1024,7 @@ async function nextFormStep() {
         // Generate preview
         await generatePreview();
     }
-    
+
     ServiceState.currentFormStep = Math.min(2, ServiceState.currentFormStep + 1);
     updateFormStep();
 }
@@ -1033,7 +1038,7 @@ async function generatePreview() {
     const data = collectFormData();
     const invoice = ServiceState.allInvoices.find(inv => inv.invoice_id === data.invoice_id) || {};
     data.invoice_details = invoice;
-    
+
     try {
         const html = await generateDocumentHTML(data);
         document.getElementById('preview-content').innerHTML = html;
@@ -1045,13 +1050,13 @@ async function generatePreview() {
 
 async function generateDocumentHTML(serviceData) {
     const invoice = serviceData.invoice_details || ServiceState.allInvoices.find(inv => inv.invoice_id === serviceData.invoice_id) || {};
-    
+
     // Prepare items for CalculationEngine
     const items = (serviceData.items || []).map(item => ({
         ...item,
         rate: item.rate || 0
     }));
-    
+
     const nonItems = (serviceData.non_items || []).map(item => ({
         ...item,
         rate: item.rate || 0
@@ -1081,7 +1086,7 @@ async function generateDocumentHTML(serviceData) {
     // We use 'invoice' type to match the style requested
     const html = await buildSimpleDocument({
         documentId: serviceData.service_id,
-        documentType: 'Service Report', 
+        documentType: 'Service Report',
         buyerInfo,
         infoSection,
         itemsHTML: calculation.renderableItems.map(i => i.html).join(''),
@@ -1092,34 +1097,34 @@ async function generateDocumentHTML(serviceData) {
     // But buildSimpleDocument uses SectionRenderers.renderItemsTable which should handle it if we pass the right things.
     // Actually buildSimpleDocument adds renderItemsTable but doesn't pass totals object to it in the simple version?
     // Let's check buildSimpleDocument in documentBuilder.js again.
-    
+
     // It calls: builder.addSection(SectionRenderers.renderItemsTable(itemsHTML, itemColumns));
     // renderItemsTable signature: (itemsHTML, columns = null, hasTax = false, totals = null)
-    
+
     // So I need to pass totals to renderItemsTable.
     // But buildSimpleDocument doesn't expose totals param.
-    
+
     // I should probably use DocumentBuilder directly instead of buildSimpleDocument to have more control, 
     // or modify buildSimpleDocument (which I shouldn't do if it affects others).
-    
+
     // Let's use DocumentBuilder directly here to match the invoice style perfectly.
-    
+
     const builder = new DocumentBuilder('invoice'); // Use invoice styling
-    
+
     builder.addSection(await SectionRenderers.renderHeader());
     builder.addSection(SectionRenderers.renderTitle('Service Report', serviceData.service_id));
-    
+
     builder.addSection(`
         <div class="third-section">
             ${buyerInfo}
             ${infoSection}
         </div>
     `);
-    
+
     // Render items table with totals
     builder.addSection(SectionRenderers.renderItemsTable(
-        calculation.renderableItems.map(i => i.html).join(''), 
-        null, 
+        calculation.renderableItems.map(i => i.html).join(''),
+        null,
         calculation.hasTax
     ));
 
@@ -1129,10 +1134,10 @@ async function generateDocumentHTML(serviceData) {
         calculation.totals,
         calculation.hasTax
     ));
-    
+
     builder.addSection(await SectionRenderers.renderSignatory());
     builder.addSection(SectionRenderers.renderFooter("This is a computer generated document."));
-    
+
     return builder.wrapInContainer(builder.build());
 }
 
@@ -1146,7 +1151,7 @@ async function saveService() {
     try {
         const data = collectFormData();
         const isEditing = document.getElementById('form-is-editing').value === 'true';
-        
+
         const endpoint = isEditing ? '/service/update-service' : '/service/save-service';
         const method = isEditing ? 'PUT' : 'POST';
 
@@ -1173,7 +1178,7 @@ async function saveService() {
         });
 
         showToast('Service saved successfully!');
-        
+
         // Reload data and show view
         await loadAllData();
         navigateTo('view', data.service_id);
@@ -1195,9 +1200,9 @@ async function printService(serviceId, action = 'print') {
         if (!response.ok) throw new Error('Failed to fetch service');
         const data = await response.json();
         const service = data.service;
-        
+
         const html = await generateDocumentHTML(service);
-        
+
         if (window.electronAPI && window.electronAPI.handlePrintEvent) {
             window.electronAPI.handlePrintEvent(html, action, `Service-${serviceId}`);
         } else {
@@ -1220,11 +1225,11 @@ function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
     currentPaymentServiceId = serviceId;
     currentPaymentIndex = paymentIndex;
     isEditingPayment = paymentIndex !== null && paymentData !== null;
-    
+
     // Try to find service in all available lists
-    const service = ServiceState.completedServices.find(s => s.service_id === serviceId) || 
-                    ServiceState.dueServices.find(s => s.service_id === serviceId) ||
-                    ServiceState.allServices.find(s => s.service_id === serviceId);
+    const service = ServiceState.completedServices.find(s => s.service_id === serviceId) ||
+        ServiceState.dueServices.find(s => s.service_id === serviceId) ||
+        ServiceState.allServices.find(s => s.service_id === serviceId);
 
     if (!service) {
         showToast('Service not found', 'error');
@@ -1244,7 +1249,7 @@ function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
     // Update modal title and button based on mode
     const modalTitle = document.getElementById('payment-modal-title');
     const saveBtnText = document.getElementById('save-payment-btn-text');
-    
+
     if (isEditingPayment) {
         if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-edit text-blue-600 mr-2"></i>Edit Payment';
         if (saveBtnText) saveBtnText.textContent = 'Update Payment';
@@ -1254,7 +1259,7 @@ function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
     }
 
     document.getElementById('modal-due-amount').textContent = `₹ ${formatNumber(due)}`;
-    
+
     // Calculate effective due for validation (add back current payment if editing)
     let effectiveDue = due;
     if (isEditingPayment && paymentData) {
@@ -1269,8 +1274,8 @@ function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
     if (paidAmountInput) {
         const newPaidAmountInput = paidAmountInput.cloneNode(true);
         paidAmountInput.parentNode.replaceChild(newPaidAmountInput, paidAmountInput);
-        
-        newPaidAmountInput.addEventListener('input', function() {
+
+        newPaidAmountInput.addEventListener('input', function () {
             const val = parseFloat(this.value);
             if (val > effectiveDue) {
                 this.setCustomValidity(`Amount cannot exceed due amount (₹ ${formatNumber(effectiveDue)})`);
@@ -1291,7 +1296,7 @@ function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
     if (isEditingPayment && paymentData) {
         if (currentPaidAmountInput) currentPaidAmountInput.value = paymentData.paid_amount || '';
         paymentModeSelect.value = paymentData.payment_mode || 'Cash';
-        
+
         if (paymentData.payment_date) {
             const editDate = new Date(paymentData.payment_date);
             document.getElementById('modal-payment-date').value = editDate.toISOString().split('T')[0];
@@ -1338,10 +1343,10 @@ async function editPayment(serviceId, paymentIndex) {
     try {
         const response = await fetch(`/service/${serviceId}`);
         if (!response.ok) throw new Error('Failed to fetch service');
-        
+
         const data = await response.json();
         const service = data.service;
-        
+
         if (!service || !service.payments || paymentIndex >= service.payments.length) {
             showToast('Payment not found', 'error');
             return;
@@ -1426,10 +1431,10 @@ async function deletePaymentConfirmed(serviceId, paymentIndex) {
 
 async function savePayment() {
     const btn = document.getElementById('save-payment-btn');
-    
+
     // Prevent double submission
     if (btn.disabled) return;
-    
+
     const paidAmountInput = document.getElementById('modal-paid-amount');
     const amount = parseFloat(paidAmountInput?.value) || 0;
     const paymentDate = document.getElementById('modal-payment-date').value;
@@ -1446,13 +1451,13 @@ async function savePayment() {
             if (service) {
                 const totalAmount = service.total_amount_with_tax || 0;
                 const paidSoFar = service.total_paid_amount || 0;
-                
+
                 // In edit mode, add back the original payment amount to due
                 if (isEditingPayment && currentPaymentIndex !== null && service.payments && service.payments[currentPaymentIndex]) {
                     originalPaymentAmount = Number(service.payments[currentPaymentIndex].paid_amount || 0);
                 }
-                
-                const adjustedDue = isEditingPayment 
+
+                const adjustedDue = isEditingPayment
                     ? (totalAmount - paidSoFar + originalPaymentAmount)
                     : (totalAmount - paidSoFar);
                 dueAmount = Number(adjustedDue.toFixed(2));
@@ -1572,11 +1577,11 @@ async function savePayment() {
 
         window.electronAPI.showAlert1(isEditingPayment ? 'Payment Updated!' : 'Payment Saved!');
         document.getElementById('payment-modal').classList.add('hidden');
-        
+
         // Reset edit state
         isEditingPayment = false;
         currentPaymentIndex = null;
-        
+
         // Reload data
         await loadAllData();
         if (ServiceState.selectedServiceId === currentPaymentServiceId) {
@@ -1607,7 +1612,7 @@ async function showHistorySection(invoiceId) {
     try {
         const response = await fetch(`/service/history/${invoiceId}`);
         if (!response.ok) throw new Error('Failed to fetch history');
-        
+
         const data = await response.json();
         const services = data.services || [];
 
@@ -1668,13 +1673,13 @@ async function showHistorySection(invoiceId) {
 // ============================================================================
 async function toggleServiceStatus(invoiceId) {
     // Find current status to show appropriate message
-    const service = ServiceState.allServices.find(s => s.invoice_id === invoiceId) || 
-                   ServiceState.dueServices.find(s => s.invoice_id === invoiceId);
-    
+    const service = ServiceState.allServices.find(s => s.invoice_id === invoiceId) ||
+        ServiceState.dueServices.find(s => s.invoice_id === invoiceId);
+
     const isPaused = service?.service_status === 'Paused';
     const action = isPaused ? 'resume' : 'pause';
-    const message = isPaused 
-        ? 'Are you sure you want to resume this service schedule?' 
+    const message = isPaused
+        ? 'Are you sure you want to resume this service schedule?'
         : 'Are you sure you want to pause this service schedule? No reminders will be sent while paused.';
 
     showConfirm(message, async (response) => {
@@ -1822,7 +1827,7 @@ function initFormListeners() {
             showToast('Please save the service first', 'error');
         }
     });
-    
+
     // View panel print
     document.getElementById('view-print-btn')?.addEventListener('click', () => {
         if (ServiceState.selectedServiceId) {
@@ -1863,10 +1868,10 @@ function initModalListeners() {
     document.getElementById('save-payment-btn')?.addEventListener('click', savePayment);
 
     // Payment mode change handler - dynamically update extra details field like invoice
-    document.getElementById('modal-payment-mode')?.addEventListener('change', function() {
+    document.getElementById('modal-payment-mode')?.addEventListener('change', function () {
         const mode = this.value;
         const extraField = document.getElementById('extra-payment-details');
-        
+
         if (!extraField) return;
 
         extraField.innerHTML = ''; // Clear previous
@@ -2123,7 +2128,7 @@ function escapeHtml(str) {
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const msgEl = document.getElementById('toast-message');
-    
+
     if (type === 'error') {
         toast.className = 'fixed bottom-6 right-6 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
         toast.querySelector('i').className = 'fas fa-exclamation-circle';
@@ -2131,10 +2136,10 @@ function showToast(message, type = 'success') {
         toast.className = 'fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
         toast.querySelector('i').className = 'fas fa-check-circle';
     }
-    
+
     msgEl.textContent = message;
     toast.classList.remove('hidden');
-    
+
     setTimeout(() => {
         toast.classList.add('hidden');
     }, 3000);
