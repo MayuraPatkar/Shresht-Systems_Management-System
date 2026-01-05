@@ -46,13 +46,15 @@ main {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-#new, #view {
+#new,
+#view {
     display: none;
     justify-content: center;
     align-items: flex-start;
@@ -73,9 +75,12 @@ main {
 
 /* Pulse animation for shortcuts button */
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.7;
     }
@@ -90,7 +95,7 @@ main {
 /* Items header grid layout */
 #new .items-header {
     display: grid;
-    grid-template-columns: 40px 2fr 0.8fr 0.6fr 0.8fr 0.8fr 50px;
+    grid-template-columns: 28px 40px 2fr 0.8fr 0.6fr 0.8fr 0.8fr 50px;
     gap: 0.75rem;
     align-items: center;
     padding: 0.75rem;
@@ -117,10 +122,10 @@ main {
     text-align: center;
 }
 
-/* Item card grid layout */
+/* Item card grid layout - includes drag handle column */
 #new .item-card {
     display: grid;
-    grid-template-columns: 40px 2fr 0.8fr 0.6fr 0.8fr 0.8fr 50px;
+    grid-template-columns: 28px 40px 2fr 0.8fr 0.6fr 0.8fr 0.8fr 50px;
     gap: 0.75rem;
     align-items: center;
     padding: 0.75rem;
@@ -129,6 +134,7 @@ main {
     border-radius: 8px;
     margin-bottom: 0.5rem;
     transition: all 0.2s;
+    position: relative;
 }
 
 #new .item-card:hover {
@@ -204,6 +210,53 @@ main {
     overflow-x: auto;
     padding-bottom: 0.5rem;
     margin-bottom: 1rem;
+}
+
+/* Drag handle - positioned as first grid item */
+#new .item-card .drag-handle {
+    position: static;
+    width: 28px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    cursor: grab;
+    opacity: 0.3;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    border-radius: 4px;
+}
+
+#new .item-card:hover .drag-handle {
+    opacity: 1;
+}
+
+#new .item-card .drag-handle:hover {
+    color: #6b7280;
+    background: #f3f4f6;
+}
+
+#new .item-card .drag-handle:active {
+    cursor: grabbing;
+    color: #3b82f6;
+}
+
+/* Dragging states */
+#new .item-card.dragging {
+    opacity: 0.5;
+    border: 2px dashed #3b82f6;
+    background: #eff6ff;
+}
+
+#new .item-card.dragging .drag-handle {
+    opacity: 1;
+    cursor: grabbing;
+}
+
+#new .item-card.drag-over {
+    border-top: 3px solid #3b82f6;
+    margin-top: -2px;
+    padding-top: calc(0.75rem + 2px);
 }
 
 /* Hide the table (used for data collection only) */
