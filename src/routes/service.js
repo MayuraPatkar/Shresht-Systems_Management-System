@@ -42,9 +42,10 @@ router.get('/generate-id', async (req, res) => {
 router.get('/all', async (req, res) => {
     try {
         const services = await Invoices.find({
+            service_month: { $gt: 0 },
             $or: [
                 { service_status: { $in: ['Active', 'Paused'] } },
-                { service_status: { $exists: false }, service_month: { $ne: 0 } }
+                { service_status: { $exists: false } }
             ]
         }).sort({ createdAt: -1 });
         return res.status(200).json(services);
@@ -59,9 +60,10 @@ router.get('/get-service', async (req, res) => {
     try {
         const currentDate = moment();
         const projects = await Invoices.find({
+            service_month: { $gt: 0 },
             $or: [
                 { service_status: 'Active' },
-                { service_status: { $exists: false }, service_month: { $ne: 0 } }
+                { service_status: { $exists: false } }
             ]
         });
 
@@ -128,9 +130,9 @@ router.post("/save-payment", async (req, res) => {
 
         const totalDue = serviceRecord.total_amount_with_tax || 0;
         const currentPaid = (serviceRecord.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
-        
+
         if (currentPaid + Number(paidAmount) > totalDue + 0.01) {
-             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - currentPaid).toFixed(2)})` });
+            return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - currentPaid).toFixed(2)})` });
         }
 
         // Add the new payment
@@ -148,7 +150,7 @@ router.post("/save-payment", async (req, res) => {
         if (typeof serviceRecord.updatePaymentStatus === 'function') {
             serviceRecord.updatePaymentStatus();
         } else {
-             // Fallback if method not available immediately
+            // Fallback if method not available immediately
             const totalDue = serviceRecord.total_amount_with_tax || 0;
             if (totalDue > 0 && serviceRecord.total_paid_amount >= totalDue) {
                 serviceRecord.payment_status = 'Paid';
@@ -194,9 +196,9 @@ router.put("/update-payment", async (req, res) => {
             if (idx === Number(paymentIndex)) return sum;
             return sum + Number(p.paid_amount || 0);
         }, 0);
-        
+
         if (otherPaymentsTotal + Number(paidAmount) > totalDue + 0.01) {
-             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - otherPaymentsTotal).toFixed(2)})` });
+            return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - otherPaymentsTotal).toFixed(2)})` });
         }
 
         // Update the payment at the specified index
@@ -289,6 +291,7 @@ router.post('/save-service', async (req, res) => {
             fee_amount,
             service_date,
             service_stage,
+            next_service_month,
             items,
             non_items,
             total_tax,
@@ -347,9 +350,14 @@ router.post('/save-service', async (req, res) => {
         }
 
         // Update next_service_date based on service interval
-        if (invoice.service_month > 0) {
+        // Use the custom next_service_month from the form, falling back to invoice.service_month
+        const serviceMonthToUse = (typeof next_service_month === 'number' && next_service_month >= 0)
+            ? next_service_month
+            : invoice.service_month;
+
+        if (serviceMonthToUse > 0) {
             const currentServiceDate = moment(service_date);
-            invoice.next_service_date = currentServiceDate.add(invoice.service_month, 'months').toDate();
+            invoice.next_service_date = currentServiceDate.add(serviceMonthToUse, 'months').toDate();
         }
 
         await invoice.save();
@@ -460,11 +468,12 @@ router.get('/search/:query', async (req, res) => {
         const currentDate = moment();
 
         const projects = await Invoices.find({
+            service_month: { $gt: 0 },
             $and: [
                 {
                     $or: [
                         { service_status: 'Active' },
-                        { service_status: { $exists: false }, service_month: { $ne: 0 } }
+                        { service_status: { $exists: false } }
                     ]
                 },
                 {
@@ -687,7 +696,7 @@ router.delete('/:serviceId', async (req, res) => {
 router.post('/toggle-status', async (req, res) => {
     try {
         const { invoiceId, status } = req.body;
-        
+
         const project = await Invoices.findOne({ invoice_id: invoiceId });
         if (!project) return res.status(404).json({ error: "Project not found" });
 
@@ -699,11 +708,11 @@ router.post('/toggle-status', async (req, res) => {
         }
 
         await project.save();
-        
+
         logger.info(`Service status updated for ${invoiceId}: ${project.service_status}`);
-        res.json({ 
+        res.json({
             message: `Service ${project.service_status === 'Paused' ? 'paused' : 'resumed'} successfully`,
-            status: project.service_status 
+            status: project.service_status
         });
 
     } catch (error) {
