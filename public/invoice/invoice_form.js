@@ -1001,6 +1001,8 @@ async function generatePreview() {
     document.getElementById("preview-content").innerHTML = pagesHTML;
 }
 
+let isSaving = false;
+
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
     return await sendDocumentToServer("/invoice/save-invoice", data);
@@ -1008,9 +1010,39 @@ async function sendToServer(data, shouldPrint) {
 
 // Event listener for the "Save" button
 document.getElementById("save-btn").addEventListener("click", async () => {
-    const invoiceData = collectFormData();
-    const ok = await sendToServer(invoiceData, false);
-    if (ok) window.electronAPI.showAlert1("Invoice saved successfully!");
+    if (isSaving) return;
+    
+    const saveBtn = document.getElementById("save-btn");
+    const originalText = saveBtn.innerHTML;
+    
+    try {
+        isSaving = true;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        const invoiceData = collectFormData();
+        const response = await sendToServer(invoiceData, false);
+        
+        if (response) {
+            window.electronAPI.showAlert1("Invoice saved successfully!");
+            
+            // Update ID if returned to prevent duplicate creation on subsequent saves
+            if (response.invoice_id) {
+                invoiceId = response.invoice_id;
+                const idInput = document.getElementById('id');
+                if (idInput) idInput.value = invoiceId;
+                // Ensure subsequent saves are treated as updates
+                sessionStorage.setItem('update-invoice', 'original'); 
+            }
+        }
+    } catch (error) {
+        console.error("Save error:", error);
+        window.electronAPI.showAlert1("Failed to save invoice.");
+    } finally {
+        isSaving = false;
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalText;
+    }
 });
 
 // Event listener for the "Print" button

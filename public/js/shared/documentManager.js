@@ -243,7 +243,7 @@ async function sendDocumentToServer(endpoint, data, successMessage = null) {
             window.electronAPI.showAlert1(successMessage);
         }
         
-        return true;
+        return responseData;
     } catch (error) {
         console.error("Error sending document to server:", error);
         window.electronAPI.showAlert1("Failed to connect to server.");
