@@ -152,29 +152,51 @@ router.post("/save-invoice", async (req, res) => {
                 for (let prev of existingInvoice.items_original) {
                     if (!prev.description) continue;
                     const itemName = prev.description.trim();
-                    await Stock.updateOne({ item_name: itemName }, { $inc: { quantity: prev.quantity } });
-                    await logStockMovement(
-                        itemName,
-                        prev.quantity,
-                        'in',
-                        'invoice',
-                        invoiceId,
-                        `Reverted for invoice update: ${invoiceId}`
-                    );
+                    
+                    // Find stock item (try exact match, then case-insensitive)
+                    let stockItem = await Stock.findOne({ item_name: itemName });
+                    if (!stockItem) {
+                        stockItem = await Stock.findOne({ item_name: { $regex: new RegExp(`^${itemName}$`, 'i') } });
+                    }
+
+                    if (stockItem) {
+                        stockItem.quantity = (stockItem.quantity || 0) + Number(prev.quantity || 0);
+                        await stockItem.save();
+                        
+                        await logStockMovement(
+                            stockItem.item_name, // Use actual DB name
+                            prev.quantity,
+                            'in',
+                            'invoice',
+                            invoiceId,
+                            `Reverted for invoice update: ${invoiceId}`
+                        );
+                    }
                 }
                 // Deduct new items
                 for (let cur of items_original) {
                     if (!cur.description) continue;
                     const itemName = cur.description.trim();
-                    await Stock.updateOne({ item_name: itemName }, { $inc: { quantity: -cur.quantity } });
-                    await logStockMovement(
-                        itemName,
-                        cur.quantity,
-                        'out',
-                        'invoice',
-                        invoiceId,
-                        `Deducted for invoice update: ${invoiceId}`
-                    );
+                    
+                    // Find stock item (try exact match, then case-insensitive)
+                    let stockItem = await Stock.findOne({ item_name: itemName });
+                    if (!stockItem) {
+                        stockItem = await Stock.findOne({ item_name: { $regex: new RegExp(`^${itemName}$`, 'i') } });
+                    }
+
+                    if (stockItem) {
+                        stockItem.quantity = (stockItem.quantity || 0) - Number(cur.quantity || 0);
+                        await stockItem.save();
+                        
+                        await logStockMovement(
+                            stockItem.item_name, // Use actual DB name
+                            cur.quantity,
+                            'out',
+                            'invoice',
+                            invoiceId,
+                            `Deducted for invoice update: ${invoiceId}`
+                        );
+                    }
                 }
             }
 
@@ -223,12 +245,19 @@ router.post("/save-invoice", async (req, res) => {
                 for (let item of items_original) {
                     if (!item.description) continue;
                     const itemName = item.description.trim();
-                    const stockItem = await Stock.findOne({ item_name: itemName });
+                    
+                    // Find stock item (try exact match, then case-insensitive)
+                    let stockItem = await Stock.findOne({ item_name: itemName });
+                    if (!stockItem) {
+                        stockItem = await Stock.findOne({ item_name: { $regex: new RegExp(`^${itemName}$`, 'i') } });
+                    }
+
                     if (stockItem) {
-                        stockItem.quantity -= item.quantity;
+                        stockItem.quantity = (stockItem.quantity || 0) - Number(item.quantity || 0);
                         await stockItem.save();
+                        
                         await logStockMovement(
-                            itemName,
+                            stockItem.item_name,
                             item.quantity,
                             'out',
                             'invoice',
