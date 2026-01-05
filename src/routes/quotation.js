@@ -125,15 +125,26 @@ router.post("/save-quotation", async (req, res) => {
             // SCENARIO 2: CREATE NEW QUOTATION
             // ---------------------------------------------------------
 
-            // Generate the permanent ID now (increments the counter)
-            const newId = await generateNextId('quotation');
+            // Use provided custom ID if given, otherwise generate a new one
+            let newId;
+            if (quotation_id && quotation_id.trim()) {
+                // Check if this custom ID already exists
+                const existingCustom = await Quotations.findOne({ quotation_id: quotation_id.trim() });
+                if (existingCustom) {
+                    return res.status(400).json({ message: `Quotation ID "${quotation_id}" already exists. Please use a different ID.` });
+                }
+                newId = quotation_id.trim();
+            } else {
+                // Generate the permanent ID now (increments the counter)
+                newId = await generateNextId('quotation');
+            }
 
             if (!projectName) {
                 return res.status(400).json({ message: 'Project name is required.' });
             }
 
             quotation = new Quotations({
-                quotation_id: newId, // Use the fresh ID
+                quotation_id: newId, // Use custom ID or freshly generated ID
                 project_name: projectName,
                 quotation_date: quotationDate,
                 customer_name: buyerName,

@@ -10,6 +10,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (stepIndicator) {
         stepIndicator.textContent = `Step 1 of ${totalSteps}`;
     }
+
+    // Add listener for custom ID input
+    const idInput = document.getElementById('id');
+    if (idInput) {
+        idInput.addEventListener('input', () => {
+            quotationId = idInput.value.trim();
+        });
+    }
 });
 
 function normalizeTermsHTML(raw) {
