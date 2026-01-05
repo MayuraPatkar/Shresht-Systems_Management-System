@@ -124,10 +124,32 @@ function applyQuotationFilters() {
 
 // Initialize filter event listeners
 function initQuotationFilters() {
+    const filterBtn = document.getElementById('filter-btn');
+    const filterPopover = document.getElementById('filter-popover');
     const dateFilter = document.getElementById('date-filter');
     const sortFilter = document.getElementById('sort-filter');
-    const clearFiltersBtn = document.getElementById('clear-filters');
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
+    const applyFiltersBtn = document.getElementById('apply-filters-btn');
 
+    // Toggle filter popover
+    if (filterBtn && filterPopover) {
+        filterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rect = filterBtn.getBoundingClientRect();
+            filterPopover.style.top = `${rect.bottom + 8}px`;
+            filterPopover.style.left = `${rect.left}px`;
+            filterPopover.classList.toggle('hidden');
+        });
+
+        // Close popover when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!filterPopover.contains(e.target) && e.target !== filterBtn) {
+                filterPopover.classList.add('hidden');
+            }
+        });
+    }
+
+    // Handle date filter custom option
     if (dateFilter) {
         dateFilter.addEventListener('change', (e) => {
             const value = e.target.value;
@@ -138,22 +160,25 @@ function initQuotationFilters() {
                     currentFilters.customEndDate = endDate;
                     applyQuotationFilters();
                 });
-            } else {
-                currentFilters.dateFilter = value;
-                currentFilters.customStartDate = null;
-                currentFilters.customEndDate = null;
-                applyQuotationFilters();
             }
         });
     }
 
-    if (sortFilter) {
-        sortFilter.addEventListener('change', (e) => {
-            currentFilters.sortBy = e.target.value;
+    // Apply filters button
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            if (dateFilter && dateFilter.value !== 'custom') {
+                currentFilters.dateFilter = dateFilter.value;
+                currentFilters.customStartDate = null;
+                currentFilters.customEndDate = null;
+            }
+            if (sortFilter) currentFilters.sortBy = sortFilter.value;
             applyQuotationFilters();
+            if (filterPopover) filterPopover.classList.add('hidden');
         });
     }
 
+    // Clear filters button
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', () => {
             currentFilters = {
@@ -165,6 +190,7 @@ function initQuotationFilters() {
             if (dateFilter) dateFilter.value = 'all';
             if (sortFilter) sortFilter.value = 'date-desc';
             applyQuotationFilters();
+            if (filterPopover) filterPopover.classList.add('hidden');
         });
     }
 }
