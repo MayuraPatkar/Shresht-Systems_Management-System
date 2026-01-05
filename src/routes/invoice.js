@@ -150,9 +150,11 @@ router.post("/save-invoice", async (req, res) => {
             if (type === 'original') {
                 // Revert previous items
                 for (let prev of existingInvoice.items_original) {
-                    await Stock.updateOne({ item_name: prev.description }, { $inc: { quantity: prev.quantity } });
+                    if (!prev.description) continue;
+                    const itemName = prev.description.trim();
+                    await Stock.updateOne({ item_name: itemName }, { $inc: { quantity: prev.quantity } });
                     await logStockMovement(
-                        prev.description,
+                        itemName,
                         prev.quantity,
                         'in',
                         'invoice',
@@ -162,9 +164,11 @@ router.post("/save-invoice", async (req, res) => {
                 }
                 // Deduct new items
                 for (let cur of items_original) {
-                    await Stock.updateOne({ item_name: cur.description }, { $inc: { quantity: -cur.quantity } });
+                    if (!cur.description) continue;
+                    const itemName = cur.description.trim();
+                    await Stock.updateOne({ item_name: itemName }, { $inc: { quantity: -cur.quantity } });
                     await logStockMovement(
-                        cur.description,
+                        itemName,
                         cur.quantity,
                         'out',
                         'invoice',
@@ -217,12 +221,14 @@ router.post("/save-invoice", async (req, res) => {
             // Stock Logic: Deduct stock for new invoice
             if (type === 'original') {
                 for (let item of items_original) {
-                    const stockItem = await Stock.findOne({ item_name: item.description });
+                    if (!item.description) continue;
+                    const itemName = item.description.trim();
+                    const stockItem = await Stock.findOne({ item_name: itemName });
                     if (stockItem) {
                         stockItem.quantity -= item.quantity;
                         await stockItem.save();
                         await logStockMovement(
-                            item.description,
+                            itemName,
                             item.quantity,
                             'out',
                             'invoice',

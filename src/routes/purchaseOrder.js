@@ -138,7 +138,8 @@ router.post("/save-purchase-order", async (req, res) => {
         if (previousItems.length > 0) {
             for (const prevItem of previousItems) {
                 if (!prevItem.description) continue;
-                let stockItem = await Stock.findOne({ item_name: prevItem.description });
+                const itemName = prevItem.description.trim();
+                let stockItem = await Stock.findOne({ item_name: itemName });
                 if (stockItem) {
                     const reversalQty = Number(prevItem.quantity || 0);
                     stockItem.quantity = Number(stockItem.quantity || 0) - reversalQty;
@@ -147,7 +148,7 @@ router.post("/save-purchase-order", async (req, res) => {
                     // Record reversal movement
                     await StockMovement.create({
                         timestamp: new Date(),
-                        item_name: prevItem.description,
+                        item_name: itemName,
                         movement_type: 'adjustment', // Use adjustment for corrections
                         quantity_change: -reversalQty, // Negative for removal
                         reference_type: 'purchase_order',
@@ -162,8 +163,8 @@ router.post("/save-purchase-order", async (req, res) => {
         // 2. Add current items to stock
         for (const item of items) {
             if (!item.description) continue;
-
-            let stockItem = await Stock.findOne({ item_name: item.description });
+            const itemName = item.description.trim();
+            let stockItem = await Stock.findOne({ item_name: itemName });
 
             if (stockItem) {
                 const addQty = Number(item.quantity || 0);
@@ -180,7 +181,7 @@ router.post("/save-purchase-order", async (req, res) => {
                 // Record 'in' movement
                 await StockMovement.create({
                     timestamp: new Date(),
-                    item_name: item.description,
+                    item_name: itemName,
                     movement_type: 'in',
                     quantity_change: addQty,
                     reference_type: 'purchase_order',
@@ -192,7 +193,7 @@ router.post("/save-purchase-order", async (req, res) => {
             } else {
                 const addQty = Number(item.quantity || 0);
                 await Stock.create({
-                    item_name: item.description,
+                    item_name: itemName,
                     HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
                     specifications: item.specification || "",
                     company: item.company || "",
@@ -209,7 +210,7 @@ router.post("/save-purchase-order", async (req, res) => {
                 // Record 'in' movement for new item
                 await StockMovement.create({
                     timestamp: new Date(),
-                    item_name: item.description,
+                    item_name: itemName,
                     movement_type: 'in',
                     quantity_change: addQty,
                     reference_type: 'purchase_order',

@@ -11,12 +11,12 @@ const purchaseSchema = new mongoose.Schema({
     purchase_date: { type: Date, default: Date.now },
     items: [
         {
-            description: { type: String },
-            specification: { type: String },
-            HSN_SAC: { type: String },
-            company: { type: String },
+            description: { type: String, trim: true },
+            specification: { type: String, trim: true },
+            HSN_SAC: { type: String, trim: true },
+            company: { type: String, trim: true },
             type: { type: String, enum: ['Material', 'Asset'], default: 'Material' },
-            category: { type: String },
+            category: { type: String, trim: true },
             quantity: { type: Number },
             unit_price: { type: Number },
             rate: { type: Number },

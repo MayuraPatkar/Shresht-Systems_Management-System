@@ -251,8 +251,13 @@ function renderStockReport(movements, summary) {
             movement.movement_type === 'out' ? 'text-red-600' : 'text-yellow-600';
         const typeIcon = movement.movement_type === 'in' ? 'fa-arrow-down' :
             movement.movement_type === 'out' ? 'fa-arrow-up' : 'fa-exchange-alt';
-        const quantityPrefix = movement.movement_type === 'in' ? '+' :
-            movement.movement_type === 'out' ? '-' : '';
+        
+        let quantityPrefix = '';
+        if (movement.movement_type === 'in') quantityPrefix = '+';
+        else if (movement.movement_type === 'out') quantityPrefix = '-';
+        else if (movement.movement_type === 'adjustment') {
+            quantityPrefix = movement.quantity_change >= 0 ? '+' : '-';
+        }
 
         return `
             <tr class="hover:bg-gray-50">

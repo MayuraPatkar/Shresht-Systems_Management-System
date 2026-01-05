@@ -34,8 +34,8 @@ const invoiceSchema = new mongoose.Schema({
     // items
     items_original: [
         {
-            description: { type: String },
-            HSN_SAC: { type: String },
+            description: { type: String, trim: true },
+            HSN_SAC: { type: String, trim: true },
             quantity: { type: Number },
             unit_price: { type: Number },
             rate: { type: Number },
@@ -43,8 +43,8 @@ const invoiceSchema = new mongoose.Schema({
     ],
     items_duplicate: [
         {
-            description: { type: String },
-            HSN_SAC: { type: String },
+            description: { type: String, trim: true },
+            HSN_SAC: { type: String, trim: true },
             quantity: { type: Number },
             unit_price: { type: Number },
             rate: { type: Number },
