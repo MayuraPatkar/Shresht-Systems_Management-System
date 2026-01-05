@@ -31,17 +31,22 @@ function updateNavigation() {
 
 // Setup navigation button listeners
 document.addEventListener('DOMContentLoaded', function () {
-    // Next button
-    const nextBtn = document.getElementById("next-btn");
+    // Next button - replace with cloned node to clear any previously attached handlers
+    let nextBtnOld = document.getElementById("next-btn");
+    let nextBtn = null;
+    if (nextBtnOld) {
+        nextBtn = nextBtnOld.cloneNode(true);
+        nextBtnOld.parentNode.replaceChild(nextBtn, nextBtnOld);
+    }
     if (nextBtn) {
-        nextBtn.addEventListener("click", async () => {
+        nextBtn.addEventListener("click", async () => { if (nextBtn.dataset.processing === "1") return; nextBtn.dataset.processing = "1"; try {
             if (typeof window.validateCurrentStep === 'function') {
                 const ok = await window.validateCurrentStep();
                 if (!ok) return;
             }
 
-            // If user is on Step 2 (Import step), import quotation data before advancing
-            if (window.currentStep === 2) {
+            // If user is on Step 1 (Import step), import quotation data before advancing
+            if (window.currentStep === 1 && document.getElementById("quotation-id")) {
                 const quotationId = document.getElementById("quotation-id")?.value;
                 if (quotationId) {
                     try {
@@ -65,6 +70,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             addItemFromData(item, itemSno);
                             itemSno++;
                         });
+
+                        // Advance to the next step
+                        if (window.currentStep < window.totalSteps) {
+                            window.changeStep(window.currentStep + 1);
+                        }
+                        return;
+
                     } catch (error) {
                         console.error("Error:", error);
                         window.electronAPI.showAlert1("Failed to fetch quotation.");
@@ -72,17 +84,30 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             }
+
+            // Advance to the next step after passing validation/import
+            if (window.currentStep < window.totalSteps) {
+                window.changeStep(window.currentStep + 1);
+            }
+        } finally {
+            delete nextBtn.dataset.processing;
+        }
         });
     }
 
-    // Previous button
-    const prevBtn = document.getElementById("prev-btn");
+    // Previous button - replace with cloned node to clear any previously attached handlers
+    let prevBtnOld = document.getElementById("prev-btn");
+    let prevBtn = null;
+    if (prevBtnOld) {
+        prevBtn = prevBtnOld.cloneNode(true);
+        prevBtnOld.parentNode.replaceChild(prevBtn, prevBtnOld);
+    }
     if (prevBtn) {
-        prevBtn.addEventListener("click", () => {
+prevBtn.addEventListener('click', () => { if (prevBtn.dataset.processing === '1') return; prevBtn.dataset.processing = '1'; try {
             if (window.currentStep > 1) {
                 window.changeStep(window.currentStep - 1);
             }
-        });
+        } finally { delete prevBtn.dataset.processing; } });
     }
 });
 
@@ -301,10 +326,21 @@ async function openWayBill(wayBillId) {
 
 
 // Setup add item button listener after DOM loads
+// Use clone to remove any existing/global click handlers and attach module-specific handler
 document.addEventListener('DOMContentLoaded', function () {
-    const addItemBtn = document.getElementById('add-item-btn');
-    if (addItemBtn) {
-        addItemBtn.addEventListener('click', addItem);
+    const addItemBtnOld = document.getElementById('add-item-btn');
+    if (addItemBtnOld) {
+        const addItemBtn = addItemBtnOld.cloneNode(true);
+        addItemBtnOld.parentNode.replaceChild(addItemBtn, addItemBtnOld);
+        addItemBtn.addEventListener('click', () => {
+            if (addItemBtn.dataset.processing === '1') return;
+            addItemBtn.dataset.processing = '1';
+            try {
+                addItem();
+            } finally {
+                delete addItemBtn.dataset.processing;
+            }
+        });
     } else {
         console.error('add-item-btn not found in DOM');
     }
@@ -386,7 +422,9 @@ function addItemFromData(item, itemSno, insertIndex) {
     });
 
     // Setup autocomplete for description input (module-specific)
-    const cardDescriptionInput = card.querySelector('input[placeholder="Description"]');
+    // card uses placeholder "Enter item description" while row uses "Item Description".
+    // Use a robust selector that targets the text input inside the description container.
+    const cardDescriptionInput = card.querySelector('.description input[type="text"], .description input');
     const cardSuggestions = card.querySelector('.suggestions');
     const rowDescriptionInput = row.querySelector('td:nth-child(2) input[type="text"]');
     const rowSuggestions = row.querySelector('.suggestions');
@@ -432,18 +470,25 @@ function addItemFromData(item, itemSno, insertIndex) {
     }
 }
 
-// Add a new empty item
+// Add a new empty item (guarded against rapid duplicate calls)
 function addItem(insertIndex) {
-    const itemsTableBody = document.querySelector("#items-table tbody");
-    const itemSno = itemsTableBody.rows.length + 1;
+    if (addItem._processing) return;
+    addItem._processing = true;
+    try {
+        const itemsTableBody = document.querySelector("#items-table tbody");
+        const itemSno = itemsTableBody.rows.length + 1;
 
-    addItemFromData({
-        description: '',
-        HSN_SAC: '',
-        quantity: '',
-        unit_price: '',
-        rate: ''
-    }, itemSno, insertIndex);
+        addItemFromData({
+            description: '',
+            HSN_SAC: '',
+            quantity: '',
+            unit_price: '',
+            rate: ''
+        }, itemSno, insertIndex);
+    } finally {
+        // Allow subsequent calls after a short delay
+        setTimeout(() => { delete addItem._processing; }, 50);
+    }
 }
 
 // --- Waybill-specific autocomplete implementation ---
@@ -718,40 +763,49 @@ async function sendToServer(data, shouldPrint) {
 }
 
 // Event listener for the "Save" button
-document.getElementById("save-btn").addEventListener("click", async () => {
-    const wayBillData = collectFormData();
-    const ok = await sendToServer(wayBillData, false);
-    if (ok) window.electronAPI.showAlert1("Way Bill saved successfully!");
-});
+const saveBtn = document.getElementById("save-btn");
+if (saveBtn) {
+    saveBtn.addEventListener("click", async () => {
+        const wayBillData = collectFormData();
+        const ok = await sendToServer(wayBillData, false);
+        if (ok) window.electronAPI.showAlert1("Way Bill saved successfully!");
+    });
+}
 
 // Event listener for the "Print" button
-document.getElementById("print-btn").addEventListener("click", async () => {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const wayBillData = collectFormData();
-        const ok = await sendToServer(wayBillData, true);
-        if (ok) {
-            window.electronAPI.handlePrintEvent(previewContent, "print");
+const printBtn = document.getElementById("print-btn");
+if (printBtn) {
+    printBtn.addEventListener("click", async () => {
+        const previewContent = document.getElementById("preview-content").innerHTML;
+        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+            const wayBillData = collectFormData();
+            const ok = await sendToServer(wayBillData, true);
+            if (ok) {
+                window.electronAPI.handlePrintEvent(previewContent, "print");
+            }
+        } else {
+            window.electronAPI.showAlert1("Print functionality is not available.");
         }
-    } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
-    }
-});
+    });
+}
 
 // Event listener for the "Save as PDF" button
-document.getElementById("save-pdf-btn").addEventListener("click", async () => {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const wayBillData = collectFormData();
-        const ok = await sendToServer(wayBillData, true);
-        if (ok) {
-            let name = `WayBill-${wayBillData.waybill_id}`;
-            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+const savePdfBtn = document.getElementById("save-pdf-btn");
+if (savePdfBtn) {
+    savePdfBtn.addEventListener("click", async () => {
+        const previewContent = document.getElementById("preview-content").innerHTML;
+        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
+            const wayBillData = collectFormData();
+            const ok = await sendToServer(wayBillData, true);
+            if (ok) {
+                let name = `WayBill-${wayBillData.waybill_id}`;
+                window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+            }
+        } else {
+            window.electronAPI.showAlert1("Print functionality is not available.");
         }
-    } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
-    }
-});
+    });
+}
 
 // Function to collect form data
 function collectFormData() {
@@ -792,7 +846,7 @@ async function getId() {
 }
 
 // Initialize drag-drop reordering for waybill items
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     if (window.itemReorder && typeof window.itemReorder.initDragDrop === 'function') {
         window.itemReorder.initDragDrop('items-container', renumberItems);
     }
