@@ -117,18 +117,25 @@ router.get('/stock', async (req, res) => {
 
             // 2. Identify Stock items that already have StockMovements of type 'stock'
             // We check against the fetched 'movements' array.
-            // Risk: If the movement fell out of the 1000 limit, we might duplicate.
-            // But for recent items (within date range), they should be there.
+            // 2. Identify Stock items that already have StockMovements
+            // We track both IDs (for manual stock entries) and Names (for PO/Invoice entries)
             const trackedStockIds = new Set(
                 movements
                     .filter(m => m.reference_type === 'stock')
                     .map(m => m.reference_id)
             );
 
+            const trackedItemNames = new Set(
+                movements.map(m => m.item_name)
+            );
+
             // 3. Convert untracked Stock items into movement objects
             allStock.forEach(item => {
-                // Skip if this Stock item is already tracked
+                // Skip if this Stock item is already tracked by ID
                 if (trackedStockIds.has(item._id.toString())) return;
+
+                // Skip if this Stock item has ANY movement in the current report period (e.g. PO, Invoice)
+                if (trackedItemNames.has(item.item_name)) return;
 
                 // Apply Date Filters to the creation date
                 const itemDate = new Date(item.createdAt);
