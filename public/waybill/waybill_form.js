@@ -769,41 +769,8 @@ if (saveBtn) {
         const wayBillData = collectFormData();
         const ok = await sendToServer(wayBillData, false);
         if (ok) window.electronAPI.showAlert1("Way Bill saved successfully!");
-    });
-}
+        window.location = '/waybill';
 
-// Event listener for the "Print" button
-const printBtn = document.getElementById("print-btn");
-if (printBtn) {
-    printBtn.addEventListener("click", async () => {
-        const previewContent = document.getElementById("preview-content").innerHTML;
-        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-            const wayBillData = collectFormData();
-            const ok = await sendToServer(wayBillData, true);
-            if (ok) {
-                window.electronAPI.handlePrintEvent(previewContent, "print");
-            }
-        } else {
-            window.electronAPI.showAlert1("Print functionality is not available.");
-        }
-    });
-}
-
-// Event listener for the "Save as PDF" button
-const savePdfBtn = document.getElementById("save-pdf-btn");
-if (savePdfBtn) {
-    savePdfBtn.addEventListener("click", async () => {
-        const previewContent = document.getElementById("preview-content").innerHTML;
-        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-            const wayBillData = collectFormData();
-            const ok = await sendToServer(wayBillData, true);
-            if (ok) {
-                let name = `WayBill-${wayBillData.waybill_id}`;
-                window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
-            }
-        } else {
-            window.electronAPI.showAlert1("Print functionality is not available.");
-        }
     });
 }
 

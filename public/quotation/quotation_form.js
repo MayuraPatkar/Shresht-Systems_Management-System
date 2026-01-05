@@ -1390,33 +1390,6 @@ document.getElementById("save-btn").addEventListener("click", async () => {
     }
 });
 
-// Event listener for the "Print" button
-document.getElementById("print-btn").addEventListener("click", async () => {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEventQuatation) {
-        const quotationData = collectFormData();
-        await sendToServer(quotationData, true);
-        let name = `Quotation-${quotationId}`;
-        window.electronAPI.handlePrintEventQuatation(previewContent, "print", name);
-    } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
-    }
-});
-
-// Event listener for the "Save as PDF" button
-document.getElementById("save-pdf-btn").addEventListener("click", async () => {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEventQuatation) {
-        const quotationData = collectFormData();
-        await sendToServer(quotationData, true);
-        let name = `Quotation-${quotationId}`;
-        window.electronAPI.handlePrintEventQuatation(previewContent, "savePDF", name);
-    } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
-    }
-});
-
-
 // Helper: convert various date values into YYYY-MM-DD for <input type="date">
 function toInputDate(value) {
     // Accept Date object, ISO string, timestamp, or null/undefined.

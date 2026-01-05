@@ -709,31 +709,8 @@ document.getElementById("save-btn").addEventListener("click", async () => {
     const purchaseOrderData = collectFormData();
     const ok = await sendToServer(purchaseOrderData);
     if (ok) window.electronAPI.showAlert1("Purchase Order saved successfully!");
-});
+    window.location = '/purchaseOrder';
 
-document.getElementById("print-btn").addEventListener("click", async () => {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const purchaseOrderData = collectFormData();
-        const ok = await sendToServer(purchaseOrderData);
-        if (ok) window.electronAPI.handlePrintEvent(previewContent, "print", "print");
-    } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
-    }
-});
-
-document.getElementById("save-pdf-btn").addEventListener("click", async () => {
-    const previewContent = document.getElementById("preview-content").innerHTML;
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        const purchaseOrderData = collectFormData();
-        const ok = await sendToServer(purchaseOrderData);
-        if (ok) {
-            let name = `PurchaseOrder-${purchaseOrderId}`;
-            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
-        }
-    } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
-    }
 });
 
 // Function to generate the preview

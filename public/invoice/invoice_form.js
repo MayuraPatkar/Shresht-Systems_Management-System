@@ -805,7 +805,7 @@ async function generatePreview() {
     if (previewContainer) {
         const declarationEl = previewContainer.querySelector('.declaration');
         const termsEl = previewContainer.querySelector('.terms-section');
-        
+
         // Only update if the element exists and has content (to avoid overwriting with null/empty on first load)
         if (declarationEl && declarationEl.innerHTML.trim() !== "") {
             currentDeclaration = declarationEl.innerHTML;
@@ -1013,28 +1013,28 @@ async function sendToServer(data, shouldPrint) {
 // Event listener for the "Save" button
 document.getElementById("save-btn").addEventListener("click", async () => {
     if (isSaving) return;
-    
+
     const saveBtn = document.getElementById("save-btn");
     const originalText = saveBtn.innerHTML;
-    
+
     try {
         isSaving = true;
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        
+
         const invoiceData = collectFormData();
         const response = await sendToServer(invoiceData, false);
-        
+
         if (response) {
             window.electronAPI.showAlert1("Invoice saved successfully!");
-            
+
             // Update ID if returned to prevent duplicate creation on subsequent saves
             if (response.invoice_id) {
                 invoiceId = response.invoice_id;
                 const idInput = document.getElementById('id');
                 if (idInput) idInput.value = invoiceId;
                 // Ensure subsequent saves are treated as updates
-                sessionStorage.setItem('update-invoice', 'original'); 
+                sessionStorage.setItem('update-invoice', 'original');
             }
         }
     } catch (error) {
@@ -1044,42 +1044,9 @@ document.getElementById("save-btn").addEventListener("click", async () => {
         isSaving = false;
         saveBtn.disabled = false;
         saveBtn.innerHTML = originalText;
+        window.location = '/invoice';
+
     }
-});
-
-// Event listener for the "Print" button
-document.getElementById("print-btn").addEventListener("click", async () => {
-    await generatePreview(); // Ensure preview is up to date
-    setTimeout(async () => {
-        const previewContent = document.getElementById("preview-content").innerHTML;
-        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-            const invoiceData = collectFormData();
-            const ok = await sendToServer(invoiceData, true);
-            if (ok) {
-                window.electronAPI.handlePrintEvent(previewContent, "print");
-            }
-        } else {
-            window.electronAPI.showAlert1("Print functionality is not available.");
-        }
-    }, 0);
-});
-
-// Event listener for the "Save as PDF" button
-document.getElementById("save-pdf-btn").addEventListener("click", async () => {
-    await generatePreview();
-    setTimeout(async () => {
-        const previewContent = document.getElementById("preview-content").innerHTML;
-        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-            const invoiceData = collectFormData();
-            const ok = await sendToServer(invoiceData, true);
-            if (ok) {
-                let name = `Invoice-${invoiceId}`;
-                window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
-            }
-        } else {
-            window.electronAPI.showAlert1("Print functionality is not available.");
-        }
-    }, 0);
 });
 
 // Function to collect form data
@@ -1092,7 +1059,7 @@ function collectFormData() {
     if (previewContainer) {
         const declarationEl = previewContainer.querySelector('.declaration');
         const termsEl = previewContainer.querySelector('.terms-section');
-        
+
         if (declarationEl) currentDeclaration = declarationEl.innerHTML;
         if (termsEl) currentTermsAndConditions = termsEl.innerHTML;
     }
