@@ -386,14 +386,24 @@ function showNewQuotationForm() {
         dateInput.value = `${yyyy}-${mm}-${dd}`;
     }
 
-    // Focus on the Quotation ID field
+    // Focus on the Quotation ID field and hide Print/PDF buttons for new quotations
     setTimeout(() => {
         const idInput = document.getElementById('id');
         if (idInput) {
             idInput.readOnly = false;
             idInput.style.backgroundColor = ''; // Reset to default
+            idInput.value = ''; // Clear any previous value
             idInput.focus();
         }
+        // Reset custom ID flag (it's in quotation_form.js scope)
+        if (typeof isCustomId !== 'undefined') {
+            isCustomId = false;
+        }
+        // Hide Print and Save as PDF buttons for new quotations
+        const printBtn = document.getElementById('print-btn');
+        const savePdfBtn = document.getElementById('save-pdf-btn');
+        if (printBtn) printBtn.style.display = 'none';
+        if (savePdfBtn) savePdfBtn.style.display = 'none';
     }, 100);
 }
 
@@ -562,7 +572,8 @@ function triggerAddEntry() {
 
 function triggerPrintAction() {
     const formPrintBtn = document.getElementById('print-btn');
-    if (formPrintBtn && isFormActive()) {
+    // Only trigger print if button exists, form is active, AND button is visible
+    if (formPrintBtn && isFormActive() && window.getComputedStyle(formPrintBtn).display !== 'none') {
         runOnPreviewStep(() => formPrintBtn.click());
         return true;
     }

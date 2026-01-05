@@ -3,12 +3,22 @@ let quotationId = '';
 let totalAmountNoTax = 0;
 let totalAmountTax = 0;
 let totalTax = 0;
+let isCustomId = false; // Tracks if user manually entered a custom ID
 
 // Initialize the step indicator on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const stepIndicator = document.getElementById('step-indicator');
     if (stepIndicator) {
         stepIndicator.textContent = `Step 1 of ${totalSteps}`;
+    }
+
+    // Add listener for custom ID input
+    const idInput = document.getElementById('id');
+    if (idInput) {
+        idInput.addEventListener('input', () => {
+            quotationId = idInput.value.trim();
+            isCustomId = true; // User manually typed in the ID field
+        });
     }
 });
 
@@ -73,6 +83,13 @@ async function openQuotation(quotationId) {
     idInput.value = quotation.quotation_id;
     idInput.readOnly = true;
     idInput.style.backgroundColor = '#f3f4f6'; // Light gray to indicate disabled
+
+    // Hide Print and Save as PDF buttons in form - only available in View mode
+    const printBtn = document.getElementById('print-btn');
+    const savePdfBtn = document.getElementById('save-pdf-btn');
+    if (printBtn) printBtn.style.display = 'none';
+    if (savePdfBtn) savePdfBtn.style.display = 'none';
+
     document.getElementById('project-name').value = quotation.project_name;
     // Use input-safe ISO date for the date field
     document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
@@ -338,6 +355,13 @@ async function cloneQuotation(sourceQuotationId) {
         idInput.readOnly = false;
         idInput.style.backgroundColor = ''; // Reset to default (editable)
         quotationId = newId;
+        isCustomId = false;
+
+        // Hide Print and Save as PDF buttons for cloned (new) quotations
+        const printBtn = document.getElementById('print-btn');
+        const savePdfBtn = document.getElementById('save-pdf-btn');
+        if (printBtn) printBtn.style.display = 'none';
+        if (savePdfBtn) savePdfBtn.style.display = 'none';
 
         // Store the source quotation ID for audit trail
         sessionStorage.setItem('duplicated_from', sourceQuotationId);
@@ -1353,9 +1377,17 @@ async function sendToServer(data, shouldPrint) {
 
 // Event listener for the "Save" button
 document.getElementById("save-btn").addEventListener("click", async () => {
+    const wasNewQuotation = sessionStorage.getItem('currentTab-status') !== 'update';
     const quotationData = collectFormData();
     const ok = await sendToServer(quotationData, false);
-    if (ok) window.electronAPI.showAlert1("Quotation saved successfully!");
+    if (ok) {
+        window.electronAPI.showAlert1("Quotation saved successfully!");
+        // Redirect to Home after saving a new quotation to prevent ID changes
+        if (wasNewQuotation) {
+            sessionStorage.removeItem('currentTab-status');
+            window.location = '/quotation';
+        }
+    }
 });
 
 // Event listener for the "Print" button
@@ -1419,6 +1451,7 @@ function collectFormData() {
 
     return {
         quotation_id: document.getElementById("id").value,
+        isCustomId: isCustomId, // True if user manually typed the ID
         projectName: document.getElementById("project-name").value,
         quotationDate: document.getElementById("quotation-date").value,
         buyerName: document.getElementById("buyer-name").value,
@@ -1483,7 +1516,9 @@ window.validateCurrentStep = async function () {
                         return false;
                     }
                 }
+                // 404 is expected for new custom IDs - this is the desired outcome
             } catch (error) {
+                // Network errors should block, but don't log 404s as errors
                 console.error("Error checking for duplicate quotation ID:", error);
                 window.electronAPI.showAlert1("Error verifying Quotation ID. Please try again.");
                 return false;
