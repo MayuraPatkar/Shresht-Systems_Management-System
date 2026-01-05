@@ -693,6 +693,11 @@ function showNewInvoiceForm() {
         idInput.style.backgroundColor = '';
     }
 
+    // Reset isCustomId flag for new invoices
+    if (typeof isCustomId !== 'undefined') {
+        isCustomId = false;
+    }
+
     // Set default invoice date to today
     const invoiceDateInput = document.getElementById('invoice-date');
     if (invoiceDateInput) {
