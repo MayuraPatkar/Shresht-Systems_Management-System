@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!ok) return;
             }
 
-            // If user is on Step 1 (Import step) and creating a new waybill, import quotation data before advancing
-            if (window.currentStep === 1 && !document.getElementById("waybill-id").value) {
+            // If user is on Step 1 (Import step), import quotation data before advancing
+            if (window.currentStep === 2) {
                 const quotationId = document.getElementById("quotation-id")?.value;
                 if (quotationId) {
                     try {
