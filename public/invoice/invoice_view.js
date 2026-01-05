@@ -52,7 +52,7 @@ function initInvoiceViewTypeTabs() {
             if (viewType === currentInvoiceViewType) return; // Already active
 
             updateInvoiceViewTypeTabs(viewType);
-            
+
             // Re-render with cached invoice data
             if (cachedInvoice && cachedUserRole) {
                 await renderInvoiceView(cachedInvoice, cachedUserRole, viewType);
@@ -74,7 +74,7 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
     const companyEmail = company?.email || '';
     const companyWebsite = company?.website || '';
     const bankDetails = company?.bank_details || {};
-    
+
     let itemsHTML = "";
     let totalPrice = 0;
     let totalCGST = 0;
@@ -228,9 +228,9 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
     }
 
     const grandTotal = totalTaxableValue + totalCGST + totalSGST;
-        const roundedGrandTotal = Math.round(grandTotal);
-        const roundOff = roundedGrandTotal - grandTotal;
-        const finalTotal = roundedGrandTotal;
+    const roundedGrandTotal = Math.round(grandTotal);
+    const roundOff = roundedGrandTotal - grandTotal;
+    const finalTotal = roundedGrandTotal;
 
     const hasTaxSection = hasTax ? `
                 <p>Taxable Value:</p>
@@ -262,10 +262,10 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
 
     // Split items into rows for pagination
     const itemRows = itemsHTML.split('</tr>').filter(row => row.trim().length > 0).map(row => row + '</tr>');
-    
+
     const ITEMS_PER_PAGE = 15;
     const SUMMARY_SECTION_ROW_COUNT = 8;
-    
+
     const itemPages = [];
     let currentPageItemsHTML = '';
     let currentPageRowCount = 0;
@@ -433,7 +433,7 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
 async function renderInvoiceView(invoice, userRole, viewType) {
     // Parse viewType to get docType and showTax
     const { docType, showTax } = parseViewType(viewType);
-    
+
     const invoiceIdLocal = invoice?.invoice_id;
     let sno = 0;
     // Prepare items and non-items based on docType (original or duplicate)
@@ -464,13 +464,13 @@ async function renderInvoiceView(invoice, userRole, viewType) {
     setTextContent('view-delivery-challan-number', (invoice.dc_number && invoice.dc_number !== 'undefined') ? invoice.dc_number : null);
     setTextContent('view-delivery-challan-date', invoice.dc_date ? formatDateIndian(invoice.dc_date) : null);
     setTextContent('view-waybill-number', invoice.Waybill_id);
-    setTextContent('view-service-months', (invoice.service_month !== undefined && invoice.service_month !== null) ? invoice.service_month : null);
-    setTextContent('view-service-stage', (invoice.service_stage !== undefined && invoice.service_stage !== null) ? invoice.service_stage : null);
+    setTextContent('view-service-months', (invoice.service_month) ? invoice.service_month :'0');
+    setTextContent('view-service-stage', (invoice.service_stage) ? invoice.service_stage : 'No Service');
     setTextContent('view-margin', (invoice.margin !== undefined && invoice.margin !== null && invoice.margin !== 0) ? `${invoice.margin}%` : null);
     setTextContent('view-payment-status', invoice.payment_status);
-    
 
-    
+
+
     const balanceDue = (invoice.total_amount_duplicate || 0) - (invoice.total_paid_amount || 0);
     setTextContent('view-balance-due', `₹ ${formatIndian(balanceDue, 2)}`);
 
@@ -481,7 +481,7 @@ async function renderInvoiceView(invoice, userRole, viewType) {
     setTextContent('view-buyer-email', invoice.customer_email);
     setTextContent('view-consignee-name', invoice.consignee_name);
     setTextContent('view-consignee-address', invoice.consignee_address);
-    
+
     // Set the totals for the view section (professional 3-box layout)
     // We'll prefer explicit totals from the invoice if present (and > 0), otherwise compute from items/non-items
     let viewSubtotal = 0;
@@ -615,7 +615,7 @@ async function renderInvoiceView(invoice, userRole, viewType) {
     if (addPaymentBtn) {
         const newBtn = addPaymentBtn.cloneNode(true);
         addPaymentBtn.parentNode.replaceChild(newBtn, addPaymentBtn);
-        
+
         newBtn.addEventListener('click', () => {
             if (typeof payment === 'function') {
                 payment(invoice.invoice_id);
@@ -808,7 +808,7 @@ async function viewInvoice(invoiceId, userRole) {
         if (!userRole) {
             userRole = sessionStorage.getItem('userRole') || 'user';
         }
-        
+
         const type = sessionStorage.getItem('view-invoice') || 'duplicate';
         const response = await fetch(`/invoice/${invoiceId}`);
         if (!response.ok) {
@@ -831,7 +831,7 @@ async function viewInvoice(invoiceId, userRole) {
         const home = document.getElementById('home');
         const newSection = document.getElementById('new');
         const view = document.getElementById('view');
-        
+
         if (viewPreview) viewPreview.style.display = 'none';
         if (home) home.style.display = 'none';
         if (newSection) newSection.style.display = 'none';

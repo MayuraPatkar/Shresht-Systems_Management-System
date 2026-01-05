@@ -25,8 +25,8 @@ router.post('/login', async (req, res) => {
         if (user.lockUntil && user.lockUntil > Date.now()) {
             const remainingTime = Math.ceil((user.lockUntil - Date.now()) / 60000);
             logger.warn(`Login attempt on locked account: ${user.username}`);
-            return res.status(423).json({ 
-                success: false, 
+            return res.status(423).json({
+                success: false,
                 message: `Account is locked. Try again in ${remainingTime} minute(s).`,
                 locked: true,
                 remainingTime
@@ -38,25 +38,25 @@ router.post('/login', async (req, res) => {
         if (!isValidPassword) {
             // Increment login attempts
             user.loginAttempts = (user.loginAttempts || 0) + 1;
-            
+
             // Lock account if max attempts reached
             if (user.loginAttempts >= maxAttempts) {
                 user.lockUntil = new Date(Date.now() + lockoutDuration * 60000);
                 await user.save();
                 logger.warn(`Account locked due to failed login attempts: ${user.username}`);
-                return res.status(423).json({ 
-                    success: false, 
+                return res.status(423).json({
+                    success: false,
                     message: `Account locked for ${lockoutDuration} minutes due to too many failed attempts.`,
                     locked: true,
                     remainingTime: lockoutDuration
                 });
             }
-            
+
             await user.save();
             const attemptsRemaining = maxAttempts - user.loginAttempts;
             logger.warn(`Authentication failed for ${user.username}. Attempts remaining: ${attemptsRemaining}`);
-            return res.status(401).json({ 
-                success: false, 
+            return res.status(401).json({
+                success: false,
                 message: `Invalid credentials. ${attemptsRemaining} attempt(s) remaining.`,
                 attemptsRemaining
             });
@@ -107,6 +107,7 @@ router.post("/change-username", async (req, res) => {
         }
         admin.username = username;
         await admin.save();
+        logger.info("username changed successfully");
         res.json({ message: "Username updated successfully" });
     } catch (error) {
         logger.error("Error changing username:", error);
@@ -133,6 +134,7 @@ router.post("/change-password", async (req, res) => {
         const saltRounds = 10;
         admin.password = await bcrypt.hash(newPassword, saltRounds);
         await admin.save();
+        logger.info("password changed successfully");
         res.json({ message: "Password updated successfully" });
     } catch (error) {
         logger.error("Error changing password:", error);

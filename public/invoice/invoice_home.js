@@ -164,18 +164,33 @@ function applyInvoiceFilters() {
 
 // Initialize filter event listeners
 function initInvoiceFilters() {
+    const filterBtn = document.getElementById('filter-btn');
+    const filterPopover = document.getElementById('filter-popover');
     const paymentFilter = document.getElementById('payment-status-filter');
     const dateFilter = document.getElementById('date-filter');
     const sortFilter = document.getElementById('sort-filter');
-    const clearFiltersBtn = document.getElementById('clear-filters');
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
+    const applyFiltersBtn = document.getElementById('apply-filters-btn');
 
-    if (paymentFilter) {
-        paymentFilter.addEventListener('change', (e) => {
-            currentFilters.paymentStatus = e.target.value;
-            applyInvoiceFilters();
+    // Toggle filter popover
+    if (filterBtn && filterPopover) {
+        filterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rect = filterBtn.getBoundingClientRect();
+            filterPopover.style.top = `${rect.bottom + 8}px`;
+            filterPopover.style.left = `${rect.left}px`;
+            filterPopover.classList.toggle('hidden');
+        });
+
+        // Close popover when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!filterPopover.contains(e.target) && e.target !== filterBtn) {
+                filterPopover.classList.add('hidden');
+            }
         });
     }
 
+    // Handle date filter custom option
     if (dateFilter) {
         dateFilter.addEventListener('change', (e) => {
             const value = e.target.value;
@@ -186,22 +201,26 @@ function initInvoiceFilters() {
                     currentFilters.customEndDate = endDate;
                     applyInvoiceFilters();
                 });
-            } else {
-                currentFilters.dateFilter = value;
-                currentFilters.customStartDate = null;
-                currentFilters.customEndDate = null;
-                applyInvoiceFilters();
             }
         });
     }
 
-    if (sortFilter) {
-        sortFilter.addEventListener('change', (e) => {
-            currentFilters.sortBy = e.target.value;
+    // Apply filters button
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            if (paymentFilter) currentFilters.paymentStatus = paymentFilter.value;
+            if (dateFilter && dateFilter.value !== 'custom') {
+                currentFilters.dateFilter = dateFilter.value;
+                currentFilters.customStartDate = null;
+                currentFilters.customEndDate = null;
+            }
+            if (sortFilter) currentFilters.sortBy = sortFilter.value;
             applyInvoiceFilters();
+            if (filterPopover) filterPopover.classList.add('hidden');
         });
     }
 
+    // Clear filters button
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', () => {
             currentFilters = {
@@ -215,6 +234,7 @@ function initInvoiceFilters() {
             if (dateFilter) dateFilter.value = 'all';
             if (sortFilter) sortFilter.value = 'date-desc';
             applyInvoiceFilters();
+            if (filterPopover) filterPopover.classList.add('hidden');
         });
     }
 }
@@ -728,7 +748,7 @@ async function payment(id, editIndex = null, editData = null) {
         const totalAmount = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
         const paidAmount = invoice.total_paid_amount || 0;
         // In edit mode, add back the original payment amount to due
-        const dueAmount = window.paymentEditMode 
+        const dueAmount = window.paymentEditMode
             ? (totalAmount - paidAmount + window.paymentEditOriginalAmount)
             : (totalAmount - paidAmount);
 
@@ -765,11 +785,11 @@ async function payment(id, editIndex = null, editData = null) {
             // Clone to remove old listeners
             const newPaidAmountInput = paidAmountInput.cloneNode(true);
             paidAmountInput.parentNode.replaceChild(newPaidAmountInput, paidAmountInput);
-            
+
             newPaidAmountInput.value = editData ? editData.paid_amount : '';
 
             // Add validation listener
-            newPaidAmountInput.addEventListener('input', function() {
+            newPaidAmountInput.addEventListener('input', function () {
                 const val = parseFloat(this.value);
                 if (val > dueAmount) {
                     this.setCustomValidity(`Amount cannot exceed due amount (₹ ${formatIndian(dueAmount, 2)})`);
@@ -823,7 +843,7 @@ async function payment(id, editIndex = null, editData = null) {
             // Remove existing listener to avoid duplicates
             const newAutofillBtn = autofillBtn.cloneNode(true);
             autofillBtn.parentNode.replaceChild(newAutofillBtn, autofillBtn);
-            
+
             newAutofillBtn.addEventListener('click', () => {
                 const paidAmountInput = document.getElementById('paid-amount');
                 if (paidAmountInput && dueAmount > 0) {
@@ -914,14 +934,14 @@ async function deletePayment(invoiceId, paymentIndex) {
 // Close payment modal handler
 document.getElementById('close-payment-modal')?.addEventListener('click', () => {
     document.getElementById('payment-container').style.display = 'none';
-    
+
     if (window.paymentReturnView === 'view') {
         document.getElementById('view').style.display = 'block';
         // Refresh view to show any changes (if they paid and didn't close via success path, though unlikely)
         // Or just return to view state
         const userRole = sessionStorage.getItem('userRole');
         if (typeof viewInvoice === 'function' && window.currentPaymentInvoiceId) {
-             viewInvoice(window.currentPaymentInvoiceId, userRole);
+            viewInvoice(window.currentPaymentInvoiceId, userRole);
         }
     } else {
         document.getElementById('home').style.display = 'block';
@@ -994,7 +1014,7 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
             const totalAmount = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
             const paidSoFar = invoice.total_paid_amount || 0;
             // In edit mode, add back the original payment amount to due
-            const adjustedDue = window.paymentEditMode 
+            const adjustedDue = window.paymentEditMode
                 ? (totalAmount - paidSoFar + window.paymentEditOriginalAmount)
                 : (totalAmount - paidSoFar);
             dueAmount = Number(adjustedDue.toFixed(2));
@@ -1092,7 +1112,7 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
         // Use different endpoint based on edit mode
         const endpoint = window.paymentEditMode ? "/invoice/update-payment" : "/invoice/save-payment";
         const method = window.paymentEditMode ? "PUT" : "POST";
-        
+
         const response = await fetch(endpoint, {
             method: method,
             headers: { "Content-Type": "application/json" },
@@ -1107,12 +1127,12 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
             paymentBtn.innerHTML = originalBtnText;
         } else {
             window.electronAPI.showAlert1(window.paymentEditMode ? "Payment Updated!" : "Payment Saved!");
-            
+
             // Reset edit mode
             window.paymentEditMode = false;
             window.paymentEditIndex = null;
             window.paymentEditOriginalAmount = 0;
-            
+
             document.getElementById("paid-amount").value = '';
             // Reset payment date to today
             const paymentDateEl = document.getElementById('payment-date');
@@ -1135,12 +1155,12 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
 
             // Close payment modal and return to appropriate view
             document.getElementById('payment-container').style.display = 'none';
-            
+
             if (window.paymentReturnView === 'view') {
                 document.getElementById('view').style.display = 'block';
                 const userRole = sessionStorage.getItem('userRole');
                 if (typeof viewInvoice === 'function' && window.currentPaymentInvoiceId) {
-                     viewInvoice(window.currentPaymentInvoiceId, userRole);
+                    viewInvoice(window.currentPaymentInvoiceId, userRole);
                 }
             } else {
                 document.getElementById('home').style.display = 'block';

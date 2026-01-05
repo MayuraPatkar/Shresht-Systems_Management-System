@@ -24,42 +24,16 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Bill / Invoice</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-4xl mx-8">
+            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     <input type="text" id="search-input" placeholder="Search invoices..."
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <div class="flex items-center gap-2">
-                    <select id="payment-status-filter"
-                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
-                        <option value="all">All Status</option>
-                        <option value="paid">Paid</option>
-                        <option value="unpaid">Unpaid</option>
-                        <option value="partial">Partial</option>
-                    </select>
-                    <select id="date-filter"
-                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
-                        <option value="all">All Dates</option>
-                        <option value="today">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                        <option value="custom">Custom Range</option>
-                    </select>
-                    <select id="sort-filter"
-                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
-                        <option value="date-desc">Latest First</option>
-                        <option value="date-asc">Oldest First</option>
-                        <option value="amount-desc">High to Low</option>
-                        <option value="amount-asc">Low to High</option>
-                        <option value="name-asc">Name A-Z</option>
-                    </select>
-                    <button id="clear-filters"
-                        class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
-                        title="Clear Filters">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
+                <button id="filter-btn"
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2 font-medium border border-gray-300">
+                    <i class="fas fa-filter"></i>
+                </button>
             </div>
             <div class="flex items-center gap-3">
                 <button id="new-invoice"
@@ -754,7 +728,8 @@
                             <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
                         </div>
-                        <button id="view-add-payment-btn" class="text-sm bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 border border-green-700 transition-colors flex items-center gap-2">
+                        <button id="view-add-payment-btn"
+                            class="text-sm bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 border border-green-700 transition-colors flex items-center gap-2">
                             <i class="fas fa-plus"></i> Add Payment
                         </button>
                     </div>
@@ -896,6 +871,51 @@
             </div>
         </div>
     </main>
+
+    <!-- Filter Popover -->
+    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden"
+        style="width: 280px;">
+        <h3 class="font-semibold text-gray-800 mb-3">Filter & Sort</h3>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
+            <select id="payment-status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="all">All Status</option>
+                <option value="paid">Paid</option>
+                <option value="unpaid">Unpaid</option>
+                <option value="partial">Partial</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+            <select id="date-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="all">All Dates</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="custom">Custom Range</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+            <select id="sort-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="date-desc">Latest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="amount-desc">Amount: High to Low</option>
+                <option value="amount-asc">Amount: Low to High</option>
+                <option value="name-asc">Name A-Z</option>
+            </select>
+        </div>
+        <div class="flex gap-2">
+            <button id="clear-filters-btn"
+                class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm">
+                Clear
+            </button>
+            <button id="apply-filters-btn"
+                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">
+                Apply
+            </button>
+        </div>
+    </div>
 
     <!-- Keyboard Shortcuts Modal -->
     <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">

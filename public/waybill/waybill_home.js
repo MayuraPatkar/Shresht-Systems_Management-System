@@ -518,10 +518,32 @@ function applyWayBillFilters() {
 
 // Initialize filter event listeners
 function initWayBillFilters() {
+    const filterBtn = document.getElementById('filter-btn');
+    const filterPopover = document.getElementById('filter-popover');
     const dateFilter = document.getElementById('date-filter');
     const sortFilter = document.getElementById('sort-filter');
-    const clearFiltersBtn = document.getElementById('clear-filters');
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
+    const applyFiltersBtn = document.getElementById('apply-filters-btn');
 
+    // Toggle filter popover
+    if (filterBtn && filterPopover) {
+        filterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rect = filterBtn.getBoundingClientRect();
+            filterPopover.style.top = `${rect.bottom + 8}px`;
+            filterPopover.style.left = `${rect.left}px`;
+            filterPopover.classList.toggle('hidden');
+        });
+
+        // Close popover when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!filterPopover.contains(e.target) && e.target !== filterBtn) {
+                filterPopover.classList.add('hidden');
+            }
+        });
+    }
+
+    // Handle date filter custom option
     if (dateFilter) {
         dateFilter.addEventListener('change', (e) => {
             const value = e.target.value;
@@ -532,22 +554,25 @@ function initWayBillFilters() {
                     currentFilters.customEndDate = endDate;
                     applyWayBillFilters();
                 });
-            } else {
-                currentFilters.dateFilter = value;
-                currentFilters.customStartDate = null;
-                currentFilters.customEndDate = null;
-                applyWayBillFilters();
             }
         });
     }
 
-    if (sortFilter) {
-        sortFilter.addEventListener('change', (e) => {
-            currentFilters.sortBy = e.target.value;
+    // Apply filters button
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            if (dateFilter && dateFilter.value !== 'custom') {
+                currentFilters.dateFilter = dateFilter.value;
+                currentFilters.customStartDate = null;
+                currentFilters.customEndDate = null;
+            }
+            if (sortFilter) currentFilters.sortBy = sortFilter.value;
             applyWayBillFilters();
+            if (filterPopover) filterPopover.classList.add('hidden');
         });
     }
 
+    // Clear filters button
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', () => {
             currentFilters = {
@@ -559,6 +584,7 @@ function initWayBillFilters() {
             if (dateFilter) dateFilter.value = 'all';
             if (sortFilter) sortFilter.value = 'date-desc';
             applyWayBillFilters();
+            if (filterPopover) filterPopover.classList.add('hidden');
         });
     }
 }
@@ -588,7 +614,7 @@ function renderWayBills(wayBills) {
 function createWayBillCard(wayBill) {
     const wayBillDiv = document.createElement("div");
     wayBillDiv.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
-    
+
     // Format the date for display
     const dateToFormat = wayBill.waybill_date || wayBill.createdAt;
     let formattedDate = '-';
@@ -605,7 +631,7 @@ function createWayBillCard(wayBill) {
             formattedDate = '-';
         }
     }
-    
+
     wayBillDiv.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
@@ -735,19 +761,19 @@ function showNewWayBillForm() {
         additionalSetup: () => {
             // Reset form
             document.getElementById('waybill-form').reset();
-            
+
             // Clear items table
             const itemsTableBody = document.querySelector("#items-table tbody");
             if (itemsTableBody) {
                 itemsTableBody.innerHTML = "";
             }
-            
+
             // Clear items container
             const itemsContainer = document.getElementById("items-container");
             if (itemsContainer) {
                 itemsContainer.innerHTML = "";
             }
-            
+
             // Reset to step 1 (use window.changeStep from waybill_form.js)
             if (typeof window.changeStep === 'function') {
                 window.changeStep(1);
@@ -776,7 +802,7 @@ async function handleSearch() {
         return;
     }
 
-    await searchDocuments('wayBill', query, wayBillsListDiv, createWayBillCard, 
+    await searchDocuments('wayBill', query, wayBillsListDiv, createWayBillCard,
         `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
             <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
             <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
