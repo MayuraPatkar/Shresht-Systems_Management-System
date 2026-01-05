@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Show home, hide others
         if (homeSection) {
-            window.location = '/invoice#home';
+            window.location = '/invoice';
         }
         if (newSection) {
             newSection.style.display = 'none';
@@ -1495,14 +1495,22 @@ function handleQuotationKeyboardShortcuts(event) {
         return;
     }
 
-    if (event.key === 'Enter' && isFormActive()) {
-        const nextBtn = document.getElementById('next-btn');
-        if (nextBtn && !nextBtn.disabled) {
+    if (event.key === 'Enter') {
+        if (isHomeScreenActive()) {
             event.preventDefault();
             event.stopPropagation();
-            nextBtn.click();
+            return;
         }
-        return;
+
+        if (isFormActive()) {
+            const nextBtn = document.getElementById('next-btn');
+            if (nextBtn && !nextBtn.disabled) {
+                event.preventDefault();
+                event.stopPropagation();
+                nextBtn.click();
+            }
+            return;
+        }
     }
 
     if (event.key === 'Backspace' && isFormActive()) {
