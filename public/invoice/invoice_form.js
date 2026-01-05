@@ -169,8 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Hook that runs before advancing a step; return false to cancel navigation
 window.beforeStepAdvance = async function (step) {
-    // If we're on Step 1 (Import from Quotation) and creating a new invoice, import the quotation data
-    if (step === 1 && !document.getElementById("id").value) {
+    // If we're on Step 1 (Import from Quotation) and NOT updating an existing invoice, import the quotation data
+    // Allow import even if custom invoice ID is provided
+    if (step === 1 && sessionStorage.getItem('currentTab-status') !== 'update') {
         const quotationId = document.getElementById("quotation-id").value;
         if (!quotationId) return true; // nothing to import
 

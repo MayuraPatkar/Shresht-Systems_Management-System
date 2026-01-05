@@ -86,4 +86,44 @@ async function generateNextId(moduleKey) {
   return `${prefix}${datePart}${paddedSeq}`;
 }
 
-module.exports = { previewNextId, generateNextId };
+/**
+ * Syncs the counter if a custom ID matches the auto-generated pattern.
+ * Prevents collision when user enters an ID like INV26010605 manually.
+ * Call this AFTER successfully saving a document with a custom ID.
+ */
+async function syncCounterIfNeeded(moduleKey, customId) {
+  if (!customId || typeof customId !== 'string') return;
+
+  const { prefix, datePart, perDayCounterKey } = await getPrefixAndDateParams(moduleKey);
+
+  // Build regex to match {prefix}{YYMMDD}{seq} pattern
+  // prefix can be any string, datePart is 6 digits (YYMMDD), seq is 2+ digits
+  const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`^${escapedPrefix}(\\d{6})(\\d{2,})$`);
+
+  const match = customId.match(pattern);
+  if (!match) return; // Custom ID doesn't match auto-generated format
+
+  const idDatePart = match[1];
+  const idSeq = parseInt(match[2], 10);
+
+  // Only sync if the date part matches today's date
+  if (idDatePart !== datePart) return;
+
+  // Get current counter value
+  const docDay = await Counters.findOne({ _id: perDayCounterKey }).lean();
+  const currentSeq = (docDay && typeof docDay.seq === 'number') ? docDay.seq : 0;
+
+  // If custom ID's sequence >= current counter, update counter to avoid collision
+  // The counter stores how many IDs have been generated (0-based: seq=5 means IDs 00-04 used)
+  // So if custom ID uses seq=05, we need counter to be at least 6 (so next auto-gen is 06)
+  if (idSeq >= currentSeq) {
+    await Counters.findOneAndUpdate(
+      { _id: perDayCounterKey },
+      { $set: { seq: idSeq + 1 } },
+      { upsert: true }
+    );
+  }
+}
+
+module.exports = { previewNextId, generateNextId, syncCounterIfNeeded };
