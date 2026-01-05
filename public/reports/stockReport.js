@@ -6,6 +6,7 @@
 // Stock report state
 let stockReportData = [];
 let stockReportInitialized = false;
+let stockReportSummary = null;
 
 /**
  * Initialize stock report section
@@ -110,6 +111,7 @@ async function generateStockReport() {
 
                 // Even with no data, we should try to render the (empty) summary if it exists, or zero it out
                 const emptySummary = { total_in: 0, total_out: 0, total_adjustments: 0, net_change: 0 };
+                stockReportSummary = emptySummary;
                 renderStockReport([], emptySummary);
                 return;
             }
@@ -132,6 +134,7 @@ async function generateStockReport() {
                 summary.net_change = inQty + outQty + adjQty;
             }
 
+            stockReportSummary = summary;
             renderStockReport(data.movements, summary);
         } else {
             // If no data from StockMovement, try to generate from stock entries
@@ -198,6 +201,7 @@ async function generateStockReportFromStock(startDate, endDate, movementType, it
             summary.net_change = summary.total_in - summary.total_out + summary.total_adjustments;
 
             stockReportData = movements;
+            stockReportSummary = summary;
             renderStockReport(movements, summary);
         } else {
             tbody.innerHTML = `
@@ -254,7 +258,7 @@ function renderStockReport(movements, summary) {
             movement.movement_type === 'out' ? 'text-red-600' : 'text-yellow-600';
         const typeIcon = movement.movement_type === 'in' ? 'fa-arrow-down' :
             movement.movement_type === 'out' ? 'fa-arrow-up' : 'fa-exchange-alt';
-        
+
         let quantityPrefix = '';
         if (movement.movement_type === 'in') quantityPrefix = '+';
         else if (movement.movement_type === 'out') quantityPrefix = '-';
@@ -302,10 +306,22 @@ function generateStockReportHTML() {
     const startDate = document.getElementById('stock-start-date').value;
     const endDate = document.getElementById('stock-end-date').value;
 
-    const summaryIn = document.getElementById('summary-stock-in').textContent;
-    const summaryOut = document.getElementById('summary-stock-out').textContent;
-    const summaryAdj = document.getElementById('summary-adjustments').textContent;
-    const summaryNet = document.getElementById('summary-net-change').textContent;
+    let summaryIn = '0';
+    let summaryOut = '0';
+    let summaryAdj = '0';
+    let summaryNet = '0';
+
+    if (stockReportSummary) {
+        summaryIn = stockReportSummary.total_in || 0;
+        summaryOut = stockReportSummary.total_out || 0;
+        summaryAdj = stockReportSummary.total_adjustments || 0;
+        summaryNet = stockReportSummary.net_change || 0;
+    } else {
+        summaryIn = document.getElementById('summary-stock-in')?.textContent || '0';
+        summaryOut = document.getElementById('summary-stock-out')?.textContent || '0';
+        summaryAdj = document.getElementById('summary-adjustments')?.textContent || '0';
+        summaryNet = document.getElementById('summary-net-change')?.textContent || '0';
+    }
 
     const tableContent = stockReportData.map(movement => {
         const quantityPrefix = movement.movement_type === 'in' ? '+' :
@@ -405,7 +421,7 @@ window.loadSavedStockReport = function (report) {
         } else {
             document.getElementById('stock-movement-type').value = 'all';
         }
-        
+
         if (filters.item_name) {
             document.getElementById('stock-item-filter').value = filters.item_name;
         } else {
@@ -442,6 +458,7 @@ window.loadSavedStockReport = function (report) {
     }
 
     // Render report
+    stockReportSummary = summary;
     renderStockReport(stockReportData, summary);
 };
 
