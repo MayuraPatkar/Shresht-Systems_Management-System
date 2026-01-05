@@ -47,7 +47,6 @@ try {
 } catch (err) {
     logger.error('Failed to ensure uploads directory:', err);
 }
-logger.info(`PDF uploads directory: ${UPLOADS_DIR}`);
 
 /**
  * Format number in Indian number system
@@ -61,7 +60,7 @@ function formatIndian(num, decimals = 2) {
     const parts = fixed.split('.');
     let intPart = parts[0];
     const decPart = parts[1];
-    
+
     // Indian number system formatting
     const lastThree = intPart.slice(-3);
     const rest = intPart.slice(0, -3);
@@ -152,13 +151,13 @@ function generateQuotationHTML(quotation, companyInfo = {}) {
     } = quotation;
 
     // Calculate if has tax
-    const hasTax = items.some(item => parseFloat(item.rate || 0) > 0) || 
-                   non_items.some(item => parseFloat(item.rate || 0) > 0);
+    const hasTax = items.some(item => parseFloat(item.rate || 0) > 0) ||
+        non_items.some(item => parseFloat(item.rate || 0) > 0);
 
     // Build items HTML
     let sno = 0;
     let itemsHTML = '';
-    
+
     items.forEach(item => {
         const description = item.description || '-';
         const hsnSac = item.HSN_SAC || '-';
@@ -166,7 +165,7 @@ function generateQuotationHTML(quotation, companyInfo = {}) {
         const unitPrice = parseFloat(item.unit_price || 0);
         const rate = parseFloat(item.rate || 0);
         const taxableValue = qty * unitPrice;
-        
+
         if (hasTax && rate > 0) {
             const cgstValue = (taxableValue * rate / 2) / 100;
             const sgstValue = (taxableValue * rate / 2) / 100;
@@ -198,7 +197,7 @@ function generateQuotationHTML(quotation, companyInfo = {}) {
         const description = item.description || '-';
         const price = parseFloat(item.price || 0);
         const rate = parseFloat(item.rate || 0);
-        
+
         if (hasTax && rate > 0) {
             const cgstValue = (price * rate / 2) / 100;
             const sgstValue = (price * rate / 2) / 100;
@@ -241,7 +240,7 @@ function generateQuotationHTML(quotation, companyInfo = {}) {
         logo: companyInfo.logo || ''
     };
 
-    const tableHeaders = hasTax 
+    const tableHeaders = hasTax
         ? '<th>S.No</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Taxable Value</th><th>Rate (%)</th><th>Total</th>'
         : '<th>S.No</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Total</th>';
 
@@ -396,19 +395,19 @@ function generateInvoiceHTML(invoice, companyInfo = {}) {
     const displayName = customer_name || '';
     const displayAddress = customer_address || '';
     const displayPhone = customer_phone || '';
-    
+
     // Use items_original for the invoice
     const items = items_original;
     const nonItems = non_items_original;
 
     // Calculate if has tax
     const hasTax = items.some(item => parseFloat(item.rate || 0) > 0) ||
-                   nonItems.some(item => parseFloat(item.rate || 0) > 0);
+        nonItems.some(item => parseFloat(item.rate || 0) > 0);
 
     // Build items HTML
     let sno = 0;
     let itemsHTML = '';
-    
+
     items.forEach(item => {
         const description = item.description || '-';
         const hsnSac = item.HSN_SAC || '-';
@@ -416,7 +415,7 @@ function generateInvoiceHTML(invoice, companyInfo = {}) {
         const unitPrice = parseFloat(item.unit_price || 0);
         const rate = parseFloat(item.rate || 0);
         const taxableValue = qty * unitPrice;
-        
+
         if (hasTax && rate > 0) {
             const cgstValue = (taxableValue * rate / 2) / 100;
             const sgstValue = (taxableValue * rate / 2) / 100;
@@ -442,13 +441,13 @@ function generateInvoiceHTML(invoice, companyInfo = {}) {
             </tr>`;
         }
     });
-    
+
     // Process non-items (services, charges, etc.)
     nonItems.forEach(item => {
         const description = item.description || '-';
         const price = parseFloat(item.price || 0);
         const rate = parseFloat(item.rate || 0);
-        
+
         if (hasTax && rate > 0) {
             const cgstValue = (price * rate / 2) / 100;
             const sgstValue = (price * rate / 2) / 100;
@@ -493,7 +492,7 @@ function generateInvoiceHTML(invoice, companyInfo = {}) {
         logo: companyInfo.logo || ''
     };
 
-    const tableHeaders = hasTax 
+    const tableHeaders = hasTax
         ? '<th>S.No</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Taxable Value</th><th>Rate (%)</th><th>Total</th>'
         : '<th>S.No</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Total</th>';
 
@@ -612,28 +611,28 @@ function generateInvoiceHTML(invoice, companyInfo = {}) {
  */
 async function generatePDF(html, filename) {
     let browser = null;
-    
+
     try {
         const outputPath = path.join(UPLOADS_DIR, `${filename}.pdf`);
-        
+
         browser = await puppeteer.launch({
             headless: 'new',
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
-        
+
         const page = await browser.newPage();
         await page.setContent(html, { waitUntil: 'networkidle0' });
-        
+
         await page.pdf({
             path: outputPath,
             format: 'A4',
             printBackground: true,
             margin: { top: 0, bottom: 0, left: 0, right: 0 }
         });
-        
+
         logger.info(`PDF generated: ${outputPath}`);
         return { success: true, path: outputPath, filename: `${filename}.pdf` };
-        
+
     } catch (error) {
         logger.error('PDF generation error:', error);
         return { success: false, error: error.message };

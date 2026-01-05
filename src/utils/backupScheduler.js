@@ -81,7 +81,6 @@ async function scheduleFromSettings(settings) {
         const location = cfg.backup_location || null;
 
         if (!enabled) {
-            logger.info('Auto backup is disabled in settings');
             return;
         }
 
@@ -98,7 +97,7 @@ async function scheduleFromSettings(settings) {
         const next = computeNextRun(now, frequency, timeStr);
         const delay = Math.max(1000, next.getTime() - now.getTime());
 
-        logger.info(`Scheduling next automatic backup at ${next.toISOString()} (in ${(delay/1000/60).toFixed(1)} minutes). Frequency: ${frequency}`);
+        logger.info(`Scheduling next automatic backup at ${next.toISOString()} (in ${(delay / 1000 / 60).toFixed(1)} minutes). Frequency: ${frequency}`);
 
         currentTimeout = setTimeout(async () => {
             if (isRunning) {

@@ -41,6 +41,7 @@ module.exports = {
     // Logging
     logLevel: process.env.LOG_LEVEL || 'info',
     logFile: process.env.LOG_FILE || './logs/app.log',
+    logMaxSize: parseInt(process.env.LOG_MAX_SIZE, 10) || 10 * 1024 * 1024, // 10MB default
 
     // Uploads cleanup
     uploadsRetentionDays: parseInt(process.env.UPLOADS_RETENTION_DAYS, 10) || 7,

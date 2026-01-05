@@ -173,8 +173,17 @@ async function cleanOldLogs() {
 // Log file naming is handled by the Winston logger in `src/utils/logger`.
 
 // Clean up old logs at startup
-cleanOldLogs().catch(err => logger.error("Failed to clean old logs:", err));
-logger.info("---------------------------***App started***---------------------------");
+cleanOldLogs().catch(err => logger.error("Failed to clean old logs", { error: err.message }));
+
+// Log app startup with context
+const packageJson = require('./package.json');
+logger.info("Application starting", {
+  service: "electron-main",
+  version: packageJson.version,
+  nodeVersion: process.version,
+  platform: process.platform,
+  arch: process.arch
+});
 
 let mainWindow; // Reference to the main application window
 
@@ -289,7 +298,7 @@ function setupIPCHandlers() {
           } catch (e) {
             Settings = require('./src/models/Settings');
           }
-          
+
           const settings = await Settings.findOne();
           if (settings && settings.backup && settings.backup.backup_location) {
             const loc = settings.backup.backup_location;
@@ -330,7 +339,7 @@ function setupIPCHandlers() {
   ipcMain.handle('open-external', async (event, url) => {
     try {
       const { shell } = require('electron');
-      
+
       // Validate URL to prevent security issues
       if (!url || typeof url !== 'string') {
         logger.warn('Invalid URL provided to open-external');
@@ -463,8 +472,6 @@ function setupIPCHandlers() {
       return { success: false, error: error.message, showChangelog: false };
     }
   });
-
-  logger.info("IPC handlers for dialogs and updates registered successfully");
 }
 
 /**
@@ -517,7 +524,6 @@ async function createWindow() {
     const loadFrontend = async () => {
       try {
         await mainWindow.loadURL(serverUrl);
-        logger.info(`Frontend loaded successfully from ${serverUrl}`);
       } catch (err) {
         retries++;
         logger.warn(`Failed to load frontend (attempt ${retries}/${maxRetries})`, { error: err.message });
@@ -575,8 +581,6 @@ async function createWindow() {
     // Setup Native Print handlers for quotations
     setupQuotationHandlers(mainWindow, ipcMain);
 
-    logger.info("Main window created successfully");
-
   } catch (error) {
     logger.error("Failed to create main window:", error);
     throw error;
@@ -597,8 +601,6 @@ app.whenReady().then(async () => {
 
     // Store the actual port globally for use in window creation
     global.serverPort = actualPort;
-
-    logger.info(`Express server started successfully on port ${actualPort}`);
 
     createWindow();
 
@@ -688,7 +690,7 @@ async function performBackupOnClose() {
 
     if (shouldBackup) {
       logger.info(`Performing on-close backup (Reason: ${backup_frequency})...`);
-      
+
       // Create a small splash window to inform user
       let splash = new BrowserWindow({
         width: 400,
@@ -700,7 +702,7 @@ async function performBackupOnClose() {
         skipTaskbar: true,
         webPreferences: { nodeIntegration: false, contextIsolation: true }
       });
-      
+
       const htmlContent = `
         <style>
           body { margin: 0; overflow: hidden; }
@@ -712,7 +714,7 @@ async function performBackupOnClose() {
           <div id="spinner" style="border: 3px solid #f3f3f3; border-top: 3px solid #2563eb; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;"></div>
         </div>
       `;
-      
+
       splash.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`);
 
       try {
@@ -720,7 +722,7 @@ async function performBackupOnClose() {
         await new Promise(resolve => setTimeout(resolve, 800));
 
         await autoBackup(settings.backup.backup_location);
-        
+
         // Update last_backup
         settings.backup.last_backup = new Date();
         await settings.save();
@@ -769,16 +771,16 @@ app.on("before-quit", async (event) => {
 
   event.preventDefault();
   isQuitting = true;
-  
+
   await performBackupOnClose();
-  
+
   app.exit(0);
 });
 
 // Quit the app when all windows are closed (except on macOS)
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    logger.info("---------------------------***App closed***----------------------------");
+    logger.info("Application shutting down", { service: "electron-main", event: "app_close" });
     app.quit();
   }
 });

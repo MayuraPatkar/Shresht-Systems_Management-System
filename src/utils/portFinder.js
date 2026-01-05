@@ -22,7 +22,7 @@ const PORT_CACHE_FILE = path.join(__dirname, '../../.port-cache');
 function isPortAvailable(port) {
     return new Promise((resolve) => {
         const server = net.createServer();
-        
+
         server.once('error', (err) => {
             if (err.code === 'EADDRINUSE') {
                 resolve(false);
@@ -30,13 +30,13 @@ function isPortAvailable(port) {
                 resolve(false);
             }
         });
-        
+
         server.once('listening', () => {
             server.close(() => {
                 resolve(true);
             });
         });
-        
+
         server.listen(port, '127.0.0.1');
     });
 }
@@ -121,7 +121,6 @@ async function findAvailablePort(options = {}) {
     // Try priority ports first
     for (const { port, source } of portsToTry) {
         if (await isPortAvailable(port)) {
-            logger.info(`Port ${port} is available (${source})`);
             if (useCache) saveLastUsedPort(port);
             return { port, source };
         } else {
@@ -135,7 +134,7 @@ async function findAvailablePort(options = {}) {
 
     for (let i = 0; i < maxRetries; i++) {
         const port = startPort + i;
-        
+
         // Skip if already tried
         if (portsToTry.some(p => p.port === port)) continue;
 
@@ -177,7 +176,7 @@ function printStartupBanner(options = {}) {
 
     const url = `http://localhost:${port}`;
     const versionStr = appVersion ? ` v${appVersion}` : '';
-    
+
     logger.info(`${appName}${versionStr} running on ${url} (port source: ${source})`);
 }
 

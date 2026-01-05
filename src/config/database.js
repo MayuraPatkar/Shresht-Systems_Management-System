@@ -11,22 +11,30 @@ const connectDB = async () => {
         };
 
         await mongoose.connect(config.mongoURI, options);
-        
-        logger.info(`MongoDB Connected: ${mongoose.connection.host}`);
-        logger.info(`Database: ${mongoose.connection.name}`);
-        
+
+        // Log successful connection
+        logger.info("Database connected", {
+            service: "database",
+            host: mongoose.connection.host,
+            database: mongoose.connection.name
+        });
+
         // Handle connection events
         mongoose.connection.on('error', (err) => {
-            logger.error('MongoDB connection error:', err);
+            logger.error('Database connection error', { service: "database", error: err.message });
         });
 
         mongoose.connection.on('disconnected', () => {
-            logger.warn('MongoDB disconnected');
+            logger.warn('Database disconnected', { service: "database" });
+        });
+
+        mongoose.connection.on('reconnected', () => {
+            logger.info('Database reconnected', { service: "database" });
         });
 
         process.on('SIGINT', async () => {
             await mongoose.connection.close();
-            logger.info('MongoDB connection closed due to app termination');
+            logger.info('Database connection closed', { service: "database", reason: "app_termination" });
             process.exit(0);
         });
 

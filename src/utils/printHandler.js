@@ -9,9 +9,7 @@ const logger = require("./logger");
  * This handler is no longer registered for IPC events
  */
 function handlePrintEvent(mainWindow) {
-    // Log that this handler is loaded but not registering IPC handlers
-    // All IPC handlers are now in puppeteerPrintHandler.js for consistent rendering
-    logger.info("Legacy print handler loaded (IPC handlers delegated to Puppeteer)");
+    // Legacy handler - IPC handlers are now in puppeteerPrintHandler.js
 }
 
 module.exports = { handlePrintEvent };

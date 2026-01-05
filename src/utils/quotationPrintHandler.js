@@ -563,8 +563,6 @@ function setupQuotationHandlers(mainWindow, ipcMain) {
             return { success: false, error: error.message };
         }
     });
-
-    logger.info('Quotation print handlers registered successfully');
 }
 
 module.exports = { setupQuotationHandlers, quotationPrintHandler };
