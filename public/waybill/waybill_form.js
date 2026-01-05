@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!ok) return;
             }
 
-            // If user is on Step 1 (Import step), import quotation data before advancing
+            // If user is on Step 2 (Import step), import quotation data before advancing
             if (window.currentStep === 2) {
                 const quotationId = document.getElementById("quotation-id")?.value;
                 if (quotationId) {
@@ -71,10 +71,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         return; // cancel navigation
                     }
                 }
-            }
-
-            if (window.currentStep < window.totalSteps) {
-                window.changeStep(window.currentStep + 1);
             }
         });
     }
