@@ -134,7 +134,10 @@ router.post("/save-purchase-order", async (req, res) => {
         // STOCK MANAGEMENT LOGIC
         // ---------------------------------------------------------
 
-        // 1. Revert previous items if updating
+        // 1. Adjust Stock Quantities (Revert Old + Add New)
+        // We do this to ensure Stock collection is always accurate based on the PO content.
+        
+        // A. Revert previous items
         if (previousItems.length > 0) {
             for (const prevItem of previousItems) {
                 if (!prevItem.description) continue;
@@ -144,30 +147,21 @@ router.post("/save-purchase-order", async (req, res) => {
                     const reversalQty = Number(prevItem.quantity || 0);
                     stockItem.quantity = Number(stockItem.quantity || 0) - reversalQty;
                     await stockItem.save();
-
-                    // Record reversal movement
-                    await StockMovement.create({
-                        timestamp: new Date(),
-                        item_name: itemName,
-                        movement_type: 'adjustment', // Use adjustment for corrections
-                        quantity_change: -reversalQty, // Negative for removal
-                        reference_type: 'purchase_order',
-                        reference_id: purchaseOrderId || purchaseOrder.purchase_order_id,
-                        notes: `PO Update: Reversing previous entry`,
-                        total_value: -(reversalQty * (Number(prevItem.unit_price) || 0))
-                    });
+                    // NOTE: We do NOT create an adjustment movement here anymore.
+                    // We will handle movements in the Sync phase.
                 }
             }
         }
 
-        // 2. Add current items to stock
+        // B. Add current items
         for (const item of items) {
             if (!item.description) continue;
             const itemName = item.description.trim();
             let stockItem = await Stock.findOne({ item_name: itemName });
 
+            const addQty = Number(item.quantity || 0);
+
             if (stockItem) {
-                const addQty = Number(item.quantity || 0);
                 stockItem.quantity = Number(stockItem.quantity || 0) + addQty;
                 stockItem.unit_price = Number(item.unit_price) || stockItem.unit_price;
                 stockItem.GST = Number(item.rate) || stockItem.GST;
@@ -177,21 +171,7 @@ router.post("/save-purchase-order", async (req, res) => {
                 stockItem.type = item.type || stockItem.type;
                 stockItem.updatedAt = new Date();
                 await stockItem.save();
-
-                // Record 'in' movement
-                await StockMovement.create({
-                    timestamp: new Date(),
-                    item_name: itemName,
-                    movement_type: 'in',
-                    quantity_change: addQty,
-                    reference_type: 'purchase_order',
-                    reference_id: purchaseOrderId || (purchaseOrder ? purchaseOrder.purchase_order_id : 'NEW'),
-                    notes: `Purchase Order Received`,
-                    total_value: addQty * (Number(item.unit_price) || 0)
-                });
-
             } else {
-                const addQty = Number(item.quantity || 0);
                 await Stock.create({
                     item_name: itemName,
                     HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
@@ -206,19 +186,60 @@ router.post("/save-purchase-order", async (req, res) => {
                     createdAt: new Date(),
                     updatedAt: new Date()
                 });
+            }
+        }
 
-                // Record 'in' movement for new item
+        // 2. Sync Stock Movements (Update Existing, Create New, Delete Removed)
+        // This ensures we don't create duplicate "In" movements or "Adjustment" movements for edits.
+        
+        const currentPOId = purchaseOrderId || (purchaseOrder ? purchaseOrder.purchase_order_id : 'NEW');
+        
+        // Fetch existing movements for this PO
+        const existingMovements = await StockMovement.find({
+            reference_type: 'purchase_order',
+            reference_id: currentPOId
+        });
+
+        // Create a pool of available movements to match against
+        let movementPool = [...existingMovements];
+
+        for (const item of items) {
+            if (!item.description) continue;
+            const itemName = item.description.trim();
+            const qty = Number(item.quantity || 0);
+            const totalVal = qty * (Number(item.unit_price) || 0);
+
+            // Find a matching movement in the pool
+            const matchIndex = movementPool.findIndex(m => m.item_name === itemName);
+
+            if (matchIndex !== -1) {
+                // UPDATE existing movement
+                const movement = movementPool[matchIndex];
+                movement.quantity_change = qty;
+                movement.total_value = totalVal;
+                // movement.notes = `Purchase Order Received`; // Keep original notes or update?
+                await movement.save();
+                
+                // Remove from pool so we don't use it again
+                movementPool.splice(matchIndex, 1);
+            } else {
+                // CREATE new movement
                 await StockMovement.create({
-                    timestamp: new Date(),
+                    timestamp: purchaseDate || new Date(),
                     item_name: itemName,
                     movement_type: 'in',
-                    quantity_change: addQty,
+                    quantity_change: qty,
                     reference_type: 'purchase_order',
-                    reference_id: purchaseOrderId || (purchaseOrder ? purchaseOrder.purchase_order_id : 'NEW'),
-                    notes: `Purchase Order Received (New Item)`,
-                    total_value: addQty * (Number(item.unit_price) || 0)
+                    reference_id: currentPOId,
+                    notes: `Purchase Order Received`,
+                    total_value: totalVal
                 });
             }
+        }
+
+        // Delete any remaining movements in the pool (items removed from PO)
+        for (const unusedMovement of movementPool) {
+            await StockMovement.deleteOne({ _id: unusedMovement._id });
         }
 
         // Save the document
