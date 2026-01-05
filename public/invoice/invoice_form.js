@@ -14,6 +14,33 @@ document.getElementById("view-preview").addEventListener("click", () => {
 
 // Validate current step before navigation
 window.validateCurrentStep = async function () {
+    // Step 1: Import from Quotation / Invoice ID validation
+    if (currentStep === 1) {
+        const idInput = document.getElementById('id');
+        const enteredId = idInput.value.trim();
+
+        // Check for duplicate ID if not in update mode and ID is provided
+        if (sessionStorage.getItem('currentTab-status') !== 'update' && enteredId) {
+            try {
+                const response = await fetch(`/invoice/${enteredId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.invoice) {
+                        window.electronAPI.showAlert1("Invoice with this ID already exists. Please use a different ID.");
+                        idInput.focus();
+                        return false;
+                    }
+                }
+                // 404 is expected for new custom IDs - this is the desired outcome
+            } catch (error) {
+                // Network errors should block, but don't log 404s as errors
+                console.error("Error checking for duplicate invoice ID:", error);
+                window.electronAPI.showAlert1("Error verifying Invoice ID. Please try again.");
+                return false;
+            }
+        }
+    }
+
     // Step 2: Project details
     if (currentStep === 2) {
         const projectName = document.getElementById('project-name');
@@ -805,7 +832,7 @@ async function generatePreview() {
     if (previewContainer) {
         const declarationEl = previewContainer.querySelector('.declaration');
         const termsEl = previewContainer.querySelector('.terms-section');
-        
+
         // Only update if the element exists and has content (to avoid overwriting with null/empty on first load)
         if (declarationEl && declarationEl.innerHTML.trim() !== "") {
             currentDeclaration = declarationEl.innerHTML;
@@ -1013,28 +1040,28 @@ async function sendToServer(data, shouldPrint) {
 // Event listener for the "Save" button
 document.getElementById("save-btn").addEventListener("click", async () => {
     if (isSaving) return;
-    
+
     const saveBtn = document.getElementById("save-btn");
     const originalText = saveBtn.innerHTML;
-    
+
     try {
         isSaving = true;
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        
+
         const invoiceData = collectFormData();
         const response = await sendToServer(invoiceData, false);
-        
+
         if (response) {
             window.electronAPI.showAlert1("Invoice saved successfully!");
-            
+
             // Update ID if returned to prevent duplicate creation on subsequent saves
             if (response.invoice_id) {
                 invoiceId = response.invoice_id;
                 const idInput = document.getElementById('id');
                 if (idInput) idInput.value = invoiceId;
                 // Ensure subsequent saves are treated as updates
-                sessionStorage.setItem('update-invoice', 'original'); 
+                sessionStorage.setItem('update-invoice', 'original');
             }
         }
     } catch (error) {
@@ -1092,7 +1119,7 @@ function collectFormData() {
     if (previewContainer) {
         const declarationEl = previewContainer.querySelector('.declaration');
         const termsEl = previewContainer.querySelector('.terms-section');
-        
+
         if (declarationEl) currentDeclaration = declarationEl.innerHTML;
         if (termsEl) currentTermsAndConditions = termsEl.innerHTML;
     }
