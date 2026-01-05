@@ -605,6 +605,25 @@ router.delete("/:invoiceId", async (req, res) => {
         if (!invoice) {
             return res.status(404).json({ message: 'invoice not found' });
         }
+
+        // Reverse stock changes (add back the quantity deducted)
+        if (invoice.items_original && invoice.items_original.length > 0) {
+            for (const item of invoice.items_original) {
+                if (!item.description) continue;
+                const stockItem = await Stock.findOne({ item_name: item.description });
+                if (stockItem) {
+                    stockItem.quantity = (stockItem.quantity || 0) + Number(item.quantity || 0);
+                    await stockItem.save();
+                }
+            }
+        }
+
+        // Delete associated stock movements
+        await StockMovement.deleteMany({ 
+            reference_type: 'invoice', 
+            reference_id: invoiceId 
+        });
+
         await Invoices.deleteOne({ invoice_id: invoiceId });
         res.status(200).json({ message: 'invoice deleted successfully' });
     } catch (error) {

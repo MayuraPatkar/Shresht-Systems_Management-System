@@ -275,6 +275,25 @@ router.delete("/:purchaseOrderId", async (req, res) => {
         if (!purchaseOrder) {
             return res.status(404).json({ message: 'Purchase order not found' });
         }
+
+        // Reverse stock changes (remove the quantity added)
+        if (purchaseOrder.items && purchaseOrder.items.length > 0) {
+            for (const item of purchaseOrder.items) {
+                if (!item.description) continue;
+                const stockItem = await Stock.findOne({ item_name: item.description });
+                if (stockItem) {
+                    stockItem.quantity = (stockItem.quantity || 0) - Number(item.quantity || 0);
+                    await stockItem.save();
+                }
+            }
+        }
+
+        // Delete associated stock movements
+        await StockMovement.deleteMany({ 
+            reference_type: 'purchase_order', 
+            reference_id: purchaseOrderId 
+        });
+
         await Purchases.deleteOne({ purchase_order_id: purchaseOrderId });
         res.status(200).json({ message: 'Purchase order deleted successfully' });
     } catch (error) {
