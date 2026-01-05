@@ -83,6 +83,13 @@ async function openQuotation(quotationId) {
     idInput.value = quotation.quotation_id;
     idInput.readOnly = true;
     idInput.style.backgroundColor = '#f3f4f6'; // Light gray to indicate disabled
+
+    // Show Print and Save as PDF buttons for editing existing quotations
+    const printBtn = document.getElementById('print-btn');
+    const savePdfBtn = document.getElementById('save-pdf-btn');
+    if (printBtn) printBtn.style.display = '';
+    if (savePdfBtn) savePdfBtn.style.display = '';
+
     document.getElementById('project-name').value = quotation.project_name;
     // Use input-safe ISO date for the date field
     document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
@@ -349,6 +356,12 @@ async function cloneQuotation(sourceQuotationId) {
         idInput.style.backgroundColor = ''; // Reset to default (editable)
         quotationId = newId;
         isCustomId = false;
+
+        // Hide Print and Save as PDF buttons for cloned (new) quotations
+        const printBtn = document.getElementById('print-btn');
+        const savePdfBtn = document.getElementById('save-pdf-btn');
+        if (printBtn) printBtn.style.display = 'none';
+        if (savePdfBtn) savePdfBtn.style.display = 'none';
 
         // Store the source quotation ID for audit trail
         sessionStorage.setItem('duplicated_from', sourceQuotationId);

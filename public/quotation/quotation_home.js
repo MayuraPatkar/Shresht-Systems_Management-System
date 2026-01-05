@@ -360,7 +360,7 @@ function showNewQuotationForm() {
         dateInput.value = `${yyyy}-${mm}-${dd}`;
     }
 
-    // Focus on the Quotation ID field
+    // Focus on the Quotation ID field and hide Print/PDF buttons for new quotations
     setTimeout(() => {
         const idInput = document.getElementById('id');
         if (idInput) {
@@ -373,6 +373,11 @@ function showNewQuotationForm() {
         if (typeof isCustomId !== 'undefined') {
             isCustomId = false;
         }
+        // Hide Print and Save as PDF buttons for new quotations
+        const printBtn = document.getElementById('print-btn');
+        const savePdfBtn = document.getElementById('save-pdf-btn');
+        if (printBtn) printBtn.style.display = 'none';
+        if (savePdfBtn) savePdfBtn.style.display = 'none';
     }, 100);
 }
 
