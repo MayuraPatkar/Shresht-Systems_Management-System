@@ -67,8 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Show home, hide others
         if (homeSection) {
-            homeSection.style.display = 'block';
-            homeSection.style.visibility = 'visible';
+            window.location = '/invoice#home';
         }
         if (newSection) {
             newSection.style.display = 'none';
