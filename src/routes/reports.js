@@ -149,6 +149,9 @@ router.get('/stock', async (req, res) => {
                 // Apply Item Name Filter
                 if (item_name && !item.item_name.match(new RegExp(item_name, 'i'))) return;
 
+                // Skip if quantity is 0 (no initial stock to report)
+                if (!item.quantity || item.quantity === 0) return;
+
                 stockBackfill.push({
                     timestamp: item.createdAt,
                     item_name: item.item_name,
