@@ -230,7 +230,7 @@ router.get("/get-stock-item", async (req, res) => {
         if (!itemName) return res.status(400).json({ message: "Item name required" });
 
         const stockItem = await Stock.findOne({ item_name: itemName });
-        if (!stockItem) return res.status(404).json({ message: "Stock item not found" });
+        if (!stockItem) return res.json(null); // Return null instead of 404 to avoid console errors
 
         res.json(stockItem);
     } catch (error) {
