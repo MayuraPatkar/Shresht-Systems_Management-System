@@ -327,6 +327,8 @@ async function openInvoice(id) {
         };
 
         document.getElementById('id').value = invoice.invoice_id;
+        const quotationIdInput = document.getElementById('quotation-id');
+        if (quotationIdInput) quotationIdInput.value = invoice.quotation_id || '';
         document.getElementById('invoice-date').value = formatDateForInput(invoice.invoice_date);
         document.getElementById('project-name').value = invoice.project_name || '';
         document.getElementById('purchase-order-number').value = invoice.po_number || '';
@@ -1099,6 +1101,7 @@ function collectFormData() {
         type: sessionStorage.getItem('update-invoice'),
         projectName: document.getElementById("project-name").value,
         invoiceId: document.getElementById("id").value,
+        quotationId: document.getElementById("quotation-id")?.value || '',
         invoiceDate: document.getElementById("invoice-date").value,
         poNumber: document.getElementById("purchase-order-number").value || '',
         poDate: document.getElementById("purchase-order-date").value || null,
