@@ -1027,6 +1027,16 @@ if (addQuantityBtn) {
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
+    // Ctrl+F or Cmd+F to focus search input
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+    }
+
     // Ctrl+N or Cmd+N to add new stock item
     if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
         e.preventDefault();
