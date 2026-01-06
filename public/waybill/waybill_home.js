@@ -793,6 +793,10 @@ function showNewWayBillForm() {
                 const dd = String(today.getDate()).padStart(2, '0');
                 waybillDateInput.value = `${yyyy}-${mm}-${dd}`;
             }
+
+            // Hide view preview button for new waybills (only available in update mode)
+            const viewPreviewBtn = document.getElementById('view-preview');
+            if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
         }
     });
 }

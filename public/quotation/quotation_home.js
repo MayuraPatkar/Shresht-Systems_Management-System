@@ -403,8 +403,11 @@ function showNewQuotationForm() {
         // Hide Print and Save as PDF buttons for new quotations
         const printBtn = document.getElementById('print-btn');
         const savePdfBtn = document.getElementById('save-pdf-btn');
+        const viewPreviewBtn = document.getElementById('view-preview');
+
         if (printBtn) printBtn.style.display = 'none';
         if (savePdfBtn) savePdfBtn.style.display = 'none';
+        if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
     }, 100);
 }
 
