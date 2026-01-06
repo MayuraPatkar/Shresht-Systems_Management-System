@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
 
 // Import ID generator functions
-const { previewNextId, generateNextId } = require('../utils/idGenerator');
+const { previewNextId, generateNextId, syncCounterIfNeeded } = require('../utils/idGenerator');
 
 // Helper function to log stock movements
 async function logStockMovement(itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
@@ -96,7 +96,8 @@ router.post("/save-invoice", async (req, res) => {
             totalTaxOriginal = 0,
             totalTaxDuplicate = 0,
             declaration = '',
-            termsAndConditions = ''
+            termsAndConditions = '',
+            isCustomId = false // Tracks if user manually entered a custom ID
         } = req.body;
 
         let total_amount_original = totalAmountOriginal;
@@ -303,9 +304,6 @@ router.post("/save-invoice", async (req, res) => {
             // SCENARIO 2: CREATE NEW INVOICE
             // ---------------------------------------------------------
 
-            // Check if user explicitly provided a custom ID
-            const { isCustomId = false } = req.body;
-
             // Use provided custom ID only if user manually typed it, otherwise generate new
             let newId;
             if (isCustomId && invoiceId && invoiceId.trim()) {
@@ -379,6 +377,12 @@ router.post("/save-invoice", async (req, res) => {
             });
 
             const savedInvoice = await invoice.save();
+
+            // If a custom ID was used, sync the counter to prevent collisions
+            if (isCustomId && newId) {
+                await syncCounterIfNeeded('invoice', newId);
+            }
+
             return res.status(201).json({
                 message: 'Invoice saved successfully',
                 invoice: savedInvoice,

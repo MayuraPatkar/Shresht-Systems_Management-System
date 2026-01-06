@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
 
 // Import ID generator functions
-const { previewNextId, generateNextId } = require('../utils/idGenerator');
+const { previewNextId, generateNextId, syncCounterIfNeeded } = require('../utils/idGenerator');
 
 /**
  * Route: Generate a Preview ID
@@ -74,6 +74,7 @@ router.post("/save-quotation", async (req, res) => {
             notes = [],
             termsAndConditions = '',
             duplicated_from = null, // Audit trail: source quotation ID if duplicated
+            isCustomId = false, // Tracks if user manually entered a custom ID
 
         } = req.body;
 
@@ -125,9 +126,6 @@ router.post("/save-quotation", async (req, res) => {
             // SCENARIO 2: CREATE NEW QUOTATION
             // ---------------------------------------------------------
 
-            // Check if user explicitly provided a custom ID
-            const { isCustomId = false } = req.body;
-
             // Use provided custom ID only if user manually typed it, otherwise generate new
             let newId;
             if (isCustomId && quotation_id && quotation_id.trim()) {
@@ -173,6 +171,11 @@ router.post("/save-quotation", async (req, res) => {
 
         // Save the quotation
         const savedQuotation = await quotation.save();
+
+        // If a custom ID was used for a NEW quotation, sync the counter to prevent collisions
+        if (isCustomId && savedQuotation.quotation_id) {
+            await syncCounterIfNeeded('quotation', savedQuotation.quotation_id);
+        }
 
         res.status(201).json({
             message: 'Quotation saved successfully',
