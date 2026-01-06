@@ -281,7 +281,7 @@ function changeStep(step) {
     // Focus first input
     const firstInput = nextStepEl.querySelector('input, select, textarea');
     if (firstInput) {
-        setTimeout(() => firstInput.focus(), 50);
+      setTimeout(() => firstInput.focus(), 50);
     }
   }
   updateNavigation();
@@ -332,6 +332,10 @@ fetchData(); // Load data at startup
 function addItem(insertAtIndex) {
   const container = document.getElementById("items-container");
   const tableBody = document.querySelector("#items-table tbody");
+
+  // Exit early if required elements don't exist (e.g., on service page which has its own addItemRow function)
+  if (!tableBody) return;
+
   // Calculate item number based on total count (will be corrected by updateItemNumbers if inserting)
   const itemNumber = tableBody.children.length + 1;
 

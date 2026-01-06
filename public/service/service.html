@@ -287,6 +287,8 @@
             border-radius: 0.5rem;
             margin-bottom: 0.5rem;
             align-items: center;
+            overflow: visible;
+            position: relative;
         }
 
         .item-row input {
@@ -300,6 +302,58 @@
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Suggestions dropdown styling */
+        .item-row .suggestions li {
+            padding: 0.625rem 0.875rem;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .item-row .suggestions li:last-child {
+            border-bottom: none;
+        }
+
+        .item-row .suggestions li:hover {
+            background: #f3f4f6;
+        }
+
+        .item-row .suggestions li.selected {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        /* Ensure suggestions dropdown is not clipped by parent containers */
+        #items-container {
+            overflow: visible !important;
+        }
+
+        #items-container .item-row {
+            overflow: visible !important;
+        }
+
+        /* Override panel overflow when suggestions are visible */
+        .service-detail-panel:has(.suggestions[style*="block"]) {
+            overflow: visible !important;
+        }
+
+        .detail-content:has(.suggestions[style*="block"]) {
+            overflow: visible !important;
+        }
+
+        .form-step:has(.suggestions[style*="block"]) {
+            overflow: visible !important;
+        }
+
+        /* Fallback: always allow overflow in form step 1 */
+        #form-step-1 {
+            overflow: visible !important;
+        }
+
+        #form-step-1>div {
+            overflow: visible !important;
         }
 
         /* Stats Card Hover */
@@ -379,8 +433,7 @@
                     <input type="text" id="search-input" placeholder="Search services..."
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <button id="filter-btn"
-                    class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
+                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
                     <i class="fas fa-filter"></i>
                 </button>
             </div>
