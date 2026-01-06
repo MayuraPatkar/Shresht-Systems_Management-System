@@ -510,7 +510,7 @@ async function createWindow() {
     mainWindow.once('ready-to-show', () => {
       mainWindow.show();
       mainWindow.maximize();
-      mainWindow.webContents.openDevTools();
+      // mainWindow.webContents.openDevTools();
     });
 
     // Enhanced frontend loading with retry logic
