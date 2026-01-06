@@ -459,7 +459,10 @@ async function fillPurchaseOrderItem(itemName, element) {
             // Row 1 inputs: description, hsn, qty, unit_price, rate
             // Row 2 inputs: company, type, category
             const row1Inputs = element.querySelectorAll('.item-row-1 input');
+            // Row 2 inputs: company, category
             const row2Inputs = element.querySelectorAll('.item-row-2 input');
+            // Row 2 select: type
+            const row2Select = element.querySelector('.item-row-2 select');
 
             // Row 1: [0]=description, [1]=HSN, [2]=qty, [3]=unit_price, [4]=rate
             if (row1Inputs[1]) row1Inputs[1].value = stockData.HSN_SAC || "";
@@ -467,10 +470,13 @@ async function fillPurchaseOrderItem(itemName, element) {
             if (row1Inputs[3]) row1Inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
             if (row1Inputs[4]) row1Inputs[4].value = stockData.GST || 0;
 
-            // Row 2: [0]=company, [1]=type, [2]=category
+            // Row 2: [0]=company, [1]=category
             if (row2Inputs[0]) row2Inputs[0].value = stockData.company || "";
-            if (row2Inputs[1]) row2Inputs[1].value = stockData.type || "";
-            if (row2Inputs[2]) row2Inputs[2].value = stockData.category || "";
+            // row2Inputs[1] is Category input
+            if (row2Inputs[1]) row2Inputs[1].value = stockData.category || "";
+
+            // Set Type (Select)
+            if (row2Select) row2Select.value = stockData.type || "Material";
 
             // Trigger input events to sync with table (but skip description to avoid triggering autocomplete)
             row1Inputs.forEach((input, index) => {
@@ -479,10 +485,14 @@ async function fillPurchaseOrderItem(itemName, element) {
                     input.dispatchEvent(new Event('input', { bubbles: true }));
                 }
             });
-            // For row2, only sync values without triggering autocomplete
+            // For row2 inputs (Company, Category), sync values
             row2Inputs.forEach(input => {
-                input.dispatchEvent(new Event('change', { bubbles: true }));
+                input.dispatchEvent(new Event('input', { bubbles: true }));
             });
+            // For row2 select (Type), sync value
+            if (row2Select) {
+                row2Select.dispatchEvent(new Event('input', { bubbles: true }));
+            }
 
             // Also update corresponding table row
             const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
@@ -493,7 +503,7 @@ async function fillPurchaseOrderItem(itemName, element) {
                 const descInput = cells[1]?.querySelector('input');
                 const hsnInput = cells[2]?.querySelector('input');
                 const companyInput = cells[3]?.querySelector('input');
-                const typeInput = cells[4]?.querySelector('input');
+                const typeInput = cells[4]?.querySelector('select');
                 const categoryInput = cells[5]?.querySelector('input');
                 const qtyInput = cells[6]?.querySelector('input');
                 const priceInput = cells[7]?.querySelector('input');
@@ -501,7 +511,7 @@ async function fillPurchaseOrderItem(itemName, element) {
 
                 if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
                 if (companyInput) companyInput.value = stockData.company || "";
-                if (typeInput) typeInput.value = stockData.type || "";
+                if (typeInput) typeInput.value = stockData.type || "Material";
                 if (categoryInput) categoryInput.value = stockData.category || "";
                 if (priceInput) priceInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
                 if (rateInput) rateInput.value = stockData.GST || 0;
@@ -515,7 +525,7 @@ async function fillPurchaseOrderItem(itemName, element) {
             const descInput = cells[1]?.querySelector('input');
             const hsnInput = cells[2]?.querySelector('input');
             const companyInput = cells[3]?.querySelector('input');
-            const typeInput = cells[4]?.querySelector('input');
+            const typeInput = cells[4]?.querySelector('select');
             const categoryInput = cells[5]?.querySelector('input');
             const qtyInput = cells[6]?.querySelector('input');
             const priceInput = cells[7]?.querySelector('input');
@@ -523,7 +533,7 @@ async function fillPurchaseOrderItem(itemName, element) {
 
             if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
             if (companyInput) companyInput.value = stockData.company || "";
-            if (typeInput) typeInput.value = stockData.type || "";
+            if (typeInput) typeInput.value = stockData.type || "Material";
             if (categoryInput) categoryInput.value = stockData.category || "";
             if (priceInput) {
                 priceInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
