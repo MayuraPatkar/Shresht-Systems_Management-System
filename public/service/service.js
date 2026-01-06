@@ -857,7 +857,7 @@ function addItemRow(data = {}) {
         <input type="text" placeholder="HSN" class="item-hsn" value="${escapeHtml(data.HSN_SAC || '')}">
         <input type="number" placeholder="Qty" class="item-qty" value="${data.quantity || ''}" min="0">
         <input type="number" placeholder="Price" class="item-price" value="${data.unit_price || ''}" min="0">
-        <input type="number" placeholder="Tax%" class="item-tax" value="${data.rate || 18}" min="0" max="100">
+        <input type="number" placeholder="Tax%" class="item-tax" value="${data.rate || ''}" min="0" max="100">
         <button type="button" class="text-red-500 hover:text-red-700 remove-item-btn" title="Remove">
             <i class="fas fa-trash"></i>
         </button>
@@ -885,7 +885,7 @@ function addChargeRow(data = {}) {
     row.innerHTML = `
         <input type="text" placeholder="Description" class="charge-desc" value="${escapeHtml(data.description || '')}">
         <input type="number" placeholder="Amount" class="charge-amount" value="${data.price || ''}" min="0">
-        <input type="number" placeholder="Tax%" class="charge-tax" value="${data.rate || 18}" min="0" max="100">
+        <input type="number" placeholder="Tax%" class="charge-tax" value="${data.rate || ''}" min="0" max="100">
         <button type="button" class="text-red-500 hover:text-red-700 remove-charge-btn" title="Remove">
             <i class="fas fa-trash"></i>
         </button>
@@ -943,7 +943,7 @@ function collectFormData() {
             HSN_SAC: row.querySelector('.item-hsn')?.value?.trim() || '',
             quantity: parseFloat(row.querySelector('.item-qty')?.value) || 0,
             unit_price: parseFloat(row.querySelector('.item-price')?.value) || 0,
-            rate: parseFloat(row.querySelector('.item-tax')?.value) || 18
+            rate: parseFloat(row.querySelector('.item-tax')?.value) || 0
         });
     });
 
@@ -955,7 +955,7 @@ function collectFormData() {
         nonItems.push({
             description: desc,
             price: parseFloat(row.querySelector('.charge-amount')?.value) || 0,
-            rate: parseFloat(row.querySelector('.charge-tax')?.value) || 18
+            rate: parseFloat(row.querySelector('.charge-tax')?.value) || 0
         });
     });
 
