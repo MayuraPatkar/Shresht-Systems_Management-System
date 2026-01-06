@@ -60,8 +60,37 @@ async function getQuotationHeaderHTML() {
 
 
 document.getElementById("view-preview").addEventListener("click", async () => {
-    changeStep(totalSteps);
-    await generatePreview();
+    // Navigate step-by-step to trigger validation at each step
+    const navigateToPreview = async () => {
+        // If already on preview step, just generate preview
+        if (currentStep === totalSteps) {
+            await generatePreview();
+            return;
+        }
+
+        const nextBtn = document.getElementById('next-btn');
+        if (!nextBtn) return;
+
+        const stepBefore = currentStep;
+        nextBtn.click();
+
+        // Wait for validation and step change
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // If step didn't change, validation failed - stop
+        if (currentStep === stepBefore) return;
+
+        // If reached preview, generate it
+        if (currentStep === totalSteps) {
+            await generatePreview();
+            return;
+        }
+
+        // Continue to next step
+        await navigateToPreview();
+    };
+
+    await navigateToPreview();
 });
 
 // Open a quotation for editing
@@ -120,10 +149,10 @@ async function openQuotation(quotationId) {
         row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
-                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
-                <td><input type="number" value="${item.unit_price || ''}" required></td>
-                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
+                <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
+                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
         itemsTableBody.appendChild(row);
@@ -415,10 +444,10 @@ async function cloneQuotation(sourceQuotationId) {
             row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
-                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
-                <td><input type="number" value="${item.unit_price || ''}" required></td>
-                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
+                <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
+                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
             itemsTableBody.appendChild(row);

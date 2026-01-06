@@ -152,7 +152,7 @@ router.post('/removeFromStock', async (req, res) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req, res) => {
-    const { itemId, item_name, HSN_SAC, specifications, company, category, type, unit_price, quantity, GST, min_quantity } = req.body;
+    const { itemId, item_name, HSN_SAC, specifications, company, category, type, unit_price, GST, min_quantity } = req.body;
 
     try {
         // Input validation
@@ -162,10 +162,6 @@ router.post('/editItem', async (req, res) => {
 
         if (unit_price && (isNaN(unit_price) || unit_price < 0)) {
             return res.status(400).json({ error: 'Unit price must be a valid positive number' });
-        }
-
-        if (quantity && (isNaN(quantity) || quantity < 0)) {
-            return res.status(400).json({ error: 'Quantity must be a valid positive number' });
         }
 
         if (GST && (isNaN(GST) || GST < 0 || GST > 100)) {
@@ -187,11 +183,7 @@ router.post('/editItem', async (req, res) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        // Calculate quantity change for logging
-        const oldQuantity = item.quantity || 0;
-        const newQuantity = quantity || 0;
-        const quantityDiff = newQuantity - oldQuantity;
-
+        // Update item details (quantity is preserved, not changed via edit)
         item.item_name = item_name.trim();
         item.HSN_SAC = HSN_SAC;
         item.specifications = specifications;
@@ -199,23 +191,10 @@ router.post('/editItem', async (req, res) => {
         item.category = category;
         item.type = type;
         item.unit_price = unit_price;
-        item.quantity = quantity;
         item.GST = GST;
         item.min_quantity = min_quantity;
         item.updatedAt = new Date();
         await item.save();
-
-        // Log stock movement if quantity changed
-        if (quantityDiff !== 0) {
-            await logStockMovement(
-                item_name.trim(),
-                Math.abs(quantityDiff),
-                quantityDiff > 0 ? 'in' : 'out',
-                'stock',
-                itemId,
-                `Stock adjustment via edit (${oldQuantity} → ${newQuantity})`
-            );
-        }
 
         res.status(200).json({ message: 'Item updated successfully' });
     } catch (error) {
@@ -223,6 +202,7 @@ router.post('/editItem', async (req, res) => {
         res.status(500).json({ error: 'Failed to edit item' });
     }
 });
+
 
 router.get("/get-stock-item", async (req, res) => {
     try {

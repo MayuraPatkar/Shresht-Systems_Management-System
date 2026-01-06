@@ -120,9 +120,38 @@ document.addEventListener("DOMContentLoaded", () => {
     wbSearchInput.addEventListener('input', debounce(() => {
         handleSearch();
     }, 300));
-    document.getElementById('view-preview').addEventListener('click', () => {
-        changeStep(totalSteps);
-        generatePreview();
+    document.getElementById('view-preview').addEventListener('click', async () => {
+        // Navigate step-by-step to trigger validation at each step
+        const navigateToPreview = async () => {
+            // If already on preview step, just generate preview
+            if (window.currentStep === window.totalSteps) {
+                await generatePreview();
+                return;
+            }
+
+            const nextBtn = document.getElementById('next-btn');
+            if (!nextBtn) return;
+
+            const stepBefore = window.currentStep;
+            nextBtn.click();
+
+            // Wait for validation and step change
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // If step didn't change, validation failed - stop
+            if (window.currentStep === stepBefore) return;
+
+            // If reached preview, generate it
+            if (window.currentStep === window.totalSteps) {
+                await generatePreview();
+                return;
+            }
+
+            // Continue to next step
+            await navigateToPreview();
+        };
+
+        await navigateToPreview();
     });
     document.getElementById('view-preview').style.display = 'none';
 
@@ -234,14 +263,19 @@ function isFormActive() {
     return isSectionVisible('new');
 }
 
-function isPreviewStepActive() {
-    if (typeof currentStep === 'undefined' || typeof totalSteps === 'undefined') {
-        return false;
-    }
-    return currentStep === totalSteps;
+function isExistingDocument() {
+    const status = sessionStorage.getItem('currentTab-status');
+    return status === 'update' || status === 'clone';
 }
 
-function runOnPreviewStep(callback) {
+function isPreviewStepActive() {
+    if (typeof window.currentStep === 'undefined' || typeof window.totalSteps === 'undefined') {
+        return false;
+    }
+    return window.currentStep === window.totalSteps;
+}
+
+async function runOnPreviewStep(callback) {
     if (typeof callback !== 'function') {
         return;
     }
@@ -250,31 +284,60 @@ function runOnPreviewStep(callback) {
         return;
     }
 
-    const switchToPreview = () => {
-        if (typeof changeStep === 'function' && typeof totalSteps !== 'undefined') {
-            changeStep(totalSteps);
-        }
+    // If already on preview step, just generate preview and run callback
+    if (isPreviewStepActive()) {
         if (typeof generatePreview === 'function') {
-            generatePreview();
+            await generatePreview();
         }
-    };
-
-    if (!isPreviewStepActive()) {
-        switchToPreview();
-    } else if (typeof generatePreview === 'function') {
-        generatePreview();
+        callback();
+        return;
     }
 
-    setTimeout(() => {
-        callback();
-    }, 0);
+    // Navigate step-by-step using the Next button to trigger validation at each step
+    const navigateToPreview = async () => {
+        const nextBtn = document.getElementById('next-btn');
+        if (!nextBtn) {
+            return;
+        }
+
+        // Store current step to detect if navigation was blocked by validation
+        const stepBefore = typeof window.currentStep !== 'undefined' ? window.currentStep : 0;
+
+        // Click next button (this triggers validation)
+        nextBtn.click();
+
+        // Wait a bit for validation and step change to process
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Check if step actually changed (validation passed)
+        const stepAfter = typeof window.currentStep !== 'undefined' ? window.currentStep : 0;
+
+        if (stepAfter === stepBefore) {
+            // Step didn't change - validation failed, stop navigation
+            return;
+        }
+
+        // If we reached the preview step, generate preview and run callback
+        if (isPreviewStepActive()) {
+            if (typeof generatePreview === 'function') {
+                await generatePreview();
+            }
+            callback();
+            return;
+        }
+
+        // Continue navigating to next steps
+        await navigateToPreview();
+    };
+
+    await navigateToPreview();
 }
 
 function isItemsStepActive() {
-    if (typeof currentStep === 'undefined') {
+    if (typeof window.currentStep === 'undefined') {
         return false;
     }
-    return currentStep === 5;
+    return window.currentStep === 5;
 }
 
 function isHomeScreenActive() {
@@ -342,9 +405,13 @@ function handleQuotationKeyboardShortcuts(event) {
             case 's': {
                 const saveBtn = document.getElementById('save-btn');
                 if (saveBtn && isFormActive()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    runOnPreviewStep(() => saveBtn.click());
+                    // For new documents, only allow save on preview step
+                    // For existing documents, allow save from any step
+                    if (isExistingDocument() || isPreviewStepActive()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        runOnPreviewStep(() => saveBtn.click());
+                    }
                 }
                 break;
             }

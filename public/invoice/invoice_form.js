@@ -19,9 +19,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-document.getElementById("view-preview").addEventListener("click", () => {
-    changeStep(totalSteps);
-    generatePreview();
+document.getElementById("view-preview").addEventListener("click", async () => {
+    // Navigate step-by-step to trigger validation at each step
+    const navigateToPreview = async () => {
+        // If already on preview step, just generate preview
+        if (currentStep === totalSteps) {
+            await generatePreview();
+            return;
+        }
+
+        const nextBtn = document.getElementById('next-btn');
+        if (!nextBtn) return;
+
+        const stepBefore = currentStep;
+        nextBtn.click();
+
+        // Wait for validation and step change
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // If step didn't change, validation failed - stop
+        if (currentStep === stepBefore) return;
+
+        // If reached preview, generate it
+        if (currentStep === totalSteps) {
+            await generatePreview();
+            return;
+        }
+
+        // Continue to next step
+        await navigateToPreview();
+    };
+
+    await navigateToPreview();
 });
 
 // Validate current step before navigation
@@ -248,6 +277,18 @@ window.beforeStepAdvance = async function (step) {
                 `;
                 itemsTableBody.appendChild(row);
 
+                // Setup autocomplete for loaded items
+                const cardInput = card.querySelector('.item-field.description input');
+                const cardSuggestions = card.querySelector('.suggestions');
+                if (cardInput && cardSuggestions) {
+                    cardInput.addEventListener('input', function () {
+                        showSuggestions(cardInput, cardSuggestions);
+                    });
+                    cardInput.addEventListener('keydown', function (event) {
+                        handleKeyboardNavigation(event, cardInput, cardSuggestions);
+                    });
+                }
+
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');
@@ -452,6 +493,18 @@ async function openInvoice(id) {
             `;
                 itemsTableBody.appendChild(row);
 
+                // Setup autocomplete for loaded items
+                const cardInput = card.querySelector('.item-field.description input');
+                const cardSuggestions = card.querySelector('.suggestions');
+                if (cardInput && cardSuggestions) {
+                    cardInput.addEventListener('input', function () {
+                        showSuggestions(cardInput, cardSuggestions);
+                    });
+                    cardInput.addEventListener('keydown', function (event) {
+                        handleKeyboardNavigation(event, cardInput, cardSuggestions);
+                    });
+                }
+
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');
@@ -577,6 +630,18 @@ async function openInvoice(id) {
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
                 itemsTableBody.appendChild(row);
+
+                // Setup autocomplete for loaded items
+                const cardInput = card.querySelector('.item-field.description input');
+                const cardSuggestions = card.querySelector('.suggestions');
+                if (cardInput && cardSuggestions) {
+                    cardInput.addEventListener('input', function () {
+                        showSuggestions(cardInput, cardSuggestions);
+                    });
+                    cardInput.addEventListener('keydown', function (event) {
+                        handleKeyboardNavigation(event, cardInput, cardSuggestions);
+                    });
+                }
 
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
