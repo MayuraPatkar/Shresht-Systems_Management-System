@@ -754,6 +754,9 @@ function formatCurrency(amount) {
 /**
  * Setup keyboard shortcuts
  */
+/**
+ * Setup keyboard shortcuts
+ */
 function setupKeyboardShortcuts() {
     // Open keyboard shortcuts modal
     document.getElementById('keyboardShortcutsBtn')?.addEventListener('click', () => {
@@ -772,7 +775,7 @@ function setupKeyboardShortcuts() {
         document.getElementById('keyboardShortcutsModal')?.classList.add('hidden');
     }
 
-    // Global keydown listener
+    // Global keydown listener with capture phase to intercept Esc before global scripts
     document.addEventListener('keydown', function (e) {
         // Ignore if modal is open (except for Esc/?)
         const modal = document.getElementById('keyboardShortcutsModal');
@@ -781,6 +784,7 @@ function setupKeyboardShortcuts() {
         if (isModalOpen) {
             if (e.key === 'Escape' || e.key === '?') {
                 e.preventDefault();
+                e.stopPropagation(); // Stop propagation to global scripts
                 closeKeyboardModal();
             }
             return; // Don't process other shortcuts if modal is open
@@ -815,8 +819,10 @@ function setupKeyboardShortcuts() {
         if (e.key === 'Escape') {
             if (currentReportSection !== 'home') {
                 e.preventDefault();
+                e.stopPropagation(); // Stop propagation to global scripts
                 showReportSection('home');
             }
+            // If at home, let it bubble (might go to dashboard via global script)
             return;
         }
 
@@ -839,7 +845,7 @@ function setupKeyboardShortcuts() {
                 triggerAction('save');
             }
         }
-    });
+    }, true); // Use capture phase
 }
 
 /**
