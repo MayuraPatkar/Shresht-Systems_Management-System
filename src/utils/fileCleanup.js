@@ -56,7 +56,6 @@ async function cleanupOldFiles(directory, olderThanDays = 7, fileTypes = []) {
                 if (stat.mtimeMs < threshold) {
                     await fs.unlink(full);
                     removed += 1;
-                    logger.info(`Removed old file from uploads: ${full}`);
                 }
             } catch (e) {
                 // ignore per-file errors

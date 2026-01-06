@@ -630,7 +630,6 @@ async function generatePDF(html, filename) {
             margin: { top: 0, bottom: 0, left: 0, right: 0 }
         });
 
-        logger.info(`PDF generated: ${outputPath}`);
         return { success: true, path: outputPath, filename: `${filename}.pdf` };
 
     } catch (error) {
@@ -684,7 +683,6 @@ function deletePDF(filename) {
         const filePath = path.join(UPLOADS_DIR, filename);
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
-            logger.info(`PDF deleted: ${filePath}`);
         }
     } catch (error) {
         logger.warn(`Failed to delete PDF: ${filename}`, error);

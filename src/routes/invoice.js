@@ -766,7 +766,6 @@ router.post("/close-service/:invoiceId", async (req, res) => {
         invoice.service_status = 'Closed';
         await invoice.save();
 
-        logger.info(`Service closed for invoice ${invoiceId}`);
         res.status(200).json({
             message: 'Service closed successfully. No further services will be scheduled.',
             invoice

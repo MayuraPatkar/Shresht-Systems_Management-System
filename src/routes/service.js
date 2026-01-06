@@ -93,7 +93,6 @@ router.get('/get-service', async (req, res) => {
 router.post('/update-nextService', async (req, res) => {
     try {
         const { invoice_id, next_service } = req.body;
-        logger.info(invoice_id, next_service);
 
         const project = await Invoices.findOne({ invoice_id: invoice_id });
         if (!project) return res.status(404).json({ error: "Project not found" });
@@ -709,7 +708,6 @@ router.post('/toggle-status', async (req, res) => {
 
         await project.save();
 
-        logger.info(`Service status updated for ${invoiceId}: ${project.service_status}`);
         res.json({
             message: `Service ${project.service_status === 'Paused' ? 'paused' : 'resumed'} successfully`,
             status: project.service_status

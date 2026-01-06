@@ -419,7 +419,6 @@ ${processedQuotationStyles4}
             });
 
             if (printed.success) {
-                logger.info('Print dialog opened successfully');
                 return { success: true };
             } else {
                 logger.warn('Print failed or cancelled', { reason: printed.failureReason });
@@ -457,7 +456,6 @@ ${processedQuotationStyles4}
             });
 
             fs.writeFileSync(outputPath, pdfData);
-            logger.info('PDF generated', { service: "print_handler", path: outputPath });
             return { success: true, path: outputPath };
 
         } catch (error) {
