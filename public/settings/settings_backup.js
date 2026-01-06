@@ -16,7 +16,7 @@ function checkBackupToolsStatus() {
             if (data.success) {
                 const tools = data.tools;
                 const allToolsAvailable = Object.values(tools).every(available => available);
-                
+
                 if (!allToolsAvailable) {
                     console.warn('Some MongoDB tools are not available:', tools);
                     // Status element reserved for last backup timestamp only
@@ -38,7 +38,7 @@ function loadLastBackupStatus() {
             if (data.success && data.settings) {
                 const s = data.settings;
                 const statusElement = document.getElementById("backup-status");
-                
+
                 if (statusElement && s.backup?.last_backup) {
                     const lastBackupDate = new Date(s.backup.last_backup);
                     if (!isNaN(lastBackupDate.getTime())) {
@@ -63,12 +63,12 @@ function loadLastBackupStatus() {
 function handleExportData() {
     const selectedElement = document.querySelector('input[name="export-data"]:checked');
     const exportButton = document.getElementById("export-data-button");
-    
+
     if (!selectedElement) {
         window.electronAPI.showAlert1("Please select a data type to export.");
         return;
     }
-    
+
     const selected = selectedElement.value;
     const originalContent = exportButton.innerHTML;
     exportButton.disabled = true;
@@ -124,7 +124,7 @@ function handleRestoreCollection() {
     const file = fileInput.files[0];
     const allowedExtensions = ['.json', '.bson', '.gz', '.zip'];
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-    
+
     if (!allowedExtensions.includes(fileExtension)) {
         window.electronAPI.showAlert1(`Invalid file type. Allowed types: ${allowedExtensions.join(', ')}`);
         return;
@@ -204,7 +204,7 @@ function handleRestoreDatabase() {
     const file = fileInput.files[0];
     const allowedExtensions = ['.bson', '.gz', '.zip'];
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-    
+
     if (!allowedExtensions.includes(fileExtension)) {
         window.electronAPI.showAlert1(`Invalid file type for database restore. Allowed types: ${allowedExtensions.join(', ')}`);
         return;
@@ -220,7 +220,7 @@ function handleRestoreDatabase() {
     window.electronAPI.showAlert2(
         "Are you sure you want to restore the entire database? This will replace ALL existing data!"
     );
-    
+
     window.electronAPI.receiveAlertResponse((response) => {
         if (response === 'Yes' || response === true) {
             performDatabaseRestore(file);
@@ -279,15 +279,6 @@ function performDatabaseRestore(file) {
         });
 }
 
-// --- GOOGLE DRIVE BACKUP ---
-
-/**
- * Handles the "Google Drive Backup" button click.
- * Shows a notification that cloud backup is not yet implemented.
- */
-function handleGoogleDriveBackup() {
-    window.electronAPI.showAlert1("Cloud backup feature is coming soon! Currently, you can use local export/restore.");
-}
 
 // --- MANUAL BACKUP ---
 /**
@@ -304,7 +295,7 @@ function handleManualBackup() {
         .then(res => res.json())
         .then(data => {
             const location = data.settings?.backup?.backup_location;
-            
+
             // Also check for default ./backups which should be treated as unconfigured
             if (!location || !location.trim() || location === './backups' || location === '.\\backups') {
                 window.electronAPI.showAlert1("Please configure a backup location in Preferences before creating a backup.");
@@ -359,7 +350,7 @@ function handleOpenBackupFolder() {
         .then(res => res.json())
         .then(data => {
             const location = data.settings?.backup?.backup_location;
-            
+
             // Also check for default ./backups which should be treated as unconfigured
             if (!location || !location.trim() || location === './backups' || location === '.\\backups') {
                 window.electronAPI.showAlert1("Please configure a backup location in Preferences before opening backup folder.");
@@ -401,10 +392,9 @@ function initBackupModule() {
     document.getElementById("export-data-button")?.addEventListener("click", handleExportData);
     document.getElementById("restore-collection-button")?.addEventListener("click", handleRestoreCollection);
     document.getElementById("restore-database-button")?.addEventListener("click", handleRestoreDatabase);
-    document.getElementById("google-drive-backup")?.addEventListener("click", handleGoogleDriveBackup);
     document.getElementById("manual-backup-button")?.addEventListener("click", handleManualBackup);
     document.getElementById("manual-backup-open-folder")?.addEventListener("click", handleOpenBackupFolder);
-    
+
     // Load initial status
     loadLastBackupStatus();
 }

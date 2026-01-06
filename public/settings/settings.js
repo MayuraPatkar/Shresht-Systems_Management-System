@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initBackupModule();
     initPreferencesModule();
     initSystemModule();
-    
+
     // Load initial data
     fetchAdminInfo();
     checkBackupToolsStatus();
@@ -40,11 +40,10 @@ function toggleSection(sectionId) {
         "data-backup-section",
         "preferences-section",
         "security-section",
-        "notifications-section",
         "integrations-section",
         "about-section"
     ];
-    
+
     // Cleanup when leaving about section
     const currentAboutSection = document.getElementById("about-section");
     if (currentAboutSection && !currentAboutSection.classList.contains('hidden') && sectionId !== "about-section") {
@@ -52,7 +51,7 @@ function toggleSection(sectionId) {
             cleanupSystemModule();
         }
     }
-    
+
     sections.forEach((id) => {
         const sectionElement = document.getElementById(id);
         if (sectionElement) {
@@ -100,12 +99,6 @@ document.getElementById("preferences-button")?.addEventListener("click", () => {
 document.getElementById("security-button")?.addEventListener("click", () => {
     toggleSection("security-section");
     loadSecuritySettings();
-});
-
-// Notifications section
-document.getElementById("notifications-button")?.addEventListener("click", () => {
-    toggleSection("notifications-section");
-    loadNotificationSettings();
 });
 
 // Integrations/WhatsApp section

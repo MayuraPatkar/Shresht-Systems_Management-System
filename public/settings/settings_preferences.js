@@ -1,6 +1,6 @@
 /**
- * @file System Preferences, Security, and Notification Settings
- * @summary Handles application preferences, security settings, and notification configurations
+ * @file System Preferences and Security Settings
+ * @summary Handles application preferences and security settings
  */
 
 // --- SYSTEM PREFERENCES ---
@@ -28,7 +28,7 @@ function loadPreferences() {
                 document.getElementById("backup-auto-enabled").checked = s.backup?.auto_backup_enabled || false;
                 document.getElementById("backup-frequency").value = s.backup?.backup_frequency || 'daily';
                 document.getElementById("backup-retention").value = s.backup?.retention_days || 30;
-                
+
                 // If location is explicitly set to default './backups', treat it as empty to force user selection
                 let location = s.backup?.backup_location || '';
                 if (location === './backups' || location === '.\\backups') {
@@ -150,7 +150,7 @@ function saveSecuritySettings() {
                 // Update session storage with new timeout
                 const newTimeout = security.security.session_timeout;
                 sessionStorage.setItem('sessionTimeout', newTimeout);
-                
+
                 // Restart session monitor if available
                 if (typeof startSessionMonitor === 'function') {
                     startSessionMonitor();
@@ -171,72 +171,6 @@ function saveSecuritySettings() {
         });
 }
 
-// --- NOTIFICATION SETTINGS ---
-
-/**
- * Loads notification settings from the server
- */
-function loadNotificationSettings() {
-    fetch('/settings/preferences')
-        .then(res => res.json())
-        .then(data => {
-            if (data.success && data.settings) {
-                const n = data.settings.notifications || {};
-
-                document.getElementById("notif-invoice-enabled").checked = n.enable_invoice_reminders !== false;
-                document.getElementById("notif-invoice-days").value = n.invoice_reminder_days || 7;
-                document.getElementById("notif-service-enabled").checked = n.enable_service_reminders !== false;
-                document.getElementById("notif-service-days").value = n.service_reminder_days || 3;
-            }
-        })
-        .catch(err => {
-            console.error('Failed to load notification settings:', err);
-        });
-}
-
-/**
- * Saves notification settings to the server
- */
-function saveNotificationSettings() {
-    const saveButton = document.getElementById("save-notifications-button");
-    const originalContent = saveButton.innerHTML;
-    saveButton.disabled = true;
-    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-
-    const notifications = {
-        notifications: {
-            enable_stock_alerts: document.getElementById("notif-stock-enabled").checked,
-            low_stock_threshold: parseInt(document.getElementById("notif-stock-threshold").value),
-            enable_invoice_reminders: document.getElementById("notif-invoice-enabled").checked,
-            invoice_reminder_days: parseInt(document.getElementById("notif-invoice-days").value),
-            enable_service_reminders: document.getElementById("notif-service-enabled").checked,
-            service_reminder_days: parseInt(document.getElementById("notif-service-days").value),
-            enable_email_notifications: document.getElementById("notif-email-enabled").checked
-        }
-    };
-
-    fetch('/settings/preferences', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(notifications)
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                window.electronAPI.showAlert1("Notification settings saved successfully!");
-            } else {
-                window.electronAPI.showAlert1(`Failed to save: ${data.message}`);
-            }
-        })
-        .catch(err => {
-            console.error('Failed to save notification settings:', err);
-            window.electronAPI.showAlert1("Failed to save notification settings. Please try again.");
-        })
-        .finally(() => {
-            saveButton.disabled = false;
-            saveButton.innerHTML = originalContent;
-        });
-}
 
 // --- WHATSAPP SETTINGS ---
 
@@ -416,8 +350,7 @@ function initPreferencesModule() {
     // Security
     document.getElementById("save-security-button")?.addEventListener("click", saveSecuritySettings);
 
-    // Notifications
-    document.getElementById("save-notifications-button")?.addEventListener("click", saveNotificationSettings);
+
 
     // WhatsApp/Integrations
     document.getElementById("save-whatsapp-button")?.addEventListener("click", saveWhatsAppSettings);
