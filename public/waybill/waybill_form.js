@@ -39,59 +39,60 @@ document.addEventListener('DOMContentLoaded', function () {
         nextBtnOld.parentNode.replaceChild(nextBtn, nextBtnOld);
     }
     if (nextBtn) {
-        nextBtn.addEventListener("click", async () => { if (nextBtn.dataset.processing === "1") return; nextBtn.dataset.processing = "1"; try {
-            if (typeof window.validateCurrentStep === 'function') {
-                const ok = await window.validateCurrentStep();
-                if (!ok) return;
-            }
+        nextBtn.addEventListener("click", async () => {
+            if (nextBtn.dataset.processing === "1") return; nextBtn.dataset.processing = "1"; try {
+                if (typeof window.validateCurrentStep === 'function') {
+                    const ok = await window.validateCurrentStep();
+                    if (!ok) return;
+                }
 
-            // If user is on Step 1 (Import step), import quotation data before advancing
-            if (window.currentStep === 1 && document.getElementById("quotation-id")) {
-                const quotationId = document.getElementById("quotation-id")?.value;
-                if (quotationId) {
-                    try {
-                        const response = await fetch(`/quotation/${quotationId}`);
-                        if (!response.ok) throw new Error('Failed to fetch quotation');
-                        const data = await response.json();
-                        const quotation = data.quotation;
+                // If user is on Step 1 (Import step), import quotation data before advancing
+                if (window.currentStep === 1 && document.getElementById("quotation-id")) {
+                    const quotationId = document.getElementById("quotation-id")?.value;
+                    if (quotationId) {
+                        try {
+                            const response = await fetch(`/quotation/${quotationId}`);
+                            if (!response.ok) throw new Error('Failed to fetch quotation');
+                            const data = await response.json();
+                            const quotation = data.quotation;
 
-                        document.getElementById("project-name").value = quotation.project_name;
-                        document.getElementById("buyer-name").value = quotation.customer_name;
-                        document.getElementById("buyer-address").value = quotation.customer_address;
-                        document.getElementById("buyer-phone").value = quotation.customer_phone;
+                            document.getElementById("project-name").value = quotation.project_name;
+                            document.getElementById("buyer-name").value = quotation.customer_name;
+                            document.getElementById("buyer-address").value = quotation.customer_address;
+                            document.getElementById("buyer-phone").value = quotation.customer_phone;
 
-                        const itemsTableBody = document.querySelector("#items-table tbody");
-                        itemsTableBody.innerHTML = "";
-                        const itemsContainer = document.getElementById("items-container");
-                        itemsContainer.innerHTML = "";
-                        let itemSno = 1;
+                            const itemsTableBody = document.querySelector("#items-table tbody");
+                            itemsTableBody.innerHTML = "";
+                            const itemsContainer = document.getElementById("items-container");
+                            itemsContainer.innerHTML = "";
+                            let itemSno = 1;
 
-                        (quotation.items || []).forEach(item => {
-                            addItemFromData(item, itemSno);
-                            itemSno++;
-                        });
+                            (quotation.items || []).forEach(item => {
+                                addItemFromData(item, itemSno);
+                                itemSno++;
+                            });
 
-                        // Advance to the next step
-                        if (window.currentStep < window.totalSteps) {
-                            window.changeStep(window.currentStep + 1);
+                            // Advance to the next step
+                            if (window.currentStep < window.totalSteps) {
+                                window.changeStep(window.currentStep + 1);
+                            }
+                            return;
+
+                        } catch (error) {
+                            console.error("Error:", error);
+                            window.electronAPI.showAlert1("Failed to fetch quotation.");
+                            return; // cancel navigation
                         }
-                        return;
-
-                    } catch (error) {
-                        console.error("Error:", error);
-                        window.electronAPI.showAlert1("Failed to fetch quotation.");
-                        return; // cancel navigation
                     }
                 }
-            }
 
-            // Advance to the next step after passing validation/import
-            if (window.currentStep < window.totalSteps) {
-                window.changeStep(window.currentStep + 1);
+                // Advance to the next step after passing validation/import
+                if (window.currentStep < window.totalSteps) {
+                    window.changeStep(window.currentStep + 1);
+                }
+            } finally {
+                delete nextBtn.dataset.processing;
             }
-        } finally {
-            delete nextBtn.dataset.processing;
-        }
         });
     }
 
@@ -103,11 +104,13 @@ document.addEventListener('DOMContentLoaded', function () {
         prevBtnOld.parentNode.replaceChild(prevBtn, prevBtnOld);
     }
     if (prevBtn) {
-prevBtn.addEventListener('click', () => { if (prevBtn.dataset.processing === '1') return; prevBtn.dataset.processing = '1'; try {
-            if (window.currentStep > 1) {
-                window.changeStep(window.currentStep - 1);
-            }
-        } finally { delete prevBtn.dataset.processing; } });
+        prevBtn.addEventListener('click', () => {
+            if (prevBtn.dataset.processing === '1') return; prevBtn.dataset.processing = '1'; try {
+                if (window.currentStep > 1) {
+                    window.changeStep(window.currentStep - 1);
+                }
+            } finally { delete prevBtn.dataset.processing; }
+        });
     }
 });
 
@@ -764,13 +767,18 @@ async function sendToServer(data, shouldPrint) {
 
 // Event listener for the "Save" button
 const saveBtn = document.getElementById("save-btn");
+const wasNewWayBill = sessionStorage.getItem('currentTab-status') !== 'update';
 if (saveBtn) {
     saveBtn.addEventListener("click", async () => {
         const wayBillData = collectFormData();
         const ok = await sendToServer(wayBillData, false);
-        if (ok) window.electronAPI.showAlert1("Way Bill saved successfully!");
-        window.location = '/waybill';
-
+        if (ok) {
+            window.electronAPI.showAlert1("Way Bill saved successfully!");
+            if (wasNewWayBill) {
+                sessionStorage.removeItem('currentTab-status');
+                window.location = '/waybill';
+            }
+        }
     });
 }
 

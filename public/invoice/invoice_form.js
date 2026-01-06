@@ -1069,6 +1069,8 @@ document.getElementById("save-btn").addEventListener("click", async () => {
         const invoiceData = collectFormData();
         const response = await sendToServer(invoiceData, false);
 
+        const wasNewInvoice = sessionStorage.getItem('currentTab-status') !== 'update';
+
         if (response) {
             window.electronAPI.showAlert1("Invoice saved successfully!");
 
@@ -1088,7 +1090,10 @@ document.getElementById("save-btn").addEventListener("click", async () => {
         isSaving = false;
         saveBtn.disabled = false;
         saveBtn.innerHTML = originalText;
-        window.location = '/invoice';
+        if (wasNewInvoice) {
+            sessionStorage.removeItem('currentTab-status');
+            window.location = '/invoice';
+        }
 
     }
 });

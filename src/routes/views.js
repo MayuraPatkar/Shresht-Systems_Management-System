@@ -9,7 +9,7 @@ const pages = [
     { route: '/dashboard', file: 'dashboard/dashboard.html' },
     { route: '/invoice', file: 'invoice/invoice.html' },
     { route: '/quotation', file: 'quotation/quotation.html' },
-    { route: '/wayBill', file: 'waybill/wayBill.html' },
+    { route: '/waybill', file: 'waybill/waybill.html' },
     { route: '/purchaseorder', file: 'purchaseOrder/purchaseOrder.html' },
     { route: '/service', file: 'service/service.html' },
     { route: '/stock', file: 'stock/stock.html' },

@@ -39,11 +39,11 @@ function setupGenericAutocomplete(input, dataList) {
         input.parentElement.style.position = 'relative';
         input.parentElement.appendChild(suggestionsContainer);
     }
-    
+
     // Track if input was from user typing or programmatic
     let isUserTyping = false;
 
-    input.addEventListener('keydown', function() {
+    input.addEventListener('keydown', function () {
         isUserTyping = true;
     });
 
@@ -54,10 +54,10 @@ function setupGenericAutocomplete(input, dataList) {
             return;
         }
         isUserTyping = false;
-        
+
         // Close all other suggestions first
         closeAllSuggestions();
-        
+
         const query = this.value.toLowerCase().trim();
         suggestionsContainer.innerHTML = '';
         if (query.length === 0) {
@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function showSuggestionsPO(input, suggestionsList) {
     // Close all other suggestions first
     closeAllSuggestions();
-    
+
     const query = input.value.toLowerCase().trim();
     suggestionsList.innerHTML = ""; // Clear old suggestions
     selectedIndex = -1; // Reset index when showing new suggestions
@@ -707,10 +707,15 @@ async function getId() {
 // Improved: Async/await for save/print, better feedback, and bug fixes
 document.getElementById("save-btn").addEventListener("click", async () => {
     const purchaseOrderData = collectFormData();
+    const wasNewPurchaseOrder = sessionStorage.getItem('currentTab-status') !== 'update';
     const ok = await sendToServer(purchaseOrderData);
-    if (ok) window.electronAPI.showAlert1("Purchase Order saved successfully!");
-    window.location = '/purchaseOrder';
-
+    if (ok) {
+        window.electronAPI.showAlert1("Purchase Order saved successfully!");
+        if (wasNewPurchaseOrder) {
+            sessionStorage.removeItem('currentTab-status');
+            window.location = '/purchaseorder';
+        }
+    }
 });
 
 // Function to generate the preview
@@ -1403,7 +1408,7 @@ window.validateCurrentStep = async function () {
 };
 
 // Initialize drag-drop reordering for purchase order items
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     if (window.itemReorder && typeof window.itemReorder.initDragDrop === 'function') {
         window.itemReorder.initDragDrop('items-container', renumberItems);
     }
