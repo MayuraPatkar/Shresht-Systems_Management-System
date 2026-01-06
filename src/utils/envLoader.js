@@ -32,21 +32,21 @@ function isPackaged() {
  */
 function loadEnvironment() {
     const isProd = isPackaged();
-    
+
     if (!isProd) {
         // Development: Load from .env file
         const envPath = path.resolve(__dirname, '../../.env');
-        
+
         if (fs.existsSync(envPath)) {
             require('dotenv').config({ path: envPath });
-            console.log('[ENV] Loaded environment variables from .env file');
+            // console.log('[ENV] Loaded environment variables from .env file');
         } else {
-            console.warn('[ENV] No .env file found, using system environment variables');
+            // console.warn('[ENV] No .env file found, using system environment variables');
         }
     } else {
         // Production: Use system environment variables
         // dotenv is not needed, process.env already contains system vars
-        console.log('[ENV] Production mode: Using system environment variables');
+        // console.log('[ENV] Production mode: Using system environment variables');
     }
 }
 
@@ -58,14 +58,14 @@ function loadEnvironment() {
  */
 function getEnv(key, defaultValue = undefined) {
     const value = process.env[key];
-    
+
     if (value === undefined || value === '') {
         if (defaultValue === undefined) {
-            console.warn(`[ENV] Environment variable ${key} is not set and has no default`);
+            // console.warn(`[ENV] Environment variable ${key} is not set and has no default`);
         }
         return defaultValue;
     }
-    
+
     return value;
 }
 
@@ -77,11 +77,11 @@ function getEnv(key, defaultValue = undefined) {
  */
 function getRequiredEnv(key) {
     const value = process.env[key];
-    
+
     if (value === undefined || value === '') {
         throw new Error(`Required environment variable ${key} is not set`);
     }
-    
+
     return value;
 }
 

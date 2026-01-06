@@ -156,7 +156,7 @@ router.post("/save-invoice", async (req, res) => {
                 for (let prev of existingInvoice.items_original) {
                     if (!prev.description) continue;
                     const itemName = prev.description.trim();
-                    
+
                     // Find stock item (try exact match, then case-insensitive)
                     let stockItem = await Stock.findOne({ item_name: itemName });
                     if (!stockItem) {
@@ -174,7 +174,7 @@ router.post("/save-invoice", async (req, res) => {
                 for (let cur of items_original) {
                     if (!cur.description) continue;
                     const itemName = cur.description.trim();
-                    
+
                     // Find stock item (try exact match, then case-insensitive)
                     let stockItem = await Stock.findOne({ item_name: itemName });
                     if (!stockItem) {
@@ -189,9 +189,9 @@ router.post("/save-invoice", async (req, res) => {
 
                 // 2. Sync Stock Movements (Update Existing, Create New, Delete Removed)
                 // This ensures we don't create duplicate "Out" movements or "Adjustment" movements for edits.
-                
+
                 const currentInvoiceId = invoiceId || existingInvoice.invoice_id;
-                
+
                 // Fetch existing movements for this Invoice
                 const existingMovements = await StockMovement.find({
                     reference_type: 'invoice',
@@ -215,8 +215,8 @@ router.post("/save-invoice", async (req, res) => {
 
                     // Find a matching movement in the pool
                     // We match by item name (case-insensitive check might be safer but let's stick to direct match first or normalized)
-                    const matchIndex = movementPool.findIndex(m => 
-                        m.item_name === finalItemName || 
+                    const matchIndex = movementPool.findIndex(m =>
+                        m.item_name === finalItemName ||
                         m.item_name.toLowerCase() === finalItemName.toLowerCase()
                     );
 
@@ -231,11 +231,11 @@ router.post("/save-invoice", async (req, res) => {
                         // So it stores whatever is passed.
                         // In renderStockReport, it handles signs based on type.
                         // So we just store the absolute quantity here.
-                        
+
                         movement.quantity_change = qty;
                         // movement.notes = `Invoice Generated`; // Keep original notes
                         await movement.save();
-                        
+
                         // Remove from pool so we don't use it again
                         movementPool.splice(matchIndex, 1);
                     } else {
@@ -245,7 +245,7 @@ router.post("/save-invoice", async (req, res) => {
                         // or maybe we should log even if stock doesn't exist to track the attempt?
                         // The previous logic was: if (stockItem) { ... logStockMovement ... }
                         // So we should probably check stockItem existence here too to be consistent.
-                        
+
                         if (stockItem) {
                             await logStockMovement(
                                 finalItemName,
@@ -311,7 +311,7 @@ router.post("/save-invoice", async (req, res) => {
                 for (let item of items_original) {
                     if (!item.description) continue;
                     const itemName = item.description.trim();
-                    
+
                     // Find stock item (try exact match, then case-insensitive)
                     let stockItem = await Stock.findOne({ item_name: itemName });
                     if (!stockItem) {
@@ -321,7 +321,7 @@ router.post("/save-invoice", async (req, res) => {
                     if (stockItem) {
                         stockItem.quantity = (stockItem.quantity || 0) - Number(item.quantity || 0);
                         await stockItem.save();
-                        
+
                         await logStockMovement(
                             stockItem.item_name,
                             item.quantity,
@@ -466,10 +466,10 @@ router.post("/save-payment", async (req, res) => {
 
         const totalDue = computeTotalDue(invoice);
         const currentPaid = (invoice.payments || []).reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
-        
+
         // Validate payment amount
         if (currentPaid + Number(paidAmount) > totalDue + 0.01) { // Allow small float margin
-             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - currentPaid).toFixed(2)})` });
+            return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - currentPaid).toFixed(2)})` });
         }
 
         // Add the new payment
@@ -501,7 +501,7 @@ router.post("/save-payment", async (req, res) => {
 
         res.status(200).json({ message: "Payment saved successfully." });
     } catch (error) {
-        console.error("Error saving payment:", error);
+        logger.error("Error saving payment:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -553,15 +553,15 @@ router.put("/update-payment", async (req, res) => {
         };
 
         const totalDue = computeTotalDue(invoice);
-        
+
         // Calculate paid amount excluding the one being updated
         const otherPaymentsTotal = (invoice.payments || []).reduce((sum, p, idx) => {
             if (idx === Number(paymentIndex)) return sum;
             return sum + Number(p.paid_amount || 0);
         }, 0);
-        
+
         if (otherPaymentsTotal + Number(paidAmount) > totalDue + 0.01) {
-             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - otherPaymentsTotal).toFixed(2)})` });
+            return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - otherPaymentsTotal).toFixed(2)})` });
         }
 
         // Update the payment at the specified index
@@ -591,7 +591,7 @@ router.put("/update-payment", async (req, res) => {
 
         res.status(200).json({ message: "Payment updated successfully." });
     } catch (error) {
-        console.error("Error updating payment:", error);
+        logger.error("Error updating payment:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -660,7 +660,7 @@ router.delete("/delete-payment/:invoiceId/:paymentIndex", async (req, res) => {
 
         res.status(200).json({ message: "Payment deleted successfully." });
     } catch (error) {
-        console.error("Error deleting payment:", error);
+        logger.error("Error deleting payment:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -721,9 +721,9 @@ router.delete("/:invoiceId", async (req, res) => {
         }
 
         // Delete associated stock movements
-        await StockMovement.deleteMany({ 
-            reference_type: 'invoice', 
-            reference_id: invoiceId 
+        await StockMovement.deleteMany({
+            reference_type: 'invoice',
+            reference_id: invoiceId
         });
 
         await Invoices.deleteOne({ invoice_id: invoiceId });
@@ -738,7 +738,7 @@ router.delete("/:invoiceId", async (req, res) => {
 router.post("/close-service/:invoiceId", async (req, res) => {
     try {
         const { invoiceId } = req.params;
-        
+
         const invoice = await Invoices.findOne({ invoice_id: invoiceId });
         if (!invoice) {
             return res.status(404).json({ message: 'Invoice not found' });
@@ -749,9 +749,9 @@ router.post("/close-service/:invoiceId", async (req, res) => {
         await invoice.save();
 
         logger.info(`Service closed for invoice ${invoiceId}`);
-        res.status(200).json({ 
-            message: 'Service closed successfully. No further services will be scheduled.', 
-            invoice 
+        res.status(200).json({
+            message: 'Service closed successfully. No further services will be scheduled.',
+            invoice
         });
     } catch (error) {
         logger.error("Error closing service:", error);

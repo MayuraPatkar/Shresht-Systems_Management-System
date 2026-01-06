@@ -139,10 +139,9 @@ async function sendWhatsAppMessage(phone, message) {
             payload,
             { headers: { Authorization: `Bearer ${creds.token}` } }
         );
-        console.log('WhatsApp message sent:', data);
         return data;
     } catch (err) {
-        console.error(
+        logger.error(
             'WhatsApp API error:',
             err?.response?.data || err.message || err
         );
@@ -182,9 +181,8 @@ async function sendPaymentReminder(phone, amount_due) {
             payload,
             { headers: { Authorization: `Bearer ${creds.token}` } }
         );
-        console.log('sent:', data);
     } catch (err) {
-        console.error(
+        logger.error(
             'WhatsApp API error:',
             err?.response?.data || err.message || err
         );
@@ -230,7 +228,7 @@ router.post('/send-manual-reminder', async (req, res) => {
 
         return res.json({ message: 'Manual payment reminder sent successfully.' });
     } catch (err) {
-        console.error(
+        logger.error(
             'WhatsApp API error:',
             err?.response?.data || err.message || err
         );
@@ -612,7 +610,7 @@ router.post('/send-document', async (req, res) => {
 
         res.json({ message: 'Document sent via WhatsApp.' });
     } catch (err) {
-        console.error('Error sending document:', err);
+        logger.error('Error sending document:', err);
         res.status(500).json({
             message: 'Failed to send document.',
             error: err?.response?.data || err.message
@@ -664,7 +662,7 @@ router.post('/send-automated-reminders', async (req, res) => {
                     successCount++;
                 }
             } catch (err) {
-                console.error(`Failed to send reminder for invoice ${invoice.invoice_id}:`, err);
+                logger.error(`Failed to send reminder for invoice ${invoice.invoice_id}:`, err);
                 failCount++;
             }
         }
@@ -675,7 +673,7 @@ router.post('/send-automated-reminders', async (req, res) => {
             failed: failCount
         });
     } catch (err) {
-        console.error('Error sending automated reminders:', err);
+        logger.error('Error sending automated reminders:', err);
         res.status(500).json({ message: 'Failed to send automated reminders.', error: err.message });
     }
 });

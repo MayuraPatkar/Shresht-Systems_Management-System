@@ -10,6 +10,7 @@
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
+const logger = require('./logger');
 
 // Cache file location (in project root)
 const PORT_CACHE_FILE = path.join(__dirname, '../../.port-cache');
@@ -69,7 +70,7 @@ function saveLastUsedPort(port) {
         fs.writeFileSync(PORT_CACHE_FILE, String(port), 'utf8');
     } catch (err) {
         // Ignore write errors, non-critical
-        console.warn('Could not cache port:', err.message);
+        logger.warn('Could not cache port:', err.message);
     }
 }
 
@@ -94,7 +95,7 @@ async function findAvailablePort(options = {}) {
         defaultPort = 3000,
         maxRetries = 10,
         useCache = true,
-        logger = console
+        logger: customLogger = logger
     } = options;
 
     const envPort = process.env.PORT ? parseInt(process.env.PORT, 10) : null;
