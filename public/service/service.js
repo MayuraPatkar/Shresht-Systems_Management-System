@@ -888,6 +888,10 @@ function addItemRow(data = {}) {
 
     container.appendChild(row);
 
+    row.querySelector('.item-qty').addEventListener('keypress', function (event) {
+        if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+    });
+
     // Setup autocomplete for description field
     const descInput = row.querySelector('.item-desc');
     const suggestionsList = row.querySelector('.suggestions');

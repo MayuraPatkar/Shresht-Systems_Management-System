@@ -165,6 +165,16 @@ async function openQuotation(quotationId) {
                 `;
             itemsContainer.appendChild(card);
 
+            // Integer validation for quantity inputs
+            const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
+            qtyInputs.forEach(input => {
+                if (input) {
+                    input.addEventListener('keypress', function (event) {
+                        if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                    });
+                }
+            });
+
             // Setup autocomplete for loaded items
             const cardInput = card.querySelector(".item_name");
             const cardSuggestions = card.querySelector(".suggestions");
@@ -457,6 +467,16 @@ async function cloneQuotation(sourceQuotationId) {
                     </div>
                 `;
                 itemsContainer.appendChild(card);
+
+                // Integer validation for quantity inputs
+                const qtyInputsClone = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
+                qtyInputsClone.forEach(input => {
+                    if (input) {
+                        input.addEventListener('keypress', function (event) {
+                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                        });
+                    }
+                });
 
                 // Setup autocomplete
                 const cardInput = card.querySelector(".item_name");

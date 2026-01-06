@@ -257,6 +257,16 @@ window.beforeStepAdvance = async function (step) {
                     });
                 });
 
+                // Integer validation for quantity
+                const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
+                qtyInputs.forEach(input => {
+                    if (input) {
+                        input.addEventListener('keypress', function (event) {
+                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                        });
+                    }
+                });
+
                 // Add remove button event listener
                 const removeBtn = card.querySelector(".remove-item-btn");
                 removeBtn.addEventListener("click", function () {
@@ -314,6 +324,16 @@ window.beforeStepAdvance = async function (step) {
                     input.addEventListener('input', () => {
                         rowInputs[index].value = input.value;
                     });
+                });
+
+                // Integer validation for quantity
+                const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
+                qtyInputs.forEach(input => {
+                    if (input) {
+                        input.addEventListener('keypress', function (event) {
+                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                        });
+                    }
                 });
 
                 // Add remove button event listener
@@ -461,6 +481,16 @@ async function openInvoice(id) {
                     });
                 });
 
+                // Integer validation for quantity
+                const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
+                qtyInputs.forEach(input => {
+                    if (input) {
+                        input.addEventListener('keypress', function (event) {
+                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                        });
+                    }
+                });
+
                 // Add remove button event listener
                 const removeBtn = card.querySelector(".remove-item-btn");
                 removeBtn.addEventListener("click", function () {
@@ -517,6 +547,16 @@ async function openInvoice(id) {
                     input.addEventListener('input', () => {
                         rowInputs[index].value = input.value;
                     });
+                });
+
+                // Integer validation for quantity
+                const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
+                qtyInputs.forEach(input => {
+                    if (input) {
+                        input.addEventListener('keypress', function (event) {
+                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                        });
+                    }
                 });
 
                 // Add remove button event listener
@@ -585,6 +625,16 @@ async function openInvoice(id) {
                     input.addEventListener('input', () => {
                         rowInputs[index].value = input.value;
                     });
+                });
+
+                // Integer validation for quantity
+                const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
+                qtyInputs.forEach(input => {
+                    if (input) {
+                        input.addEventListener('keypress', function (event) {
+                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                        });
+                    }
                 });
 
                 // Add remove button event listener

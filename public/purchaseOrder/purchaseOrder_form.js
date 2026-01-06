@@ -672,6 +672,16 @@ async function openPurchaseOrder(purchaseOrderId) {
             }
         });
 
+        // Add Integer validation for quantity inputs
+        const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(7) input')];
+        qtyInputs.forEach(input => {
+            if (input) {
+                input.addEventListener('keypress', function (event) {
+                    if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                });
+            }
+        });
+
         // Add remove button event listener
         const removeBtn = card.querySelector(".remove-item-btn");
         if (removeBtn) {

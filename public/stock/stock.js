@@ -1283,3 +1283,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 800);
     }
 });
+
+// Integer validation for quantity inputs (replacing inline onkeypress)
+document.addEventListener('DOMContentLoaded', () => {
+    const ids = ['quantity', 'minQuantity', 'editMinQuantity', 'quantityModalInput'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('keypress', function (event) {
+                if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+            });
+        }
+    });
+});
