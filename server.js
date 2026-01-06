@@ -45,14 +45,14 @@ const corsOptions = {
         if (!origin) {
             return callback(null, true);
         }
-        
+
         // Build allowed origins dynamically based on actual port
         const port = actualPort || config.port;
         const allowedOrigins = [
             `http://localhost:${port}`,
             'file://'
         ];
-        
+
         if (allowedOrigins.includes(origin) || origin.startsWith('file://')) {
             callback(null, true);
         } else {
@@ -136,7 +136,6 @@ try {
         logger.error('Unable to create fallback documents directory:', ex);
     }
 }
-logger.info(`Serving documents from: ${documentsPath}`);
 
 // Static files with proper caching - BEFORE rate limiting
 exServer.use(express.static(publicPath, {
@@ -175,10 +174,8 @@ exServer.set('views', path.join(__dirname, 'public', 'views'));
 
 // Initialize database connection with default admin users
 connectDB().then(async () => {
-    logger.info('Database connected, initializing default data...');
     const initializeDatabase = require('./src/utils/initDatabase');
     await initializeDatabase();
-    logger.info('Database initialization complete');
     // Resolve WhatsApp token from secure storage if not provided via env
     try {
         if (!process.env.WHATSAPP_TOKEN || !config.whatsapp.token) {
@@ -280,9 +277,7 @@ exServer.use(errorHandler);
 // Run automatic backup on startup with error handling
 // Start scheduled automatic backups based on saved settings
 try {
-    backupScheduler.startScheduler().then(() => {
-        logger.info('Backup scheduler started');
-    }).catch(err => {
+    backupScheduler.startScheduler().catch(err => {
         logger.error('Failed to start backup scheduler:', err);
     });
 
@@ -338,18 +333,13 @@ async function startServer() {
                 const result = await new Promise((resolve, reject) => {
                     // Attempt to listen
                     const tempServer = exServer.listen(port, () => {
-                        // Print startup banner
-                        printStartupBanner({
+                        // Log server startup
+                        logger.info("Express server started", {
+                            service: "http-server",
                             port: actualPort,
-                            source: source,
-                            appName: config.appName,
-                            appVersion: config.appVersion,
-                            logger: logger
+                            portSource: source,
+                            environment: process.env.NODE_ENV || 'development'
                         });
-
-                        logger.info(`Server started at ${new Date().toISOString()}`);
-                        logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-                        logger.info(`Process ID: ${process.pid}`);
 
                         // Update the outer-scope server reference
                         server = tempServer;

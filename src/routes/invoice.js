@@ -515,7 +515,7 @@ router.post("/save-payment", async (req, res) => {
 
         res.status(200).json({ message: "Payment saved successfully." });
     } catch (error) {
-        console.error("Error saving payment:", error);
+        logger.error("Error saving payment:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -605,7 +605,7 @@ router.put("/update-payment", async (req, res) => {
 
         res.status(200).json({ message: "Payment updated successfully." });
     } catch (error) {
-        console.error("Error updating payment:", error);
+        logger.error("Error updating payment:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -674,7 +674,7 @@ router.delete("/delete-payment/:invoiceId/:paymentIndex", async (req, res) => {
 
         res.status(200).json({ message: "Payment deleted successfully." });
     } catch (error) {
-        console.error("Error deleting payment:", error);
+        logger.error("Error deleting payment:", error);
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });

@@ -16,7 +16,7 @@ async function logStockMovement(itemName, quantityChange, movementType, referenc
             notes: notes
         });
     } catch (error) {
-        logger.error('Error logging stock movement:', error);
+        logger.error('Stock movement log failed', { service: "stock", error: error.message });
     }
 }
 
@@ -26,7 +26,7 @@ router.get('/all', async (req, res) => {
         const stockData = await Stock.find().sort({ item_name: 1 });
         res.status(200).json(stockData);
     } catch (error) {
-        logger.error('Error fetching stock data:', error);
+        logger.error('Error fetching stock data', { service: "stock", error: error.message });
         res.status(500).json({ error: 'Failed to fetch stock data' });
     }
 });
@@ -58,7 +58,7 @@ router.post('/addItem', validators.createStock, async (req, res) => {
         });
 
         await newItem.save();
-        
+
         // Log stock movement for initial quantity
         if (quantity && quantity > 0) {
             await logStockMovement(
@@ -70,13 +70,13 @@ router.post('/addItem', validators.createStock, async (req, res) => {
                 'Initial stock entry'
             );
         }
-        
+
         res.status(201).json({
             message: 'Item added successfully',
             item: newItem
         });
     } catch (error) {
-        logger.error('Error adding stock item:', error);
+        logger.error('Stock item addition failed', { service: "stock", error: error.message });
         res.status(500).json({ error: 'Failed to add stock item' });
     }
 });
@@ -94,7 +94,7 @@ router.post('/addToStock', async (req, res) => {
 
         item.quantity += quantity;
         await item.save();
-        
+
         // Log stock movement
         await logStockMovement(
             item.item_name,
@@ -107,7 +107,7 @@ router.post('/addToStock', async (req, res) => {
 
         res.status(200).json({ message: 'Stock updated successfully' });
     } catch (error) {
-        logger.error('Error updating stock:', error);
+        logger.error('Stock increment failed', { service: "stock", itemId, quantity, error: error.message });
         res.status(500).json({ error: 'Failed to update stock' });
     }
 });
@@ -132,7 +132,7 @@ router.post('/removeFromStock', async (req, res) => {
 
         item.quantity -= quantity;
         await item.save();
-        
+
         // Log stock movement
         await logStockMovement(
             item.item_name,
@@ -145,7 +145,7 @@ router.post('/removeFromStock', async (req, res) => {
 
         res.status(200).json({ message: 'Stock updated successfully' });
     } catch (error) {
-        logger.error('Error updating stock:', error);
+        logger.error('Stock decrement failed', { service: "stock", itemId, quantity, error: error.message });
         res.status(500).json({ error: 'Failed to update stock' });
     }
 });
@@ -204,7 +204,7 @@ router.post('/editItem', async (req, res) => {
         item.min_quantity = min_quantity;
         item.updatedAt = new Date();
         await item.save();
-        
+
         // Log stock movement if quantity changed
         if (quantityDiff !== 0) {
             await logStockMovement(
@@ -219,7 +219,7 @@ router.post('/editItem', async (req, res) => {
 
         res.status(200).json({ message: 'Item updated successfully' });
     } catch (error) {
-        logger.error('Error editing item:', error);
+        logger.error('Stock item edit failed', { service: "stock", itemId, error: error.message });
         res.status(500).json({ error: 'Failed to edit item' });
     }
 });
@@ -234,7 +234,7 @@ router.get("/get-stock-item", async (req, res) => {
 
         res.json(stockItem);
     } catch (error) {
-        logger.error("Error fetching stock item:", error);
+        logger.error("Stock item fetch failed", { service: "stock", error: error.message });
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -244,7 +244,7 @@ router.get("/get-names", async (req, res) => {
         const stockItems = await Stock.find({}, { item_name: 1 });
         res.json(stockItems.map(item => item.item_name));
     } catch (error) {
-        logger.error("Error fetching stock item names:", error);
+        logger.error("Stock names fetch failed", { service: "stock", error: error.message });
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -272,7 +272,7 @@ router.get('/search/:itemName', async (req, res) => {
             res.json({ found: false });
         }
     } catch (error) {
-        logger.error('Error searching stock item:', error);
+        logger.error('Stock search failed', { service: "stock", error: error.message });
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -285,7 +285,7 @@ router.post('/deleteItem', async (req, res) => {
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
-        
+
         // Log stock movement if item had quantity
         if (item.quantity > 0) {
             await logStockMovement(
@@ -297,11 +297,11 @@ router.post('/deleteItem', async (req, res) => {
                 'Item deleted from stock'
             );
         }
-        
+
         const result = await Stock.deleteOne({ _id: itemId });
         res.json({ success: true });
     } catch (error) {
-        logger.error('Error deleting stock item:', error);
+        logger.error('Stock item deletion failed', { service: "stock", itemId, error: error.message });
         res.status(500).json({ error: 'Failed to delete item' });
     }
 });

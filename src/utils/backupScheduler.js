@@ -69,7 +69,7 @@ async function scheduleFromSettings(settings) {
         }
 
         if (!settings || !settings.backup) {
-            logger.info('No backup settings found; auto-backup disabled');
+            logger.info('Auto-backup disabled', { service: "backup", reason: "no_settings" });
             return;
         }
 
@@ -81,13 +81,12 @@ async function scheduleFromSettings(settings) {
         const location = cfg.backup_location || null;
 
         if (!enabled) {
-            logger.info('Auto backup is disabled in settings');
             return;
         }
 
         // Backup location is required - no default fallback
         if (!location) {
-            logger.warn('Auto backup is enabled but no backup location is configured. Skipping.');
+            logger.warn('Auto backup skipped', { service: "backup", reason: "no_location_configured" });
             return;
         }
 
@@ -98,11 +97,16 @@ async function scheduleFromSettings(settings) {
         const next = computeNextRun(now, frequency, timeStr);
         const delay = Math.max(1000, next.getTime() - now.getTime());
 
-        logger.info(`Scheduling next automatic backup at ${next.toISOString()} (in ${(delay/1000/60).toFixed(1)} minutes). Frequency: ${frequency}`);
+        logger.info('Scheduled next backup', {
+            service: "backup",
+            nextRun: next.toISOString(),
+            minutesUntil: (delay / 1000 / 60).toFixed(1),
+            frequency
+        });
 
         currentTimeout = setTimeout(async () => {
             if (isRunning) {
-                logger.warn('Previous backup still running; skipping this scheduled run');
+                logger.warn('Scheduled backup skipped', { service: "backup", reason: "previous_backup_running" });
             } else {
                 isRunning = true;
                 try {
@@ -121,20 +125,20 @@ async function scheduleFromSettings(settings) {
                             await s.save();
                         }
                     } catch (err) {
-                        logger.warn('Failed to update last_backup in settings', { error: err.message || err });
+                        logger.warn('Failed to update last_backup timestamp', { service: "backup", error: err.message });
                     }
                 } catch (err) {
-                    logger.error('Scheduled backup failed:', err);
+                    logger.error('Scheduled backup failed', { service: "backup", error: err.message });
                 } finally {
                     isRunning = false;
                     // Reschedule next run based on same settings
-                    scheduleFromSettings(settings).catch(e => logger.error('Reschedule failed:', e));
+                    scheduleFromSettings(settings).catch(e => logger.error('Reschedule failed', { service: "backup", error: e.message }));
                 }
             }
         }, delay);
 
     } catch (error) {
-        logger.error('Error scheduling backup from settings:', error);
+        logger.error('Error scheduling backup', { service: "backup", error: error.message });
     }
 }
 
@@ -142,14 +146,14 @@ async function startScheduler() {
     try {
         const settings = await Settings.findOne();
         if (!settings) {
-            logger.info('No settings document found; creating default settings');
+            logger.info('Creating default settings', { service: "backup" });
             const s = new Settings({});
             await s.save();
             return scheduleFromSettings(s);
         }
         return scheduleFromSettings(settings);
     } catch (error) {
-        logger.error('Failed to start backup scheduler:', error);
+        logger.error('Failed to start backup scheduler', { service: "backup", error: error.message });
     }
 }
 
@@ -158,7 +162,7 @@ async function refreshSchedule() {
         const settings = await Settings.findOne();
         return scheduleFromSettings(settings);
     } catch (error) {
-        logger.error('Failed to refresh backup schedule:', error);
+        logger.error('Failed to refresh backup schedule', { service: "backup", error: error.message });
     }
 }
 

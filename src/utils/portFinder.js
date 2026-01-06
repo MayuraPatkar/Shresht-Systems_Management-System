@@ -10,6 +10,7 @@
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
+const logger = require('./logger');
 
 // Cache file location (in project root)
 const PORT_CACHE_FILE = path.join(__dirname, '../../.port-cache');
@@ -22,7 +23,7 @@ const PORT_CACHE_FILE = path.join(__dirname, '../../.port-cache');
 function isPortAvailable(port) {
     return new Promise((resolve) => {
         const server = net.createServer();
-        
+
         server.once('error', (err) => {
             if (err.code === 'EADDRINUSE') {
                 resolve(false);
@@ -30,13 +31,13 @@ function isPortAvailable(port) {
                 resolve(false);
             }
         });
-        
+
         server.once('listening', () => {
             server.close(() => {
                 resolve(true);
             });
         });
-        
+
         server.listen(port, '127.0.0.1');
     });
 }
@@ -69,7 +70,7 @@ function saveLastUsedPort(port) {
         fs.writeFileSync(PORT_CACHE_FILE, String(port), 'utf8');
     } catch (err) {
         // Ignore write errors, non-critical
-        console.warn('Could not cache port:', err.message);
+        logger.warn('Could not cache port:', err.message);
     }
 }
 
@@ -94,7 +95,7 @@ async function findAvailablePort(options = {}) {
         defaultPort = 3000,
         maxRetries = 10,
         useCache = true,
-        logger = console
+        logger: customLogger = logger
     } = options;
 
     const envPort = process.env.PORT ? parseInt(process.env.PORT, 10) : null;
@@ -121,7 +122,6 @@ async function findAvailablePort(options = {}) {
     // Try priority ports first
     for (const { port, source } of portsToTry) {
         if (await isPortAvailable(port)) {
-            logger.info(`Port ${port} is available (${source})`);
             if (useCache) saveLastUsedPort(port);
             return { port, source };
         } else {
@@ -135,7 +135,7 @@ async function findAvailablePort(options = {}) {
 
     for (let i = 0; i < maxRetries; i++) {
         const port = startPort + i;
-        
+
         // Skip if already tried
         if (portsToTry.some(p => p.port === port)) continue;
 
@@ -177,7 +177,7 @@ function printStartupBanner(options = {}) {
 
     const url = `http://localhost:${port}`;
     const versionStr = appVersion ? ` v${appVersion}` : '';
-    
+
     logger.info(`${appName}${versionStr} running on ${url} (port source: ${source})`);
 }
 

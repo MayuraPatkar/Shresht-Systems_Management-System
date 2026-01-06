@@ -24,7 +24,12 @@ router.post('/login', async (req, res) => {
         // Check if account is locked
         if (user.lockUntil && user.lockUntil > Date.now()) {
             const remainingTime = Math.ceil((user.lockUntil - Date.now()) / 60000);
-            logger.warn(`Login attempt on locked account: ${user.username}`);
+            logger.warn('Login attempt on locked account', {
+                service: "auth",
+                event: "login_blocked",
+                username: user.username,
+                remainingMinutes: remainingTime
+            });
             return res.status(423).json({
                 success: false,
                 message: `Account is locked. Try again in ${remainingTime} minute(s).`,
@@ -43,7 +48,12 @@ router.post('/login', async (req, res) => {
             if (user.loginAttempts >= maxAttempts) {
                 user.lockUntil = new Date(Date.now() + lockoutDuration * 60000);
                 await user.save();
-                logger.warn(`Account locked due to failed login attempts: ${user.username}`);
+                logger.warn('Account locked due to failed attempts', {
+                    service: "auth",
+                    event: "account_locked",
+                    username: user.username,
+                    lockDurationMinutes: lockoutDuration
+                });
                 return res.status(423).json({
                     success: false,
                     message: `Account locked for ${lockoutDuration} minutes due to too many failed attempts.`,
@@ -54,7 +64,12 @@ router.post('/login', async (req, res) => {
 
             await user.save();
             const attemptsRemaining = maxAttempts - user.loginAttempts;
-            logger.warn(`Authentication failed for ${user.username}. Attempts remaining: ${attemptsRemaining}`);
+            logger.warn('Authentication failed', {
+                service: "auth",
+                event: "login_failed",
+                username: user.username,
+                attemptsRemaining
+            });
             return res.status(401).json({
                 success: false,
                 message: `Invalid credentials. ${attemptsRemaining} attempt(s) remaining.`,
@@ -70,7 +85,13 @@ router.post('/login', async (req, res) => {
 
         const role = user.role;
 
-        logger.info(`Login successful for ${role}: ${user.username}`);
+        logger.info('User logged in', {
+            service: "auth",
+            event: "login_success",
+            username: user.username,
+            role: role
+        });
+
         res.status(200).json({
             success: true,
             message: 'Login successful',
@@ -79,7 +100,7 @@ router.post('/login', async (req, res) => {
             sessionTimeout: settings?.security?.session_timeout || 30
         });
     } catch (error) {
-        logger.error('Error during login:', error);
+        logger.error('Login error', { service: "auth", error: error.message });
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
@@ -107,7 +128,6 @@ router.post("/change-username", async (req, res) => {
         }
         admin.username = username;
         await admin.save();
-        logger.info("username changed successfully");
         res.json({ message: "Username updated successfully" });
     } catch (error) {
         logger.error("Error changing username:", error);
@@ -134,7 +154,6 @@ router.post("/change-password", async (req, res) => {
         const saltRounds = 10;
         admin.password = await bcrypt.hash(newPassword, saltRounds);
         await admin.save();
-        logger.info("password changed successfully");
         res.json({ message: "Password updated successfully" });
     } catch (error) {
         logger.error("Error changing password:", error);

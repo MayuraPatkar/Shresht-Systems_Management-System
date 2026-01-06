@@ -12,7 +12,7 @@ router.get("/all", async (req, res) => {
         const allWayBills = await wayBills.find().sort({ createdAt: -1 });
         return res.status(200).json(allWayBills);
     } catch (error) {
-        logger.error("Error fetching waybills:", error);
+        logger.error("Waybill fetch failed", { service: "waybill", error: error.message });
         return res.status(500).json({ error: "Internal Server Error" });
     }
 });
@@ -27,7 +27,7 @@ router.get('/generate-id', async (req, res) => {
         const waybill_id = await previewNextId('wayBill');
         return res.status(200).json({ waybill_id });
     } catch (error) {
-        logger.error('Error generating waybill preview', { error: error.message || error });
+        logger.error('Waybill preview generation failed', { service: "waybill", error: error.message || error });
         return res.status(500).json({ error: 'Failed to generate waybill id' });
     }
 });
@@ -110,7 +110,7 @@ router.post("/save-way-bill", async (req, res) => {
             waybill_id: savedWayBill.waybill_id // Return the final ID
         });
     } catch (error) {
-        logger.error('Error saving waybill:', error);
+        logger.error('Waybill save failed', { service: "waybill", error: error.message });
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
@@ -128,7 +128,7 @@ router.get("/recent-way-bills", async (req, res) => {
             wayBill: recentWayBills,
         });
     } catch (error) {
-        logger.error("Error retrieving recent way bills:", error);
+        logger.error("Recent waybills fetch failed", { service: "waybill", error: error.message });
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -143,7 +143,7 @@ router.get("/:wayBillId", async (req, res) => {
         }
         res.status(200).json({ message: "Way bill retrieved successfully", wayBill });
     } catch (error) {
-        logger.error("Error retrieving way bill:", error);
+        logger.error("Single waybill fetch failed", { service: "waybill", wayBillId: req.params.wayBillId, error: error.message });
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -160,7 +160,7 @@ router.delete("/:wayBillId", async (req, res) => {
         await wayBills.deleteOne({ waybill_id: wayBillId });
         res.status(200).json({ message: 'Way bill deleted successfully' });
     } catch (error) {
-        logger.error("Error deleting way bill:", error);
+        logger.error("Waybill deletion failed", { service: "waybill", wayBillId: req.params.wayBillId, error: error.message });
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -186,7 +186,7 @@ router.get('/search/:query', async (req, res) => {
             return res.status(200).json({ wayBills: way_bills });
         }
     } catch (err) {
-        logger.error(err);
+        logger.error("Waybill search failed", { service: "waybill", query, error: err.message });
         return res.status(500).send('Failed to fetch way bills.');
     }
 });

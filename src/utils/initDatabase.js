@@ -12,9 +12,8 @@ async function initializeDatabase() {
     try {
         // Check if admin users already exist
         const existingAdmins = await Admin.countDocuments();
-        
+
         if (existingAdmins > 0) {
-            logger.info('Admin users already exist in database, skipping initialization');
             return;
         }
 
@@ -26,7 +25,7 @@ async function initializeDatabase() {
         // Insert default admin users into database
         await Admin.insertMany(defaultAdmins);
         logger.info(`✓ Initialized database with ${defaultAdmins.length} default admin users`);
-        
+
     } catch (error) {
         logger.error('Error initializing database:', error);
         throw error;

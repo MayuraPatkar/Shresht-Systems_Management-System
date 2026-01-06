@@ -1,5 +1,6 @@
 const { ipcMain, BrowserWindow } = require("electron");
 const path = require('path');
+const logger = require('./logger');
 
 /**
  * Creates a reusable modal alert window.
@@ -11,11 +12,11 @@ const path = require('path');
 function createAlertWindow(parentWindow, message, htmlFile) {
     // Validate inputs
     if (!parentWindow || parentWindow.isDestroyed()) {
-        console.error("Cannot create an alert without a valid parent window.");
+        logger.error("Cannot create an alert without a valid parent window.");
         return null;
     }
     if (!message || typeof message !== 'string') {
-        console.error("Invalid message provided for alert.");
+        logger.error("Invalid message provided for alert.");
         return null;
     }
 
@@ -35,7 +36,7 @@ function createAlertWindow(parentWindow, message, htmlFile) {
     });
 
     alertWindow.loadFile(path.join(__dirname, '../../public', htmlFile)).catch((err) => {
-        console.error(`Failed to load ${htmlFile}:`, err);
+        logger.error(`Failed to load ${htmlFile}:`, err);
     });
 
     // Send the message after the content has loaded
