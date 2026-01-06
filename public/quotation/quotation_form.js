@@ -1196,7 +1196,7 @@ async function generatePreview() {
                 return `
         <div class="preview-container doc-quotation">
             ${headerHTML}
-            ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
+            ${index === 0 ? `<div class="table headline-section"><p contenteditable="true"><u>${projectName || quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
             <div class="items-section">
                 <table class="items-table">
                     <thead>
@@ -1275,11 +1275,11 @@ async function generatePreview() {
               ${buyerName}<br>
               ${buyerAddress}<br>
               ${buyerPhone}<br>
-            <p contenteditable="true"><strong>Subject:</strong> ${quotation.subject || ''}</p>
+            <p contenteditable="true"><strong>Subject:</strong> ${projectName ? `Proposal for the Supply, Installation, and Commissioning of ${projectName}` : (quotation.subject || '')}</p>
 
             <p>Dear ${buyerName},</p>
 
-            <p contenteditable="true">${quotation.letter_1 || ''}</p>
+            <p contenteditable="true">${projectName ? `We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>${company.company}</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.` : (quotation.letter_1 || '')}</p>
             <p>Our proposal includes:</p>
             <ul contenteditable="true">
                 ${(quotation.letter_2 || []).map(li => `<li>${li}</li>`).join('')}
