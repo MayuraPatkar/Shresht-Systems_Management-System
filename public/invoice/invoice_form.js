@@ -277,6 +277,18 @@ window.beforeStepAdvance = async function (step) {
                 `;
                 itemsTableBody.appendChild(row);
 
+                // Setup autocomplete for loaded items
+                const cardInput = card.querySelector('.item-field.description input');
+                const cardSuggestions = card.querySelector('.suggestions');
+                if (cardInput && cardSuggestions) {
+                    cardInput.addEventListener('input', function () {
+                        showSuggestions(cardInput, cardSuggestions);
+                    });
+                    cardInput.addEventListener('keydown', function (event) {
+                        handleKeyboardNavigation(event, cardInput, cardSuggestions);
+                    });
+                }
+
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');
@@ -481,6 +493,18 @@ async function openInvoice(id) {
             `;
                 itemsTableBody.appendChild(row);
 
+                // Setup autocomplete for loaded items
+                const cardInput = card.querySelector('.item-field.description input');
+                const cardSuggestions = card.querySelector('.suggestions');
+                if (cardInput && cardSuggestions) {
+                    cardInput.addEventListener('input', function () {
+                        showSuggestions(cardInput, cardSuggestions);
+                    });
+                    cardInput.addEventListener('keydown', function (event) {
+                        handleKeyboardNavigation(event, cardInput, cardSuggestions);
+                    });
+                }
+
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');
@@ -606,6 +630,18 @@ async function openInvoice(id) {
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
                 itemsTableBody.appendChild(row);
+
+                // Setup autocomplete for loaded items
+                const cardInput = card.querySelector('.item-field.description input');
+                const cardSuggestions = card.querySelector('.suggestions');
+                if (cardInput && cardSuggestions) {
+                    cardInput.addEventListener('input', function () {
+                        showSuggestions(cardInput, cardSuggestions);
+                    });
+                    cardInput.addEventListener('keydown', function (event) {
+                        handleKeyboardNavigation(event, cardInput, cardSuggestions);
+                    });
+                }
 
                 // Sync card inputs with table inputs
                 const cardInputs = card.querySelectorAll('input');
