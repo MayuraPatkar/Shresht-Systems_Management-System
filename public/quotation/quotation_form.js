@@ -149,10 +149,10 @@ async function openQuotation(quotationId) {
         row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
-                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
-                <td><input type="number" value="${item.unit_price || ''}" required></td>
-                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
+                <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
+                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
         itemsTableBody.appendChild(row);
@@ -444,10 +444,10 @@ async function cloneQuotation(sourceQuotationId) {
             row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
-                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
-                <td><input type="number" value="${item.unit_price || ''}" required></td>
-                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
+                <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
+                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
             itemsTableBody.appendChild(row);

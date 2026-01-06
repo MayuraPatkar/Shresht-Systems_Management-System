@@ -281,7 +281,7 @@ function changeStep(step) {
     // Focus first input
     const firstInput = nextStepEl.querySelector('input, select, textarea');
     if (firstInput) {
-        setTimeout(() => firstInput.focus(), 50);
+      setTimeout(() => firstInput.focus(), 50);
     }
   }
   updateNavigation();
@@ -824,14 +824,18 @@ async function fill(itemName, element) {
       const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
       const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
       if (tableRow) {
-        tableRow.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
+        const hsnInput = tableRow.querySelector("input[placeholder='HSN/SAC']");
         const unitInput = tableRow.querySelector("input[placeholder='Unit Price']");
         const rateInput = tableRow.querySelector("input[placeholder='Rate']");
-        unitInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-        rateInput.value = stockData.GST || 0;
-        // Dispatch events so calculations update
-        unitInput.dispatchEvent(new Event('input', { bubbles: true }));
-        rateInput.dispatchEvent(new Event('input', { bubbles: true }));
+        if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
+        if (unitInput) {
+          unitInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+          unitInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (rateInput) {
+          rateInput.value = stockData.GST || 0;
+          rateInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
       }
     } else {
       // Fill table row (backward compatibility)
