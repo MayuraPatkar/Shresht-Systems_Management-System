@@ -42,10 +42,51 @@ function setupGenericAutocomplete(input, dataList) {
 
     // Track if input was from user typing or programmatic
     let isUserTyping = false;
+    let focusedItemIndex = -1;
 
-    input.addEventListener('keydown', function () {
+    input.addEventListener('keydown', function (e) {
+        // Always track that user is interacting
         isUserTyping = true;
+
+        const suggestions = suggestionsContainer.querySelectorAll('li');
+        if (suggestions.length === 0 || suggestionsContainer.style.display === 'none') {
+            return;
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            focusedItemIndex = (focusedItemIndex + 1) % suggestions.length;
+            updateSelection(suggestions);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            focusedItemIndex = (focusedItemIndex - 1 + suggestions.length) % suggestions.length;
+            updateSelection(suggestions);
+        } else if (e.key === 'Enter') {
+            if (focusedItemIndex >= 0 && suggestions[focusedItemIndex]) {
+                e.preventDefault();
+                e.stopPropagation(); // Prevent triggering other Enter handlers (like Next Step)
+                suggestions[focusedItemIndex].click();
+            }
+        } else if (e.key === 'Escape') {
+            suggestionsContainer.style.display = 'none';
+            focusedItemIndex = -1;
+        }
     });
+
+    function updateSelection(suggestions) {
+        if (focusedItemIndex >= 0 && suggestions[focusedItemIndex]) {
+            input.value = suggestions[focusedItemIndex].textContent;
+            suggestions.forEach((li, index) => {
+                if (index === focusedItemIndex) {
+                    li.classList.add('selected');
+                    // Ensure the selected item is visible in scrollable list
+                    li.scrollIntoView({ block: 'nearest' });
+                } else {
+                    li.classList.remove('selected');
+                }
+            });
+        }
+    }
 
     input.addEventListener('input', function (e) {
         // Only show suggestions if user is actually typing
@@ -60,6 +101,7 @@ function setupGenericAutocomplete(input, dataList) {
 
         const query = this.value.toLowerCase().trim();
         suggestionsContainer.innerHTML = '';
+        focusedItemIndex = -1;
         if (query.length === 0) {
             suggestionsContainer.style.display = 'none';
             return;
