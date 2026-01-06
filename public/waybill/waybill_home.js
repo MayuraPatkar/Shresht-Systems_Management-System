@@ -246,7 +246,7 @@ function isPreviewStepActive() {
     return currentStep === totalSteps;
 }
 
-function runOnPreviewStep(callback) {
+async function runOnPreviewStep(callback) {
     if (typeof callback !== 'function') {
         return;
     }
@@ -255,24 +255,53 @@ function runOnPreviewStep(callback) {
         return;
     }
 
-    const switchToPreview = () => {
-        if (typeof changeStep === 'function' && typeof totalSteps !== 'undefined') {
-            changeStep(totalSteps);
-        }
+    // If already on preview step, just generate preview and run callback
+    if (isPreviewStepActive()) {
         if (typeof generatePreview === 'function') {
-            generatePreview();
+            await generatePreview();
         }
-    };
-
-    if (!isPreviewStepActive()) {
-        switchToPreview();
-    } else if (typeof generatePreview === 'function') {
-        generatePreview();
+        callback();
+        return;
     }
 
-    setTimeout(() => {
-        callback();
-    }, 0);
+    // Navigate step-by-step using the Next button to trigger validation at each step
+    const navigateToPreview = async () => {
+        const nextBtn = document.getElementById('next-btn');
+        if (!nextBtn) {
+            return;
+        }
+
+        // Store current step to detect if navigation was blocked by validation
+        const stepBefore = typeof currentStep !== 'undefined' ? currentStep : 0;
+
+        // Click next button (this triggers validation)
+        nextBtn.click();
+
+        // Wait a bit for validation and step change to process
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Check if step actually changed (validation passed)
+        const stepAfter = typeof currentStep !== 'undefined' ? currentStep : 0;
+
+        if (stepAfter === stepBefore) {
+            // Step didn't change - validation failed, stop navigation
+            return;
+        }
+
+        // If we reached the preview step, generate preview and run callback
+        if (isPreviewStepActive()) {
+            if (typeof generatePreview === 'function') {
+                await generatePreview();
+            }
+            callback();
+            return;
+        }
+
+        // Continue navigating to next steps
+        await navigateToPreview();
+    };
+
+    await navigateToPreview();
 }
 
 function isItemsStepActive() {
