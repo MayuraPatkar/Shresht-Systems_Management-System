@@ -120,9 +120,38 @@ document.addEventListener("DOMContentLoaded", () => {
     wbSearchInput.addEventListener('input', debounce(() => {
         handleSearch();
     }, 300));
-    document.getElementById('view-preview').addEventListener('click', () => {
-        changeStep(totalSteps);
-        generatePreview();
+    document.getElementById('view-preview').addEventListener('click', async () => {
+        // Navigate step-by-step to trigger validation at each step
+        const navigateToPreview = async () => {
+            // If already on preview step, just generate preview
+            if (window.currentStep === window.totalSteps) {
+                await generatePreview();
+                return;
+            }
+
+            const nextBtn = document.getElementById('next-btn');
+            if (!nextBtn) return;
+
+            const stepBefore = window.currentStep;
+            nextBtn.click();
+
+            // Wait for validation and step change
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // If step didn't change, validation failed - stop
+            if (window.currentStep === stepBefore) return;
+
+            // If reached preview, generate it
+            if (window.currentStep === window.totalSteps) {
+                await generatePreview();
+                return;
+            }
+
+            // Continue to next step
+            await navigateToPreview();
+        };
+
+        await navigateToPreview();
     });
     document.getElementById('view-preview').style.display = 'none';
 
