@@ -38,6 +38,9 @@ function initReports() {
     // Set up filter tabs
     setupFilterTabs();
 
+    // Set up keyboard shortcuts
+    setupKeyboardShortcuts();
+
     // Check for URL parameter to auto-view a specific report
     const urlParams = new URLSearchParams(window.location.search);
     const viewReportId = urlParams.get('view');
@@ -746,4 +749,133 @@ function formatCurrency(amount) {
         return '₹' + formatIndian(amount, 2);
     }
     return '₹' + amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/**
+ * Setup keyboard shortcuts
+ */
+function setupKeyboardShortcuts() {
+    // Open keyboard shortcuts modal
+    document.getElementById('keyboardShortcutsBtn')?.addEventListener('click', () => {
+        const modal = document.getElementById('keyboardShortcutsModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.getElementById('closeKeyboardHelpBtn')?.focus();
+        }
+    });
+
+    // Close modal handlers
+    document.getElementById('closeKeyboardModalBtn')?.addEventListener('click', closeKeyboardModal);
+    document.getElementById('closeKeyboardHelpBtn')?.addEventListener('click', closeKeyboardModal);
+
+    function closeKeyboardModal() {
+        document.getElementById('keyboardShortcutsModal')?.classList.add('hidden');
+    }
+
+    // Global keydown listener
+    document.addEventListener('keydown', function (e) {
+        // Ignore if modal is open (except for Esc/?)
+        const modal = document.getElementById('keyboardShortcutsModal');
+        const isModalOpen = modal && !modal.classList.contains('hidden');
+
+        if (isModalOpen) {
+            if (e.key === 'Escape' || e.key === '?') {
+                e.preventDefault();
+                closeKeyboardModal();
+            }
+            return; // Don't process other shortcuts if modal is open
+        }
+
+        // Help Modal (?)
+        if (e.key === '?' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+            e.preventDefault();
+            document.getElementById('keyboardShortcutsBtn')?.click();
+            return;
+        }
+
+        // Navigation shortcuts (Alt + Number)
+        if (e.altKey) {
+            if (e.key === '1') {
+                e.preventDefault();
+                showReportSection('stock');
+            } else if (e.key === '2') {
+                e.preventDefault();
+                showReportSection('gst');
+            } else if (e.key === '3') {
+                e.preventDefault();
+                showReportSection('purchaseGst');
+            } else if (e.key === '4') {
+                e.preventDefault();
+                showReportSection('dataWorksheet');
+            }
+            return;
+        }
+
+        // Esc: Back to Home
+        if (e.key === 'Escape') {
+            if (currentReportSection !== 'home') {
+                e.preventDefault();
+                showReportSection('home');
+            }
+            return;
+        }
+
+        // Actions (Ctrl + Key)
+        if (e.ctrlKey || e.metaKey) {
+
+            // Ctrl + Enter: Generate Report
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                triggerAction('generate');
+            }
+            // Ctrl + P: Print Report
+            else if (e.key === 'p') {
+                e.preventDefault();
+                triggerAction('print');
+            }
+            // Ctrl + S: Save PDF
+            else if (e.key === 's') {
+                e.preventDefault();
+                triggerAction('save');
+            }
+        }
+    });
+}
+
+/**
+ * Trigger specific actions based on current active section
+ * @param {string} action - 'generate', 'print', 'save'
+ */
+function triggerAction(action) {
+    let btnId = '';
+
+    // Determine button ID based on current section and action
+    if (currentReportSection === 'stock') {
+        if (action === 'generate') btnId = 'generate-stock-report';
+        else if (action === 'print') btnId = 'print-stock-report';
+        else if (action === 'save') btnId = 'save-stock-pdf';
+    } else if (currentReportSection === 'gst') {
+        if (action === 'generate') btnId = 'generate-gst-report';
+        else if (action === 'print') btnId = 'print-gst-report';
+        else if (action === 'save') btnId = 'save-gst-pdf';
+    } else if (currentReportSection === 'purchaseGst' || currentReportSection === 'purchase_gst') {
+        if (action === 'generate') btnId = 'generate-purchase-gst-report';
+        else if (action === 'print') btnId = 'print-purchase-gst-report';
+        else if (action === 'save') btnId = 'save-purchase-gst-pdf';
+    } else if (currentReportSection === 'dataWorksheet' || currentReportSection === 'data_worksheet') {
+        if (action === 'generate') btnId = 'generate-worksheet';
+        else if (action === 'print') btnId = 'print-worksheet-report';
+        else if (action === 'save') btnId = 'save-worksheet-pdf';
+    }
+
+    if (btnId) {
+        const btn = document.getElementById(btnId);
+        if (btn && btn.offsetParent !== null) { // Check if visible
+            btn.click();
+
+            // Visual feedback
+            btn.classList.add('ring-4', 'ring-blue-300');
+            setTimeout(() => btn.classList.remove('ring-4', 'ring-blue-300'), 200);
+        }
+    }
 }
