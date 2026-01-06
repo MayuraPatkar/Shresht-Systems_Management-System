@@ -815,10 +815,21 @@ document.getElementById('finalPrintBtn')?.addEventListener('click', () => {
     // Generate properly styled print content
     const content = generateStockPrintContent(type, category, status);
 
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        window.electronAPI.handlePrintEvent(content, 'print', 'Stock Report');
-    } else if (window.electronAPI && window.electronAPI.showAlert1) {
-        window.electronAPI.showAlert1('Print functionality is not available.');
+    if (typeof window.handlePrint === 'function') {
+        window.handlePrint(content, 'print', 'StockReport');
+    } else if (window.electronAPI && typeof window.electronAPI.handlePrintEvent === 'function') {
+        window.electronAPI.handlePrintEvent(content, 'print', 'StockReport');
+    } else {
+        // Direct window print fallback as last resort
+        const printWindow = window.open('', '', 'height=600,width=800');
+        if (printWindow) {
+            printWindow.document.write(content);
+            printWindow.document.close();
+            printWindow.print();
+        } else {
+            console.error('Failed to open print window');
+            alert('Printing failed. Please ensure popups are allowed.');
+        }
     }
     hideModal('printModal');
 });

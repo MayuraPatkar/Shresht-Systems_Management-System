@@ -1334,7 +1334,13 @@ async function printService(serviceId, action = 'print') {
         const data = await response.json();
         const service = data.service;
 
-        const html = await generateDocumentHTML(service);
+        let html = await generateDocumentHTML(service);
+
+        // Strip contenteditable attributes for clean print/pdf
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        tempDiv.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+        html = tempDiv.innerHTML;
 
         if (window.electronAPI && window.electronAPI.handlePrintEvent) {
             window.electronAPI.handlePrintEvent(html, action, `Service-${serviceId}`);
@@ -1867,7 +1873,6 @@ async function closeServiceSchedule(invoiceId) {
 function initHeaderListeners() {
     // New Service button
     document.getElementById('new-service-btn')?.addEventListener('click', () => showNewForm());
-    document.getElementById('empty-new-btn')?.addEventListener('click', () => showNewForm());
 
     // Home button
     document.getElementById('home-btn')?.addEventListener('click', () => {
@@ -1944,27 +1949,33 @@ function initFormListeners() {
     // Save
     document.getElementById('form-save-btn')?.addEventListener('click', saveService);
 
-    // Print/PDF
+    // Print/PDF (Form)
     document.getElementById('form-print-btn')?.addEventListener('click', () => {
         if (ServiceState.selectedServiceId) {
-            printService(ServiceState.selectedServiceId);
-        } else {
-            showToast('Please save the service first', 'error');
-        }
-    });
-    document.getElementById('form-pdf-btn')?.addEventListener('click', () => {
-        if (ServiceState.selectedServiceId) {
-            // Reuse print logic for now, or implement specific PDF logic
-            printService(ServiceState.selectedServiceId);
+            printService(ServiceState.selectedServiceId, 'print');
         } else {
             showToast('Please save the service first', 'error');
         }
     });
 
-    // View panel print
+    document.getElementById('form-pdf-btn')?.addEventListener('click', () => {
+        if (ServiceState.selectedServiceId) {
+            printService(ServiceState.selectedServiceId, 'savePDF');
+        } else {
+            showToast('Please save the service first', 'error');
+        }
+    });
+
+    // View panel print/pdf
     document.getElementById('view-print-btn')?.addEventListener('click', () => {
         if (ServiceState.selectedServiceId) {
-            printService(ServiceState.selectedServiceId);
+            printService(ServiceState.selectedServiceId, 'print');
+        }
+    });
+
+    document.getElementById('view-pdf-btn')?.addEventListener('click', () => {
+        if (ServiceState.selectedServiceId) {
+            printService(ServiceState.selectedServiceId, 'savePDF');
         }
     });
 }
