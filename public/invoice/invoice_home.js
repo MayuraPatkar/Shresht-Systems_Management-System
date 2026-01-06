@@ -1265,6 +1265,11 @@ function isFormActive() {
     return isSectionVisible('new');
 }
 
+function isExistingDocument() {
+    const status = sessionStorage.getItem('currentTab-status');
+    return status === 'update' || status === 'clone';
+}
+
 function isPreviewStepActive() {
     if (typeof currentStep === 'undefined' || typeof totalSteps === 'undefined') {
         return false;
@@ -1433,9 +1438,13 @@ function handleQuotationKeyboardShortcuts(event) {
             case 's': {
                 const saveBtn = document.getElementById('save-btn');
                 if (saveBtn && isFormActive()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    runOnPreviewStep(() => saveBtn.click());
+                    // For new documents, only allow save on preview step
+                    // For existing documents, allow save from any step
+                    if (isExistingDocument() || isPreviewStepActive()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        runOnPreviewStep(() => saveBtn.click());
+                    }
                 }
                 break;
             }
