@@ -314,6 +314,7 @@ if (addNonItemBtnEl) {
 
 let selectedIndex = -1;
 let data = [];
+let isAutofillInProgress = false; // Flag to prevent showSuggestions during autofill
 
 // Fetch data from the server when the page loads
 async function fetchData() {
@@ -658,6 +659,10 @@ function updateSpecificationNumbers() {
 
 // Function to show suggestions
 function showSuggestions(input, suggestionsList) {
+  // Skip showing suggestions if autofill is in progress
+  if (isAutofillInProgress) {
+    return;
+  }
   const query = input.value.toLowerCase();
   suggestionsList.innerHTML = ""; // Clear old suggestions
   selectedIndex = -1; // Reset index when showing new suggestions
@@ -681,12 +686,16 @@ function showSuggestions(input, suggestionsList) {
     li.textContent = item;
     li.onclick = async function () {
       input.value = item;
+      // Hide suggestions immediately to prevent re-triggering showSuggestions
+      suggestionsList.style.display = "none";
+      // Set flag to prevent showSuggestions from running during autofill
+      isAutofillInProgress = true;
       // Trigger input event to sync description with table
       input.dispatchEvent(new Event('input', { bubbles: true }));
+      isAutofillInProgress = false;
 
       const parent = input.closest('.item-card') || input.closest('tr');
       await fill(item, parent);
-      suggestionsList.style.display = "none";
       // Update specifications table after selecting item
       if (sessionStorage.getItem('currentTab') === 'quotation') {
         setTimeout(() => updateSpecificationsTable(), 100);
@@ -722,16 +731,20 @@ async function handleKeyboardNavigation(event, input, suggestionsList) {
       item.classList.toggle("selected", index === selectedIndex);
     });
   } else if (event.key === "Enter") {
-    event.preventDefault();
-    event.stopPropagation();
-
+    // Only handle Enter if an item is actually selected in the suggestions
     if (selectedIndex >= 0 && items[selectedIndex]) {
+      event.preventDefault();
+      event.stopPropagation();
+
       const selectedItem = items[selectedIndex].textContent;
       input.value = selectedItem;
       suggestionsList.style.display = "none";
 
+      // Set flag to prevent showSuggestions from running during autofill
+      isAutofillInProgress = true;
       // Trigger input event to sync description with table
       input.dispatchEvent(new Event('input', { bubbles: true }));
+      isAutofillInProgress = false;
 
       // Fill other fields from stock data
       const parent = input.closest('.item-card') || input.closest('tr');
@@ -745,6 +758,7 @@ async function handleKeyboardNavigation(event, input, suggestionsList) {
       // Reset selected index
       selectedIndex = -1;
     }
+    // If no item selected, let Enter propagate to trigger Next Step shortcut
     return;
   }
 }

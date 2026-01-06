@@ -299,8 +299,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Note: selectedIndex, data, fetchData, fetchStockData, showSuggestions, and handleKeyboardNavigation
 // are already defined in globalScript.js
 
+// Flag to prevent showSuggestionsPO during autofill
+let isAutofillInProgressPO = false;
+
 // Override showSuggestions for purchase order to use fillPurchaseOrderItem
 function showSuggestionsPO(input, suggestionsList) {
+    // Skip showing suggestions if autofill is in progress
+    if (isAutofillInProgressPO) {
+        return;
+    }
     // Close all other suggestions first
     closeAllSuggestions();
 
@@ -327,12 +334,16 @@ function showSuggestionsPO(input, suggestionsList) {
         li.textContent = item;
         li.onclick = async function () {
             input.value = item;
+            // Hide suggestions immediately to prevent re-triggering showSuggestionsPO
+            suggestionsList.style.display = "none";
+            // Set flag to prevent showSuggestionsPO from running during autofill
+            isAutofillInProgressPO = true;
             // Trigger input event to sync description with table
             input.dispatchEvent(new Event('input', { bubbles: true }));
+            isAutofillInProgressPO = false;
 
             const parent = input.closest('.item-card') || input.closest('tr');
             await fillPurchaseOrderItem(item, parent);
-            suggestionsList.style.display = "none";
             // Reset selected index
             selectedIndex = -1;
         };
@@ -364,16 +375,20 @@ async function handleKeyboardNavigationPO(event, input, suggestionsList) {
             item.classList.toggle("selected", index === selectedIndex);
         });
     } else if (event.key === "Enter") {
-        event.preventDefault();
-        event.stopPropagation();
-
+        // Only handle Enter if an item is actually selected in the suggestions
         if (selectedIndex >= 0 && items[selectedIndex]) {
+            event.preventDefault();
+            event.stopPropagation();
+
             const selectedItem = items[selectedIndex].textContent;
             input.value = selectedItem;
             suggestionsList.style.display = "none";
 
+            // Set flag to prevent showSuggestionsPO from running during autofill
+            isAutofillInProgressPO = true;
             // Trigger input event to sync description with table
             input.dispatchEvent(new Event('input', { bubbles: true }));
+            isAutofillInProgressPO = false;
 
             // Fill other fields from stock data
             const parent = input.closest('.item-card') || input.closest('tr');
@@ -382,6 +397,7 @@ async function handleKeyboardNavigationPO(event, input, suggestionsList) {
             // Reset selected index
             selectedIndex = -1;
         }
+        // If no item selected, let Enter propagate to trigger Next Step shortcut
         return;
     }
 }
@@ -411,9 +427,12 @@ async function fillPurchaseOrderItem(itemName, element) {
             if (row2Inputs[1]) row2Inputs[1].value = stockData.type || "";
             if (row2Inputs[2]) row2Inputs[2].value = stockData.category || "";
 
-            // Trigger input events to sync with table (but skip for company/category to avoid triggering autocomplete)
-            row1Inputs.forEach(input => {
-                input.dispatchEvent(new Event('input', { bubbles: true }));
+            // Trigger input events to sync with table (but skip description to avoid triggering autocomplete)
+            row1Inputs.forEach((input, index) => {
+                // Skip description field (index 0) to prevent re-triggering autocomplete
+                if (index > 0) {
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                }
             });
             // For row2, only sync values without triggering autocomplete
             row2Inputs.forEach(input => {
