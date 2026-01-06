@@ -240,10 +240,10 @@ function isExistingDocument() {
 }
 
 function isPreviewStepActive() {
-    if (typeof currentStep === 'undefined' || typeof totalSteps === 'undefined') {
+    if (typeof window.currentStep === 'undefined' || typeof window.totalSteps === 'undefined') {
         return false;
     }
-    return currentStep === totalSteps;
+    return window.currentStep === window.totalSteps;
 }
 
 async function runOnPreviewStep(callback) {
@@ -272,7 +272,7 @@ async function runOnPreviewStep(callback) {
         }
 
         // Store current step to detect if navigation was blocked by validation
-        const stepBefore = typeof currentStep !== 'undefined' ? currentStep : 0;
+        const stepBefore = typeof window.currentStep !== 'undefined' ? window.currentStep : 0;
 
         // Click next button (this triggers validation)
         nextBtn.click();
@@ -281,7 +281,7 @@ async function runOnPreviewStep(callback) {
         await new Promise(resolve => setTimeout(resolve, 100));
 
         // Check if step actually changed (validation passed)
-        const stepAfter = typeof currentStep !== 'undefined' ? currentStep : 0;
+        const stepAfter = typeof window.currentStep !== 'undefined' ? window.currentStep : 0;
 
         if (stepAfter === stepBefore) {
             // Step didn't change - validation failed, stop navigation
@@ -305,10 +305,10 @@ async function runOnPreviewStep(callback) {
 }
 
 function isItemsStepActive() {
-    if (typeof currentStep === 'undefined') {
+    if (typeof window.currentStep === 'undefined') {
         return false;
     }
-    return currentStep === 5;
+    return window.currentStep === 5;
 }
 
 function isHomeScreenActive() {
