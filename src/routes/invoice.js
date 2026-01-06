@@ -8,9 +8,10 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const { previewNextId, generateNextId, syncCounterIfNeeded } = require('../utils/idGenerator');
 
 // Helper function to log stock movements
-async function logStockMovement(itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
+async function logStockMovement(itemId, itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
     try {
         await StockMovement.create({
+            item_id: itemId,
             item_name: itemName,
             quantity_change: quantityChange,
             movement_type: movementType,
@@ -249,6 +250,7 @@ router.post("/save-invoice", async (req, res) => {
 
                         if (stockItem) {
                             await logStockMovement(
+                                stockItem._id,
                                 finalItemName,
                                 qty,
                                 'out',
@@ -335,6 +337,7 @@ router.post("/save-invoice", async (req, res) => {
                         await stockItem.save();
 
                         await logStockMovement(
+                            stockItem._id,
                             stockItem.item_name,
                             item.quantity,
                             'out',

@@ -425,6 +425,16 @@ function addItemFromData(item, itemSno, insertIndex) {
         });
     });
 
+    // Integer validation for quantity inputs
+    const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
+    qtyInputs.forEach(input => {
+        if (input) {
+            input.addEventListener('keypress', function (event) {
+                if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+            });
+        }
+    });
+
     // Setup autocomplete for description input (module-specific)
     // card uses placeholder "Enter item description" while row uses "Item Description".
     // Use a robust selector that targets the text input inside the description container.

@@ -18,7 +18,7 @@ const logger = require('../utils/logger');
  */
 router.get('/stock', async (req, res) => {
     try {
-        const { start_date, end_date, item_name, movement_type } = req.query;
+        const { start_date, end_date, item_name, item_id, movement_type } = req.query;
 
         // Build query
         const query = {};
@@ -33,7 +33,13 @@ router.get('/stock', async (req, res) => {
             }
         }
 
-        if (item_name) {
+        // Support filtering by item_id (preferred) or item_name
+        if (item_id) {
+            const mongoose = require('mongoose');
+            if (mongoose.Types.ObjectId.isValid(item_id)) {
+                query.item_id = new mongoose.Types.ObjectId(item_id);
+            }
+        } else if (item_name) {
             query.item_name = { $regex: item_name, $options: 'i' };
         }
 
@@ -182,7 +188,7 @@ router.get('/stock', async (req, res) => {
 
 /**
  * GET /reports/stock/summary
- * Get stock summary by item
+ * Get stock summary by item (grouped by item_id for accuracy when items are renamed)
  */
 router.get('/stock/summary', async (req, res) => {
     try {
@@ -203,7 +209,8 @@ router.get('/stock/summary', async (req, res) => {
             { $match: matchStage },
             {
                 $group: {
-                    _id: '$item_name',
+                    _id: '$item_id',
+                    item_name: { $last: '$item_name' }, // Keep last recorded name for display
                     total_in: {
                         $sum: {
                             $cond: [{ $eq: ['$movement_type', 'in'] }, '$quantity_change', 0]
@@ -227,7 +234,28 @@ router.get('/stock/summary', async (req, res) => {
                     transaction_count: { $sum: 1 }
                 }
             },
-            { $sort: { _id: 1 } }
+            // Lookup current item name from Stock collection
+            {
+                $lookup: {
+                    from: 'stocks',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'stockItem'
+                }
+            },
+            {
+                $addFields: {
+                    // Use current stock item name if available, otherwise use last recorded name
+                    item_name: {
+                        $ifNull: [
+                            { $arrayElemAt: ['$stockItem.item_name', 0] },
+                            '$item_name'
+                        ]
+                    }
+                }
+            },
+            { $project: { stockItem: 0 } }, // Remove lookup data
+            { $sort: { item_name: 1 } }
         ]);
 
         res.json({

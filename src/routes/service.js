@@ -8,9 +8,10 @@ const logger = require('../utils/logger');
 const { previewNextId, generateNextId } = require('../utils/idGenerator');
 
 // Helper function to log stock movements
-async function logStockMovement(itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
+async function logStockMovement(itemId, itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
     try {
         await StockMovement.create({
+            item_id: itemId,
             item_name: itemName,
             quantity_change: quantityChange,
             movement_type: movementType,
@@ -324,16 +325,20 @@ router.post('/save-service', async (req, res) => {
         // 2. Deduct stock for service items
         if (items && items.length > 0) {
             for (let item of items) {
-                await Stock.updateOne({ item_name: item.description }, { $inc: { quantity: -item.quantity } });
-                // Log stock movement
-                await logStockMovement(
-                    item.description,
-                    item.quantity,
-                    'out',
-                    'service',
-                    newServiceId,
-                    `Deducted for service: ${newServiceId}`
-                );
+                const stockItem = await Stock.findOne({ item_name: item.description });
+                if (stockItem) {
+                    await Stock.updateOne({ _id: stockItem._id }, { $inc: { quantity: -item.quantity } });
+                    // Log stock movement
+                    await logStockMovement(
+                        stockItem._id,
+                        item.description,
+                        item.quantity,
+                        'out',
+                        'service',
+                        newServiceId,
+                        `Deducted for service: ${newServiceId}`
+                    );
+                }
             }
         }
 
@@ -401,27 +406,35 @@ router.put('/update-service', async (req, res) => {
         if (items) {
             // Revert stock for previous items
             for (let prev of existingService.items || []) {
-                await Stock.updateOne({ item_name: prev.description }, { $inc: { quantity: prev.quantity } });
-                await logStockMovement(
-                    prev.description,
-                    prev.quantity,
-                    'in',
-                    'service',
-                    service_id,
-                    `Reverted for service update: ${service_id}`
-                );
+                const stockItem = await Stock.findOne({ item_name: prev.description });
+                if (stockItem) {
+                    await Stock.updateOne({ _id: stockItem._id }, { $inc: { quantity: prev.quantity } });
+                    await logStockMovement(
+                        stockItem._id,
+                        prev.description,
+                        prev.quantity,
+                        'in',
+                        'service',
+                        service_id,
+                        `Reverted for service update: ${service_id}`
+                    );
+                }
             }
             // Deduct stock for new items
             for (let item of items) {
-                await Stock.updateOne({ item_name: item.description }, { $inc: { quantity: -item.quantity } });
-                await logStockMovement(
-                    item.description,
-                    item.quantity,
-                    'out',
-                    'service',
-                    service_id,
-                    `Deducted for service update: ${service_id}`
-                );
+                const stockItem = await Stock.findOne({ item_name: item.description });
+                if (stockItem) {
+                    await Stock.updateOne({ _id: stockItem._id }, { $inc: { quantity: -item.quantity } });
+                    await logStockMovement(
+                        stockItem._id,
+                        item.description,
+                        item.quantity,
+                        'out',
+                        'service',
+                        service_id,
+                        `Deducted for service update: ${service_id}`
+                    );
+                }
             }
         }
 
@@ -660,15 +673,19 @@ router.delete('/:serviceId', async (req, res) => {
 
         if (serviceRecord.items && serviceRecord.items.length > 0) {
             for (let item of serviceRecord.items) {
-                await Stock.updateOne({ item_name: item.description }, { $inc: { quantity: item.quantity } });
-                await logStockMovement(
-                    item.description,
-                    item.quantity,
-                    'in',
-                    'service',
-                    serviceId,
-                    `Reverted for service deletion: ${serviceId}`
-                );
+                const stockItem = await Stock.findOne({ item_name: item.description });
+                if (stockItem) {
+                    await Stock.updateOne({ _id: stockItem._id }, { $inc: { quantity: item.quantity } });
+                    await logStockMovement(
+                        stockItem._id,
+                        item.description,
+                        item.quantity,
+                        'in',
+                        'service',
+                        serviceId,
+                        `Reverted for service deletion: ${serviceId}`
+                    );
+                }
             }
         }
 

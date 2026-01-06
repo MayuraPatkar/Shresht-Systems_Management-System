@@ -5,9 +5,10 @@ const logger = require('../utils/logger');
 const validators = require('../middleware/validators'); // Import validators
 
 // Helper function to log stock movements
-async function logStockMovement(itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
+async function logStockMovement(itemId, itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
     try {
         await StockMovement.create({
+            item_id: itemId,
             item_name: itemName,
             quantity_change: quantityChange,
             movement_type: movementType,
@@ -62,6 +63,7 @@ router.post('/addItem', validators.createStock, async (req, res) => {
         // Log stock movement for initial quantity
         if (quantity && quantity > 0) {
             await logStockMovement(
+                newItem._id,
                 item_name.trim(),
                 quantity,
                 'in',
@@ -97,6 +99,7 @@ router.post('/addToStock', async (req, res) => {
 
         // Log stock movement
         await logStockMovement(
+            item._id,
             item.item_name,
             quantity,
             'in',
@@ -135,6 +138,7 @@ router.post('/removeFromStock', async (req, res) => {
 
         // Log stock movement
         await logStockMovement(
+            item._id,
             item.item_name,
             quantity,
             'out',
@@ -183,7 +187,7 @@ router.post('/editItem', async (req, res) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        // Update item details (quantity is preserved, not changed via edit)
+        // Update item details (quantity is managed separately via stock in/out operations)
         item.item_name = item_name.trim();
         item.HSN_SAC = HSN_SAC;
         item.specifications = specifications;
@@ -229,6 +233,17 @@ router.get("/get-names", async (req, res) => {
     }
 });
 
+// Get stock items with IDs for autocomplete (used by reports)
+router.get("/get-items-with-ids", async (req, res) => {
+    try {
+        const stockItems = await Stock.find({}, { _id: 1, item_name: 1 });
+        res.json(stockItems.map(item => ({ id: item._id, name: item.item_name })));
+    } catch (error) {
+        logger.error("Stock items fetch failed", { service: "stock", error: error.message });
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 // Route to search for stock item by name and get specifications
 router.get('/search/:itemName', async (req, res) => {
     try {
@@ -269,6 +284,7 @@ router.post('/deleteItem', async (req, res) => {
         // Log stock movement if item had quantity
         if (item.quantity > 0) {
             await logStockMovement(
+                item._id,
                 item.item_name,
                 item.quantity,
                 'out',

@@ -573,7 +573,8 @@ if (newStockForm) {
         const category = document.getElementById('category').value.trim();
         const type = document.getElementById('type').value.trim();
         const unit_price = parseFloat(document.getElementById('unitPrice').value);
-        const quantity = parseInt(document.getElementById('quantity').value, 10);
+        // Quantity field removed from UI, defaulting to 0 for new items
+        const quantity = 0;
         const GST = parseFloat(document.getElementById('gstRate').value);
         const min_quantity = parseInt(document.getElementById('minQuantity').value, 10);
         const specifications = document.getElementById('specifications').value.trim();
@@ -585,11 +586,6 @@ if (newStockForm) {
 
         if (isNaN(unit_price) || unit_price <= 0) {
             showErrorMessage('Please enter a valid unit price.');
-            return;
-        }
-
-        if (isNaN(quantity) || quantity < 0) {
-            showErrorMessage('Please enter a valid quantity.');
             return;
         }
 
@@ -609,14 +605,21 @@ if (newStockForm) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ item_name, HSN_SAC, company, category, type, unit_price, quantity, GST, min_quantity, specifications })
             });
-            if (!res.ok) throw new Error('Failed to add item');
+
+            if (!res.ok) {
+                // Try to parse error message from server
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Failed to add item');
+            }
+
             await fetchStockData();
             hideModal('newStockModal');
             newStockForm.reset();
             showSuccessMessage('Stock item added successfully!');
         } catch (err) {
             console.error(err);
-            showErrorMessage('Failed to add item.');
+            // Display the specific error message from the server (e.g. "Item already exists")
+            showErrorMessage(err.message || 'Failed to add item.');
         }
     });
 }
@@ -666,8 +669,6 @@ if (editForm) {
             return;
         }
 
-
-
         if (isNaN(GST) || GST < 0) {
             showErrorMessage('Please enter a valid GST rate.');
             return;
@@ -684,13 +685,14 @@ if (editForm) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ itemId, item_name, HSN_SAC, company, category, type, unit_price, GST, min_quantity, specifications })
             });
-            if (!res.ok) throw new Error('Failed to edit item');
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to edit item');
             await fetchStockData();
             hideModal('editStockModal');
             showSuccessMessage('Stock item updated successfully!');
         } catch (err) {
             console.error(err);
-            showErrorMessage('Failed to update item.');
+            showErrorMessage(err.message || 'Failed to update item.');
         }
     });
 }
@@ -790,8 +792,8 @@ document.getElementById('quantityModalInput')?.addEventListener('keydown', (e) =
 
 // Hook up modal open/close buttons
 document.getElementById('newStockItemBtn')?.addEventListener('click', () => showModal('newStockModal'));
-document.getElementById('closeModalBtn')?.addEventListener('click', () => hideModal('newStockModal'));
-document.getElementById('cancelBtn')?.addEventListener('click', () => hideModal('newStockModal'));
+document.getElementById('closeModalBtn')?.addEventListener('click', () => { hideModal('newStockModal'); document.getElementById('newStockForm')?.reset(); });
+document.getElementById('cancelBtn')?.addEventListener('click', () => { hideModal('newStockModal'); document.getElementById('newStockForm')?.reset(); });
 document.getElementById('closeEditModalBtn')?.addEventListener('click', () => hideModal('editStockModal'));
 document.getElementById('cancelEditBtn')?.addEventListener('click', () => hideModal('editStockModal'));
 document.getElementById('closeDetailsModalBtn')?.addEventListener('click', () => hideModal('itemDetailsModal'));
@@ -813,10 +815,21 @@ document.getElementById('finalPrintBtn')?.addEventListener('click', () => {
     // Generate properly styled print content
     const content = generateStockPrintContent(type, category, status);
 
-    if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        window.electronAPI.handlePrintEvent(content, 'print', 'Stock Report');
-    } else if (window.electronAPI && window.electronAPI.showAlert1) {
-        window.electronAPI.showAlert1('Print functionality is not available.');
+    if (typeof window.handlePrint === 'function') {
+        window.handlePrint(content, 'print', 'StockReport');
+    } else if (window.electronAPI && typeof window.electronAPI.handlePrintEvent === 'function') {
+        window.electronAPI.handlePrintEvent(content, 'print', 'StockReport');
+    } else {
+        // Direct window print fallback as last resort
+        const printWindow = window.open('', '', 'height=600,width=800');
+        if (printWindow) {
+            printWindow.document.write(content);
+            printWindow.document.close();
+            printWindow.print();
+        } else {
+            console.error('Failed to open print window');
+            alert('Printing failed. Please ensure popups are allowed.');
+        }
     }
     hideModal('printModal');
 });
@@ -1010,29 +1023,98 @@ setupFilterHandlers('filterDropdown');
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
+    // Don't trigger shortcuts when typing in input fields (except for Escape and Ctrl combinations)
+    const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+
+    // Ctrl+F or Cmd+F to focus search input
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+    }
+
     // Ctrl+N or Cmd+N to add new stock item
     if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
         e.preventDefault();
         showModal('newStockModal');
+        // Focus first input in the form
+        setTimeout(() => {
+            document.getElementById('itemName')?.focus();
+        }, 100);
+    }
+
+    // Ctrl+S or Cmd+S to save (submit) the active form
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+
+        // Check which modal is open and submit its form
+        const newStockModal = document.getElementById('newStockModal');
+        const editStockModal = document.getElementById('editStockModal');
+
+        // Also check for quantity modal
+        const quantityModal = document.getElementById('quantityModal');
+
+        if (newStockModal && !newStockModal.classList.contains('hidden')) {
+            document.getElementById('newStockForm')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        } else if (editStockModal && !editStockModal.classList.contains('hidden')) {
+            document.getElementById('editStockForm')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        } else if (quantityModal && !quantityModal.classList.contains('hidden')) {
+            // Retrieve the stored submit handler or trigger the button click
+            document.getElementById('quantityModalSubmitBtn')?.click();
+        }
+    }
+
+    // Ctrl+P or Cmd+P to open print modal
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        showModal('printModal');
     }
 
     // Escape to close modals
     if (e.key === 'Escape') {
-        const modals = ['newStockModal', 'editStockModal', 'itemDetailsModal', 'printModal', 'quantityModal'];
+        // Prevent global redirection
+        e.preventDefault();
+        e.stopPropagation();
+
+        const modals = ['newStockModal', 'editStockModal', 'itemDetailsModal', 'printModal', 'quantityModal', 'keyboardShortcutsModal'];
+        let closedSomething = false;
+
         modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
             if (modal && !modal.classList.contains('hidden')) {
                 hideModal(modalId);
+                closedSomething = true;
             }
         });
+
+        // If no modal was closed, redirect to dashboard manually if needed, 
+        // to mimic global behavior but controlled by this listener
+        if (!closedSomething) {
+            window.location = '/dashboard';
+        }
     }
 
     // Ctrl+R or Cmd+R to refresh (prevent default and use our refresh)
     if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
         e.preventDefault();
         fetchStockData();
+        showSuccessMessage('Stock data refreshed!');
     }
-});
+
+    // ? key to show keyboard shortcuts help (only when not typing)
+    if (e.key === '?' && !isTyping) {
+        e.preventDefault();
+        showModal('keyboardShortcutsModal');
+    }
+}, true); // Use capture phase to intercept before global listener
+
+// Keyboard shortcuts modal handlers
+document.getElementById('keyboardShortcutsBtn')?.addEventListener('click', () => showModal('keyboardShortcutsModal'));
+document.getElementById('closeKeyboardModalBtn')?.addEventListener('click', () => hideModal('keyboardShortcutsModal'));
+document.getElementById('closeKeyboardHelpBtn')?.addEventListener('click', () => hideModal('keyboardShortcutsModal'));
 
 // Add tooltips to action buttons
 function addTooltips() {
@@ -1043,13 +1125,19 @@ function addTooltips() {
     if (refreshBtn) refreshBtn.title = 'Refresh data (Ctrl+R)';
 
     const printBtn = document.getElementById('printBtn');
-    if (printBtn) printBtn.title = 'Print stock report';
+    if (printBtn) printBtn.title = 'Print stock report (Ctrl+P)';
 
     const lowStockBtn = document.getElementById('lowStockBtn');
     if (lowStockBtn) lowStockBtn.title = 'Show only low stock and out of stock items';
 
     const homeBtn = document.getElementById('home-btn');
     if (homeBtn) homeBtn.title = 'Go to Dashboard';
+
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.title = 'Search stock items (Ctrl+F)';
+
+    const keyboardBtn = document.getElementById('keyboardShortcutsBtn');
+    if (keyboardBtn) keyboardBtn.title = 'Keyboard shortcuts (?)';
 }
 
 // Add success feedback for operations
@@ -1215,4 +1303,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 800);
     }
+});
+
+// Integer validation for quantity inputs (replacing inline onkeypress)
+document.addEventListener('DOMContentLoaded', () => {
+    const ids = ['quantity', 'minQuantity', 'editMinQuantity', 'quantityModalInput'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('keypress', function (event) {
+                if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+            });
+        }
+    });
 });

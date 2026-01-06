@@ -24,6 +24,9 @@ const ServiceState = {
     }
 };
 
+// Stock items for autocomplete
+let stockItems = [];
+
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
@@ -60,13 +63,27 @@ async function loadAllData() {
             loadDueServices(),
             loadAllServicesWithSchedule(),
             loadCompletedServices(),
-            loadInvoicesForPicker()
+            loadInvoicesForPicker(),
+            loadStockItems()
         ]);
         updateStats();
         renderCurrentTab();
     } catch (error) {
         console.error('Error loading data:', error);
         showToast('Failed to load services', 'error');
+    }
+}
+
+// Load stock items for autocomplete
+async function loadStockItems() {
+    try {
+        const response = await fetch('/stock/get-names');
+        if (response.ok) {
+            stockItems = await response.json();
+        }
+    } catch (error) {
+        console.error('Error loading stock items:', error);
+        stockItems = [];
     }
 }
 
@@ -371,11 +388,13 @@ function renderCompletedCard(service) {
     // Payment status
     const paid = service.total_paid_amount || 0;
     const totalAmt = service.total_amount_with_tax || 0;
-    const isPaid = paid >= totalAmt && totalAmt > 0;
-    const isPartial = paid > 0 && !isPaid;
+    // Consider "Paid" if: paid >= total, OR if total is 0 (nothing to pay)
+    const isPaid = paid >= totalAmt || totalAmt === 0;
+    const isPartial = paid > 0 && paid < totalAmt;
 
     let paymentBadge = '<span class="status-badge bg-orange-100 text-orange-700">Unpaid</span>';
-    if (isPaid) paymentBadge = '<span class="status-badge bg-green-100 text-green-700">Paid</span>';
+    if (totalAmt === 0) paymentBadge = '<span class="status-badge bg-green-100 text-green-700">No Charge</span>';
+    else if (isPaid) paymentBadge = '<span class="status-badge bg-green-100 text-green-700">Paid</span>';
     else if (isPartial) paymentBadge = '<span class="status-badge bg-yellow-100 text-yellow-700">Partial</span>';
 
     return `
@@ -562,11 +581,12 @@ async function viewService(serviceId) {
         const paid = service.total_paid_amount || 0;
         const total = service.total_amount_with_tax || 0;
         const balance = Math.max(0, total - paid);
-        const isPaid = paid >= total && total > 0;
+        // Consider "Paid" if: paid >= total, OR if total is 0 (nothing to pay)
+        const isPaid = paid >= total || total === 0;
         const statusEl = document.getElementById('view-payment-status');
 
         if (isPaid) {
-            statusEl.textContent = 'Paid';
+            statusEl.textContent = total === 0 ? 'No Charge' : 'Paid';
             statusEl.className = 'px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700';
         } else if (paid > 0) {
             statusEl.textContent = 'Partial';
@@ -853,7 +873,10 @@ function addItemRow(data = {}) {
     row.dataset.itemId = itemCounter;
 
     row.innerHTML = `
-        <input type="text" placeholder="Description" class="item-desc" value="${escapeHtml(data.description || '')}">
+        <div style="position: relative; flex: 1; z-index: 10;">
+            <input type="text" placeholder="Description" class="item-desc" value="${escapeHtml(data.description || '')}" style="width: 100%;">
+            <ul class="suggestions" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 9999; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 200px; overflow-y: auto; margin-top: 4px; list-style: none; padding: 0;"></ul>
+        </div>
         <input type="text" placeholder="HSN" class="item-hsn" value="${escapeHtml(data.HSN_SAC || '')}">
         <input type="number" placeholder="Qty" class="item-qty" value="${data.quantity || ''}" min="0">
         <input type="number" placeholder="Price" class="item-price" value="${data.unit_price || ''}" min="0">
@@ -865,6 +888,87 @@ function addItemRow(data = {}) {
 
     container.appendChild(row);
 
+    row.querySelector('.item-qty').addEventListener('keypress', function (event) {
+        if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+    });
+
+    // Setup autocomplete for description field
+    const descInput = row.querySelector('.item-desc');
+    const suggestionsList = row.querySelector('.suggestions');
+    let selectedIndex = -1;
+
+    descInput.addEventListener('input', function () {
+        const query = this.value.toLowerCase().trim();
+        suggestionsList.innerHTML = '';
+        selectedIndex = -1;
+
+        if (query.length === 0) {
+            suggestionsList.style.display = 'none';
+            return;
+        }
+
+        const filtered = stockItems.filter(item => item.toLowerCase().includes(query));
+
+        if (filtered.length === 0) {
+            suggestionsList.style.display = 'none';
+            return;
+        }
+
+        // Use fixed positioning to avoid overflow clipping
+        const inputRect = descInput.getBoundingClientRect();
+        suggestionsList.style.position = 'fixed';
+        suggestionsList.style.top = (inputRect.bottom + 4) + 'px';
+        suggestionsList.style.left = inputRect.left + 'px';
+        suggestionsList.style.width = inputRect.width + 'px';
+        suggestionsList.style.display = 'block';
+
+        filtered.slice(0, 10).forEach((item, index) => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            li.addEventListener('click', async () => {
+                descInput.value = item;
+                suggestionsList.style.display = 'none';
+                await fillStockItemData(item, row);
+                updateLiveTotals();
+            });
+            suggestionsList.appendChild(li);
+        });
+    });
+
+    descInput.addEventListener('keydown', async function (event) {
+        const items = suggestionsList.querySelectorAll('li');
+        if (items.length === 0) return;
+
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            selectedIndex = (selectedIndex + 1) % items.length;
+            updateSuggestionSelection(items, selectedIndex);
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+            updateSuggestionSelection(items, selectedIndex);
+        } else if (event.key === 'Enter' && selectedIndex >= 0) {
+            event.preventDefault();
+            event.stopPropagation();
+            const selectedItem = items[selectedIndex].textContent;
+            descInput.value = selectedItem;
+            suggestionsList.style.display = 'none';
+            await fillStockItemData(selectedItem, row);
+            updateLiveTotals();
+            selectedIndex = -1;
+        } else if (event.key === 'Escape') {
+            suggestionsList.style.display = 'none';
+            selectedIndex = -1;
+        }
+    });
+
+    descInput.addEventListener('blur', function () {
+        // Delay hiding to allow click on suggestion
+        setTimeout(() => {
+            suggestionsList.style.display = 'none';
+        }, 200);
+    });
+
     // Event listeners for live totals
     row.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', updateLiveTotals);
@@ -874,6 +978,35 @@ function addItemRow(data = {}) {
         row.remove();
         updateLiveTotals();
     });
+
+    // Focus on description field for new items
+    if (!data.description) {
+        setTimeout(() => descInput.focus(), 50);
+    }
+}
+
+// Update suggestion selection styling
+function updateSuggestionSelection(items, selectedIndex) {
+    items.forEach((item, index) => {
+        item.classList.toggle('selected', index === selectedIndex);
+    });
+}
+
+// Fetch and fill stock item data
+async function fillStockItemData(itemName, row) {
+    try {
+        const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
+        if (response.ok) {
+            const stockData = await response.json();
+            if (stockData) {
+                row.querySelector('.item-hsn').value = stockData.HSN_SAC || '';
+                row.querySelector('.item-price').value = stockData.unit_price || '';
+                row.querySelector('.item-tax').value = stockData.GST || '';
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching stock item data:', error);
+    }
 }
 
 function addChargeRow(data = {}) {
@@ -1201,7 +1334,13 @@ async function printService(serviceId, action = 'print') {
         const data = await response.json();
         const service = data.service;
 
-        const html = await generateDocumentHTML(service);
+        let html = await generateDocumentHTML(service);
+
+        // Strip contenteditable attributes for clean print/pdf
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        tempDiv.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+        html = tempDiv.innerHTML;
 
         if (window.electronAPI && window.electronAPI.handlePrintEvent) {
             window.electronAPI.handlePrintEvent(html, action, `Service-${serviceId}`);
@@ -1734,7 +1873,6 @@ async function closeServiceSchedule(invoiceId) {
 function initHeaderListeners() {
     // New Service button
     document.getElementById('new-service-btn')?.addEventListener('click', () => showNewForm());
-    document.getElementById('empty-new-btn')?.addEventListener('click', () => showNewForm());
 
     // Home button
     document.getElementById('home-btn')?.addEventListener('click', () => {
@@ -1811,27 +1949,33 @@ function initFormListeners() {
     // Save
     document.getElementById('form-save-btn')?.addEventListener('click', saveService);
 
-    // Print/PDF
+    // Print/PDF (Form)
     document.getElementById('form-print-btn')?.addEventListener('click', () => {
         if (ServiceState.selectedServiceId) {
-            printService(ServiceState.selectedServiceId);
-        } else {
-            showToast('Please save the service first', 'error');
-        }
-    });
-    document.getElementById('form-pdf-btn')?.addEventListener('click', () => {
-        if (ServiceState.selectedServiceId) {
-            // Reuse print logic for now, or implement specific PDF logic
-            printService(ServiceState.selectedServiceId);
+            printService(ServiceState.selectedServiceId, 'print');
         } else {
             showToast('Please save the service first', 'error');
         }
     });
 
-    // View panel print
+    document.getElementById('form-pdf-btn')?.addEventListener('click', () => {
+        if (ServiceState.selectedServiceId) {
+            printService(ServiceState.selectedServiceId, 'savePDF');
+        } else {
+            showToast('Please save the service first', 'error');
+        }
+    });
+
+    // View panel print/pdf
     document.getElementById('view-print-btn')?.addEventListener('click', () => {
         if (ServiceState.selectedServiceId) {
-            printService(ServiceState.selectedServiceId);
+            printService(ServiceState.selectedServiceId, 'print');
+        }
+    });
+
+    document.getElementById('view-pdf-btn')?.addEventListener('click', () => {
+        if (ServiceState.selectedServiceId) {
+            printService(ServiceState.selectedServiceId, 'savePDF');
         }
     });
 }
