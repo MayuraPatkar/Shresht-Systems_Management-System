@@ -93,7 +93,7 @@ function renderStockTable(data) {
 
         const row = document.createElement('tr');
         row.classList.add('table-row', 'fade-in', 'hover:bg-slate-50', 'transition-colors');
-        
+
         if (quantity < 0) {
             row.classList.add('bg-red-200');
         } else if (quantity === 0) {
@@ -112,7 +112,7 @@ function renderStockTable(data) {
         defaultOpt.selected = true;
         defaultOpt.textContent = 'Actions';
         select.appendChild(defaultOpt);
-        
+
         const actions = [
             { value: 'add', label: 'Add Stock', icon: '+' },
             { value: 'remove', label: 'Remove Stock', icon: '-' },
@@ -120,7 +120,7 @@ function renderStockTable(data) {
             { value: 'details', label: 'View Details', icon: 'ℹ' },
             { value: 'delete', label: 'Delete', icon: '✕' }
         ];
-        
+
         actions.forEach(action => {
             const opt = document.createElement('option');
             opt.value = action.value;
@@ -219,34 +219,34 @@ function escapeHtml(value) {
 function generateStockPrintContent(type, category, status) {
     // Filter data based on print modal selections
     let filteredData = currentStockData;
-    
+
     // Apply type filter
     if (type !== 'all') {
         filteredData = filteredData.filter(item => item.type === type);
     }
-    
+
     // Apply category filter
     if (category !== 'all') {
         filteredData = filteredData.filter(item => item.category === category);
     }
-    
+
     // Apply status filter
     if (status !== 'all') {
         filteredData = filteredData.filter(item => {
             const quantity = Number(item.quantity) || 0;
             const minQuantity = Number(item.min_quantity) || 0;
-            
+
             if (status === 'In Stock') return quantity >= minQuantity;
             if (status === 'Low Stock') return quantity > 0 && quantity < minQuantity;
             if (status === 'Out of Stock') return quantity === 0;
             return true;
         });
     }
-    
+
     let itemsHTML = '';
     let totalValue = 0;
     let totalQuantity = 0;
-    
+
     filteredData.forEach((item, index) => {
         const itemName = item.item_name;
         const company = item.company;
@@ -255,15 +255,15 @@ function generateStockPrintContent(type, category, status) {
         const qty = Number(item.quantity) || 0;
         const gst = item.GST || 0;
         const minQuantity = Number(item.min_quantity) || 0;
-        
+
         const value = qty * unitPrice;
         totalQuantity += qty;
         totalValue += value;
-        
+
         // Determine status
         let statusText = 'In Stock';
         let statusClass = 'stock-status-normal';
-        
+
         if (qty < 0) {
             statusText = 'Negative Stock';
             statusClass = 'stock-status-negative';
@@ -274,7 +274,7 @@ function generateStockPrintContent(type, category, status) {
             statusText = 'Low Stock';
             statusClass = 'stock-status-low';
         }
-        
+
         itemsHTML += `
             <tr>
                 <td class="text-center">${index + 1}</td>
@@ -289,13 +289,13 @@ function generateStockPrintContent(type, category, status) {
             </tr>
         `;
     });
-    
+
     const currentDate = new Date().toLocaleDateString('en-IN', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
     });
-    
+
     return `
         <!DOCTYPE html>
         <html>
@@ -630,7 +630,6 @@ function openEditModal(item) {
     document.getElementById('editCategory').value = item.category || '';
     document.getElementById('editType').value = item.type || 'Material';
     document.getElementById('editUnitPrice').value = item.unit_price || '';
-    document.getElementById('editQuantity').value = item.quantity || '';
     document.getElementById('editGstRate').value = item.GST || '';
     document.getElementById('editMinQuantity').value = item.min_quantity || '5';
     document.getElementById('editSpecifications').value = item.specifications || '';
@@ -651,7 +650,6 @@ if (editForm) {
         const category = document.getElementById('editCategory').value.trim();
         const type = document.getElementById('editType').value.trim();
         const unit_price = parseFloat(document.getElementById('editUnitPrice').value);
-        const quantity = parseInt(document.getElementById('editQuantity').value, 10);
         const GST = parseFloat(document.getElementById('editGstRate').value);
         const min_quantity = parseInt(document.getElementById('editMinQuantity').value, 10);
         const specifications = document.getElementById('editSpecifications').value.trim();
@@ -665,11 +663,6 @@ if (editForm) {
 
         if (isNaN(unit_price) || unit_price <= 0) {
             showErrorMessage('Please enter a valid unit price.');
-            return;
-        }
-
-        if (isNaN(quantity) || quantity < 0) {
-            showErrorMessage('Please enter a valid quantity.');
             return;
         }
 
@@ -687,15 +680,16 @@ if (editForm) {
             const res = await fetch('/stock/editItem', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ itemId, item_name, HSN_SAC, company, category, type, unit_price, quantity, GST, min_quantity, specifications })
+                body: JSON.stringify({ itemId, item_name, HSN_SAC, company, category, type, unit_price, GST, min_quantity, specifications })
             });
-            if (!res.ok) throw new Error('Failed to edit item');
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to edit item');
             await fetchStockData();
             hideModal('editStockModal');
             showSuccessMessage('Stock item updated successfully!');
         } catch (err) {
             console.error(err);
-            showErrorMessage('Failed to update item.');
+            showErrorMessage(err.message || 'Failed to update item.');
         }
     });
 }
@@ -814,10 +808,10 @@ document.getElementById('finalPrintBtn')?.addEventListener('click', () => {
     const type = document.getElementById('printTypeFilter')?.value || 'all';
     const category = document.getElementById('printCategoryFilter')?.value || 'all';
     const status = document.getElementById('printStatusFilter')?.value || 'all';
-    
+
     // Generate properly styled print content
     const content = generateStockPrintContent(type, category, status);
-    
+
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         window.electronAPI.handlePrintEvent(content, 'print', 'Stock Report');
     } else if (window.electronAPI && window.electronAPI.showAlert1) {
@@ -840,7 +834,7 @@ if (lowStockBtn) {
                 return qty < minQty || qty === 0;
             });
             renderStockTable(lowStockItems);
-            
+
             // Update filter dropdown to show "Low Stock" as active
             const filterDropdown = document.getElementById('filterDropdown');
             if (filterDropdown) {
@@ -851,7 +845,7 @@ if (lowStockBtn) {
                     }
                 });
             }
-        } catch (err) { 
+        } catch (err) {
             console.error(err);
             showErrorMessage('Failed to filter low stock items.');
         }
@@ -871,25 +865,25 @@ const searchInput = document.getElementById('search-input');
 if (searchInput) {
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase().trim();
-        
+
         if (!searchTerm) {
             // If search is cleared, show all items (with current filters applied)
             applyFilters();
             return;
         }
-        
+
         const filteredData = currentStockData.filter(item => {
             const name = (item.item_name || '').toLowerCase();
             const company = (item.company || '').toLowerCase();
             const category = (item.category || '').toLowerCase();
             const hsn = (item.HSN_SAC || '').toLowerCase();
-            
-            return name.includes(searchTerm) || 
-                   company.includes(searchTerm) || 
-                   category.includes(searchTerm) ||
-                   hsn.includes(searchTerm);
+
+            return name.includes(searchTerm) ||
+                company.includes(searchTerm) ||
+                category.includes(searchTerm) ||
+                hsn.includes(searchTerm);
         });
-        
+
         renderStockTable(filteredData);
     });
 }
@@ -902,7 +896,7 @@ if (refreshBtn) {
         const typeDropdown = document.getElementById('typeFilterDropdown');
         const categoryDropdown = document.getElementById('categoryFilterDropdown');
         const filterDropdown = document.getElementById('filterDropdown');
-        
+
         [typeDropdown, categoryDropdown, filterDropdown].forEach(dropdown => {
             if (dropdown) {
                 dropdown.querySelectorAll('a').forEach((link, index) => {
@@ -913,7 +907,7 @@ if (refreshBtn) {
                 });
             }
         });
-        
+
         fetchStockData();
         showSuccessMessage('Stock data refreshed!');
     });
@@ -1027,6 +1021,9 @@ if (addQuantityBtn) {
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
+    // Don't trigger shortcuts when typing in input fields (except for Escape and Ctrl combinations)
+    const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+
     // Ctrl+F or Cmd+F to focus search input
     if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
@@ -1041,11 +1038,36 @@ document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
         e.preventDefault();
         showModal('newStockModal');
+        // Focus first input in the form
+        setTimeout(() => {
+            document.getElementById('itemName')?.focus();
+        }, 100);
+    }
+
+    // Ctrl+S or Cmd+S to save (submit) the active form
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+
+        // Check which modal is open and submit its form
+        const newStockModal = document.getElementById('newStockModal');
+        const editStockModal = document.getElementById('editStockModal');
+
+        if (newStockModal && !newStockModal.classList.contains('hidden')) {
+            document.getElementById('newStockForm')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        } else if (editStockModal && !editStockModal.classList.contains('hidden')) {
+            document.getElementById('editStockForm')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+    }
+
+    // Ctrl+P or Cmd+P to open print modal
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        showModal('printModal');
     }
 
     // Escape to close modals
     if (e.key === 'Escape') {
-        const modals = ['newStockModal', 'editStockModal', 'itemDetailsModal', 'printModal', 'quantityModal'];
+        const modals = ['newStockModal', 'editStockModal', 'itemDetailsModal', 'printModal', 'quantityModal', 'keyboardShortcutsModal'];
         modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
             if (modal && !modal.classList.contains('hidden')) {
@@ -1058,8 +1080,20 @@ document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
         e.preventDefault();
         fetchStockData();
+        showSuccessMessage('Stock data refreshed!');
+    }
+
+    // ? key to show keyboard shortcuts help (only when not typing)
+    if (e.key === '?' && !isTyping) {
+        e.preventDefault();
+        showModal('keyboardShortcutsModal');
     }
 });
+
+// Keyboard shortcuts modal handlers
+document.getElementById('keyboardShortcutsBtn')?.addEventListener('click', () => showModal('keyboardShortcutsModal'));
+document.getElementById('closeKeyboardModalBtn')?.addEventListener('click', () => hideModal('keyboardShortcutsModal'));
+document.getElementById('closeKeyboardHelpBtn')?.addEventListener('click', () => hideModal('keyboardShortcutsModal'));
 
 // Add tooltips to action buttons
 function addTooltips() {
@@ -1070,13 +1104,19 @@ function addTooltips() {
     if (refreshBtn) refreshBtn.title = 'Refresh data (Ctrl+R)';
 
     const printBtn = document.getElementById('printBtn');
-    if (printBtn) printBtn.title = 'Print stock report';
-    
+    if (printBtn) printBtn.title = 'Print stock report (Ctrl+P)';
+
     const lowStockBtn = document.getElementById('lowStockBtn');
     if (lowStockBtn) lowStockBtn.title = 'Show only low stock and out of stock items';
-    
+
     const homeBtn = document.getElementById('home-btn');
     if (homeBtn) homeBtn.title = 'Go to Dashboard';
+
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.title = 'Search stock items (Ctrl+F)';
+
+    const keyboardBtn = document.getElementById('keyboardShortcutsBtn');
+    if (keyboardBtn) keyboardBtn.title = 'Keyboard shortcuts (?)';
 }
 
 // Add success feedback for operations
@@ -1193,33 +1233,33 @@ fetchStockData();
 document.addEventListener('DOMContentLoaded', () => {
     const searchParams = new URLSearchParams(window.location.search);
     const itemName = searchParams.get('item');
-    
+
     if (itemName) {
         // Wait for table to render and data to load, then open add modal for the item
         setTimeout(() => {
             // Find the item in currentStockData
-            const stockItem = currentStockData.find(item => 
+            const stockItem = currentStockData.find(item =>
                 (item.item_name || '').trim() === itemName.trim()
             );
-            
+
             if (stockItem) {
                 const itemId = stockItem._id;
                 const itemNameFromData = stockItem.item_name;
-                
+
                 // Scroll to the item first
                 const rows = document.querySelectorAll('#stock-table tbody tr');
                 rows.forEach(row => {
                     const nameCell = row.querySelector('td:first-child .font-medium');
                     if (nameCell && nameCell.textContent.trim() === itemName.trim()) {
                         row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        
+
                         // Brief highlight
                         row.classList.add('bg-yellow-200');
                         setTimeout(() => {
                             row.classList.remove('bg-yellow-200');
                             const qty = parseInt(row.querySelector('td:nth-child(3)')?.textContent.replace(/[^0-9]/g, '')) || 0;
                             const minQty = Number(stockItem.min_quantity) || 0;
-                            
+
                             if (qty < 0) {
                                 row.classList.add('bg-red-200');
                             } else if (qty === 0) {
@@ -1230,12 +1270,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         }, 800);
                     }
                 });
-                
+
                 // Open the "Add Quantity" modal after a brief delay
                 setTimeout(() => {
                     showQuantityModal('add', itemId, itemNameFromData);
                 }, 600);
-                
+
             } else {
                 // Item not found in stock data
                 showErrorMessage(`Item "${itemName}" not found in stock list.`);

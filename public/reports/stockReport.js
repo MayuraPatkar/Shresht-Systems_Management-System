@@ -50,6 +50,7 @@ function clearStockFilters() {
     document.getElementById('stock-end-date').valueAsDate = endDate;
     document.getElementById('stock-movement-type').value = 'all';
     document.getElementById('stock-item-filter').value = '';
+    selectedItemId = null; // Reset selected item ID
 
     // Reset table
     document.getElementById('stock-report-body').innerHTML = `
@@ -94,7 +95,12 @@ async function generateStockReport() {
         if (startDate) params.append('start_date', startDate);
         if (endDate) params.append('end_date', endDate);
         if (movementType && movementType !== 'all') params.append('movement_type', movementType);
-        if (itemFilter) params.append('item_name', itemFilter);
+        // Use item_id if available (from autocomplete selection), otherwise use item_name for text search
+        if (selectedItemId) {
+            params.append('item_id', selectedItemId);
+        } else if (itemFilter) {
+            params.append('item_name', itemFilter);
+        }
 
         const response = await fetch(`/reports/stock?${params.toString()}`);
         const data = await response.json();
@@ -465,7 +471,9 @@ window.loadSavedStockReport = function (report) {
 
 
 // Autocomplete State
-let stockItemNames = [];
+let stockItems = []; // Array of { id, name }
+let stockItemNames = []; // Array of names (for backward compatibility)
+let selectedItemId = null; // Store selected item ID
 let selectedSuggestionIndex = -1;
 
 /**
@@ -473,9 +481,10 @@ let selectedSuggestionIndex = -1;
  */
 async function loadStockItemSuggestions() {
     try {
-        const response = await fetch('/stock/get-names');
+        const response = await fetch('/stock/get-items-with-ids');
         if (response.ok) {
-            stockItemNames = await response.json();
+            stockItems = await response.json();
+            stockItemNames = stockItems.map(item => item.name);
         }
     } catch (error) {
         console.error('Error loading stock item suggestions:', error);
@@ -496,13 +505,15 @@ function setupStockItemAutocomplete() {
         const query = this.value.toLowerCase();
         suggestionsList.innerHTML = '';
         selectedSuggestionIndex = -1;
+        selectedItemId = null; // Clear selected ID when input changes
 
         if (query.length === 0) {
             suggestionsList.style.display = 'none';
             return;
         }
 
-        const filtered = stockItemNames.filter(item => item.toLowerCase().includes(query));
+        // Filter items using the stockItems array
+        const filtered = stockItems.filter(item => item.name.toLowerCase().includes(query));
 
         if (filtered.length === 0) {
             suggestionsList.style.display = 'none';
@@ -513,9 +524,11 @@ function setupStockItemAutocomplete() {
 
         filtered.forEach((item, index) => {
             const li = document.createElement('li');
-            li.textContent = item;
+            li.textContent = item.name;
+            li.dataset.itemId = item.id; // Store item ID in data attribute
             li.addEventListener('click', function () {
-                input.value = item;
+                input.value = item.name;
+                selectedItemId = item.id; // Store selected item ID
                 suggestionsList.style.display = 'none';
                 selectedSuggestionIndex = -1;
             });
@@ -539,7 +552,9 @@ function setupStockItemAutocomplete() {
         } else if (e.key === 'Enter') {
             if (suggestionsList.style.display !== 'none' && selectedSuggestionIndex >= 0) {
                 e.preventDefault();
-                input.value = items[selectedSuggestionIndex].textContent;
+                const selectedItem = items[selectedSuggestionIndex];
+                input.value = selectedItem.textContent;
+                selectedItemId = selectedItem.dataset.itemId; // Store selected item ID
                 suggestionsList.style.display = 'none';
                 selectedSuggestionIndex = -1;
             }

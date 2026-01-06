@@ -136,7 +136,7 @@ router.post("/save-purchase-order", async (req, res) => {
 
         // 1. Adjust Stock Quantities (Revert Old + Add New)
         // We do this to ensure Stock collection is always accurate based on the PO content.
-        
+
         // A. Revert previous items
         if (previousItems.length > 0) {
             for (const prevItem of previousItems) {
@@ -191,9 +191,9 @@ router.post("/save-purchase-order", async (req, res) => {
 
         // 2. Sync Stock Movements (Update Existing, Create New, Delete Removed)
         // This ensures we don't create duplicate "In" movements or "Adjustment" movements for edits.
-        
+
         const currentPOId = purchaseOrderId || (purchaseOrder ? purchaseOrder.purchase_order_id : 'NEW');
-        
+
         // Fetch existing movements for this PO
         const existingMovements = await StockMovement.find({
             reference_type: 'purchase_order',
@@ -217,15 +217,21 @@ router.post("/save-purchase-order", async (req, res) => {
                 const movement = movementPool[matchIndex];
                 movement.quantity_change = qty;
                 movement.total_value = totalVal;
-                // movement.notes = `Purchase Order Received`; // Keep original notes or update?
+                // Update item_id if we can find the stock item
+                const stockItem = await Stock.findOne({ item_name: itemName });
+                if (stockItem) {
+                    movement.item_id = stockItem._id;
+                }
                 await movement.save();
-                
+
                 // Remove from pool so we don't use it again
                 movementPool.splice(matchIndex, 1);
             } else {
-                // CREATE new movement
+                // CREATE new movement - look up stock item to get ID
+                const stockItem = await Stock.findOne({ item_name: itemName });
                 await StockMovement.create({
                     timestamp: purchaseDate || new Date(),
+                    item_id: stockItem ? stockItem._id : null,
                     item_name: itemName,
                     movement_type: 'in',
                     quantity_change: qty,
@@ -311,9 +317,9 @@ router.delete("/:purchaseOrderId", async (req, res) => {
         }
 
         // Delete associated stock movements
-        await StockMovement.deleteMany({ 
-            reference_type: 'purchase_order', 
-            reference_id: purchaseOrderId 
+        await StockMovement.deleteMany({
+            reference_type: 'purchase_order',
+            reference_id: purchaseOrderId
         });
 
         await Purchases.deleteOne({ purchase_order_id: purchaseOrderId });

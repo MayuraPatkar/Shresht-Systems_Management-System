@@ -5,68 +5,70 @@ const mongoose = require('mongoose');
  * Tracks all stock in/out movements for reporting purposes
  */
 const stockMovementSchema = new mongoose.Schema({
-    item_name: { 
-        type: String, 
-        required: true, 
-        trim: true, 
-        index: true 
+    item_name: {
+        type: String,
+        required: true,
+        trim: true,
+        index: true
     },
-    item_id: { 
-        type: mongoose.Schema.Types.ObjectId, 
+    item_id: {
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Stock',
-        index: true 
+        required: true,
+        index: true
     },
-    HSN_SAC: { 
-        type: String, 
-        trim: true 
+    HSN_SAC: {
+        type: String,
+        trim: true
     },
-    quantity_change: { 
-        type: Number, 
-        required: true 
+    quantity_change: {
+        type: Number,
+        required: true
     }, // Positive for IN, negative for OUT
-    movement_type: { 
-        type: String, 
-        required: true, 
+    movement_type: {
+        type: String,
+        required: true,
         enum: ['in', 'out', 'adjustment'],
-        index: true 
+        index: true
     },
-    reference_type: { 
-        type: String, 
+    reference_type: {
+        type: String,
         enum: ['invoice', 'purchase', 'purchase_order', 'manual', 'adjustment', 'initial', 'stock', 'service'],
-        default: 'manual' 
+        default: 'manual'
     },
-    reference_id: { 
+    reference_id: {
         type: String // Invoice ID, Purchase ID, etc.
     },
     reference_number: {
         type: String // Human-readable reference (e.g., "INV-001")
     },
-    unit_price: { 
-        type: Number 
+    unit_price: {
+        type: Number
     },
-    total_value: { 
-        type: Number 
+    total_value: {
+        type: Number
     },
-    notes: { 
-        type: String 
+    notes: {
+        type: String
     },
-    created_by: { 
-        type: String 
+    created_by: {
+        type: String
     },
-    timestamp: { 
-        type: Date, 
-        default: Date.now, 
-        index: true 
+    timestamp: {
+        type: Date,
+        default: Date.now,
+        index: true
     }
 });
 
 // Compound indexes for efficient querying
+stockMovementSchema.index({ item_id: 1, timestamp: -1 });
 stockMovementSchema.index({ item_name: 1, timestamp: -1 });
 stockMovementSchema.index({ movement_type: 1, timestamp: -1 });
 stockMovementSchema.index({ reference_type: 1, reference_id: 1 });
 
 // Virtual for formatted date
-stockMovementSchema.virtual('formattedDate').get(function() {
+stockMovementSchema.virtual('formattedDate').get(function () {
     return this.timestamp.toLocaleDateString('en-IN', {
         day: '2-digit',
         month: '2-digit',

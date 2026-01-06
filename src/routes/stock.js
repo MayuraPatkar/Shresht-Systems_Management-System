@@ -5,9 +5,10 @@ const logger = require('../utils/logger');
 const validators = require('../middleware/validators'); // Import validators
 
 // Helper function to log stock movements
-async function logStockMovement(itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
+async function logStockMovement(itemId, itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
     try {
         await StockMovement.create({
+            item_id: itemId,
             item_name: itemName,
             quantity_change: quantityChange,
             movement_type: movementType,
@@ -62,6 +63,7 @@ router.post('/addItem', validators.createStock, async (req, res) => {
         // Log stock movement for initial quantity
         if (quantity && quantity > 0) {
             await logStockMovement(
+                newItem._id,
                 item_name.trim(),
                 quantity,
                 'in',
@@ -97,6 +99,7 @@ router.post('/addToStock', async (req, res) => {
 
         // Log stock movement
         await logStockMovement(
+            item._id,
             item.item_name,
             quantity,
             'in',
@@ -135,6 +138,7 @@ router.post('/removeFromStock', async (req, res) => {
 
         // Log stock movement
         await logStockMovement(
+            item._id,
             item.item_name,
             quantity,
             'out',
@@ -152,7 +156,7 @@ router.post('/removeFromStock', async (req, res) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req, res) => {
-    const { itemId, item_name, HSN_SAC, specifications, company, category, type, unit_price, quantity, GST, min_quantity } = req.body;
+    const { itemId, item_name, HSN_SAC, specifications, company, category, type, unit_price, GST, min_quantity } = req.body;
 
     try {
         // Input validation
@@ -162,10 +166,6 @@ router.post('/editItem', async (req, res) => {
 
         if (unit_price && (isNaN(unit_price) || unit_price < 0)) {
             return res.status(400).json({ error: 'Unit price must be a valid positive number' });
-        }
-
-        if (quantity && (isNaN(quantity) || quantity < 0)) {
-            return res.status(400).json({ error: 'Quantity must be a valid positive number' });
         }
 
         if (GST && (isNaN(GST) || GST < 0 || GST > 100)) {
@@ -187,11 +187,7 @@ router.post('/editItem', async (req, res) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        // Calculate quantity change for logging
-        const oldQuantity = item.quantity || 0;
-        const newQuantity = quantity || 0;
-        const quantityDiff = newQuantity - oldQuantity;
-
+        // Update item details (quantity is managed separately via stock in/out operations)
         item.item_name = item_name.trim();
         item.HSN_SAC = HSN_SAC;
         item.specifications = specifications;
@@ -199,23 +195,10 @@ router.post('/editItem', async (req, res) => {
         item.category = category;
         item.type = type;
         item.unit_price = unit_price;
-        item.quantity = quantity;
         item.GST = GST;
         item.min_quantity = min_quantity;
         item.updatedAt = new Date();
         await item.save();
-
-        // Log stock movement if quantity changed
-        if (quantityDiff !== 0) {
-            await logStockMovement(
-                item_name.trim(),
-                Math.abs(quantityDiff),
-                quantityDiff > 0 ? 'in' : 'out',
-                'stock',
-                itemId,
-                `Stock adjustment via edit (${oldQuantity} → ${newQuantity})`
-            );
-        }
 
         res.status(200).json({ message: 'Item updated successfully' });
     } catch (error) {
@@ -245,6 +228,17 @@ router.get("/get-names", async (req, res) => {
         res.json(stockItems.map(item => item.item_name));
     } catch (error) {
         logger.error("Stock names fetch failed", { service: "stock", error: error.message });
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Get stock items with IDs for autocomplete (used by reports)
+router.get("/get-items-with-ids", async (req, res) => {
+    try {
+        const stockItems = await Stock.find({}, { _id: 1, item_name: 1 });
+        res.json(stockItems.map(item => ({ id: item._id, name: item.item_name })));
+    } catch (error) {
+        logger.error("Stock items fetch failed", { service: "stock", error: error.message });
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -289,6 +283,7 @@ router.post('/deleteItem', async (req, res) => {
         // Log stock movement if item had quantity
         if (item.quantity > 0) {
             await logStockMovement(
+                item._id,
                 item.item_name,
                 item.quantity,
                 'out',
