@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             document.getElementById("buyer-name").value = quotation.customer_name;
                             document.getElementById("buyer-address").value = quotation.customer_address;
                             document.getElementById("buyer-phone").value = quotation.customer_phone;
+                            document.getElementById("buyer-email").value = quotation.customer_email || "";
 
                             const itemsTableBody = document.querySelector("#items-table tbody");
                             itemsTableBody.innerHTML = "";
