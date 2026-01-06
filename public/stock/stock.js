@@ -573,7 +573,8 @@ if (newStockForm) {
         const category = document.getElementById('category').value.trim();
         const type = document.getElementById('type').value.trim();
         const unit_price = parseFloat(document.getElementById('unitPrice').value);
-        const quantity = parseInt(document.getElementById('quantity').value, 10);
+        // Quantity field removed from UI, defaulting to 0 for new items
+        const quantity = 0;
         const GST = parseFloat(document.getElementById('gstRate').value);
         const min_quantity = parseInt(document.getElementById('minQuantity').value, 10);
         const specifications = document.getElementById('specifications').value.trim();
@@ -585,11 +586,6 @@ if (newStockForm) {
 
         if (isNaN(unit_price) || unit_price <= 0) {
             showErrorMessage('Please enter a valid unit price.');
-            return;
-        }
-
-        if (isNaN(quantity) || quantity < 0) {
-            showErrorMessage('Please enter a valid quantity.');
             return;
         }
 
@@ -609,14 +605,21 @@ if (newStockForm) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ item_name, HSN_SAC, company, category, type, unit_price, quantity, GST, min_quantity, specifications })
             });
-            if (!res.ok) throw new Error('Failed to add item');
+
+            if (!res.ok) {
+                // Try to parse error message from server
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Failed to add item');
+            }
+
             await fetchStockData();
             hideModal('newStockModal');
             newStockForm.reset();
             showSuccessMessage('Stock item added successfully!');
         } catch (err) {
             console.error(err);
-            showErrorMessage('Failed to add item.');
+            // Display the specific error message from the server (e.g. "Item already exists")
+            showErrorMessage(err.message || 'Failed to add item.');
         }
     });
 }
@@ -789,8 +792,8 @@ document.getElementById('quantityModalInput')?.addEventListener('keydown', (e) =
 
 // Hook up modal open/close buttons
 document.getElementById('newStockItemBtn')?.addEventListener('click', () => showModal('newStockModal'));
-document.getElementById('closeModalBtn')?.addEventListener('click', () => hideModal('newStockModal'));
-document.getElementById('cancelBtn')?.addEventListener('click', () => hideModal('newStockModal'));
+document.getElementById('closeModalBtn')?.addEventListener('click', () => { hideModal('newStockModal'); document.getElementById('newStockForm')?.reset(); });
+document.getElementById('cancelBtn')?.addEventListener('click', () => { hideModal('newStockModal'); document.getElementById('newStockForm')?.reset(); });
 document.getElementById('closeEditModalBtn')?.addEventListener('click', () => hideModal('editStockModal'));
 document.getElementById('cancelEditBtn')?.addEventListener('click', () => hideModal('editStockModal'));
 document.getElementById('closeDetailsModalBtn')?.addEventListener('click', () => hideModal('itemDetailsModal'));
@@ -1052,10 +1055,16 @@ document.addEventListener('keydown', (e) => {
         const newStockModal = document.getElementById('newStockModal');
         const editStockModal = document.getElementById('editStockModal');
 
+        // Also check for quantity modal
+        const quantityModal = document.getElementById('quantityModal');
+
         if (newStockModal && !newStockModal.classList.contains('hidden')) {
             document.getElementById('newStockForm')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
         } else if (editStockModal && !editStockModal.classList.contains('hidden')) {
             document.getElementById('editStockForm')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        } else if (quantityModal && !quantityModal.classList.contains('hidden')) {
+            // Retrieve the stored submit handler or trigger the button click
+            document.getElementById('quantityModalSubmitBtn')?.click();
         }
     }
 
@@ -1067,13 +1076,26 @@ document.addEventListener('keydown', (e) => {
 
     // Escape to close modals
     if (e.key === 'Escape') {
+        // Prevent global redirection
+        e.preventDefault();
+        e.stopPropagation();
+
         const modals = ['newStockModal', 'editStockModal', 'itemDetailsModal', 'printModal', 'quantityModal', 'keyboardShortcutsModal'];
+        let closedSomething = false;
+
         modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
             if (modal && !modal.classList.contains('hidden')) {
                 hideModal(modalId);
+                closedSomething = true;
             }
         });
+
+        // If no modal was closed, redirect to dashboard manually if needed, 
+        // to mimic global behavior but controlled by this listener
+        if (!closedSomething) {
+            window.location = '/dashboard';
+        }
     }
 
     // Ctrl+R or Cmd+R to refresh (prevent default and use our refresh)
@@ -1088,7 +1110,7 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         showModal('keyboardShortcutsModal');
     }
-});
+}, true); // Use capture phase to intercept before global listener
 
 // Keyboard shortcuts modal handlers
 document.getElementById('keyboardShortcutsBtn')?.addEventListener('click', () => showModal('keyboardShortcutsModal'));
