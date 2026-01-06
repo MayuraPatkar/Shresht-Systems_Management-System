@@ -2,9 +2,9 @@
 function showNotification(msg, type = 'info') {
     const notif = document.createElement('div');
     notif.className = `fixed top-28 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${type === 'success' ? 'bg-green-500' :
-            type === 'error' ? 'bg-red-500' :
-                type === 'warning' ? 'bg-yellow-500' :
-                    'bg-blue-500'
+        type === 'error' ? 'bg-red-500' :
+            type === 'warning' ? 'bg-yellow-500' :
+                'bg-blue-500'
         } text-white font-semibold`;
     notif.innerHTML = `
         <div class="flex items-center gap-2">
@@ -388,10 +388,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (autoRemindersBtn) {
         autoRemindersBtn.addEventListener('click', async () => {
             if (autoRemindersBtn.disabled) return;
-            
+
             // Show confirmation dialog and wait for response
             window.electronAPI.showAlert2('Send payment reminders to all unpaid projects?');
-            
+
             // Wait for user response
             const userConfirmed = await new Promise((resolve) => {
                 window.electronAPI.receiveAlertResponse((response) => {
@@ -456,6 +456,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.target.classList.add('border-gray-300');
             }
         });
+    });
+
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                document.activeElement.blur();
+            } else {
+                window.location.href = '../dashboard/dashboard.html';
+            }
+        }
     });
 
     // Refresh unpaid count every 30 seconds
