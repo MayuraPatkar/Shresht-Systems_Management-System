@@ -1066,10 +1066,10 @@ document.getElementById("save-btn").addEventListener("click", async () => {
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
+        const wasNewInvoice = sessionStorage.getItem('currentTab-status') !== 'update';
         const invoiceData = collectFormData();
         const response = await sendToServer(invoiceData, false);
 
-        const wasNewInvoice = sessionStorage.getItem('currentTab-status') !== 'update';
 
         if (response) {
             window.electronAPI.showAlert1("Invoice saved successfully!");
@@ -1082,6 +1082,10 @@ document.getElementById("save-btn").addEventListener("click", async () => {
                 // Ensure subsequent saves are treated as updates
                 sessionStorage.setItem('update-invoice', 'original');
             }
+            if (wasNewInvoice) {
+                sessionStorage.removeItem('currentTab-status');
+                window.location = '/invoice';
+            }
         }
     } catch (error) {
         console.error("Save error:", error);
@@ -1090,11 +1094,6 @@ document.getElementById("save-btn").addEventListener("click", async () => {
         isSaving = false;
         saveBtn.disabled = false;
         saveBtn.innerHTML = originalText;
-        if (wasNewInvoice) {
-            sessionStorage.removeItem('currentTab-status');
-            window.location = '/invoice';
-        }
-
     }
 });
 

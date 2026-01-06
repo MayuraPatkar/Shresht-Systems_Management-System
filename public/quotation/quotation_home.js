@@ -365,6 +365,7 @@ async function deleteQuotation(quotationId) {
 
 // Show the new quotation form
 function showNewQuotationForm() {
+    sessionStorage.setItem('currentTab-status', 'new');
     showNewDocumentForm({
         homeId: 'home',
         formId: 'new',

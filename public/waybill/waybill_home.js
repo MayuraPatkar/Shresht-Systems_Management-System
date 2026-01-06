@@ -23,7 +23,7 @@ document.getElementById('purchase-bill').addEventListener('click', () => {
 })
 
 document.getElementById('wayBill').addEventListener('click', () => {
-    window.location = '/wayBill';
+    window.location = '/waybill';
     sessionStorage.setItem('currentTab', 'wayBill');
 })
 
@@ -58,8 +58,9 @@ document.getElementById('settings').addEventListener('click', () => {
 })
 
 document.getElementById('home-btn').addEventListener('click', () => {
-    window.location = '/wayBill';
-    sessionStorage.setItem('currentTab', 'wayBill');
+    sessionStorage.removeItem('currentTab-status');
+    window.location = '/waybill';
+    sessionStorage.setItem('currentTab', 'waybill');
 })
 
 // Main content references
@@ -725,6 +726,7 @@ function createWayBillCard(wayBill) {
     });
 
     editBtn.addEventListener('click', () => {
+        sessionStorage.setItem('currentTab-status', 'update');
         openWayBill(wayBill.waybill_id);
     });
 
@@ -749,6 +751,7 @@ async function deleteWayBill(wayBillId) {
 
 // Show the new way bill form
 function showNewWayBillForm() {
+    sessionStorage.setItem('currentTab-status', 'new');
     showNewDocumentForm({
         homeId: 'home',
         formId: 'new',

@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadRecentPurchaseOrders();
     document.getElementById('new-purchase').addEventListener('click', showNewPurchaseForm);
     document.getElementById('home-btn')?.addEventListener('click', () => {
+        sessionStorage.removeItem('currentTab-status');
         window.location = '/purchaseorder';
     });
     const poSearchInput = document.getElementById('search-input');
@@ -322,6 +323,7 @@ function createPurchaseOrderDiv(purchaseOrder) {
     });
 
     editBtn.addEventListener('click', () => {
+        sessionStorage.setItem('currentTab-status', 'update');
         openPurchaseOrder(purchaseOrder.purchase_order_id);
     });
 
@@ -346,6 +348,7 @@ async function deletePurchaseOrder(purchaseOrderId) {
 
 // Show the new purchase order form
 function showNewPurchaseForm() {
+    sessionStorage.setItem('currentTab-status', 'new');
     showNewDocumentForm({
         homeId: 'home',
         formId: 'new',

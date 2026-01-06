@@ -59,6 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById('new-invoice').addEventListener('click', showNewInvoiceForm);
     document.getElementById('home-btn')?.addEventListener('click', () => {
+        sessionStorage.removeItem('currentTab-status');
         // Get all section elements
         const homeSection = document.getElementById('home');
         const newSection = document.getElementById('new');
@@ -501,6 +502,7 @@ function createInvoiceCard(invoice) {
 
     if (editBtn) {
         editBtn.addEventListener('click', () => {
+            sessionStorage.setItem('currentTab-status', 'update');
             sessionStorage.setItem('update-invoice', 'duplicate');
             openInvoice(invoice.invoice_id);
         });
@@ -508,6 +510,7 @@ function createInvoiceCard(invoice) {
 
     if (editOriginalBtn) {
         editOriginalBtn.addEventListener('click', () => {
+            sessionStorage.setItem('currentTab-status', 'update');
             sessionStorage.setItem('update-invoice', 'original');
             openInvoice(invoice.invoice_id);
         });
@@ -653,6 +656,7 @@ async function deleteInvoice(invoiceId) {
 
 // Show the new invoice form
 function showNewInvoiceForm() {
+    sessionStorage.setItem('currentTab-status', 'new');
     showNewDocumentForm({
         homeId: 'home',
         formId: 'new',

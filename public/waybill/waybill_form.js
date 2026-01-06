@@ -767,9 +767,9 @@ async function sendToServer(data, shouldPrint) {
 
 // Event listener for the "Save" button
 const saveBtn = document.getElementById("save-btn");
-const wasNewWayBill = sessionStorage.getItem('currentTab-status') !== 'update';
 if (saveBtn) {
     saveBtn.addEventListener("click", async () => {
+        const wasNewWayBill = sessionStorage.getItem('currentTab-status') !== 'update';
         const wayBillData = collectFormData();
         const ok = await sendToServer(wayBillData, false);
         if (ok) {
