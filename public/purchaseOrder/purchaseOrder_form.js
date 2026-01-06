@@ -199,10 +199,13 @@ function handleSupplierKeyboardNavigation(event, input, suggestionsList) {
         selectedSupplierIndex = (selectedSupplierIndex - 1 + items.length) % items.length;
         updateSupplierSelection(items);
     } else if (event.key === 'Enter') {
-        event.preventDefault();
+        // Only handle Enter if an item is actually selected in the suggestions
         if (selectedSupplierIndex >= 0 && items[selectedSupplierIndex]) {
+            event.preventDefault();
+            event.stopPropagation();
             items[selectedSupplierIndex].click();
         }
+        // If no item selected, let Enter propagate to trigger Next Step shortcut
     } else if (event.key === 'Escape') {
         suggestionsList.style.display = 'none';
         selectedSupplierIndex = -1;
