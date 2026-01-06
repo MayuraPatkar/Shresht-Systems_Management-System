@@ -42,10 +42,51 @@ function setupGenericAutocomplete(input, dataList) {
 
     // Track if input was from user typing or programmatic
     let isUserTyping = false;
+    let focusedItemIndex = -1;
 
-    input.addEventListener('keydown', function () {
+    input.addEventListener('keydown', function (e) {
+        // Always track that user is interacting
         isUserTyping = true;
+
+        const suggestions = suggestionsContainer.querySelectorAll('li');
+        if (suggestions.length === 0 || suggestionsContainer.style.display === 'none') {
+            return;
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            focusedItemIndex = (focusedItemIndex + 1) % suggestions.length;
+            updateSelection(suggestions);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            focusedItemIndex = (focusedItemIndex - 1 + suggestions.length) % suggestions.length;
+            updateSelection(suggestions);
+        } else if (e.key === 'Enter') {
+            if (focusedItemIndex >= 0 && suggestions[focusedItemIndex]) {
+                e.preventDefault();
+                e.stopPropagation(); // Prevent triggering other Enter handlers (like Next Step)
+                suggestions[focusedItemIndex].click();
+            }
+        } else if (e.key === 'Escape') {
+            suggestionsContainer.style.display = 'none';
+            focusedItemIndex = -1;
+        }
     });
+
+    function updateSelection(suggestions) {
+        if (focusedItemIndex >= 0 && suggestions[focusedItemIndex]) {
+            input.value = suggestions[focusedItemIndex].textContent;
+            suggestions.forEach((li, index) => {
+                if (index === focusedItemIndex) {
+                    li.classList.add('selected');
+                    // Ensure the selected item is visible in scrollable list
+                    li.scrollIntoView({ block: 'nearest' });
+                } else {
+                    li.classList.remove('selected');
+                }
+            });
+        }
+    }
 
     input.addEventListener('input', function (e) {
         // Only show suggestions if user is actually typing
@@ -60,6 +101,7 @@ function setupGenericAutocomplete(input, dataList) {
 
         const query = this.value.toLowerCase().trim();
         suggestionsContainer.innerHTML = '';
+        focusedItemIndex = -1;
         if (query.length === 0) {
             suggestionsContainer.style.display = 'none';
             return;
@@ -199,10 +241,13 @@ function handleSupplierKeyboardNavigation(event, input, suggestionsList) {
         selectedSupplierIndex = (selectedSupplierIndex - 1 + items.length) % items.length;
         updateSupplierSelection(items);
     } else if (event.key === 'Enter') {
-        event.preventDefault();
+        // Only handle Enter if an item is actually selected in the suggestions
         if (selectedSupplierIndex >= 0 && items[selectedSupplierIndex]) {
+            event.preventDefault();
+            event.stopPropagation();
             items[selectedSupplierIndex].click();
         }
+        // If no item selected, let Enter propagate to trigger Next Step shortcut
     } else if (event.key === 'Escape') {
         suggestionsList.style.display = 'none';
         selectedSupplierIndex = -1;
@@ -299,8 +344,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Note: selectedIndex, data, fetchData, fetchStockData, showSuggestions, and handleKeyboardNavigation
 // are already defined in globalScript.js
 
+// Flag to prevent showSuggestionsPO during autofill
+let isAutofillInProgressPO = false;
+
 // Override showSuggestions for purchase order to use fillPurchaseOrderItem
 function showSuggestionsPO(input, suggestionsList) {
+    // Skip showing suggestions if autofill is in progress
+    if (isAutofillInProgressPO) {
+        return;
+    }
     // Close all other suggestions first
     closeAllSuggestions();
 
@@ -327,12 +379,16 @@ function showSuggestionsPO(input, suggestionsList) {
         li.textContent = item;
         li.onclick = async function () {
             input.value = item;
+            // Hide suggestions immediately to prevent re-triggering showSuggestionsPO
+            suggestionsList.style.display = "none";
+            // Set flag to prevent showSuggestionsPO from running during autofill
+            isAutofillInProgressPO = true;
             // Trigger input event to sync description with table
             input.dispatchEvent(new Event('input', { bubbles: true }));
+            isAutofillInProgressPO = false;
 
             const parent = input.closest('.item-card') || input.closest('tr');
             await fillPurchaseOrderItem(item, parent);
-            suggestionsList.style.display = "none";
             // Reset selected index
             selectedIndex = -1;
         };
@@ -364,16 +420,20 @@ async function handleKeyboardNavigationPO(event, input, suggestionsList) {
             item.classList.toggle("selected", index === selectedIndex);
         });
     } else if (event.key === "Enter") {
-        event.preventDefault();
-        event.stopPropagation();
-
+        // Only handle Enter if an item is actually selected in the suggestions
         if (selectedIndex >= 0 && items[selectedIndex]) {
+            event.preventDefault();
+            event.stopPropagation();
+
             const selectedItem = items[selectedIndex].textContent;
             input.value = selectedItem;
             suggestionsList.style.display = "none";
 
+            // Set flag to prevent showSuggestionsPO from running during autofill
+            isAutofillInProgressPO = true;
             // Trigger input event to sync description with table
             input.dispatchEvent(new Event('input', { bubbles: true }));
+            isAutofillInProgressPO = false;
 
             // Fill other fields from stock data
             const parent = input.closest('.item-card') || input.closest('tr');
@@ -382,6 +442,7 @@ async function handleKeyboardNavigationPO(event, input, suggestionsList) {
             // Reset selected index
             selectedIndex = -1;
         }
+        // If no item selected, let Enter propagate to trigger Next Step shortcut
         return;
     }
 }
@@ -398,7 +459,10 @@ async function fillPurchaseOrderItem(itemName, element) {
             // Row 1 inputs: description, hsn, qty, unit_price, rate
             // Row 2 inputs: company, type, category
             const row1Inputs = element.querySelectorAll('.item-row-1 input');
+            // Row 2 inputs: company, category
             const row2Inputs = element.querySelectorAll('.item-row-2 input');
+            // Row 2 select: type
+            const row2Select = element.querySelector('.item-row-2 select');
 
             // Row 1: [0]=description, [1]=HSN, [2]=qty, [3]=unit_price, [4]=rate
             if (row1Inputs[1]) row1Inputs[1].value = stockData.HSN_SAC || "";
@@ -406,19 +470,29 @@ async function fillPurchaseOrderItem(itemName, element) {
             if (row1Inputs[3]) row1Inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
             if (row1Inputs[4]) row1Inputs[4].value = stockData.GST || 0;
 
-            // Row 2: [0]=company, [1]=type, [2]=category
+            // Row 2: [0]=company, [1]=category
             if (row2Inputs[0]) row2Inputs[0].value = stockData.company || "";
-            if (row2Inputs[1]) row2Inputs[1].value = stockData.type || "";
-            if (row2Inputs[2]) row2Inputs[2].value = stockData.category || "";
+            // row2Inputs[1] is Category input
+            if (row2Inputs[1]) row2Inputs[1].value = stockData.category || "";
 
-            // Trigger input events to sync with table (but skip for company/category to avoid triggering autocomplete)
-            row1Inputs.forEach(input => {
+            // Set Type (Select)
+            if (row2Select) row2Select.value = stockData.type || "Material";
+
+            // Trigger input events to sync with table (but skip description to avoid triggering autocomplete)
+            row1Inputs.forEach((input, index) => {
+                // Skip description field (index 0) to prevent re-triggering autocomplete
+                if (index > 0) {
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            });
+            // For row2 inputs (Company, Category), sync values
+            row2Inputs.forEach(input => {
                 input.dispatchEvent(new Event('input', { bubbles: true }));
             });
-            // For row2, only sync values without triggering autocomplete
-            row2Inputs.forEach(input => {
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-            });
+            // For row2 select (Type), sync value
+            if (row2Select) {
+                row2Select.dispatchEvent(new Event('input', { bubbles: true }));
+            }
 
             // Also update corresponding table row
             const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
@@ -429,7 +503,7 @@ async function fillPurchaseOrderItem(itemName, element) {
                 const descInput = cells[1]?.querySelector('input');
                 const hsnInput = cells[2]?.querySelector('input');
                 const companyInput = cells[3]?.querySelector('input');
-                const typeInput = cells[4]?.querySelector('input');
+                const typeInput = cells[4]?.querySelector('select');
                 const categoryInput = cells[5]?.querySelector('input');
                 const qtyInput = cells[6]?.querySelector('input');
                 const priceInput = cells[7]?.querySelector('input');
@@ -437,7 +511,7 @@ async function fillPurchaseOrderItem(itemName, element) {
 
                 if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
                 if (companyInput) companyInput.value = stockData.company || "";
-                if (typeInput) typeInput.value = stockData.type || "";
+                if (typeInput) typeInput.value = stockData.type || "Material";
                 if (categoryInput) categoryInput.value = stockData.category || "";
                 if (priceInput) priceInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
                 if (rateInput) rateInput.value = stockData.GST || 0;
@@ -451,7 +525,7 @@ async function fillPurchaseOrderItem(itemName, element) {
             const descInput = cells[1]?.querySelector('input');
             const hsnInput = cells[2]?.querySelector('input');
             const companyInput = cells[3]?.querySelector('input');
-            const typeInput = cells[4]?.querySelector('input');
+            const typeInput = cells[4]?.querySelector('select');
             const categoryInput = cells[5]?.querySelector('input');
             const qtyInput = cells[6]?.querySelector('input');
             const priceInput = cells[7]?.querySelector('input');
@@ -459,7 +533,7 @@ async function fillPurchaseOrderItem(itemName, element) {
 
             if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
             if (companyInput) companyInput.value = stockData.company || "";
-            if (typeInput) typeInput.value = stockData.type || "";
+            if (typeInput) typeInput.value = stockData.type || "Material";
             if (categoryInput) categoryInput.value = stockData.category || "";
             if (priceInput) {
                 priceInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
@@ -493,9 +567,38 @@ async function fillPurchaseOrderItem(itemName, element) {
 
 // Note: Global click handler for closing suggestions is already defined in globalScript.js
 
-document.getElementById("view-preview").addEventListener("click", () => {
-    changeStep(totalSteps);
-    generatePreview();
+document.getElementById("view-preview").addEventListener("click", async () => {
+    // Navigate step-by-step to trigger validation at each step
+    const navigateToPreview = async () => {
+        // If already on preview step, just generate preview
+        if (currentStep === totalSteps) {
+            await generatePreview();
+            return;
+        }
+
+        const nextBtn = document.getElementById('next-btn');
+        if (!nextBtn) return;
+
+        const stepBefore = currentStep;
+        nextBtn.click();
+
+        // Wait for validation and step change
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // If step didn't change, validation failed - stop
+        if (currentStep === stepBefore) return;
+
+        // If reached preview, generate it
+        if (currentStep === totalSteps) {
+            await generatePreview();
+            return;
+        }
+
+        // Continue to next step
+        await navigateToPreview();
+    };
+
+    await navigateToPreview();
 });
 
 // Open a purchase order for editing

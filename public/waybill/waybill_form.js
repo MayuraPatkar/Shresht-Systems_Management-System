@@ -530,7 +530,14 @@ async function fetchWaybillStockData(itemName) {
     }
 }
 
+// Flag to prevent showSuggestionsWaybill during autofill
+let isAutofillInProgressWaybill = false;
+
 function showSuggestionsWaybill(input, suggestionsList) {
+    // Skip showing suggestions if autofill is in progress
+    if (isAutofillInProgressWaybill) {
+        return;
+    }
     const query = input.value.toLowerCase();
     suggestionsList.innerHTML = '';
     waybillSelectedIndex = -1;
@@ -550,10 +557,14 @@ function showSuggestionsWaybill(input, suggestionsList) {
         li.textContent = item;
         li.addEventListener('click', async () => {
             input.value = item;
+            // Hide suggestions immediately to prevent re-triggering showSuggestionsWaybill
+            suggestionsList.style.display = 'none';
+            // Set flag to prevent showSuggestionsWaybill from running during autofill
+            isAutofillInProgressWaybill = true;
             input.dispatchEvent(new Event('input', { bubbles: true }));
+            isAutofillInProgressWaybill = false;
             const parent = input.closest('.item-card') || input.closest('tr');
             await fillWaybill(item, parent);
-            suggestionsList.style.display = 'none';
             waybillSelectedIndex = -1;
         });
         suggestionsList.appendChild(li);
@@ -575,16 +586,22 @@ async function handleKeyboardNavigationWaybill(event, input, suggestionsList) {
         input.value = items[waybillSelectedIndex].textContent;
         items.forEach((it, idx) => it.classList.toggle('selected', idx === waybillSelectedIndex));
     } else if (event.key === 'Enter') {
-        event.preventDefault();
+        // Only handle Enter if an item is actually selected in the suggestions
         if (waybillSelectedIndex >= 0 && items[waybillSelectedIndex]) {
+            event.preventDefault();
+            event.stopPropagation();
             const selectedItem = items[waybillSelectedIndex].textContent;
             input.value = selectedItem;
             suggestionsList.style.display = 'none';
+            // Set flag to prevent showSuggestionsWaybill from running during autofill
+            isAutofillInProgressWaybill = true;
             input.dispatchEvent(new Event('input', { bubbles: true }));
+            isAutofillInProgressWaybill = false;
             const parent = input.closest('.item-card') || input.closest('tr');
             await fillWaybill(selectedItem, parent);
             waybillSelectedIndex = -1;
         }
+        // If no item selected, let Enter propagate to trigger Next Step shortcut
     }
 }
 

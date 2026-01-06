@@ -27,8 +27,8 @@ if (!window._ctrlTabNavRegistered) {
       const navigationOrder = [
         '/dashboard',
         '/quotation',
+        '/waybill',
         '/invoice',
-        '/wayBill',
         '/service',
         '/purchaseorder',
         '/stock',
@@ -314,6 +314,7 @@ if (addNonItemBtnEl) {
 
 let selectedIndex = -1;
 let data = [];
+let isAutofillInProgress = false; // Flag to prevent showSuggestions during autofill
 
 // Fetch data from the server when the page loads
 async function fetchData() {
@@ -675,6 +676,10 @@ function updateSpecificationNumbers() {
 
 // Function to show suggestions
 function showSuggestions(input, suggestionsList) {
+  // Skip showing suggestions if autofill is in progress
+  if (isAutofillInProgress) {
+    return;
+  }
   const query = input.value.toLowerCase();
   suggestionsList.innerHTML = ""; // Clear old suggestions
   selectedIndex = -1; // Reset index when showing new suggestions
@@ -698,12 +703,16 @@ function showSuggestions(input, suggestionsList) {
     li.textContent = item;
     li.onclick = async function () {
       input.value = item;
+      // Hide suggestions immediately to prevent re-triggering showSuggestions
+      suggestionsList.style.display = "none";
+      // Set flag to prevent showSuggestions from running during autofill
+      isAutofillInProgress = true;
       // Trigger input event to sync description with table
       input.dispatchEvent(new Event('input', { bubbles: true }));
+      isAutofillInProgress = false;
 
       const parent = input.closest('.item-card') || input.closest('tr');
       await fill(item, parent);
-      suggestionsList.style.display = "none";
       // Update specifications table after selecting item
       if (sessionStorage.getItem('currentTab') === 'quotation') {
         setTimeout(() => updateSpecificationsTable(), 100);
@@ -739,16 +748,20 @@ async function handleKeyboardNavigation(event, input, suggestionsList) {
       item.classList.toggle("selected", index === selectedIndex);
     });
   } else if (event.key === "Enter") {
-    event.preventDefault();
-    event.stopPropagation();
-
+    // Only handle Enter if an item is actually selected in the suggestions
     if (selectedIndex >= 0 && items[selectedIndex]) {
+      event.preventDefault();
+      event.stopPropagation();
+
       const selectedItem = items[selectedIndex].textContent;
       input.value = selectedItem;
       suggestionsList.style.display = "none";
 
+      // Set flag to prevent showSuggestions from running during autofill
+      isAutofillInProgress = true;
       // Trigger input event to sync description with table
       input.dispatchEvent(new Event('input', { bubbles: true }));
+      isAutofillInProgress = false;
 
       // Fill other fields from stock data
       const parent = input.closest('.item-card') || input.closest('tr');
@@ -762,6 +775,7 @@ async function handleKeyboardNavigation(event, input, suggestionsList) {
       // Reset selected index
       selectedIndex = -1;
     }
+    // If no item selected, let Enter propagate to trigger Next Step shortcut
     return;
   }
 }
@@ -841,14 +855,18 @@ async function fill(itemName, element) {
       const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
       const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
       if (tableRow) {
-        tableRow.querySelector("input[placeholder='HSN/SAC']").value = stockData.HSN_SAC || "";
+        const hsnInput = tableRow.querySelector("input[placeholder='HSN/SAC']");
         const unitInput = tableRow.querySelector("input[placeholder='Unit Price']");
         const rateInput = tableRow.querySelector("input[placeholder='Rate']");
-        unitInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-        rateInput.value = stockData.GST || 0;
-        // Dispatch events so calculations update
-        unitInput.dispatchEvent(new Event('input', { bubbles: true }));
-        rateInput.dispatchEvent(new Event('input', { bubbles: true }));
+        if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
+        if (unitInput) {
+          unitInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+          unitInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (rateInput) {
+          rateInput.value = stockData.GST || 0;
+          rateInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
       }
     } else {
       // Fill table row (backward compatibility)

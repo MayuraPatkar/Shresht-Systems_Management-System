@@ -1019,19 +1019,7 @@ setupFilterHandlers('typeFilterDropdown');
 setupFilterHandlers('categoryFilterDropdown');
 setupFilterHandlers('filterDropdown');
 
-// Add Quantity button functionality in edit modal
-const addQuantityBtn = document.getElementById('addQuantityBtn');
-if (addQuantityBtn) {
-    addQuantityBtn.addEventListener('click', () => {
-        const quantityInput = document.getElementById('editQuantity');
-        const currentQty = parseInt(quantityInput.value) || 0;
-        const addQty = parseInt(window.prompt('Enter quantity to add:')) || 0;
 
-        if (addQty > 0) {
-            quantityInput.value = currentQty + addQty;
-        }
-    });
-}
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
