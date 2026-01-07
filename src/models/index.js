@@ -6,8 +6,6 @@ const Purchase = require('./Purchase');
 const EWayBill = require('./EWayBill');
 const Stock = require('./Stock');
 const Service = require('./Service');
-const Employee = require('./Employee');
-const AttendanceBook = require('./AttendanceBook');
 const Settings = require('./Settings');
 const Counters = require('./Counter');
 const StockMovement = require('./StockMovement');
@@ -21,8 +19,6 @@ module.exports = {
     EWayBills: EWayBill,
     Stock,
     service: Service,
-    Employee,
-    AttendenceBook: AttendanceBook,
     Settings,
     Counters,
     StockMovement,
