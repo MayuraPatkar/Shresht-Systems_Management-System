@@ -756,9 +756,8 @@ async function generatePreview() {
         total_invoice_value: totalInvoiceValue
     };
 
-    await generateViewPreviewHTML(wayBillObj);
-    const viewHTML = document.getElementById('view-preview-content')?.innerHTML || '';
-    document.getElementById("preview-content").innerHTML = viewHTML;
+    const pagesHTML = await generateViewPreviewHTML(wayBillObj, null); // Pass null so it doesn't write to view-preview-content
+    document.getElementById("preview-content").innerHTML = pagesHTML;
 }
 
 // Function to collect form data and send to server

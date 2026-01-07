@@ -1,4 +1,6 @@
-async function generateViewPreviewHTML(wayBill) {
+// Generate HTML for preview, returns the HTML string.
+// If targetElementId is provided, it also updates that element's innerHTML.
+async function generateViewPreviewHTML(wayBill, targetElementId = "view-preview-content") {
     // Build items table rows
     let itemsHTML = "";
     let sno = 0;
@@ -10,7 +12,9 @@ async function generateViewPreviewHTML(wayBill) {
         const gstRate = Number(item.gst_rate || 0);
 
         const taxableValue = qty * unitPrice;
-        const rowTotal = taxableValue + (taxableValue * gstRate / 100);
+        const cgst = (taxableValue * (gstRate / 2)) / 100;
+        const sgst = (taxableValue * (gstRate / 2)) / 100;
+        const rowTotal = taxableValue + cgst + sgst;
 
         itemsHTML += `
             <tr>
@@ -19,7 +23,8 @@ async function generateViewPreviewHTML(wayBill) {
                 <td>${hsnCode}</td>
                 <td>${qty}</td>
                 <td>${formatIndian(unitPrice, 2)}</td>
-                ${gstRate > 0 ? `<td>${formatIndian(taxableValue, 2)}</td><td>${gstRate.toFixed(2)}%</td>` : ''}
+                <td>${formatIndian(taxableValue, 2)}</td>
+                <td>${gstRate > 0 ? gstRate.toFixed(2) + '%' : '0%'}</td>
                 <td>${formatIndian(rowTotal, 2)}</td>
             </tr>`;
     });
@@ -29,8 +34,11 @@ async function generateViewPreviewHTML(wayBill) {
     let totalCGST = wayBill.cgst || 0;
     let totalSGST = wayBill.sgst || 0;
 
-    // If not provided, calculate from items
-    if (!totalTaxableValue) {
+    // If totals not provided in object (e.g. during preview before save), calculate them
+    if (!totalTaxableValue && wayBill.items && wayBill.items.length > 0) {
+        totalTaxableValue = 0;
+        totalCGST = 0;
+        totalSGST = 0;
         (wayBill.items || []).forEach(item => {
             const qty = Number(item.quantity || 0);
             const unitPrice = Number(item.unit_price || 0);
@@ -71,11 +79,12 @@ async function generateViewPreviewHTML(wayBill) {
         currentPageHTML += row;
         currentCount += req;
     });
-    if (currentPageHTML) pages.push(currentPageHTML);
+    if (currentPageHTML !== '') pages.push(currentPageHTML);
+    if (pages.length === 0 && itemsHTML === '') pages.push(''); // Handle empty case
 
     // Company and header info
     const company = window.companyConfig ? await window.companyConfig.getCompanyInfo() : {};
-    const companyName = company?.company || '';
+    const companyName = company?.company || 'Company Name';
     const companyAddress = company?.address || '';
     const companyPhone = company?.phone ? (company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '')) : '';
     const companyGSTIN = company?.GSTIN || '';
@@ -83,9 +92,33 @@ async function generateViewPreviewHTML(wayBill) {
     const companyWebsite = company?.website || '';
 
     const transport = wayBill.transport || {};
+    const transportDate = wayBill.ewaybill_generated_at || new Date();
 
     const pagesHTML = pages.map((pageHTML, index) => {
-        const isLast = index === pages.length - 1;
+        const isLastPage = index === pages.length - 1;
+
+        // Construct the transport details section cleanly
+        const transportDetails = `
+            <div class="transport-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 10px 0; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px;">
+                <div>
+                   <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Mode</p>
+                   <p class="text-sm font-medium text-gray-900">${transport.mode || '-'}</p>
+                </div>
+                <div>
+                   <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Vehicle No</p>
+                   <p class="text-sm font-medium text-gray-900">${transport.vehicle_number || '-'}</p>
+                </div>
+                 <div>
+                   <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Transporter</p>
+                   <p class="text-sm font-medium text-gray-900">${transport.transporter_name || '-'}</p>
+                </div>
+                <div>
+                   <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Distance</p>
+                   <p class="text-sm font-medium text-gray-900">${transport.distance_km ? transport.distance_km + ' km' : '-'}</p>
+                </div>
+            </div>
+        `;
+
         return `
         <div class="preview-container doc-standard doc-invoice doc-quotation">
             <div class="header">
@@ -107,31 +140,27 @@ async function generateViewPreviewHTML(wayBill) {
 
             <div class="second-section">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <p><strong>E-WAY BILL</strong> ${wayBill.ewaybill_no ? `- ${wayBill.ewaybill_no}` : ''}</p>
-                    <p><strong>Date: </strong>${formatDateIndian ? formatDateIndian(wayBill.ewaybill_generated_at) : (window.formatDate ? window.formatDate(wayBill.ewaybill_generated_at) : '')}</p>
+                    <p>E-WAY BILL ${wayBill.ewaybill_no ? `- ${wayBill.ewaybill_no}` : ''}</p>
+                    <p><strong>Date: </strong>${formatDateIndian ? formatDateIndian(transportDate) : (window.formatDate ? window.formatDate(transportDate) : '')}</p>
                 </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;">
-                    <p><strong>Status: </strong>${wayBill.ewaybill_status || 'Draft'}</p>
+                <div style="display:flex;justify-content:space-between;align-items:center; margin-top: 4px;">
+                     <p><strong>Status: </strong><span style="display:inline-block; padding: 2px 8px; border-radius: 9999px; background-color: #f3f4f6; font-size: 0.8em;">${wayBill.ewaybill_status || 'Draft'}</span></p>
                 </div>
             </div>
 
             ${index === 0 ? `
             <div class="third-section">
                 <div class="buyer-details">
-                    <p><strong>From:</strong></p>
-                    <p style="white-space: pre-line;">${wayBill.from_address || ''}</p>
+                    <p class="section-title" style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; color: #444;">Dispatch From</p>
+                    <p style="white-space: pre-line; min-height: 80px;">${wayBill.from_address || ''}</p>
                 </div>
                 <div class="order-info">
-                    <p><strong>To:</strong></p>
-                    <p style="white-space: pre-line;">${wayBill.to_address || ''}</p>
+                    <p class="section-title" style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; color: #444;">Ship To</p>
+                    <p style="white-space: pre-line; min-height: 80px;">${wayBill.to_address || ''}</p>
                 </div>
             </div>
-            <div class="transport-section" style="display:flex;gap:20px;padding:10px 0;border-bottom:1px solid #ddd;margin-bottom:10px;">
-                <p><strong>Mode:</strong> ${transport.mode || '-'}</p>
-                <p><strong>Vehicle No:</strong> ${transport.vehicle_number || '-'}</p>
-                <p><strong>Transporter:</strong> ${transport.transporter_name || '-'}</p>
-                <p><strong>Distance:</strong> ${transport.distance_km ? transport.distance_km + ' km' : '-'}</p>
-            </div>
+            
+            ${transportDetails}
             ` : ''}
 
             <div class="fourth-section">
@@ -143,8 +172,9 @@ async function generateViewPreviewHTML(wayBill) {
                             <th>HSN/SAC</th>
                             <th>Qty</th>
                             <th>Unit Price</th>
-                            ${hasTax ? `<th>Taxable Value (₹)</th><th>GST Rate (%)</th>` : ''}
-                            <th>Total Price (₹)</th>
+                            <th>Taxable (₹)</th>
+                            <th>Tax (%)</th>
+                            <th>Total (₹)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -153,9 +183,9 @@ async function generateViewPreviewHTML(wayBill) {
                 </table>
             </div>
 
-            ${!isLast ? `<div class="continuation-text" style="text-align:center;margin:20px 0;font-style:italic;color:#666;">Continued on next page...</div>` : ''}
+            ${!isLastPage ? `<div class="continuation-text" style="text-align: center; margin: 20px 0; font-style: italic; color: #666;">Continued on next page...</div>` : ''}
 
-            ${isLast ? `
+            ${isLastPage ? `
             <div class="fifth-section">
                 <div class="fifth-section-sub1">
                     <div class="fifth-section-sub2">
@@ -165,58 +195,51 @@ async function generateViewPreviewHTML(wayBill) {
                         </div>
                     </div>
                     <div class="totals-section">
-                        <div style="display:flex; width:100%;">
-                            <div class="totals-section-sub1" style="width:50%;">
-                                <p>Total Taxable Value:</p>
+                        <div style="display: flex; width: 100%;">
+                            <div class="totals-section-sub1" style="width: 50%;">
+                                <p>Taxable Value:</p>
+                                <p>Total CGST:</p>
+                                <p>Total SGST:</p>
+                                <p><strong>Grand Total:</strong></p>
                             </div>
-                            <div class="totals-section-sub2" style="width:50%;">
+                            <div class="totals-section-sub2" style="width: 50%;">
                                 <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
-                            </div>
-                        </div>
-                        ${hasTax ? `
-                        <div style="display:flex; width:100%;">
-                            <div class="totals-section-sub1" style="width:50%;">
-                                <p>CGST:</p>
-                            </div>
-                            <div class="totals-section-sub2" style="width:50%;">
                                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
-                            </div>
-                        </div>
-                        <div style="display:flex; width:100%;">
-                            <div class="totals-section-sub1" style="width:50%;">
-                                <p>SGST:</p>
-                            </div>
-                            <div class="totals-section-sub2" style="width:50%;">
                                 <p>₹ ${formatIndian(totalSGST, 2)}</p>
-                            </div>
-                        </div>
-                        ` : ''}
-                        <div style="display:flex; width:100%; border-top: 1px solid #ddd; padding-top: 5px;">
-                            <div class="totals-section-sub1" style="width:50%;">
-                                <p><strong>Total Invoice Value:</strong></p>
-                            </div>
-                            <div class="totals-section-sub2" style="width:50%;">
                                 <p><strong>₹ ${formatIndian(grandTotal, 2)}</strong></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-             <div class="eighth-section">
+
+            <div class="sixth-section">
+                 <div class="declaration">
+                     <p>Certified that the particulars given above are true and correct.</p>
+                </div>
+            </div>
+
+            <div class="eighth-section">
                 <p>For ${companyName}</p>
                 <div class="eighth-section-space"></div>
                 <p><strong>Authorized Signatory</strong></p>
             </div>
-            
-            <div class="ninth-section">
-                <p>This is a computer-generated e-way bill.</p>
-            </div>
             ` : ''}
+
+            <div class="ninth-section">
+                <p>This is a computer-generated document.</p>
+            </div>
         </div>
         `;
     }).join('');
 
-    document.getElementById("view-preview-content").innerHTML = pagesHTML;
+    // If target provided, update it
+    if (targetElementId) {
+        const target = document.getElementById(targetElementId);
+        if (target) target.innerHTML = pagesHTML;
+    }
+
+    return pagesHTML;
 }
 
 // Print and Save as PDF handlers
