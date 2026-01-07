@@ -5,7 +5,7 @@ const moduleToSettingKey = {
   invoice: { prefix: 'invoice_prefix' },
   quotation: { prefix: 'quotation_prefix' },
   purchaseOrder: { prefix: 'purchase_prefix' },
-  wayBill: { prefix: 'waybill_prefix' },
+  eWayBill: { prefix: 'ewaybill_prefix' },
   service: { prefix: 'service_prefix' }
 };
 

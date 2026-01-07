@@ -20,7 +20,7 @@ const invoiceSchema = new mongoose.Schema({
     consignee_address: { type: String, trim: true },
 
     // service
-    service_month: { type: Number, default: 0 },
+    service_after_months: { type: Number, default: 0 },
     service_status: { 
         type: String, 
         enum: ['Active', 'Paused', 'Closed'], 

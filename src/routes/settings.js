@@ -73,7 +73,7 @@ const checkMongoTool = (toolName, timeout = 3000) => {
 
 // Allowed collections for security (mapping frontend names to actual collection names)
 const ALLOWED_COLLECTIONS = [
-    'invoices', 'quotations', 'purchaseorders', 'waybills',
+    'invoices', 'quotations', 'purchaseorders', 'ewaybills',
     'services', 'employees', 'stock', 'users', 'settings',
     'purchases', 'stocks' // Aliases for frontend compatibility
 ];
@@ -84,7 +84,7 @@ const COLLECTION_MAPPING = {
     'stocks': 'stock',
     'quotations': 'quotations',
     'invoices': 'invoices',
-    'waybills': 'waybills',
+    'ewaybills': 'ewaybills',
     'services': 'services',
     'employees': 'employees',
     'users': 'users',

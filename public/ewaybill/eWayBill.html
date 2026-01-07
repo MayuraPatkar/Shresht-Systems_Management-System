@@ -11,8 +11,8 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="../css/shared/documentStyles.css">
     <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
-    <link rel="stylesheet" href="../css/wayBill.css">
-    <title>Way Bill</title>
+    <link rel="stylesheet" href="../css/eWayBill.css">
+    <title>E-Way Bill</title>
 </head>
 
 <body class="bg-gray-100">
@@ -22,16 +22,15 @@
         <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
-                <h1 class="text-xl font-bold text-gray-800">Way Bill</h1>
+                <h1 class="text-xl font-bold text-gray-800">E-Way Bill</h1>
             </div>
             <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search way bills..."
+                    <input type="text" id="search-input" placeholder="Search e-way bills..."
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <button id="filter-btn"
-                    class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
+                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
                     <i class="fas fa-filter"></i>
                 </button>
             </div>
@@ -39,7 +38,7 @@
                 <button id="new-waybill-btn"
                     class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
                     <i class="fas fa-plus"></i>
-                    New Way Bill
+                    New E-Way Bill
                 </button>
                 <button id="view-preview"
                     class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium"
@@ -52,8 +51,7 @@
                     <i class="fas fa-home"></i>
                     Home
                 </button>
-                <button id="shortcuts-btn"
-                    class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -85,10 +83,10 @@
                     <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
                     <span>Invoice</span>
                 </a>
-                <a href="../waybill/wayBill.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                <a href="../ewaybill/eWayBill.html"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
                     <i class="fas fa-route w-8 text-center"></i>
-                    <span>e-Way Bill</span>
+                    <span>E-Way Bill</span>
                 </a>
                 <a href="../service/service.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -613,9 +611,11 @@
     <script src="../js/shared/globalScript.js"></script>
 
     <!-- Module-specific scripts -->
-    <script src="/waybill/waybill_form.js"></script>
-    <script src="/waybill/waybill_home.js"></script>
-    <script src="/waybill/waybill_view.js"></script>
+    <script src="/ewaybill/ewaybill_form.js"></script>
+    <script src="/ewaybill/ewaybill_home.js"></script>
+    <script src="/ewaybill/ewaybill_view.js"></script>
+
+    <script src="../js/shared/globalScript.js"></script>
 </body>
 
 </html>

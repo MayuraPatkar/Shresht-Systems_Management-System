@@ -23,8 +23,8 @@ document.getElementById('purchase-bill').addEventListener('click', () => {
 })
 
 document.getElementById('wayBill').addEventListener('click', () => {
-    window.location = '/waybill';
-    sessionStorage.setItem('currentTab', 'wayBill');
+    window.location = '/ewaybill';
+    sessionStorage.setItem('currentTab', 'eWayBill');
 })
 
 document.getElementById('invoice').addEventListener('click', () => {
@@ -59,8 +59,8 @@ document.getElementById('settings').addEventListener('click', () => {
 
 document.getElementById('home-btn').addEventListener('click', () => {
     sessionStorage.removeItem('currentTab-status');
-    window.location = '/waybill';
-    sessionStorage.setItem('currentTab', 'waybill');
+    window.location = '/ewaybill';
+    sessionStorage.setItem('currentTab', 'ewaybill');
 })
 
 // Main content references
@@ -89,8 +89,8 @@ const WAYBILL_SHORTCUT_GROUPS = [
         title: 'Actions',
         icon: 'fas fa-bolt text-yellow-600',
         items: [
-            { label: 'New Waybill', keys: ['Ctrl', 'N'] },
-            { label: 'Save Waybill', keys: ['Ctrl', 'S'] },
+            { label: 'New E-Way Bill', keys: ['Ctrl', 'N'] },
+            { label: 'Save E-Way Bill', keys: ['Ctrl', 'S'] },
             { label: 'View Preview', keys: ['Ctrl', 'P'] },
             { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
             { label: 'Add Item', keys: ['Ctrl', 'I'] },
@@ -531,35 +531,35 @@ function handleQuotationKeyboardShortcuts(event) {
 // Load recent way bills from the server
 async function loadRecentWayBills() {
     try {
-        const response = await fetch(`/wayBill/recent-way-bills`);
+        const response = await fetch(`/eWayBill/recent-ewaybills`);
         if (!response.ok) {
             wayBillsListDiv.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-16 fade-in">
                     <div class="bg-gray-100 rounded-full p-8 mb-4">
                         <i class="fas fa-inbox text-gray-400 text-6xl"></i>
                     </div>
-                    <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Waybills Found</h2>
-                    <p class="text-gray-500 mb-6">Get started by creating your first way bill</p>
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-2">No E-Way Bills Found</h2>
+                    <p class="text-gray-500 mb-6">Get started by creating your first e-way bill</p>
                     <button id="new-waybill-btn-2"" 
                         class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
                         <i class="fas fa-plus"></i>
-                        Create Way Bill
+                        Create E-Way Bill
                     </button>
                 </div>
             `;
             return;
         }
         const data = await response.json();
-        allWayBills = data.wayBill || [];
+        allWayBills = data.eWayBill || [];
         applyWayBillFilters();
     } catch (error) {
-        console.error("Error loading way bills:", error);
+        console.error("Error loading e-way bills:", error);
         wayBillsListDiv.innerHTML = `
             <div class="flex flex-col items-center justify-center py-16 fade-in">
                 <div class="bg-red-100 rounded-full p-8 mb-4">
                     <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
                 </div>
-                <h2 class="text-2xl font-semibold text-gray-700 mb-2">Failed to Load Way Bills</h2>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">Failed to Load E-Way Bills</h2>
                 <p class="text-gray-500 mb-6">Please try again later</p>
                 <button onclick="loadRecentWayBills()" 
                     class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
@@ -666,8 +666,8 @@ function renderWayBills(wayBills) {
                 <div class="text-blue-500 text-5xl mb-4">
                     <i class="fas fa-route"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">No Waybills Found</h2>
-                <p class="text-gray-600">Start creating waybills for your deliveries</p>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">No E-Way Bills Found</h2>
+                <p class="text-gray-600">Start creating e-way bills for your deliveries</p>
             </div>
         `;
         return;
@@ -684,7 +684,7 @@ function createWayBillCard(wayBill) {
     wayBillDiv.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
 
     // Format the date for display
-    const dateToFormat = wayBill.waybill_date || wayBill.createdAt;
+    const dateToFormat = wayBill.ewaybill_generated_at || wayBill.createdAt;
     let formattedDate = '-';
     if (dateToFormat) {
         try {
@@ -733,7 +733,7 @@ function createWayBillCard(wayBill) {
             <!-- ID & Date Row -->
             <div class="flex items-center gap-2 mb-3">
                 <span class="text-sm font-bold text-gray-800 cursor-pointer hover:text-blue-600 copy-text transition-colors" title="Click to copy ID">
-                    ${wayBill.waybill_id}
+                    ${wayBill.ewaybill_id}
                     <i class="fas fa-copy text-xs ml-1 opacity-50"></i>
                 </span>
                 <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
@@ -776,7 +776,7 @@ function createWayBillCard(wayBill) {
     // Copy ID functionality
     copyElement.addEventListener('click', async () => {
         try {
-            await navigator.clipboard.writeText(wayBill.waybill_id);
+            await navigator.clipboard.writeText(wayBill.ewaybill_id);
             const toast = document.createElement('div');
             toast.textContent = 'ID Copied to Clipboard!';
             toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;';
@@ -789,20 +789,20 @@ function createWayBillCard(wayBill) {
 
     // Action button handlers
     viewBtn.addEventListener('click', () => {
-        viewWayBill(wayBill.waybill_id);
+        viewWayBill(wayBill.ewaybill_id);
     });
 
     editBtn.addEventListener('click', () => {
         sessionStorage.setItem('currentTab-status', 'update');
-        openWayBill(wayBill.waybill_id);
+        openWayBill(wayBill.ewaybill_id);
     });
 
     deleteBtn.addEventListener('click', () => {
-        window.electronAPI.showAlert2('Are you sure you want to delete this way bill?');
+        window.electronAPI.showAlert2('Are you sure you want to delete this e-way bill?');
         if (window.electronAPI) {
             window.electronAPI.receiveAlertResponse((response) => {
                 if (response === "Yes") {
-                    deleteWayBill(wayBill.waybill_id);
+                    deleteWayBill(wayBill.ewaybill_id);
                 }
             });
         }
@@ -811,9 +811,9 @@ function createWayBillCard(wayBill) {
     return wayBillDiv;
 }
 
-// Delete a way bill
+// Delete an e-way bill
 async function deleteWayBill(wayBillId) {
-    await deleteDocument('wayBill', wayBillId, 'Way Bill', loadRecentWayBills);
+    await deleteDocument('eWayBill', wayBillId, 'E-Way Bill', loadRecentWayBills);
 }
 
 // Show the new way bill form
@@ -876,11 +876,11 @@ async function handleSearch() {
         return;
     }
 
-    await searchDocuments('wayBill', query, wayBillsListDiv, createWayBillCard,
+    await searchDocuments('eWayBill', query, wayBillsListDiv, createWayBillCard,
         `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
             <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
             <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-            <p class="text-gray-500">No way bills match your search</p>
+            <p class="text-gray-500">No e-way bills match your search</p>
         </div>`);
 }
 
@@ -892,7 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auto-open new form if ?new=1 parameter is present
     if (isNewQuery) {
-        sessionStorage.setItem('currentTab', 'wayBill');
+        sessionStorage.setItem('currentTab', 'eWayBill');
         setTimeout(() => {
             const newBtn = document.getElementById('new-waybill-btn');
             if (newBtn) {
@@ -903,7 +903,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auto-open view if ?view=<id> parameter is present
     if (viewId && typeof window.viewWayBill === 'function') {
-        sessionStorage.setItem('currentTab', 'wayBill');
+        sessionStorage.setItem('currentTab', 'eWayBill');
         setTimeout(() => {
             window.viewWayBill(viewId);
         }, 100);

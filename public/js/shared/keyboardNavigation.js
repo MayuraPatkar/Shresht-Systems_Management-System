@@ -17,7 +17,7 @@ if (!window._ctrlTabNavRegistered) {
       const navigationOrder = [
         '/dashboard',
         '/quotation',
-        '/waybill',
+        '/ewaybill',
         '/invoice',
         '/service',
         '/purchaseorder',

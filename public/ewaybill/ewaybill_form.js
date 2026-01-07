@@ -127,15 +127,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Fetch next Waybill ID from server
+// Fetch next E-Way Bill ID from server
 async function getWaybillId() {
     try {
-        const response = await fetch('/wayBill/generate-id');
-        if (!response.ok) throw new Error('Failed to fetch waybill id');
+        const response = await fetch('/eWayBill/generate-id');
+        if (!response.ok) throw new Error('Failed to fetch ewaybill id');
         const data = await response.json();
-        document.getElementById('waybill-id').value = data.waybill_id;
+        document.getElementById('waybill-id').value = data.ewaybill_id;
     } catch (err) {
-        console.error('Error fetching waybill id:', err);
+        console.error('Error fetching ewaybill id:', err);
     }
 }
 
@@ -279,12 +279,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Open a way bill for editing
+// Open an e-way bill for editing
 async function openWayBill(wayBillId) {
-    const data = await fetchDocumentById('wayBill', wayBillId);
+    const data = await fetchDocumentById('eWayBill', wayBillId);
     if (!data) return;
 
-    const wayBill = data.wayBill;
+    const wayBill = data.eWayBill;
 
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
@@ -295,13 +295,13 @@ async function openWayBill(wayBillId) {
         window.changeStep(2);
     }
 
-    document.getElementById('waybill-id').value = wayBill.waybill_id;
+    document.getElementById('waybill-id').value = wayBill.ewaybill_id;
     document.getElementById('project-name').value = wayBill.project_name;
     // Populate waybill date for editing. Use ISO YYYY-MM-DD for input value.
     const wbDateEl = document.getElementById('waybill-date');
     if (wbDateEl) {
-        if (wayBill.waybill_date) {
-            const dt = new Date(wayBill.waybill_date);
+        if (wayBill.ewaybill_generated_at) {
+            const dt = new Date(wayBill.ewaybill_generated_at);
             wbDateEl.value = dt.toISOString().split('T')[0];
         } else {
             wbDateEl.value = '';
@@ -647,9 +647,9 @@ async function fillWaybill(itemName, element) {
     }
 }
 
-// Local click handler to close suggestions dropdowns on waybill page
+// Local click handler to close suggestions dropdowns on ewaybill page
 document.addEventListener('click', function (event) {
-    if (!window.location.pathname.toLowerCase().includes('/waybill')) return;
+    if (!window.location.pathname.toLowerCase().includes('/ewaybill')) return;
     const allSuggestions = document.querySelectorAll('#items-container .suggestions, #items-table .suggestions');
     allSuggestions.forEach(suggestionsList => {
         const parentInput = suggestionsList.previousElementSibling || suggestionsList.parentElement?.querySelector('input');
@@ -763,8 +763,8 @@ async function generatePreview() {
 
     // Reuse the Invoice-style paginated preview (generateViewPreviewHTML builds pages and writes to #view-preview-content)
     const wayBillObj = {
-        waybill_id: waybillId,
-        waybill_date: waybillDate,
+        ewaybill_id: waybillId,
+        ewaybill_generated_at: waybillDate,
         project_name: projectName,
         customer_name: buyerName,
         customer_address: buyerAddress,
@@ -790,7 +790,7 @@ async function generatePreview() {
 
 // Function to collect form data and send to server
 async function sendToServer(data, shouldPrint) {
-    return await sendDocumentToServer("/wayBill/save-way-bill", data);
+    return await sendDocumentToServer("/eWayBill/save-ewaybill", data);
 }
 
 // Event listener for the "Save" button
@@ -801,10 +801,10 @@ if (saveBtn) {
         const wayBillData = collectFormData();
         const ok = await sendToServer(wayBillData, false);
         if (ok) {
-            window.electronAPI.showAlert1("Way Bill saved successfully!");
+            window.electronAPI.showAlert1("E-Way Bill saved successfully!");
             if (wasNewWayBill) {
                 sessionStorage.removeItem('currentTab-status');
-                window.location = '/waybill';
+                window.location = '/ewaybill';
             }
         }
     });
@@ -823,8 +823,8 @@ function collectFormData() {
     }
 
     return {
-        wayBillId: document.getElementById("waybill-id").value,
-        waybillDate: waybillDateISO,
+        eWayBillId: document.getElementById("waybill-id").value,
+        eWayBillDate: waybillDateISO,
         projectName: document.getElementById("project-name").value,
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,

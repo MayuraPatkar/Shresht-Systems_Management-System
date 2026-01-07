@@ -333,7 +333,6 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
                     <p><strong>Project:</strong> ${invoice.project_name}</p>
                     <p><strong>P.O No:</strong> ${invoice.po_number}</p>
                     <p><strong>D.C No:</strong> ${invoice.dc_number}</p>
-                    <p><strong>E-Way Bill:</strong> ${invoice.Waybill_id}</p>
                 </div>
             </div>
             ` : ''}

@@ -3,7 +3,7 @@ const Admin = require('./Admin');
 const Quotation = require('./Quotation');
 const Invoice = require('./Invoice');
 const Purchase = require('./Purchase');
-const WayBill = require('./WayBill');
+const EWayBill = require('./EWayBill');
 const Stock = require('./Stock');
 const Service = require('./Service');
 const Employee = require('./Employee');
@@ -18,7 +18,7 @@ module.exports = {
     Quotations: Quotation,
     Invoices: Invoice,
     Purchases: Purchase,
-    wayBills: WayBill,
+    EWayBills: EWayBill,
     Stock,
     service: Service,
     Employee,

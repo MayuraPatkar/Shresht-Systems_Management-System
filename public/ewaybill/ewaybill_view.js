@@ -59,7 +59,7 @@ async function generateViewPreviewHTML(wayBill) {
         const isLast = idx === itemRows.length - 1;
         const req = 1;
 
-        if (currentCount > 0 && (( !isLast && currentCount + req > ITEMS_PER_PAGE) || (isLast && currentCount + req + SUMMARY_SECTION_ROW_COUNT > ITEMS_PER_PAGE))) {
+        if (currentCount > 0 && ((!isLast && currentCount + req > ITEMS_PER_PAGE) || (isLast && currentCount + req + SUMMARY_SECTION_ROW_COUNT > ITEMS_PER_PAGE))) {
             pages.push(currentPageHTML);
             currentPageHTML = '';
             currentCount = 0;
@@ -102,8 +102,8 @@ async function generateViewPreviewHTML(wayBill) {
 
             <div class="second-section">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <p>WAYBILL-${wayBill.waybill_id || ''}</p>
-                    <p><strong>Date: </strong>${formatDateIndian ? formatDateIndian(wayBill.waybill_date) : (window.formatDate ? window.formatDate(wayBill.waybill_date) : '')}</p>
+                    <p>E-WAYBILL-${wayBill.ewaybill_id || ''}</p>
+                    <p><strong>Date: </strong>${formatDateIndian ? formatDateIndian(wayBill.ewaybill_generated_at) : (window.formatDate ? window.formatDate(wayBill.ewaybill_generated_at) : '')}</p>
                 </div>
             </div>
 
@@ -133,7 +133,7 @@ async function generateViewPreviewHTML(wayBill) {
                             <th>HSN/SAC</th>
                             <th>Qty</th>
                             <th>Unit Price</th>
-                            ${ (totalCGST + totalSGST) > 0 ? `<th>Taxable Value (₹)</th><th>Tax Rate (%)</th>` : '' }
+                            ${(totalCGST + totalSGST) > 0 ? `<th>Taxable Value (₹)</th><th>Tax Rate (%)</th>` : ''}
                             <th>Total Price (₹)</th>
                         </tr>
                     </thead>
@@ -143,9 +143,9 @@ async function generateViewPreviewHTML(wayBill) {
                 </table>
             </div>
 
-            ${ !isLast ? `<div class="continuation-text" style="text-align:center;margin:20px 0;font-style:italic;color:#666;">Continued on next page...</div>` : '' }
+            ${!isLast ? `<div class="continuation-text" style="text-align:center;margin:20px 0;font-style:italic;color:#666;">Continued on next page...</div>` : ''}
 
-            ${ isLast ? `
+            ${isLast ? `
             <div class="fifth-section">
                 <div class="fifth-section-sub1">
                     <div class="fifth-section-sub2">
@@ -174,9 +174,9 @@ async function generateViewPreviewHTML(wayBill) {
             </div>
             
             <div class="ninth-section">
-                <p>This is a computer-generated way bill.</p>
+                <p>This is a computer-generated e-way bill.</p>
             </div>
-            ` : '' }
+            ` : ''}
         </div>
         `;
     }).join('');
@@ -197,9 +197,9 @@ document.getElementById("printProject").addEventListener("click", () => {
 document.getElementById("saveProjectPDF").addEventListener("click", () => {
     const previewContent = document.getElementById("view-preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        // Use the displayed waybill id for file naming
+        // Use the displayed ewaybill id for file naming
         const idEl = document.getElementById('view-waybill-id');
-        const name = idEl ? `WayBill-${idEl.textContent.replace(/\s+/g, '')}` : 'WayBill';
+        const name = idEl ? `EWayBill-${idEl.textContent.replace(/\s+/g, '')}` : 'EWayBill';
         window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
     } else {
         window.electronAPI.showAlert1("Print functionality is not available.");
@@ -211,32 +211,32 @@ document.getElementById("saveProjectPDF").addEventListener("click", () => {
 
 async function viewWayBill(wayBillId) {
     try {
-        const response = await fetch(`/wayBill/${wayBillId}`);
+        const response = await fetch(`/eWayBill/${wayBillId}`);
         if (!response.ok) {
-            throw new Error("Failed to fetch waybill");
+            throw new Error("Failed to fetch e-way bill");
         }
 
         const data = await response.json();
-        const waybill = data.wayBill;
+        const waybill = data.eWayBill;
         let sno = 0;
 
-            // Hide other sections, show view section (consistent layout)
-            document.getElementById('home').style.display = 'none';
-            document.getElementById('new').style.display = 'none';
-            // Use flex to match other modules' view layout
-            const viewEl = document.getElementById('view');
-            if (viewEl) viewEl.style.display = 'flex';
-            const homeBtn = document.getElementById('new-waybill-btn');
-            if (homeBtn) homeBtn.style.display = 'none';
-            const previewBtn = document.getElementById('view-preview');
-            if (previewBtn) previewBtn.style.display = 'none';
+        // Hide other sections, show view section (consistent layout)
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('new').style.display = 'none';
+        // Use flex to match other modules' view layout
+        const viewEl = document.getElementById('view');
+        if (viewEl) viewEl.style.display = 'flex';
+        const homeBtn = document.getElementById('new-waybill-btn');
+        if (homeBtn) homeBtn.style.display = 'none';
+        const previewBtn = document.getElementById('view-preview');
+        if (previewBtn) previewBtn.style.display = 'none';
 
         // Fill Project Details
         document.getElementById('view-project-name').textContent = waybill.project_name || '-';
-        document.getElementById('view-waybill-id').textContent = waybill.waybill_id || '-';
-        // Display the waybill date if available
+        document.getElementById('view-waybill-id').textContent = waybill.ewaybill_id || '-';
+        // Display the ewaybill date if available
         const viewDateEl = document.getElementById('view-waybill-date');
-        if (viewDateEl) viewDateEl.textContent = waybill.waybill_date ? (typeof formatDateIndian === 'function' ? formatDateIndian(waybill.waybill_date) : (window.formatDate ? window.formatDate(waybill.waybill_date) : waybill.waybill_date)) : '-';
+        if (viewDateEl) viewDateEl.textContent = waybill.ewaybill_generated_at ? (typeof formatDateIndian === 'function' ? formatDateIndian(waybill.ewaybill_generated_at) : (window.formatDate ? window.formatDate(waybill.ewaybill_generated_at) : waybill.ewaybill_generated_at)) : '-';
 
         // Buyer & Consignee
         document.getElementById('view-buyer-name').textContent = waybill.customer_name || '-';
@@ -271,7 +271,7 @@ async function viewWayBill(wayBillId) {
         // Calculate and set totals (professional 3-box layout)
         let subtotal = 0;
         let totalTax = 0;
-        
+
         (waybill.items || []).forEach(item => {
             const qty = parseFloat(item.quantity || 0);
             const unitPrice = parseFloat(item.unit_price || 0);
@@ -279,13 +279,13 @@ async function viewWayBill(wayBillId) {
             const taxableValue = qty * unitPrice;
             const cgst = (taxableValue * rate / 2) / 100;
             const sgst = (taxableValue * rate / 2) / 100;
-            
+
             subtotal += taxableValue;
             totalTax += (cgst + sgst);
         });
-        
+
         const grandTotal = Math.round(subtotal + totalTax);
-        
+
         const setTextContent = (id, value) => {
             const el = document.getElementById(id);
             if (el) el.textContent = value;
@@ -297,8 +297,8 @@ async function viewWayBill(wayBillId) {
         await generateViewPreviewHTML(waybill);
 
     } catch (error) {
-        console.error("Error fetching waybill:", error);
-        window.electronAPI?.showAlert1("Failed to fetch waybill. Please try again later.");
+        console.error("Error fetching e-way bill:", error);
+        window.electronAPI?.showAlert1("Failed to fetch e-way bill. Please try again later.");
     }
 }
 

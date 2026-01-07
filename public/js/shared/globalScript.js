@@ -27,10 +27,10 @@ if (!window._ctrlTabNavRegistered) {
       const navigationOrder = [
         '/dashboard',
         '/quotation',
-        '/waybill',
-        '/invoice',
-        '/service',
         '/purchaseorder',
+        '/invoice',
+        '/waybill',
+        '/service',
         '/stock',
         '/comms',
         '/reports',
@@ -84,8 +84,8 @@ document.getElementById('postOrder')?.addEventListener('click', () => {
 })
 
 document.getElementById('wayBill')?.addEventListener('click', () => {
-  window.location = '/wayBill';
-  sessionStorage.setItem('currentTab', 'wayBill');
+  window.location = '/ewaybill';
+  sessionStorage.setItem('currentTab', 'eWayBill');
 })
 
 document.getElementById('invoice')?.addEventListener('click', () => {
@@ -1110,8 +1110,8 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (path.includes('/stock')) {
         sessionStorage.setItem('currentTab', 'stock');
         newButtonId = 'newStockItemBtn';
-      } else if (path.includes('/waybill')) {
-        sessionStorage.setItem('currentTab', 'waybill');
+      } else if (path.includes('/ewaybill')) {
+        sessionStorage.setItem('currentTab', 'ewaybill');
         newButtonId = 'new-waybill-btn';
       }
 
