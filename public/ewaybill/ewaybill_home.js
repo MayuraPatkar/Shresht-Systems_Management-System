@@ -1,67 +1,9 @@
-// Sidebar navigation active state and navigation
-document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', function () {
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
-    });
-});
-
-// Sidebar navigation routing (IDs must match HTML)
-document.getElementById('dashboard').addEventListener('click', () => {
-    window.location = '/dashboard';
-    sessionStorage.setItem('currentTab', 'dashboard');
-})
-
-document.getElementById('quotation').addEventListener('click', () => {
-    window.location = '/quotation';
-    sessionStorage.setItem('currentTab', 'quotation');
-})
-
-document.getElementById('purchase-bill').addEventListener('click', () => {
-    window.location = '/purchaseorder';
-    sessionStorage.setItem('currentTab', 'purchaseorder');
-})
-
-document.getElementById('wayBill').addEventListener('click', () => {
-    window.location = '/ewaybill';
-    sessionStorage.setItem('currentTab', 'eWayBill');
-})
-
-document.getElementById('invoice').addEventListener('click', () => {
-    window.location = '/invoice';
-    sessionStorage.setItem('currentTab', 'invoice');
-})
-
-document.getElementById('service').addEventListener('click', () => {
-    window.location = '/service';
-    sessionStorage.setItem('currentTab', 'service');
-})
-
-document.getElementById('stock').addEventListener('click', () => {
-    window.location = '/stock';
-    sessionStorage.setItem('currentTab', 'stock');
-})
-
-document.getElementById('comms').addEventListener('click', () => {
-    window.location = '/comms';
-    sessionStorage.setItem('currentTab', 'comms');
-})
-
-document.getElementById('calculations').addEventListener('click', () => {
-    window.location = '/calculations';
-    sessionStorage.setItem('currentTab', 'calculations');
-})
-
-document.getElementById('settings').addEventListener('click', () => {
-    window.location = '/settings';
-    sessionStorage.setItem('currentTab', 'settings');
-})
-
-document.getElementById('home-btn').addEventListener('click', () => {
+// Home button handler - keep this one as it's specific to this page
+document.getElementById('home-btn')?.addEventListener('click', () => {
     sessionStorage.removeItem('currentTab-status');
     window.location = '/ewaybill';
     sessionStorage.setItem('currentTab', 'ewaybill');
-})
+});
 
 // Main content references
 const wayBillsListDiv = document.querySelector(".records");
@@ -700,6 +642,20 @@ function createWayBillCard(wayBill) {
         }
     }
 
+    // Get transport details from nested object
+    const transport = wayBill.transport || {};
+    const displayId = wayBill.ewaybill_no || wayBill._id || '-';
+    const statusBadgeClass = {
+        'Draft': 'bg-yellow-100 text-yellow-800',
+        'Generated': 'bg-green-100 text-green-800',
+        'Cancelled': 'bg-red-100 text-red-800',
+        'Expired': 'bg-gray-100 text-gray-800'
+    }[wayBill.ewaybill_status] || 'bg-gray-100 text-gray-800';
+
+    // Truncate addresses for display
+    const fromAddressShort = (wayBill.from_address || '-').split('\n')[0].substring(0, 50);
+    const toAddressShort = (wayBill.to_address || '-').split('\n')[0].substring(0, 50);
+
     wayBillDiv.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
@@ -712,7 +668,8 @@ function createWayBillCard(wayBill) {
                         <i class="fas fa-route text-lg text-white"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900 truncate" title="${wayBill.project_name}">${wayBill.project_name}</h3>
+                        <h3 class="text-lg font-bold text-gray-900 truncate" title="E-Way Bill">${displayId !== '-' ? displayId : 'E-Way Bill'}</h3>
+                        <span class="inline-block px-2 py-0.5 text-xs font-medium rounded ${statusBadgeClass}">${wayBill.ewaybill_status || 'Draft'}</span>
                     </div>
                 </div>
                 
@@ -730,37 +687,46 @@ function createWayBillCard(wayBill) {
                 </div>
             </div>
             
-            <!-- ID & Date Row -->
+            <!-- Date & Transport Row -->
             <div class="flex items-center gap-2 mb-3">
-                <span class="text-sm font-bold text-gray-800 cursor-pointer hover:text-blue-600 copy-text transition-colors" title="Click to copy ID">
-                    ${wayBill.ewaybill_id}
-                    <i class="fas fa-copy text-xs ml-1 opacity-50"></i>
-                </span>
-                <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                 <span class="text-xs text-gray-500">
                     <i class="fas fa-calendar-alt mr-1"></i>${formattedDate}
                 </span>
+                ${transport.vehicle_number ? `
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                <span class="text-xs text-gray-500">
+                    <i class="fas fa-truck mr-1"></i>${transport.vehicle_number}
+                </span>
+                ` : ''}
+                ${wayBill.total_invoice_value ? `
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                <span class="text-sm font-bold text-green-600">₹ ${formatIndian ? formatIndian(wayBill.total_invoice_value, 2) : wayBill.total_invoice_value}</span>
+                ` : ''}
             </div>
             
-            <!-- Bottom Row: Customer & Destination -->
+            <!-- Bottom Row: From/To Addresses -->
             <div class="flex items-center justify-between pt-3 border-t border-gray-100">
                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-user text-blue-600 text-xs"></i>
+                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-warehouse text-green-600 text-xs"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-gray-800 truncate" title="${wayBill.customer_name}">${wayBill.customer_name}</p>
-                        <p class="text-xs text-gray-500 truncate" title="${wayBill.customer_address}">${wayBill.customer_address}</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider">From</p>
+                        <p class="text-sm font-medium text-gray-800 truncate" title="${wayBill.from_address || '-'}">${fromAddressShort}</p>
                     </div>
                 </div>
                 
-                <div class="flex-shrink-0 ml-4 flex items-center gap-2">
+                <div class="flex-shrink-0 mx-2">
+                    <i class="fas fa-arrow-right text-gray-400"></i>
+                </div>
+                
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
                     <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                         <i class="fas fa-map-marker-alt text-orange-600 text-xs"></i>
                     </div>
-                    <div>
-                        <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Destination</p>
-                        <p class="text-base font-bold text-blue-600" title="${wayBill.place_supply}">${wayBill.place_supply}</p>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider">To</p>
+                        <p class="text-sm font-medium text-gray-800 truncate" title="${wayBill.to_address || '-'}">${toAddressShort}</p>
                     </div>
                 </div>
             </div>
@@ -768,33 +734,21 @@ function createWayBillCard(wayBill) {
         </div>
     `;
 
-    const copyElement = wayBillDiv.querySelector('.copy-text');
     const viewBtn = wayBillDiv.querySelector('.view-btn');
     const editBtn = wayBillDiv.querySelector('.edit-btn');
     const deleteBtn = wayBillDiv.querySelector('.delete-btn');
 
-    // Copy ID functionality
-    copyElement.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(wayBill.ewaybill_id);
-            const toast = document.createElement('div');
-            toast.textContent = 'ID Copied to Clipboard!';
-            toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2000);
-        } catch (err) {
-            console.error('Copy failed', err);
-        }
-    });
+    // Use MongoDB _id for all operations
+    const wayBillMongoId = wayBill._id;
 
     // Action button handlers
     viewBtn.addEventListener('click', () => {
-        viewWayBill(wayBill.ewaybill_id);
+        viewWayBill(wayBillMongoId);
     });
 
     editBtn.addEventListener('click', () => {
         sessionStorage.setItem('currentTab-status', 'update');
-        openWayBill(wayBill.ewaybill_id);
+        openWayBill(wayBillMongoId);
     });
 
     deleteBtn.addEventListener('click', () => {
@@ -802,7 +756,7 @@ function createWayBillCard(wayBill) {
         if (window.electronAPI) {
             window.electronAPI.receiveAlertResponse((response) => {
                 if (response === "Yes") {
-                    deleteWayBill(wayBill.ewaybill_id);
+                    deleteWayBill(wayBillMongoId);
                 }
             });
         }

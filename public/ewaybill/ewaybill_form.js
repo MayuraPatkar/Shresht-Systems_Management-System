@@ -46,48 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!ok) return;
                 }
 
-                // If user is on Step 1 (Import step), import quotation data before advancing
-                if (window.currentStep === 1 && document.getElementById("quotation-id")) {
-                    const quotationId = document.getElementById("quotation-id")?.value;
-                    if (quotationId) {
-                        try {
-                            const response = await fetch(`/quotation/${quotationId}`);
-                            if (!response.ok) throw new Error('Failed to fetch quotation');
-                            const data = await response.json();
-                            const quotation = data.quotation;
-
-                            document.getElementById("project-name").value = quotation.project_name;
-                            document.getElementById("buyer-name").value = quotation.customer_name;
-                            document.getElementById("buyer-address").value = quotation.customer_address;
-                            document.getElementById("buyer-phone").value = quotation.customer_phone;
-                            document.getElementById("buyer-email").value = quotation.customer_email || "";
-
-                            const itemsTableBody = document.querySelector("#items-table tbody");
-                            itemsTableBody.innerHTML = "";
-                            const itemsContainer = document.getElementById("items-container");
-                            itemsContainer.innerHTML = "";
-                            let itemSno = 1;
-
-                            (quotation.items || []).forEach(item => {
-                                addItemFromData(item, itemSno);
-                                itemSno++;
-                            });
-
-                            // Advance to the next step
-                            if (window.currentStep < window.totalSteps) {
-                                window.changeStep(window.currentStep + 1);
-                            }
-                            return;
-
-                        } catch (error) {
-                            console.error("Error:", error);
-                            window.electronAPI.showAlert1("Failed to fetch quotation.");
-                            return; // cancel navigation
-                        }
-                    }
-                }
-
-                // Advance to the next step after passing validation/import
+                // Advance to the next step after passing validation
                 if (window.currentStep < window.totalSteps) {
                     window.changeStep(window.currentStep + 1);
                 }
@@ -115,111 +74,196 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// Set default waybill date and fetch new ID if empty
+// Set default waybill date
 document.addEventListener('DOMContentLoaded', async () => {
     const dateInput = document.getElementById('waybill-date');
     if (dateInput && !dateInput.value) {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
-    const waybillIdEl = document.getElementById('waybill-id');
-    if (waybillIdEl && !waybillIdEl.value) {
-        await getWaybillId();
-    }
 });
 
-// Fetch next E-Way Bill ID from server
-async function getWaybillId() {
+// Function to fetch and import invoice data
+async function importInvoiceData(invoiceId) {
     try {
-        const response = await fetch('/eWayBill/generate-id');
-        if (!response.ok) throw new Error('Failed to fetch ewaybill id');
+        // Try to fetch invoice by invoice_id
+        const response = await fetch(`/invoice/${encodeURIComponent(invoiceId)}`);
+        if (!response.ok) {
+            throw new Error('Invoice not found');
+        }
         const data = await response.json();
-        document.getElementById('waybill-id').value = data.ewaybill_id;
-    } catch (err) {
-        console.error('Error fetching ewaybill id:', err);
-    }
-}
+        const invoice = data.invoice;
 
-// Listen for manual typing in the items table to fetch additional data (HSN, price, rate)
-const waybillItemsTable = document.querySelector('#items-table');
-if (waybillItemsTable) {
-    waybillItemsTable.addEventListener('input', async (event) => {
-        const row = event.target.closest('tr');
-        if (!row) return;
-        // Only react when user types in the description column (first input)
-        const descInput = row.querySelector('input[type="text"]');
-        if (event.target === descInput) {
-            const itemName = descInput.value.trim();
-            if (itemName.length > 2) {
-                await fillWaybill(itemName, row);
+        if (!invoice) {
+            throw new Error('Invoice data not found');
+        }
+
+        // Clear existing items
+        const itemsTableBody = document.querySelector("#items-table tbody");
+        const itemsContainer = document.getElementById("items-container");
+        if (itemsTableBody) itemsTableBody.innerHTML = "";
+        if (itemsContainer) itemsContainer.innerHTML = "";
+
+        // Populate items from invoice (use items_original or items_duplicate)
+        const items = invoice.items_original || invoice.items_duplicate || [];
+        let sno = 1;
+        items.forEach(item => {
+            addItemFromData({
+                description: item.description || '',
+                hsn_sac: item.HSN_SAC || item.hsn_sac || '',
+                quantity: item.quantity || 0,
+                unit_price: item.unit_price || 0,
+                gst_rate: item.rate || item.gst_rate || 0
+            }, sno);
+            sno++;
+        });
+
+        // Populate addresses
+        const fromAddressEl = document.getElementById('from-address');
+        const toAddressEl = document.getElementById('to-address');
+
+        // Fetch company info for from_address
+        if (fromAddressEl && window.companyConfig) {
+            try {
+                const company = await window.companyConfig.getCompanyInfo();
+                if (company) {
+                    let fromAddress = company.company || '';
+                    if (company.address) fromAddress += '\n' + company.address;
+                    if (company.phone) {
+                        const phone = company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '');
+                        fromAddress += '\nPhone: ' + phone;
+                    }
+                    if (company.GSTIN) fromAddress += '\nGSTIN: ' + company.GSTIN;
+                    fromAddressEl.value = fromAddress;
+                }
+            } catch (companyErr) {
+                console.warn('Could not fetch company info for from_address:', companyErr);
             }
         }
-    });
+
+        // Use customer details as to_address
+        if (toAddressEl && invoice.customer_name) {
+            let toAddress = invoice.customer_name || '';
+            if (invoice.customer_address) toAddress += '\n' + invoice.customer_address;
+            if (invoice.customer_phone) toAddress += '\nPhone: ' + invoice.customer_phone;
+            toAddressEl.value = toAddress;
+        }
+
+        // Store invoice MongoDB _id for reference
+        document.getElementById('waybill-form').dataset.invoiceId = invoice._id;
+
+        return true;
+    } catch (error) {
+        console.error('Error importing invoice:', error);
+        window.electronAPI?.showAlert1('Failed to import invoice. Please check the Invoice ID.');
+        return false;
+    }
 }
 
-// Validate current step similar to quotation/service
+// Function to check if an e-way bill already exists for an invoice
+async function checkExistingEWayBillForInvoice(invoiceId) {
+    try {
+        // We need to search e-way bills that reference this invoice
+        // Using the search endpoint to look for the invoice ID in the invoice_id field match
+        const response = await fetch(`/eWayBill/check-invoice/${encodeURIComponent(invoiceId)}`);
+        if (response.ok) {
+            const data = await response.json();
+            return data.exists;
+        }
+        return false;
+    } catch (error) {
+        console.warn('Could not verify existing e-way bill:', error);
+        return false;
+    }
+}
+
+// Function to check if an e-way bill number already exists
+async function checkExistingEWayBillNo(ewaybillNo) {
+    try {
+        const response = await fetch(`/eWayBill/check-ewaybill-no/${encodeURIComponent(ewaybillNo)}`);
+        if (response.ok) {
+            const data = await response.json();
+            return data.exists;
+        }
+        return false;
+    } catch (error) {
+        console.warn('Could not verify existing e-way bill number:', error);
+        return false;
+    }
+}
+
+// Validate current step
 window.validateCurrentStep = async function () {
-    // Step 2: Project details
-    if (window.currentStep === 2) {
-        const projectName = document.getElementById('project-name');
-        const waybillId = document.getElementById('waybill-id');
-        if (!projectName || !projectName.value.trim()) {
-            window.electronAPI.showAlert1('Please enter the Project Name.');
-            projectName?.focus();
+    // Step 1: Invoice ID is required - fetch and populate data
+    if (window.currentStep === 1) {
+        const invoiceId = document.getElementById('invoice-id');
+        if (!invoiceId || !invoiceId.value.trim()) {
+            window.electronAPI.showAlert1('Please enter an Invoice ID.');
+            invoiceId?.focus();
             return false;
         }
-        if (!waybillId || !waybillId.value.trim()) {
-            window.electronAPI.showAlert1('Please enter the Way Bill ID.');
-            waybillId?.focus();
+
+        // Check if e-way bill already exists for this invoice (only for new e-way bills)
+        const formEl = document.getElementById('waybill-form');
+        const isEditing = formEl?.dataset?.ewaybillId;
+        if (!isEditing) {
+            const exists = await checkExistingEWayBillForInvoice(invoiceId.value.trim());
+            if (exists) {
+                window.electronAPI.showAlert1('An E-Way Bill already exists for this Invoice. Each invoice can only have one E-Way Bill.');
+                return false;
+            }
+        }
+
+        // Try to import invoice data
+        const imported = await importInvoiceData(invoiceId.value.trim());
+        if (!imported) {
             return false;
         }
     }
 
-    // Step 3: Shipped To info must be filled
-    if (window.currentStep === 3) {
-        const buyerName = document.getElementById('buyer-name');
-        const buyerAddress = document.getElementById('buyer-address');
-        const buyerPhone = document.getElementById('buyer-phone');
-        const buyerEmail = document.getElementById('buyer-email');
-        if (!buyerName || !buyerName.value.trim()) {
-            window.electronAPI.showAlert1('Please enter the Buyer Name.');
-            buyerName?.focus();
+    // Step 2: E-Way Bill Number is required
+    if (window.currentStep === 2) {
+        const ewaybillNo = document.getElementById('ewaybill-no');
+        if (!ewaybillNo || !ewaybillNo.value.trim()) {
+            window.electronAPI.showAlert1('Please enter an E-Way Bill Number.');
+            ewaybillNo?.focus();
             return false;
         }
-        if (!buyerAddress || !buyerAddress.value.trim()) {
-            window.electronAPI.showAlert1('Please enter the Buyer Address.');
-            buyerAddress?.focus();
-            return false;
-        }
-        if (!buyerPhone || !buyerPhone.value.trim()) {
-            window.electronAPI.showAlert1('Please enter the Buyer Phone Number.');
-            buyerPhone?.focus();
-            return false;
-        }
-        // Validate phone length
-        const cleanedPhone = (buyerPhone.value || '').replace(/\D/g, '');
-        if (cleanedPhone.length !== 10) {
-            window.electronAPI.showAlert1('Please enter a valid 10-digit Buyer Phone Number.');
-            buyerPhone?.focus();
-            return false;
-        }
-        // Validate email if present
-        if (buyerEmail && buyerEmail.value.trim()) {
-            const cleanedEmail = buyerEmail.value.trim().replace(/\s+/g, '');
-            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRe.test(cleanedEmail)) {
-                window.electronAPI.showAlert1('Please enter a valid Buyer Email address.');
-                buyerEmail?.focus();
+
+        // Check if e-way bill number already exists (only for new e-way bills)
+        const formEl = document.getElementById('waybill-form');
+        const isEditing = formEl?.dataset?.ewaybillId;
+        if (!isEditing) {
+            const exists = await checkExistingEWayBillNo(ewaybillNo.value.trim());
+            if (exists) {
+                window.electronAPI.showAlert1('An E-Way Bill with this number already exists. Please enter a unique E-Way Bill Number.');
+                ewaybillNo?.focus();
                 return false;
             }
         }
     }
 
-    // Step 4: Place to Supply must be filled
+    // Step 3: Address details must be filled
+    if (window.currentStep === 3) {
+        const fromAddress = document.getElementById('from-address');
+        const toAddress = document.getElementById('to-address');
+        if (!fromAddress || !fromAddress.value.trim()) {
+            window.electronAPI.showAlert1('Please enter the From Address.');
+            fromAddress?.focus();
+            return false;
+        }
+        if (!toAddress || !toAddress.value.trim()) {
+            window.electronAPI.showAlert1('Please enter the To Address.');
+            toAddress?.focus();
+            return false;
+        }
+    }
+
+    // Step 4: Transportation mode is required
     if (window.currentStep === 4) {
-        const placeSupply = document.getElementById('place-supply');
-        if (!placeSupply || !placeSupply.value.trim()) {
-            window.electronAPI.showAlert1('Please enter the Place to Supply.');
-            placeSupply?.focus();
+        const transportMode = document.getElementById('transport-mode');
+        if (!transportMode || !transportMode.value.trim()) {
+            window.electronAPI.showAlert1('Please select a Transportation Mode.');
+            transportMode?.focus();
             return false;
         }
     }
@@ -256,81 +300,65 @@ window.validateCurrentStep = async function () {
     return true;
 };
 
-// Add input sanitization and constraints for phone/email
-document.addEventListener('DOMContentLoaded', () => {
-    const phoneInput = document.getElementById('buyer-phone');
-    if (phoneInput) {
-        phoneInput.setAttribute('inputmode', 'numeric');
-        phoneInput.setAttribute('maxlength', '10');
-        phoneInput.setAttribute('pattern', '[0-9]{10}');
-        phoneInput.addEventListener('input', () => {
-            const cleaned = phoneInput.value.replace(/\D/g, '').slice(0, 10);
-            if (phoneInput.value !== cleaned) phoneInput.value = cleaned;
-        });
-    }
-
-    const emailInput = document.getElementById('buyer-email');
-    if (emailInput) {
-        emailInput.setAttribute('maxlength', '254');
-        emailInput.addEventListener('input', () => {
-            const cleaned = emailInput.value.trim().replace(/\s+/g, '');
-            if (emailInput.value !== cleaned) emailInput.value = cleaned;
-        });
-    }
-});
-
 // Open an e-way bill for editing
 async function openWayBill(wayBillId) {
-    const data = await fetchDocumentById('eWayBill', wayBillId);
-    if (!data) return;
+    try {
+        const response = await fetch(`/eWayBill/${wayBillId}`);
+        if (!response.ok) throw new Error('Failed to fetch e-way bill');
+        const data = await response.json();
+        const wayBill = data.eWayBill;
 
-    const wayBill = data.eWayBill;
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('new').style.display = 'block';
+        document.getElementById('new-waybill-btn').style.display = 'none';
+        document.getElementById('view-preview').style.display = 'block';
 
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'block';
-    document.getElementById('new-waybill-btn').style.display = 'none';
-    document.getElementById('view-preview').style.display = 'block';
+        if (window.currentStep === 1) {
+            window.changeStep(2);
+        }
 
-    if (window.currentStep === 1) {
-        window.changeStep(2);
-    }
+        // Store the MongoDB _id for updates
+        document.getElementById('waybill-form').dataset.ewaybillId = wayBill._id;
 
-    document.getElementById('waybill-id').value = wayBill.ewaybill_id;
-    document.getElementById('project-name').value = wayBill.project_name;
-    // Populate waybill date for editing. Use ISO YYYY-MM-DD for input value.
-    const wbDateEl = document.getElementById('waybill-date');
-    if (wbDateEl) {
-        if (wayBill.ewaybill_generated_at) {
+        // Populate form fields based on new schema
+        document.getElementById('ewaybill-no').value = wayBill.ewaybill_no || '';
+        document.getElementById('ewaybill-status').value = wayBill.ewaybill_status || 'Draft';
+
+        const wbDateEl = document.getElementById('waybill-date');
+        if (wbDateEl && wayBill.ewaybill_generated_at) {
             const dt = new Date(wayBill.ewaybill_generated_at);
             wbDateEl.value = dt.toISOString().split('T')[0];
-        } else {
-            wbDateEl.value = '';
         }
+
+        document.getElementById('from-address').value = wayBill.from_address || '';
+        document.getElementById('to-address').value = wayBill.to_address || '';
+
+        // Transport details
+        const transport = wayBill.transport || {};
+        document.getElementById('transport-mode').value = transport.mode || 'Road';
+        document.getElementById('vehicle-number').value = transport.vehicle_number || '';
+        document.getElementById('transporter-id').value = transport.transporter_id || '';
+        document.getElementById('transporter-name').value = transport.transporter_name || '';
+        document.getElementById('distance-km').value = transport.distance_km || '';
+
+        // Populate items
+        const itemsTableBody = document.querySelector("#items-table tbody");
+        itemsTableBody.innerHTML = "";
+        const itemsContainer = document.getElementById("items-container");
+        itemsContainer.innerHTML = "";
+        let sno = 1;
+
+        (wayBill.items || []).forEach(item => {
+            addItemFromData(item, sno);
+            sno++;
+        });
+    } catch (error) {
+        console.error('Error opening e-way bill:', error);
+        window.electronAPI?.showAlert1('Failed to load e-way bill.');
     }
-    document.getElementById('buyer-name').value = wayBill.customer_name;
-    document.getElementById('buyer-address').value = wayBill.customer_address;
-    document.getElementById('buyer-phone').value = wayBill.customer_phone;
-    document.getElementById('buyer-email').value = wayBill.customer_email || "";
-    document.getElementById('transport-mode').value = wayBill.transport_mode;
-    document.getElementById('vehicle-number').value = wayBill.vehicle_number;
-    document.getElementById('place-supply').value = wayBill.place_supply;
-
-    const itemsTableBody = document.querySelector("#items-table tbody");
-    itemsTableBody.innerHTML = "";
-    const itemsContainer = document.getElementById("items-container");
-    itemsContainer.innerHTML = "";
-    let sno = 1;
-
-    (wayBill.items || []).forEach(item => {
-        addItemFromData(item, sno);
-        sno++;
-    });
 }
 
-
-
 // Setup add item button listener after DOM loads
-// Use clone to remove any existing/global click handlers and attach module-specific handler
 document.addEventListener('DOMContentLoaded', function () {
     const addItemBtnOld = document.getElementById('add-item-btn');
     if (addItemBtnOld) {
@@ -345,12 +373,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 delete addItemBtn.dataset.processing;
             }
         });
-    } else {
-        console.error('add-item-btn not found in DOM');
     }
 });
 
-// Helper function to add item with data (used by openWayBill and quotation fetch)
+// Helper function to add item with data
 function addItemFromData(item, itemSno, insertIndex) {
     const itemsContainer = document.getElementById("items-container");
     const itemsTableBody = document.querySelector("#items-table tbody");
@@ -371,7 +397,7 @@ function addItemFromData(item, itemSno, insertIndex) {
             </div>
         </div>
         <div class="item-field hsn">
-            <input type="text" value="${item.HSN_SAC || ''}" placeholder="Code" required>
+            <input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" placeholder="Code" required>
         </div>
         <div class="item-field qty">
             <input type="number" value="${item.quantity || ''}" placeholder="0" min="1" required>
@@ -380,7 +406,7 @@ function addItemFromData(item, itemSno, insertIndex) {
             <input type="number" value="${item.unit_price || ''}" placeholder="0.00" step="0.01" required>
         </div>
         <div class="item-field rate">
-            <input type="number" value="${item.rate || ''}" placeholder="0" min="0" step="0.01">
+            <input type="number" value="${item.gst_rate || item.rate || ''}" placeholder="0" min="0" step="0.01">
         </div>
         <div class="item-actions">
             <button type="button" class="remove-item-btn" title="Remove Item">
@@ -403,10 +429,10 @@ function addItemFromData(item, itemSno, insertIndex) {
             <input type="text" value="${item.description || ''}" placeholder="Item Description" required>
             <ul class="suggestions"></ul>
         </td>
-        <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
+        <td><input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
         <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
         <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
-        <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+        <td><input type="number" value="${item.gst_rate || item.rate || ''}" placeholder="GST Rate" min="0" step="0.01" required></td>
         <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
     `;
 
@@ -435,9 +461,7 @@ function addItemFromData(item, itemSno, insertIndex) {
         }
     });
 
-    // Setup autocomplete for description input (module-specific)
-    // card uses placeholder "Enter item description" while row uses "Item Description".
-    // Use a robust selector that targets the text input inside the description container.
+    // Setup autocomplete for description input
     const cardDescriptionInput = card.querySelector('.description input[type="text"], .description input');
     const cardSuggestions = card.querySelector('.suggestions');
     const rowDescriptionInput = row.querySelector('td:nth-child(2) input[type="text"]');
@@ -454,7 +478,6 @@ function addItemFromData(item, itemSno, insertIndex) {
     if (rowDescriptionInput && rowSuggestions) {
         rowDescriptionInput.addEventListener('input', function () {
             showSuggestionsWaybill(rowDescriptionInput, rowSuggestions);
-            // Sync with card input
             if (cardDescriptionInput) cardDescriptionInput.value = rowDescriptionInput.value;
         });
         rowDescriptionInput.addEventListener('keydown', function (event) {
@@ -462,7 +485,7 @@ function addItemFromData(item, itemSno, insertIndex) {
         });
     }
 
-    // Add remove button event listeners (both card and table)
+    // Add remove button event listeners
     const cardRemoveBtn = card.querySelector(".remove-item-btn");
     const tableRemoveBtn = row.querySelector(".remove-item-btn");
 
@@ -478,13 +501,12 @@ function addItemFromData(item, itemSno, insertIndex) {
         renumberItems();
     });
 
-    // Renumber if we inserted specifically
     if (typeof insertIndex === 'number') {
         renumberItems();
     }
 }
 
-// Add a new empty item (guarded against rapid duplicate calls)
+// Add a new empty item
 function addItem(insertIndex) {
     if (addItem._processing) return;
     addItem._processing = true;
@@ -494,13 +516,12 @@ function addItem(insertIndex) {
 
         addItemFromData({
             description: '',
-            HSN_SAC: '',
+            hsn_sac: '',
             quantity: '',
             unit_price: '',
-            rate: ''
+            gst_rate: ''
         }, itemSno, insertIndex);
     } finally {
-        // Allow subsequent calls after a short delay
         setTimeout(() => { delete addItem._processing; }, 50);
     }
 }
@@ -530,11 +551,9 @@ async function fetchWaybillStockData(itemName) {
     }
 }
 
-// Flag to prevent showSuggestionsWaybill during autofill
 let isAutofillInProgressWaybill = false;
 
 function showSuggestionsWaybill(input, suggestionsList) {
-    // Skip showing suggestions if autofill is in progress
     if (isAutofillInProgressWaybill) {
         return;
     }
@@ -557,9 +576,7 @@ function showSuggestionsWaybill(input, suggestionsList) {
         li.textContent = item;
         li.addEventListener('click', async () => {
             input.value = item;
-            // Hide suggestions immediately to prevent re-triggering showSuggestionsWaybill
             suggestionsList.style.display = 'none';
-            // Set flag to prevent showSuggestionsWaybill from running during autofill
             isAutofillInProgressWaybill = true;
             input.dispatchEvent(new Event('input', { bubbles: true }));
             isAutofillInProgressWaybill = false;
@@ -586,14 +603,12 @@ async function handleKeyboardNavigationWaybill(event, input, suggestionsList) {
         input.value = items[waybillSelectedIndex].textContent;
         items.forEach((it, idx) => it.classList.toggle('selected', idx === waybillSelectedIndex));
     } else if (event.key === 'Enter') {
-        // Only handle Enter if an item is actually selected in the suggestions
         if (waybillSelectedIndex >= 0 && items[waybillSelectedIndex]) {
             event.preventDefault();
             event.stopPropagation();
             const selectedItem = items[waybillSelectedIndex].textContent;
             input.value = selectedItem;
             suggestionsList.style.display = 'none';
-            // Set flag to prevent showSuggestionsWaybill from running during autofill
             isAutofillInProgressWaybill = true;
             input.dispatchEvent(new Event('input', { bubbles: true }));
             isAutofillInProgressWaybill = false;
@@ -601,7 +616,6 @@ async function handleKeyboardNavigationWaybill(event, input, suggestionsList) {
             await fillWaybill(selectedItem, parent);
             waybillSelectedIndex = -1;
         }
-        // If no item selected, let Enter propagate to trigger Next Step shortcut
     }
 }
 
@@ -612,12 +626,10 @@ async function fillWaybill(itemName, element) {
 
     if (isCard) {
         const inputs = element.querySelectorAll('input');
-        // We assume column order: description, hsn, qty, unit_price, rate
-        // Here inputs[1] => HSN, inputs[3] => Unit Price, inputs[4] => Rate (based on card structure in waybill)
-        inputs[1].value = stockData.HSN_SAC || '';
-        // unit_price is index 3? Check template: description, hsn, qty, unit_price, rate -> idx 3 & 4
+        // Column order: description, hsn_sac, qty, unit_price, gst_rate
+        inputs[1].value = stockData.HSN_SAC || stockData.hsn_sac || '';
         if (inputs[3]) inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-        if (inputs[4]) inputs[4].value = stockData.GST || 0;
+        if (inputs[4]) inputs[4].value = stockData.GST || stockData.gst_rate || 0;
         inputs[1].dispatchEvent(new Event('input', { bubbles: true }));
         if (inputs[3]) inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
         if (inputs[4]) inputs[4].dispatchEvent(new Event('input', { bubbles: true }));
@@ -628,26 +640,24 @@ async function fillWaybill(itemName, element) {
         if (tableRow) {
             const rowInputs = tableRow.querySelectorAll('input');
             if (rowInputs.length >= 5) {
-                rowInputs[1].value = stockData.HSN_SAC || '';
+                rowInputs[1].value = stockData.HSN_SAC || stockData.hsn_sac || '';
                 rowInputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-                rowInputs[4].value = stockData.GST || 0;
-                // Trigger input events to ensure totals update
+                rowInputs[4].value = stockData.GST || stockData.gst_rate || 0;
                 rowInputs[3].dispatchEvent(new Event('input', { bubbles: true }));
                 rowInputs[4].dispatchEvent(new Event('input', { bubbles: true }));
             }
         }
     } else {
-        // Table row
         const rowInputs = element.querySelectorAll('input');
         if (rowInputs.length >= 5) {
-            rowInputs[1].value = stockData.HSN_SAC || '';
+            rowInputs[1].value = stockData.HSN_SAC || stockData.hsn_sac || '';
             rowInputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-            rowInputs[4].value = stockData.GST || 0;
+            rowInputs[4].value = stockData.GST || stockData.gst_rate || 0;
         }
     }
 }
 
-// Local click handler to close suggestions dropdowns on ewaybill page
+// Close suggestions dropdowns on click outside
 document.addEventListener('click', function (event) {
     if (!window.location.pathname.toLowerCase().includes('/ewaybill')) return;
     const allSuggestions = document.querySelectorAll('#items-container .suggestions, #items-table .suggestions');
@@ -683,106 +693,69 @@ function renumberItems() {
 }
 
 async function generatePreview() {
-    const projectName = document.getElementById("project-name").value || "";
-    const waybillId = document.getElementById("waybill-id").value || "";
-    const buyerName = document.getElementById("buyer-name").value || "";
-    const buyerAddress = document.getElementById("buyer-address").value || "";
-    const buyerPhone = document.getElementById("buyer-phone").value || "";
-    const buyerEmail = document.getElementById("buyer-email").value || "";
-    const transportMode = document.getElementById("transport-mode").value || "";
-    const vehicleNumber = document.getElementById("vehicle-number").value || "";
-    const placeSupply = document.getElementById("place-supply").value || "";
+    const ewaybillNo = document.getElementById("ewaybill-no")?.value || "";
+    const ewaybillStatus = document.getElementById("ewaybill-status")?.value || "Draft";
+    const fromAddress = document.getElementById("from-address")?.value || "";
+    const toAddress = document.getElementById("to-address")?.value || "";
+    const transportMode = document.getElementById("transport-mode")?.value || "";
+    const vehicleNumber = document.getElementById("vehicle-number")?.value || "";
+    const transporterId = document.getElementById("transporter-id")?.value || "";
+    const transporterName = document.getElementById("transporter-name")?.value || "";
+    const distanceKm = document.getElementById("distance-km")?.value || "";
 
     // Collect items from table
     const items = Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
         description: row.cells[1].querySelector("input").value || "-",
-        HSN_SAC: row.cells[2].querySelector("input").value || "-",
+        hsn_sac: row.cells[2].querySelector("input").value || "-",
         quantity: row.cells[3].querySelector("input").value || "0",
         unit_price: row.cells[4].querySelector("input").value || "0",
-        rate: row.cells[5].querySelector("input").value || "0"
+        gst_rate: row.cells[5].querySelector("input").value || "0"
     }));
 
-    // Use CalculationEngine for simple calculation
-    const calculator = new CalculationEngine(items, []);
-    const { itemsHTML } = calculator.calculateSimple();
-
-    // Calculate totals for preview
-    let subtotal = 0;
-    let totalCGST = 0;
-    let totalSGST = 0;
-    (items || []).forEach(item => {
+    // Calculate totals
+    let totalTaxableValue = 0;
+    let cgst = 0;
+    let sgst = 0;
+    items.forEach(item => {
         const qty = parseFloat(item.quantity || 0);
         const unitPrice = parseFloat(item.unit_price || 0);
-        const rate = parseFloat(item.rate || 0);
+        const gstRate = parseFloat(item.gst_rate || 0);
         const taxableValue = qty * unitPrice;
-        const cgst = (taxableValue * rate / 2) / 100;
-        const sgst = (taxableValue * rate / 2) / 100;
-        subtotal += taxableValue;
-        totalCGST += cgst;
-        totalSGST += sgst;
+        const tax = (taxableValue * gstRate) / 100;
+        totalTaxableValue += taxableValue;
+        cgst += tax / 2;
+        sgst += tax / 2;
     });
-    const totalTax = totalCGST + totalSGST;
-    const grandTotal = Math.round(subtotal + totalTax);
-    // Build totals using shared renderer
-    const totals = { taxableValue: subtotal, cgst: totalCGST, sgst: totalSGST, total: grandTotal };
-    const hasTax = (totalCGST + totalSGST) > 0;
-    const totalsHTML = `
-        <div class="fifth-section">
-            <div class="fifth-section-sub1">
-                <div class="fifth-section-sub2">
-                    ${SectionRenderers.renderAmountInWords(grandTotal)}
-                </div>
-                <div class="totals-section">
-                    ${SectionRenderers.renderTotals(totals, hasTax)}
-                </div>
-            </div>
-        </div>`;
+    const totalInvoiceValue = Math.round(totalTaxableValue + cgst + sgst);
 
-    // Use SectionRenderers to build the document
-    const buyerInfoHTML = `
-        <div class="buyer-details">
-            <h3>Buyer Details</h3>
-            <p>${buyerName}</p>
-            <p>${buyerAddress}</p>
-            <p>${buyerPhone}</p>
-            ${buyerEmail ? `<p>${buyerEmail}</p>` : ''}
-        </div>`;
+    const waybillDate = document.getElementById('waybill-date')?.value || (new Date()).toISOString().split('T')[0];
 
-    const waybillDate = document.getElementById('waybill-date')?.value || document.getElementById('date')?.value || (new Date()).toISOString().split('T')[0];
-    const waybillDateDisplay = typeof formatDateIndian === 'function' ? formatDateIndian(waybillDate) : (window.formatDate ? window.formatDate(waybillDate) : waybillDate);
-
-    const infoSectionHTML = SectionRenderers.renderInfoSection([
-        { label: 'Date', value: waybillDateDisplay },
-        { label: 'Project Name', value: projectName },
-        { label: 'Transportation Mode', value: transportMode },
-        { label: 'Vehicle Number', value: vehicleNumber },
-        { label: 'Place to Supply', value: placeSupply }
-    ]);
-
-    const itemColumns = ['Sl. No', 'Description', 'HSN Code', 'Qty', 'Unit Price', 'Tax Rate', 'Total'];
-
-    // Reuse the Invoice-style paginated preview (generateViewPreviewHTML builds pages and writes to #view-preview-content)
     const wayBillObj = {
-        ewaybill_id: waybillId,
+        ewaybill_no: ewaybillNo,
+        ewaybill_status: ewaybillStatus,
         ewaybill_generated_at: waybillDate,
-        project_name: projectName,
-        customer_name: buyerName,
-        customer_address: buyerAddress,
-        customer_phone: buyerPhone,
-        customer_email: buyerEmail,
-        transport_mode: transportMode,
-        vehicle_number: vehicleNumber,
-        place_supply: placeSupply,
+        from_address: fromAddress,
+        to_address: toAddress,
+        transport: {
+            mode: transportMode,
+            vehicle_number: vehicleNumber,
+            transporter_id: transporterId,
+            transporter_name: transporterName,
+            distance_km: Number(distanceKm) || 0
+        },
         items: items.map(it => ({
             description: it.description,
-            HSN_SAC: it.HSN_SAC,
+            hsn_sac: it.hsn_sac,
             quantity: Number(it.quantity) || 0,
             unit_price: Number(it.unit_price) || 0,
-            rate: Number(it.rate) || 0
-        }))
+            gst_rate: Number(it.gst_rate) || 0
+        })),
+        total_taxable_value: totalTaxableValue,
+        cgst,
+        sgst,
+        total_invoice_value: totalInvoiceValue
     };
 
-    // generateViewPreviewHTML writes the paginated HTML into #view-preview-content
     await generateViewPreviewHTML(wayBillObj);
     const viewHTML = document.getElementById('view-preview-content')?.innerHTML || '';
     document.getElementById("preview-content").innerHTML = viewHTML;
@@ -812,40 +785,40 @@ if (saveBtn) {
 
 // Function to collect form data
 function collectFormData() {
-    const rawDate = document.getElementById('waybill-date')?.value || document.getElementById('date')?.value || document.getElementById('waybill_date')?.value || (new Date()).toISOString().split('T')[0];
+    const rawDate = document.getElementById('waybill-date')?.value || (new Date()).toISOString().split('T')[0];
     let waybillDateISO = rawDate;
     try {
-        // Convert YYYY-MM-DD to ISO string for backend consistency
         const d = new Date(rawDate);
         waybillDateISO = d.toISOString();
     } catch (err) {
         waybillDateISO = rawDate;
     }
 
+    // Get _id if editing existing document
+    const formEl = document.getElementById('waybill-form');
+    const existingId = formEl?.dataset?.ewaybillId || '';
+
     return {
-        eWayBillId: document.getElementById("waybill-id").value,
+        _id: existingId,
+        invoiceId: document.getElementById('waybill-form')?.dataset?.invoiceId || '',
+        eWayBillNo: document.getElementById("ewaybill-no")?.value || '',
+        eWayBillStatus: document.getElementById("ewaybill-status")?.value || 'Draft',
         eWayBillDate: waybillDateISO,
-        projectName: document.getElementById("project-name").value,
-        buyerName: document.getElementById("buyer-name").value,
-        buyerAddress: document.getElementById("buyer-address").value,
-        buyerPhone: document.getElementById("buyer-phone").value,
-        buyerEmail: document.getElementById("buyer-email").value,
-        transportMode: document.getElementById("transport-mode").value,
-        vehicleNumber: document.getElementById("vehicle-number").value,
-        placeSupply: document.getElementById("place-supply").value,
+        fromAddress: document.getElementById("from-address")?.value || '',
+        toAddress: document.getElementById("to-address")?.value || '',
+        transportMode: document.getElementById("transport-mode")?.value || '',
+        vehicleNumber: document.getElementById("vehicle-number")?.value || '',
+        transporterId: document.getElementById("transporter-id")?.value || '',
+        transporterName: document.getElementById("transporter-name")?.value || '',
+        distanceKm: Number(document.getElementById("distance-km")?.value) || 0,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(2) input").value,
-            HSN_SAC: row.querySelector("td:nth-child(3) input").value,
+            hsn_sac: row.querySelector("td:nth-child(3) input").value,
             quantity: row.querySelector("td:nth-child(4) input").value,
             unit_price: row.querySelector("td:nth-child(5) input").value,
-            rate: row.querySelector("td:nth-child(6) input").value,
+            gst_rate: row.querySelector("td:nth-child(6) input").value,
         })),
     };
-}
-
-// Expose a generic getId() used by globalScript.js
-async function getId() {
-    return getWaybillId();
 }
 
 // Initialize drag-drop reordering for waybill items

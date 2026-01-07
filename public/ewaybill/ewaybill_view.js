@@ -1,16 +1,16 @@
 async function generateViewPreviewHTML(wayBill) {
-    // Build items table rows similar to Invoice preview layout
+    // Build items table rows
     let itemsHTML = "";
     let sno = 0;
     (wayBill.items || []).forEach(item => {
         const description = item.description || "-";
-        const hsnCode = item.HSN_SAC || item.hsn_sac || "-";
+        const hsnCode = item.hsn_sac || item.HSN_SAC || "-";
         const qty = Number(item.quantity || 0);
         const unitPrice = Number(item.unit_price || 0);
-        const rate = Number(item.rate || 0);
+        const gstRate = Number(item.gst_rate || 0);
 
         const taxableValue = qty * unitPrice;
-        const rowTotal = taxableValue + (taxableValue * rate / 100);
+        const rowTotal = taxableValue + (taxableValue * gstRate / 100);
 
         itemsHTML += `
             <tr>
@@ -19,34 +19,38 @@ async function generateViewPreviewHTML(wayBill) {
                 <td>${hsnCode}</td>
                 <td>${qty}</td>
                 <td>${formatIndian(unitPrice, 2)}</td>
-                ${rate > 0 ? `<td>${formatIndian(taxableValue, 2)}</td><td>${rate.toFixed(2)}</td>` : ''}
+                ${gstRate > 0 ? `<td>${formatIndian(taxableValue, 2)}</td><td>${gstRate.toFixed(2)}%</td>` : ''}
                 <td>${formatIndian(rowTotal, 2)}</td>
             </tr>`;
     });
 
-    // Totals calculation (match invoice behavior)
-    let totalTaxableValue = 0;
-    let totalCGST = 0;
-    let totalSGST = 0;
+    // Totals calculation
+    let totalTaxableValue = wayBill.total_taxable_value || 0;
+    let totalCGST = wayBill.cgst || 0;
+    let totalSGST = wayBill.sgst || 0;
 
-    (wayBill.items || []).forEach(item => {
-        const qty = Number(item.quantity || 0);
-        const unitPrice = Number(item.unit_price || 0);
-        const rate = Number(item.rate || 0);
-        const taxableValue = qty * unitPrice;
-        totalTaxableValue += taxableValue;
-        if (rate > 0) {
-            const cgst = (taxableValue * (rate / 2)) / 100;
-            const sgst = (taxableValue * (rate / 2)) / 100;
-            totalCGST += cgst;
-            totalSGST += sgst;
-        }
-    });
+    // If not provided, calculate from items
+    if (!totalTaxableValue) {
+        (wayBill.items || []).forEach(item => {
+            const qty = Number(item.quantity || 0);
+            const unitPrice = Number(item.unit_price || 0);
+            const gstRate = Number(item.gst_rate || 0);
+            const taxableValue = qty * unitPrice;
+            totalTaxableValue += taxableValue;
+            if (gstRate > 0) {
+                const cgst = (taxableValue * (gstRate / 2)) / 100;
+                const sgst = (taxableValue * (gstRate / 2)) / 100;
+                totalCGST += cgst;
+                totalSGST += sgst;
+            }
+        });
+    }
 
     const totalTax = totalCGST + totalSGST;
-    const grandTotal = Math.round(totalTaxableValue + totalTax);
+    const grandTotal = wayBill.total_invoice_value || Math.round(totalTaxableValue + totalTax);
+    const hasTax = totalTax > 0;
 
-    // Build paginated pages using the Invoice-style layout
+    // Build paginated pages
     const itemRows = itemsHTML.split('</tr>').filter(r => r.trim().length > 0).map(r => r + '</tr>');
     const ITEMS_PER_PAGE = 15;
     const SUMMARY_SECTION_ROW_COUNT = 8;
@@ -77,7 +81,8 @@ async function generateViewPreviewHTML(wayBill) {
     const companyGSTIN = company?.GSTIN || '';
     const companyEmail = company?.email || '';
     const companyWebsite = company?.website || '';
-    const bank = company?.bank_details || {};
+
+    const transport = wayBill.transport || {};
 
     const pagesHTML = pages.map((pageHTML, index) => {
         const isLast = index === pages.length - 1;
@@ -102,25 +107,30 @@ async function generateViewPreviewHTML(wayBill) {
 
             <div class="second-section">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <p>E-WAYBILL-${wayBill.ewaybill_id || ''}</p>
+                    <p><strong>E-WAY BILL</strong> ${wayBill.ewaybill_no ? `- ${wayBill.ewaybill_no}` : ''}</p>
                     <p><strong>Date: </strong>${formatDateIndian ? formatDateIndian(wayBill.ewaybill_generated_at) : (window.formatDate ? window.formatDate(wayBill.ewaybill_generated_at) : '')}</p>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;">
+                    <p><strong>Status: </strong>${wayBill.ewaybill_status || 'Draft'}</p>
                 </div>
             </div>
 
             ${index === 0 ? `
             <div class="third-section">
                 <div class="buyer-details">
-                    <p><strong>Ship To:</strong></p>
-                    <p>${wayBill.customer_name || ''}</p>
-                    <p>${wayBill.customer_address || ''}</p>
-                    <p>Ph. ${wayBill.customer_phone || ''}</p>
+                    <p><strong>From:</strong></p>
+                    <p style="white-space: pre-line;">${wayBill.from_address || ''}</p>
                 </div>
                 <div class="order-info">
-                    <p><strong>Project:</strong> ${wayBill.project_name || ''}</p>
-                    <p><strong>Transport Mode:</strong> ${wayBill.transport_mode || ''}</p>
-                    <p><strong>Vehicle No:</strong> ${wayBill.vehicle_number || ''}</p>
-                    <p><strong>Place of Supply:</strong> ${wayBill.place_supply || ''}</p>
+                    <p><strong>To:</strong></p>
+                    <p style="white-space: pre-line;">${wayBill.to_address || ''}</p>
                 </div>
+            </div>
+            <div class="transport-section" style="display:flex;gap:20px;padding:10px 0;border-bottom:1px solid #ddd;margin-bottom:10px;">
+                <p><strong>Mode:</strong> ${transport.mode || '-'}</p>
+                <p><strong>Vehicle No:</strong> ${transport.vehicle_number || '-'}</p>
+                <p><strong>Transporter:</strong> ${transport.transporter_name || '-'}</p>
+                <p><strong>Distance:</strong> ${transport.distance_km ? transport.distance_km + ' km' : '-'}</p>
             </div>
             ` : ''}
 
@@ -133,7 +143,7 @@ async function generateViewPreviewHTML(wayBill) {
                             <th>HSN/SAC</th>
                             <th>Qty</th>
                             <th>Unit Price</th>
-                            ${(totalCGST + totalSGST) > 0 ? `<th>Taxable Value (₹)</th><th>Tax Rate (%)</th>` : ''}
+                            ${hasTax ? `<th>Taxable Value (₹)</th><th>GST Rate (%)</th>` : ''}
                             <th>Total Price (₹)</th>
                         </tr>
                     </thead>
@@ -153,15 +163,40 @@ async function generateViewPreviewHTML(wayBill) {
                             <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
                             <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(grandTotal)} Only.</span></p>
                         </div>
-                        
                     </div>
                     <div class="totals-section">
                         <div style="display:flex; width:100%;">
                             <div class="totals-section-sub1" style="width:50%;">
-                                <p>Grand Total:</p>
+                                <p>Total Taxable Value:</p>
                             </div>
                             <div class="totals-section-sub2" style="width:50%;">
-                                <p>₹ ${formatIndian(grandTotal, 2)}</p>
+                                <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+                            </div>
+                        </div>
+                        ${hasTax ? `
+                        <div style="display:flex; width:100%;">
+                            <div class="totals-section-sub1" style="width:50%;">
+                                <p>CGST:</p>
+                            </div>
+                            <div class="totals-section-sub2" style="width:50%;">
+                                <p>₹ ${formatIndian(totalCGST, 2)}</p>
+                            </div>
+                        </div>
+                        <div style="display:flex; width:100%;">
+                            <div class="totals-section-sub1" style="width:50%;">
+                                <p>SGST:</p>
+                            </div>
+                            <div class="totals-section-sub2" style="width:50%;">
+                                <p>₹ ${formatIndian(totalSGST, 2)}</p>
+                            </div>
+                        </div>
+                        ` : ''}
+                        <div style="display:flex; width:100%; border-top: 1px solid #ddd; padding-top: 5px;">
+                            <div class="totals-section-sub1" style="width:50%;">
+                                <p><strong>Total Invoice Value:</strong></p>
+                            </div>
+                            <div class="totals-section-sub2" style="width:50%;">
+                                <p><strong>₹ ${formatIndian(grandTotal, 2)}</strong></p>
                             </div>
                         </div>
                     </div>
@@ -184,30 +219,26 @@ async function generateViewPreviewHTML(wayBill) {
     document.getElementById("view-preview-content").innerHTML = pagesHTML;
 }
 
-// Print and Save as PDF handlers (match HTML IDs)
-document.getElementById("printProject").addEventListener("click", () => {
+// Print and Save as PDF handlers
+document.getElementById("printProject")?.addEventListener("click", () => {
     const previewContent = document.getElementById("view-preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
         window.electronAPI.handlePrintEvent(previewContent, "print");
     } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
+        window.electronAPI?.showAlert1("Print functionality is not available.");
     }
 });
 
-document.getElementById("saveProjectPDF").addEventListener("click", () => {
+document.getElementById("saveProjectPDF")?.addEventListener("click", () => {
     const previewContent = document.getElementById("view-preview-content").innerHTML;
     if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-        // Use the displayed ewaybill id for file naming
-        const idEl = document.getElementById('view-waybill-id');
-        const name = idEl ? `EWayBill-${idEl.textContent.replace(/\s+/g, '')}` : 'EWayBill';
+        const idEl = document.getElementById('view-ewaybill-no');
+        const name = idEl && idEl.textContent !== '-' ? `EWayBill-${idEl.textContent.replace(/\s+/g, '')}` : 'EWayBill';
         window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
     } else {
-        window.electronAPI.showAlert1("Print functionality is not available.");
+        window.electronAPI?.showAlert1("Print functionality is not available.");
     }
 });
-
-// NOTE: formatIndian has been moved to public/js/shared/utils.js
-// It is now available globally via window.formatIndian
 
 async function viewWayBill(wayBillId) {
     try {
@@ -220,10 +251,9 @@ async function viewWayBill(wayBillId) {
         const waybill = data.eWayBill;
         let sno = 0;
 
-        // Hide other sections, show view section (consistent layout)
+        // Hide other sections, show view section
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'none';
-        // Use flex to match other modules' view layout
         const viewEl = document.getElementById('view');
         if (viewEl) viewEl.style.display = 'flex';
         const homeBtn = document.getElementById('new-waybill-btn');
@@ -231,23 +261,23 @@ async function viewWayBill(wayBillId) {
         const previewBtn = document.getElementById('view-preview');
         if (previewBtn) previewBtn.style.display = 'none';
 
-        // Fill Project Details
-        document.getElementById('view-project-name').textContent = waybill.project_name || '-';
-        document.getElementById('view-waybill-id').textContent = waybill.ewaybill_id || '-';
-        // Display the ewaybill date if available
+        // Fill E-Way Bill Details
+        document.getElementById('view-ewaybill-no').textContent = waybill.ewaybill_no || '-';
+        document.getElementById('view-ewaybill-status').textContent = waybill.ewaybill_status || '-';
         const viewDateEl = document.getElementById('view-waybill-date');
-        if (viewDateEl) viewDateEl.textContent = waybill.ewaybill_generated_at ? (typeof formatDateIndian === 'function' ? formatDateIndian(waybill.ewaybill_generated_at) : (window.formatDate ? window.formatDate(waybill.ewaybill_generated_at) : waybill.ewaybill_generated_at)) : '-';
+        if (viewDateEl) viewDateEl.textContent = waybill.ewaybill_generated_at ? (typeof formatDateIndian === 'function' ? formatDateIndian(waybill.ewaybill_generated_at) : waybill.ewaybill_generated_at) : '-';
 
-        // Buyer & Consignee
-        document.getElementById('view-buyer-name').textContent = waybill.customer_name || '-';
-        document.getElementById('view-buyer-address').textContent = waybill.customer_address || '-';
-        document.getElementById('view-buyer-phone').textContent = waybill.customer_phone || '-';
-        document.getElementById('view-buyer-email').textContent = waybill.customer_email || '-';
+        // Address Details
+        document.getElementById('view-from-address').textContent = waybill.from_address || '-';
+        document.getElementById('view-to-address').textContent = waybill.to_address || '-';
 
         // Transportation Details
-        document.getElementById('view-transport-mode').textContent = waybill.transport_mode || '-';
-        document.getElementById('view-vehicle-number').textContent = waybill.vehicle_number || '-';
-        document.getElementById('view-place-supply').textContent = waybill.place_supply || '-';
+        const transport = waybill.transport || {};
+        document.getElementById('view-transport-mode').textContent = transport.mode || '-';
+        document.getElementById('view-vehicle-number').textContent = transport.vehicle_number || '-';
+        document.getElementById('view-transporter-id').textContent = transport.transporter_id || '-';
+        document.getElementById('view-transporter-name').textContent = transport.transporter_name || '-';
+        document.getElementById('view-distance-km').textContent = transport.distance_km ? `${transport.distance_km} km` : '-';
 
         // Item List
         const viewItemsTableBody = document.querySelector("#view-items-table tbody");
@@ -255,44 +285,30 @@ async function viewWayBill(wayBillId) {
 
         (waybill.items || []).forEach(item => {
             const row = document.createElement("tr");
-            // Use consistent classes used in other modules for visual parity
+            const taxableValue = (Number(item.quantity) || 0) * (Number(item.unit_price) || 0);
             row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
             row.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || item.hsn_sac || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${item.hsn_sac || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || '-'}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">${item.rate || '-'}%</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${item.gst_rate || '0'}%</td>
+                <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(taxableValue, 2)}</td>
             `;
             if (viewItemsTableBody) viewItemsTableBody.appendChild(row);
         });
 
-        // Calculate and set totals (professional 3-box layout)
-        let subtotal = 0;
-        let totalTax = 0;
-
-        (waybill.items || []).forEach(item => {
-            const qty = parseFloat(item.quantity || 0);
-            const unitPrice = parseFloat(item.unit_price || 0);
-            const rate = parseFloat(item.rate || 0);
-            const taxableValue = qty * unitPrice;
-            const cgst = (taxableValue * rate / 2) / 100;
-            const sgst = (taxableValue * rate / 2) / 100;
-
-            subtotal += taxableValue;
-            totalTax += (cgst + sgst);
-        });
-
-        const grandTotal = Math.round(subtotal + totalTax);
-
+        // Set totals
         const setTextContent = (id, value) => {
             const el = document.getElementById(id);
             if (el) el.textContent = value;
-        }
-        setTextContent('view-subtotal', `₹ ${formatIndian(subtotal, 2)}`);
-        setTextContent('view-tax', totalTax > 0 ? `₹ ${formatIndian(totalTax, 2)}` : 'No Tax');
-        setTextContent('view-grand-total', `₹ ${formatIndian(grandTotal, 2)}`);
+        };
+
+        setTextContent('view-total-taxable', `₹ ${formatIndian(waybill.total_taxable_value || 0, 2)}`);
+        setTextContent('view-cgst', `₹ ${formatIndian(waybill.cgst || 0, 2)}`);
+        setTextContent('view-sgst', `₹ ${formatIndian(waybill.sgst || 0, 2)}`);
+        setTextContent('view-total-invoice', `₹ ${formatIndian(waybill.total_invoice_value || 0, 2)}`);
 
         await generateViewPreviewHTML(waybill);
 
@@ -302,5 +318,5 @@ async function viewWayBill(wayBillId) {
     }
 }
 
-// Expose viewWayBill globally so it can be invoked from other scripts
+// Expose viewWayBill globally
 window.viewWayBill = viewWayBill;

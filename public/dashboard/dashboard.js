@@ -141,12 +141,12 @@ function loadRecentActivity() {
     Promise.all([
         fetchWithRetry('/quotation/all').catch(() => []),
         fetchWithRetry('/invoice/all').catch(() => []),
-        fetchWithRetry('/waybill/all').catch(() => []),
+        fetchWithRetry('/eWayBill/recent-ewaybills').catch(() => ({ eWayBill: [] })),
         fetchWithRetry('/service/recent-services').catch(() => ({ services: [] })),
         fetchWithRetry('/reports/saved?limit=10').catch(() => ({ reports: [] })),
         fetchWithRetry('/purchaseOrder/recent-purchase-orders').catch(() => ({ purchaseOrders: [] }))
     ])
-        .then(([quotations, invoices, waybills, services, reportsData, purchaseOrdersData]) => {
+        .then(([quotations, invoices, waybillsData, services, reportsData, purchaseOrdersData]) => {
             const activities = [];
 
             // Process quotations
@@ -176,16 +176,20 @@ function loadRecentActivity() {
                 });
             });
 
-            // Process waybills
-            (waybills || []).slice(0, 5).forEach(w => {
+            // Process waybills (using new schema)
+            const waybills = waybillsData?.eWayBill || waybillsData || [];
+            (Array.isArray(waybills) ? waybills : []).slice(0, 5).forEach(w => {
+                // Use new schema fields: ewaybill_no, from_address, to_address, _id
+                const displayId = w.ewaybill_no || w._id || 'N/A';
+                const description = w.to_address ? `To: ${w.to_address.split('\n')[0].substring(0, 50)}` : 'E-Way Bill';
                 activities.push({
                     type: 'waybill',
                     icon: 'fa-truck',
                     color: 'purple',
-                    title: `Waybill #${w.waybill_id || 'N/A'}`,
-                    description: w.project_name || 'No project name',
-                    time: w.updatedAt || w.createdAt || w.waybill_date || new Date(),
-                    link: `../waybill/wayBill.html?view=${encodeURIComponent(w.waybill_id || '')}`
+                    title: `E-Way Bill #${displayId}`,
+                    description: description,
+                    time: w.updatedAt || w.createdAt || w.ewaybill_generated_at || new Date(),
+                    link: `../ewaybill/eWayBill.html?view=${encodeURIComponent(w._id || '')}`
                 });
             });
 
