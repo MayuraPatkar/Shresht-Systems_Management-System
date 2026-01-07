@@ -1,9 +1,45 @@
-// Example: Switch active class on sidebar navigation
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', function () {
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    this.classList.add('active');
-  });
+// Sidebar Active State Management
+document.addEventListener('DOMContentLoaded', () => {
+  const currentPath = window.location.pathname.toLowerCase();
+
+  // Map routes to sidebar element IDs
+  const routeMap = {
+    '/dashboard': 'dashboard',
+    '/quotation': 'quotation',
+    '/purchaseorder': 'postOrder',
+    '/invoice': 'invoice',
+    '/ewaybill': 'wayBill',
+    '/service': 'service',
+    '/stock': 'stock',
+    '/comms': 'comms',
+    '/reports': 'reports',
+    '/calculations': 'calculations',
+    '/settings': 'settings'
+  };
+
+  // Find matching route key
+  let activeId = null;
+  // Check for exact match first or startsWith to handle sub-paths
+  for (const route in routeMap) {
+    if (currentPath.startsWith(route)) {
+      activeId = routeMap[route];
+      break;
+    }
+  }
+
+  // Fallback: Check if session storage has a tab set (useful for ensuring persistence if URL logic fails)
+  if (!activeId) {
+    const storedTab = sessionStorage.getItem('currentTab');
+    // special handling for mapping stored generic names to IDs if needed, 
+    // but usually the storedTab matches the ID convention or we can rely on route.
+    // For now, route matching is safest.
+  }
+
+  // Apply active class
+  if (activeId) {
+    document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+    document.getElementById(activeId)?.classList.add('active');
+  }
 });
 
 document.addEventListener("keydown", function (event) {
@@ -29,7 +65,7 @@ if (!window._ctrlTabNavRegistered) {
         '/quotation',
         '/purchaseorder',
         '/invoice',
-        '/waybill',
+        '/ewaybill',
         '/service',
         '/stock',
         '/comms',
@@ -68,10 +104,17 @@ if (!window._ctrlTabNavRegistered) {
 }
 
 // Sidebar navigation - add null checks for elements that may not exist on all pages
-document.getElementById('dashboard')?.addEventListener('click', () => {
-  window.location = '/dashboard';
-  sessionStorage.setItem('currentTab', 'dashboard');
-})
+// Robust Dashboard Link Finder
+const dashboardLink = document.getElementById('dashboard') ||
+  Array.from(document.querySelectorAll('#sidebar-nav a')).find(el => el.textContent.trim().includes('Dashboard'));
+
+if (dashboardLink) {
+  dashboardLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location = '/dashboard';
+    sessionStorage.setItem('currentTab', 'dashboard');
+  });
+}
 
 document.getElementById('quotation')?.addEventListener('click', () => {
   window.location = '/quotation';
