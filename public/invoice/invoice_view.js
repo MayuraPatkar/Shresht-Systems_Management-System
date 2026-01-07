@@ -463,7 +463,6 @@ async function renderInvoiceView(invoice, userRole, viewType) {
     setTextContent('view-purchase-order-date', invoice.po_date ? formatDateIndian(invoice.po_date) : null);
     setTextContent('view-delivery-challan-number', (invoice.dc_number && invoice.dc_number !== 'undefined') ? invoice.dc_number : null);
     setTextContent('view-delivery-challan-date', invoice.dc_date ? formatDateIndian(invoice.dc_date) : null);
-    setTextContent('view-waybill-number', invoice.Waybill_id);
     setTextContent('view-service-months', (invoice.service_month) ? invoice.service_month :'0');
     setTextContent('view-service-stage', (invoice.service_stage) ? invoice.service_stage : 'No Service');
     setTextContent('view-margin', (invoice.margin !== undefined && invoice.margin !== null && invoice.margin !== 0) ? `${invoice.margin}%` : null);

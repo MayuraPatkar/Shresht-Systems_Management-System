@@ -10,7 +10,6 @@ const invoiceSchema = new mongoose.Schema({
     po_date: { type: Date },
     dc_number: { type: String },
     dc_date: { type: Date },
-    Waybill_id: { type: String },
 
     // customer and consignee
     customer_name: { type: String, trim: true },

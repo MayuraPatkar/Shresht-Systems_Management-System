@@ -441,7 +441,6 @@ async function openInvoice(id) {
         document.getElementById('delivery-challan-number').value = invoice.dc_number || '';
         document.getElementById('delivery-challan-date').value = formatDateForInput(invoice.dc_date);
         document.getElementById('service-months').value = invoice.service_month || 0;
-        document.getElementById('waybill-number').value = invoice.Waybill_id || '';
         document.getElementById('buyer-name').value = invoice.customer_name || '';
         document.getElementById('buyer-address').value = invoice.customer_address || '';
         document.getElementById('buyer-phone').value = invoice.customer_phone || '';
@@ -982,7 +981,6 @@ async function generatePreview() {
     const projectName = document.getElementById("project-name").value;
     const poNumber = document.getElementById("purchase-order-number").value || '';
     const dcNumber = document.getElementById("delivery-challan-number").value || '';
-    const wayBillNumber = document.getElementById("waybill-number").value || '';
     const buyerName = document.getElementById("buyer-name").value;
     const invoiceDate = document.getElementById('invoice-date')?.value || '';
     const buyerAddress = document.getElementById("buyer-address").value;
@@ -1239,7 +1237,6 @@ function collectFormData() {
         dcNumber: document.getElementById("delivery-challan-number").value || '',
         dcDate: document.getElementById("delivery-challan-date").value,
         serviceMonth: document.getElementById("service-months").value,
-        wayBillNumber: document.getElementById("waybill-number").value,
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,
         buyerPhone: document.getElementById("buyer-phone").value,
