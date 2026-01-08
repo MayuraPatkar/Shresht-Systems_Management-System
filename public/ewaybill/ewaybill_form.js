@@ -458,8 +458,12 @@ function addItemFromData(item, itemSno, insertIndex) {
     const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
     qtyInputs.forEach(input => {
         if (input) {
+            input.setAttribute('step', '1');
             input.addEventListener('keypress', function (event) {
-                if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+            });
+            input.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '');
             });
         }
     });

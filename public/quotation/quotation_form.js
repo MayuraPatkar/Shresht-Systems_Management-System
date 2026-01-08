@@ -198,8 +198,12 @@ async function openQuotation(quotationId) {
             const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
             qtyInputs.forEach(input => {
                 if (input) {
+                    input.setAttribute('step', '1');
                     input.addEventListener('keypress', function (event) {
-                        if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                        if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                    });
+                    input.addEventListener('input', function () {
+                        this.value = this.value.replace(/[^0-9]/g, '');
                     });
                 }
             });
@@ -501,8 +505,12 @@ async function cloneQuotation(sourceQuotationId) {
                 const qtyInputsClone = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
                 qtyInputsClone.forEach(input => {
                     if (input) {
+                        input.setAttribute('step', '1');
                         input.addEventListener('keypress', function (event) {
-                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                        });
+                        input.addEventListener('input', function () {
+                            this.value = this.value.replace(/[^0-9]/g, '');
                         });
                     }
                 });
@@ -1667,3 +1675,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Expose the function to be called from other scripts
+document.addEventListener('DOMContentLoaded', () => {
+    // Global delegation for quantity inputs to ensure no decimals
+    document.body.addEventListener('keypress', function (e) {
+        if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(4)')?.querySelector('input') === e.target)) {
+            if (e.key === '.' || e.key === 'e' || e.key === '-' || e.key === '+') {
+                e.preventDefault();
+            }
+        }
+    });
+    document.body.addEventListener('input', function (e) {
+        if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(4)')?.querySelector('input') === e.target)) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        }
+    });
+});

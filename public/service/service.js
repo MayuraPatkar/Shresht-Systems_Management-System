@@ -888,9 +888,17 @@ function addItemRow(data = {}) {
 
     container.appendChild(row);
 
-    row.querySelector('.item-qty').addEventListener('keypress', function (event) {
-        if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
-    });
+    const qtyInput = row.querySelector('.item-qty');
+    if (qtyInput) {
+        qtyInput.setAttribute('step', '1');
+        qtyInput.addEventListener('keypress', function (event) {
+            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+        });
+        qtyInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            updateLiveTotals();
+        });
+    }
 
     // Setup autocomplete for description field
     const descInput = row.querySelector('.item-desc');

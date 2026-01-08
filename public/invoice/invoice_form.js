@@ -302,8 +302,12 @@ window.beforeStepAdvance = async function (step) {
                 const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
                 qtyInputs.forEach(input => {
                     if (input) {
+                        input.setAttribute('step', '1');
                         input.addEventListener('keypress', function (event) {
-                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                        });
+                        input.addEventListener('input', function () {
+                            this.value = this.value.replace(/[^0-9]/g, '');
                         });
                     }
                 });
@@ -371,8 +375,12 @@ window.beforeStepAdvance = async function (step) {
                 const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
                 qtyInputs.forEach(input => {
                     if (input) {
+                        input.setAttribute('step', '1');
                         input.addEventListener('keypress', function (event) {
-                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                        });
+                        input.addEventListener('input', function () {
+                            this.value = this.value.replace(/[^0-9]/g, '');
                         });
                     }
                 });
@@ -537,8 +545,12 @@ async function openInvoice(id) {
                 const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
                 qtyInputs.forEach(input => {
                     if (input) {
+                        input.setAttribute('step', '1');
                         input.addEventListener('keypress', function (event) {
-                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                        });
+                        input.addEventListener('input', function () {
+                            this.value = this.value.replace(/[^0-9]/g, '');
                         });
                     }
                 });
@@ -605,8 +617,12 @@ async function openInvoice(id) {
                 const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
                 qtyInputs.forEach(input => {
                     if (input) {
+                        input.setAttribute('step', '1');
                         input.addEventListener('keypress', function (event) {
-                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                        });
+                        input.addEventListener('input', function () {
+                            this.value = this.value.replace(/[^0-9]/g, '');
                         });
                     }
                 });
@@ -695,8 +711,12 @@ async function openInvoice(id) {
                 const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
                 qtyInputs.forEach(input => {
                     if (input) {
+                        input.setAttribute('step', '1');
                         input.addEventListener('keypress', function (event) {
-                            if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                        });
+                        input.addEventListener('input', function () {
+                            this.value = this.value.replace(/[^0-9]/g, '');
                         });
                     }
                 });
@@ -1262,3 +1282,19 @@ function collectFormData() {
         totalTaxDuplicate: totalTaxDuplicate
     };
 }
+
+// Global delegation for quantity inputs in Invoice Form
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.addEventListener('keypress', function (e) {
+        if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(4)')?.querySelector('input') === e.target)) {
+            if (e.key === '.' || e.key === 'e' || e.key === '-' || e.key === '+') {
+                e.preventDefault();
+            }
+        }
+    });
+    document.body.addEventListener('input', function (e) {
+        if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(4)')?.querySelector('input') === e.target)) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        }
+    });
+});

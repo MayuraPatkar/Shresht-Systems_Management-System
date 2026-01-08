@@ -1,6 +1,21 @@
 // Global variables
 let currentStockData = [];
 
+// Helper to prevent decimal inputs
+function preventDecimals(input) {
+    if (!input) return;
+    input.setAttribute('step', '1');
+    input.addEventListener('keypress', function (event) {
+        if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') {
+            event.preventDefault();
+        }
+    });
+    input.addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+}
+
+
 function showModal(modalId) {
     const el = document.getElementById(modalId);
     if (el) {
@@ -798,6 +813,14 @@ document.getElementById('closeEditModalBtn')?.addEventListener('click', () => hi
 document.getElementById('cancelEditBtn')?.addEventListener('click', () => hideModal('editStockModal'));
 document.getElementById('closeDetailsModalBtn')?.addEventListener('click', () => hideModal('itemDetailsModal'));
 document.getElementById('closeDetailsBtn')?.addEventListener('click', () => hideModal('itemDetailsModal'));
+
+// Initialize validation
+document.addEventListener('DOMContentLoaded', () => {
+    preventDecimals(document.getElementById('quantityModalInput'));
+    preventDecimals(document.getElementById('minQuantity'));
+    preventDecimals(document.getElementById('editMinQuantity'));
+});
+
 document.getElementById('closePrintModalBtn')?.addEventListener('click', () => hideModal('printModal'));
 document.getElementById('cancelPrintBtn')?.addEventListener('click', () => hideModal('printModal'));
 

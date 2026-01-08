@@ -339,7 +339,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (emailInput.value !== cleaned) emailInput.value = cleaned;
         });
     }
+
+    // Global delegation for quantity inputs in Purchase Order
+    document.body.addEventListener('keypress', function (e) {
+        if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(7)')?.querySelector('input') === e.target)) {
+            if (e.key === '.' || e.key === 'e' || e.key === '-' || e.key === '+') {
+                e.preventDefault();
+            }
+        }
+    });
+    document.body.addEventListener('input', function (e) {
+        if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(7)')?.querySelector('input') === e.target)) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        }
+    });
 });
+
 
 // Note: selectedIndex, data, fetchData, fetchStockData, showSuggestions, and handleKeyboardNavigation
 // are already defined in globalScript.js
@@ -779,8 +794,12 @@ async function openPurchaseOrder(purchaseOrderId) {
         const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(7) input')];
         qtyInputs.forEach(input => {
             if (input) {
+                input.setAttribute('step', '1');
                 input.addEventListener('keypress', function (event) {
-                    if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
+                    if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                });
+                input.addEventListener('input', function () {
+                    this.value = this.value.replace(/[^0-9]/g, '');
                 });
             }
         });
