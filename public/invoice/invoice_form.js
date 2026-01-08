@@ -448,7 +448,8 @@ async function openInvoice(id) {
         document.getElementById('purchase-order-date').value = formatDateForInput(invoice.po_date);
         document.getElementById('delivery-challan-number').value = invoice.dc_number || '';
         document.getElementById('delivery-challan-date').value = formatDateForInput(invoice.dc_date);
-        document.getElementById('service-months').value = invoice.service_month || 0;
+        document.getElementById('service-months').value = invoice.service_after_months || 0;
+        document.getElementById('margin').value = invoice.margin || 0;
         document.getElementById('buyer-name').value = invoice.customer_name || '';
         document.getElementById('buyer-address').value = invoice.customer_address || '';
         document.getElementById('buyer-phone').value = invoice.customer_phone || '';
@@ -1255,7 +1256,8 @@ function collectFormData() {
         poDate: document.getElementById("purchase-order-date").value || null,
         dcNumber: document.getElementById("delivery-challan-number").value || '',
         dcDate: document.getElementById("delivery-challan-date").value,
-        serviceMonth: document.getElementById("service-months").value,
+        serviceAfterMonths: document.getElementById("service-months").value,
+        margin: document.getElementById("margin").value,
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,
         buyerPhone: document.getElementById("buyer-phone").value,
