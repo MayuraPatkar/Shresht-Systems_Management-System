@@ -25,7 +25,12 @@ window.changeStep = async function (step) {
 };
 
 function updateNavigation() {
-    document.getElementById("prev-btn").disabled = window.currentStep === 1;
+    const isUpdateMode = sessionStorage.getItem('currentTab-status') === 'update';
+    if (isUpdateMode && window.currentStep === 2) {
+        document.getElementById("prev-btn").disabled = true;
+    } else {
+        document.getElementById("prev-btn").disabled = window.currentStep === 1;
+    }
     document.getElementById("next-btn").disabled = window.currentStep === window.totalSteps;
 }
 
