@@ -104,19 +104,40 @@ async function importInvoiceData(invoiceId) {
         if (itemsContainer) itemsContainer.innerHTML = "";
 
         // Populate items from invoice (use items_original or items_duplicate)
+
         const items = invoice.items_original || invoice.items_duplicate || [];
         let sno = 1;
-        items.forEach(item => {
+
+        for (const item of items) {
+            let stockId = item.stock_id || '';
+
+            // If stock_id is missing, try to fetch it from stock based on description
+            if (!stockId && item.description) {
+                try {
+                    // Try to find fetchStockData function (global)
+                    const fetchFn = window.fetchStockData || (typeof fetchStockData === 'function' ? fetchStockData : null);
+
+                    if (fetchFn) {
+                        const stockData = await fetchFn(item.description);
+                        if (stockData && stockData._id) {
+                            stockId = stockData._id;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not fetch stock data for item:', item.description);
+                }
+            }
+
             addItemFromData({
                 description: item.description || '',
                 hsn_sac: item.HSN_SAC || item.hsn_sac || '',
                 quantity: item.quantity || 0,
                 unit_price: item.unit_price || 0,
                 gst_rate: item.rate || item.gst_rate || 0,
-                stock_id: item.stock_id || '' // Import stock_id if available
+                stock_id: stockId // Import stock_id if available or fetched
             }, sno);
             sno++;
-        });
+        }
 
         // Populate addresses
         const fromAddressEl = document.getElementById('from-address');

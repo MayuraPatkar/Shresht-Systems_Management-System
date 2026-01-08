@@ -21,10 +21,10 @@ const invoiceSchema = new mongoose.Schema({
 
     // service
     service_after_months: { type: Number, default: 0 },
-    service_status: { 
-        type: String, 
-        enum: ['Active', 'Paused', 'Closed'], 
-        default: 'Active' 
+    service_status: {
+        type: String,
+        enum: ['Active', 'Paused', 'Closed'],
+        default: 'Active'
     },
     next_service_date: { type: Date },
     service_stage: { type: Number, default: 0 },
@@ -91,12 +91,12 @@ const invoiceSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-invoiceSchema.pre('save', function() {
+invoiceSchema.pre('save', function () {
     this.updatedAt = Date.now();
 });
 
 // Update payment status based on paid amount
-invoiceSchema.methods.updatePaymentStatus = function() {
+invoiceSchema.methods.updatePaymentStatus = function () {
     // Prefer duplicate total (customer-facing), fallback to original
     const totalDue = (typeof this.total_amount_duplicate !== 'undefined' && this.total_amount_duplicate !== null)
         ? this.total_amount_duplicate
