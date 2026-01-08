@@ -185,6 +185,24 @@ async function moveNext() {
 
 document.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
+    // Check if we are in view mode (view section is visible)
+    const viewSection = document.getElementById('view');
+    if (viewSection && window.getComputedStyle(viewSection).display !== 'none') {
+      return;
+    }
+
+    // Check if we are on global home screen (not in a form)
+    // This assumes specific IDs for home sections like 'home'
+    const homeSection = document.getElementById('home');
+    const newSection = document.getElementById('new');
+
+    // If home is visible and new/form is hidden, don't move next
+    if (homeSection && window.getComputedStyle(homeSection).display !== 'none') {
+      if (!newSection || window.getComputedStyle(newSection).display === 'none') {
+        return;
+      }
+    }
+
     moveNext();
   }
 });
