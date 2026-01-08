@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     initShortcutsModal();
     initWayBillFilters();
-    document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
+    document.addEventListener('keydown', handleEWayBillKeyboardShortcuts, true);
 });
 
 // These variables and functions are now in waybill_form.js to avoid duplication
@@ -324,7 +324,7 @@ function isTypingContext() {
     return tagName === 'INPUT' || tagName === 'TEXTAREA' || active.isContentEditable || tagName === 'SELECT';
 }
 
-function handleQuotationKeyboardShortcuts(event) {
+function handleEWayBillKeyboardShortcuts(event) {
     const keyLower = event.key.toLowerCase();
     const isModifierPressed = event.ctrlKey || event.metaKey;
     const homeButton = document.getElementById('home-btn');
