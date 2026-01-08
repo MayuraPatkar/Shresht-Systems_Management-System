@@ -120,6 +120,8 @@ function setupGenericAutocomplete(input, dataList) {
                 suggestionsContainer.style.display = 'none';
                 // Don't trigger autocomplete on the other fields
                 isUserTyping = false;
+                // Dispatch input event to sync with hidden table inputs
+                input.dispatchEvent(new Event('input', { bubbles: true }));
             };
             suggestionsContainer.appendChild(li);
         });
