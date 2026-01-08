@@ -1633,8 +1633,8 @@ window.validateCurrentStep = async function () {
                 window.electronAPI.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
                 qty.focus();
                 isValid = false;
-            } else if (!price.value || parseFloat(price.value) < 0) {
-                window.electronAPI.showAlert1(`Item #${index + 1}: Price is required.`);
+            } else if (!price.value || parseFloat(price.value) <= 0) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Unit Price must be greater than 0.`);
                 price.focus();
                 isValid = false;
             }

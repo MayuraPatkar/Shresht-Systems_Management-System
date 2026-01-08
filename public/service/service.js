@@ -1162,6 +1162,19 @@ async function nextFormStep() {
             return;
         }
 
+        // Validate items
+        const items = document.querySelectorAll('#items-container .item-row');
+        let isValid = true;
+        for (const [index, row] of items.entries()) {
+            const price = row.querySelector('.item-price');
+            if (price && (!price.value || parseFloat(price.value) <= 0)) {
+                showToast(`Item #${index + 1}: Unit Price must be greater than 0`, 'error');
+                isValid = false;
+                break; // Stop at first error
+            }
+        }
+        if (!isValid) return;
+
         // Generate preview
         await generatePreview();
     }

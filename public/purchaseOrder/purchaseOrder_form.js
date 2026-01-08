@@ -1528,8 +1528,8 @@ window.validateCurrentStep = async function () {
                 qty?.focus();
                 return false;
             }
-            if (!price || Number(price.value) < 0) {
-                window.electronAPI.showAlert1(`Item #${index + 1}: Unit Price is required.`);
+            if (!price || Number(price.value) <= 0) {
+                window.electronAPI.showAlert1(`Item #${index + 1}: Unit Price must be greater than 0.`);
                 price?.focus();
                 return false;
             }
