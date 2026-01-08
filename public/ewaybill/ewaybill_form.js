@@ -347,6 +347,18 @@ async function openWayBill(wayBillId) {
         // Store the MongoDB _id for updates
         document.getElementById('waybill-form').dataset.ewaybillId = wayBill._id;
 
+        // Store invoice ID from populated object or direct value
+        if (wayBill.invoice_id) {
+            if (typeof wayBill.invoice_id === 'object' && wayBill.invoice_id._id) {
+                document.getElementById('waybill-form').dataset.invoiceId = wayBill.invoice_id._id;
+                // Also populate the input if it exists
+                const invoiceIdInput = document.getElementById('invoice-id');
+                if (invoiceIdInput) invoiceIdInput.value = wayBill.invoice_id.invoice_id || '';
+            } else {
+                document.getElementById('waybill-form').dataset.invoiceId = wayBill.invoice_id;
+            }
+        }
+
         // Populate form fields based on new schema
         document.getElementById('ewaybill-no').value = wayBill.ewaybill_no || '';
         document.getElementById('ewaybill-status').value = wayBill.ewaybill_status || 'Draft';
@@ -598,6 +610,8 @@ function renumberItems() {
 async function generatePreview() {
     const ewaybillNo = document.getElementById("ewaybill-no")?.value || "";
     const ewaybillStatus = document.getElementById("ewaybill-status")?.value || "Draft";
+    // Prefer the visible input value (readable ID) over the dataset (likely ObjectId)
+    const invoiceId = document.getElementById("invoice-id")?.value || document.getElementById('waybill-form')?.dataset?.invoiceId || "";
     const fromAddress = document.getElementById("from-address")?.value || "";
     const toAddress = document.getElementById("to-address")?.value || "";
     const transportMode = document.getElementById("transport-mode")?.value || "";
@@ -643,6 +657,7 @@ async function generatePreview() {
     const wayBillObj = {
         ewaybill_no: ewaybillNo,
         ewaybill_status: ewaybillStatus,
+        invoice_id: invoiceId,
         ewaybill_generated_at: waybillDate,
         from_address: fromAddress,
         to_address: toAddress,
