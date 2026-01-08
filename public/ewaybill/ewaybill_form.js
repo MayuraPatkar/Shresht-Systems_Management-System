@@ -204,9 +204,13 @@ async function checkExistingEWayBillForInvoice(invoiceId) {
 }
 
 // Function to check if an e-way bill number already exists
-async function checkExistingEWayBillNo(ewaybillNo) {
+async function checkExistingEWayBillNo(ewaybillNo, excludeId = null) {
     try {
-        const response = await fetch(`/eWayBill/check-ewaybill-no/${encodeURIComponent(ewaybillNo)}`);
+        let url = `/eWayBill/check-ewaybill-no/${encodeURIComponent(ewaybillNo)}`;
+        if (excludeId) {
+            url += `?excludeId=${encodeURIComponent(excludeId)}`;
+        }
+        const response = await fetch(url);
         if (response.ok) {
             const data = await response.json();
             return data.exists;
@@ -256,16 +260,18 @@ window.validateCurrentStep = async function () {
             return false;
         }
 
-        // Check if e-way bill number already exists (only for new e-way bills)
+        // Check if e-way bill number already exists
+        // When editing, exclude the current e-waybill from duplicate check
         const formEl = document.getElementById('waybill-form');
-        const isEditing = formEl?.dataset?.ewaybillId;
-        if (!isEditing) {
-            const exists = await checkExistingEWayBillNo(ewaybillNo.value.trim());
-            if (exists) {
-                window.electronAPI.showAlert1('An E-Way Bill with this number already exists. Please enter a unique E-Way Bill Number.');
-                ewaybillNo?.focus();
-                return false;
-            }
+        const currentEWayBillId = formEl?.dataset?.ewaybillId;
+        const exists = await checkExistingEWayBillNo(
+            ewaybillNo.value.trim(),
+            currentEWayBillId || null
+        );
+        if (exists) {
+            window.electronAPI.showAlert1('An E-Way Bill with this number already exists. Please enter a unique E-Way Bill Number.');
+            ewaybillNo?.focus();
+            return false;
         }
     }
 

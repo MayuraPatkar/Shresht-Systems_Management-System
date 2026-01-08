@@ -240,8 +240,17 @@ router.get('/check-invoice/:invoiceId', async (req, res) => {
 router.get('/check-ewaybill-no/:ewaybillNo', async (req, res) => {
     try {
         const { ewaybillNo } = req.params;
+        const { excludeId } = req.query; // Optional: exclude a specific e-waybill ID (for edit mode)
 
-        const existingEWayBill = await EWayBills.findOne({ ewaybill_no: ewaybillNo });
+        // Build query to find e-waybill with this number
+        const query = { ewaybill_no: ewaybillNo };
+        
+        // If excludeId is provided, exclude that specific e-waybill from the check
+        if (excludeId) {
+            query._id = { $ne: excludeId };
+        }
+
+        const existingEWayBill = await EWayBills.findOne(query);
 
         res.status(200).json({ exists: !!existingEWayBill });
     } catch (error) {
