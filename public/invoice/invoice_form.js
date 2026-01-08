@@ -1068,7 +1068,6 @@ async function generatePreview() {
                     <p><strong>Project:</strong> ${projectName || '-'}</p>
                     <p><strong>P.O No:</strong> ${poNumber || '-'}</p>
                     <p><strong>D.C No:</strong> ${dcNumber || '-'}</p>
-                    <p><strong>E-Way Bill:</strong> ${wayBillNumber || '-'}</p>
                 </div>
             </div>
             ` : ''}

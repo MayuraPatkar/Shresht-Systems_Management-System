@@ -112,7 +112,8 @@ async function importInvoiceData(invoiceId) {
                 hsn_sac: item.HSN_SAC || item.hsn_sac || '',
                 quantity: item.quantity || 0,
                 unit_price: item.unit_price || 0,
-                gst_rate: item.rate || item.gst_rate || 0
+                gst_rate: item.rate || item.gst_rate || 0,
+                stock_id: item.stock_id || '' // Import stock_id if available
             }, sno);
             sno++;
         });
@@ -276,7 +277,7 @@ window.validateCurrentStep = async function () {
             return false;
         }
         for (const [index, row] of Array.from(itemsTable.rows).entries()) {
-            const desc = row.querySelector('td:nth-child(2) input');
+            const desc = row.querySelector('td:nth-child(2) input[type="text"]');
             const qty = row.querySelector('td:nth-child(4) input');
             const price = row.querySelector('td:nth-child(5) input');
             if (!desc || !desc.value.trim()) {
@@ -392,6 +393,7 @@ function addItemFromData(item, itemSno, insertIndex) {
         <div class="item-number">${itemSno}</div>
         <div class="item-field description">
             <div style="position: relative;">
+                <input type="hidden" class="stock-id" value="${item.stock_id || ''}">
                 <input type="text" value="${item.description || ''}" placeholder="Enter item description" required>
                 <ul class="suggestions"></ul>
             </div>
@@ -426,6 +428,7 @@ function addItemFromData(item, itemSno, insertIndex) {
     row.innerHTML = `
         <td><div class="item-number">${itemSno}</div></td>
         <td>
+            <input type="hidden" class="stock-id" value="${item.stock_id || ''}">
             <input type="text" value="${item.description || ''}" placeholder="Item Description" required>
             <ul class="suggestions"></ul>
         </td>
@@ -461,27 +464,27 @@ function addItemFromData(item, itemSno, insertIndex) {
         }
     });
 
-    // Setup autocomplete for description input
-    const cardDescriptionInput = card.querySelector('.description input[type="text"], .description input');
-    const cardSuggestions = card.querySelector('.suggestions');
+    // Setup autocomplete for description input - use global functions
+    const cardDescriptionInput = card.querySelector('.item-field.description input[type="text"]');
+    const cardSuggestions = card.querySelector('.item-field.description .suggestions');
     const rowDescriptionInput = row.querySelector('td:nth-child(2) input[type="text"]');
-    const rowSuggestions = row.querySelector('.suggestions');
+    const rowSuggestions = row.querySelector('td:nth-child(2) .suggestions');
 
     if (cardDescriptionInput && cardSuggestions) {
         cardDescriptionInput.addEventListener('input', function () {
-            showSuggestionsWaybill(cardDescriptionInput, cardSuggestions);
+            showSuggestions(cardDescriptionInput, cardSuggestions);
         });
         cardDescriptionInput.addEventListener('keydown', function (event) {
-            handleKeyboardNavigationWaybill(event, cardDescriptionInput, cardSuggestions);
+            handleKeyboardNavigation(event, cardDescriptionInput, cardSuggestions);
         });
     }
     if (rowDescriptionInput && rowSuggestions) {
         rowDescriptionInput.addEventListener('input', function () {
-            showSuggestionsWaybill(rowDescriptionInput, rowSuggestions);
+            showSuggestions(rowDescriptionInput, rowSuggestions);
             if (cardDescriptionInput) cardDescriptionInput.value = rowDescriptionInput.value;
         });
         rowDescriptionInput.addEventListener('keydown', function (event) {
-            handleKeyboardNavigationWaybill(event, rowDescriptionInput, rowSuggestions);
+            handleKeyboardNavigation(event, rowDescriptionInput, rowSuggestions);
         });
     }
 
@@ -516,6 +519,7 @@ function addItem(insertIndex) {
 
         addItemFromData({
             description: '',
+            stock_id: '',
             hsn_sac: '',
             quantity: '',
             unit_price: '',
@@ -523,137 +527,6 @@ function addItem(insertIndex) {
         }, itemSno, insertIndex);
     } finally {
         setTimeout(() => { delete addItem._processing; }, 50);
-    }
-}
-
-// --- Waybill-specific autocomplete implementation ---
-let waybillSelectedIndex = -1;
-let waybillData = [];
-
-async function fetchWaybillStockNames() {
-    try {
-        const response = await fetch('/stock/get-names');
-        waybillData = await response.json();
-    } catch (error) {
-        console.error('Error fetching stock names for waybill:', error);
-    }
-}
-
-fetchWaybillStockNames();
-
-async function fetchWaybillStockData(itemName) {
-    try {
-        const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching stock data for waybill:', error);
-        return null;
-    }
-}
-
-let isAutofillInProgressWaybill = false;
-
-function showSuggestionsWaybill(input, suggestionsList) {
-    if (isAutofillInProgressWaybill) {
-        return;
-    }
-    const query = input.value.toLowerCase();
-    suggestionsList.innerHTML = '';
-    waybillSelectedIndex = -1;
-    if (!query) {
-        suggestionsList.style.display = 'none';
-        return;
-    }
-
-    const filtered = waybillData.filter(item => item.toLowerCase().includes(query));
-    if (!filtered.length) {
-        suggestionsList.style.display = 'none';
-        return;
-    }
-    suggestionsList.style.display = 'block';
-    filtered.forEach((item) => {
-        const li = document.createElement('li');
-        li.textContent = item;
-        li.addEventListener('click', async () => {
-            input.value = item;
-            suggestionsList.style.display = 'none';
-            isAutofillInProgressWaybill = true;
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            isAutofillInProgressWaybill = false;
-            const parent = input.closest('.item-card') || input.closest('tr');
-            await fillWaybill(item, parent);
-            waybillSelectedIndex = -1;
-        });
-        suggestionsList.appendChild(li);
-    });
-}
-
-async function handleKeyboardNavigationWaybill(event, input, suggestionsList) {
-    const items = suggestionsList.querySelectorAll('li');
-    if (!items.length) return;
-
-    if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        waybillSelectedIndex = (waybillSelectedIndex + 1) % items.length;
-        input.value = items[waybillSelectedIndex].textContent;
-        items.forEach((it, idx) => it.classList.toggle('selected', idx === waybillSelectedIndex));
-    } else if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        waybillSelectedIndex = (waybillSelectedIndex - 1 + items.length) % items.length;
-        input.value = items[waybillSelectedIndex].textContent;
-        items.forEach((it, idx) => it.classList.toggle('selected', idx === waybillSelectedIndex));
-    } else if (event.key === 'Enter') {
-        if (waybillSelectedIndex >= 0 && items[waybillSelectedIndex]) {
-            event.preventDefault();
-            event.stopPropagation();
-            const selectedItem = items[waybillSelectedIndex].textContent;
-            input.value = selectedItem;
-            suggestionsList.style.display = 'none';
-            isAutofillInProgressWaybill = true;
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            isAutofillInProgressWaybill = false;
-            const parent = input.closest('.item-card') || input.closest('tr');
-            await fillWaybill(selectedItem, parent);
-            waybillSelectedIndex = -1;
-        }
-    }
-}
-
-async function fillWaybill(itemName, element) {
-    const isCard = element.classList.contains('item-card');
-    const stockData = await fetchWaybillStockData(itemName);
-    if (!stockData) return;
-
-    if (isCard) {
-        const inputs = element.querySelectorAll('input');
-        // Column order: description, hsn_sac, qty, unit_price, gst_rate
-        inputs[1].value = stockData.HSN_SAC || stockData.hsn_sac || '';
-        if (inputs[3]) inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-        if (inputs[4]) inputs[4].value = stockData.GST || stockData.gst_rate || 0;
-        inputs[1].dispatchEvent(new Event('input', { bubbles: true }));
-        if (inputs[3]) inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
-        if (inputs[4]) inputs[4].dispatchEvent(new Event('input', { bubbles: true }));
-
-        // Also update table row
-        const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
-        const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
-        if (tableRow) {
-            const rowInputs = tableRow.querySelectorAll('input');
-            if (rowInputs.length >= 5) {
-                rowInputs[1].value = stockData.HSN_SAC || stockData.hsn_sac || '';
-                rowInputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-                rowInputs[4].value = stockData.GST || stockData.gst_rate || 0;
-                rowInputs[3].dispatchEvent(new Event('input', { bubbles: true }));
-                rowInputs[4].dispatchEvent(new Event('input', { bubbles: true }));
-            }
-        }
-    } else {
-        const rowInputs = element.querySelectorAll('input');
-        if (rowInputs.length >= 5) {
-            rowInputs[1].value = stockData.HSN_SAC || stockData.hsn_sac || '';
-            rowInputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-            rowInputs[4].value = stockData.GST || stockData.gst_rate || 0;
-        }
     }
 }
 
@@ -704,13 +577,20 @@ async function generatePreview() {
     const distanceKm = document.getElementById("distance-km")?.value || "";
 
     // Collect items from table
-    const items = Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
-        description: row.cells[1].querySelector("input").value || "-",
-        hsn_sac: row.cells[2].querySelector("input").value || "-",
-        quantity: row.cells[3].querySelector("input").value || "0",
-        unit_price: row.cells[4].querySelector("input").value || "0",
-        gst_rate: row.cells[5].querySelector("input").value || "0"
-    }));
+    const items = Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => {
+        // Find inputs carefully. 
+        // We added a hidden input in the 2nd cell (index 1).
+        const stockIdInput = row.querySelector('.stock-id');
+
+        return {
+            stock_id: stockIdInput ? stockIdInput.value : null,
+            description: row.cells[1].querySelector("input[type=text]").value || "-",
+            hsn_sac: row.cells[2].querySelector("input").value || "-",
+            quantity: row.cells[3].querySelector("input").value || "0",
+            unit_price: row.cells[4].querySelector("input").value || "0",
+            gst_rate: row.cells[5].querySelector("input").value || "0"
+        };
+    });
 
     // Calculate totals
     let totalTaxableValue = 0;
@@ -744,6 +624,7 @@ async function generatePreview() {
             distance_km: Number(distanceKm) || 0
         },
         items: items.map(it => ({
+            stock_id: it.stock_id,
             description: it.description,
             hsn_sac: it.hsn_sac,
             quantity: Number(it.quantity) || 0,
@@ -811,11 +692,12 @@ function collectFormData() {
         transporterName: document.getElementById("transporter-name")?.value || '',
         distanceKm: Number(document.getElementById("distance-km")?.value) || 0,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
-            description: row.querySelector("td:nth-child(2) input").value,
-            hsn_sac: row.querySelector("td:nth-child(3) input").value,
-            quantity: row.querySelector("td:nth-child(4) input").value,
-            unit_price: row.querySelector("td:nth-child(5) input").value,
-            gst_rate: row.querySelector("td:nth-child(6) input").value,
+            stock_id: row.querySelector("td:nth-child(2) input.stock-id")?.value || '',
+            description: row.querySelector("td:nth-child(2) input[type='text']")?.value || '',
+            hsn_sac: row.querySelector("td:nth-child(3) input")?.value || '',
+            quantity: row.querySelector("td:nth-child(4) input")?.value || '',
+            unit_price: row.querySelector("td:nth-child(5) input")?.value || '',
+            gst_rate: row.querySelector("td:nth-child(6) input")?.value || '',
         })),
     };
 }

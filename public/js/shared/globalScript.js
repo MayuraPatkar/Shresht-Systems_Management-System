@@ -879,11 +879,69 @@ async function fetchStockData(itemName) {
 async function fill(itemName, element) {
   // Check if element is a card or a table row
   const isCard = element.classList.contains('item-card');
+  // Check if we're on E-Way Bill page (has different field structure with stock_id hidden input)
+  const isEWayBill = window.location.pathname.toLowerCase().includes('/ewaybill');
 
   const stockData = await fetchStockData(itemName);
   if (stockData) {
-    if (isCard) {
-      // Fill card inputs
+    if (isEWayBill) {
+      // E-Way Bill has a hidden stock_id input at position 0, shifting all indices by 1
+      // Column order: stock-id(0), description(1), hsn_sac(2), qty(3), unit_price(4), gst_rate(5)
+      if (isCard) {
+        const inputs = element.querySelectorAll('input');
+        const stockIdInput = element.querySelector('.stock-id');
+
+        // Update stock_id
+        if (stockIdInput && stockData._id) {
+          stockIdInput.value = stockData._id;
+        }
+
+        // Fill fields (indices shifted by 1 due to hidden stock_id)
+        if (inputs[2]) inputs[2].value = stockData.HSN_SAC || stockData.hsn_sac || '';
+        if (inputs[4]) inputs[4].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+        if (inputs[5]) inputs[5].value = stockData.GST || stockData.gst_rate || 0;
+
+        // Trigger input events to sync with table
+        if (inputs[2]) inputs[2].dispatchEvent(new Event('input', { bubbles: true }));
+        if (inputs[4]) inputs[4].dispatchEvent(new Event('input', { bubbles: true }));
+        if (inputs[5]) inputs[5].dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Also update corresponding table row
+        const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(element);
+        const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
+        if (tableRow) {
+          const rowInputs = tableRow.querySelectorAll('input');
+          const rowStockIdInput = tableRow.querySelector('.stock-id');
+
+          if (rowStockIdInput && stockData._id) {
+            rowStockIdInput.value = stockData._id;
+          }
+
+          if (rowInputs.length >= 6) {
+            rowInputs[2].value = stockData.HSN_SAC || stockData.hsn_sac || '';
+            rowInputs[4].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+            rowInputs[5].value = stockData.GST || stockData.gst_rate || 0;
+            rowInputs[4].dispatchEvent(new Event('input', { bubbles: true }));
+            rowInputs[5].dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+      } else {
+        // Table row for E-Way Bill
+        const rowInputs = element.querySelectorAll('input');
+        const rowStockIdInput = element.querySelector('.stock-id');
+
+        if (rowStockIdInput && stockData._id) {
+          rowStockIdInput.value = stockData._id;
+        }
+
+        if (rowInputs.length >= 6) {
+          rowInputs[2].value = stockData.HSN_SAC || stockData.hsn_sac || '';
+          rowInputs[4].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+          rowInputs[5].value = stockData.GST || stockData.gst_rate || 0;
+        }
+      }
+    } else if (isCard) {
+      // Standard card fill (Invoice, Quotation, etc.)
       const inputs = element.querySelectorAll('input');
       inputs[1].value = stockData.HSN_SAC || ""; // HSN/SAC
       inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0; // Unit Price

@@ -42,6 +42,7 @@ router.post("/save-ewaybill", async (req, res) => {
 
         // Transform items to match schema field names
         const transformedItems = items.map(item => ({
+            stock_id: item.stock_id ? item.stock_id : undefined,
             description: item.description || '',
             hsn_sac: item.hsn_sac || item.HSN_SAC || '',
             quantity: Number(item.quantity) || 0,

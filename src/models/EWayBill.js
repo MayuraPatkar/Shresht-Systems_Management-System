@@ -28,6 +28,7 @@ const eWayBillSchema = new mongoose.Schema({
         distance_km: { type: Number }
     },
     items: [{
+        stock_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Stock' },
         description: String,
         hsn_sac: String,
         quantity: Number,
@@ -42,7 +43,7 @@ const eWayBillSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Index for faster queries
-eWayBillSchema.index({ ewaybill_no: 1 });
+
 eWayBillSchema.index({ invoice_id: 1, createdAt: -1 });
 
 module.exports = mongoose.model('ewaybills', eWayBillSchema);

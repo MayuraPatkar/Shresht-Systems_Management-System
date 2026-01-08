@@ -186,8 +186,8 @@ main {
 
 /* Remove button in card */
 #new .item-card .remove-item-btn {
-    background: #fee2e2;
-    color: #dc2626;
+    background: #fff8f8;
+    /* color: #dc2626; */
     border: none;
     border-radius: 6px;
     padding: 0.5rem;
@@ -201,15 +201,25 @@ main {
 }
 
 #new .item-card .remove-item-btn:hover {
-    background: #fecaca;
     transform: scale(1.05);
 }
 
 /* Items container */
 #items-container {
-    overflow-x: auto;
+    overflow: visible;
     padding-bottom: 0.5rem;
     margin-bottom: 1rem;
+}
+
+/* Ensure suggestions dropdown is visible above other elements */
+#new .item-card .suggestions {
+    z-index: 10000;
+}
+
+/* Ensure description field has relative positioning for absolute suggestions */
+#new .item-card .item-field.description {
+    position: relative;
+    overflow: visible;
 }
 
 /* Drag handle - positioned as first grid item */
@@ -224,6 +234,7 @@ main {
     cursor: grab;
     opacity: 0.3;
     transition: opacity 0.2s ease, color 0.2s ease;
+    transform: translateY(0%);
     border-radius: 4px;
 }
 
