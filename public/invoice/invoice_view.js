@@ -506,7 +506,8 @@ async function renderInvoiceView(invoice, userRole, viewType) {
             subtotal += price;
             tax += taxVal;
         }
-        const grand = subtotal + tax;
+        // Grand total should include tax only if showTax is true
+        const grand = showTax ? (subtotal + tax) : subtotal;
         return { subtotal, tax, grand };
     };
 
@@ -517,6 +518,10 @@ async function renderInvoiceView(invoice, userRole, viewType) {
             viewGrandTotal = givenTotal;
             viewTax = givenTax;
             viewSubtotal = Math.max(0, viewGrandTotal - viewTax);
+            // If showTax is false, use subtotal as grand total
+            if (!showTax) {
+                viewGrandTotal = viewSubtotal;
+            }
         } else {
             const totals = computeTotalsFromItems(itemsForType, nonItemsForType);
             viewSubtotal = totals.subtotal;
@@ -530,6 +535,10 @@ async function renderInvoiceView(invoice, userRole, viewType) {
             viewGrandTotal = givenTotal;
             viewTax = givenTax;
             viewSubtotal = Math.max(0, viewGrandTotal - viewTax);
+            // If showTax is false, use subtotal as grand total
+            if (!showTax) {
+                viewGrandTotal = viewSubtotal;
+            }
         } else {
             const totals = computeTotalsFromItems(itemsForType, nonItemsForType);
             viewSubtotal = totals.subtotal;
