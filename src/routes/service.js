@@ -43,7 +43,7 @@ router.get('/generate-id', async (req, res) => {
 router.get('/all', async (req, res) => {
     try {
         const services = await Invoices.find({
-            service_month: { $gt: 0 },
+            service_after_months: { $gt: 0 },
             $or: [
                 { service_status: { $in: ['Active', 'Paused'] } },
                 { service_status: { $exists: false } }
@@ -61,7 +61,7 @@ router.get('/get-service', async (req, res) => {
     try {
         const currentDate = moment();
         const projects = await Invoices.find({
-            service_month: { $gt: 0 },
+            service_after_months: { $gt: 0 },
             $or: [
                 { service_status: 'Active' },
                 { service_status: { $exists: false } }
@@ -69,7 +69,7 @@ router.get('/get-service', async (req, res) => {
         });
 
         const filteredProjects = projects.filter(project => {
-            if (!project.service_month) return false;
+            if (!project.service_after_months) return false;
 
             let targetDate;
             if (project.next_service_date) {
@@ -77,7 +77,7 @@ router.get('/get-service', async (req, res) => {
             } else {
                 // Fallback for legacy data: Invoice Date + service_month
                 const createdDate = moment(project.invoice_date || project.createdAt);
-                targetDate = createdDate.clone().add(project.service_month, 'months');
+                targetDate = createdDate.clone().add(project.service_after_months, 'months');
             }
 
             return currentDate.isSameOrAfter(targetDate, 'day');
@@ -357,7 +357,7 @@ router.post('/save-service', async (req, res) => {
         // Use the custom next_service_month from the form, falling back to invoice.service_month
         const serviceMonthToUse = (typeof next_service_month === 'number' && next_service_month >= 0)
             ? next_service_month
-            : invoice.service_month;
+            : invoice.service_after_months;
 
         if (serviceMonthToUse > 0) {
             const currentServiceDate = moment(service_date);
@@ -480,7 +480,7 @@ router.get('/search/:query', async (req, res) => {
         const currentDate = moment();
 
         const projects = await Invoices.find({
-            service_month: { $gt: 0 },
+            service_after_months: { $gt: 0 },
             $and: [
                 {
                     $or: [
@@ -500,10 +500,10 @@ router.get('/search/:query', async (req, res) => {
 
         const filteredProjects = projects.filter(project => {
             if (!project.createdAt && !project.invoice_date) return false;
-            if (!project.service_month) return false;
+            if (!project.service_after_months) return false;
 
             const createdDate = moment(project.invoice_date || project.createdAt);
-            const targetDate = createdDate.clone().add(project.service_month, 'months');
+            const targetDate = createdDate.clone().add(project.service_after_months, 'months');
             return currentDate.isSameOrAfter(targetDate, 'day');
         });
 

@@ -53,19 +53,19 @@ router.get('/overview', async (req, res) => {
     // Count invoices where service is due now (same logic as /service/get-service)
     // Service is due when: current date >= invoice_date + service_month months
     const invoicesWithService = await Invoices.find({
-        $or: [
-            { service_status: 'Active' },
-            { service_status: { $exists: false }, service_month: { $gt: 0 } }
-        ]
+      $or: [
+        { service_status: 'Active' },
+        { service_status: { $exists: false }, service_after_months: { $gt: 0 } }
+      ]
     }).lean();
     const remainingServices = invoicesWithService.filter(invoice => {
       const invoiceDate = invoice.invoice_date || invoice.createdAt;
-      if (!invoiceDate || !invoice.service_month) return false;
-      
+      if (!invoiceDate || !invoice.service_after_months) return false;
+
       const baseDate = new Date(invoiceDate);
       const targetDate = new Date(baseDate);
-      targetDate.setMonth(targetDate.getMonth() + invoice.service_month);
-      
+      targetDate.setMonth(targetDate.getMonth() + invoice.service_after_months);
+
       return now >= targetDate;
     }).length;
 

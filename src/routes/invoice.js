@@ -267,6 +267,17 @@ router.post("/save-invoice", async (req, res) => {
                 }
             }
 
+
+            // Calculate next service date
+            let nextServiceDate = undefined;
+            if (Number(serviceAfterMonths) > 0) {
+                const baseDate = new Date(invoiceDate || new Date());
+                // Create a new date object to avoid mutating baseDate if it's used elsewhere
+                const targetDate = new Date(baseDate);
+                targetDate.setMonth(targetDate.getMonth() + Number(serviceAfterMonths));
+                nextServiceDate = targetDate;
+            }
+
             // Update fields
             Object.assign(existingInvoice, {
                 project_name: projectName,
@@ -277,6 +288,10 @@ router.post("/save-invoice", async (req, res) => {
                 dc_number: dcNumber,
                 dc_date: dcDate,
                 service_after_months: serviceAfterMonths,
+                next_service_date: nextServiceDate, // Update service date
+                // If service is added, ensure status is Active, else if removed (0) keep existing or set Closed? 
+                // Let's assume enabling service means Active.
+                service_status: (Number(serviceAfterMonths) > 0) ? 'Active' : existingInvoice.service_status,
                 margin: margin,
                 customer_name: buyerName,
                 customer_address: buyerAddress,
@@ -347,6 +362,15 @@ router.post("/save-invoice", async (req, res) => {
                 }
             }
 
+            // Calculate next service date for new invoice
+            let nextServiceDate = undefined;
+            if (Number(serviceAfterMonths) > 0) {
+                const baseDate = new Date(invoiceDate || new Date());
+                const targetDate = new Date(baseDate);
+                targetDate.setMonth(targetDate.getMonth() + Number(serviceAfterMonths));
+                nextServiceDate = targetDate;
+            }
+
             const invoice = new Invoices({
                 invoice_id: newId, // Use custom ID or freshly generated ID
                 invoice_date: invoiceDate || new Date(),
@@ -357,6 +381,8 @@ router.post("/save-invoice", async (req, res) => {
                 dc_number: dcNumber,
                 dc_date: dcDate,
                 service_after_months: serviceAfterMonths,
+                next_service_date: nextServiceDate, // Set service date
+                service_status: (Number(serviceAfterMonths) > 0) ? 'Active' : 'Closed', // Default to Closed if no service
                 margin: margin,
                 customer_name: buyerName,
                 customer_address: buyerAddress,
