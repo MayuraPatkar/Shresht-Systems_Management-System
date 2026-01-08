@@ -140,7 +140,8 @@ router.get("/recent-ewaybills", async (req, res) => {
         const recentEWayBills = await EWayBills.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("ewaybill_no ewaybill_status from_address to_address transport ewaybill_generated_at total_invoice_value createdAt");
+            .populate('invoice_id', 'invoice_id')
+            .select("ewaybill_no invoice_id ewaybill_status from_address to_address transport ewaybill_generated_at total_invoice_value createdAt");
 
         res.status(200).json({
             message: "Recent e-way bills retrieved successfully",
@@ -156,7 +157,7 @@ router.get("/recent-ewaybills", async (req, res) => {
 router.get("/:eWayBillId", async (req, res) => {
     try {
         const { eWayBillId } = req.params;
-        const eWayBill = await EWayBills.findById(eWayBillId);
+        const eWayBill = await EWayBills.findById(eWayBillId).populate('invoice_id', 'invoice_id');
         if (!eWayBill) {
             return res.status(404).json({ message: 'E-Way Bill not found' });
         }

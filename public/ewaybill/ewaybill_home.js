@@ -482,11 +482,6 @@ async function loadRecentWayBills() {
                     </div>
                     <h2 class="text-2xl font-semibold text-gray-700 mb-2">No E-Way Bills Found</h2>
                     <p class="text-gray-500 mb-6">Get started by creating your first e-way bill</p>
-                    <button id="new-waybill-btn-2"" 
-                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
-                        <i class="fas fa-plus"></i>
-                        Create E-Way Bill
-                    </button>
                 </div>
             `;
             return;

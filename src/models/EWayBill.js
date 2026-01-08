@@ -15,7 +15,7 @@ const eWayBillSchema = new mongoose.Schema({
     ewaybill_generated_at: { type: Date },
     invoice_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Invoice',
+        ref: 'invoice',
         index: true
     },
     from_address: { type: String, trim: true },

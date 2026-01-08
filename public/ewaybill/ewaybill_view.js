@@ -94,6 +94,9 @@ async function generateViewPreviewHTML(wayBill, targetElementId = "view-preview-
     const transport = wayBill.transport || {};
     const transportDate = wayBill.ewaybill_generated_at || new Date();
 
+    // Extract invoice_id - it might be a populated object or just a string
+    const invoiceIdDisplay = wayBill.invoice_id ? (typeof wayBill.invoice_id === 'object' ? wayBill.invoice_id.invoice_id : wayBill.invoice_id) : '-';
+
     const pagesHTML = pages.map((pageHTML, index) => {
         const isLastPage = index === pages.length - 1;
 
@@ -144,6 +147,7 @@ async function generateViewPreviewHTML(wayBill, targetElementId = "view-preview-
                     <p><strong>Date: </strong>${formatDateIndian ? formatDateIndian(transportDate) : (window.formatDate ? window.formatDate(transportDate) : '')}</p>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center; margin-top: 4px;">
+                     <p><strong>Invoice ID: </strong>${invoiceIdDisplay}</p>
                      <p><strong>Status: </strong><span style="display:inline-block; padding: 2px 8px; border-radius: 9999px; background-color: #f3f4f6; font-size: 0.8em;">${wayBill.ewaybill_status || 'Draft'}</span></p>
                 </div>
             </div>
@@ -286,6 +290,9 @@ async function viewWayBill(wayBillId) {
 
         // Fill E-Way Bill Details
         document.getElementById('view-ewaybill-no').textContent = waybill.ewaybill_no || '-';
+        // Handle populated invoice_id - it might be an object with invoice_id property or just a string
+        const invoiceId = waybill.invoice_id ? (typeof waybill.invoice_id === 'object' ? waybill.invoice_id.invoice_id : waybill.invoice_id) : '-';
+        document.getElementById('view-invoice-id').textContent = invoiceId;
         document.getElementById('view-ewaybill-status').textContent = waybill.ewaybill_status || '-';
         const viewDateEl = document.getElementById('view-waybill-date');
         if (viewDateEl) viewDateEl.textContent = waybill.ewaybill_generated_at ? (typeof formatDateIndian === 'function' ? formatDateIndian(waybill.ewaybill_generated_at) : waybill.ewaybill_generated_at) : '-';
