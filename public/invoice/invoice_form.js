@@ -1076,7 +1076,7 @@ async function generatePreview() {
             <div class="second-section">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <p>INVOICE-${invoiceId}</p>
-                    <p><strong>Date: </strong>${invoiceDate || '-'}</p>
+                    <p><strong>Date: </strong>${formatDateIndian(invoiceDate) || '-'}</p>
                 </div>
             </div>
 
