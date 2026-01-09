@@ -289,6 +289,15 @@ window.validateCurrentStep = async function () {
                 return false;
             }
         }
+        // If GSTIN provided, ensure it's exactly 15 characters
+        const supplierGstin = document.getElementById('supplier-GSTIN');
+        if (supplierGstin && supplierGstin.value.trim()) {
+            if (supplierGstin.value.trim().length !== 15) {
+                window.electronAPI.showAlert1('GSTIN must be exactly 15 characters.');
+                supplierGstin?.focus();
+                return false;
+            }
+        }
     }
     return true;
 };
