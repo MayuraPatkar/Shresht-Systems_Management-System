@@ -341,22 +341,9 @@ function createInvoiceCard(invoice) {
         }
     }
 
-    // Format the date for display
+    // Format the date for display using unified function (DD/MM/YYYY)
     const dateToFormat = invoice.invoice_date || invoice.createdAt;
-    let formattedDate = '-';
-    if (dateToFormat) {
-        try {
-            const dateObj = new Date(dateToFormat);
-            if (!isNaN(dateObj.getTime())) {
-                const day = String(dateObj.getDate()).padStart(2, '0');
-                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-                const year = dateObj.getFullYear();
-                formattedDate = `${day}/${month}/${year}`;
-            }
-        } catch (e) {
-            formattedDate = '-';
-        }
-    }
+    const formattedDate = dateToFormat ? (window.formatDateDisplay ? window.formatDateDisplay(dateToFormat) : '-') : '-';
 
     invoiceCard.innerHTML = `
         <!-- Left Border Accent -->

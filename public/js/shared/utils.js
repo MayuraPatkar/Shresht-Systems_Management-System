@@ -24,8 +24,8 @@ function formatIndian(num, fractionDigits = 0) {
 function numberToWords(num) {
   num = Math.round(num);
   const a = [
-    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 
-    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 
+    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
     'Seventeen', 'Eighteen', 'Nineteen'
   ];
   const b = [
@@ -52,16 +52,38 @@ function numberToWords(num) {
   if (lakh) result.push(numToWords(lakh) + ' Lakh');
   if (thousand) result.push(numToWords(thousand) + ' Thousand');
   if (remainder) result.push(numToWords(remainder));
-  
+
   return result.join(' ').trim();
 }
 
+// ============================================================================
+// UNIFIED DATE FORMATTING UTILITIES
+// All user-visible dates should use DD/MM/YYYY format
+// ============================================================================
+
 /**
- * Format date to YYYY-MM-DD format
+ * Format date for display - DD/MM/YYYY format
+ * This is the PRIMARY format for all user-visible dates
  * @param {string|Date} dateString - Date to format
  * @returns {string} Formatted date string or empty string if invalid
  */
-function formatDate(dateString) {
+function formatDateDisplay(dateString) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${day}/${month}/${year}`;
+}
+
+/**
+ * Format date for HTML input fields - YYYY-MM-DD format
+ * Required by <input type="date"> elements (browser standard)
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} ISO date format for inputs or empty string if invalid
+ */
+function formatDateInput(dateString) {
   if (!dateString) return "";
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";
@@ -72,18 +94,37 @@ function formatDate(dateString) {
 }
 
 /**
+ * Get today's date formatted for HTML input fields
+ * Uses LOCAL timezone (fixes UTC timezone bug with toISOString)
+ * @returns {string} Today's date in YYYY-MM-DD format
+ */
+function getTodayForInput() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// ============================================================================
+// BACKWARD COMPATIBILITY ALIASES
+// These ensure existing code continues to work
+// ============================================================================
+
+/**
+ * @deprecated Use formatDateInput() instead
+ * Format date to YYYY-MM-DD format (for HTML inputs)
+ */
+function formatDate(dateString) {
+  return formatDateInput(dateString);
+}
+
+/**
+ * @deprecated Use formatDateDisplay() instead  
  * Format date to DD/MM/YYYY format (Indian style)
- * @param {string|Date} dateString - Date to format
- * @returns {string} Formatted date string or empty string if invalid
  */
 function formatDateIndian(dateString) {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "";
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${day}/${month}/${year}`;
+  return formatDateDisplay(dateString);
 }
 
 /**
@@ -121,10 +162,20 @@ function debounce(func, wait) {
 
 // Make functions available globally for backward compatibility
 if (typeof window !== 'undefined') {
+  // Number utilities
   window.formatIndian = formatIndian;
   window.numberToWords = numberToWords;
+
+  // New unified date utilities (preferred)
+  window.formatDateDisplay = formatDateDisplay;
+  window.formatDateInput = formatDateInput;
+  window.getTodayForInput = getTodayForInput;
+
+  // Legacy date functions (deprecated, kept for backward compatibility)
   window.formatDate = formatDate;
   window.formatDateIndian = formatDateIndian;
+
+  // Other utilities
   window.copyToClipboard = copyToClipboard;
   window.debounce = debounce;
 }

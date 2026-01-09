@@ -21,13 +21,13 @@ async function getCompanyInfo() {
         if (!response.ok) {
             throw new Error('Failed to fetch company info');
         }
-        
+
         const data = await response.json();
         companyDataCache = data;
         return companyDataCache;
     } catch (error) {
         console.error('Error fetching company info:', error);
-        
+
         // Return default fallback data
         return {
             company: 'Company Name',
@@ -62,13 +62,13 @@ async function getSettings() {
         if (!response.ok) {
             throw new Error('Failed to fetch settings');
         }
-        
+
         const data = await response.json();
         settingsCache = data.settings;
         return settingsCache;
     } catch (error) {
         console.error('Error fetching settings:', error);
-        
+
         // Return default fallback settings
         return {
             preferences: {
@@ -93,46 +93,36 @@ async function formatCurrency(amount) {
     const settings = await getSettings();
     const currency = settings.preferences?.currency || '₹';
     const decimals = settings.preferences?.decimal_places || 2;
-    
+
     const formatted = parseFloat(amount).toLocaleString('en-IN', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals
     });
-    
-    return settings.preferences?.currency_position === 'after' 
-        ? `${formatted}${currency}` 
+
+    return settings.preferences?.currency_position === 'after'
+        ? `${formatted}${currency}`
         : `${currency}${formatted}`;
 }
 
 /**
- * Format date according to settings (synchronous interface)
- * Returns a formatted date string immediately using the cached settings if available.
- * If no settings are cached, returns a sensible default (DD/MM/YYYY) and refreshes settings asynchronously.
+ * Format date for display - DD/MM/YYYY format
+ * Delegates to unified date utility from utils.js
  * @param {Date|string} date - Date to format
  * @returns {string} Formatted date string
  */
 function formatDate(date) {
-    // If settings are not loaded yet, trigger a background refresh
-    if (!settingsCache) {
-        // Fire-and-forget; don't await here to keep this function synchronous
-        getSettings().catch(err => console.warn('Could not refresh settings in background:', err));
+    // Use unified formatting from utils.js (DD/MM/YYYY format)
+    if (typeof window !== 'undefined' && window.formatDateDisplay) {
+        return window.formatDateDisplay(date);
     }
-    const format = settingsCache?.preferences?.date_format || 'DD/MM/YYYY';
+    // Fallback if utils.js not loaded yet
+    if (!date) return '';
     const dateObj = new Date(date);
-    
+    if (isNaN(dateObj.getTime())) return '';
     const day = String(dateObj.getDate()).padStart(2, '0');
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const year = dateObj.getFullYear();
-    
-    switch (format) {
-        case 'MM/DD/YYYY':
-            return `${month}/${day}/${year}`;
-        case 'YYYY-MM-DD':
-            return `${year}-${month}-${day}`;
-        case 'DD/MM/YYYY':
-        default:
-            return `${day}/${month}/${year}`;
-    }
+    return `${day}/${month}/${year}`;
 }
 
 /**
@@ -141,7 +131,7 @@ function formatDate(date) {
  */
 async function getCompanyHeaderHTML() {
     const company = await getCompanyInfo();
-    
+
     return `
         <div class="header">
             <div class="quotation-brand">
@@ -171,7 +161,7 @@ async function getCompanyHeaderHTML() {
 async function getBankDetailsHTML() {
     const company = await getCompanyInfo();
     const bank = company.bank_details || {};
-    
+
     return `
         <h3>Payment Details</h3>
         <div class="bank-details">
@@ -195,7 +185,7 @@ async function getBankDetailsHTML() {
  */
 async function getSignatoryHTML() {
     const company = await getCompanyInfo();
-    
+
     return `
         <div class="eighth-section">
             <p>For ${company.company.toUpperCase()}</p>

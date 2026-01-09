@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', async () => {
     const dateInput = document.getElementById('waybill-date');
     if (dateInput && !dateInput.value) {
-        dateInput.value = new Date().toISOString().split('T')[0];
+        dateInput.value = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
     }
 });
 
@@ -373,7 +373,7 @@ async function openWayBill(wayBillId) {
         const wbDateEl = document.getElementById('waybill-date');
         if (wbDateEl && wayBill.ewaybill_generated_at) {
             const dt = new Date(wayBill.ewaybill_generated_at);
-            wbDateEl.value = dt.toISOString().split('T')[0];
+            wbDateEl.value = window.formatDateInput ? window.formatDateInput(dt) : dt.toISOString().split('T')[0];
         }
 
         document.getElementById('from-address').value = wayBill.from_address || '';
@@ -659,7 +659,7 @@ async function generatePreview() {
     });
     const totalInvoiceValue = Math.round(totalTaxableValue + cgst + sgst);
 
-    const waybillDate = document.getElementById('waybill-date')?.value || (new Date()).toISOString().split('T')[0];
+    const waybillDate = document.getElementById('waybill-date')?.value || (window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0]);
 
     const wayBillObj = {
         ewaybill_no: ewaybillNo,
@@ -717,7 +717,7 @@ if (saveBtn) {
 
 // Function to collect form data
 function collectFormData() {
-    const rawDate = document.getElementById('waybill-date')?.value || (new Date()).toISOString().split('T')[0];
+    const rawDate = document.getElementById('waybill-date')?.value || (window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0]);
     let waybillDateISO = rawDate;
     try {
         const d = new Date(rawDate);

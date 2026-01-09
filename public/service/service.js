@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Set default date
     const dateInput = document.getElementById('service-date');
     if (dateInput) {
-        dateInput.value = new Date().toISOString().split('T')[0];
+        dateInput.value = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
     }
 
     // Initialize event listeners

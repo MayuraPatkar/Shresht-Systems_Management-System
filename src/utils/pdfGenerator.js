@@ -113,18 +113,9 @@ function numberToWords(num) {
     return words.trim();
 }
 
-/**
- * Format date for display
- * @param {Date|string} date - Date to format
- * @returns {string} Formatted date (DD-MM-YYYY)
- */
-function formatDate(date) {
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
-}
+// Use unified date utilities for consistent DD/MM/YYYY formatting
+const { formatDatePDF: formatDate } = require('./dateUtils');
+
 
 /**
  * Generate quotation HTML

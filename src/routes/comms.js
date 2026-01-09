@@ -386,19 +386,8 @@ async function sendDocumentTemplate(phone, docDetails) {
     }
 }
 
-/**
- * Format date to "DD MMM YYYY" format for WhatsApp template
- * @param {Date|string} date - Date to format
- * @returns {string} Formatted date string
- */
-function formatDateForTemplate(date) {
-    const d = new Date(date);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = months[d.getMonth()];
-    const year = d.getFullYear();
-    return `${day} ${month} ${year}`;
-}
+// Use unified date utilities for consistent formatting
+const { formatDateReadable: formatDateForTemplate } = require('../utils/dateUtils');
 
 /**
  * Format amount with Indian Rupee symbol
