@@ -218,19 +218,19 @@ function showCustomDateModal(callback) {
     const today = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(today.getDate() - 30);
-    
-    endInput.value = today.toISOString().split('T')[0];
-    startInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+
+    endInput.value = window.getTodayForInput ? window.getTodayForInput() : today.toISOString().split('T')[0];
+    startInput.value = window.formatDateInput ? window.formatDateInput(thirtyDaysAgo) : thirtyDaysAgo.toISOString().split('T')[0];
 
     const closeModal = () => modal.remove();
 
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
-    
+
     applyBtn.addEventListener('click', () => {
         const startDate = startInput.value;
         const endDate = endInput.value;
-        
+
         if (startDate && endDate && new Date(startDate) <= new Date(endDate)) {
             callback(startDate, endDate);
             closeModal();

@@ -151,7 +151,7 @@ async function generatePurchaseOrderViewPreview(purchaseOrder) {
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <p>PURCHASE ORDER-${purchaseOrder.purchase_order_id || purchaseOrder.Id || ""}</p>
                     <div style="text-align:right;"> 
-                        <p><strong>Date:</strong> ${formattedDate || new Date().toLocaleDateString()}</p>
+                        <p><strong>Date:</strong> ${formattedDate || (window.formatDateDisplay ? window.formatDateDisplay(new Date()) : new Date().toLocaleDateString())}</p>
                     </div>
                 </div>
             </div>

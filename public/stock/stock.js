@@ -305,7 +305,7 @@ function generateStockPrintContent(type, category, status) {
         `;
     });
 
-    const currentDate = new Date().toLocaleDateString('en-IN', {
+    const currentDate = window.formatDateDisplay ? window.formatDateDisplay(new Date()) : new Date().toLocaleDateString('en-IN', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
