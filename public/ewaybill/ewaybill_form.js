@@ -172,6 +172,7 @@ async function importInvoiceData(invoiceId) {
             let toAddress = invoice.customer_name || '';
             if (invoice.customer_address) toAddress += '\n' + invoice.customer_address;
             if (invoice.customer_phone) toAddress += '\nPhone: ' + invoice.customer_phone;
+            if (invoice.customer_GSTIN) toAddress += '\nGSTIN: ' + invoice.customer_GSTIN;
             toAddressEl.value = toAddress;
         }
 
