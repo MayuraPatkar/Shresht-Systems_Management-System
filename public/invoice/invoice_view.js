@@ -328,6 +328,7 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
                     <p>${invoice.customer_name}</p>
                     <p>${invoice.customer_address}</p>
                     <p>Ph. ${invoice.customer_phone}</p>
+                    ${invoice.customer_GSTIN ? `<p>GSTIN: ${invoice.customer_GSTIN}</p>` : ''}
                 </div>
                 <div class="order-info">
                     <p><strong>Project:</strong> ${invoice.project_name}</p>
@@ -477,6 +478,7 @@ async function renderInvoiceView(invoice, userRole, viewType) {
     setTextContent('view-buyer-address', invoice.customer_address);
     setTextContent('view-buyer-phone', invoice.customer_phone);
     setTextContent('view-buyer-email', invoice.customer_email);
+    setTextContent('view-buyer-gstin', invoice.customer_GSTIN);
     setTextContent('view-consignee-name', invoice.consignee_name);
     setTextContent('view-consignee-address', invoice.consignee_address);
 

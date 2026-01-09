@@ -215,6 +215,7 @@ window.beforeStepAdvance = async function (step) {
             document.getElementById("buyer-address").value = quotation.customer_address;
             document.getElementById("buyer-phone").value = quotation.customer_phone;
             document.getElementById("buyer-email").value = quotation.customer_email;
+            document.getElementById("buyer-gstin").value = quotation.customer_GSTIN || '';
 
             // Clear existing items
             const itemsTableBody = document.querySelector("#items-table tbody");
@@ -454,6 +455,7 @@ async function openInvoice(id) {
         document.getElementById('buyer-address').value = invoice.customer_address || '';
         document.getElementById('buyer-phone').value = invoice.customer_phone || '';
         document.getElementById('buyer-email').value = invoice.customer_email || '';
+        document.getElementById('buyer-gstin').value = invoice.customer_GSTIN || '';
         document.getElementById('consignee-name').value = invoice.consignee_name || '';
         document.getElementById('consignee-address').value = invoice.consignee_address || '';
 
@@ -1006,6 +1008,7 @@ async function generatePreview() {
     const invoiceDate = document.getElementById('invoice-date')?.value || '';
     const buyerAddress = document.getElementById("buyer-address").value;
     const buyerPhone = document.getElementById("buyer-phone").value;
+    const buyerGSTIN = document.getElementById("buyer-gstin").value || '';
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
 
     const {
@@ -1084,6 +1087,7 @@ async function generatePreview() {
                     <p>${buyerName}</p>
                     <p>${buyerAddress}</p>
                     <p>Ph. ${buyerPhone}</p>
+                    ${buyerGSTIN ? `<p>GSTIN: ${buyerGSTIN}</p>` : ''}
                 </div>
                 <div class="info-section">
                     <p><strong>Project:</strong> ${projectName || '-'}</p>
@@ -1262,6 +1266,7 @@ function collectFormData() {
         buyerAddress: document.getElementById("buyer-address").value,
         buyerPhone: document.getElementById("buyer-phone").value,
         buyerEmail: document.getElementById("buyer-email").value,
+        buyerGSTIN: document.getElementById("buyer-gstin").value,
         consigneeName: document.getElementById("consignee-name").value,
         consigneeAddress: document.getElementById("consignee-address").value,
         declaration: currentDeclaration,

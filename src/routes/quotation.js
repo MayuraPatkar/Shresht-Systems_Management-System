@@ -60,6 +60,7 @@ router.post("/save-quotation", async (req, res) => {
             buyerAddress = '',
             buyerPhone = '',
             buyerEmail = '',
+            buyerGSTIN = '',
             items = [],
             non_items = [],
             totalTax = 0,
@@ -108,6 +109,7 @@ router.post("/save-quotation", async (req, res) => {
             quotation.customer_address = buyerAddress;
             quotation.customer_phone = buyerPhone;
             quotation.customer_email = buyerEmail;
+            quotation.customer_GSTIN = buyerGSTIN;
             quotation.items = items;
             quotation.non_items = non_items;
             quotation.total_tax = totalTax;
@@ -152,6 +154,7 @@ router.post("/save-quotation", async (req, res) => {
                 customer_address: buyerAddress,
                 customer_phone: buyerPhone,
                 customer_email: buyerEmail,
+                customer_GSTIN: buyerGSTIN,
                 items,
                 non_items: non_items,
                 total_tax: totalTax,

@@ -126,6 +126,7 @@ async function openQuotation(quotationId) {
     document.getElementById('buyer-address').value = quotation.customer_address;
     document.getElementById('buyer-phone').value = quotation.customer_phone;
     document.getElementById('buyer-email').value = quotation.customer_email;
+    document.getElementById('buyer-gstin').value = quotation.customer_GSTIN || '';
 
     const itemsContainer = document.getElementById("items-container");
     const nonItemsContainer = document.getElementById("non-items-container");
@@ -430,11 +431,11 @@ async function cloneQuotation(sourceQuotationId) {
         const dd = String(today.getDate()).padStart(2, '0');
         document.getElementById('quotation-date').value = `${yyyy}-${mm}-${dd}`;
 
-        // Copy customer fields - include customer details as requested
         document.getElementById('buyer-name').value = quotation.customer_name || '';
         document.getElementById('buyer-address').value = quotation.customer_address || '';
         document.getElementById('buyer-phone').value = quotation.customer_phone || '';
         document.getElementById('buyer-email').value = quotation.customer_email || '';
+        document.getElementById('buyer-gstin').value = quotation.customer_GSTIN || '';
 
         // Get containers
         const itemsContainer = document.getElementById("items-container");
@@ -761,6 +762,7 @@ async function generatePreview() {
     const buyerName = document.getElementById("buyer-name").value || "";
     const buyerAddress = document.getElementById("buyer-address").value || "";
     const buyerPhone = document.getElementById("buyer-phone").value || "";
+    const buyerGSTIN = document.getElementById("buyer-gstin").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
     const nonItemsTable = document.querySelector('#non-items-table tbody');
     const headerHTML = await getQuotationHeaderHTML();
@@ -1033,6 +1035,7 @@ async function generatePreview() {
               ${buyerName}<br>
               ${buyerAddress}<br>
               ${buyerPhone}<br>
+              ${buyerGSTIN ? `GSTIN: ${buyerGSTIN}<br>` : ''}
             <p contenteditable="true"><strong>Subject:</strong> Proposal for the Supply, Installation, and Commissioning of ${projectName}</p>
 
             <p>Dear ${buyerName},</p>
@@ -1191,6 +1194,7 @@ async function generatePreview() {
               ${buyerName}<br>
               ${buyerAddress}<br>
               ${buyerPhone}<br>
+              ${buyerGSTIN ? `GSTIN: ${buyerGSTIN}<br>` : ''}
             <p contenteditable="true"><strong>Subject:</strong> ${cloneContent.subject || ''}</p>
 
             <p>Dear ${buyerName},</p>
@@ -1332,6 +1336,7 @@ async function generatePreview() {
               ${buyerName}<br>
               ${buyerAddress}<br>
               ${buyerPhone}<br>
+              ${buyerGSTIN ? `GSTIN: ${buyerGSTIN}<br>` : ''}
             <p contenteditable="true"><strong>Subject:</strong> ${projectName ? `Proposal for the Supply, Installation, and Commissioning of ${projectName}` : (quotation.subject || '')}</p>
 
             <p>Dear ${buyerName},</p>
@@ -1488,6 +1493,7 @@ function collectFormData() {
         buyerAddress: document.getElementById("buyer-address").value,
         buyerPhone: document.getElementById("buyer-phone").value,
         buyerEmail: document.getElementById("buyer-email").value,
+        buyerGSTIN: document.getElementById("buyer-gstin").value,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
             description: row.querySelector("td:nth-child(2) input").value,
             HSN_SAC: row.querySelector("td:nth-child(3) input").value,

@@ -271,7 +271,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
             <p><strong>Date:</strong> ${formattedDate}</p>
         </div>
         <div class="quotation-letter-content">
-            <p><strong>To:</strong><br>${quotation.customer_name}<br>${quotation.customer_address}<br>${quotation.customer_phone}</p>
+            <p><strong>To:</strong><br>${quotation.customer_name}<br>${quotation.customer_address}<br>${quotation.customer_phone}${quotation.customer_GSTIN ? '<br>GSTIN: ' + quotation.customer_GSTIN : ''}</p>
             <p><strong>Subject:</strong> ${quotation.subject || ''}</p>
             <p>Dear ${quotation.customer_name},</p>
             <p>${quotation.letter_1 || ''}</p>
@@ -312,6 +312,7 @@ async function renderQuotationView(quotation, viewType) {
     document.getElementById('view-buyer-address').textContent = quotation.customer_address || '-';
     document.getElementById('view-buyer-phone').textContent = quotation.customer_phone || '-';
     document.getElementById('view-buyer-email').textContent = quotation.customer_email || '-';
+    document.getElementById('view-buyer-gstin').textContent = quotation.customer_GSTIN || '-';
 
     // Calculation variables
     let totalTaxable = 0, totalTax = 0, grandTotal = 0;

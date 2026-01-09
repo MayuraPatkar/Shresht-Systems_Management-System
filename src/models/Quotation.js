@@ -8,6 +8,7 @@ const quotationSchema = new mongoose.Schema({
     customer_address: { type: String, trim: true },
     customer_phone: { type: String, trim: true },
     customer_email: { type: String, lowercase: true, trim: true },
+    customer_GSTIN: { type: String, trim: true },
 
     // items details
     items: [
