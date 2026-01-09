@@ -1,6 +1,60 @@
 {
   "versions": [
     {
+      "version": "3.6.0",
+      "date": "2026-01-09",
+      "title": "Custom IDs & Module Overhauls",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Custom Document IDs: Manually override auto-generated IDs for most modules"
+        },
+        {
+          "type": "feature",
+          "description": "Service Module Overhaul: Seamless workflow with new payment tracking features"
+        },
+        {
+          "type": "feature",
+          "description": "E-Way Bill Redesign: Overhauled to better meet business requirements"
+        },
+        {
+          "type": "improvement",
+          "description": "Dashboard Activity: Upgraded feed to accurately reflect latest actions"
+        },
+        {
+          "type": "bugfix",
+          "description": "Date Consistency: Fixed inconsistent date formats across modules"
+        },
+        {
+          "type": "bugfix",
+          "description": "General Polish: Fixed over a dozen minor UI and logic glitches"
+        }
+      ]
+    },
+    {
+      "version": "3.5.2",
+      "date": "2025-12-31",
+      "title": "Quotation Upgrade",
+      "changes": [
+        {
+          "type": "improvement",
+          "description": "Dynamic pages: Better pagination for multi-page PDFs"
+        },
+        {
+          "type": "improvement",
+          "description": "Enhanced Editor: Refactored logic for smoother item management"
+        },
+        {
+          "type": "bugfix",
+          "description": "Fixed data loss issue where manual specifications were not saved"
+        },
+        {
+          "type": "bugfix",
+          "description": "Resolved issue where Intro and Conclusion text in documents failed to save"
+        }
+      ]
+    },
+    {
       "version": "3.5.1",
       "date": "2025-12-31",
       "title": "Hotfix: Update System & Docs",

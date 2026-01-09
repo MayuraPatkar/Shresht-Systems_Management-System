@@ -2,7 +2,7 @@
 
 A comprehensive desktop management system for Shresht Systems, built with Electron, Express, and MongoDB. This professional application streamlines business processes including quotations, invoices, purchase orders, waybills, service management, stock tracking, reports, analytics, and communications.
 
-**Version:** 3.3.1  
+**Version:** 3.6.0  
 **Website:** https://shreshtsystems.com
 
 ---
