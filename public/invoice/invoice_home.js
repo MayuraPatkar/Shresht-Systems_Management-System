@@ -811,9 +811,9 @@ async function payment(id, editIndex = null, editData = null) {
         if (paymentDateInput) {
             if (editData && editData.payment_date) {
                 const editDate = new Date(editData.payment_date);
-                paymentDateInput.value = editDate.toISOString().split('T')[0];
+                paymentDateInput.value = window.formatDateInput ? window.formatDateInput(editDate) : editDate.toISOString().split('T')[0];
             } else {
-                const today = new Date().toISOString().split('T')[0];
+                const today = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
                 paymentDateInput.value = today;
             }
         }
@@ -1132,7 +1132,7 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
             document.getElementById("paid-amount").value = '';
             // Reset payment date to today
             const paymentDateEl = document.getElementById('payment-date');
-            if (paymentDateEl) paymentDateEl.value = new Date().toISOString().split('T')[0];
+            if (paymentDateEl) paymentDateEl.value = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
             document.getElementById("payment-mode").value = '';
             const extraField = document.getElementById('extra-payment-details');
             if (extraField) {

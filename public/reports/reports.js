@@ -257,7 +257,7 @@ async function loadRecentReports() {
         if (data.success && data.reports && data.reports.length > 0) {
             container.innerHTML = data.reports.map(report => {
                 const dateObj = new Date(report.generated_at || report.created_at);
-                const dateStr = dateObj.toLocaleDateString('en-IN');
+                const dateStr = window.formatDateDisplay ? window.formatDateDisplay(dateObj) : dateObj.toLocaleDateString('en-IN');
                 const timeStr = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
                 const reportDetails = getReportDetails(report);
 
@@ -530,7 +530,7 @@ function showNotification(message, type = 'info') {
  * @returns {string} Printable HTML document
  */
 function generatePrintableReport(title, content, options = {}) {
-    const today = new Date().toLocaleDateString('en-IN');
+    const today = window.formatDateDisplay ? window.formatDateDisplay(new Date()) : new Date().toLocaleDateString('en-IN');
 
     return `
     <!DOCTYPE html>
