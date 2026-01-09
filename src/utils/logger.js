@@ -39,7 +39,26 @@ try {
 }
 
 // Determine log directory
-const logDir = path.resolve(__dirname, '../../logs');
+// When running in a packaged Electron app, __dirname points inside the .asar archive
+// which is read-only. We need to use a writable location outside the archive.
+let logDir;
+
+// Check if we're running from inside an .asar archive
+const isPackaged = __dirname.includes('.asar');
+
+if (isPackaged) {
+    // When packaged, put logs alongside the executable (outside the .asar)
+    // The .asar is typically at: <appDir>/resources/app.asar
+    // We want logs at: <appDir>/logs
+    const appAsarPath = __dirname.split('.asar')[0] + '.asar';
+    const resourcesDir = path.dirname(appAsarPath);
+    const appDir = path.dirname(resourcesDir);
+    logDir = path.join(appDir, 'logs');
+} else {
+    // Development mode - use relative path from project root
+    logDir = path.resolve(__dirname, '../../logs');
+}
+
 const logFilePath = path.join(logDir, 'app.log');
 const errorLogPath = path.join(logDir, 'error.log');
 
@@ -49,7 +68,7 @@ try {
         fs.mkdirSync(logDir, { recursive: true });
     }
 } catch (e) {
-    console.error('Failed to create log directory:', e);
+    console.error('Failed to create log directory:', logDir, e);
 }
 
 // JSON format for file transport (NDJSON - Newline Delimited JSON)
