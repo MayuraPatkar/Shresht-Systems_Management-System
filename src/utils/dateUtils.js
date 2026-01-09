@@ -21,16 +21,6 @@ function formatDateDisplay(date) {
 }
 
 /**
- * Format date for PDF documents - DD/MM/YYYY format
- * Same as display format for consistency
- * @param {Date|string} date - Date to format
- * @returns {string} Formatted date string
- */
-function formatDatePDF(date) {
-    return formatDateDisplay(date);
-}
-
-/**
  * Format date for human-readable messages - DD MMM YYYY format
  * Used in WhatsApp messages, emails, and reports
  * Example: "09 Jan 2026"
@@ -50,6 +40,5 @@ function formatDateReadable(date) {
 
 module.exports = {
     formatDateDisplay,
-    formatDatePDF,
     formatDateReadable
 };

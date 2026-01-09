@@ -114,7 +114,7 @@ function numberToWords(num) {
 }
 
 // Use unified date utilities for consistent DD/MM/YYYY formatting
-const { formatDatePDF: formatDate } = require('./dateUtils');
+const { formatDateDisplay: formatDate } = require('./dateUtils');
 
 
 /**
