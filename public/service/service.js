@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Set default date
     const dateInput = document.getElementById('service-date');
     if (dateInput) {
-        dateInput.value = new Date().toISOString().split('T')[0];
+        dateInput.value = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
     }
 
     // Initialize event listeners
@@ -660,7 +660,7 @@ function showNewForm(invoiceId = null) {
     resetForm();
 
     // Set default date to today
-    document.getElementById('service-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('service-date').value = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
 
     ServiceState.isEditing = false;
 
@@ -1459,9 +1459,9 @@ function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
 
         if (paymentData.payment_date) {
             const editDate = new Date(paymentData.payment_date);
-            document.getElementById('modal-payment-date').value = editDate.toISOString().split('T')[0];
+            document.getElementById('modal-payment-date').value = window.formatDateInput ? window.formatDateInput(editDate) : editDate.toISOString().split('T')[0];
         } else {
-            document.getElementById('modal-payment-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modal-payment-date').value = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
         }
 
         // Trigger change event to update extra field based on payment mode
@@ -1488,7 +1488,7 @@ function openPaymentModal(serviceId, paymentIndex = null, paymentData = null) {
         }, 50);
     } else {
         document.getElementById('modal-paid-amount').value = '';
-        document.getElementById('modal-payment-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('modal-payment-date').value = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
         paymentModeSelect.value = 'Cash';
 
         // Trigger change event to update extra field based on payment mode
@@ -2264,8 +2264,8 @@ function initKeyboardShortcuts() {
 // ============================================================================
 function formatDateShort(dateStr) {
     if (!dateStr) return 'N/A';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    // Use unified date format (DD/MM/YYYY)
+    return window.formatDateDisplay ? window.formatDateDisplay(dateStr) : new Date(dateStr).toLocaleDateString('en-IN');
 }
 
 function formatNumber(num) {

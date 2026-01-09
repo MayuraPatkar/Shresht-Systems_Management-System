@@ -17,7 +17,7 @@ function initDataWorksheetReport() {
     }
 
     // Set default date
-    document.getElementById('dw_date').valueAsDate = new Date();
+    document.getElementById('dw_date').value = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
 
     // Set up event handlers
     document.getElementById('generate-worksheet')?.addEventListener('click', generateDataWorksheet);
@@ -33,7 +33,7 @@ function initDataWorksheetReport() {
  */
 function clearWorksheetForm() {
     document.getElementById('dataWorksheetForm').reset();
-    document.getElementById('dw_date').valueAsDate = new Date();
+    document.getElementById('dw_date').value = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
     document.getElementById('dw_unitsPerDay').value = 4;
 }
 

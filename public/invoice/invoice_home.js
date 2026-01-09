@@ -341,22 +341,9 @@ function createInvoiceCard(invoice) {
         }
     }
 
-    // Format the date for display
+    // Format the date for display using unified function (DD/MM/YYYY)
     const dateToFormat = invoice.invoice_date || invoice.createdAt;
-    let formattedDate = '-';
-    if (dateToFormat) {
-        try {
-            const dateObj = new Date(dateToFormat);
-            if (!isNaN(dateObj.getTime())) {
-                const day = String(dateObj.getDate()).padStart(2, '0');
-                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-                const year = dateObj.getFullYear();
-                formattedDate = `${day}/${month}/${year}`;
-            }
-        } catch (e) {
-            formattedDate = '-';
-        }
-    }
+    const formattedDate = dateToFormat ? (window.formatDateDisplay ? window.formatDateDisplay(dateToFormat) : '-') : '-';
 
     invoiceCard.innerHTML = `
         <!-- Left Border Accent -->
@@ -824,9 +811,9 @@ async function payment(id, editIndex = null, editData = null) {
         if (paymentDateInput) {
             if (editData && editData.payment_date) {
                 const editDate = new Date(editData.payment_date);
-                paymentDateInput.value = editDate.toISOString().split('T')[0];
+                paymentDateInput.value = window.formatDateInput ? window.formatDateInput(editDate) : editDate.toISOString().split('T')[0];
             } else {
-                const today = new Date().toISOString().split('T')[0];
+                const today = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
                 paymentDateInput.value = today;
             }
         }
@@ -1145,7 +1132,7 @@ document.getElementById('payment-btn')?.addEventListener('click', async () => {
             document.getElementById("paid-amount").value = '';
             // Reset payment date to today
             const paymentDateEl = document.getElementById('payment-date');
-            if (paymentDateEl) paymentDateEl.value = new Date().toISOString().split('T')[0];
+            if (paymentDateEl) paymentDateEl.value = window.getTodayForInput ? window.getTodayForInput() : new Date().toISOString().split('T')[0];
             document.getElementById("payment-mode").value = '';
             const extraField = document.getElementById('extra-payment-details');
             if (extraField) {

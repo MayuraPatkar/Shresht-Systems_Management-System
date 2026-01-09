@@ -17,8 +17,8 @@ function initStockReport() {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
 
-    document.getElementById('stock-start-date').valueAsDate = startDate;
-    document.getElementById('stock-end-date').valueAsDate = endDate;
+    document.getElementById('stock-start-date').value = window.formatDateInput ? window.formatDateInput(startDate) : startDate.toISOString().split('T')[0];
+    document.getElementById('stock-end-date').value = window.getTodayForInput ? window.getTodayForInput() : endDate.toISOString().split('T')[0];
 
     // Set up event handlers (only once)
     if (!stockReportInitialized) {
@@ -47,8 +47,8 @@ function clearStockFilters() {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
 
-    document.getElementById('stock-start-date').valueAsDate = startDate;
-    document.getElementById('stock-end-date').valueAsDate = endDate;
+    document.getElementById('stock-start-date').value = window.formatDateInput ? window.formatDateInput(startDate) : startDate.toISOString().split('T')[0];
+    document.getElementById('stock-end-date').value = window.getTodayForInput ? window.getTodayForInput() : endDate.toISOString().split('T')[0];
     document.getElementById('stock-movement-type').value = 'all';
     document.getElementById('stock-item-filter').value = '';
     selectedItemId = null; // Reset selected item ID

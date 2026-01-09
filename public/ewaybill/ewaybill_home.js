@@ -620,22 +620,9 @@ function createWayBillCard(wayBill) {
     const wayBillDiv = document.createElement("div");
     wayBillDiv.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
 
-    // Format the date for display
+    // Format the date for display using unified function (DD/MM/YYYY)
     const dateToFormat = wayBill.ewaybill_generated_at || wayBill.createdAt;
-    let formattedDate = '-';
-    if (dateToFormat) {
-        try {
-            const dateObj = new Date(dateToFormat);
-            if (!isNaN(dateObj.getTime())) {
-                const day = String(dateObj.getDate()).padStart(2, '0');
-                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-                const year = dateObj.getFullYear();
-                formattedDate = `${day}/${month}/${year}`;
-            }
-        } catch (e) {
-            formattedDate = '-';
-        }
-    }
+    const formattedDate = dateToFormat ? (window.formatDateDisplay ? window.formatDateDisplay(dateToFormat) : '-') : '-';
 
     // Get transport details from nested object
     const transport = wayBill.transport || {};

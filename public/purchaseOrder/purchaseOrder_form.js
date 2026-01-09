@@ -859,7 +859,7 @@ async function generatePreview() {
     const bank = companyData.bank_details || {};
 
     if (!purchaseOrderId) purchaseOrderId = document.getElementById('id').value;
-    const purchaseDate = document.getElementById("purchase-date").value || new Date().toLocaleDateString();
+    const purchaseDate = document.getElementById("purchase-date").value || (window.getTodayForInput ? window.getTodayForInput() : new Date().toLocaleDateString());
     const purchaseInvoiceId = document.getElementById("purchase-invoice-id").value || purchaseOrderId;
     const supplierName = document.getElementById("supplier-name").value || "";
     const supplierAddress = document.getElementById("supplier-address").value || "";
@@ -1015,7 +1015,7 @@ async function generatePreview() {
         <div style="display:flex;justify-content:space-between;align-items:center;">
             <p>Purchase Order-${purchaseOrderId}</p>
             <div style="text-align:right;"> 
-                        <p><strong>Date:</strong> ${formattedDate || new Date().toLocaleDateString()}</p>
+                        <p><strong>Date:</strong> ${formattedDate || (window.formatDateDisplay ? window.formatDateDisplay(new Date()) : new Date().toLocaleDateString())}</p>
                     </div>
                     </div>
         </div>
