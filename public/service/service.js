@@ -2106,16 +2106,6 @@ function initModalListeners() {
             openPaymentModal(ServiceState.selectedServiceId);
         }
     });
-    document.getElementById('view-print-btn')?.addEventListener('click', () => {
-        if (ServiceState.selectedServiceId) {
-            printService(ServiceState.selectedServiceId);
-        }
-    });
-    document.getElementById('view-pdf-btn')?.addEventListener('click', () => {
-        if (ServiceState.selectedServiceId) {
-            printService(ServiceState.selectedServiceId, 'savePDF');
-        }
-    });
     document.getElementById('view-invoice-id')?.addEventListener('click', () => {
         const invoiceId = document.getElementById('view-invoice-id')?.textContent;
         if (invoiceId && invoiceId !== '-') {
