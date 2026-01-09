@@ -1516,6 +1516,36 @@ window.validateCurrentStep = async function () {
                 return false;
             }
         }
+        // Validate phone if provided
+        const supplierPhone = document.getElementById('supplier-phone');
+        if (supplierPhone && supplierPhone.value.trim()) {
+            const cleanedPhone = supplierPhone.value.replace(/\D/g, '');
+            if (cleanedPhone.length !== 10) {
+                window.electronAPI.showAlert1('Please enter a valid 10-digit Supplier Phone Number.');
+                supplierPhone.focus();
+                return false;
+            }
+        }
+        // Validate email if provided
+        const supplierEmail = document.getElementById('supplier-email');
+        if (supplierEmail && supplierEmail.value.trim()) {
+            const cleanedEmail = supplierEmail.value.trim().replace(/\s+/g, '');
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRe.test(cleanedEmail)) {
+                window.electronAPI.showAlert1('Please enter a valid Supplier Email address.');
+                supplierEmail.focus();
+                return false;
+            }
+        }
+        // If GSTIN provided, ensure it's exactly 15 characters
+        const supplierGstin = document.getElementById('supplier-GSTIN');
+        if (supplierGstin && supplierGstin.value.trim()) {
+            if (supplierGstin.value.trim().length !== 15) {
+                window.electronAPI.showAlert1('GSTIN must be exactly 15 characters.');
+                supplierGstin.focus();
+                return false;
+            }
+        }
     }
 
     // Step 2: At least one item
