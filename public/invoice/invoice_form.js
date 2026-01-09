@@ -139,6 +139,15 @@ window.validateCurrentStep = async function () {
                 return false;
             }
         }
+        // If GSTIN provided, ensure it's exactly 15 characters
+        const buyerGstin = document.getElementById('buyer-gstin');
+        if (buyerGstin && buyerGstin.value.trim()) {
+            if (buyerGstin.value.trim().length !== 15) {
+                window.electronAPI.showAlert1("GSTIN must be exactly 15 characters.");
+                buyerGstin.focus();
+                return false;
+            }
+        }
     }
 
     // Step 5: Item list - ensure at least one item and validate its fields
