@@ -11,3 +11,7 @@ public/css/tailwind.css
 .port-cache
 electron-builder.env
 .vscode
+
+# Test outputs
+coverage/
+.vitest/
