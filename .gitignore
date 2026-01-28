@@ -6,7 +6,6 @@ logs/
 notes
 uploads/
 backups/
-.github/
 public/css/tailwind.css
 .port-cache
 electron-builder.env
