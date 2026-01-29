@@ -1,24 +1,63 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const path = require('path');
-const helmet = require('helmet');
-const cors = require('cors');
-const rateLimit = require('express-rate-limit');
-const exServer = express();
-const config = require('./src/config/config');
-const logger = require('./src/utils/logger');
-const connectDB = require('./src/config/database');
-const { errorHandler, notFound } = require('./src/middleware/errorHandler');
-const { apiLimiter } = require('./src/middleware/rateLimiter');
-const autoBackup = require("./src/utils/backup");
-const backupScheduler = require('./src/utils/backupScheduler');
-const { findAvailablePort, printStartupBanner } = require('./src/utils/portFinder');
-const secureStore = require('./src/utils/secureStore');
-const fileCleanup = require('./src/utils/fileCleanup');
+/**
+ * server.ts
+ * 
+ * Express server for the Electron application.
+ * Handles HTTP requests, database connections, and middleware setup.
+ */
+
+import express, { Express, Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
+import path from 'path';
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import fs from 'fs';
+import http from 'http';
+
+// Local imports - using require for non-typed modules
+const config = require('./config/config');
+const logger = require('./utils/logger');
+const connectDB = require('./config/database');
+const { errorHandler, notFound } = require('./middleware/errorHandler');
+const { apiLimiter } = require('./middleware/rateLimiter');
+const autoBackup = require('./utils/backup');
+const backupScheduler = require('./utils/backupScheduler');
+const { findAvailablePort, printStartupBanner } = require('./utils/portFinder');
+const secureStore = require('./utils/secureStore');
+const fileCleanup = require('./utils/fileCleanup');
+
+// Express app instance
+const exServer: Express = express();
 
 // Track the actual port the server is running on
-let actualPort = null;
-let server = null;
+let actualPort: number | null = null;
+let server: http.Server | null = null;
+
+/**
+ * Server startup result type
+ */
+interface ServerStartResult {
+    server: http.Server;
+    port: number;
+}
+
+/**
+ * Port finder options
+ */
+interface PortFinderOptions {
+    defaultPort: number;
+    maxRetries: number;
+    useCache: boolean;
+    logger: typeof logger;
+}
+
+/**
+ * Port finder result
+ */
+interface PortFinderResult {
+    port: number;
+    source: string;
+}
 
 // Security Middleware
 exServer.use(helmet({
@@ -39,8 +78,8 @@ exServer.use(helmet({
 }));
 
 // Dynamic CORS configuration - uses actual port after detection
-const corsOptions = {
-    origin: function (origin, callback) {
+const corsOptions: cors.CorsOptions = {
+    origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void): void {
         // Allow requests with no origin (like Electron file://)
         if (!origin) {
             return callback(null, true);
@@ -72,16 +111,25 @@ exServer.use(express.json({ limit: '10mb' }));
 exServer.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Get paths from global or use defaults
-const publicPath = path.join(__dirname, 'public');
-const fs = require('fs');
+const publicPath = (() => {
+    const localPublic = path.join(__dirname, 'public');
+    if (fs.existsSync(localPublic)) return localPublic;
 
-// Resolve a writable documents directory (packaged/asar-safe)
-// Priority:
-// 1. process.env.UPLOADS_DIR
-// 2. global.appPaths.userData (set by main.js in Electron)
-// 3. Electron userData path (if available)
-// 4. Relative development path: __dirname/uploads/documents
-function resolveDocumentsDirectory() {
+    const rootPublic = path.join(__dirname, '..', 'public');
+    if (fs.existsSync(rootPublic)) return rootPublic;
+
+    return localPublic; // Default to local even if missing
+})();
+
+/**
+ * Resolve a writable documents directory (packaged/asar-safe)
+ * Priority:
+ * 1. process.env.UPLOADS_DIR
+ * 2. global.appPaths.userData (set by main.ts in Electron)
+ * 3. Electron userData path (if available)
+ * 4. Relative development path: __dirname/uploads/documents
+ */
+function resolveDocumentsDirectory(): string {
     const envUploadsDir = process.env.UPLOADS_DIR;
     if (envUploadsDir) return path.resolve(envUploadsDir);
 
@@ -91,7 +139,7 @@ function resolveDocumentsDirectory() {
 
     try {
         // Running inside Electron main process
-        // eslint-disable-next-line global-require
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { app } = require('electron');
         if (app && typeof app.getPath === 'function') {
             return path.join(app.getPath('userData'), 'uploads', 'documents');
@@ -148,7 +196,7 @@ exServer.use(express.static(publicPath, {
 exServer.use('/documents', express.static(documentsPath, {
     maxAge: '1h', // Cache for 1 hour
     etag: true,
-    setHeaders: (res, filePath) => {
+    setHeaders: (res: Response, filePath: string) => {
         if (filePath.endsWith('.pdf')) {
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', 'inline');
@@ -174,7 +222,7 @@ exServer.set('views', path.join(__dirname, 'public', 'views'));
 
 // Initialize database connection with default admin users
 connectDB().then(async () => {
-    const initializeDatabase = require('./src/utils/initDatabase');
+    const initializeDatabase = require('./utils/initDatabase');
     await initializeDatabase();
     // Resolve WhatsApp token from secure storage if not provided via env
     try {
@@ -187,7 +235,7 @@ connectDB().then(async () => {
         }
         // If phoneNumberId not in env, check settings collection
         try {
-            const { Settings } = require('./src/models');
+            const { Settings } = require('./models');
             const settings = await Settings.findOne();
             if (settings && settings.whatsapp && settings.whatsapp.phoneNumberId && !config.whatsapp.phoneNumberId) {
                 config.whatsapp.phoneNumberId = settings.whatsapp.phoneNumberId;
@@ -197,32 +245,32 @@ connectDB().then(async () => {
                 config.whatsapp.pdfBaseUrl = settings.whatsapp.pdfBaseUrl;
             }
         } catch (e) {
-            logger.warn('Failed to load WhatsApp settings from DB on startup', e && e.message);
+            logger.warn('Failed to load WhatsApp settings from DB on startup', e && (e as Error).message);
         }
     } catch (err) {
-        logger.warn('Failed to load WhatsApp token from secure store', err && err.message);
+        logger.warn('Failed to load WhatsApp token from secure store', err && (err as Error).message);
     }
-}).catch(err => {
+}).catch((err: Error) => {
     logger.error('Database connection failed:', err);
 });
 
 // Routes - Importing route modules
-const authRoutes = require('./src/routes/auth');
-const viewRoutes = require('./src/routes/views');
-const stockRoutes = require('./src/routes/stock');
-const invoiceRoutes = require('./src/routes/invoice');
-const quotationRoutes = require('./src/routes/quotation');
-const purchaseRoutes = require('./src/routes/purchaseOrder');
-const eWayBillRoutes = require('./src/routes/eWayBill');
-const serviceRoutes = require('./src/routes/service');
-const employeeRoute = require('./src/routes/employee');
-const analyticsRoutes = require('./src/routes/analytics');
-const commsRouter = require('./src/routes/comms');
-const settingsRoutes = require('./src/routes/settings');
-const reportsRoutes = require('./src/routes/reports');
+const authRoutes = require('./routes/auth');
+const viewRoutes = require('./routes/views');
+const stockRoutes = require('./routes/stock');
+const invoiceRoutes = require('./routes/invoice');
+const quotationRoutes = require('./routes/quotation');
+const purchaseRoutes = require('./routes/purchaseOrder');
+const eWayBillRoutes = require('./routes/eWayBill');
+const serviceRoutes = require('./routes/service');
+const employeeRoute = require('./routes/employee');
+const analyticsRoutes = require('./routes/analytics');
+const commsRouter = require('./routes/comms');
+const settingsRoutes = require('./routes/settings');
+const reportsRoutes = require('./routes/reports');
 
 // Health check endpoint
-exServer.get('/health', async (req, res) => {
+exServer.get('/health', async (req: Request, res: Response) => {
     try {
         // Check database connection
         const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
@@ -243,7 +291,7 @@ exServer.get('/health', async (req, res) => {
         res.status(503).json({
             status: 'ERROR',
             timestamp: new Date().toISOString(),
-            error: error.message
+            error: (error as Error).message
         });
     }
 });
@@ -277,7 +325,7 @@ exServer.use(errorHandler);
 // Run automatic backup on startup with error handling
 // Start scheduled automatic backups based on saved settings
 try {
-    backupScheduler.startScheduler().catch(err => {
+    backupScheduler.startScheduler().catch((err: Error) => {
         logger.error('Failed to start backup scheduler:', err);
     });
 
@@ -286,29 +334,30 @@ try {
         const retentionDays = config.uploadsRetentionDays || 7;
         if (documentsPath) {
             // Run on startup once
-            fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }) => {
+            fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }: { success: boolean; removed: number }) => {
                 if (success && removed) logger.info(`Uploads cleanup completed: removed ${removed} old files`);
-            }).catch(err => logger.warn('Uploads cleanup error:', err && err.message));
+            }).catch((err: Error) => logger.warn('Uploads cleanup error:', err && err.message));
 
             // Schedule daily cleanup
             setInterval(() => {
-                fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }) => {
+                fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }: { success: boolean; removed: number }) => {
                     if (success && removed) logger.info(`Scheduled uploads cleanup removed ${removed} old files`);
-                }).catch(err => logger.warn('Scheduled uploads cleanup error:', err && err.message));
+                }).catch((err: Error) => logger.warn('Scheduled uploads cleanup error:', err && err.message));
             }, 24 * 60 * 60 * 1000);
         }
     } catch (e) {
-        logger.warn('Failed to schedule uploads cleanup:', e && e.message);
+        logger.warn('Failed to schedule uploads cleanup:', e && (e as Error).message);
     }
 } catch (backupError) {
-    logger.error('Failed to initialize backup scheduler:', backupError && backupError.message ? backupError.message : backupError);
+    const err = backupError as Error;
+    logger.error('Failed to initialize backup scheduler:', err && err.message ? err.message : err);
 }
 
 /**
  * Start the server with automatic port detection
- * @returns {Promise<{server: object, port: number}>} Server instance and actual port
+ * @returns Promise with server instance and actual port
  */
-async function startServer() {
+async function startServer(): Promise<ServerStartResult> {
     try {
         // We'll allow a few binding attempts in case of a race where
         // the port was available during detection but got taken before listen.
@@ -319,23 +368,23 @@ async function startServer() {
             attempt += 1;
 
             // Find an available port using the existing port finder
-            const { port, source } = await findAvailablePort({
+            const { port, source }: PortFinderResult = await findAvailablePort({
                 defaultPort: config.port,
                 maxRetries: config.portMaxRetries,
                 useCache: config.portCacheEnabled,
                 logger: logger
-            });
+            } as PortFinderOptions);
 
             actualPort = port;
 
             // Try to start the server on the detected port
             try {
-                const result = await new Promise((resolve, reject) => {
+                const result = await new Promise<ServerStartResult>((resolve, reject) => {
                     // Attempt to listen
                     const tempServer = exServer.listen(port, () => {
                         // Log server startup
-                        logger.info("Express server started", {
-                            service: "http-server",
+                        logger.info('Express server started', {
+                            service: 'http-server',
                             port: actualPort,
                             portSource: source,
                             environment: process.env.NODE_ENV || 'development'
@@ -343,11 +392,11 @@ async function startServer() {
 
                         // Update the outer-scope server reference
                         server = tempServer;
-                        resolve({ server: tempServer, port: actualPort });
+                        resolve({ server: tempServer, port: actualPort as number });
                     });
 
                     // Handle server startup errors for this attempt
-                    const onError = (error) => {
+                    const onError = (error: NodeJS.ErrnoException): void => {
                         if (error.syscall !== 'listen') {
                             reject(error);
                             return;
@@ -374,8 +423,9 @@ async function startServer() {
                 // If we get here, listening succeeded
                 return result;
             } catch (err) {
+                const error = err as NodeJS.ErrnoException;
                 // If the error is an EADDRINUSE, loop and try again (findAvailablePort will pick another)
-                if (err && err.code === 'EADDRINUSE') {
+                if (error && error.code === 'EADDRINUSE') {
                     logger.info('Retrying port detection due to EADDRINUSE...');
                     // small delay to reduce tight loop
                     await new Promise(r => setTimeout(r, 250));
@@ -388,7 +438,7 @@ async function startServer() {
         }
 
         // Exhausted attempts
-        const err = new Error(`Failed to bind to a port after ${maxBindAttempts} attempts due to address-in-use errors.`);
+        const err = new Error(`Failed to bind to a port after ${maxBindAttempts} attempts due to address-in-use errors.`) as NodeJS.ErrnoException;
         err.code = 'EADDRINUSE_RETRIES_EXHAUSTED';
         logger.error(err.message);
         throw err;
@@ -398,8 +448,10 @@ async function startServer() {
     }
 }
 
-// Graceful shutdown handling
-const gracefulShutdown = async (signal) => {
+/**
+ * Graceful shutdown handling
+ */
+const gracefulShutdown = async (signal: string): Promise<void> => {
     logger.info(`${signal} received. Starting graceful shutdown...`);
 
     if (!server) {
@@ -408,7 +460,7 @@ const gracefulShutdown = async (signal) => {
     }
 
     // Stop accepting new connections
-    server.close(async (err) => {
+    server.close(async (err?: Error) => {
         if (err) {
             logger.error('Error during server shutdown:', err);
             process.exit(1);
@@ -439,22 +491,27 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', (error: Error) => {
     logger.error('Uncaught Exception:', error);
     gracefulShutdown('UNCAUGHT_EXCEPTION');
 });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
     logger.error('Unhandled Rejection at:', promise);
     logger.error('Reason:', reason instanceof Error ? reason.stack : reason);
     gracefulShutdown('UNHANDLED_REJECTION');
 });
 
 // Auto-start server when this module is required
-// Store the startup promise so main.js can await it
+// Store the startup promise so main.ts can await it
 const serverStartPromise = startServer();
 
 // Export the app, actual port getter, and startup promise
+export default exServer;
+export const getActualPort = (): number | null => actualPort;
+export const serverReady = serverStartPromise;
+
+// Also support CommonJS require
 module.exports = exServer;
-module.exports.getActualPort = () => actualPort;
-module.exports.serverReady = serverStartPromise;
+module.exports.getActualPort = getActualPort;
+module.exports.serverReady = serverReady;

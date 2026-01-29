@@ -1046,7 +1046,7 @@ router.post("/logo/upload", logoUpload.single("logo"), asyncHandler(async (req, 
 // Get system information
 router.get("/system-info", asyncHandler(async (req, res) => {
     try {
-        const package = require('../../package.json');
+        const packageJson = require('../../package.json');
         const os = require('os');
 
         // Format uptime
@@ -1066,7 +1066,7 @@ router.get("/system-info", asyncHandler(async (req, res) => {
             success: true,
             system: {
                 app_name: 'Shresht Systems Management Systems',
-                app_version: package.version || '1.0.0',
+                app_version: packageJson.version || '1.0.0',
                 node_version: process.version,
                 platform: os.platform(),
                 arch: os.arch(),
