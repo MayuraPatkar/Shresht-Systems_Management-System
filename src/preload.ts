@@ -7,7 +7,6 @@
  */
 
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { AppConfig, ChangelogResult, DialogOptions, ElectronAPI, MarkSeenResult, MessageBoxOptions, MessageBoxResult, OpenDialogResult, OpenExternalResult, OpenFolderResult, PrintDocOptions, PrintResult, ProgressInfo, SaveDialogResult, UpdateCheckOptions, UpdateCheckResult, UpdateInfo, VersionCheckResult } from './types/electron-api';
 
 /**
  * Validates that a value is a non-empty string
