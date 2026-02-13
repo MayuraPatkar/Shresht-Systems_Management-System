@@ -1,47 +1,47 @@
 /**
  * Type definitions for the exposed Electron API
  */
-export interface PrintDocOptions {
+interface PrintDocOptions {
   content: string;
   mode: string;
   name: string;
 }
 
-export interface PrintResult {
+interface PrintResult {
   success: boolean;
   error?: string;
 }
 
-export interface UpdateCheckOptions {
+interface UpdateCheckOptions {
   allowPrerelease?: boolean;
 }
 
-export interface UpdateCheckResult {
+interface UpdateCheckResult {
   success: boolean;
   updateInfo?: UpdateInfo | null;
   error?: string;
   isDevelopment?: boolean;
 }
 
-export interface UpdateInfo {
+interface UpdateInfo {
   version: string;
   releaseDate?: string;
   releaseNotes?: string | ReleaseNoteInfo[];
 }
 
-export interface ReleaseNoteInfo {
+interface ReleaseNoteInfo {
   version: string;
   note: string;
 }
 
-export interface ProgressInfo {
+interface ProgressInfo {
   bytesPerSecond: number;
   percent: number;
   transferred: number;
   total: number;
 }
 
-export interface DialogOptions {
+interface DialogOptions {
   title?: string;
   defaultPath?: string;
   filters?: Array<{ name: string; extensions: string[] }>;
@@ -50,19 +50,19 @@ export interface DialogOptions {
   buttonLabel?: string;
 }
 
-export interface SaveDialogResult {
+interface SaveDialogResult {
   canceled: boolean;
   filePath?: string;
   error?: string;
 }
 
-export interface OpenDialogResult {
+interface OpenDialogResult {
   canceled: boolean;
   filePaths?: string[];
   error?: string;
 }
 
-export interface MessageBoxOptions {
+interface MessageBoxOptions {
   type?: 'none' | 'info' | 'error' | 'question' | 'warning';
   title?: string;
   message: string;
@@ -72,36 +72,36 @@ export interface MessageBoxOptions {
   cancelId?: number;
 }
 
-export interface MessageBoxResult {
+interface MessageBoxResult {
   response: number;
   checkboxChecked: boolean;
 }
 
-export interface OpenFolderResult {
+interface OpenFolderResult {
   success: boolean;
   path?: string;
   message?: string;
 }
 
-export interface OpenExternalResult {
+interface OpenExternalResult {
   success: boolean;
   url?: string;
   message?: string;
 }
 
-export interface AppConfig {
+interface AppConfig {
   version: string;
   environment: string;
   [key: string]: unknown;
 }
 
-export interface ChangelogResult {
+interface ChangelogResult {
   success: boolean;
   changelog?: unknown;
   error?: string;
 }
 
-export interface VersionCheckResult {
+interface VersionCheckResult {
   success: boolean;
   currentVersion?: string;
   lastSeenVersion?: string | null;
@@ -109,7 +109,7 @@ export interface VersionCheckResult {
   error?: string;
 }
 
-export interface MarkSeenResult {
+interface MarkSeenResult {
   success: boolean;
   version?: string;
   error?: string;
@@ -118,7 +118,7 @@ export interface MarkSeenResult {
 /**
 * Interface for the Electron API exposed to the renderer
 */
-export interface ElectronAPI {
+interface ElectronAPI {
   handlePrintEvent: (content: string, mode: string, name: string) => Promise<PrintResult>;
   handlePrintEventQuatation: (content: string, mode: string, name: string) => void;
   showAlert1: (message: string) => void;
