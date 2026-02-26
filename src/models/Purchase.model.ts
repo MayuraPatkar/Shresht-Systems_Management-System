@@ -261,7 +261,6 @@ const purchaseSchema = new Schema<IPurchase>(
 /**
  * Indexes
  */
-purchaseSchema.index({ purchase_order_no: 1 });
 purchaseSchema.index({ purchase_invoice_no: 1, purchase_date: -1 });
 purchaseSchema.index({ supplier_id: 1, purchase_date: -1 });
 purchaseSchema.index({ "deletion.is_deleted": 1 });

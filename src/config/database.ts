@@ -44,3 +44,7 @@ const connectDB = async (): Promise<void> => {
 };
 
 export default connectDB;
+
+// CommonJS compatibility for .js consumers
+module.exports = connectDB;
+module.exports.default = connectDB;

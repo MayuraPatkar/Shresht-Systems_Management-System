@@ -171,3 +171,7 @@ const config: AppConfig = {
 };
 
 export default config;
+
+// CommonJS compatibility for .js consumers
+module.exports = config;
+module.exports.default = config;

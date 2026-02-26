@@ -160,3 +160,8 @@ function createBackup(customPath?: string): Promise<BackupResult> {
 
 export default createBackup;
 export { createBackup as autoBackup };
+
+// CommonJS compatibility for .js consumers
+module.exports = createBackup;
+module.exports.default = createBackup;
+module.exports.autoBackup = createBackup;

@@ -167,3 +167,7 @@ if (config.isDevelopment && config.isDevelopment()) {
 }
 
 export default logger;
+
+// CommonJS compatibility for .js consumers
+module.exports = logger;
+module.exports.default = logger;

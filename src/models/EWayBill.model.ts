@@ -248,7 +248,6 @@ const eWayBillSchema = new Schema<IEWayBill>(
  * Indexes
  */
 eWayBillSchema.index({ invoice_id: 1, createdAt: -1 });
-eWayBillSchema.index({ ewaybill_status: 1 });
 eWayBillSchema.index({ "deletion.is_deleted": 1 });
 
 /**

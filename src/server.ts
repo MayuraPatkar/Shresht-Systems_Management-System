@@ -14,17 +14,17 @@ import rateLimit from 'express-rate-limit';
 import fs from 'fs';
 import http from 'http';
 
-// Local imports - using require for non-typed modules
-const config = require('./config/config');
-const logger = require('./utils/logger');
-const connectDB = require('./config/database');
-const { errorHandler, notFound } = require('./middleware/errorHandler');
-const { apiLimiter } = require('./middleware/rateLimiter');
-const autoBackup = require('./utils/backup');
-const backupScheduler = require('./utils/backupScheduler');
-const { findAvailablePort, printStartupBanner } = require('./utils/portFinder');
-const secureStore = require('./utils/secureStore');
-const fileCleanup = require('./utils/fileCleanup');
+// Local imports
+import config from './config/config';
+import logger from './utils/logger';
+import connectDB from './config/database';
+import { errorHandler, notFound } from './middleware/errorHandler';
+import { apiLimiter } from './middleware/rateLimiter';
+import autoBackup from './utils/backup';
+import * as backupScheduler from './utils/backupScheduler';
+import { findAvailablePort, printStartupBanner } from './utils/portFinder';
+import secureStore from './utils/secureStore';
+import * as fileCleanup from './utils/fileCleanup';
 
 // Express app instance
 const exServer: Express = express();
@@ -112,13 +112,15 @@ exServer.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Get paths from global or use defaults
 const publicPath = (() => {
-    const localPublic = path.join(__dirname, 'public');
-    if (fs.existsSync(localPublic)) return localPublic;
-
+    // Prefer the root-level public/ which contains HTML, CSS, and assets.
+    // dist/public/ may exist from TS compiling JS files but lacks static assets.
     const rootPublic = path.join(__dirname, '..', 'public');
-    if (fs.existsSync(rootPublic)) return rootPublic;
+    if (fs.existsSync(path.join(rootPublic, 'index.html'))) return rootPublic;
 
-    return localPublic; // Default to local even if missing
+    const localPublic = path.join(__dirname, 'public');
+    if (fs.existsSync(path.join(localPublic, 'index.html'))) return localPublic;
+
+    return rootPublic; // Default to root public
 })();
 
 /**
@@ -334,13 +336,13 @@ try {
         const retentionDays = config.uploadsRetentionDays || 7;
         if (documentsPath) {
             // Run on startup once
-            fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }: { success: boolean; removed: number }) => {
+            fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }) => {
                 if (success && removed) logger.info(`Uploads cleanup completed: removed ${removed} old files`);
             }).catch((err: Error) => logger.warn('Uploads cleanup error:', err && err.message));
 
             // Schedule daily cleanup
             setInterval(() => {
-                fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }: { success: boolean; removed: number }) => {
+                fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }) => {
                     if (success && removed) logger.info(`Scheduled uploads cleanup removed ${removed} old files`);
                 }).catch((err: Error) => logger.warn('Scheduled uploads cleanup error:', err && err.message));
             }, 24 * 60 * 60 * 1000);

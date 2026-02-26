@@ -133,3 +133,7 @@ const validators = {
 };
 
 export default validators;
+
+// CommonJS compatibility for .js consumers
+module.exports = validators;
+module.exports.default = validators;

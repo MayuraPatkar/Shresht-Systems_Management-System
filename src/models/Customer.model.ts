@@ -176,7 +176,6 @@ const customerSchema = new Schema<ICustomer>(
  * Indexes
  */
 customerSchema.index({ "customer.name": 1, "customer.phone": 1 });
-customerSchema.index({ gstin: 1 });
 customerSchema.index({ "customer.phone": 1 });
 customerSchema.index({ "customer.email": 1 });
 customerSchema.index({ "deletion.is_deleted": 1 });

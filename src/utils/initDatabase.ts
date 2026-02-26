@@ -32,3 +32,7 @@ async function initializeDatabase(): Promise<void> {
 }
 
 export default initializeDatabase;
+
+// CommonJS compatibility for .js consumers
+module.exports = initializeDatabase;
+module.exports.default = initializeDatabase;

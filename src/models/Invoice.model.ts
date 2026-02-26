@@ -384,7 +384,6 @@ const invoiceSchema = new Schema<IInvoice>(
 /**
  * Indexes
  */
-invoiceSchema.index({ invoice_no: 1 });
 invoiceSchema.index({ invoice_date: -1 });
 invoiceSchema.index({ customer_id: 1, invoice_date: -1 });
 invoiceSchema.index({ "deletion.is_deleted": 1 });

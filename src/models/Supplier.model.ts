@@ -190,7 +190,6 @@ const supplierSchema = new Schema<ISupplier>(
  * Indexes
  */
 supplierSchema.index({ "supplier.name": 1, "supplier.phone": 1 });
-supplierSchema.index({ gstin: 1 });
 supplierSchema.index({ "supplier.phone": 1 });
 supplierSchema.index({ "supplier.email": 1 });
 supplierSchema.index({ "deletion.is_deleted": 1 });

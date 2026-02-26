@@ -159,3 +159,7 @@ const secureStore = {
 };
 
 export default secureStore;
+
+// CommonJS compatibility for .js consumers
+module.exports = secureStore;
+module.exports.default = secureStore;
