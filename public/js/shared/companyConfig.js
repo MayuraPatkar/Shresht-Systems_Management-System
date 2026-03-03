@@ -30,18 +30,18 @@ async function getCompanyInfo() {
 
         // Return default fallback data
         return {
-            company: 'Company Name',
-            address: 'Company Address',
+            company_name: 'Company Name',
+            address: { line1: 'Company Address', line2: '', city: '', state: '', pincode: '', country: 'India' },
             phone: { ph1: '0000000000', ph2: '' },
             email: 'email@company.com',
             website: 'www.company.com',
-            GSTIN: 'GSTIN Number',
+            gstin: 'GSTIN Number',
             bank_details: {
                 bank_name: 'Bank Name',
-                name: 'Account Holder Name',
-                accountNo: '0000000000',
+                account_holder_name: 'Account Holder Name',
+                account_number: '0000000000',
                 type: 'Current',
-                IFSC_code: 'IFSC0000000',
+                ifsc_code: 'IFSC0000000',
                 branch: 'Branch Name'
             }
         };
@@ -131,22 +131,24 @@ function formatDate(date) {
  */
 async function getCompanyHeaderHTML() {
     const company = await getCompanyInfo();
+    const addr = company.address || {};
+    const addressStr = typeof addr === 'string' ? addr : [addr.line1, addr.line2, addr.city, addr.state ? addr.state + (addr.pincode ? ' - ' + addr.pincode : '') : ''].filter(Boolean).join(', ');
 
     return `
         <div class="header">
             <div class="quotation-brand">
                 <div class="logo">
-                    <img src="../assets/icon.png" alt="${company.company} Logo">
+                    <img src="../assets/icon.png" alt="${company.company_name} Logo">
                 </div>
                 <div class="quotation-brand-text">
-                    <h1>${company.company.toUpperCase()}</h1>
+                    <h1>${company.company_name.toUpperCase()}</h1>
                     <p class="quotation-tagline">CCTV & Energy Solutions</p>
                 </div>
             </div>
             <div class="company-details">
-                <p>${company.address}</p>
+                <p>${addressStr}</p>
                 <p>Ph: ${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''}</p>
-                <p>GSTIN: ${company.GSTIN}</p>
+                <p>GSTIN: ${company.gstin}</p>
                 <p>Email: ${company.email}</p>
                 <p>Website: ${company.website}</p>
             </div>
@@ -169,11 +171,11 @@ async function getBankDetailsHTML() {
                 <img src="../assets/shresht-systems-payment-QR-code.jpg" alt="qr-code" />
             </div>
             <div class="bank-details-sub2">
-                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company_name}</p>
                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
-                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
-                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
+                <p><strong>Account No: </strong>${bank.account_number || ''}</p>
+                <p><strong>IFSC Code: </strong>${bank.ifsc_code || ''}</p>
             </div>
         </div>
     `;
@@ -188,7 +190,7 @@ async function getSignatoryHTML() {
 
     return `
         <div class="eighth-section">
-            <p>For ${company.company.toUpperCase()}</p>
+            <p>For ${company.company_name.toUpperCase()}</p>
             <div class="eighth-section-space"></div>
             <p><strong>Authorized Signatory</strong></p>
         </div>
@@ -201,7 +203,7 @@ async function getSignatoryHTML() {
  */
 async function getCompanyName() {
     const company = await getCompanyInfo();
-    return company.company || 'Company';
+    return company.company_name || 'Company';
 }
 
 /**

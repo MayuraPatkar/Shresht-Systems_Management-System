@@ -37,23 +37,26 @@ function fetchAdminInfo() {
  * @param {Object} data - Admin data from the server
  */
 function updateAdminDisplay(data) {
-    document.getElementById("admin-company-name").textContent = data.company || 'Shresht Systems';
-    document.getElementById("admin-address").textContent = `Address: ${data.address}`;
-    document.getElementById("admin-state").textContent = `State: ${data.state}`;
+    document.getElementById("admin-company-name").textContent = data.company_name || 'Shresht Systems';
+    // Address is now a sub-document: { line1, line2, city, state, pincode, country }
+    const addr = data.address || {};
+    const addressStr = typeof addr === 'string' ? addr : [addr.line1, addr.line2, addr.city, addr.state ? addr.state + (addr.pincode ? ' - ' + addr.pincode : '') : ''].filter(Boolean).join(', ');
+    document.getElementById("admin-address").textContent = `Address: ${addressStr}`;
+    document.getElementById("admin-state").textContent = `State: ${typeof addr === 'object' ? (addr.state || '') : (data.state || '')}`;
     document.getElementById("admin-contact1").textContent = `Contact: ${data.phone.ph1}`;
     document.getElementById("admin-contact2").textContent = `Contact: ${data.phone.ph2}`;
     document.getElementById("admin-email").textContent = `Email: ${data.email}`;
     document.getElementById("admin-website").textContent = `Website: ${data.website}`;
-    document.getElementById("admin-gstin").textContent = `GSTIN: ${data.GSTIN}`;
+    document.getElementById("admin-gstin").textContent = `GSTIN: ${data.gstin}`;
     document.getElementById("bank-name").textContent = `Bank Name: ${data.bank_details.bank_name}`;
-    
+
     const accountHolderElement = document.getElementById("account-holder");
-    if (accountHolderElement && data.bank_details.name) {
-        accountHolderElement.textContent = `Account Holder: ${data.bank_details.name}`;
+    if (accountHolderElement && data.bank_details.account_holder_name) {
+        accountHolderElement.textContent = `Account Holder: ${data.bank_details.account_holder_name}`;
     }
-    
-    document.getElementById("account-number").textContent = `Account No: ${data.bank_details.accountNo}`;
-    document.getElementById("ifsc-code").textContent = `IFSC Code: ${data.bank_details.IFSC_code}`;
+
+    document.getElementById("account-number").textContent = `Account No: ${data.bank_details.account_number}`;
+    document.getElementById("ifsc-code").textContent = `IFSC Code: ${data.bank_details.ifsc_code}`;
     document.getElementById("branch-name").textContent = `Branch: ${data.bank_details.branch}`;
 }
 
@@ -68,27 +71,29 @@ function enterEditMode() {
     document.getElementById("bank-view-mode").classList.add("hidden");
     document.getElementById("company-edit-mode").classList.remove("hidden");
     document.getElementById("bank-edit-mode").classList.remove("hidden");
-    
+
     // Hide edit button, show save/cancel
     document.getElementById("edit-company-info-button").classList.add("hidden");
     document.getElementById("edit-company-actions").classList.remove("hidden");
     document.getElementById("edit-company-actions").classList.add("flex");
-    
+
     // Populate edit fields with current data
     if (originalAdminData) {
-        document.getElementById("edit-company").value = originalAdminData.company || '';
-        document.getElementById("edit-address").value = originalAdminData.address || '';
-        document.getElementById("edit-state").value = originalAdminData.state || '';
+        const addr = originalAdminData.address || {};
+        const addressStr = typeof addr === 'string' ? addr : [addr.line1, addr.line2, addr.city, addr.state ? addr.state + (addr.pincode ? ' - ' + addr.pincode : '') : ''].filter(Boolean).join(', ');
+        document.getElementById("edit-company").value = originalAdminData.company_name || '';
+        document.getElementById("edit-address").value = addressStr;
+        document.getElementById("edit-state").value = (typeof addr === 'object' ? addr.state : originalAdminData.state) || '';
         document.getElementById("edit-phone1").value = originalAdminData.phone?.ph1 || '';
         document.getElementById("edit-phone2").value = originalAdminData.phone?.ph2 || '';
         document.getElementById("edit-email").value = originalAdminData.email || '';
         document.getElementById("edit-website").value = originalAdminData.website || '';
-        document.getElementById("edit-gstin").value = originalAdminData.GSTIN || '';
-        
+        document.getElementById("edit-gstin").value = originalAdminData.gstin || '';
+
         document.getElementById("edit-bank-name").value = originalAdminData.bank_details?.bank_name || '';
-        document.getElementById("edit-account-holder").value = originalAdminData.bank_details?.name || '';
-        document.getElementById("edit-account-number").value = originalAdminData.bank_details?.accountNo || '';
-        document.getElementById("edit-ifsc").value = originalAdminData.bank_details?.IFSC_code || '';
+        document.getElementById("edit-account-holder").value = originalAdminData.bank_details?.account_holder_name || '';
+        document.getElementById("edit-account-number").value = originalAdminData.bank_details?.account_number || '';
+        document.getElementById("edit-ifsc").value = originalAdminData.bank_details?.ifsc_code || '';
         document.getElementById("edit-branch").value = originalAdminData.bank_details?.branch || '';
     }
 }
@@ -102,7 +107,7 @@ function exitEditMode() {
     document.getElementById("bank-view-mode").classList.remove("hidden");
     document.getElementById("company-edit-mode").classList.add("hidden");
     document.getElementById("bank-edit-mode").classList.add("hidden");
-    
+
     // Show edit button, hide save/cancel
     document.getElementById("edit-company-info-button").classList.remove("hidden");
     document.getElementById("edit-company-actions").classList.add("hidden");
@@ -117,35 +122,43 @@ function saveCompanyInfo() {
     const originalContent = saveButton.innerHTML;
     saveButton.disabled = true;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    
+
+    const addressInput = document.getElementById("edit-address").value.trim();
+    const stateInput = document.getElementById("edit-state").value.trim();
     const updatedData = {
-        company: document.getElementById("edit-company").value.trim(),
-        address: document.getElementById("edit-address").value.trim(),
-        state: document.getElementById("edit-state").value.trim(),
+        company_name: document.getElementById("edit-company").value.trim(),
+        address: {
+            line1: addressInput,
+            line2: '',
+            city: '',
+            state: stateInput,
+            pincode: '',
+            country: 'India'
+        },
         phone: {
             ph1: document.getElementById("edit-phone1").value.trim(),
             ph2: document.getElementById("edit-phone2").value.trim()
         },
         email: document.getElementById("edit-email").value.trim(),
         website: document.getElementById("edit-website").value.trim(),
-        GSTIN: document.getElementById("edit-gstin").value.trim(),
+        gstin: document.getElementById("edit-gstin").value.trim(),
         bank_details: {
             bank_name: document.getElementById("edit-bank-name").value.trim(),
-            name: document.getElementById("edit-account-holder").value.trim(),
-            accountNo: document.getElementById("edit-account-number").value.trim(),
-            IFSC_code: document.getElementById("edit-ifsc").value.trim(),
+            account_holder_name: document.getElementById("edit-account-holder").value.trim(),
+            account_number: document.getElementById("edit-account-number").value.trim(),
+            ifsc_code: document.getElementById("edit-ifsc").value.trim(),
             branch: document.getElementById("edit-branch").value.trim()
         }
     };
-    
+
     // Validate required fields
-    if (!updatedData.company || !updatedData.address || !updatedData.phone.ph1 || !updatedData.email) {
+    if (!updatedData.company_name || !addressInput || !updatedData.phone.ph1 || !updatedData.email) {
         window.electronAPI.showAlert1("Please fill in all required fields (Company, Address, Phone 1, Email)");
         saveButton.disabled = false;
         saveButton.innerHTML = originalContent;
         return;
     }
-    
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(updatedData.email)) {
@@ -154,7 +167,7 @@ function saveCompanyInfo() {
         saveButton.innerHTML = originalContent;
         return;
     }
-    
+
     fetch("/settings/company-info", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -193,7 +206,7 @@ function handleChangeUsername() {
         window.electronAPI.showAlert1("Username cannot be empty.");
         return;
     }
-    
+
     // Validate username (alphanumeric and underscore only, 3-20 chars)
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
     if (!usernameRegex.test(username)) {
@@ -242,7 +255,7 @@ function handleChangePassword() {
         window.electronAPI.showAlert1("New password and confirm password do not match.");
         return;
     }
-    
+
     // Basic password strength validation
     if (newPassword.length < 4) {
         window.electronAPI.showAlert1("New password must be at least 4 characters long.");
@@ -300,11 +313,11 @@ function initAdminModule() {
     document.getElementById("edit-company-info-button")?.addEventListener("click", enterEditMode);
     document.getElementById("save-company-info-button")?.addEventListener("click", saveCompanyInfo);
     document.getElementById("cancel-edit-company-button")?.addEventListener("click", exitEditMode);
-    
+
     // Credential management
     document.getElementById("change-username-button")?.addEventListener("click", handleChangeUsername);
     document.getElementById("change-password-button")?.addEventListener("click", handleChangePassword);
-    
+
     // Add keyboard navigation for username change
     document.getElementById("username")?.addEventListener("keydown", (e) => {
         if (e.key === "Enter") handleChangeUsername();
@@ -317,7 +330,7 @@ function initAdminModule() {
             if (e.key === "Enter") handleChangePassword();
         });
     });
-    
+
     // Logout
     document.getElementById("logout-button")?.addEventListener("click", handleLogout);
 }

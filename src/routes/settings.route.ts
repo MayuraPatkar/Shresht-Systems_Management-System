@@ -348,7 +348,7 @@ router.put("/company-info", asyncHandler(async (req: Request, res: Response) => 
         const updates = req.body;
         const admin = await AdminModel.findOne() as any;
         if (!admin) return res.status(404).json({ success: false, message: 'Admin record not found' });
-        const allowedFields = ['company', 'address', 'state', 'phone', 'email', 'website', 'GSTIN', 'bank_details'];
+        const allowedFields = ['company_name', 'address', 'phone', 'email', 'website', 'gstin', 'bank_details'];
         allowedFields.forEach(field => { if (updates[field] !== undefined) admin[field] = updates[field]; });
         await admin.save();
         res.json({ success: true, message: 'Company information updated successfully', admin });
