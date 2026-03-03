@@ -1,13 +1,22 @@
-const express = require('express');
-const router = express.Router();
-const { Stock, StockMovement } = require('../models');
-const logger = require('../utils/logger');
-const validators = require('../middleware/validators'); // Import validators
+import { Router, Request, Response } from 'express';
+import { ItemModel, StockMovementModel } from '../models';
+import logger from '../utils/logger';
+import validators from '../middleware/validators';
+
+const router: Router = Router();
 
 // Helper function to log stock movements
-async function logStockMovement(itemId, itemName, quantityChange, movementType, referenceType, referenceId = null, notes = '') {
+async function logStockMovement(
+    itemId: any,
+    itemName: string,
+    quantityChange: number,
+    movementType: string,
+    referenceType: string,
+    referenceId: string | null = null,
+    notes: string = ''
+): Promise<void> {
     try {
-        await StockMovement.create({
+        await StockMovementModel.create({
             item_id: itemId,
             item_name: itemName,
             quantity_change: quantityChange,
@@ -15,37 +24,37 @@ async function logStockMovement(itemId, itemName, quantityChange, movementType, 
             reference_type: referenceType,
             reference_id: referenceId,
             notes: notes
-        });
-    } catch (error) {
-        logger.error('Stock movement log failed', { service: "stock", error: error.message });
+        } as any);
+    } catch (error: unknown) {
+        logger.error('Stock movement log failed', { service: "stock", error: (error as Error).message });
     }
 }
 
 // Route to get all stock items
-router.get('/all', async (req, res) => {
+router.get('/all', async (req: Request, res: Response) => {
     try {
-        const stockData = await Stock.find().sort({ item_name: 1 });
+        const stockData = await ItemModel.find().sort({ item_name: 1 });
         res.status(200).json(stockData);
-    } catch (error) {
-        logger.error('Error fetching stock data', { service: "stock", error: error.message });
+    } catch (error: unknown) {
+        logger.error('Error fetching stock data', { service: "stock", error: (error as Error).message });
         res.status(500).json({ error: 'Failed to fetch stock data' });
     }
 });
 
 // Route to Add Item to Stock
-router.post('/addItem', validators.createStock, async (req, res) => {
+router.post('/addItem', validators.createStock, async (req: Request, res: Response) => {
     const { item_name, HSN_SAC, specifications, company, category, type, unit_price, quantity, GST, min_quantity } = req.body;
 
     try {
         // Check if item already exists
-        const existingItem = await Stock.findOne({ item_name: item_name.trim() });
+        const existingItem = await ItemModel.findOne({ item_name: item_name.trim() });
 
         if (existingItem) {
             return res.status(400).json({ error: 'Item already exists in stock' });
         }
 
         // Add new stock item
-        const newItem = new Stock({
+        const newItem = new ItemModel({
             item_name: item_name.trim(),
             HSN_SAC,
             specifications,
@@ -77,19 +86,18 @@ router.post('/addItem', validators.createStock, async (req, res) => {
             message: 'Item added successfully',
             item: newItem
         });
-    } catch (error) {
-        logger.error('Stock item addition failed', { service: "stock", error: error.message });
+    } catch (error: unknown) {
+        logger.error('Stock item addition failed', { service: "stock", error: (error as Error).message });
         res.status(500).json({ error: 'Failed to add stock item' });
     }
 });
 
 // Route to Add Quantity to Existing Stock
-router.post('/addToStock', async (req, res) => {
+router.post('/addToStock', async (req: Request, res: Response) => {
     const { itemId, quantity } = req.body;
 
     try {
-
-        const item = await Stock.findOne({ _id: itemId });
+        const item = await ItemModel.findOne({ _id: itemId }) as any;
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
@@ -109,14 +117,14 @@ router.post('/addToStock', async (req, res) => {
         );
 
         res.status(200).json({ message: 'Stock updated successfully' });
-    } catch (error) {
-        logger.error('Stock increment failed', { service: "stock", itemId, quantity, error: error.message });
+    } catch (error: unknown) {
+        logger.error('Stock increment failed', { service: "stock", itemId, quantity, error: (error as Error).message });
         res.status(500).json({ error: 'Failed to update stock' });
     }
 });
 
 // Route to Remove Quantity from Stock
-router.post('/removeFromStock', async (req, res) => {
+router.post('/removeFromStock', async (req: Request, res: Response) => {
     const { itemId, quantity } = req.body;
 
     try {
@@ -124,7 +132,7 @@ router.post('/removeFromStock', async (req, res) => {
             return res.status(400).json({ error: 'Invalid input data' });
         }
 
-        const item = await Stock.findOne({ _id: itemId });
+        const item = await ItemModel.findOne({ _id: itemId }) as any;
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
@@ -148,14 +156,14 @@ router.post('/removeFromStock', async (req, res) => {
         );
 
         res.status(200).json({ message: 'Stock updated successfully' });
-    } catch (error) {
-        logger.error('Stock decrement failed', { service: "stock", itemId, quantity, error: error.message });
+    } catch (error: unknown) {
+        logger.error('Stock decrement failed', { service: "stock", itemId, quantity, error: (error as Error).message });
         res.status(500).json({ error: 'Failed to update stock' });
     }
 });
 
 // Route to Edit Item Details
-router.post('/editItem', async (req, res) => {
+router.post('/editItem', async (req: Request, res: Response) => {
     const { itemId, item_name, HSN_SAC, specifications, company, category, type, unit_price, GST, min_quantity } = req.body;
 
     try {
@@ -173,7 +181,7 @@ router.post('/editItem', async (req, res) => {
         }
 
         // Check if another item with the same name exists (excluding current item)
-        const existingItem = await Stock.findOne({
+        const existingItem = await ItemModel.findOne({
             item_name: item_name.trim(),
             _id: { $ne: itemId }
         });
@@ -182,7 +190,7 @@ router.post('/editItem', async (req, res) => {
             return res.status(400).json({ error: 'Item with this name already exists' });
         }
 
-        const item = await Stock.findOne({ _id: itemId });
+        const item = await ItemModel.findOne({ _id: itemId }) as any;
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
@@ -201,56 +209,56 @@ router.post('/editItem', async (req, res) => {
         await item.save();
 
         res.status(200).json({ message: 'Item updated successfully' });
-    } catch (error) {
-        logger.error('Stock item edit failed', { service: "stock", itemId, error: error.message });
+    } catch (error: unknown) {
+        logger.error('Stock item edit failed', { service: "stock", itemId, error: (error as Error).message });
         res.status(500).json({ error: 'Failed to edit item' });
     }
 });
 
 
-router.get("/get-stock-item", async (req, res) => {
+router.get("/get-stock-item", async (req: Request, res: Response) => {
     try {
-        const itemName = req.query.item;
+        const itemName = req.query.item as string;
         if (!itemName) return res.status(400).json({ message: "Item name required" });
 
-        const stockItem = await Stock.findOne({ item_name: itemName });
+        const stockItem = await ItemModel.findOne({ item_name: itemName });
         if (!stockItem) return res.json(null); // Return null instead of 404 to avoid console errors
 
         res.json(stockItem);
-    } catch (error) {
-        logger.error("Stock item fetch failed", { service: "stock", error: error.message });
+    } catch (error: unknown) {
+        logger.error("Stock item fetch failed", { service: "stock", error: (error as Error).message });
         res.status(500).json({ message: "Internal server error" });
     }
 });
 
-router.get("/get-names", async (req, res) => {
+router.get("/get-names", async (req: Request, res: Response) => {
     try {
-        const stockItems = await Stock.find({}, { item_name: 1 });
+        const stockItems = await ItemModel.find({}, { item_name: 1 });
         res.json(stockItems.map(item => item.item_name));
-    } catch (error) {
-        logger.error("Stock names fetch failed", { service: "stock", error: error.message });
+    } catch (error: unknown) {
+        logger.error("Stock names fetch failed", { service: "stock", error: (error as Error).message });
         res.status(500).json({ message: "Internal server error" });
     }
 });
 
 // Get stock items with IDs for autocomplete (used by reports)
-router.get("/get-items-with-ids", async (req, res) => {
+router.get("/get-items-with-ids", async (req: Request, res: Response) => {
     try {
-        const stockItems = await Stock.find({}, { _id: 1, item_name: 1 });
+        const stockItems = await ItemModel.find({}, { _id: 1, item_name: 1 });
         res.json(stockItems.map(item => ({ id: item._id, name: item.item_name })));
-    } catch (error) {
-        logger.error("Stock items fetch failed", { service: "stock", error: error.message });
+    } catch (error: unknown) {
+        logger.error("Stock items fetch failed", { service: "stock", error: (error as Error).message });
         res.status(500).json({ message: "Internal server error" });
     }
 });
 
 // Route to search for stock item by name and get specifications
-router.get('/search/:itemName', async (req, res) => {
+router.get('/search/:itemName', async (req: Request, res: Response) => {
     try {
-        const itemName = req.params.itemName.trim();
-        const stockItem = await Stock.findOne({
+        const itemName = (req.params.itemName as string).trim();
+        const stockItem = await ItemModel.findOne({
             item_name: { $regex: new RegExp(`^${itemName}$`, 'i') }
-        });
+        }) as any;
 
         if (stockItem) {
             res.json({
@@ -266,17 +274,17 @@ router.get('/search/:itemName', async (req, res) => {
         } else {
             res.json({ found: false });
         }
-    } catch (error) {
-        logger.error('Stock search failed', { service: "stock", error: error.message });
+    } catch (error: unknown) {
+        logger.error('Stock search failed', { service: "stock", error: (error as Error).message });
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // Delete stock item
-router.post('/deleteItem', async (req, res) => {
+router.post('/deleteItem', async (req: Request, res: Response) => {
     const { itemId } = req.body;
     try {
-        const item = await Stock.findOne({ _id: itemId });
+        const item = await ItemModel.findOne({ _id: itemId }) as any;
         if (!item) {
             return res.status(404).json({ error: 'Item not found' });
         }
@@ -294,12 +302,12 @@ router.post('/deleteItem', async (req, res) => {
             );
         }
 
-        const result = await Stock.deleteOne({ _id: itemId });
+        await ItemModel.deleteOne({ _id: itemId });
         res.json({ success: true });
-    } catch (error) {
-        logger.error('Stock item deletion failed', { service: "stock", itemId, error: error.message });
+    } catch (error: unknown) {
+        logger.error('Stock item deletion failed', { service: "stock", itemId, error: (error as Error).message });
         res.status(500).json({ error: 'Failed to delete item' });
     }
 });
 
-module.exports = router;
+export default router;

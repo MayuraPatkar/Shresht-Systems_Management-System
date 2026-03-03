@@ -1,10 +1,10 @@
-const express = require('express');
-const path = require('path');
-const router = express.Router();
+import { Router, Request, Response, NextFunction } from 'express';
+import path from 'path';
 
+const router: Router = Router();
 
 // Serve HTML files
-const pages = [
+const pages: Array<{ route: string; file: string }> = [
     { route: '/', file: 'index.html' },
     { route: '/dashboard', file: 'dashboard/dashboard.html' },
     { route: '/invoice', file: 'invoice/invoice.html' },
@@ -24,7 +24,7 @@ const pages = [
 
 // Serve HTML pages - exact route only (not sub-paths)
 pages.forEach(({ route, file }) => {
-    router.get(route, (req, res, next) => {
+    router.get(route, (req: Request, res: Response, next: NextFunction) => {
         // Check if this is exactly the route (not a sub-path like /invoice/something)
         // req.baseUrl + req.path gives the full matched path
         const fullPath = req.baseUrl + req.path;
@@ -37,4 +37,4 @@ pages.forEach(({ route, file }) => {
     });
 });
 
-module.exports = router;
+export default router;

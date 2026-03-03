@@ -1,72 +1,81 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const { Quotations, Invoices, Admin } = require('../models');
-const router = express.Router();
-const axios = require('axios');
-const config = require('../config/config');
-const pdfGenerator = require('../utils/pdfGenerator');
-const cloudStorage = require('../utils/cloudStorage');
-const logger = require('../utils/logger');
+import { Router, Request, Response } from 'express';
+import path from 'path';
+import fs from 'fs';
+import axios from 'axios';
+import { QuotationModel, InvoiceModel, AdminModel, SettingsModel } from '../models';
+import config from '../config/config';
+import logger from '../utils/logger';
+import secureStore from '../utils/secureStore';
+import { formatDateReadable as formatDateForTemplate } from '../utils/dateUtils';
 
-// Load WhatsApp credentials from env/config; fallback to secure store and DB settings
-const secureStore = require('../utils/secureStore');
-let cachedWhatsApp = null;
+// Lazy-loaded utilities (may not be available in all environments)
+let pdfGenerator: any;
+let cloudStorage: any;
+try {
+    pdfGenerator = require('../utils/pdfGenerator');
+    cloudStorage = require('../utils/cloudStorage');
+} catch {
+    logger.warn('PDF generator or cloud storage not available', { service: 'messaging' });
+}
+
+const router: Router = Router();
+
+// WhatsApp credentials cache
+interface WhatsAppCreds {
+    token: string;
+    phoneNumberId: string;
+    pdfBaseUrl: string;
+}
+
+let cachedWhatsApp: WhatsAppCreds | null = null;
 let cachedAt = 0;
-const CACHE_TTL_MS = 30 * 1000; // 30 seconds cache for credential lookups
+const CACHE_TTL_MS = 30 * 1000; // 30 seconds
 
 /**
  * Invalidate the cached WhatsApp credentials
  * Call this when settings are updated to force re-fetching credentials
  */
-function invalidateWhatsAppCache() {
+export function invalidateWhatsAppCache(): void {
     cachedWhatsApp = null;
     cachedAt = 0;
     logger.info('WhatsApp cache invalidated', { service: "messaging" });
 }
 
-async function resolveWhatsAppCredentials() {
+async function resolveWhatsAppCredentials(): Promise<WhatsAppCreds> {
     if (cachedWhatsApp && (Date.now() - cachedAt) < CACHE_TTL_MS) return cachedWhatsApp;
 
-    // Priorities: env -> secure store (keytar) -> settings DB -> config.pdfBaseUrl / defaults
     let token = process.env.WHATSAPP_TOKEN || (config.whatsapp && config.whatsapp.token) || '';
 
-    // Always try secure store if token not in env (it's the preferred storage)
     if (!token) {
         try {
-            token = await secureStore.getWhatsAppToken();
-        } catch (e) {
-            logger.warn('Secure store lookup failed', { service: "messaging", error: e && e.message });
+            token = await secureStore.getWhatsAppToken() || '';
+        } catch (e: unknown) {
+            logger.warn('Secure store lookup failed', { service: "messaging", error: (e as Error).message });
         }
     }
 
-    // Phone Number ID: env -> config -> settings DB
     let phoneNumberId = process.env.PHONE_NUMBER_ID || (config.whatsapp && config.whatsapp.phoneNumberId) || '';
     if (!phoneNumberId) {
-        // Try to read from settings DB
         try {
-            const { Settings } = require('../models');
-            const settings = await Settings.findOne();
-            if (settings && settings.whatsapp && settings.whatsapp.phoneNumberId) {
-                phoneNumberId = settings.whatsapp.phoneNumberId;
+            const settings = await SettingsModel.findOne();
+            if (settings && (settings as any).whatsapp && (settings as any).whatsapp.phoneNumberId) {
+                phoneNumberId = (settings as any).whatsapp.phoneNumberId;
             }
-        } catch (err) {
-            logger.warn('Settings DB lookup failed', { service: "messaging", error: err && err.message });
+        } catch (err: unknown) {
+            logger.warn('Settings DB lookup failed', { service: "messaging", error: (err as Error).message });
         }
     }
 
     const pdfBaseUrl = (config.whatsapp && config.whatsapp.pdfBaseUrl) || (await (async () => {
         try {
-            const { Settings } = require('../models');
-            const settings = await Settings.findOne();
-            return settings?.whatsapp?.pdfBaseUrl || '';
-        } catch (e) { return '' }
+            const settings = await SettingsModel.findOne();
+            return (settings as any)?.whatsapp?.pdfBaseUrl || '';
+        } catch { return ''; }
     })()) || '';
 
     cachedAt = Date.now();
     cachedWhatsApp = { token, phoneNumberId, pdfBaseUrl };
 
-    // Log configuration status (without exposing sensitive data)
     logger.info('WhatsApp credentials resolved', {
         service: "messaging",
         hasToken: !!token,
@@ -79,11 +88,10 @@ async function resolveWhatsAppCredentials() {
 
 /**
  * Get company info from Admin model for PDF generation
- * @returns {Promise<Object>} Company information
  */
-async function getCompanyInfo() {
+async function getCompanyInfo(): Promise<Record<string, string>> {
     try {
-        const admin = await Admin.findOne();
+        const admin = await AdminModel.findOne() as any;
         if (!admin) {
             return {};
         }
@@ -96,22 +104,20 @@ async function getCompanyInfo() {
             email: admin.email || '',
             website: admin.website || ''
         };
-    } catch (error) {
-        logger.error('Company info fetch failed', { service: "messaging", error: error.message });
+    } catch (error: unknown) {
+        logger.error('Company info fetch failed', { service: "messaging", error: (error as Error).message });
         return {};
     }
 }
 
-// Helper to build WhatsApp API URL
-function getWhatsAppApiUrl(phoneNumberId, endpoint = 'messages') {
+function getWhatsAppApiUrl(phoneNumberId: string, endpoint: string = 'messages'): string {
     if (!phoneNumberId) {
         throw new Error('WhatsApp Phone Number ID is not configured');
     }
     return `https://graph.facebook.com/v20.0/${phoneNumberId}/${endpoint}`;
 }
 
-// Check if WhatsApp is properly configured (runtime async version)
-async function checkWhatsAppConfig() {
+async function checkWhatsAppConfig(): Promise<boolean> {
     const creds = await resolveWhatsAppCredentials();
     if (!creds || !creds.token || !creds.phoneNumberId) {
         throw new Error('WhatsApp API is not configured. Please configure token and phone number ID from Settings or environment.');
@@ -119,11 +125,7 @@ async function checkWhatsAppConfig() {
     return true;
 }
 
-// Generic function to send WhatsApp text message
-async function sendWhatsAppMessage(phone, message) {
-    // Validate WhatsApp configuration before sending
-    // checkWhatsAppConfig(); // now resolved at runtime
-
+async function sendWhatsAppMessage(phone: string, message: string): Promise<any> {
     const payload = {
         messaging_product: 'whatsapp',
         to: phone,
@@ -140,7 +142,7 @@ async function sendWhatsAppMessage(phone, message) {
             { headers: { Authorization: `Bearer ${creds.token}` } }
         );
         return data;
-    } catch (err) {
+    } catch (err: any) {
         logger.error(
             'WhatsApp API error:',
             err?.response?.data || err.message || err
@@ -149,12 +151,7 @@ async function sendWhatsAppMessage(phone, message) {
     }
 }
 
-async function sendPaymentReminder(phone, amount_due) {
-    // Validate WhatsApp configuration before sending (runtime)
-    // checkWhatsAppConfig();
-    // Send WhatsApp “Reminder” template
-    // {{1}} → amount   (text)
-    // {{2}} → invoice No         (text)
+async function sendPaymentReminder(phone: string, amount_due: string): Promise<void> {
     const payload = {
         messaging_product: 'whatsapp',
         to: phone,
@@ -166,7 +163,7 @@ async function sendPaymentReminder(phone, amount_due) {
                 {
                     type: 'body',
                     parameters: [
-                        { type: 'text', text: amount_due },  // {{1}}
+                        { type: 'text', text: amount_due },
                     ]
                 }
             ]
@@ -176,12 +173,12 @@ async function sendPaymentReminder(phone, amount_due) {
     try {
         const creds = await resolveWhatsAppCredentials();
         if (!creds.token || !creds.phoneNumberId) throw new Error('WhatsApp is not configured');
-        const { data } = await axios.post(
+        await axios.post(
             getWhatsAppApiUrl(creds.phoneNumberId, 'messages'),
             payload,
             { headers: { Authorization: `Bearer ${creds.token}` } }
         );
-    } catch (err) {
+    } catch (err: any) {
         logger.error(
             'WhatsApp API error:',
             err?.response?.data || err.message || err
@@ -191,43 +188,32 @@ async function sendPaymentReminder(phone, amount_due) {
 }
 
 // POST /send-manual-reminder
-router.post('/send-manual-reminder', async (req, res) => {
+router.post('/send-manual-reminder', async (req: Request, res: Response) => {
     const { phoneNumber, invoiceId } = req.body;
 
-    // ── Basic validation ───────────────────────────────────────────────
     if (!phoneNumber)
         return res.status(400).json({ message: 'Phone number is required.' });
     if (!invoiceId)
         return res.status(400).json({ message: 'Invoice ID is required.' });
 
     try {
-        // ── 1. Look up the invoice ───────────────────────────────────────
-        const invoice = await Invoices.findOne({ invoice_id: invoiceId });
+        const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
         if (!invoice)
             return res.status(404).json({ message: 'Invoice not found.' });
 
-        // ── 2. Bail out if already settled ───────────────────────────────
         const isPaid = invoice.payment_status?.toUpperCase() === 'PAID';
         if (isPaid) {
-            return res
-                .status(200)
-                .json({ message: 'Invoice already paid. No reminder sent.' });
+            return res.status(200).json({ message: 'Invoice already paid. No reminder sent.' });
         }
 
-        // ── 3. Compute the amount still due ──────────────────────────────
         const totalDue = invoice.total_amount_original || 0;
         const totalPaid = invoice.total_paid_amount || 0;
         const amountDue = Math.max(totalDue - totalPaid, 0);
 
-        // ── 4. Fire off the WhatsApp reminder ────────────────────────────
-        await sendPaymentReminder(
-            phoneNumber,
-            amountDue.toFixed(2)            // {{1}}
-        );
-
+        await sendPaymentReminder(phoneNumber, amountDue.toFixed(2));
 
         return res.json({ message: 'Manual payment reminder sent successfully.' });
-    } catch (err) {
+    } catch (err: any) {
         logger.error(
             'WhatsApp API error:',
             err?.response?.data || err.message || err
@@ -239,19 +225,7 @@ router.post('/send-manual-reminder', async (req, res) => {
     }
 });
 
-
-/**
- * Send a simple message using the "simple_message" template
- * Template structure:
- * - Body: "Dear Customer, {{1}} Thank You, SHRESHT SYSTEMS"
- * 
- * @param {string} phone - Recipient phone number (with country code)
- * @param {string} message - The message content for {{1}} parameter
- */
-async function sendSimpleMessageTemplate(phone, message) {
-    // Validate WhatsApp configuration before sending
-    // checkWhatsAppConfig();
-
+async function sendSimpleMessageTemplate(phone: string, message: string): Promise<any> {
     const payload = {
         messaging_product: 'whatsapp',
         to: phone,
@@ -263,7 +237,7 @@ async function sendSimpleMessageTemplate(phone, message) {
                 {
                     type: 'body',
                     parameters: [
-                        { type: 'text', text: message }  // {{1}} - The message content
+                        { type: 'text', text: message }
                     ]
                 }
             ]
@@ -284,7 +258,7 @@ async function sendSimpleMessageTemplate(phone, message) {
             messageId: data.messages?.[0]?.id
         });
         return data;
-    } catch (err) {
+    } catch (err: any) {
         logger.error('WhatsApp API error (simple_message)', {
             service: "messaging",
             error: err?.response?.data || err.message,
@@ -294,38 +268,25 @@ async function sendSimpleMessageTemplate(phone, message) {
     }
 }
 
+interface DocDetails {
+    documentUrl: string;
+    documentType: string;
+    customerName: string;
+    referenceNo: string;
+    date: string;
+    amount: string;
+}
 
-/**
- * Send document via WhatsApp using the "sending_documents" template
- * Template structure:
- * - Header: Document PDF attachment (REQUIRED)
- * - Body: {{1}} = Customer Name, {{2}} = Document Type (quotation/invoice), 
- *         {{3}} = Reference No, {{4}} = Date, {{5}} = Amount
- * - Footer: Contact information (static)
- * 
- * @param {string} phone - Recipient phone number (with country code)
- * @param {object} docDetails - Document details
- * @param {string} docDetails.documentUrl - URL to document PDF (REQUIRED - must be publicly accessible)
- * @param {string} docDetails.documentType - Type of document (e.g., "quotation", "invoice")
- * @param {string} docDetails.customerName - Customer/Buyer name
- * @param {string} docDetails.referenceNo - Document reference number (e.g., QT-1092, INV-001)
- * @param {string} docDetails.date - Document date (formatted as DD MMM YYYY)
- * @param {string} docDetails.amount - Total amount (formatted with ₹ symbol)
- */
-async function sendDocumentTemplate(phone, docDetails) {
-    // Validate WhatsApp configuration before sending
+async function sendDocumentTemplate(phone: string, docDetails: DocDetails): Promise<any> {
     await checkWhatsAppConfig();
 
     const { documentType, customerName, referenceNo, date, amount, documentUrl } = docDetails;
 
-    // Document URL is required for this template
     if (!documentUrl) {
         throw new Error('Document URL is required. The WhatsApp template requires a PDF attachment.');
     }
 
-    // Build template components
     const components = [
-        // Header component with document (REQUIRED)
         {
             type: 'header',
             parameters: [
@@ -338,15 +299,14 @@ async function sendDocumentTemplate(phone, docDetails) {
                 }
             ]
         },
-        // Body component with all 5 parameters
         {
             type: 'body',
             parameters: [
-                { type: 'text', text: customerName },    // {{1}} - Customer Name
-                { type: 'text', text: documentType },    // {{2}} - Document Type (quotation/invoice)
-                { type: 'text', text: referenceNo },     // {{3}} - Reference No
-                { type: 'text', text: date },            // {{4}} - Date
-                { type: 'text', text: amount }           // {{5}} - Amount
+                { type: 'text', text: customerName },
+                { type: 'text', text: documentType },
+                { type: 'text', text: referenceNo },
+                { type: 'text', text: date },
+                { type: 'text', text: amount }
             ]
         }
     ];
@@ -375,7 +335,7 @@ async function sendDocumentTemplate(phone, docDetails) {
             messageId: data.messages?.[0]?.id
         });
         return data;
-    } catch (err) {
+    } catch (err: any) {
         logger.error('WhatsApp API error (sending_documents)', {
             service: "messaging",
             error: err?.response?.data || err.message,
@@ -386,16 +346,7 @@ async function sendDocumentTemplate(phone, docDetails) {
     }
 }
 
-// Use unified date utilities for consistent formatting
-const { formatDateReadable: formatDateForTemplate } = require('../utils/dateUtils');
-
-/**
- * Format amount with Indian Rupee symbol
- * @param {number} amount - Amount to format
- * @returns {string} Formatted amount string
- */
-function formatAmountForTemplate(amount) {
-    // Format with Indian number system (lakhs, crores)
+function formatAmountForTemplate(amount: number): string {
     const formatted = new Intl.NumberFormat('en-IN', {
         maximumFractionDigits: 2,
         minimumFractionDigits: 0
@@ -404,12 +355,12 @@ function formatAmountForTemplate(amount) {
 }
 
 // Send invoice using template (auto-generates PDF)
-router.post('/send-invoice', async (req, res) => {
+router.post('/send-invoice', async (req: Request, res: Response) => {
     const { phone, invoiceId, documentUrl: providedUrl } = req.body;
     if (!phone || !invoiceId) return res.status(400).json({ message: 'Phone and Invoice ID required.' });
 
     try {
-        const invoice = await Invoices.findOne({ invoice_id: invoiceId });
+        const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
         if (!invoice) {
             logger.warn(`Invoice not found: ${invoiceId}`);
             return res.status(404).json({ message: `Invoice "${invoiceId}" not found. Please check the invoice ID.` });
@@ -417,8 +368,7 @@ router.post('/send-invoice', async (req, res) => {
 
         let documentUrl = providedUrl;
 
-        // If no URL provided, generate PDF and upload to cloud or use local URL
-        if (!documentUrl) {
+        if (!documentUrl && pdfGenerator) {
             const companyInfo = await getCompanyInfo();
             const pdfResult = await pdfGenerator.generateInvoicePDF(invoice, companyInfo);
 
@@ -430,18 +380,16 @@ router.post('/send-invoice', async (req, res) => {
                 });
             }
 
-            // Try to upload to cloud storage (Cloudinary) for public accessibility
-            if (cloudStorage.isConfigured()) {
+            if (cloudStorage && cloudStorage.isConfigured()) {
                 const uploadResult = await cloudStorage.uploadPDF(pdfResult.path, invoiceId);
                 if (uploadResult.success) {
                     documentUrl = uploadResult.url;
                     logger.info('Invoice PDF uploaded to cloud', { service: "messaging", url: documentUrl, invoiceId });
 
-                    // Remove local temp copy after successful cloud upload
                     try {
                         const fileCleanup = require('../utils/fileCleanup');
                         await fileCleanup.removeFile(pdfResult.path, (global.appPaths && global.appPaths.userData) || __dirname);
-                    } catch (e) {
+                    } catch (e: any) {
                         logger.warn('Failed to delete local PDF after cloud upload:', e && e.message);
                     }
                 } else {
@@ -449,7 +397,6 @@ router.post('/send-invoice', async (req, res) => {
                 }
             }
 
-            // Fallback to local URL if cloud upload failed or not configured
             if (!documentUrl) {
                 const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
                 documentUrl = `${baseUrl}/documents/${pdfResult.filename}`;
@@ -479,7 +426,7 @@ router.post('/send-invoice', async (req, res) => {
             message: 'Invoice sent via WhatsApp.',
             pdfUrl: documentUrl
         });
-    } catch (err) {
+    } catch (err: any) {
         logger.error('Invoice send failed', { service: "messaging", error: err?.response?.data || err.message, invoiceId });
         res.status(500).json({
             message: 'Failed to send invoice.',
@@ -489,12 +436,12 @@ router.post('/send-invoice', async (req, res) => {
 });
 
 // Send quotation using template (auto-generates PDF)
-router.post('/send-quotation', async (req, res) => {
+router.post('/send-quotation', async (req: Request, res: Response) => {
     const { phone, quotationId, documentUrl: providedUrl } = req.body;
     if (!phone || !quotationId) return res.status(400).json({ message: 'Phone and Quotation ID required.' });
 
     try {
-        const quotation = await Quotations.findOne({ quotation_id: quotationId });
+        const quotation = await QuotationModel.findOne({ quotation_id: quotationId }) as any;
         if (!quotation) {
             logger.warn(`Quotation not found: ${quotationId}`);
             return res.status(404).json({ message: `Quotation "${quotationId}" not found. Please check the quotation ID.` });
@@ -502,8 +449,7 @@ router.post('/send-quotation', async (req, res) => {
 
         let documentUrl = providedUrl;
 
-        // If no URL provided, generate PDF and upload to cloud or use local URL
-        if (!documentUrl) {
+        if (!documentUrl && pdfGenerator) {
             const companyInfo = await getCompanyInfo();
             const pdfResult = await pdfGenerator.generateQuotationPDF(quotation, companyInfo);
 
@@ -515,18 +461,16 @@ router.post('/send-quotation', async (req, res) => {
                 });
             }
 
-            // Try to upload to cloud storage (Cloudinary) for public accessibility
-            if (cloudStorage.isConfigured()) {
+            if (cloudStorage && cloudStorage.isConfigured()) {
                 const uploadResult = await cloudStorage.uploadPDF(pdfResult.path, quotationId);
                 if (uploadResult.success) {
                     documentUrl = uploadResult.url;
                     logger.info('Quotation PDF uploaded to cloud', { service: "messaging", url: documentUrl, quotationId });
 
-                    // Remove local temp copy after successful cloud upload
                     try {
                         const fileCleanup = require('../utils/fileCleanup');
                         await fileCleanup.removeFile(pdfResult.path, (global.appPaths && global.appPaths.userData) || __dirname);
-                    } catch (e) {
+                    } catch (e: any) {
                         logger.warn('Failed to delete local PDF after cloud upload:', e && e.message);
                     }
                 } else {
@@ -534,7 +478,6 @@ router.post('/send-quotation', async (req, res) => {
                 }
             }
 
-            // Fallback to local URL if cloud upload failed or not configured
             if (!documentUrl) {
                 const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
                 documentUrl = `${baseUrl}/documents/${pdfResult.filename}`;
@@ -564,7 +507,7 @@ router.post('/send-quotation', async (req, res) => {
             message: 'Quotation sent via WhatsApp.',
             pdfUrl: documentUrl
         });
-    } catch (err) {
+    } catch (err: any) {
         logger.error('Error sending quotation:', { error: err?.response?.data || err.message, quotationId });
         res.status(500).json({
             message: 'Failed to send quotation.',
@@ -573,12 +516,10 @@ router.post('/send-quotation', async (req, res) => {
     }
 });
 
-// Send generic document using template (for any document type)
-// Can be used for waybills, purchase orders, or any other documents
-router.post('/send-document', async (req, res) => {
+// Send generic document
+router.post('/send-document', async (req: Request, res: Response) => {
     const { phone, documentType, customerName, referenceNo, date, amount, documentUrl } = req.body;
 
-    // Validation
     if (!phone) return res.status(400).json({ message: 'Phone number is required.' });
     if (!documentUrl) return res.status(400).json({ message: 'Document URL is required. Please provide a publicly accessible URL to the document PDF.' });
     if (!documentType) return res.status(400).json({ message: 'Document type is required.' });
@@ -589,7 +530,7 @@ router.post('/send-document', async (req, res) => {
 
     try {
         await sendDocumentTemplate(phone, {
-            documentType: documentType, // e.g., 'quotation', 'invoice', 'waybill', 'purchase order'
+            documentType: documentType,
             customerName: customerName,
             referenceNo: referenceNo,
             date: formatDateForTemplate(date),
@@ -598,7 +539,7 @@ router.post('/send-document', async (req, res) => {
         });
 
         res.json({ message: 'Document sent via WhatsApp.' });
-    } catch (err) {
+    } catch (err: any) {
         logger.error('Error sending document:', err);
         res.status(500).json({
             message: 'Failed to send document.',
@@ -607,8 +548,8 @@ router.post('/send-document', async (req, res) => {
     }
 });
 
-// Send custom message using simple_message template
-router.post('/send-message', async (req, res) => {
+// Send custom message
+router.post('/send-message', async (req: Request, res: Response) => {
     const { phoneNumber, message } = req.body;
     if (!phoneNumber || !message) {
         return res.status(400).json({ message: 'Phone number and message are required.' });
@@ -617,19 +558,18 @@ router.post('/send-message', async (req, res) => {
     try {
         await sendSimpleMessageTemplate(phoneNumber, message);
         res.json({ message: 'Message sent successfully via WhatsApp.' });
-    } catch (err) {
+    } catch (err: any) {
         logger.error('Message send failed', { service: "messaging", error: err?.response?.data || err.message, phone: phoneNumber });
         res.status(500).json({ message: 'Failed to send message.', error: err?.response?.data || err.message });
     }
 });
 
 // Send automated reminders to all unpaid invoices
-router.post('/send-automated-reminders', async (req, res) => {
+router.post('/send-automated-reminders', async (req: Request, res: Response) => {
     try {
-        // Find all unpaid and partially paid invoices
-        const unpaidInvoices = await Invoices.find({
+        const unpaidInvoices = await InvoiceModel.find({
             payment_status: { $in: ['Unpaid', 'Partial'] }
-        });
+        }) as any[];
 
         if (unpaidInvoices.length === 0) {
             return res.json({ message: 'No unpaid invoices found.' });
@@ -638,7 +578,6 @@ router.post('/send-automated-reminders', async (req, res) => {
         let successCount = 0;
         let failCount = 0;
 
-        // Send reminders to each unpaid invoice
         for (const invoice of unpaidInvoices) {
             try {
                 const totalDue = invoice.total_amount_original || 0;
@@ -650,7 +589,7 @@ router.post('/send-automated-reminders', async (req, res) => {
                     await sendPaymentReminder(phone, amountDue.toFixed(2));
                     successCount++;
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 logger.error(`Failed to send reminder for invoice ${invoice.invoice_id}:`, err);
                 failCount++;
             }
@@ -661,12 +600,10 @@ router.post('/send-automated-reminders', async (req, res) => {
             success: successCount,
             failed: failCount
         });
-    } catch (err) {
+    } catch (err: unknown) {
         logger.error('Error sending automated reminders:', err);
-        res.status(500).json({ message: 'Failed to send automated reminders.', error: err.message });
+        res.status(500).json({ message: 'Failed to send automated reminders.', error: (err as Error).message });
     }
 });
 
-// Export router and cache invalidation function
-module.exports = router;
-module.exports.invalidateWhatsAppCache = invalidateWhatsAppCache;
+export default router;

@@ -1,29 +1,28 @@
-const express = require('express');
-const router = express.Router();
-const bcrypt = require('bcryptjs');
-const { Admin, Settings } = require('../models');
-const logger = require('../utils/logger');
-const { asyncHandler } = require('../middleware/errorHandler');
-const validators = require('../middleware/validators');
+import { Router, Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
+import { AdminModel, SettingsModel } from '../models';
+import logger from '../utils/logger';
+
+const router: Router = Router();
 
 // Login endpoint
-router.post('/login', async (req, res) => {
+router.post('/login', async (req: Request, res: Response) => {
     const { username, password } = req.body;
     try {
         // Get security settings
-        const settings = await Settings.findOne();
+        const settings = await SettingsModel.findOne();
         const maxAttempts = settings?.security?.max_login_attempts || 5;
         const lockoutDuration = settings?.security?.lockout_duration || 15; // minutes
 
         // Fetch the user document from the collection
-        const user = await Admin.findOne(username ? { username } : {});
+        const user = await AdminModel.findOne(username ? { username } : {});
         if (!user || user.username !== username) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
         // Check if account is locked
-        if (user.lockUntil && user.lockUntil > Date.now()) {
-            const remainingTime = Math.ceil((user.lockUntil - Date.now()) / 60000);
+        if (user.lockUntil && user.lockUntil > new Date(Date.now())) {
+            const remainingTime = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
             logger.warn('Login attempt on locked account', {
                 service: "auth",
                 event: "login_blocked",
@@ -79,7 +78,7 @@ router.post('/login', async (req, res) => {
 
         // Reset login attempts on successful login
         user.loginAttempts = 0;
-        user.lockUntil = null;
+        user.lockUntil = undefined;
         user.lastLogin = new Date();
         await user.save();
 
@@ -99,47 +98,47 @@ router.post('/login', async (req, res) => {
             username: user.username,
             sessionTimeout: settings?.security?.session_timeout || 30
         });
-    } catch (error) {
-        logger.error('Login error', { service: "auth", error: error.message });
+    } catch (error: unknown) {
+        logger.error('Login error', { service: "auth", error: (error as Error).message });
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
 
-router.get("/admin-info", async (req, res) => {
+router.get("/admin-info", async (req: Request, res: Response) => {
     try {
-        const admin = await Admin.findOne();
+        const admin = await AdminModel.findOne();
         if (!admin) {
             return res.status(404).json({ message: "Admin data not found" });
         }
         res.json(admin);
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error("Error fetching admin info:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
 
 // Change Username
-router.post("/change-username", async (req, res) => {
+router.post("/change-username", async (req: Request, res: Response) => {
     const { username } = req.body;
     try {
-        const admin = await Admin.findOne();
+        const admin = await AdminModel.findOne();
         if (!admin) {
             return res.status(404).json({ message: "Admin not found" });
         }
         admin.username = username;
         await admin.save();
         res.json({ message: "Username updated successfully" });
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error("Error changing username:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
 
 // Change Password
-router.post("/change-password", async (req, res) => {
+router.post("/change-password", async (req: Request, res: Response) => {
     const { oldPassword, newPassword } = req.body;
     try {
-        const admin = await Admin.findOne();
+        const admin = await AdminModel.findOne();
         if (!admin) {
             return res.status(404).json({ message: "Admin not found" });
         }
@@ -155,22 +154,22 @@ router.post("/change-password", async (req, res) => {
         admin.password = await bcrypt.hash(newPassword, saltRounds);
         await admin.save();
         res.json({ message: "Password updated successfully" });
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error("Error changing password:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
 
 // Export Data
-router.get("/export-data", async (req, res) => {
+router.get("/export-data", async (req: Request, res: Response) => {
     const { format } = req.query;
     try {
-        const admin = await Admin.findOne();
+        const admin = await AdminModel.findOne();
         if (!admin) {
             return res.status(404).json({ message: "Admin data not found" });
         }
 
-        let data;
+        let data: string;
         if (format === "csv") {
             data = `Username,Address,Email\n${admin.username},${admin.address},${admin.email}`;
             res.setHeader("Content-Type", "text/csv");
@@ -184,10 +183,10 @@ router.get("/export-data", async (req, res) => {
 
         res.setHeader("Content-Disposition", `attachment; filename=admin_data.${format}`);
         res.send(data);
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error("Error exporting data:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
 
-module.exports = router;
+export default router;

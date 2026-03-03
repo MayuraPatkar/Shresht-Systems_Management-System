@@ -257,19 +257,19 @@ connectDB().then(async () => {
 });
 
 // Routes - Importing route modules
-const authRoutes = require('./routes/auth');
-const viewRoutes = require('./routes/views');
-const stockRoutes = require('./routes/stock');
-const invoiceRoutes = require('./routes/invoice');
-const quotationRoutes = require('./routes/quotation');
-const purchaseRoutes = require('./routes/purchaseOrder');
-const eWayBillRoutes = require('./routes/eWayBill');
-const serviceRoutes = require('./routes/service');
-const employeeRoute = require('./routes/employee');
-const analyticsRoutes = require('./routes/analytics');
-const commsRouter = require('./routes/comms');
-const settingsRoutes = require('./routes/settings');
-const reportsRoutes = require('./routes/reports');
+import authRoutes from './routes/auth.route';
+import viewRoutes from './routes/views.route';
+import stockRoutes from './routes/stock.route';
+import invoiceRoutes from './routes/invoice.route';
+import quotationRoutes from './routes/quotation.route';
+import purchaseRoutes from './routes/purchaseOrder.route';
+import eWayBillRoutes from './routes/eWayBill.route';
+import serviceRoutes from './routes/service.route';
+import employeeRoute from './routes/employee.route';
+import analyticsRoutes from './routes/analytics.route';
+import commsRouter from './routes/comms.route';
+import settingsRoutes from './routes/settings.route';
+import reportsRoutes from './routes/reports.route';
 
 // Health check endpoint
 exServer.get('/health', async (req: Request, res: Response) => {

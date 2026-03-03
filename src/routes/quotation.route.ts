@@ -1,44 +1,42 @@
-const express = require('express');
-const router = express.Router();
-const { Quotations } = require('../models');
-const logger = require('../utils/logger');
-const { asyncHandler } = require('../middleware/errorHandler');
+import { Router, Request, Response } from 'express';
+import { QuotationModel } from '../models';
+import logger from '../utils/logger';
+import { previewNextId, generateNextId, syncCounterIfNeeded } from '../utils/idGenerator';
 
-// Import ID generator functions
-const { previewNextId, generateNextId, syncCounterIfNeeded } = require('../utils/idGenerator');
+const router: Router = Router();
 
 /**
  * Route: Generate a Preview ID
  * Description: Returns the next likely ID for UI display.
  * Does NOT increment the database counter.
  */
-router.get("/generate-id", async (req, res) => {
+router.get("/generate-id", async (req: Request, res: Response) => {
     try {
         const quotation_id = await previewNextId('quotation');
         return res.status(200).json({ quotation_id });
-    } catch (err) {
-        logger.error('Error generating quotation preview', { error: err.message || err });
+    } catch (err: unknown) {
+        logger.error('Error generating quotation preview', { error: (err as Error).message || err });
         return res.status(500).json({ error: 'Failed to generate quotation id' });
     }
 });
 
 // Route to get all quotations
-router.get("/all", async (req, res) => {
+router.get("/all", async (req: Request, res: Response) => {
     try {
-        const quotations = await Quotations.find().sort({ createdAt: -1 });
+        const quotations = await QuotationModel.find().sort({ createdAt: -1 });
         return res.status(200).json(quotations);
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error("Error fetching quotations:", error);
         return res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
 // Helper: Validate item structure
-function isValidItem(item) {
+function isValidItem(item: any): boolean {
     return (
         typeof item === 'object' &&
         typeof item.description === 'string' &&
-        typeof item.description.trim() !== '' &&
+        item.description.trim() !== '' &&
         typeof item.quantity !== 'undefined' &&
         !isNaN(Number(item.quantity)) &&
         typeof item.unit_price !== 'undefined' &&
@@ -50,7 +48,7 @@ function isValidItem(item) {
  * Route: Save or Update Quotation
  * Description: Creates a new Quotation (generating a fresh ID) or updates an existing one.
  */
-router.post("/save-quotation", async (req, res) => {
+router.post("/save-quotation", async (req: Request, res: Response) => {
     try {
         let {
             quotation_id = '', // Could be a preview ID (new) or existing ID (update)
@@ -69,12 +67,12 @@ router.post("/save-quotation", async (req, res) => {
 
             subject = '',
             letter_1 = '',
-            letter_2 = [],
+            letter_2 = [] as string[],
             letter_3 = '',
             headline = '',
-            notes = [],
+            notes = [] as string[],
             termsAndConditions = '',
-            duplicated_from = null, // Audit trail: source quotation ID if duplicated
+            duplicated_from = null as string | null, // Audit trail: source quotation ID if duplicated
             isCustomId = false, // Tracks if user manually entered a custom ID
 
         } = req.body;
@@ -90,9 +88,9 @@ router.post("/save-quotation", async (req, res) => {
         }
 
         // Attempt to find an existing quotation using the provided ID
-        let quotation = null;
+        let quotation: any = null;
         if (quotation_id) {
-            quotation = await Quotations.findOne({ quotation_id: quotation_id });
+            quotation = await QuotationModel.findOne({ quotation_id: quotation_id });
         }
 
         if (quotation) {
@@ -129,10 +127,10 @@ router.post("/save-quotation", async (req, res) => {
             // ---------------------------------------------------------
 
             // Use provided custom ID only if user manually typed it, otherwise generate new
-            let newId;
+            let newId: string;
             if (isCustomId && quotation_id && quotation_id.trim()) {
                 // Check if this custom ID already exists
-                const existingCustom = await Quotations.findOne({ quotation_id: quotation_id.trim() });
+                const existingCustom = await QuotationModel.findOne({ quotation_id: quotation_id.trim() });
                 if (existingCustom) {
                     return res.status(400).json({ message: `Quotation ID "${quotation_id}" already exists. Please use a different ID.` });
                 }
@@ -146,7 +144,7 @@ router.post("/save-quotation", async (req, res) => {
                 return res.status(400).json({ message: 'Project name is required.' });
             }
 
-            quotation = new Quotations({
+            quotation = new QuotationModel({
                 quotation_id: newId, // Use custom ID or freshly generated ID
                 project_name: projectName,
                 quotation_date: quotationDate,
@@ -186,16 +184,16 @@ router.post("/save-quotation", async (req, res) => {
             quotation_id: savedQuotation.quotation_id // Return the final ID
         });
 
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error('Error saving quotation:', error);
-        res.status(500).json({ message: 'Internal server error', error: error.message });
+        res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
     }
 });
 
 // Route to get the 10 most recent quotations
-router.get("/recent-quotations", async (req, res) => {
+router.get("/recent-quotations", async (req: Request, res: Response) => {
     try {
-        const recentQuotations = await Quotations.find()
+        const recentQuotations = await QuotationModel.find()
             .sort({ createdAt: -1 })
             .limit(10)
             .select("project_name quotation_id quotation_date customer_name customer_address total_amount_tax");
@@ -204,17 +202,17 @@ router.get("/recent-quotations", async (req, res) => {
             message: "Recent quotations retrieved successfully",
             quotation: recentQuotations,
         });
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error("Error retrieving recent quotations:", error);
         res.status(500).json({
             message: "Internal server error",
-            error: error.message,
+            error: (error as Error).message,
         });
     }
 });
 
 // Route to get a quotation by ID
-router.get("/:quotationId", async (req, res) => {
+router.get("/:quotationId", async (req: Request, res: Response) => {
     try {
         const { quotationId } = req.params;
 
@@ -222,7 +220,7 @@ router.get("/:quotationId", async (req, res) => {
             return res.status(400).json({ message: 'Quotation ID is required.' });
         }
 
-        const quotation = await Quotations.findOne({ quotation_id: quotationId });
+        const quotation = await QuotationModel.findOne({ quotation_id: quotationId });
         if (!quotation) {
             return res.status(404).json({ message: 'Quotation not found' });
         }
@@ -232,17 +230,17 @@ router.get("/:quotationId", async (req, res) => {
             quotation,
         });
 
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error("Error retrieving quotation:", error);
         res.status(500).json({
             message: "Internal server error",
-            error: error.message,
+            error: (error as Error).message,
         });
     }
 });
 
 // Route to delete a quotation
-router.delete("/:quotationId", async (req, res) => {
+router.delete("/:quotationId", async (req: Request, res: Response) => {
     try {
         const { quotationId } = req.params;
 
@@ -250,32 +248,32 @@ router.delete("/:quotationId", async (req, res) => {
             return res.status(400).json({ message: 'Quotation ID is required.' });
         }
 
-        const quotation = await Quotations.findOne({ quotation_id: quotationId });
+        const quotation = await QuotationModel.findOne({ quotation_id: quotationId });
         if (!quotation) {
             return res.status(404).json({ message: 'Quotation not found' });
         }
 
-        await Quotations.deleteOne({ quotation_id: quotationId });
+        await QuotationModel.deleteOne({ quotation_id: quotationId });
 
         res.status(200).json({ message: 'Quotation deleted successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
         logger.error("Error deleting quotation:", error);
         res.status(500).json({
             message: "Internal server error",
-            error: error.message,
+            error: (error as Error).message,
         });
     }
 });
 
 // Search quotations
-router.get('/search/:query', async (req, res) => {
+router.get('/search/:query', async (req: Request, res: Response) => {
     const { query } = req.params;
     if (!query) {
         return res.status(400).send('Query parameter is required.');
     }
 
     try {
-        const quotations = await Quotations.find({
+        const quotations = await QuotationModel.find({
             $or: [
                 { quotation_id: { $regex: query, $options: 'i' } },
                 { project_name: { $regex: query, $options: 'i' } },
@@ -283,17 +281,17 @@ router.get('/search/:query', async (req, res) => {
                 { customer_phone: { $regex: query, $options: 'i' } },
                 { customer_email: { $regex: query, $options: 'i' } }
             ]
-        });
+        } as any);
 
         if (quotations.length === 0) {
             return res.status(404).send('No quotations found.');
         } else {
             return res.status(200).json({ quotation: quotations });
         }
-    } catch (err) {
+    } catch (err: unknown) {
         logger.error(err);
         return res.status(500).send('Failed to fetch quotations.');
     }
 });
 
-module.exports = router;
+export default router;

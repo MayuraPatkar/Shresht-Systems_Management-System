@@ -1,15 +1,16 @@
-const express = require('express');
-const router = express.Router();
-const { EWayBills } = require('../models');
-const logger = require('../utils/logger');
+import { Router, Request, Response } from 'express';
+import { EWayBillModel, InvoiceModel } from '../models';
+import logger from '../utils/logger';
+
+const router: Router = Router();
 
 // Route to get all e-way bills
-router.get("/all", async (req, res) => {
+router.get("/all", async (req: Request, res: Response) => {
     try {
-        const allEWayBills = await EWayBills.find().sort({ createdAt: -1 });
+        const allEWayBills = await EWayBillModel.find().sort({ createdAt: -1 });
         return res.status(200).json(allEWayBills);
-    } catch (error) {
-        logger.error("E-Way Bill fetch failed", { service: "ewaybill", error: error.message });
+    } catch (error: unknown) {
+        logger.error("E-Way Bill fetch failed", { service: "ewaybill", error: (error as Error).message });
         return res.status(500).json({ error: "Internal Server Error" });
     }
 });
@@ -18,7 +19,7 @@ router.get("/all", async (req, res) => {
  * Route: Save or Update E-Way Bill
  * Description: Creates a new E-Way Bill or updates an existing one.
  */
-router.post("/save-ewaybill", async (req, res) => {
+router.post("/save-ewaybill", async (req: Request, res: Response) => {
     try {
         let {
             _id = '',  // MongoDB _id for updates
@@ -33,7 +34,7 @@ router.post("/save-ewaybill", async (req, res) => {
             transporterName = '',
             distanceKm = 0,
             eWayBillDate,
-            items = [],
+            items = [] as any[],
             totalTaxableValue = 0,
             cgst = 0,
             sgst = 0,
@@ -41,7 +42,7 @@ router.post("/save-ewaybill", async (req, res) => {
         } = req.body;
 
         // Transform items to match schema field names
-        const transformedItems = items.map(item => ({
+        const transformedItems = items.map((item: any) => ({
             stock_id: item.stock_id ? item.stock_id : undefined,
             description: item.description || '',
             hsn_sac: item.hsn_sac || item.HSN_SAC || '',
@@ -53,10 +54,10 @@ router.post("/save-ewaybill", async (req, res) => {
 
         // Calculate totals if not provided
         if (!totalTaxableValue) {
-            totalTaxableValue = transformedItems.reduce((sum, item) => sum + item.taxable_value, 0);
+            totalTaxableValue = transformedItems.reduce((sum: number, item: any) => sum + item.taxable_value, 0);
         }
         if (!cgst && !sgst) {
-            transformedItems.forEach(item => {
+            transformedItems.forEach((item: any) => {
                 const taxAmount = (item.taxable_value * item.gst_rate) / 100;
                 cgst += taxAmount / 2;
                 sgst += taxAmount / 2;
@@ -66,11 +67,11 @@ router.post("/save-ewaybill", async (req, res) => {
             totalInvoiceValue = totalTaxableValue + cgst + sgst;
         }
 
-        let eWayBill = null;
+        let eWayBill: any = null;
 
         // Try to find existing document by _id
         if (_id) {
-            eWayBill = await EWayBills.findById(_id);
+            eWayBill = await EWayBillModel.findById(_id);
         }
 
         if (eWayBill) {
@@ -99,7 +100,7 @@ router.post("/save-ewaybill", async (req, res) => {
             // ---------------------------------------------------------
             // SCENARIO 2: CREATE NEW E-WAY BILL
             // ---------------------------------------------------------
-            eWayBill = new EWayBills({
+            eWayBill = new EWayBillModel({
                 ewaybill_no: eWayBillNo,
                 ewaybill_status: eWayBillStatus,
                 invoice_id: invoiceId || undefined,
@@ -128,16 +129,16 @@ router.post("/save-ewaybill", async (req, res) => {
             eWayBill: savedEWayBill,
             _id: savedEWayBill._id
         });
-    } catch (error) {
-        logger.error('E-Way Bill save failed', { service: "ewaybill", error: error.message });
-        res.status(500).json({ message: 'Internal server error', error: error.message });
+    } catch (error: unknown) {
+        logger.error('E-Way Bill save failed', { service: "ewaybill", error: (error as Error).message });
+        res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
     }
 });
 
 // Route to get the 10 most recent e-way bills
-router.get("/recent-ewaybills", async (req, res) => {
+router.get("/recent-ewaybills", async (req: Request, res: Response) => {
     try {
-        const recentEWayBills = await EWayBills.find()
+        const recentEWayBills = await EWayBillModel.find()
             .sort({ createdAt: -1 })
             .limit(10)
             .populate('invoice_id', 'invoice_id')
@@ -147,50 +148,50 @@ router.get("/recent-ewaybills", async (req, res) => {
             message: "Recent e-way bills retrieved successfully",
             eWayBill: recentEWayBills,
         });
-    } catch (error) {
-        logger.error("Recent e-way bills fetch failed", { service: "ewaybill", error: error.message });
-        res.status(500).json({ message: "Internal server error", error: error.message });
+    } catch (error: unknown) {
+        logger.error("Recent e-way bills fetch failed", { service: "ewaybill", error: (error as Error).message });
+        res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
 // Route to get an e-way bill by ID
-router.get("/:eWayBillId", async (req, res) => {
+router.get("/:eWayBillId", async (req: Request, res: Response) => {
     try {
         const { eWayBillId } = req.params;
-        const eWayBill = await EWayBills.findById(eWayBillId).populate('invoice_id', 'invoice_id');
+        const eWayBill = await EWayBillModel.findById(eWayBillId).populate('invoice_id', 'invoice_id');
         if (!eWayBill) {
             return res.status(404).json({ message: 'E-Way Bill not found' });
         }
         res.status(200).json({ message: "E-Way Bill retrieved successfully", eWayBill });
-    } catch (error) {
-        logger.error("Single e-way bill fetch failed", { service: "ewaybill", eWayBillId: req.params.eWayBillId, error: error.message });
-        res.status(500).json({ message: "Internal server error", error: error.message });
+    } catch (error: unknown) {
+        logger.error("Single e-way bill fetch failed", { service: "ewaybill", eWayBillId: req.params.eWayBillId, error: (error as Error).message });
+        res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
 // Route to delete an e-way bill
-router.delete("/:eWayBillId", async (req, res) => {
+router.delete("/:eWayBillId", async (req: Request, res: Response) => {
     try {
         const { eWayBillId } = req.params;
-        const eWayBill = await EWayBills.findById(eWayBillId);
+        const eWayBill = await EWayBillModel.findById(eWayBillId);
         if (!eWayBill) {
             return res.status(404).json({ message: 'E-Way Bill not found' });
         }
-        await EWayBills.deleteOne({ _id: eWayBillId });
+        await EWayBillModel.deleteOne({ _id: eWayBillId });
         res.status(200).json({ message: 'E-Way Bill deleted successfully' });
-    } catch (error) {
-        logger.error("E-Way Bill deletion failed", { service: "ewaybill", eWayBillId: req.params.eWayBillId, error: error.message });
-        res.status(500).json({ message: "Internal server error", error: error.message });
+    } catch (error: unknown) {
+        logger.error("E-Way Bill deletion failed", { service: "ewaybill", eWayBillId: req.params.eWayBillId, error: (error as Error).message });
+        res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
 // Search e-way bills
-router.get('/search/:query', async (req, res) => {
+router.get('/search/:query', async (req: Request, res: Response) => {
     const { query } = req.params;
     if (!query) return res.status(400).send('Query parameter is required.');
 
     try {
-        const ewaybills = await EWayBills.find({
+        const ewaybills = await EWayBillModel.find({
             $or: [
                 { ewaybill_no: { $regex: query, $options: 'i' } },
                 { from_address: { $regex: query, $options: 'i' } },
@@ -198,27 +199,26 @@ router.get('/search/:query', async (req, res) => {
                 { 'transport.vehicle_number': { $regex: query, $options: 'i' } },
                 { 'transport.transporter_name': { $regex: query, $options: 'i' } }
             ]
-        });
+        } as any);
 
         if (ewaybills.length === 0) {
             return res.status(404).send('No e-way bills found.');
         } else {
             return res.status(200).json({ eWayBills: ewaybills });
         }
-    } catch (err) {
-        logger.error("E-Way Bill search failed", { service: "ewaybill", query, error: err.message });
+    } catch (err: unknown) {
+        logger.error("E-Way Bill search failed", { service: "ewaybill", query, error: (err as Error).message });
         return res.status(500).send('Failed to fetch e-way bills.');
     }
 });
 
 // Check if e-way bill exists for an invoice (by invoice_id string)
-router.get('/check-invoice/:invoiceId', async (req, res) => {
+router.get('/check-invoice/:invoiceId', async (req: Request, res: Response) => {
     try {
         const { invoiceId } = req.params;
 
         // First, try to find the invoice to get its MongoDB _id
-        const { Invoices } = require('../models');
-        const invoice = await Invoices.findOne({ invoice_id: invoiceId });
+        const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId });
 
         if (!invoice) {
             // Invoice doesn't exist, so no e-way bill for it either
@@ -227,36 +227,36 @@ router.get('/check-invoice/:invoiceId', async (req, res) => {
 
         // Check if any e-way bill references this invoice
         // Schema defines invoice_id as ObjectId, so we must strictly use the resolved _id
-        const existingEWayBill = await EWayBills.findOne({ invoice_id: invoice._id });
+        const existingEWayBill = await EWayBillModel.findOne({ invoice_id: invoice._id });
 
         res.status(200).json({ exists: !!existingEWayBill });
-    } catch (error) {
-        logger.error("Check invoice e-way bill failed", { service: "ewaybill", error: error.message });
-        res.status(500).json({ message: "Internal server error", error: error.message });
+    } catch (error: unknown) {
+        logger.error("Check invoice e-way bill failed", { service: "ewaybill", error: (error as Error).message });
+        res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
 // Check if e-way bill number already exists
-router.get('/check-ewaybill-no/:ewaybillNo', async (req, res) => {
+router.get('/check-ewaybill-no/:ewaybillNo', async (req: Request, res: Response) => {
     try {
         const { ewaybillNo } = req.params;
         const { excludeId } = req.query; // Optional: exclude a specific e-waybill ID (for edit mode)
 
         // Build query to find e-waybill with this number
-        const query = { ewaybill_no: ewaybillNo };
-        
+        const query: any = { ewaybill_no: ewaybillNo };
+
         // If excludeId is provided, exclude that specific e-waybill from the check
         if (excludeId) {
             query._id = { $ne: excludeId };
         }
 
-        const existingEWayBill = await EWayBills.findOne(query);
+        const existingEWayBill = await EWayBillModel.findOne(query);
 
         res.status(200).json({ exists: !!existingEWayBill });
-    } catch (error) {
-        logger.error("Check e-way bill number failed", { service: "ewaybill", error: error.message });
-        res.status(500).json({ message: "Internal server error", error: error.message });
+    } catch (error: unknown) {
+        logger.error("Check e-way bill number failed", { service: "ewaybill", error: (error as Error).message });
+        res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
-module.exports = router;
+export default router;
