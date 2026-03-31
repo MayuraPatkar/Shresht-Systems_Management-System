@@ -71,16 +71,16 @@ const validators = {
     // Stock validators
     createStock: [
         body("item_name").trim().notEmpty().withMessage("Item name is required"),
-        body("unit_price").isNumeric().withMessage("Unit price must be a number"),
-        body("GST").isNumeric().withMessage("GST must be a number"),
-        body("quantity").isInt({ min: 0 }).withMessage("Quantity must be a positive integer"),
-        body("type").trim().notEmpty().withMessage("Type is required"),
+        body("purchase_price").isNumeric().withMessage("Purchase price must be a number"),
+        body("gst_rate").isNumeric().withMessage("GST rate must be a number"),
+        body("stock_quantity").isInt({ min: 0 }).withMessage("Stock quantity must be a positive integer"),
+        body("item_type").trim().notEmpty().withMessage("Item type is required"),
         validate,
     ],
 
     updateStock: [
         param("id").isMongoId().withMessage("Invalid stock ID"),
-        body("quantity").optional().isInt({ min: 0 }).withMessage("Quantity must be a positive integer"),
+        body("stock_quantity").optional().isInt({ min: 0 }).withMessage("Stock quantity must be a positive integer"),
         validate,
     ],
 

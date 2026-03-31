@@ -169,12 +169,15 @@ router.get("/export-data", async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Admin data not found" });
         }
 
+        const addr = (admin as any).address || {};
+        const addressStr = typeof addr === 'string' ? addr : [addr.line1, addr.line2, addr.city, addr.state ? addr.state + (addr.pincode ? ' - ' + addr.pincode : '') : ''].filter(Boolean).join(', ');
+
         let data: string;
         if (format === "csv") {
-            data = `Username,Address,Email\n${admin.username},${admin.address},${admin.email}`;
+            data = `Username,Address,Email\n${admin.username},${addressStr},${admin.email}`;
             res.setHeader("Content-Type", "text/csv");
         } else if (format === "xml") {
-            data = `<admin><username>${admin.username}</username><address>${admin.address}</address><email>${admin.email}</email></admin>`;
+            data = `<admin><username>${admin.username}</username><address>${addressStr}</address><email>${admin.email}</email></admin>`;
             res.setHeader("Content-Type", "application/xml");
         } else {
             data = JSON.stringify(admin, null, 2);

@@ -5,25 +5,33 @@ import validators from '../middleware/validators';
 
 const router: Router = Router();
 
-// Helper function to log stock movements
+// Helper function to log stock movements (aligned with new StockMovement schema)
 async function logStockMovement(
     itemId: any,
     itemName: string,
-    quantityChange: number,
-    movementType: string,
+    quantity: number,
+    direction: 'IN' | 'OUT',
+    stockBefore: number,
+    stockAfter: number,
     referenceType: string,
     referenceId: string | null = null,
-    notes: string = ''
+    referenceNumber: string = '',
+    remarks: string = ''
 ): Promise<void> {
     try {
         await StockMovementModel.create({
             item_id: itemId,
             item_name: itemName,
-            quantity_change: quantityChange,
-            movement_type: movementType,
-            reference_type: referenceType,
-            reference_id: referenceId,
-            notes: notes
+            direction,
+            quantity,
+            stock_before: stockBefore,
+            stock_after: stockAfter,
+            reference: {
+                type: referenceType,
+                id: referenceId || undefined,
+                number: referenceNumber || undefined
+            },
+            remarks
         } as any);
     } catch (error: unknown) {
         logger.error('Stock movement log failed', { service: "stock", error: (error as Error).message });
@@ -43,7 +51,7 @@ router.get('/all', async (req: Request, res: Response) => {
 
 // Route to Add Item to Stock
 router.post('/addItem', validators.createStock, async (req: Request, res: Response) => {
-    const { item_name, HSN_SAC, specifications, company, category, type, unit_price, quantity, GST, min_quantity } = req.body;
+    const { item_name, hsn_sac, specifications, brand, category, item_type, purchase_price, stock_quantity, gst_rate, min_stock_quantity } = req.body;
 
     try {
         // Check if item already exists
@@ -56,28 +64,32 @@ router.post('/addItem', validators.createStock, async (req: Request, res: Respon
         // Add new stock item
         const newItem = new ItemModel({
             item_name: item_name.trim(),
-            HSN_SAC,
+            hsn_sac,
             specifications,
-            company,
+            brand,
             category,
-            type: type || 'material',
-            unit_price,
-            quantity,
-            GST,
-            min_quantity: min_quantity || 5,
+            item_type: item_type || 'Material',
+            purchase_price,
+            stock_quantity: stock_quantity || 0,
+            gst_rate,
+            min_stock_quantity: min_stock_quantity || 5,
         });
 
         await newItem.save();
 
         // Log stock movement for initial quantity
-        if (quantity && quantity > 0) {
+        const qty = stock_quantity || 0;
+        if (qty > 0) {
             await logStockMovement(
                 newItem._id,
                 item_name.trim(),
-                quantity,
-                'in',
-                'stock',
+                qty,
+                'IN',
+                0,
+                qty,
+                'Manual',
                 newItem._id.toString(),
+                '',
                 'Initial stock entry'
             );
         }
@@ -102,7 +114,8 @@ router.post('/addToStock', async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        item.quantity += quantity;
+        const stockBefore = item.stock_quantity || 0;
+        item.stock_quantity = stockBefore + quantity;
         await item.save();
 
         // Log stock movement
@@ -110,9 +123,12 @@ router.post('/addToStock', async (req: Request, res: Response) => {
             item._id,
             item.item_name,
             quantity,
-            'in',
-            'stock',
+            'IN',
+            stockBefore,
+            item.stock_quantity,
+            'Manual',
             itemId,
+            '',
             'Stock added manually'
         );
 
@@ -137,11 +153,12 @@ router.post('/removeFromStock', async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        if (item.quantity < quantity) {
+        const stockBefore = item.stock_quantity || 0;
+        if (stockBefore < quantity) {
             return res.status(400).json({ error: 'Insufficient stock' });
         }
 
-        item.quantity -= quantity;
+        item.stock_quantity = stockBefore - quantity;
         await item.save();
 
         // Log stock movement
@@ -149,9 +166,12 @@ router.post('/removeFromStock', async (req: Request, res: Response) => {
             item._id,
             item.item_name,
             quantity,
-            'out',
-            'stock',
+            'OUT',
+            stockBefore,
+            item.stock_quantity,
+            'Manual',
             itemId,
+            '',
             'Stock removed manually'
         );
 
@@ -164,7 +184,7 @@ router.post('/removeFromStock', async (req: Request, res: Response) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req: Request, res: Response) => {
-    const { itemId, item_name, HSN_SAC, specifications, company, category, type, unit_price, GST, min_quantity } = req.body;
+    const { itemId, item_name, hsn_sac, specifications, brand, category, item_type, purchase_price, gst_rate, min_stock_quantity } = req.body;
 
     try {
         // Input validation
@@ -172,12 +192,12 @@ router.post('/editItem', async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Item name is required' });
         }
 
-        if (unit_price && (isNaN(unit_price) || unit_price < 0)) {
-            return res.status(400).json({ error: 'Unit price must be a valid positive number' });
+        if (purchase_price && (isNaN(purchase_price) || purchase_price < 0)) {
+            return res.status(400).json({ error: 'Purchase price must be a valid positive number' });
         }
 
-        if (GST && (isNaN(GST) || GST < 0 || GST > 100)) {
-            return res.status(400).json({ error: 'GST must be a valid number between 0 and 100' });
+        if (gst_rate && (isNaN(gst_rate) || gst_rate < 0 || gst_rate > 100)) {
+            return res.status(400).json({ error: 'GST rate must be a valid number between 0 and 100' });
         }
 
         // Check if another item with the same name exists (excluding current item)
@@ -195,16 +215,16 @@ router.post('/editItem', async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        // Update item details (quantity is managed separately via stock in/out operations)
+        // Update item details (stock_quantity is managed separately via stock in/out operations)
         item.item_name = item_name.trim();
-        item.HSN_SAC = HSN_SAC;
+        item.hsn_sac = hsn_sac;
         item.specifications = specifications;
-        item.company = company;
+        item.brand = brand;
         item.category = category;
-        item.type = type;
-        item.unit_price = unit_price;
-        item.GST = GST;
-        item.min_quantity = min_quantity;
+        item.item_type = item_type;
+        item.purchase_price = purchase_price;
+        item.gst_rate = gst_rate;
+        item.min_stock_quantity = min_stock_quantity;
         item.updatedAt = new Date();
         await item.save();
 
@@ -266,9 +286,9 @@ router.get('/search/:itemName', async (req: Request, res: Response) => {
                 item: {
                     item_name: stockItem.item_name,
                     specifications: stockItem.specifications,
-                    HSN_SAC: stockItem.HSN_SAC,
-                    unit_price: stockItem.unit_price,
-                    GST: stockItem.GST
+                    hsn_sac: stockItem.hsn_sac,
+                    purchase_price: stockItem.purchase_price,
+                    gst_rate: stockItem.gst_rate
                 }
             });
         } else {
@@ -289,15 +309,19 @@ router.post('/deleteItem', async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        // Log stock movement if item had quantity
-        if (item.quantity > 0) {
+        // Log stock movement if item had stock
+        const stockQty = item.stock_quantity || 0;
+        if (stockQty > 0) {
             await logStockMovement(
                 item._id,
                 item.item_name,
-                item.quantity,
-                'out',
-                'stock',
+                stockQty,
+                'OUT',
+                stockQty,
+                0,
+                'Manual',
                 itemId,
+                '',
                 'Item deleted from stock'
             );
         }

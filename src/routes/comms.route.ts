@@ -95,12 +95,14 @@ async function getCompanyInfo(): Promise<Record<string, string>> {
         if (!admin) {
             return {};
         }
+        const addr = admin.address || {};
+        const addressStr = typeof addr === 'string' ? addr : [addr.line1, addr.line2, addr.city, addr.state ? addr.state + (addr.pincode ? ' - ' + addr.pincode : '') : ''].filter(Boolean).join(', ');
         return {
-            name: admin.company || 'Shresht Systems',
+            name: admin.company_name || 'Shresht Systems',
             tagline: 'CCTV & Energy Solutions',
-            address: admin.address || '',
+            address: addressStr,
             phone: admin.phone?.ph1 || '',
-            gstin: admin.GSTIN || '',
+            gstin: admin.gstin || '',
             email: admin.email || '',
             website: admin.website || ''
         };

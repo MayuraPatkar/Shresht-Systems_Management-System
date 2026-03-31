@@ -348,8 +348,8 @@ function loadStockAlerts() {
     fetchWithRetry('/stock/all')
         .then(items => {
             const lowStock = (items || []).filter(item => {
-                const qty = parseInt(item.quantity) || 0;
-                const minQty = parseInt(item.min_quantity) || 0;
+                const qty = parseInt(item.stock_quantity) || 0;
+                const minQty = parseInt(item.min_stock_quantity) || 0;
                 return qty <= minQty;
             });
 
@@ -375,7 +375,7 @@ function displayStockAlerts(items) {
     }
 
     container.innerHTML = items.map(item => {
-        const qty = parseInt(item.quantity) || 0;
+        const qty = parseInt(item.stock_quantity) || 0;
         const isOutOfStock = qty === 0;
         const itemName = item.item_name || 'Unknown Item';
 
@@ -471,8 +471,8 @@ function loadPendingTasks() {
 
             // Low stock count
             const lowStockCount = (stockItems || []).filter(item => {
-                const qty = parseInt(item.quantity) || 0;
-                const minQty = parseInt(item.min_quantity) || 0;
+                const qty = parseInt(item.stock_quantity) || 0;
+                const minQty = parseInt(item.min_stock_quantity) || 0;
                 return qty <= minQty;
             }).length;
 
