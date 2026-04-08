@@ -60,7 +60,8 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
             buyerEmail = '',
             buyerGSTIN = '',
             items = [],
-            non_items = [],
+            other_charges = null as any,
+            discount = 0,
             totalTax = 0,
             totalAmountNoTax = 0,
             totalAmountTax = 0,
@@ -87,10 +88,43 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
             }
         }
 
+        // Build customer_snapshot sub-document
+        const customer_snapshot: any = {};
+        if (buyerName) customer_snapshot.name = buyerName;
+        if (buyerPhone) customer_snapshot.phone = buyerPhone;
+        if (buyerEmail) customer_snapshot.email = buyerEmail;
+        if (buyerGSTIN) customer_snapshot.gstin = buyerGSTIN;
+        if (buyerAddress) {
+            // Accept address as string (legacy) or structured object
+            if (typeof buyerAddress === 'string') {
+                customer_snapshot.billing_address = { line1: buyerAddress };
+            } else {
+                customer_snapshot.billing_address = buyerAddress;
+            }
+        }
+
+        // Build totals sub-document
+        const totals = {
+            total_tax: totalTax,
+            taxable_value: totalAmountNoTax,
+            grand_total: totalAmountTax
+        };
+
+        // Build content sub-document
+        const content = {
+            subject,
+            letter_1,
+            letter_2,
+            letter_3,
+            headline: headline || projectName,
+            notes,
+            terms_and_conditions: termsAndConditions
+        };
+
         // Attempt to find an existing quotation using the provided ID
         let quotation: any = null;
         if (quotation_id) {
-            quotation = await QuotationModel.findOne({ quotation_id: quotation_id });
+            quotation = await QuotationModel.findOne({ quotation_no: quotation_id });
         }
 
         if (quotation) {
@@ -103,23 +137,12 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
 
             quotation.project_name = projectName;
             quotation.quotation_date = quotationDate;
-            quotation.customer_name = buyerName;
-            quotation.customer_address = buyerAddress;
-            quotation.customer_phone = buyerPhone;
-            quotation.customer_email = buyerEmail;
-            quotation.customer_GSTIN = buyerGSTIN;
+            quotation.customer_snapshot = customer_snapshot;
             quotation.items = items;
-            quotation.non_items = non_items;
-            quotation.total_tax = totalTax;
-            quotation.total_amount_no_tax = totalAmountNoTax;
-            quotation.total_amount_tax = totalAmountTax;
-            quotation.subject = subject;
-            quotation.letter_1 = letter_1;
-            quotation.letter_2 = letter_2;
-            quotation.letter_3 = letter_3;
-            quotation.headline = headline;
-            quotation.notes = notes;
-            quotation.termsAndConditions = termsAndConditions;
+            quotation.other_charges = other_charges;
+            quotation.discount = discount;
+            quotation.totals = totals;
+            quotation.content = content;
 
         } else {
             // ---------------------------------------------------------
@@ -130,7 +153,7 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
             let newId: string;
             if (isCustomId && quotation_id && quotation_id.trim()) {
                 // Check if this custom ID already exists
-                const existingCustom = await QuotationModel.findOne({ quotation_id: quotation_id.trim() });
+                const existingCustom = await QuotationModel.findOne({ quotation_no: quotation_id.trim() });
                 if (existingCustom) {
                     return res.status(400).json({ message: `Quotation ID "${quotation_id}" already exists. Please use a different ID.` });
                 }
@@ -145,28 +168,16 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
             }
 
             quotation = new QuotationModel({
-                quotation_id: newId, // Use custom ID or freshly generated ID
+                quotation_no: newId,
                 project_name: projectName,
                 quotation_date: quotationDate,
-                customer_name: buyerName,
-                customer_address: buyerAddress,
-                customer_phone: buyerPhone,
-                customer_email: buyerEmail,
-                customer_GSTIN: buyerGSTIN,
+                customer_snapshot,
                 items,
-                non_items: non_items,
-                total_tax: totalTax,
-                total_amount_no_tax: totalAmountNoTax,
-                total_amount_tax: totalAmountTax,
-                subject,
-                letter_1,
-                letter_2,
-                letter_3,
-                headline: projectName,
-                notes,
-                termsAndConditions,
+                other_charges,
+                discount,
+                totals,
+                content,
                 duplicated_from, // Audit trail for duplicated quotations
-                createdAt: new Date(),
             });
         }
 
@@ -174,14 +185,14 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
         const savedQuotation = await quotation.save();
 
         // If a custom ID was used for a NEW quotation, sync the counter to prevent collisions
-        if (isCustomId && savedQuotation.quotation_id) {
-            await syncCounterIfNeeded('quotation', savedQuotation.quotation_id);
+        if (isCustomId && savedQuotation.quotation_no) {
+            await syncCounterIfNeeded('quotation', savedQuotation.quotation_no);
         }
 
         res.status(201).json({
             message: 'Quotation saved successfully',
             quotation: savedQuotation,
-            quotation_id: savedQuotation.quotation_id // Return the final ID
+            quotation_id: savedQuotation.quotation_no // Return the final ID
         });
 
     } catch (error: unknown) {
@@ -196,7 +207,7 @@ router.get("/recent-quotations", async (req: Request, res: Response) => {
         const recentQuotations = await QuotationModel.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("project_name quotation_id quotation_date customer_name customer_address total_amount_tax");
+            .select("project_name quotation_no quotation_date customer_snapshot totals");
 
         res.status(200).json({
             message: "Recent quotations retrieved successfully",
@@ -220,7 +231,7 @@ router.get("/:quotationId", async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Quotation ID is required.' });
         }
 
-        const quotation = await QuotationModel.findOne({ quotation_id: quotationId });
+        const quotation = await QuotationModel.findOne({ quotation_no: quotationId });
         if (!quotation) {
             return res.status(404).json({ message: 'Quotation not found' });
         }
@@ -248,12 +259,12 @@ router.delete("/:quotationId", async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Quotation ID is required.' });
         }
 
-        const quotation = await QuotationModel.findOne({ quotation_id: quotationId });
+        const quotation = await QuotationModel.findOne({ quotation_no: quotationId });
         if (!quotation) {
             return res.status(404).json({ message: 'Quotation not found' });
         }
 
-        await QuotationModel.deleteOne({ quotation_id: quotationId });
+        await QuotationModel.deleteOne({ quotation_no: quotationId });
 
         res.status(200).json({ message: 'Quotation deleted successfully' });
     } catch (error: unknown) {
@@ -275,11 +286,11 @@ router.get('/search/:query', async (req: Request, res: Response) => {
     try {
         const quotations = await QuotationModel.find({
             $or: [
-                { quotation_id: { $regex: query, $options: 'i' } },
+                { quotation_no: { $regex: query, $options: 'i' } },
                 { project_name: { $regex: query, $options: 'i' } },
-                { customer_name: { $regex: query, $options: 'i' } },
-                { customer_phone: { $regex: query, $options: 'i' } },
-                { customer_email: { $regex: query, $options: 'i' } }
+                { 'customer_snapshot.name': { $regex: query, $options: 'i' } },
+                { 'customer_snapshot.phone': { $regex: query, $options: 'i' } },
+                { 'customer_snapshot.email': { $regex: query, $options: 'i' } }
             ]
         } as any);
 

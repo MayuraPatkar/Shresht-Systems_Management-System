@@ -41,11 +41,11 @@ router.post("/save-ewaybill", async (req: Request, res: Response) => {
             totalInvoiceValue = 0,
         } = req.body;
 
-        // Transform items to match schema field names
+        // Transform items to match new IEWayBillItem schema
         const transformedItems = items.map((item: any) => ({
-            stock_id: item.stock_id ? item.stock_id : undefined,
+            item_id: item.item_id || item.stock_id || undefined,
             description: item.description || '',
-            hsn_sac: item.hsn_sac || item.HSN_SAC || '',
+            hsn_sac: item.hsn_sac || '',
             quantity: Number(item.quantity) || 0,
             unit_price: Number(item.unit_price) || 0,
             taxable_value: Number(item.taxable_value) || (Number(item.quantity) * Number(item.unit_price)) || 0,
@@ -67,6 +67,21 @@ router.post("/save-ewaybill", async (req: Request, res: Response) => {
             totalInvoiceValue = totalTaxableValue + cgst + sgst;
         }
 
+        // Build totals sub-document
+        const totals = {
+            taxable_value: totalTaxableValue,
+            cgst,
+            sgst,
+            total_tax: cgst + sgst,
+            grand_total: totalInvoiceValue
+        };
+
+        // Build address sub-documents (accept string or structured)
+        const fromAddr = typeof fromAddress === 'string'
+            ? { line1: fromAddress } : fromAddress;
+        const toAddr = typeof toAddress === 'string'
+            ? { line1: toAddress } : toAddress;
+
         let eWayBill: any = null;
 
         // Try to find existing document by _id
@@ -81,8 +96,8 @@ router.post("/save-ewaybill", async (req: Request, res: Response) => {
             eWayBill.ewaybill_no = eWayBillNo;
             eWayBill.ewaybill_status = eWayBillStatus;
             eWayBill.invoice_id = invoiceId || undefined;
-            eWayBill.from_address = fromAddress;
-            eWayBill.to_address = toAddress;
+            eWayBill.from_address = fromAddr;
+            eWayBill.to_address = toAddr;
             eWayBill.transport = {
                 mode: transportMode,
                 vehicle_number: vehicleNumber,
@@ -90,12 +105,9 @@ router.post("/save-ewaybill", async (req: Request, res: Response) => {
                 transporter_name: transporterName,
                 distance_km: Number(distanceKm) || 0
             };
-            if (eWayBillDate) eWayBill.ewaybill_generated_at = new Date(eWayBillDate);
+            if (eWayBillDate) eWayBill.ewaybill_date = new Date(eWayBillDate);
             eWayBill.items = transformedItems;
-            eWayBill.total_taxable_value = totalTaxableValue;
-            eWayBill.cgst = cgst;
-            eWayBill.sgst = sgst;
-            eWayBill.total_invoice_value = totalInvoiceValue;
+            eWayBill.totals = totals;
         } else {
             // ---------------------------------------------------------
             // SCENARIO 2: CREATE NEW E-WAY BILL
@@ -104,8 +116,8 @@ router.post("/save-ewaybill", async (req: Request, res: Response) => {
                 ewaybill_no: eWayBillNo,
                 ewaybill_status: eWayBillStatus,
                 invoice_id: invoiceId || undefined,
-                from_address: fromAddress,
-                to_address: toAddress,
+                from_address: fromAddr,
+                to_address: toAddr,
                 transport: {
                     mode: transportMode,
                     vehicle_number: vehicleNumber,
@@ -113,12 +125,9 @@ router.post("/save-ewaybill", async (req: Request, res: Response) => {
                     transporter_name: transporterName,
                     distance_km: Number(distanceKm) || 0
                 },
-                ewaybill_generated_at: eWayBillDate ? new Date(eWayBillDate) : undefined,
+                ewaybill_date: eWayBillDate ? new Date(eWayBillDate) : undefined,
                 items: transformedItems,
-                total_taxable_value: totalTaxableValue,
-                cgst,
-                sgst,
-                total_invoice_value: totalInvoiceValue
+                totals,
             });
         }
 
@@ -141,8 +150,8 @@ router.get("/recent-ewaybills", async (req: Request, res: Response) => {
         const recentEWayBills = await EWayBillModel.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .populate('invoice_id', 'invoice_id')
-            .select("ewaybill_no invoice_id ewaybill_status from_address to_address transport ewaybill_generated_at total_invoice_value createdAt");
+            .populate('invoice_id', 'invoice_no')
+            .select("ewaybill_no invoice_id ewaybill_status from_address to_address transport ewaybill_date totals createdAt");
 
         res.status(200).json({
             message: "Recent e-way bills retrieved successfully",
@@ -158,7 +167,7 @@ router.get("/recent-ewaybills", async (req: Request, res: Response) => {
 router.get("/:eWayBillId", async (req: Request, res: Response) => {
     try {
         const { eWayBillId } = req.params;
-        const eWayBill = await EWayBillModel.findById(eWayBillId).populate('invoice_id', 'invoice_id');
+        const eWayBill = await EWayBillModel.findById(eWayBillId).populate('invoice_id', 'invoice_no');
         if (!eWayBill) {
             return res.status(404).json({ message: 'E-Way Bill not found' });
         }
@@ -194,8 +203,8 @@ router.get('/search/:query', async (req: Request, res: Response) => {
         const ewaybills = await EWayBillModel.find({
             $or: [
                 { ewaybill_no: { $regex: query, $options: 'i' } },
-                { from_address: { $regex: query, $options: 'i' } },
-                { to_address: { $regex: query, $options: 'i' } },
+                { 'from_address.line1': { $regex: query, $options: 'i' } },
+                { 'to_address.line1': { $regex: query, $options: 'i' } },
                 { 'transport.vehicle_number': { $regex: query, $options: 'i' } },
                 { 'transport.transporter_name': { $regex: query, $options: 'i' } }
             ]
@@ -212,13 +221,13 @@ router.get('/search/:query', async (req: Request, res: Response) => {
     }
 });
 
-// Check if e-way bill exists for an invoice (by invoice_id string)
+// Check if e-way bill exists for an invoice (by invoice_no string)
 router.get('/check-invoice/:invoiceId', async (req: Request, res: Response) => {
     try {
         const { invoiceId } = req.params;
 
         // First, try to find the invoice to get its MongoDB _id
-        const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId });
+        const invoice = await InvoiceModel.findOne({ invoice_no: invoiceId });
 
         if (!invoice) {
             // Invoice doesn't exist, so no e-way bill for it either

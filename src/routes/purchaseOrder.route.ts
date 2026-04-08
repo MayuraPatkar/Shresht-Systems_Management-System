@@ -23,16 +23,16 @@ router.get("/generate-id", async (req: Request, res: Response) => {
 // Route to get all unique suppliers
 router.get("/suppliers/list", async (req: Request, res: Response) => {
     try {
-        // Get all unique supplier names with their details
+        // Get all unique supplier names from supplier_snapshot
         const suppliers = await PurchaseModel.aggregate([
             {
                 $group: {
-                    _id: "$supplier_name",
-                    supplier_name: { $first: "$supplier_name" },
-                    supplier_address: { $first: "$supplier_address" },
-                    supplier_phone: { $first: "$supplier_phone" },
-                    supplier_email: { $first: "$supplier_email" },
-                    supplier_GSTIN: { $first: "$supplier_GSTIN" }
+                    _id: "$supplier_snapshot.name",
+                    name: { $first: "$supplier_snapshot.name" },
+                    gstin: { $first: "$supplier_snapshot.gstin" },
+                    phone: { $first: "$supplier_snapshot.phone" },
+                    email: { $first: "$supplier_snapshot.email" },
+                    address: { $first: "$supplier_snapshot.address" }
                 }
             },
             {
@@ -41,18 +41,18 @@ router.get("/suppliers/list", async (req: Request, res: Response) => {
                 }
             },
             {
-                $sort: { supplier_name: 1 }
+                $sort: { name: 1 }
             }
         ]);
 
         res.status(200).json({
             message: "Suppliers retrieved successfully",
             suppliers: suppliers.map((s: any) => ({
-                name: s.supplier_name,
-                address: s.supplier_address,
-                phone: s.supplier_phone,
-                email: s.supplier_email,
-                GSTIN: s.supplier_GSTIN
+                name: s.name,
+                address: s.address,
+                phone: s.phone,
+                email: s.email,
+                gstin: s.gstin
             }))
         });
     } catch (error: unknown) {
@@ -79,10 +79,29 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
             totalAmount = 0
         } = req.body;
 
+        // Build supplier_snapshot sub-document
+        const supplier_snapshot: any = {};
+        if (supplierName) supplier_snapshot.name = supplierName;
+        if (supplierGSTIN) supplier_snapshot.gstin = supplierGSTIN;
+        if (supplierPhone) supplier_snapshot.phone = supplierPhone;
+        if (supplierEmail) supplier_snapshot.email = supplierEmail;
+        if (supplierAddress) {
+            if (typeof supplierAddress === 'string') {
+                supplier_snapshot.address = { line1: supplierAddress };
+            } else {
+                supplier_snapshot.address = supplierAddress;
+            }
+        }
+
+        // Build totals sub-document
+        const totals = {
+            grand_total: totalAmount
+        };
+
         // Attempt to find an existing document using the provided ID
         let purchaseOrder: any = null;
         if (purchaseOrderId) {
-            purchaseOrder = await PurchaseModel.findOne({ purchase_order_id: purchaseOrderId });
+            purchaseOrder = await PurchaseModel.findOne({ purchase_order_no: purchaseOrderId });
         }
 
         let previousItems: any[] = [];
@@ -96,15 +115,11 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
             previousItems = Array.isArray(purchaseOrder.items) ? purchaseOrder.items : [];
 
             // Update fields
-            purchaseOrder.purchase_invoice_id = purchaseInvoiceId;
+            purchaseOrder.purchase_invoice_no = purchaseInvoiceId;
             purchaseOrder.purchase_date = purchaseDate || new Date();
-            purchaseOrder.supplier_name = supplierName;
-            purchaseOrder.supplier_address = supplierAddress;
-            purchaseOrder.supplier_phone = supplierPhone;
-            purchaseOrder.supplier_email = supplierEmail;
-            purchaseOrder.supplier_GSTIN = supplierGSTIN;
+            purchaseOrder.supplier_snapshot = supplier_snapshot;
             purchaseOrder.items = items;
-            purchaseOrder.total_amount = totalAmount;
+            purchaseOrder.totals = totals;
 
         } else {
             // ---------------------------------------------------------
@@ -115,17 +130,12 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
             const newId = await generateNextId('purchaseOrder');
 
             purchaseOrder = new PurchaseModel({
-                purchase_order_id: newId,
-                purchase_invoice_id: purchaseInvoiceId,
+                purchase_order_no: newId,
+                purchase_invoice_no: purchaseInvoiceId,
                 purchase_date: purchaseDate || new Date(),
-                supplier_name: supplierName,
-                supplier_address: supplierAddress,
-                supplier_phone: supplierPhone,
-                supplier_email: supplierEmail,
-                supplier_GSTIN: supplierGSTIN,
+                supplier_snapshot,
                 items,
-                total_amount: totalAmount,
-                createdAt: new Date(),
+                totals,
             });
         }
 
@@ -144,7 +154,8 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
                 const stockItem = await ItemModel.findOne({ item_name: itemName }) as any;
                 if (stockItem) {
                     const reversalQty = Number(prevItem.quantity || 0);
-                    stockItem.quantity = Number(stockItem.quantity || 0) - reversalQty;
+                    const stockBefore = stockItem.stock_quantity || 0;
+                    stockItem.stock_quantity = stockBefore - reversalQty;
                     await stockItem.save();
                 }
             }
@@ -159,40 +170,39 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
             const addQty = Number(item.quantity || 0);
 
             if (stockItem) {
-                stockItem.quantity = Number(stockItem.quantity || 0) + addQty;
-                stockItem.unit_price = Number(item.unit_price) || stockItem.unit_price;
-                stockItem.GST = Number(item.rate) || stockItem.GST;
+                const stockBefore = stockItem.stock_quantity || 0;
+                stockItem.stock_quantity = stockBefore + addQty;
+                stockItem.purchase_price = Number(item.unit_price) || stockItem.purchase_price;
+                stockItem.gst_rate = Number(item.gst_rate || item.rate) || stockItem.gst_rate;
                 stockItem.specifications = item.specification || stockItem.specifications;
-                stockItem.company = item.company || stockItem.company;
+                stockItem.brand = item.brand || item.company || stockItem.brand;
                 stockItem.category = item.category || stockItem.category;
-                stockItem.type = item.type || stockItem.type;
+                stockItem.item_type = item.item_type || item.type || stockItem.item_type;
                 stockItem.updatedAt = new Date();
                 await stockItem.save();
             } else {
                 await ItemModel.create({
                     item_name: itemName,
-                    HSN_SAC: item.HSN_SAC || item.hsn_sac || "",
+                    hsn_sac: item.hsn_sac || "",
                     specifications: item.specification || "",
-                    company: item.company || "",
+                    brand: item.brand || item.company || "",
                     category: item.category || "",
-                    unit_price: Number(item.unit_price) || 0,
-                    GST: Number(item.rate) || 0,
+                    purchase_price: Number(item.unit_price) || 0,
+                    gst_rate: Number(item.gst_rate || item.rate) || 0,
                     margin: 0,
-                    quantity: addQty,
-                    type: item.type || 'material',
-                    createdAt: new Date(),
-                    updatedAt: new Date()
+                    stock_quantity: addQty,
+                    item_type: item.item_type || item.type || 'Material',
                 } as any);
             }
         }
 
         // 2. Sync Stock Movements (Update Existing, Create New, Delete Removed)
-        const currentPOId = purchaseOrderId || (purchaseOrder ? purchaseOrder.purchase_order_id : 'NEW');
+        const currentPOId = purchaseOrderId || (purchaseOrder ? purchaseOrder.purchase_order_no : 'NEW');
 
-        // Fetch existing movements for this PO
+        // Fetch existing movements for this PO (using new schema: reference.type + reference.id)
         const existingMovements = await StockMovementModel.find({
-            reference_type: 'purchase_order',
-            reference_id: currentPOId
+            'reference.type': 'Purchase',
+            'reference.number': currentPOId
         });
 
         // Create a pool of available movements to match against
@@ -210,12 +220,14 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
             if (matchIndex !== -1) {
                 // UPDATE existing movement
                 const movement = movementPool[matchIndex] as any;
-                movement.quantity_change = qty;
+                movement.quantity = qty;
                 movement.total_value = totalVal;
                 // Update item_id if we can find the stock item
                 const stockItem = await ItemModel.findOne({ item_name: itemName });
                 if (stockItem) {
                     movement.item_id = stockItem._id;
+                    movement.stock_after = (stockItem as any).stock_quantity || 0;
+                    movement.stock_before = movement.stock_after - qty;
                 }
                 await movement.save();
 
@@ -224,15 +236,20 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
             } else {
                 // CREATE new movement - look up stock item to get ID
                 const stockItem = await ItemModel.findOne({ item_name: itemName });
+                const stockQty = stockItem ? (stockItem as any).stock_quantity || 0 : 0;
                 await StockMovementModel.create({
-                    timestamp: purchaseDate || new Date(),
                     item_id: stockItem ? stockItem._id : null,
                     item_name: itemName,
-                    movement_type: 'in',
-                    quantity_change: qty,
-                    reference_type: 'purchase_order',
-                    reference_id: currentPOId,
-                    notes: `Purchase Order Received`,
+                    direction: 'IN',
+                    quantity: qty,
+                    stock_before: stockQty - qty,
+                    stock_after: stockQty,
+                    reference: {
+                        type: 'Purchase',
+                        id: purchaseOrder._id || undefined,
+                        number: currentPOId
+                    },
+                    remarks: 'Purchase Order Received',
                     total_value: totalVal
                 } as any);
             }
@@ -249,7 +266,7 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
         res.status(201).json({
             message: 'Purchase order saved successfully',
             purchaseOrder: savedPurchaseOrder,
-            purchase_order_id: savedPurchaseOrder.purchase_order_id // Return the final ID
+            purchase_order_id: savedPurchaseOrder.purchase_order_no // Return the final ID
         });
     } catch (error: unknown) {
         logger.error('Error saving purchase order:', error);
@@ -263,7 +280,7 @@ router.get("/recent-purchase-orders", async (req: Request, res: Response) => {
         const recentPurchaseOrders = await PurchaseModel.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("project_name purchase_order_id supplier_name supplier_address total_amount purchase_date createdAt");
+            .select("purchase_order_no supplier_snapshot totals purchase_date createdAt");
 
         res.status(200).json({
             message: "Recent purchase orders retrieved successfully",
@@ -279,7 +296,7 @@ router.get("/recent-purchase-orders", async (req: Request, res: Response) => {
 router.get("/:purchaseOrderId", async (req: Request, res: Response) => {
     try {
         const { purchaseOrderId } = req.params;
-        const purchaseOrder = await PurchaseModel.findOne({ purchase_order_id: purchaseOrderId });
+        const purchaseOrder = await PurchaseModel.findOne({ purchase_order_no: purchaseOrderId });
         if (!purchaseOrder) {
             return res.status(404).json({ message: 'Purchase order not found' });
         }
@@ -294,7 +311,7 @@ router.get("/:purchaseOrderId", async (req: Request, res: Response) => {
 router.delete("/:purchaseOrderId", async (req: Request, res: Response) => {
     try {
         const { purchaseOrderId } = req.params;
-        const purchaseOrder = await PurchaseModel.findOne({ purchase_order_id: purchaseOrderId });
+        const purchaseOrder = await PurchaseModel.findOne({ purchase_order_no: purchaseOrderId });
         if (!purchaseOrder) {
             return res.status(404).json({ message: 'Purchase order not found' });
         }
@@ -305,7 +322,7 @@ router.delete("/:purchaseOrderId", async (req: Request, res: Response) => {
                 if (!item.description) continue;
                 const stockItem = await ItemModel.findOne({ item_name: item.description }) as any;
                 if (stockItem) {
-                    stockItem.quantity = (stockItem.quantity || 0) - Number(item.quantity || 0);
+                    stockItem.stock_quantity = (stockItem.stock_quantity || 0) - Number(item.quantity || 0);
                     await stockItem.save();
                 }
             }
@@ -313,11 +330,11 @@ router.delete("/:purchaseOrderId", async (req: Request, res: Response) => {
 
         // Delete associated stock movements
         await StockMovementModel.deleteMany({
-            reference_type: 'purchase_order',
-            reference_id: purchaseOrderId
+            'reference.type': 'Purchase',
+            'reference.number': purchaseOrderId
         });
 
-        await PurchaseModel.deleteOne({ purchase_order_id: purchaseOrderId });
+        await PurchaseModel.deleteOne({ purchase_order_no: purchaseOrderId });
         res.status(200).json({ message: 'Purchase order deleted successfully' });
     } catch (error: unknown) {
         logger.error("Error deleting purchase order:", error);
@@ -333,12 +350,11 @@ router.get('/search/:query', async (req: Request, res: Response) => {
     try {
         const purchaseOrders = await PurchaseModel.find({
             $or: [
-                { purchase_order_id: { $regex: query, $options: 'i' } },
-                { project_name: { $regex: query, $options: 'i' } },
-                { supplier_name: { $regex: query, $options: 'i' } },
-                { supplier_phone: { $regex: query, $options: 'i' } }
+                { purchase_order_no: { $regex: query, $options: 'i' } },
+                { 'supplier_snapshot.name': { $regex: query, $options: 'i' } },
+                { 'supplier_snapshot.phone': { $regex: query, $options: 'i' } }
             ]
-        });
+        } as any);
 
         if (purchaseOrders.length === 0) {
             return res.status(404).send('No purchase orders found.');
