@@ -384,7 +384,7 @@
                         </select>
                     </div>
 
-                    <!-- Party & Reference Row -->
+                    <!-- Party & Reference Rows -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="form-party-type" class="block text-sm font-medium text-gray-700 mb-1">
@@ -398,6 +398,17 @@
                             </select>
                         </div>
                         <div>
+                            <label for="form-party-id" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-id-badge text-gray-500 mr-1"></i>Party ID
+                            </label>
+                            <input type="text" id="form-party-id"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Link to Customer/Supplier">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
                             <label for="form-reference-type" class="block text-sm font-medium text-gray-700 mb-1">
                                 <i class="fas fa-link text-gray-500 mr-1"></i>Reference Type
                             </label>
@@ -409,6 +420,14 @@
                                 <option value="Service">Service</option>
                                 <option value="Adjustment">Adjustment</option>
                             </select>
+                        </div>
+                        <div>
+                            <label for="form-reference-id" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-hashtag text-gray-500 mr-1"></i>Reference ID
+                            </label>
+                            <input type="text" id="form-reference-id"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Invoice/PO/Service No.">
                         </div>
                     </div>
 

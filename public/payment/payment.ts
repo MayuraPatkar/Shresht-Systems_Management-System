@@ -38,7 +38,9 @@ interface IPaymentPayload {
     payment_date: string;
     mode: string;
     party_type?: string;
+    party_id?: string;
     reference_type?: string;
+    reference_id?: string;
     transaction_details?: string;
     is_advance: boolean;
     remarks?: string;
@@ -276,7 +278,9 @@ interface Window {
                 payment.payment_date ? payment.payment_date.substring(0, 10) : todayISO();
             (document.getElementById('form-mode') as HTMLSelectElement).value = payment.mode || 'Cash';
             (document.getElementById('form-party-type') as HTMLSelectElement).value = payment.party_type || '';
+            (document.getElementById('form-party-id') as HTMLInputElement).value = payment.party_id || '';
             (document.getElementById('form-reference-type') as HTMLSelectElement).value = payment.reference_type || '';
+            (document.getElementById('form-reference-id') as HTMLInputElement).value = payment.reference_id || '';
             (document.getElementById('form-transaction-details') as HTMLInputElement).value = payment.transaction_details || '';
             (document.getElementById('form-advance') as HTMLInputElement).checked = payment.is_advance || false;
             (document.getElementById('form-remarks') as HTMLTextAreaElement).value = payment.remarks || '';
@@ -353,11 +357,13 @@ interface Window {
             amount: Number(amount),
             payment_date: date || todayISO(),
             mode,
-            party_type: (document.getElementById('form-party-type') as HTMLSelectElement).value || undefined,
-            reference_type: (document.getElementById('form-reference-type') as HTMLSelectElement).value || undefined,
-            transaction_details: (document.getElementById('form-transaction-details') as HTMLInputElement).value || undefined,
+            party_type: (document.getElementById('form-party-type') as HTMLSelectElement).value || "",
+            party_id: (document.getElementById('form-party-id') as HTMLInputElement).value || "",
+            reference_type: (document.getElementById('form-reference-type') as HTMLSelectElement).value || "",
+            reference_id: (document.getElementById('form-reference-id') as HTMLInputElement).value || "",
+            transaction_details: (document.getElementById('form-transaction-details') as HTMLInputElement).value || "",
             is_advance: (document.getElementById('form-advance') as HTMLInputElement).checked,
-            remarks: (document.getElementById('form-remarks') as HTMLTextAreaElement).value || undefined
+            remarks: (document.getElementById('form-remarks') as HTMLTextAreaElement).value || ""
         };
 
         try {

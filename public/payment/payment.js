@@ -207,7 +207,9 @@
                 payment.payment_date ? payment.payment_date.substring(0, 10) : todayISO();
             document.getElementById('form-mode').value = payment.mode || 'Cash';
             document.getElementById('form-party-type').value = payment.party_type || '';
+            document.getElementById('form-party-id').value = payment.party_id || '';
             document.getElementById('form-reference-type').value = payment.reference_type || '';
+            document.getElementById('form-reference-id').value = payment.reference_id || '';
             document.getElementById('form-transaction-details').value = payment.transaction_details || '';
             document.getElementById('form-advance').checked = payment.is_advance || false;
             document.getElementById('form-remarks').value = payment.remarks || '';
@@ -272,11 +274,13 @@
             amount: Number(amount),
             payment_date: date || todayISO(),
             mode,
-            party_type: document.getElementById('form-party-type').value || undefined,
-            reference_type: document.getElementById('form-reference-type').value || undefined,
-            transaction_details: document.getElementById('form-transaction-details').value || undefined,
+            party_type: document.getElementById('form-party-type').value || "",
+            party_id: document.getElementById('form-party-id').value || "",
+            reference_type: document.getElementById('form-reference-type').value || "",
+            reference_id: document.getElementById('form-reference-id').value || "",
+            transaction_details: document.getElementById('form-transaction-details').value || "",
             is_advance: document.getElementById('form-advance').checked,
-            remarks: document.getElementById('form-remarks').value || undefined
+            remarks: document.getElementById('form-remarks').value || ""
         };
         try {
             const result = await savePayment(payload);
