@@ -1,4 +1,3 @@
-"use strict";
 /**
  * payment.ts
  *
@@ -8,57 +7,115 @@
  * Compile:  npx tsc -p tsconfig.public.json
  * Output:   public/payment/payment.js
  */
-(function () {
+
+// ── Interfaces ─────────────────────────────────────────
+interface IPaymentRecord {
+    _id: string;
+    schema_version: number;
+    payment_date: string;
+    amount: number;
+    direction: 'IN' | 'OUT';
+    party_type?: 'Customer' | 'Supplier';
+    party_id?: string;
+    reference_type?: 'Invoice' | 'Purchase' | 'Service' | 'Adjustment';
+    reference_id?: string;
+    mode: 'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque';
+    transaction_details?: string;
+    is_advance: boolean;
+    remarks?: string;
+    deletion: {
+        is_deleted: boolean;
+        deleted_at?: string;
+        deleted_by?: string;
+    };
+    createdAt: string;
+    updatedAt: string;
+}
+
+interface IPaymentPayload {
+    direction: 'IN' | 'OUT';
+    amount: number;
+    payment_date: string;
+    mode: string;
+    party_type?: string;
+    reference_type?: string;
+    transaction_details?: string;
+    is_advance: boolean;
+    remarks?: string;
+}
+
+interface IApiResponse {
+    success: boolean;
+    message?: string;
+    payments?: IPaymentRecord[];
+    payment?: IPaymentRecord;
+}
+
+// Extend Window for globally-exposed payment UI handlers
+interface Window {
+    _paymentUI: {
+        editPayment: (id: string) => void;
+        confirmDelete: (id: string) => Promise<void>;
+    };
+}
+
+(function (): void {
     'use strict';
+
     // ── State ──────────────────────────────────────────────
-    let allPayments = [];
-    let filteredPayments = [];
-    let currentFilter = 'all';
-    let editingId = null;
+    let allPayments: IPaymentRecord[] = [];
+    let filteredPayments: IPaymentRecord[] = [];
+    let currentFilter: string = 'all';
+    let editingId: string | null = null;
+
     // ── DOM Refs ──────────────────────────────────────────
-    const $tbody = document.getElementById('payment-tbody');
-    const $totalIn = document.getElementById('total-in');
-    const $totalOut = document.getElementById('total-out');
-    const $netBalance = document.getElementById('net-balance');
-    const $totalCount = document.getElementById('total-count');
-    const $filterCount = document.getElementById('filter-count');
-    const $searchInput = document.getElementById('search-input');
-    const $modal = document.getElementById('payment-modal');
-    const $form = document.getElementById('payment-form');
-    const $formPaymentId = document.getElementById('form-payment-id');
-    const $modalTitle = document.getElementById('modal-title');
-    const $modalSubtitle = document.getElementById('modal-subtitle');
-    const $submitBtnText = document.getElementById('submit-btn-text');
+    const $tbody = document.getElementById('payment-tbody') as HTMLTableSectionElement;
+    const $totalIn = document.getElementById('total-in') as HTMLElement;
+    const $totalOut = document.getElementById('total-out') as HTMLElement;
+    const $netBalance = document.getElementById('net-balance') as HTMLElement;
+    const $totalCount = document.getElementById('total-count') as HTMLElement;
+    const $filterCount = document.getElementById('filter-count') as HTMLElement;
+    const $searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const $modal = document.getElementById('payment-modal') as HTMLDivElement;
+    const $form = document.getElementById('payment-form') as HTMLFormElement;
+    const $formPaymentId = document.getElementById('form-payment-id') as HTMLInputElement;
+    const $modalTitle = document.getElementById('modal-title') as HTMLElement;
+    const $modalSubtitle = document.getElementById('modal-subtitle') as HTMLElement;
+    const $submitBtnText = document.getElementById('submit-btn-text') as HTMLElement;
+
     // ── Helpers ───────────────────────────────────────────
-    function formatCurrency(n) {
+    function formatCurrency(n: number): string {
         return '₹ ' + Number(n || 0).toLocaleString('en-IN', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
     }
-    function formatDate(d) {
-        if (!d)
-            return '-';
+
+    function formatDate(d: string | undefined): string {
+        if (!d) return '-';
         const dt = new Date(d);
         return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     }
-    function todayISO() {
+
+    function todayISO(): string {
         const d = new Date();
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         return `${y}-${m}-${day}`;
     }
-    function showToast(msg, isError) {
-        const $toast = document.getElementById('toast');
-        const $msg = document.getElementById('toast-message');
+
+    function showToast(msg: string, isError?: boolean): void {
+        const $toast = document.getElementById('toast') as HTMLElement;
+        const $msg = document.getElementById('toast-message') as HTMLElement;
         $msg.textContent = msg;
         $toast.className = $toast.className.replace('bg-green-600', '').replace('bg-red-600', '');
         $toast.classList.add(isError ? 'bg-red-600' : 'bg-green-600');
         $toast.classList.remove('hidden');
         setTimeout(() => $toast.classList.add('hidden'), 3000);
     }
-    function modeBadgeClass(mode) {
+
+    function modeBadgeClass(mode: string): string {
         switch (mode) {
             case 'Cash': return 'badge-cash';
             case 'UPI': return 'badge-upi';
@@ -67,25 +124,26 @@
             default: return 'badge-cash';
         }
     }
+
     // ── API ────────────────────────────────────────────────
-    async function fetchPayments() {
+    async function fetchPayments(): Promise<void> {
         try {
             const res = await fetch('/payment/all');
-            const data = await res.json();
+            const data: IApiResponse = await res.json();
             if (data.success) {
                 allPayments = data.payments || [];
                 applyFilter();
                 updateSummary();
             }
-        }
-        catch (e) {
+        } catch (e) {
             console.error('Failed to fetch payments', e);
             $tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-8 text-center text-red-500">Failed to load payments</td></tr>`;
         }
     }
-    async function savePayment(payload) {
-        const url = editingId ? `/payment/${editingId}` : '/payment/create';
-        const method = editingId ? 'PUT' : 'POST';
+
+    async function savePayment(payload: IPaymentPayload): Promise<IApiResponse> {
+        const url: string = editingId ? `/payment/${editingId}` : '/payment/create';
+        const method: string = editingId ? 'PUT' : 'POST';
         const res = await fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
@@ -93,49 +151,53 @@
         });
         return res.json();
     }
-    async function deletePaymentById(id) {
+
+    async function deletePaymentById(id: string): Promise<IApiResponse> {
         const res = await fetch(`/payment/${id}`, { method: 'DELETE' });
         return res.json();
     }
+
     // ── Render ─────────────────────────────────────────────
-    function updateSummary() {
-        const totalIn = allPayments
-            .filter((p) => p.direction === 'IN')
-            .reduce((s, p) => s + (p.amount || 0), 0);
-        const totalOut = allPayments
-            .filter((p) => p.direction === 'OUT')
-            .reduce((s, p) => s + (p.amount || 0), 0);
+    function updateSummary(): void {
+        const totalIn: number = allPayments
+            .filter((p: IPaymentRecord) => p.direction === 'IN')
+            .reduce((s: number, p: IPaymentRecord) => s + (p.amount || 0), 0);
+        const totalOut: number = allPayments
+            .filter((p: IPaymentRecord) => p.direction === 'OUT')
+            .reduce((s: number, p: IPaymentRecord) => s + (p.amount || 0), 0);
         $totalIn.textContent = formatCurrency(totalIn);
         $totalOut.textContent = formatCurrency(totalOut);
         $netBalance.textContent = formatCurrency(totalIn - totalOut);
         $totalCount.textContent = String(allPayments.length);
     }
-    function applyFilter() {
-        const query = ($searchInput.value || '').toLowerCase().trim();
-        filteredPayments = allPayments.filter((p) => {
+
+    function applyFilter(): void {
+        const query: string = ($searchInput.value || '').toLowerCase().trim();
+
+        filteredPayments = allPayments.filter((p: IPaymentRecord) => {
             // Direction filter
-            if (currentFilter === 'IN' && p.direction !== 'IN')
-                return false;
-            if (currentFilter === 'OUT' && p.direction !== 'OUT')
-                return false;
-            if (currentFilter === 'advance' && !p.is_advance)
-                return false;
+            if (currentFilter === 'IN' && p.direction !== 'IN') return false;
+            if (currentFilter === 'OUT' && p.direction !== 'OUT') return false;
+            if (currentFilter === 'advance' && !p.is_advance) return false;
+
             // Search filter
             if (query) {
-                const searchable = [
+                const searchable: string = [
                     p.remarks, p.transaction_details, p.party_type,
                     p.reference_type, p.mode, p.direction,
                     String(p.amount)
                 ].filter(Boolean).join(' ').toLowerCase();
-                if (!searchable.includes(query))
-                    return false;
+                if (!searchable.includes(query)) return false;
             }
+
             return true;
         });
+
         $filterCount.textContent = String(filteredPayments.length);
         renderTable();
     }
-    function renderTable() {
+
+    function renderTable(): void {
         if (filteredPayments.length === 0) {
             $tbody.innerHTML = `
                 <tr>
@@ -147,14 +209,16 @@
                 </tr>`;
             return;
         }
-        $tbody.innerHTML = filteredPayments.map((p) => {
-            const dirClass = p.direction === 'IN' ? 'badge-in' : 'badge-out';
-            const dirIcon = p.direction === 'IN' ? 'fa-arrow-down' : 'fa-arrow-up';
-            const dirLabel = p.direction === 'IN' ? 'IN' : 'OUT';
-            const modeClass = modeBadgeClass(p.mode);
-            const advanceBadge = p.is_advance
+
+        $tbody.innerHTML = filteredPayments.map((p: IPaymentRecord) => {
+            const dirClass: string = p.direction === 'IN' ? 'badge-in' : 'badge-out';
+            const dirIcon: string = p.direction === 'IN' ? 'fa-arrow-down' : 'fa-arrow-up';
+            const dirLabel: string = p.direction === 'IN' ? 'IN' : 'OUT';
+            const modeClass: string = modeBadgeClass(p.mode);
+            const advanceBadge: string = p.is_advance
                 ? '<span class="ml-1 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold">ADV</span>'
                 : '';
+
             return `
             <tr class="payment-row border-b border-gray-100">
                 <td class="px-6 py-4 text-gray-800 font-medium whitespace-nowrap">${formatDate(p.payment_date)}</td>
@@ -190,58 +254,68 @@
             </tr>`;
         }).join('');
     }
+
     // ── Modal ──────────────────────────────────────────────
-    function openModal(payment) {
+    function openModal(payment: IPaymentRecord | null): void {
         editingId = payment ? payment._id : null;
         $formPaymentId.value = editingId || '';
+
         if (payment) {
             $modalTitle.textContent = 'Edit Payment';
             $modalSubtitle.textContent = 'Update payment details';
             $submitBtnText.textContent = 'Update Payment';
+
             // Populate form
-            const dirRadio = document.querySelector(`input[name="direction"][value="${payment.direction}"]`);
-            if (dirRadio)
-                dirRadio.checked = true;
-            document.getElementById('form-amount').value = String(payment.amount || '');
-            document.getElementById('form-date').value =
+            const dirRadio = document.querySelector(
+                `input[name="direction"][value="${payment.direction}"]`
+            ) as HTMLInputElement | null;
+            if (dirRadio) dirRadio.checked = true;
+
+            (document.getElementById('form-amount') as HTMLInputElement).value = String(payment.amount || '');
+            (document.getElementById('form-date') as HTMLInputElement).value =
                 payment.payment_date ? payment.payment_date.substring(0, 10) : todayISO();
-            document.getElementById('form-mode').value = payment.mode || 'Cash';
-            document.getElementById('form-party-type').value = payment.party_type || '';
-            document.getElementById('form-reference-type').value = payment.reference_type || '';
-            document.getElementById('form-transaction-details').value = payment.transaction_details || '';
-            document.getElementById('form-advance').checked = payment.is_advance || false;
-            document.getElementById('form-remarks').value = payment.remarks || '';
-        }
-        else {
+            (document.getElementById('form-mode') as HTMLSelectElement).value = payment.mode || 'Cash';
+            (document.getElementById('form-party-type') as HTMLSelectElement).value = payment.party_type || '';
+            (document.getElementById('form-reference-type') as HTMLSelectElement).value = payment.reference_type || '';
+            (document.getElementById('form-transaction-details') as HTMLInputElement).value = payment.transaction_details || '';
+            (document.getElementById('form-advance') as HTMLInputElement).checked = payment.is_advance || false;
+            (document.getElementById('form-remarks') as HTMLTextAreaElement).value = payment.remarks || '';
+        } else {
             $modalTitle.textContent = 'New Payment';
             $modalSubtitle.textContent = 'Record a new payment transaction';
             $submitBtnText.textContent = 'Save Payment';
             $form.reset();
-            document.getElementById('form-date').value = todayISO();
-            const inRadio = document.querySelector('input[name="direction"][value="IN"]');
-            if (inRadio)
-                inRadio.checked = true;
+            (document.getElementById('form-date') as HTMLInputElement).value = todayISO();
+            const inRadio = document.querySelector(
+                'input[name="direction"][value="IN"]'
+            ) as HTMLInputElement | null;
+            if (inRadio) inRadio.checked = true;
         }
+
         $modal.classList.remove('hidden');
     }
-    function closeModal() {
+
+    function closeModal(): void {
         $modal.classList.add('hidden');
         editingId = null;
         $form.reset();
     }
+
     // ── Events ─────────────────────────────────────────────
     // New payment button
-    document.getElementById('new-payment-btn')
+    (document.getElementById('new-payment-btn') as HTMLButtonElement)
         .addEventListener('click', () => openModal(null));
+
     // Close modal
-    document.getElementById('close-modal-btn')
+    (document.getElementById('close-modal-btn') as HTMLButtonElement)
         .addEventListener('click', closeModal);
-    document.getElementById('cancel-btn')
+    (document.getElementById('cancel-btn') as HTMLButtonElement)
         .addEventListener('click', closeModal);
-    document.getElementById('modal-overlay')
+    (document.getElementById('modal-overlay') as HTMLDivElement)
         .addEventListener('click', closeModal);
+
     // Filter tabs
-    document.querySelectorAll('.filter-tab').forEach((tab) => {
+    document.querySelectorAll<HTMLElement>('.filter-tab').forEach((tab: HTMLElement) => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
@@ -249,53 +323,60 @@
             applyFilter();
         });
     });
+
     // Search
-    let searchTimer;
+    let searchTimer: ReturnType<typeof setTimeout>;
     $searchInput.addEventListener('input', () => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(applyFilter, 250);
     });
+
     // Form submit
-    $form.addEventListener('submit', async (e) => {
+    $form.addEventListener('submit', async (e: SubmitEvent) => {
         e.preventDefault();
-        const directionRadio = document.querySelector('input[name="direction"]:checked');
-        const direction = directionRadio ? directionRadio.value : 'IN';
-        const amount = document.getElementById('form-amount').value;
-        const date = document.getElementById('form-date').value;
-        const mode = document.getElementById('form-mode').value;
+
+        const directionRadio = document.querySelector(
+            'input[name="direction"]:checked'
+        ) as HTMLInputElement | null;
+        const direction: string = directionRadio ? directionRadio.value : 'IN';
+        const amount: string = (document.getElementById('form-amount') as HTMLInputElement).value;
+        const date: string = (document.getElementById('form-date') as HTMLInputElement).value;
+        const mode: string = (document.getElementById('form-mode') as HTMLSelectElement).value;
+
         if (!amount || Number(amount) <= 0) {
             showToast('Please enter a valid amount', true);
             return;
         }
-        const payload = {
-            direction: direction,
+
+        const payload: IPaymentPayload = {
+            direction: direction as 'IN' | 'OUT',
             amount: Number(amount),
             payment_date: date || todayISO(),
             mode,
-            party_type: document.getElementById('form-party-type').value || undefined,
-            reference_type: document.getElementById('form-reference-type').value || undefined,
-            transaction_details: document.getElementById('form-transaction-details').value || undefined,
-            is_advance: document.getElementById('form-advance').checked,
-            remarks: document.getElementById('form-remarks').value || undefined
+            party_type: (document.getElementById('form-party-type') as HTMLSelectElement).value || undefined,
+            reference_type: (document.getElementById('form-reference-type') as HTMLSelectElement).value || undefined,
+            transaction_details: (document.getElementById('form-transaction-details') as HTMLInputElement).value || undefined,
+            is_advance: (document.getElementById('form-advance') as HTMLInputElement).checked,
+            remarks: (document.getElementById('form-remarks') as HTMLTextAreaElement).value || undefined
         };
+
         try {
-            const result = await savePayment(payload);
+            const result: IApiResponse = await savePayment(payload);
             if (result.success) {
                 showToast(editingId ? 'Payment updated!' : 'Payment saved!');
                 closeModal();
                 fetchPayments();
-            }
-            else {
+            } else {
                 showToast(result.message || 'Failed to save payment', true);
             }
-        }
-        catch (err) {
+        } catch (err) {
             console.error('Save error:', err);
             showToast('Error saving payment', true);
         }
     });
+
     // Keyboard: Escape to close modal, Ctrl+N for new
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Escape' && !$modal.classList.contains('hidden')) {
             closeModal();
         }
@@ -308,33 +389,32 @@
             $searchInput.focus();
         }
     });
+
     // ── Exposed for inline onclick handlers ────────────────
     window._paymentUI = {
-        editPayment: function (id) {
-            const payment = allPayments.find((p) => p._id === id);
-            if (payment)
-                openModal(payment);
+        editPayment: function (id: string): void {
+            const payment = allPayments.find((p: IPaymentRecord) => p._id === id);
+            if (payment) openModal(payment);
         },
-        confirmDelete: async function (id) {
-            const confirmed = confirm('Are you sure you want to delete this payment?');
-            if (!confirmed)
-                return;
+        confirmDelete: async function (id: string): Promise<void> {
+            const confirmed: boolean = confirm('Are you sure you want to delete this payment?');
+            if (!confirmed) return;
             try {
-                const result = await deletePaymentById(id);
+                const result: IApiResponse = await deletePaymentById(id);
                 if (result.success) {
                     showToast('Payment deleted');
                     fetchPayments();
-                }
-                else {
+                } else {
                     showToast(result.message || 'Delete failed', true);
                 }
-            }
-            catch (err) {
+            } catch (err) {
                 console.error('Delete error:', err);
                 showToast('Error deleting payment', true);
             }
         }
     };
+
     // ── Init ───────────────────────────────────────────────
     fetchPayments();
+
 })();
