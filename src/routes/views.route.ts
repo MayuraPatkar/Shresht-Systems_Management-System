@@ -12,6 +12,7 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/ewaybill', file: 'ewaybill/eWayBill.html' },
     { route: '/purchaseorder', file: 'purchaseOrder/purchaseOrder.html' },
     { route: '/service', file: 'service/service.html' },
+    { route: '/payment', file: 'payment/payment.html' },
     { route: '/stock', file: 'stock/stock.html' },
     { route: '/comms', file: 'comms/comms.html' },
     { route: '/reports', file: 'reports/reports.html' },
