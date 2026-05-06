@@ -2,6 +2,7 @@
  * Main entry point for the Stock module.
  * Initializes tooltips, wires up modal buttons, and boots the page.
  */
+/// <reference path="types.ts" />
 
 // ─── Modal Button Wiring ─────────────────────────────────────────────────────
 

@@ -3,23 +3,19 @@
         "target": "ES2020",
         "module": "none",
         "lib": ["ES2020", "DOM", "DOM.Iterable"],
-        "outDir": "./public/payment",
-        "rootDir": "./public/payment",
+        "outDir": "./dist/public",
+        "rootDir": "./public",
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": false,
-        "sourceMap": false,
-        "declaration": false,
-        "removeComments": false
+        "sourceMap": true,
+        "declaration": true,
+        "removeComments": false,
+        "composite": true
     },
     "include": [
-        "public/payment/payment.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist",
-        "src"
+        "public/**/*.ts"
     ]
 }

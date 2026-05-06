@@ -194,6 +194,13 @@ exServer.use(express.static(publicPath, {
     lastModified: true
 }));
 
+// Serve compiled frontend typescript files from dist/public
+exServer.use('/dist/public', express.static(path.join(__dirname, '..', 'dist', 'public'), {
+    maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0',
+    etag: true,
+    lastModified: true
+}));
+
 // Serve generated documents (PDFs for WhatsApp)
 exServer.use('/documents', express.static(documentsPath, {
     maxAge: '1h', // Cache for 1 hour
