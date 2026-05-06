@@ -2,7 +2,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { spawn } from 'child_process';
 import path from 'path';
 import os from 'os';
-import multer from 'multer';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const multer: any = require('multer');
 import fs from 'fs';
 import fsSync from 'fs';
 import mongoose from 'mongoose';
@@ -80,7 +81,7 @@ const validateCollection = (req: Request, res: Response, next: NextFunction): vo
 const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) =>
     (req: Request, res: Response, next: NextFunction) => { Promise.resolve(fn(req, res, next)).catch(next); };
 
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (req: Request, file: Express.Multer.File, cb: (error: Error | null, acceptFile?: boolean) => void) => {
     const allowedTypes = ['.json', '.bson', '.gz', '.zip'];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowedTypes.includes(ext)) cb(null, true);
@@ -397,12 +398,12 @@ router.post('/cleanup/uploads', asyncHandler(async (req: Request, res: Response)
 
 // Logo upload
 const logoStorage = multer.diskStorage({
-    destination: (req, file, cb) => { cb(null, path.join(__dirname, "../../public/assets/")); },
-    filename: (req, file, cb) => { cb(null, `company-logo${path.extname(file.originalname)}`); }
+    destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => { cb(null, path.join(__dirname, "../../public/assets/")); },
+    filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => { cb(null, `company-logo${path.extname(file.originalname)}`); }
 });
 const logoUpload = multer({
     storage: logoStorage,
-    fileFilter: (req, file, cb) => {
+    fileFilter: (req: Request, file: Express.Multer.File, cb: (error: Error | null, acceptFile?: boolean) => void) => {
         const ext = path.extname(file.originalname).toLowerCase();
         if (['.png', '.jpg', '.jpeg', '.svg'].includes(ext)) cb(null, true);
         else cb(new Error('Invalid file type. Only PNG, JPG, and SVG are allowed.'));

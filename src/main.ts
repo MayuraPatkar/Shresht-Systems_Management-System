@@ -597,7 +597,7 @@ async function createWindow(): Promise<void> {
             show: false, // Don't show until ready
             autoHideMenuBar: true,
             frame: true,
-            icon: path.join(__dirname, 'public', 'assets', 'icon.ico'),
+            icon: path.join(__dirname, '../public', 'assets', 'icon.ico'),
             webPreferences: {
                 nodeIntegration: false, // Disabled for better security
                 contextIsolation: true, // Ensures safer IPC communication
