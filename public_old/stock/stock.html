@@ -224,11 +224,6 @@
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
                 </a>
-                <a href="../payment/payment.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
-                    <span>Payments</span>
-                </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
                     <i class="fas fa-box w-8 text-center"></i>
@@ -381,7 +376,7 @@
 
     <!-- Add New Stock Item Modal -->
     <div id="newStockModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
             <div class="flex justify-between items-center pb-4 border-b mb-4">
                 <h3 class="text-xl font-semibold text-gray-800">Add New Stock Item</h3>
                 <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
@@ -405,9 +400,9 @@
                             required>
                     </div>
                     <div>
-                        <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Brand <span
+                        <label for="company" class="block text-sm font-medium text-gray-700 mb-1">Company <span
                                 class="text-red-500">*</span></label>
-                        <input type="text" id="brand" placeholder="e.g., Tata Power Solar"
+                        <input type="text" id="company" placeholder="e.g., Tata Power Solar"
                             class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required>
                     </div>
@@ -428,38 +423,13 @@
                         </select>
                     </div>
                     <div>
-                        <label for="unit" class="block text-sm font-medium text-gray-700 mb-1">Unit <span
+                        <label for="unitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹) <span
                                 class="text-red-500">*</span></label>
-                        <select id="unit"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="pc" selected>Piece (pc)</option>
-                            <option value="kg">Kilogram (kg)</option>
-                            <option value="litres">Litres</option>
-                            <option value="length">Length</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="purchasePrice" class="block text-sm font-medium text-gray-700 mb-1">Purchase Price (₹) <span
-                                class="text-red-500">*</span></label>
-                        <input type="number" step="0.01" id="purchasePrice" placeholder="e.g., 12500"
+                        <input type="number" step="0.01" id="unitPrice" placeholder="e.g., 12500"
                             class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required>
                     </div>
-                    <div>
-                        <label for="sellingPrice" class="block text-sm font-medium text-gray-700 mb-1">Selling Price (₹)</label>
-                        <input type="number" step="0.01" id="sellingPrice" placeholder="e.g., 15000"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label for="margin" class="block text-sm font-medium text-gray-700 mb-1">Margin (%)</label>
-                        <input type="number" step="0.01" id="margin" placeholder="e.g., 20" value="0"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label for="stockQuantity" class="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
-                        <input type="number" id="stockQuantity" placeholder="e.g., 50" value="0"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
+
                     <div>
                         <label for="gstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span
                                 class="text-red-500">*</span></label>
@@ -468,9 +438,9 @@
                             required>
                     </div>
                     <div>
-                        <label for="minStockQuantity" class="block text-sm font-medium text-gray-700 mb-1">Min Stock Quantity
+                        <label for="minQuantity" class="block text-sm font-medium text-gray-700 mb-1">Minimum Quantity
                             <span class="text-red-500">*</span></label>
-                        <input type="number" id="minStockQuantity" placeholder="e.g., 10"
+                        <input type="number" id="minQuantity" placeholder="e.g., 10"
                             class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required>
                     </div>
@@ -478,12 +448,6 @@
                         <label for="specifications"
                             class="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
                         <textarea id="specifications" placeholder="Enter item specifications..." rows="3"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                    </div>
-                    <div class="md:col-span-2">
-                        <label for="remarks"
-                            class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
-                        <textarea id="remarks" placeholder="Internal notes (visible only to admin)..." rows="2"
                             class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                 </div>
@@ -502,7 +466,7 @@
 
     <!-- Edit Stock Item Modal -->
     <div id="editStockModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
             <div class="flex justify-between items-center pb-4 border-b mb-4">
                 <h3 class="text-xl font-semibold text-gray-800">Edit Stock Item</h3>
                 <button id="closeEditModalBtn" class="text-gray-400 hover:text-gray-600">
@@ -526,9 +490,9 @@
                             required>
                     </div>
                     <div>
-                        <label for="editBrand" class="block text-sm font-medium text-gray-700 mb-1">Brand <span
+                        <label for="editCompany" class="block text-sm font-medium text-gray-700 mb-1">Company <span
                                 class="text-red-500">*</span></label>
-                        <input type="text" id="editBrand"
+                        <input type="text" id="editCompany"
                             class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required>
                     </div>
@@ -550,37 +514,11 @@
                         </select>
                     </div>
                     <div>
-                        <label for="editUnit" class="block text-sm font-medium text-gray-700 mb-1">Unit <span
-                                class="text-red-500">*</span></label>
-                        <select id="editUnit"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="pc">Piece (pc)</option>
-                            <option value="kg">Kilogram (kg)</option>
-                            <option value="litres">Litres</option>
-                            <option value="length">Length</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="editPurchasePrice" class="block text-sm font-medium text-gray-700 mb-1">Purchase Price (₹)
+                        <label for="editUnitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹)
                             <span class="text-red-500">*</span></label>
-                        <input type="number" step="0.01" id="editPurchasePrice"
+                        <input type="number" step="0.01" id="editUnitPrice"
                             class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required>
-                    </div>
-                    <div>
-                        <label for="editSellingPrice" class="block text-sm font-medium text-gray-700 mb-1">Selling Price (₹)</label>
-                        <input type="number" step="0.01" id="editSellingPrice"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label for="editMargin" class="block text-sm font-medium text-gray-700 mb-1">Margin (%)</label>
-                        <input type="number" step="0.01" id="editMargin" placeholder="e.g., 20"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label for="editStockQuantity" class="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
-                        <input type="number" id="editStockQuantity"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label for="editGstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span
@@ -590,9 +528,9 @@
                             required>
                     </div>
                     <div>
-                        <label for="editMinStockQuantity" class="block text-sm font-medium text-gray-700 mb-1">Min Stock
+                        <label for="editMinQuantity" class="block text-sm font-medium text-gray-700 mb-1">Minimum
                             Quantity <span class="text-red-500">*</span></label>
-                        <input type="number" id="editMinStockQuantity"
+                        <input type="number" id="editMinQuantity"
                             class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required>
                     </div>
@@ -602,15 +540,7 @@
                         <textarea id="editSpecifications" rows="3"
                             class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
-                    <div class="md:col-span-2">
-                        <label for="editRemarks"
-                            class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
-                        <textarea id="editRemarks" placeholder="Internal notes (visible only to admin)..." rows="2"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                    </div>
                 </div>
-
-
                 <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
                     <button type="button" id="cancelEditBtn"
                         class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
@@ -627,7 +557,7 @@
     <!-- Item Details Modal -->
     <div id="itemDetailsModal"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
             <div class="flex justify-between items-center pb-4 border-b mb-6">
                 <h3 id="detailsModalTitle" class="text-xl font-semibold text-gray-800">Item Details</h3>
                 <button id="closeDetailsModalBtn" class="text-gray-400 hover:text-gray-600">
@@ -640,8 +570,8 @@
                     <p id="detailsItemName" class="text-gray-900 font-medium text-lg"></p>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-4">
-                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Brand</h4>
-                    <p id="detailsBrand" class="text-gray-900 font-medium"></p>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Company</h4>
+                    <p id="detailsCompany" class="text-gray-900 font-medium"></p>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-4">
                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">HSN/SAC Code</h4>
@@ -655,41 +585,25 @@
                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Type</h4>
                     <p id="detailsType" class="text-gray-900 font-medium"></p>
                 </div>
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Unit</h4>
-                    <p id="detailsUnit" class="text-gray-900 font-medium"></p>
-                </div>
                 <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <h4 class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Purchase Price</h4>
-                    <p id="detailsPurchasePrice" class="text-blue-700 font-bold text-lg"></p>
-                </div>
-                <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                    <h4 class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-1">Selling Price</h4>
-                    <p id="detailsSellingPrice" class="text-indigo-700 font-bold text-lg"></p>
+                    <h4 class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Unit Price</h4>
+                    <p id="detailsUnitPrice" class="text-blue-700 font-bold text-lg"></p>
                 </div>
                 <div class="bg-green-50 rounded-lg p-4 border border-green-200">
-                    <h4 class="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Stock Quantity</h4>
+                    <h4 class="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Current Quantity</h4>
                     <p id="detailsQuantity" class="text-green-700 font-bold text-lg"></p>
                 </div>
                 <div class="bg-orange-50 rounded-lg p-4 border border-orange-200">
-                    <h4 class="text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">Min Stock Quantity</h4>
-                    <p id="detailsMinStockQuantity" class="text-orange-700 font-bold text-lg"></p>
+                    <h4 class="text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">Minimum Quantity</h4>
+                    <p id="detailsMinQuantity" class="text-orange-700 font-bold text-lg"></p>
                 </div>
                 <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
                     <h4 class="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">GST Rate</h4>
                     <p id="detailsGstRate" class="text-purple-700 font-bold text-lg"></p>
                 </div>
-                <div class="bg-teal-50 rounded-lg p-4 border border-teal-200">
-                    <h4 class="text-xs font-semibold text-teal-600 uppercase tracking-wide mb-1">Margin</h4>
-                    <p id="detailsMargin" class="text-teal-700 font-bold text-lg"></p>
-                </div>
                 <div class="md:col-span-2 bg-gray-50 rounded-lg p-4">
                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Specifications</h4>
                     <p id="detailsSpecifications" class="text-gray-800 whitespace-pre-wrap"></p>
-                </div>
-                <div class="md:col-span-2 bg-gray-50 rounded-lg p-4">
-                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Remarks</h4>
-                    <p id="detailsRemarks" class="text-gray-800 whitespace-pre-wrap"></p>
                 </div>
             </div>
             <div class="flex justify-end pt-6 mt-6 border-t">
@@ -850,16 +764,16 @@
     <script src="../js/shared/globalScript.js"></script>
 
     <!-- Stock module scripts (compiled from TypeScript) -->
-    <script src="../../dist/public/stock/types.js"></script>
-    <script src="../../dist/public/stock/utils.js"></script>
-    <script src="../../dist/public/stock/modal.js"></script>
-    <script src="../../dist/public/stock/stockTable.js"></script>
-    <script src="../../dist/public/stock/stockApi.js"></script>
-    <script src="../../dist/public/stock/stockForms.js"></script>
-    <script src="../../dist/public/stock/stockFilters.js"></script>
-    <script src="../../dist/public/stock/stockPrint.js"></script>
-    <script src="../../dist/public/stock/keyboardShortcuts.js"></script>
-    <script src="../../dist/public/stock/main.js"></script>
+    <script src="dist/types.js"></script>
+    <script src="dist/utils.js"></script>
+    <script src="dist/modal.js"></script>
+    <script src="dist/stockTable.js"></script>
+    <script src="dist/stockApi.js"></script>
+    <script src="dist/stockForms.js"></script>
+    <script src="dist/stockFilters.js"></script>
+    <script src="dist/stockPrint.js"></script>
+    <script src="dist/keyboardShortcuts.js"></script>
+    <script src="dist/main.js"></script>
 
 </body>
 
