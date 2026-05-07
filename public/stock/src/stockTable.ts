@@ -45,7 +45,7 @@ function renderStockTable(data: StockItem[]): void {
         const name = item.item_name;
         const hsn = item.hsn_sac;
         const brand = item.brand;
-        const purchasePrice = item.purchase_price;
+        const purchasePrice = item.purchase_price || 0;
         const quantity = Number(item.stock_quantity) || 0;
         const gstRate = item.gst_rate || 0;
         const minQuantity = Number(item.min_stock_quantity) || 0;

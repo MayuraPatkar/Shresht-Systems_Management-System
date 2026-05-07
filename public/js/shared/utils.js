@@ -10,6 +10,7 @@
  * @returns {string} Formatted number string
  */
 function formatIndian(num, fractionDigits = 0) {
+  if (num == null || isNaN(num)) num = 0;
   return num.toLocaleString('en-IN', {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,

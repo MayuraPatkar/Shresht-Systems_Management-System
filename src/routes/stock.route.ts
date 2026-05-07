@@ -41,8 +41,18 @@ async function logStockMovement(
 // Route to get all stock items
 router.get('/all', async (req: Request, res: Response) => {
     try {
-        const stockData = await ItemModel.find().sort({ item_name: 1 });
-        res.status(200).json(stockData);
+        const stockData = await ItemModel.find().sort({ item_name: 1 }).lean();
+        const mappedData = stockData.map((item: any) => ({
+            ...item,
+            purchase_price: item.purchase_price ?? item.unit_price ?? 0,
+            gst_rate: item.gst_rate ?? item.GST ?? 0,
+            stock_quantity: item.stock_quantity ?? item.quantity ?? 0,
+            min_stock_quantity: item.min_stock_quantity ?? item.min_quantity ?? 5,
+            brand: item.brand ?? item.company ?? '',
+            hsn_sac: item.hsn_sac ?? item.HSN_SAC ?? '',
+            item_type: item.item_type ?? item.type ?? 'Material'
+        }));
+        res.status(200).json(mappedData);
     } catch (error: unknown) {
         logger.error('Error fetching stock data', { service: "stock", error: (error as Error).message });
         res.status(500).json({ error: 'Failed to fetch stock data' });
@@ -241,10 +251,20 @@ router.get("/get-stock-item", async (req: Request, res: Response) => {
         const itemName = req.query.item as string;
         if (!itemName) return res.status(400).json({ message: "Item name required" });
 
-        const stockItem = await ItemModel.findOne({ item_name: itemName });
+        const stockItem = await ItemModel.findOne({ item_name: itemName }).lean() as any;
         if (!stockItem) return res.json(null); // Return null instead of 404 to avoid console errors
 
-        res.json(stockItem);
+        const mappedItem = {
+            ...stockItem,
+            purchase_price: stockItem.purchase_price ?? stockItem.unit_price ?? 0,
+            gst_rate: stockItem.gst_rate ?? stockItem.GST ?? 0,
+            stock_quantity: stockItem.stock_quantity ?? stockItem.quantity ?? 0,
+            min_stock_quantity: stockItem.min_stock_quantity ?? stockItem.min_quantity ?? 5,
+            brand: stockItem.brand ?? stockItem.company ?? '',
+            hsn_sac: stockItem.hsn_sac ?? stockItem.HSN_SAC ?? '',
+            item_type: stockItem.item_type ?? stockItem.type ?? 'Material'
+        };
+        res.json(mappedItem);
     } catch (error: unknown) {
         logger.error("Stock item fetch failed", { service: "stock", error: (error as Error).message });
         res.status(500).json({ message: "Internal server error" });
@@ -278,7 +298,7 @@ router.get('/search/:itemName', async (req: Request, res: Response) => {
         const itemName = (req.params.itemName as string).trim();
         const stockItem = await ItemModel.findOne({
             item_name: { $regex: new RegExp(`^${itemName}$`, 'i') }
-        }) as any;
+        }).lean() as any;
 
         if (stockItem) {
             res.json({
@@ -286,9 +306,9 @@ router.get('/search/:itemName', async (req: Request, res: Response) => {
                 item: {
                     item_name: stockItem.item_name,
                     specifications: stockItem.specifications,
-                    hsn_sac: stockItem.hsn_sac,
-                    purchase_price: stockItem.purchase_price,
-                    gst_rate: stockItem.gst_rate
+                    hsn_sac: stockItem.hsn_sac ?? stockItem.HSN_SAC ?? '',
+                    purchase_price: stockItem.purchase_price ?? stockItem.unit_price ?? 0,
+                    gst_rate: stockItem.gst_rate ?? stockItem.GST ?? 0
                 }
             });
         } else {

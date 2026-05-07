@@ -160,6 +160,7 @@ const stockSchema = new Schema<IItem>(
         },
     },
     {
+        strict: false,
         timestamps: true,
         toJSON: { virtuals: true },
         toObject: { virtuals: true },
