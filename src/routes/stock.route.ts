@@ -5,6 +5,9 @@ import validators from '../middleware/validators';
 
 const router: Router = Router();
 
+// ─── Constants ──────────────────────────────────────────────────────────────
+const INACTIVE_THRESHOLD_MONTHS = 3;
+
 // Helper function to log stock movements (aligned with new StockMovement schema)
 async function logStockMovement(
     itemId: any,
@@ -38,9 +41,50 @@ async function logStockMovement(
     }
 }
 
+/**
+ * Refresh is_active status for all items.
+ * Items with no stock movement in the last 3 months are marked inactive.
+ * Runs as a background fire-and-forget task — errors are logged, not thrown.
+ */
+async function refreshActiveStatus(): Promise<void> {
+    try {
+        const cutoff = new Date();
+        cutoff.setMonth(cutoff.getMonth() - INACTIVE_THRESHOLD_MONTHS);
+
+        // Get all active items
+        const activeItems = await ItemModel.find({ is_active: true }, { _id: 1 }).lean();
+
+        for (const item of activeItems) {
+            const lastMovement = await StockMovementModel.findOne(
+                { item_id: item._id },
+                { createdAt: 1 }
+            ).sort({ createdAt: -1 }).lean();
+
+            // If no movement at all, check item creation date
+            const lastActivity = lastMovement
+                ? (lastMovement as any).createdAt
+                : (item as any).createdAt;
+
+            if (lastActivity && lastActivity < cutoff) {
+                await ItemModel.updateOne({ _id: item._id }, { is_active: false });
+                logger.info('Item deactivated due to inactivity', {
+                    service: 'stock',
+                    itemId: item._id,
+                    lastActivity
+                });
+            }
+        }
+    } catch (error: unknown) {
+        logger.error('Active status refresh failed', { service: 'stock', error: (error as Error).message });
+    }
+}
+
 // Route to get all stock items
 router.get('/all', async (req: Request, res: Response) => {
     try {
+        // Fire-and-forget: refresh is_active status in the background
+        refreshActiveStatus();
+
         const stockData = await ItemModel.find().sort({ item_name: 1 }).lean();
         const mappedData = stockData.map((item: any) => ({
             ...item,
@@ -61,7 +105,7 @@ router.get('/all', async (req: Request, res: Response) => {
 
 // Route to Add Item to Stock
 router.post('/addItem', validators.createStock, async (req: Request, res: Response) => {
-    const { item_name, hsn_sac, specifications, brand, category, item_type, purchase_price, stock_quantity, gst_rate, min_stock_quantity } = req.body;
+    const { item_name, hsn_sac, specifications, brand, category, item_type, unit, purchase_price, selling_price, margin, stock_quantity, gst_rate, min_stock_quantity, remarks } = req.body;
 
     try {
         // Check if item already exists
@@ -71,6 +115,12 @@ router.post('/addItem', validators.createStock, async (req: Request, res: Respon
             return res.status(400).json({ error: 'Item already exists in stock' });
         }
 
+        // Compute selling_price / margin defaults to keep them consistent
+        const effectiveMargin = margin || 0;
+        const effectiveSellingPrice = selling_price
+            ? selling_price
+            : Math.round(purchase_price * (1 + effectiveMargin / 100) * 100) / 100;
+
         // Add new stock item
         const newItem = new ItemModel({
             item_name: item_name.trim(),
@@ -79,10 +129,14 @@ router.post('/addItem', validators.createStock, async (req: Request, res: Respon
             brand,
             category,
             item_type: item_type || 'Material',
+            unit,
             purchase_price,
-            stock_quantity: stock_quantity || 0,
+            selling_price: effectiveSellingPrice,
+            margin: effectiveMargin,
             gst_rate,
+            stock_quantity: stock_quantity || 0,
             min_stock_quantity: min_stock_quantity || 5,
+            remarks,
         });
 
         await newItem.save();
@@ -126,6 +180,8 @@ router.post('/addToStock', async (req: Request, res: Response) => {
 
         const stockBefore = item.stock_quantity || 0;
         item.stock_quantity = stockBefore + quantity;
+        // Re-activate item on stock movement
+        if (!item.is_active) item.is_active = true;
         await item.save();
 
         // Log stock movement
@@ -169,6 +225,8 @@ router.post('/removeFromStock', async (req: Request, res: Response) => {
         }
 
         item.stock_quantity = stockBefore - quantity;
+        // Re-activate item on stock movement
+        if (!item.is_active) item.is_active = true;
         await item.save();
 
         // Log stock movement
@@ -194,7 +252,7 @@ router.post('/removeFromStock', async (req: Request, res: Response) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req: Request, res: Response) => {
-    const { itemId, item_name, hsn_sac, specifications, brand, category, item_type, purchase_price, gst_rate, min_stock_quantity } = req.body;
+    const { itemId, item_name, hsn_sac, specifications, brand, category, item_type, unit, purchase_price, selling_price, margin, stock_quantity, gst_rate, min_stock_quantity, remarks } = req.body;
 
     try {
         // Input validation
@@ -225,17 +283,21 @@ router.post('/editItem', async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        // Update item details (stock_quantity is managed separately via stock in/out operations)
+        // Update item details
         item.item_name = item_name.trim();
         item.hsn_sac = hsn_sac;
         item.specifications = specifications;
         item.brand = brand;
         item.category = category;
         item.item_type = item_type;
+        item.unit = unit;
         item.purchase_price = purchase_price;
+        item.selling_price = selling_price;
+        item.margin = margin;
+        item.stock_quantity = stock_quantity;
         item.gst_rate = gst_rate;
         item.min_stock_quantity = min_stock_quantity;
-        item.updatedAt = new Date();
+        item.remarks = remarks;
         await item.save();
 
         res.status(200).json({ message: 'Item updated successfully' });
