@@ -253,3 +253,24 @@ document.getElementById('quantityModalInput')?.addEventListener('keydown', (e: K
         document.getElementById('confirmQuantityBtn')!.click();
     }
 });
+
+// ─── Unit → Min Stock Quantity default ──────────────────────────────────────
+
+function updateMinStockDefault(unitSelectId: string, minStockInputId: string): void {
+    const unitSelect = document.getElementById(unitSelectId) as HTMLSelectElement | null;
+    const minStockInput = document.getElementById(minStockInputId) as HTMLInputElement | null;
+    if (!unitSelect || !minStockInput) return;
+
+    unitSelect.addEventListener('change', () => {
+        const currentVal = parseInt(minStockInput.value, 10);
+        // Only auto-set if the field is empty or still at a known default (5 or 100)
+        if (isNaN(currentVal) || currentVal === 5 || currentVal === 100 || minStockInput.value === '') {
+            minStockInput.value = unitSelect.value === 'm' ? '100' : '5';
+        }
+    });
+}
+
+// Add modal
+updateMinStockDefault('unit', 'minStockQuantity');
+// Edit modal
+updateMinStockDefault('editUnit', 'editMinStockQuantity');
