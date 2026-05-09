@@ -108,7 +108,7 @@ const stockSchema = new Schema<IItem>(
 
         unit: {
             type: String,
-            default: "Nos",
+            required: true,
         },
 
         // Pricing & tax
