@@ -274,3 +274,69 @@ function updateMinStockDefault(unitSelectId: string, minStockInputId: string): v
 updateMinStockDefault('unit', 'minStockQuantity');
 // Edit modal
 updateMinStockDefault('editUnit', 'editMinStockQuantity');
+
+// ─── Margin ↔ Selling Price linking ────────────────────────────────────────
+
+function linkMarginAndSellingPrice(
+    purchasePriceId: string,
+    sellingPriceId: string,
+    marginId: string
+): void {
+    const purchaseInput = document.getElementById(purchasePriceId) as HTMLInputElement | null;
+    const sellingInput = document.getElementById(sellingPriceId) as HTMLInputElement | null;
+    const marginInput = document.getElementById(marginId) as HTMLInputElement | null;
+    if (!purchaseInput || !sellingInput || !marginInput) return;
+
+    // Track which field was last manually edited so purchase price changes
+    // know which one to recalculate
+    let lastEdited: 'selling' | 'margin' = 'selling';
+
+    // Helper: round to 2 decimal places
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+
+    sellingInput.addEventListener('input', () => {
+        lastEdited = 'selling';
+        const purchase = parseFloat(purchaseInput.value);
+        const selling = parseFloat(sellingInput.value);
+        if (isNaN(purchase) || purchase <= 0 || isNaN(selling)) {
+            marginInput.value = '';
+            return;
+        }
+        marginInput.value = String(round2(((selling - purchase) / purchase) * 100));
+    });
+
+    marginInput.addEventListener('input', () => {
+        lastEdited = 'margin';
+        const purchase = parseFloat(purchaseInput.value);
+        const margin = parseFloat(marginInput.value);
+        if (isNaN(purchase) || purchase <= 0 || isNaN(margin)) {
+            sellingInput.value = '';
+            return;
+        }
+        sellingInput.value = String(round2(purchase * (1 + margin / 100)));
+    });
+
+    purchaseInput.addEventListener('input', () => {
+        const purchase = parseFloat(purchaseInput.value);
+        if (isNaN(purchase) || purchase <= 0) return;
+
+        if (lastEdited === 'margin') {
+            // Recalculate selling price from margin
+            const margin = parseFloat(marginInput.value);
+            if (!isNaN(margin)) {
+                sellingInput.value = String(round2(purchase * (1 + margin / 100)));
+            }
+        } else {
+            // Recalculate margin from selling price
+            const selling = parseFloat(sellingInput.value);
+            if (!isNaN(selling)) {
+                marginInput.value = String(round2(((selling - purchase) / purchase) * 100));
+            }
+        }
+    });
+}
+
+// Add modal
+linkMarginAndSellingPrice('purchasePrice', 'sellingPrice', 'margin');
+// Edit modal
+linkMarginAndSellingPrice('editPurchasePrice', 'editSellingPrice', 'editMargin');
