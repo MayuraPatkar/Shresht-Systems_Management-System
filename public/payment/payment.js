@@ -29,6 +29,16 @@
     const $modalTitle = document.getElementById('modal-title');
     const $modalSubtitle = document.getElementById('modal-subtitle');
     const $submitBtnText = document.getElementById('submit-btn-text');
+    // Party DOM Refs
+    const $partyNameInput = document.getElementById('form-party-name');
+    const $partyIdHidden = document.getElementById('form-party-id-hidden');
+    const $partySuggestions = document.getElementById('party-suggestions');
+    const $partyDetailsContainer = document.getElementById('party-details-container');
+    const $previewPartyName = document.getElementById('preview-party-name');
+    const $previewPartyPhone = document.getElementById('preview-party-phone');
+    const $previewPartyGstin = document.getElementById('preview-party-gstin');
+    const $previewPartyEmail = document.getElementById('preview-party-email');
+    const $previewPartyAddress = document.getElementById('preview-party-address');
     // ── Helpers ───────────────────────────────────────────
     function formatCurrency(n) {
         return '₹ ' + Number(n || 0).toLocaleString('en-IN', {
@@ -52,6 +62,8 @@
     function showToast(msg, isError) {
         const $toast = document.getElementById('toast');
         const $msg = document.getElementById('toast-message');
+        if (!$toast || !$msg)
+            return;
         $msg.textContent = msg;
         $toast.className = $toast.className.replace('bg-green-600', '').replace('bg-red-600', '');
         $toast.classList.add(isError ? 'bg-red-600' : 'bg-green-600');
@@ -96,6 +108,53 @@
     async function deletePaymentById(id) {
         const res = await fetch(`/payment/${id}`, { method: 'DELETE' });
         return res.json();
+    }
+    async function fetchParties(type) {
+        try {
+            const res = await fetch(`/payment/get-parties/${type}`);
+            if (!res.ok)
+                return [];
+            return await res.json();
+        }
+        catch (e) {
+            console.error('Failed to fetch parties', e);
+            return [];
+        }
+    }
+    async function fetchPartyDetails(type, partyName) {
+        if (!partyName) {
+            $partyDetailsContainer.classList.add('hidden');
+            return;
+        }
+        try {
+            const res = await fetch(`/payment/get-party-details/${type}/${encodeURIComponent(partyName)}`);
+            const data = await res.json();
+            if (data.success && data.party) {
+                const party = data.party;
+                const contact = type === 'Customer' ? party.customer : party.supplier;
+                const address = type === 'Customer' ? party.billing_address : party.address;
+                $previewPartyName.textContent = contact?.name || partyName;
+                $previewPartyPhone.textContent = contact?.phone || '-';
+                $previewPartyGstin.textContent = party.gstin || '-';
+                $previewPartyEmail.textContent = contact?.email || '-';
+                let addrStr = '-';
+                if (address) {
+                    addrStr = [address.line1, address.line2, address.city, address.state, address.pincode]
+                        .filter(Boolean).join(', ');
+                }
+                $previewPartyAddress.textContent = addrStr;
+                $partyDetailsContainer.classList.remove('hidden');
+                // Update hidden ID if name matches
+                $partyIdHidden.value = party._id;
+            }
+            else {
+                $partyDetailsContainer.classList.add('hidden');
+            }
+        }
+        catch (e) {
+            console.error('Failed to fetch party details', e);
+            $partyDetailsContainer.classList.add('hidden');
+        }
     }
     // ── Render ─────────────────────────────────────────────
     function updateSummary() {
@@ -172,7 +231,7 @@
                         ${p.mode}
                     </span>
                 </td>
-                <td class="px-6 py-4 text-gray-600 text-sm">${p.party_type || '-'}</td>
+                <td class="px-6 py-4 text-gray-600 text-sm">${p.party_id || '-'}</td>
                 <td class="px-6 py-4 text-gray-600 text-sm">${p.reference_type || '-'}</td>
                 <td class="px-6 py-4 text-gray-500 text-sm max-w-[200px] truncate" title="${p.transaction_details || p.remarks || ''}">${p.transaction_details || p.remarks || '-'}</td>
                 <td class="px-6 py-4 text-center">
@@ -191,9 +250,11 @@
         }).join('');
     }
     // ── Modal ──────────────────────────────────────────────
-    function openModal(payment) {
+    async function openModal(payment) {
         editingId = payment ? payment._id : null;
         $formPaymentId.value = editingId || '';
+        $partyDetailsContainer.classList.add('hidden');
+        $partyIdHidden.value = '';
         if (payment) {
             $modalTitle.textContent = 'Edit Payment';
             $modalSubtitle.textContent = 'Update payment details';
@@ -206,13 +267,22 @@
             document.getElementById('form-date').value =
                 payment.payment_date ? payment.payment_date.substring(0, 10) : todayISO();
             document.getElementById('form-mode').value = payment.mode || 'Cash';
-            document.getElementById('form-party-type').value = payment.party_type || '';
-            document.getElementById('form-party-id').value = payment.party_id || '';
+            // NOTE: We don't have the party name here, only ID. 
+            // We should fetch details by ID to show the name.
+            $partyNameInput.value = '';
+            $partyIdHidden.value = payment.party_id || '';
             document.getElementById('form-reference-type').value = payment.reference_type || '';
             document.getElementById('form-reference-id').value = payment.reference_id || '';
             document.getElementById('form-transaction-details').value = payment.transaction_details || '';
             document.getElementById('form-advance').checked = payment.is_advance || false;
             document.getElementById('form-remarks').value = payment.remarks || '';
+            // Fetch details if party ID exists
+            if (payment.party_id) {
+                const partyType = payment.direction === 'IN' ? 'Customer' : 'Supplier';
+                // Need a way to fetch details by ID... 
+                // For now let's use a temporary fetch to get the name
+                fetchPartyDetailsById(partyType, payment.party_id);
+            }
         }
         else {
             $modalTitle.textContent = 'New Payment';
@@ -225,11 +295,109 @@
                 inRadio.checked = true;
         }
         $modal.classList.remove('hidden');
+        refreshSuggestions();
+    }
+    async function fetchPartyDetailsById(type, id) {
+        try {
+            // Need to add this endpoint to backend
+            const res = await fetch(`/payment/get-party-details-by-id/${type}/${id}`);
+            const data = await res.json();
+            if (data.success && data.party) {
+                const party = data.party;
+                const contact = type === 'Customer' ? party.customer : party.supplier;
+                $partyNameInput.value = contact?.name || '';
+                fetchPartyDetails(type, contact?.name);
+            }
+        }
+        catch (e) {
+            console.error('Failed to fetch party by ID', e);
+        }
     }
     function closeModal() {
         $modal.classList.add('hidden');
         editingId = null;
         $form.reset();
+        $partyDetailsContainer.classList.add('hidden');
+        $partyIdHidden.value = '';
+    }
+    let suggestionSelectedIndex = -1;
+    let currentParties = [];
+    async function refreshSuggestions() {
+        const directionRadio = document.querySelector('input[name="direction"]:checked');
+        const type = directionRadio && directionRadio.value === 'OUT' ? 'Supplier' : 'Customer';
+        currentParties = await fetchParties(type);
+    }
+    function initPartySuggestions() {
+        $partyNameInput.addEventListener('input', () => {
+            const query = $partyNameInput.value.toLowerCase().trim();
+            $partySuggestions.innerHTML = '';
+            suggestionSelectedIndex = -1;
+            if (!query) {
+                $partySuggestions.classList.add('hidden');
+                $partyIdHidden.value = '';
+                $partyDetailsContainer.classList.add('hidden');
+                return;
+            }
+            const filtered = currentParties.filter(p => p.name.toLowerCase().includes(query));
+            if (filtered.length === 0) {
+                $partySuggestions.classList.add('hidden');
+                return;
+            }
+            $partySuggestions.classList.remove('hidden');
+            filtered.forEach((party, idx) => {
+                const li = document.createElement('li');
+                li.textContent = party.name;
+                li.className = 'px-4 py-2 cursor-pointer hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-0';
+                li.onclick = () => {
+                    const directionRadio = document.querySelector('input[name="direction"]:checked');
+                    const type = directionRadio && directionRadio.value === 'OUT' ? 'Supplier' : 'Customer';
+                    $partyNameInput.value = party.name;
+                    $partyIdHidden.value = party.id;
+                    $partySuggestions.classList.add('hidden');
+                    fetchPartyDetails(type, party.name);
+                };
+                $partySuggestions.appendChild(li);
+            });
+        });
+        $partyNameInput.addEventListener('keydown', (e) => {
+            const items = $partySuggestions.querySelectorAll('li');
+            if (items.length === 0)
+                return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                suggestionSelectedIndex = (suggestionSelectedIndex + 1) % items.length;
+                updateSelection(items);
+            }
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                suggestionSelectedIndex = (suggestionSelectedIndex - 1 + items.length) % items.length;
+                updateSelection(items);
+            }
+            else if (e.key === 'Enter' && suggestionSelectedIndex > -1) {
+                e.preventDefault();
+                items[suggestionSelectedIndex].click();
+            }
+            else if (e.key === 'Escape') {
+                $partySuggestions.classList.add('hidden');
+            }
+        });
+        function updateSelection(items) {
+            items.forEach((item, idx) => {
+                if (idx === suggestionSelectedIndex) {
+                    item.classList.add('bg-blue-50', 'text-blue-700', 'font-medium');
+                    item.scrollIntoView({ block: 'nearest' });
+                }
+                else {
+                    item.classList.remove('bg-blue-50', 'text-blue-700', 'font-medium');
+                }
+            });
+        }
+        // Hide suggestions on click outside
+        document.addEventListener('click', (e) => {
+            if (e.target !== $partyNameInput && !$partySuggestions.contains(e.target)) {
+                $partySuggestions.classList.add('hidden');
+            }
+        });
     }
     // ── Events ─────────────────────────────────────────────
     // New payment button
@@ -242,6 +410,15 @@
         .addEventListener('click', closeModal);
     document.getElementById('modal-overlay')
         .addEventListener('click', closeModal);
+    // Direction changes refresh suggestions
+    document.querySelectorAll('input[name="direction"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            $partyNameInput.value = '';
+            $partyIdHidden.value = '';
+            $partyDetailsContainer.classList.add('hidden');
+            refreshSuggestions();
+        });
+    });
     // Filter tabs
     document.querySelectorAll('.filter-tab').forEach((tab) => {
         tab.addEventListener('click', () => {
@@ -274,8 +451,8 @@
             amount: Number(amount),
             payment_date: date || todayISO(),
             mode,
-            party_type: document.getElementById('form-party-type').value || "",
-            party_id: document.getElementById('form-party-id').value || "",
+            party_type: direction === 'IN' ? 'Customer' : 'Supplier',
+            party_id: $partyIdHidden.value || undefined,
             reference_type: document.getElementById('form-reference-type').value || "",
             reference_id: document.getElementById('form-reference-id').value || "",
             transaction_details: document.getElementById('form-transaction-details').value || "",
@@ -340,5 +517,6 @@
         }
     };
     // ── Init ───────────────────────────────────────────────
+    initPartySuggestions();
     fetchPayments();
 })();
