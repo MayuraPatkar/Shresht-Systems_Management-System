@@ -73,10 +73,12 @@ function applyFilters(): void {
         filteredData = filteredData.filter(item => {
             const quantity = Number(item.stock_quantity) || 0;
             const minQuantity = Number(item.min_stock_quantity) || 0;
+            const isActive = item.is_active !== false;
 
-            if (statusFilter === 'In Stock') return quantity >= minQuantity;
-            if (statusFilter === 'Low Stock') return quantity > 0 && quantity < minQuantity;
-            if (statusFilter === 'Out of Stock') return quantity === 0;
+            if (statusFilter === 'Inactive') return !isActive;
+            if (statusFilter === 'In Stock') return isActive && quantity >= minQuantity;
+            if (statusFilter === 'Low Stock') return isActive && quantity > 0 && quantity < minQuantity;
+            if (statusFilter === 'Out of Stock') return isActive && quantity === 0;
             return true;
         });
     }
@@ -256,6 +258,8 @@ function sortData(data: StockItem[], field: string, direction: 'asc' | 'desc'): 
                 break;
             case 'status':
                 const getStatusPriority = (item: StockItem): number => {
+                    const isActive = item.is_active !== false;
+                    if (!isActive) return -2; // Inactive
                     const quantity = Number(item.stock_quantity) || 0;
                     const minQuantity = Number(item.min_stock_quantity) || 0;
                     if (quantity < 0) return -1; // Negative Stock

@@ -63,6 +63,13 @@ function renderStockTable(data: StockItem[]): void {
             row.classList.add('bg-yellow-100');
         }
 
+        // Inactive items get a distinct gray overlay
+        const isActive = item.is_active !== false;
+        if (!isActive) {
+            row.classList.remove('bg-red-200', 'bg-red-100', 'bg-yellow-100');
+            row.classList.add('bg-gray-200', 'opacity-70');
+        }
+
         const actionsCell = document.createElement('td');
 
         // Build actions select
@@ -133,7 +140,10 @@ function renderStockTable(data: StockItem[]): void {
         let status = 'In Stock';
         let statusClass = 'bg-green-100 text-green-800 flex items-center';
 
-        if (quantity < 0) {
+        if (!isActive) {
+            status = 'Inactive';
+            statusClass = 'bg-gray-200 text-gray-600';
+        } else if (quantity < 0) {
             status = 'Negative Stock';
             statusClass = 'bg-red-200 text-red-900 font-bold';
         } else if (quantity === 0) {
