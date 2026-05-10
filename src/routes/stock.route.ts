@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { ItemModel, StockMovementModel } from '../models';
+import { ItemModel, StockMovementModel, SettingsModel } from '../models';
 import logger from '../utils/logger';
 import validators from '../middleware/validators';
 
 const router: Router = Router();
 
 // ─── Constants ──────────────────────────────────────────────────────────────
-const INACTIVE_THRESHOLD_MONTHS = 3;
+const DEFAULT_INACTIVE_THRESHOLD_MONTHS = 3;
 
 // Helper function to log stock movements (aligned with new StockMovement schema)
 async function logStockMovement(
@@ -48,8 +48,12 @@ async function logStockMovement(
  */
 async function refreshActiveStatus(): Promise<void> {
     try {
+        // Read threshold from settings, fall back to default
+        const settings = await SettingsModel.findOne().lean() as any;
+        const thresholdMonths = settings?.notifications?.stock_inactive_months ?? DEFAULT_INACTIVE_THRESHOLD_MONTHS;
+
         const cutoff = new Date();
-        cutoff.setMonth(cutoff.getMonth() - INACTIVE_THRESHOLD_MONTHS);
+        cutoff.setMonth(cutoff.getMonth() - thresholdMonths);
 
         // Get all active items
         const activeItems = await ItemModel.find({ is_active: true }, { _id: 1 }).lean();
