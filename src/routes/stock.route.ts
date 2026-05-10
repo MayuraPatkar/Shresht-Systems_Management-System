@@ -95,7 +95,7 @@ router.get('/all', async (req: Request, res: Response) => {
             purchase_price: item.purchase_price ?? item.unit_price ?? 0,
             gst_rate: item.gst_rate ?? item.GST ?? 0,
             stock_quantity: item.stock_quantity ?? item.quantity ?? 0,
-            min_stock_quantity: item.min_stock_quantity ?? item.min_quantity ?? 5,
+            min_stock_quantity: item.min_stock_quantity ?? item.min_quantity ?? (item.unit === 'm' ? 100 : 10),
             brand: item.brand ?? item.company ?? '',
             hsn_sac: item.hsn_sac ?? item.HSN_SAC ?? '',
             item_type: item.item_type ?? item.type ?? 'Material'
@@ -139,7 +139,7 @@ router.post('/addItem', validators.createStock, async (req: Request, res: Respon
             margin: effectiveMargin,
             gst_rate,
             stock_quantity: stock_quantity || 0,
-            min_stock_quantity: min_stock_quantity || 5,
+            min_stock_quantity: min_stock_quantity || (unit === 'm' ? 100 : 10),
             remarks,
         });
 
@@ -300,7 +300,7 @@ router.post('/editItem', async (req: Request, res: Response) => {
         item.margin = margin;
         item.stock_quantity = stock_quantity;
         item.gst_rate = gst_rate;
-        item.min_stock_quantity = min_stock_quantity;
+        item.min_stock_quantity = min_stock_quantity || (unit === 'm' ? 100 : 10);
         item.remarks = remarks;
         await item.save();
 

@@ -263,9 +263,9 @@ function updateMinStockDefault(unitSelectId: string, minStockInputId: string): v
 
     unitSelect.addEventListener('change', () => {
         const currentVal = parseInt(minStockInput.value, 10);
-        // Only auto-set if the field is empty or still at a known default (5 or 100)
-        if (isNaN(currentVal) || currentVal === 5 || currentVal === 100 || minStockInput.value === '') {
-            minStockInput.value = unitSelect.value === 'm' ? '100' : '5';
+        // Only auto-set if the field is empty or still at a known default (10 or 100 or the old 5)
+        if (isNaN(currentVal) || currentVal === 10 || currentVal === 5 || currentVal === 100 || minStockInput.value === '') {
+            minStockInput.value = unitSelect.value === 'm' ? '100' : '10';
         }
     });
 }
