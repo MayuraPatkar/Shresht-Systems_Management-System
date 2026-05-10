@@ -92,6 +92,11 @@ if (newStockForm) {
             return;
         }
 
+        if (!unit) {
+            showErrorMessage('Please select a unit.');
+            return;
+        }
+
         if (isNaN(purchase_price) || purchase_price <= 0) {
             showErrorMessage('Please enter a valid purchase price.');
             return;
@@ -159,6 +164,11 @@ if (editForm) {
 
         if (!item_name || !hsn_sac || !brand || !category || !item_type) {
             showErrorMessage('Please fill all required text fields.');
+            return;
+        }
+
+        if (!unit) {
+            showErrorMessage('Please select a unit.');
             return;
         }
 
