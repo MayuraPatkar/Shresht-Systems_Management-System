@@ -174,7 +174,7 @@ router.get('/gst', async (req: Request, res: Response) => {
         if (invoices.length > 0) {
             try {
                 const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const filter = { report_type: 'gst', 'parameters.month': reportMonth, 'parameters.year': reportYear };
+                const filter: any = { report_type: 'gst', 'parameters.month': reportMonth, 'parameters.year': reportYear };
                 const updateData = {
                     report_type: 'gst', report_name: `Invoice GST Report - ${shortMonths[reportMonth - 1]} ${reportYear}`,
                     parameters: { month: reportMonth, year: reportYear },
@@ -270,7 +270,7 @@ router.get('/purchase-gst', async (req: Request, res: Response) => {
         if (purchaseOrders.length > 0) {
             try {
                 const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const filter = { report_type: 'purchase_gst', 'parameters.month': reportMonth, 'parameters.year': reportYear };
+                const filter: any = { report_type: 'purchase_gst', 'parameters.month': reportMonth, 'parameters.year': reportYear };
                 const updateData = {
                     report_type: 'purchase_gst', report_name: `Purchase GST Report - ${shortMonths[reportMonth - 1]} ${reportYear}`,
                     parameters: { month: reportMonth, year: reportYear },
