@@ -55,8 +55,8 @@ async function refreshActiveStatus(): Promise<void> {
         const cutoff = new Date();
         cutoff.setMonth(cutoff.getMonth() - thresholdMonths);
 
-        // Get all active items
-        const activeItems = await ItemModel.find({ is_active: true }, { _id: 1 }).lean();
+        // Get all active items that are not deleted
+        const activeItems = await ItemModel.find({ is_active: true, "deletion.is_deleted": { $ne: true } }, { _id: 1 }).lean();
 
         for (const item of activeItems) {
             const lastMovement = await StockMovementModel.findOne(
@@ -89,7 +89,7 @@ router.get('/all', async (req: Request, res: Response) => {
         // Fire-and-forget: refresh is_active status in the background
         refreshActiveStatus();
 
-        const stockData = await ItemModel.find().sort({ item_name: 1 }).lean();
+        const stockData = await ItemModel.find({ "deletion.is_deleted": { $ne: true } }).sort({ item_name: 1 }).lean();
         const mappedData = stockData.map((item: any) => ({
             ...item,
             purchase_price: item.purchase_price ?? item.unit_price ?? 0,
@@ -112,8 +112,11 @@ router.post('/addItem', validators.createStock, async (req: Request, res: Respon
     const { item_name, hsn_sac, specifications, brand, category, item_type, unit, purchase_price, selling_price, margin, stock_quantity, gst_rate, min_stock_quantity, remarks } = req.body;
 
     try {
-        // Check if item already exists
-        const existingItem = await ItemModel.findOne({ item_name: item_name.trim() });
+        // Check if active item already exists
+        const existingItem = await ItemModel.findOne({ 
+            item_name: item_name.trim(),
+            "deletion.is_deleted": { $ne: true }
+        });
 
         if (existingItem) {
             return res.status(400).json({ error: 'Item already exists in stock' });
@@ -272,10 +275,11 @@ router.post('/editItem', async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'GST rate must be a valid number between 0 and 100' });
         }
 
-        // Check if another item with the same name exists (excluding current item)
+        // Check if another active item with the same name exists (excluding current item)
         const existingItem = await ItemModel.findOne({
             item_name: item_name.trim(),
-            _id: { $ne: itemId }
+            _id: { $ne: itemId },
+            "deletion.is_deleted": { $ne: true }
         });
 
         if (existingItem) {
@@ -317,7 +321,10 @@ router.get("/get-stock-item", async (req: Request, res: Response) => {
         const itemName = req.query.item as string;
         if (!itemName) return res.status(400).json({ message: "Item name required" });
 
-        const stockItem = await ItemModel.findOne({ item_name: itemName }).lean() as any;
+        const stockItem = await ItemModel.findOne({ 
+            item_name: itemName,
+            "deletion.is_deleted": { $ne: true }
+        }).lean() as any;
         if (!stockItem) return res.json(null); // Return null instead of 404 to avoid console errors
 
         const mappedItem = {
@@ -339,7 +346,7 @@ router.get("/get-stock-item", async (req: Request, res: Response) => {
 
 router.get("/get-names", async (req: Request, res: Response) => {
     try {
-        const stockItems = await ItemModel.find({}, { item_name: 1 });
+        const stockItems = await ItemModel.find({ "deletion.is_deleted": { $ne: true } }, { item_name: 1 });
         res.json(stockItems.map(item => item.item_name));
     } catch (error: unknown) {
         logger.error("Stock names fetch failed", { service: "stock", error: (error as Error).message });
@@ -350,7 +357,7 @@ router.get("/get-names", async (req: Request, res: Response) => {
 // Get stock items with IDs for autocomplete (used by reports)
 router.get("/get-items-with-ids", async (req: Request, res: Response) => {
     try {
-        const stockItems = await ItemModel.find({}, { _id: 1, item_name: 1 });
+        const stockItems = await ItemModel.find({ "deletion.is_deleted": { $ne: true } }, { _id: 1, item_name: 1 });
         res.json(stockItems.map(item => ({ id: item._id, name: item.item_name })));
     } catch (error: unknown) {
         logger.error("Stock items fetch failed", { service: "stock", error: (error as Error).message });
@@ -363,7 +370,8 @@ router.get('/search/:itemName', async (req: Request, res: Response) => {
     try {
         const itemName = (req.params.itemName as string).trim();
         const stockItem = await ItemModel.findOne({
-            item_name: { $regex: new RegExp(`^${itemName}$`, 'i') }
+            item_name: { $regex: new RegExp(`^${itemName}$`, 'i') },
+            "deletion.is_deleted": { $ne: true }
         }).lean() as any;
 
         if (stockItem) {
@@ -388,7 +396,7 @@ router.get('/search/:itemName', async (req: Request, res: Response) => {
 
 // Delete stock item
 router.post('/deleteItem', async (req: Request, res: Response) => {
-    const { itemId } = req.body;
+    const { itemId, username } = req.body;
     try {
         const item = await ItemModel.findOne({ _id: itemId }) as any;
         if (!item) {
@@ -412,7 +420,14 @@ router.post('/deleteItem', async (req: Request, res: Response) => {
             );
         }
 
-        await ItemModel.deleteOne({ _id: itemId });
+        if (!item.deletion) {
+            item.deletion = {};
+        }
+        item.deletion.is_deleted = true;
+        item.deletion.deleted_at = new Date();
+        item.deletion.deleted_by = username || 'Admin';
+        await item.save();
+
         res.json({ success: true });
     } catch (error: unknown) {
         logger.error('Stock item deletion failed', { service: "stock", itemId, error: (error as Error).message });

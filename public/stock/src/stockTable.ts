@@ -113,7 +113,10 @@ function renderStockTable(data: StockItem[]): void {
                                 const res = await fetch('/stock/deleteItem', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ itemId: id })
+                                    body: JSON.stringify({ 
+                                        itemId: id,
+                                        username: sessionStorage.getItem('username') || 'Admin'
+                                    })
                                 });
                                 if (!res.ok) throw new Error('Failed to delete item');
                                 await fetchStockData();
