@@ -59,7 +59,14 @@ function applyFilters(): void {
     const categoryFilter = document.querySelector('#categoryFilterDropdown .bg-gray-100')?.getAttribute('data-type-filter') || 'all';
     const statusFilter = document.querySelector('#filterDropdown .bg-gray-100')?.getAttribute('data-filter') || 'all';
 
-    let filteredData = currentStockData;
+    let filteredData = currentStockData.filter(item => {
+        const isDeleted = (item.deletion && item.deletion.is_deleted === true) || (item as any).is_deleted === true;
+        if (window.showDeletedItems) {
+            return isDeleted;
+        } else {
+            return !isDeleted;
+        }
+    });
 
     if (typeFilter !== 'all') {
         filteredData = filteredData.filter(item => item.item_type === typeFilter);

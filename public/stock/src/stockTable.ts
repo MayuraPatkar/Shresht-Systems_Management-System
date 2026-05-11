@@ -81,13 +81,23 @@ function renderStockTable(data: StockItem[]): void {
         defaultOpt.textContent = 'Actions';
         select.appendChild(defaultOpt);
 
-        const actions: ActionOption[] = [
-            { value: 'add', label: 'Add Stock', icon: '+' },
-            { value: 'remove', label: 'Remove Stock', icon: '-' },
-            { value: 'edit', label: 'Edit Item', icon: '✎' },
-            { value: 'details', label: 'View Details', icon: 'ℹ' },
-            { value: 'delete', label: 'Delete', icon: '✕' }
-        ];
+        let actions: ActionOption[] = [];
+        if (window.showDeletedItems) {
+            actions = [
+                { value: 'details', label: 'View Details', icon: 'ℹ' },
+                { value: 'restore', label: 'Restore Item', icon: '⟲' }
+            ];
+            // Give deleted rows a distinct style
+            row.classList.add('bg-red-50');
+        } else {
+            actions = [
+                { value: 'add', label: 'Add Stock', icon: '+' },
+                { value: 'remove', label: 'Remove Stock', icon: '-' },
+                { value: 'edit', label: 'Edit Item', icon: '✎' },
+                { value: 'details', label: 'View Details', icon: 'ℹ' },
+                { value: 'delete', label: 'Delete', icon: '✕' }
+            ];
+        }
 
         actions.forEach(action => {
             const opt = document.createElement('option');
@@ -128,6 +138,27 @@ function renderStockTable(data: StockItem[]): void {
                                 } else {
                                     alert('Failed to delete item.');
                                 }
+                            }
+                        }
+                    });
+                }
+            } else if (action === 'restore') {
+                window.electronAPI!.showAlert2(`Are you sure you want to restore "${name}" to active stock?`);
+                if (window.electronAPI) {
+                    window.electronAPI.receiveAlertResponse(async (response: string) => {
+                        if (response === "Yes") {
+                            try {
+                                const res = await fetch('/stock/restoreItem', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ itemId: id })
+                                });
+                                if (!res.ok) throw new Error('Failed to restore item');
+                                await fetchStockData();
+                                window.electronAPI!.showAlert1('Stock item restored successfully!');
+                            } catch (err) {
+                                console.error(err);
+                                window.electronAPI?.showAlert1('Failed to restore item.');
                             }
                         }
                     });

@@ -14,6 +14,28 @@ document.getElementById('cancelEditBtn')?.addEventListener('click', () => hideMo
 document.getElementById('closeDetailsModalBtn')?.addEventListener('click', () => hideModal('itemDetailsModal'));
 document.getElementById('closeDetailsBtn')?.addEventListener('click', () => hideModal('itemDetailsModal'));
 
+// ─── Show Deleted Toggle ─────────────────────────────────────────────────────
+
+const showDeletedBtn = document.getElementById('showDeletedBtn');
+if (showDeletedBtn) {
+    showDeletedBtn.addEventListener('click', () => {
+        window.showDeletedItems = !window.showDeletedItems;
+        
+        // Update button visual state
+        if (window.showDeletedItems) {
+            showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700');
+            showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
+            showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> View Active';
+        } else {
+            showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700');
+            showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
+            showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        }
+
+        fetchStockData();
+    });
+}
+
 // ─── Initialize Validation ───────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {

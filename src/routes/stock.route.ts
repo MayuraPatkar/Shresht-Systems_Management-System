@@ -89,7 +89,8 @@ router.get('/all', async (req: Request, res: Response) => {
         // Fire-and-forget: refresh is_active status in the background
         refreshActiveStatus();
 
-        const stockData = await ItemModel.find({ "deletion.is_deleted": { $ne: true } }).sort({ item_name: 1 }).lean();
+        // Return ALL items (active and soft-deleted) so the frontend can filter them locally.
+        const stockData = await ItemModel.find({}).sort({ item_name: 1 }).lean();
         const mappedData = stockData.map((item: any) => ({
             ...item,
             purchase_price: item.purchase_price ?? item.unit_price ?? 0,
@@ -113,7 +114,7 @@ router.post('/addItem', validators.createStock, async (req: Request, res: Respon
 
     try {
         // Check if active item already exists
-        const existingItem = await ItemModel.findOne({ 
+        const existingItem = await ItemModel.findOne({
             item_name: item_name.trim(),
             "deletion.is_deleted": { $ne: true }
         });
@@ -321,7 +322,7 @@ router.get("/get-stock-item", async (req: Request, res: Response) => {
         const itemName = req.query.item as string;
         if (!itemName) return res.status(400).json({ message: "Item name required" });
 
-        const stockItem = await ItemModel.findOne({ 
+        const stockItem = await ItemModel.findOne({
             item_name: itemName,
             "deletion.is_deleted": { $ne: true }
         }).lean() as any;
@@ -432,6 +433,29 @@ router.post('/deleteItem', async (req: Request, res: Response) => {
     } catch (error: unknown) {
         logger.error('Stock item deletion failed', { service: "stock", itemId, error: (error as Error).message });
         res.status(500).json({ error: 'Failed to delete item' });
+    }
+});
+
+// Restore stock item
+router.post('/restoreItem', async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const item = await ItemModel.findOne({ _id: itemId }) as any;
+        if (!item) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+
+        if (item.deletion) {
+            item.deletion.is_deleted = false;
+            item.deletion.deleted_at = undefined;
+            item.deletion.deleted_by = undefined;
+            await item.save();
+        }
+
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Stock item restore failed', { service: "stock", itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to restore item' });
     }
 });
 

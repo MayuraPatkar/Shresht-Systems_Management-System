@@ -23,9 +23,11 @@ interface StockItem {
     remarks?: string;
     schema_version?: number;
     is_active?: boolean;
-    is_deleted?: boolean;
-    deleted_at?: string;
-    deleted_by?: string;
+    deletion?: {
+        is_deleted: boolean;
+        deleted_at?: string;
+        deleted_by?: string;
+    };
     createdAt?: string;
     updatedAt?: string;
 }
@@ -66,6 +68,7 @@ interface ElectronAPI {
 
 interface Window {
     electronAPI?: ElectronAPI;
+    showDeletedItems?: boolean;
     formatIndian: (value: number | string, decimals?: number) => string;
     formatDateDisplay?: (date: Date) => string;
     handlePrint?: (content: string, action: string, name: string) => void;
