@@ -85,7 +85,8 @@ function renderStockTable(data: StockItem[]): void {
         if (window.showDeletedItems) {
             actions = [
                 { value: 'details', label: 'View Details', icon: 'ℹ' },
-                { value: 'restore', label: 'Restore Item', icon: '⟲' }
+                { value: 'restore', label: 'Restore Item', icon: '⟲' },
+                { value: 'hardDelete', label: 'Permanently Delete', icon: '🗑' }
             ];
             // Give deleted rows a distinct style
             row.classList.add('bg-red-50');
@@ -159,6 +160,27 @@ function renderStockTable(data: StockItem[]): void {
                             } catch (err) {
                                 console.error(err);
                                 window.electronAPI?.showAlert1('Failed to restore item.');
+                            }
+                        }
+                    });
+                }
+            } else if (action === 'hardDelete') {
+                window.electronAPI!.showAlert2(`Are you sure you want to PERMANENTLY delete "${name}"? This will remove it from the database forever.`);
+                if (window.electronAPI) {
+                    window.electronAPI.receiveAlertResponse(async (response: string) => {
+                        if (response === "Yes") {
+                            try {
+                                const res = await fetch('/stock/hardDeleteItem', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ itemId: id })
+                                });
+                                if (!res.ok) throw new Error('Failed to permanently delete item');
+                                await fetchStockData();
+                                window.electronAPI!.showAlert1('Stock item permanently deleted!');
+                            } catch (err) {
+                                console.error(err);
+                                window.electronAPI?.showAlert1('Failed to permanently delete item.');
                             }
                         }
                     });

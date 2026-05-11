@@ -459,4 +459,19 @@ router.post('/restoreItem', async (req: Request, res: Response) => {
     }
 });
 
+// Permanently delete stock item
+router.post('/hardDeleteItem', async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const result = await ItemModel.deleteOne({ _id: itemId });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Stock item permanent deletion failed', { service: "stock", itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to permanently delete item' });
+    }
+});
+
 export default router;
