@@ -65,9 +65,6 @@ function addTooltips(): void {
     const printBtn = document.getElementById('printBtn');
     if (printBtn) printBtn.title = 'Print stock report (Ctrl+P)';
 
-    const lowStockBtn = document.getElementById('lowStockBtn');
-    if (lowStockBtn) lowStockBtn.title = 'Show only low stock and out of stock items';
-
     const homeBtn = document.getElementById('home-btn');
     if (homeBtn) homeBtn.title = 'Go to Dashboard';
 

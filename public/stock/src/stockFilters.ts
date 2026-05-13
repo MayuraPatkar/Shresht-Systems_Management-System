@@ -179,38 +179,7 @@ if (refreshBtn) {
     });
 }
 
-// ─── Low Stock Items Button ──────────────────────────────────────────────────
-
-const lowStockBtn = document.getElementById('lowStockBtn');
-if (lowStockBtn) {
-    lowStockBtn.addEventListener('click', async () => {
-        try {
-            const res = await fetch('/stock/all');
-            if (!res.ok) throw new Error('Failed');
-            const data: StockItem[] = await res.json();
-            const lowStockItems = (data || []).filter(i => {
-                const qty = Number(i.stock_quantity) || 0;
-                const minQty = Number(i.min_stock_quantity) || 0;
-                return qty < minQty || qty === 0;
-            });
-            renderStockTable(lowStockItems);
-
-            // Update filter dropdown to show "Low Stock" as active
-            const filterDropdown = document.getElementById('filterDropdown');
-            if (filterDropdown) {
-                filterDropdown.querySelectorAll('a').forEach(link => {
-                    link.classList.remove('bg-gray-100', 'font-semibold');
-                    if (link.getAttribute('data-filter') === 'Low Stock') {
-                        link.classList.add('bg-gray-100', 'font-semibold');
-                    }
-                });
-            }
-        } catch (err) {
-            console.error(err);
-            showErrorMessage('Failed to filter low stock items.');
-        }
-    });
-}
+// ─── Print Functionality ─────────────────────────────────────────────────────
 
 // ─── Sorting Functionality ───────────────────────────────────────────────────
 
