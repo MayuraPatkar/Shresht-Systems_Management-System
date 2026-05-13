@@ -108,6 +108,17 @@ function applyFilters(): void {
     renderStockTable(filteredData);
     (window as any).filteredStockData = filteredData;
     updateBulkButtonLabels(searchTerm, typeFilter, categoryFilter, statusFilter);
+    updateFilterButtonLabels(typeFilter, categoryFilter, statusFilter);
+}
+
+function updateFilterButtonLabels(type: string, category: string, status: string): void {
+    const typeBtnSpan = document.querySelector('#typeFilterBtn span');
+    const categoryBtnSpan = document.querySelector('#categoryFilterBtn span');
+    const statusBtnSpan = document.querySelector('#filterBtn span');
+
+    if (typeBtnSpan) typeBtnSpan.textContent = type === 'all' ? 'Type' : `Type: ${type}`;
+    if (categoryBtnSpan) categoryBtnSpan.textContent = category === 'all' ? 'Category' : `Category: ${category}`;
+    if (statusBtnSpan) statusBtnSpan.textContent = status === 'all' ? 'Filter' : `Status: ${status}`;
 }
 
 function updateBulkButtonLabels(search: string, type: string, category: string, status: string): void {
