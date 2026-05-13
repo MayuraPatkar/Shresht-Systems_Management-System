@@ -65,7 +65,7 @@ interface ElectronAPI {
 // ─── Window augmentation for globals from shared scripts ─────────────────────
 
 interface Window {
-    electronAPI?: ElectronAPI;
+    electronAPI: ElectronAPI;
     formatIndian: (value: number | string, decimals?: number) => string;
     formatDateDisplay?: (date: Date) => string;
     handlePrint?: (content: string, action: string, name: string) => void;
