@@ -10,8 +10,10 @@
  * @returns Formatted HTML for printing
  */
 function generateStockPrintContent(type: string, category: string, status: string): string {
-    // Filter data based on print modal selections
-    let filteredData = currentStockData;
+    // Filter data based on print modal selections and exclude deleted items
+    let filteredData = currentStockData.filter(item => {
+        return !(item.deletion && item.deletion.is_deleted === true) && !((item as any).is_deleted === true);
+    });
 
     // Apply type filter
     if (type !== 'all') {
