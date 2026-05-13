@@ -7,6 +7,8 @@ const router: Router = Router();
 const pages: Array<{ route: string; file: string }> = [
     { route: '/', file: 'index.html' },
     { route: '/dashboard', file: 'dashboard/dashboard.html' },
+    { route: '/customer', file: 'customer/customer.html' },
+    { route: '/customer/details', file: 'customer/customer_details.html' },
     { route: '/invoice', file: 'invoice/invoice.html' },
     { route: '/quotation', file: 'quotation/quotation.html' },
     { route: '/ewaybill', file: 'ewaybill/eWayBill.html' },

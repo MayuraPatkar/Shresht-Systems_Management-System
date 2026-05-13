@@ -46,11 +46,12 @@ document.addEventListener("DOMContentLoaded", () => {
             animateCounter("unpaid-count", data.totalUnpaid);
             animateCounter("expenditure-count", data.totalExpenditure, true);
             animateCounter("remaining-services-count", data.remainingServices);
+            animateCounter("customer-count", data.totalCustomers);
         })
         .catch(err => {
             console.error("Error fetching analytics:", err);
             // Set all counters to 0 on error
-            ['project-count', 'quotation-count', 'unpaid-count', 'expenditure-count', 'remaining-services-count'].forEach(id => {
+            ['project-count', 'quotation-count', 'unpaid-count', 'expenditure-count', 'remaining-services-count', 'customer-count'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = '0';
             });
@@ -630,6 +631,7 @@ function startAutoRefresh() {
                 animateCounter("unpaid-count", data.totalUnpaid);
                 animateCounter("expenditure-count", data.totalExpenditure, true);
                 animateCounter("remaining-services-count", data.remainingServices);
+                animateCounter("customer-count", data.totalCustomers);
             })
             .catch(err => console.error("Error auto-refreshing analytics:", err));
     }, 300000); // 5 minutes

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { InvoiceModel, QuotationModel, PurchaseModel } from '../models';
+import { InvoiceModel, QuotationModel, PurchaseModel, CustomerModel } from '../models';
 import logger from '../utils/logger';
 
 const router: Router = Router();
@@ -70,6 +70,10 @@ router.get('/overview', async (req: Request, res: Response) => {
             return now >= targetDate;
         }).length;
 
+        const totalCustomers = await CustomerModel.countDocuments({ 'deletion.is_deleted': false });
+        const activeCustomers = await CustomerModel.countDocuments({ 'deletion.is_deleted': false, is_active: true });
+        const industrialCustomers = await CustomerModel.countDocuments({ 'deletion.is_deleted': false, customer_type: 'Industrial' });
+
         /* ────────────────────────────── Response ──────────────────────────────── */
         res.json({
             totalProjects,
@@ -78,6 +82,9 @@ router.get('/overview', async (req: Request, res: Response) => {
             totalUnpaid,
             totalExpenditure,
             remainingServices,
+            totalCustomers,
+            activeCustomers,
+            industrialCustomers
         });
     } catch (err: unknown) {
         logger.error('Error fetching analytics:', err);

@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Map routes to sidebar element IDs
   const routeMap = {
     '/dashboard': 'dashboard',
+    '/customer': 'customer',
     '/quotation': 'quotation',
     '/purchaseorder': 'postOrder',
     '/invoice': 'invoice',
@@ -62,6 +63,7 @@ if (!window._ctrlTabNavRegistered) {
       // Define the navigation order matching the server routes exactly
       const navigationOrder = [
         '/dashboard',
+        '/customer',
         '/quotation',
         '/purchaseorder',
         '/invoice',
