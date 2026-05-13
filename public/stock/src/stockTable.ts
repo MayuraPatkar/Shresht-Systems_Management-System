@@ -116,7 +116,7 @@ function renderStockTable(data: StockItem[]): void {
             } else if (action === 'details') {
                 openDetailsModal(item);
             } else if (action === 'delete') {
-                window.electronAPI!.showAlert2(`Are you sure you want to delete "${name}"? This action cannot be undone.`);
+                window.electronAPI!.showAlert2(`Are you sure you want to delete "${name}"?`);
                 if (window.electronAPI) {
                     window.electronAPI.receiveAlertResponse(async (response: string) => {
                         if (response === "Yes") {
