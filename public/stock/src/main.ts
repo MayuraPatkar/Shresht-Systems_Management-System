@@ -21,15 +21,19 @@ if (showDeletedBtn) {
     showDeletedBtn.addEventListener('click', () => {
         window.showDeletedItems = !window.showDeletedItems;
         
+        const printBtn = document.getElementById('printBtn');
+        
         // Update button visual state
         if (window.showDeletedItems) {
             showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700');
             showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
             showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> View Active';
+            if (printBtn) printBtn.classList.add('hidden');
         } else {
             showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700');
             showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
             showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            if (printBtn) printBtn.classList.remove('hidden');
         }
 
         fetchStockData();
