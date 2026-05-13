@@ -188,6 +188,10 @@ if (refreshBtn) {
             }
         });
 
+        // Clear search bar
+        const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+        if (searchInput) searchInput.value = '';
+
         fetchStockData();
         showSuccessMessage('Stock data refreshed!');
     });
