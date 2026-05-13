@@ -58,24 +58,39 @@ function applyFilters(): void {
     const typeFilter = document.querySelector('#typeFilterDropdown .bg-gray-100')?.getAttribute('data-type-filter') || 'all';
     const categoryFilter = document.querySelector('#categoryFilterDropdown .bg-gray-100')?.getAttribute('data-type-filter') || 'all';
     const statusFilter = document.querySelector('#filterDropdown .bg-gray-100')?.getAttribute('data-filter') || 'all';
+    const searchTerm = (document.getElementById('search-input') as HTMLInputElement | null)?.value.toLowerCase().trim() || '';
 
     let filteredData = currentStockData.filter(item => {
         const isDeleted = (item.deletion && item.deletion.is_deleted === true) || (item as any).is_deleted === true;
-        if (window.showDeletedItems) {
-            return isDeleted;
-        } else {
-            return !isDeleted;
-        }
+        return window.showDeletedItems ? isDeleted : !isDeleted;
     });
 
+    // Apply Search
+    if (searchTerm) {
+        filteredData = filteredData.filter(item => {
+            const name = (item.item_name || '').toLowerCase();
+            const brand = (item.brand || '').toLowerCase();
+            const category = (item.category || '').toLowerCase();
+            const hsn = (item.hsn_sac || '').toLowerCase();
+
+            return name.includes(searchTerm) ||
+                brand.includes(searchTerm) ||
+                category.includes(searchTerm) ||
+                hsn.includes(searchTerm);
+        });
+    }
+
+    // Apply Type
     if (typeFilter !== 'all') {
         filteredData = filteredData.filter(item => item.item_type === typeFilter);
     }
 
+    // Apply Category
     if (categoryFilter !== 'all') {
         filteredData = filteredData.filter(item => item.category === categoryFilter);
     }
 
+    // Apply Status
     if (statusFilter !== 'all') {
         filteredData = filteredData.filter(item => {
             const quantity = Number(item.stock_quantity) || 0;
@@ -91,6 +106,21 @@ function applyFilters(): void {
     }
 
     renderStockTable(filteredData);
+    (window as any).filteredStockData = filteredData;
+    updateBulkButtonLabels(searchTerm, typeFilter, categoryFilter, statusFilter);
+}
+
+function updateBulkButtonLabels(search: string, type: string, category: string, status: string): void {
+    const isFiltered = search !== '' || type !== 'all' || category !== 'all' || status !== 'all';
+    const restoreBtn = document.getElementById('bulkRestoreBtn');
+    const deleteBtn = document.getElementById('bulkDeleteBtn');
+
+    if (restoreBtn) {
+        restoreBtn.querySelector('span')!.textContent = isFiltered ? 'Restore All Filtered' : 'Restore All';
+    }
+    if (deleteBtn) {
+        deleteBtn.querySelector('span')!.textContent = isFiltered ? 'Delete All Filtered' : 'Delete All';
+    }
 }
 
 // Setup filter click handlers
@@ -99,23 +129,16 @@ function setupFilterHandlers(dropdownId: string): void {
     if (dropdown) {
         dropdown.addEventListener('click', (e: Event) => {
             const target = e.target as HTMLElement;
-            if (target.tagName === 'A') {
-                e.preventDefault();
+            const link = target.closest('a');
+            if (!link) return;
 
-                // Remove active state from all items in this dropdown
-                dropdown.querySelectorAll('a').forEach(link => {
-                    link.classList.remove('bg-gray-100', 'font-semibold');
-                });
+            e.preventDefault();
 
-                // Add active state to clicked item
-                target.classList.add('bg-gray-100', 'font-semibold');
+            // Update active state
+            dropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+            link.classList.add('bg-gray-100', 'font-semibold');
 
-                // Apply filters
-                applyFilters();
-
-                // Hide dropdown
-                dropdown.classList.add('hidden');
-            }
+            applyFilters();
         });
     }
 }
@@ -128,28 +151,8 @@ setupFilterHandlers('filterDropdown');
 
 const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
 if (searchInput) {
-    searchInput.addEventListener('input', (e: Event) => {
-        const searchTerm = (e.target as HTMLInputElement).value.toLowerCase().trim();
-
-        if (!searchTerm) {
-            // If search is cleared, show all items (with current filters applied)
-            applyFilters();
-            return;
-        }
-
-        const filteredData = currentStockData.filter(item => {
-            const name = (item.item_name || '').toLowerCase();
-            const brand = (item.brand || '').toLowerCase();
-            const category = (item.category || '').toLowerCase();
-            const hsn = (item.hsn_sac || '').toLowerCase();
-
-            return name.includes(searchTerm) ||
-                brand.includes(searchTerm) ||
-                category.includes(searchTerm) ||
-                hsn.includes(searchTerm);
-        });
-
-        renderStockTable(filteredData);
+    searchInput.addEventListener('input', () => {
+        applyFilters();
     });
 }
 

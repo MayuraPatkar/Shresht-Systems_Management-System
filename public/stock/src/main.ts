@@ -22,6 +22,8 @@ if (showDeletedBtn) {
         window.showDeletedItems = !window.showDeletedItems;
         
         const printBtn = document.getElementById('printBtn');
+        const bulkRestoreBtn = document.getElementById('bulkRestoreBtn');
+        const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
         
         // Update button visual state
         if (window.showDeletedItems) {
@@ -30,17 +32,83 @@ if (showDeletedBtn) {
             showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> Close Trash';
             showDeletedBtn.title = 'Close Trash';
             if (printBtn) printBtn.classList.add('hidden');
+            if (bulkRestoreBtn) bulkRestoreBtn.classList.replace('hidden', 'flex');
+            if (bulkDeleteBtn) bulkDeleteBtn.classList.replace('hidden', 'flex');
         } else {
             showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700');
             showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
             showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
             showDeletedBtn.title = 'View Trash';
             if (printBtn) printBtn.classList.remove('hidden');
+            if (bulkRestoreBtn) bulkRestoreBtn.classList.replace('flex', 'hidden');
+            if (bulkDeleteBtn) bulkDeleteBtn.classList.replace('flex', 'hidden');
         }
 
         fetchStockData();
     });
 }
+
+// ─── Bulk Operations ─────────────────────────────────────────────────────────
+
+document.getElementById('bulkRestoreBtn')?.addEventListener('click', async () => {
+    const filteredData = (window as any).filteredStockData || [];
+    if (filteredData.length === 0) {
+        window.electronAPI?.showAlert1('No items to restore.');
+        return;
+    }
+
+    const isFiltered = (document.getElementById('bulkRestoreBtn')?.querySelector('span')?.textContent || '').includes('Filtered');
+    const message = `Are you sure you want to restore all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}items?`;
+
+    window.electronAPI!.showAlert2(message);
+    window.electronAPI!.receiveAlertResponse(async (response: string) => {
+        if (response === "Yes") {
+            try {
+                const res = await fetch('/stock/bulkRestore', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemIds: filteredData.map((i: any) => i._id) })
+                });
+                if (!res.ok) throw new Error('Bulk restore failed');
+                await fetchStockData();
+                window.electronAPI!.showAlert1('Selected items restored successfully!');
+            } catch (err) {
+                console.error(err);
+                window.electronAPI?.showAlert1('Failed to restore items.');
+            }
+        }
+    });
+});
+
+document.getElementById('bulkDeleteBtn')?.addEventListener('click', async () => {
+    const filteredData = (window as any).filteredStockData || [];
+    if (filteredData.length === 0) {
+        window.electronAPI?.showAlert1('No items to delete.');
+        return;
+    }
+
+    const isFiltered = (document.getElementById('bulkDeleteBtn')?.querySelector('span')?.textContent || '').includes('Filtered');
+    const message = `Are you sure you want to PERMANENTLY delete all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}items? This cannot be undone.`;
+
+    window.electronAPI!.showAlert2(message);
+    window.electronAPI!.receiveAlertResponse(async (response: string) => {
+        if (response === "Yes") {
+            try {
+                const res = await fetch('/stock/bulkHardDelete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemIds: filteredData.map((i: any) => i._id) })
+                });
+                if (!res.ok) throw new Error('Bulk delete failed');
+                await fetchStockData();
+                window.electronAPI!.showAlert1('Selected items permanently deleted!');
+            } catch (err) {
+                console.error(err);
+                window.electronAPI?.showAlert1('Failed to delete items.');
+            }
+        }
+    });
+});
 
 // ─── Initialize Validation ───────────────────────────────────────────────────
 

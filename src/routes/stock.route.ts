@@ -469,8 +469,40 @@ router.post('/hardDeleteItem', async (req: Request, res: Response) => {
         }
         res.json({ success: true });
     } catch (error: unknown) {
-        logger.error('Stock item permanent deletion failed', { service: "stock", itemId, error: (error as Error).message });
         res.status(500).json({ error: 'Failed to permanently delete item' });
+    }
+});
+
+// Bulk restore stock items
+router.post('/bulkRestore', async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        await ItemModel.updateMany(
+            { _id: { $in: itemIds } },
+            { 
+                $set: { 
+                    "deletion.is_deleted": false,
+                    "deletion.deleted_at": undefined,
+                    "deletion.deleted_by": undefined
+                } 
+            }
+        );
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk stock item restore failed', { service: "stock", count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk restore items' });
+    }
+});
+
+// Bulk permanently delete stock items
+router.post('/bulkHardDelete', async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        await ItemModel.deleteMany({ _id: { $in: itemIds } });
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk stock item permanent deletion failed', { service: "stock", count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk permanently delete items' });
     }
 });
 
