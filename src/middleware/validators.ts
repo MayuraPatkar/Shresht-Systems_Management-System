@@ -71,10 +71,14 @@ const validators = {
     // Stock validators
     createStock: [
         body("item_name").trim().notEmpty().withMessage("Item name is required"),
+        body("unit").trim().notEmpty().withMessage("Unit is required"),
         body("purchase_price").isNumeric().withMessage("Purchase price must be a number"),
+        body("selling_price").optional().isNumeric().withMessage("Selling price must be a number"),
+        body("margin").optional().isNumeric().withMessage("Margin must be a number"),
         body("gst_rate").isNumeric().withMessage("GST rate must be a number"),
-        body("stock_quantity").isInt({ min: 0 }).withMessage("Stock quantity must be a positive integer"),
-        body("item_type").trim().notEmpty().withMessage("Item type is required"),
+        body("stock_quantity").optional().isInt({ min: 0 }).withMessage("Stock quantity must be a positive integer"),
+        body("min_stock_quantity").optional().isInt({ min: 0 }).withMessage("Minimum stock quantity must be a positive integer"),
+        body("item_type").optional().trim(),
         validate,
     ],
 

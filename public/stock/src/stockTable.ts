@@ -63,6 +63,13 @@ function renderStockTable(data: StockItem[]): void {
             row.classList.add('bg-yellow-100');
         }
 
+        // Inactive items get a distinct gray overlay
+        const isActive = item.is_active !== false;
+        if (!isActive) {
+            row.classList.remove('bg-red-200', 'bg-red-100', 'bg-yellow-100');
+            row.classList.add('bg-gray-200', 'opacity-70');
+        }
+
         const actionsCell = document.createElement('td');
 
         // Build actions select
@@ -74,13 +81,24 @@ function renderStockTable(data: StockItem[]): void {
         defaultOpt.textContent = 'Actions';
         select.appendChild(defaultOpt);
 
-        const actions: ActionOption[] = [
-            { value: 'add', label: 'Add Stock', icon: '+' },
-            { value: 'remove', label: 'Remove Stock', icon: '-' },
-            { value: 'edit', label: 'Edit Item', icon: '✎' },
-            { value: 'details', label: 'View Details', icon: 'ℹ' },
-            { value: 'delete', label: 'Delete', icon: '✕' }
-        ];
+        let actions: ActionOption[] = [];
+        if (window.showDeletedItems) {
+            actions = [
+                { value: 'details', label: 'View Details', icon: 'ℹ' },
+                { value: 'restore', label: 'Restore Item', icon: '⟲' },
+                { value: 'hardDelete', label: 'Permanently Delete', icon: '🗑' }
+            ];
+            // Give deleted rows a distinct style
+            row.classList.add('bg-red-50');
+        } else {
+            actions = [
+                { value: 'add', label: 'Add Stock', icon: '+' },
+                { value: 'remove', label: 'Remove Stock', icon: '-' },
+                { value: 'edit', label: 'Edit Item', icon: '✎' },
+                { value: 'details', label: 'View Details', icon: 'ℹ' },
+                { value: 'delete', label: 'Delete', icon: '✕' }
+            ];
+        }
 
         actions.forEach(action => {
             const opt = document.createElement('option');
@@ -98,7 +116,7 @@ function renderStockTable(data: StockItem[]): void {
             } else if (action === 'details') {
                 openDetailsModal(item);
             } else if (action === 'delete') {
-                window.electronAPI!.showAlert2(`Are you sure you want to delete "${name}"? This action cannot be undone.`);
+                window.electronAPI!.showAlert2(`Are you sure you want to delete "${name}"?`);
                 if (window.electronAPI) {
                     window.electronAPI.receiveAlertResponse(async (response: string) => {
                         if (response === "Yes") {
@@ -106,7 +124,10 @@ function renderStockTable(data: StockItem[]): void {
                                 const res = await fetch('/stock/deleteItem', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ itemId: id })
+                                    body: JSON.stringify({ 
+                                        itemId: id,
+                                        username: sessionStorage.getItem('username') || 'Admin'
+                                    })
                                 });
                                 if (!res.ok) throw new Error('Failed to delete item');
                                 await fetchStockData();
@@ -122,6 +143,48 @@ function renderStockTable(data: StockItem[]): void {
                         }
                     });
                 }
+            } else if (action === 'restore') {
+                window.electronAPI!.showAlert2(`Are you sure you want to restore "${name}" to active stock?`);
+                if (window.electronAPI) {
+                    window.electronAPI.receiveAlertResponse(async (response: string) => {
+                        if (response === "Yes") {
+                            try {
+                                const res = await fetch('/stock/restoreItem', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ itemId: id })
+                                });
+                                if (!res.ok) throw new Error('Failed to restore item');
+                                await fetchStockData();
+                                window.electronAPI!.showAlert1('Stock item restored successfully!');
+                            } catch (err) {
+                                console.error(err);
+                                window.electronAPI?.showAlert1('Failed to restore item.');
+                            }
+                        }
+                    });
+                }
+            } else if (action === 'hardDelete') {
+                window.electronAPI!.showAlert2(`Are you sure you want to PERMANENTLY delete "${name}"? This will remove it from the database forever.`);
+                if (window.electronAPI) {
+                    window.electronAPI.receiveAlertResponse(async (response: string) => {
+                        if (response === "Yes") {
+                            try {
+                                const res = await fetch('/stock/hardDeleteItem', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ itemId: id })
+                                });
+                                if (!res.ok) throw new Error('Failed to permanently delete item');
+                                await fetchStockData();
+                                window.electronAPI!.showAlert1('Stock item permanently deleted!');
+                            } catch (err) {
+                                console.error(err);
+                                window.electronAPI?.showAlert1('Failed to permanently delete item.');
+                            }
+                        }
+                    });
+                }
             }
             select.selectedIndex = 0;
         });
@@ -133,7 +196,10 @@ function renderStockTable(data: StockItem[]): void {
         let status = 'In Stock';
         let statusClass = 'bg-green-100 text-green-800 flex items-center';
 
-        if (quantity < 0) {
+        if (!isActive) {
+            status = 'Inactive';
+            statusClass = 'bg-gray-200 text-gray-600';
+        } else if (quantity < 0) {
             status = 'Negative Stock';
             statusClass = 'bg-red-200 text-red-900 font-bold';
         } else if (quantity === 0) {

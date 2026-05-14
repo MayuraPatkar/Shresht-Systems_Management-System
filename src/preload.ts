@@ -309,9 +309,4 @@ const electronAPI: ElectronAPI = {
 // Expose the API to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
 
-// Type declaration for the window object in renderer
-declare global {
-    interface Window {
-        electronAPI: ElectronAPI;
-    }
-}
+

@@ -58,30 +58,80 @@ function applyFilters(): void {
     const typeFilter = document.querySelector('#typeFilterDropdown .bg-gray-100')?.getAttribute('data-type-filter') || 'all';
     const categoryFilter = document.querySelector('#categoryFilterDropdown .bg-gray-100')?.getAttribute('data-type-filter') || 'all';
     const statusFilter = document.querySelector('#filterDropdown .bg-gray-100')?.getAttribute('data-filter') || 'all';
+    const searchTerm = (document.getElementById('search-input') as HTMLInputElement | null)?.value.toLowerCase().trim() || '';
 
-    let filteredData = currentStockData;
+    let filteredData = currentStockData.filter(item => {
+        const isDeleted = (item.deletion && item.deletion.is_deleted === true) || (item as any).is_deleted === true;
+        return window.showDeletedItems ? isDeleted : !isDeleted;
+    });
 
+    // Apply Search
+    if (searchTerm) {
+        filteredData = filteredData.filter(item => {
+            const name = (item.item_name || '').toLowerCase();
+            const brand = (item.brand || '').toLowerCase();
+            const category = (item.category || '').toLowerCase();
+            const hsn = (item.hsn_sac || '').toLowerCase();
+
+            return name.includes(searchTerm) ||
+                brand.includes(searchTerm) ||
+                category.includes(searchTerm) ||
+                hsn.includes(searchTerm);
+        });
+    }
+
+    // Apply Type
     if (typeFilter !== 'all') {
         filteredData = filteredData.filter(item => item.item_type === typeFilter);
     }
 
+    // Apply Category
     if (categoryFilter !== 'all') {
         filteredData = filteredData.filter(item => item.category === categoryFilter);
     }
 
+    // Apply Status
     if (statusFilter !== 'all') {
         filteredData = filteredData.filter(item => {
             const quantity = Number(item.stock_quantity) || 0;
             const minQuantity = Number(item.min_stock_quantity) || 0;
+            const isActive = item.is_active !== false;
 
-            if (statusFilter === 'In Stock') return quantity >= minQuantity;
-            if (statusFilter === 'Low Stock') return quantity > 0 && quantity < minQuantity;
-            if (statusFilter === 'Out of Stock') return quantity === 0;
+            if (statusFilter === 'Inactive') return !isActive;
+            if (statusFilter === 'In Stock') return isActive && quantity >= minQuantity;
+            if (statusFilter === 'Low Stock') return isActive && quantity > 0 && quantity < minQuantity;
+            if (statusFilter === 'Out of Stock') return isActive && quantity === 0;
             return true;
         });
     }
 
     renderStockTable(filteredData);
+    (window as any).filteredStockData = filteredData;
+    updateBulkButtonLabels(searchTerm, typeFilter, categoryFilter, statusFilter);
+    updateFilterButtonLabels(typeFilter, categoryFilter, statusFilter);
+}
+
+function updateFilterButtonLabels(type: string, category: string, status: string): void {
+    const typeBtnSpan = document.querySelector('#typeFilterBtn span');
+    const categoryBtnSpan = document.querySelector('#categoryFilterBtn span');
+    const statusBtnSpan = document.querySelector('#filterBtn span');
+
+    if (typeBtnSpan) typeBtnSpan.textContent = type === 'all' ? 'Type' : `Type: ${type}`;
+    if (categoryBtnSpan) categoryBtnSpan.textContent = category === 'all' ? 'Category' : `Category: ${category}`;
+    if (statusBtnSpan) statusBtnSpan.textContent = status === 'all' ? 'Filter' : `Status: ${status}`;
+}
+
+function updateBulkButtonLabels(search: string, type: string, category: string, status: string): void {
+    const isFiltered = search !== '' || type !== 'all' || category !== 'all' || status !== 'all';
+    const restoreBtn = document.getElementById('bulkRestoreBtn');
+    const deleteBtn = document.getElementById('bulkDeleteBtn');
+
+    if (restoreBtn) {
+        restoreBtn.querySelector('span')!.textContent = isFiltered ? 'Restore All Filtered' : 'Restore All';
+    }
+    if (deleteBtn) {
+        deleteBtn.querySelector('span')!.textContent = isFiltered ? 'Delete All Filtered' : 'Delete All';
+    }
 }
 
 // Setup filter click handlers
@@ -90,23 +140,16 @@ function setupFilterHandlers(dropdownId: string): void {
     if (dropdown) {
         dropdown.addEventListener('click', (e: Event) => {
             const target = e.target as HTMLElement;
-            if (target.tagName === 'A') {
-                e.preventDefault();
+            const link = target.closest('a');
+            if (!link) return;
 
-                // Remove active state from all items in this dropdown
-                dropdown.querySelectorAll('a').forEach(link => {
-                    link.classList.remove('bg-gray-100', 'font-semibold');
-                });
+            e.preventDefault();
 
-                // Add active state to clicked item
-                target.classList.add('bg-gray-100', 'font-semibold');
+            // Update active state
+            dropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+            link.classList.add('bg-gray-100', 'font-semibold');
 
-                // Apply filters
-                applyFilters();
-
-                // Hide dropdown
-                dropdown.classList.add('hidden');
-            }
+            applyFilters();
         });
     }
 }
@@ -119,28 +162,8 @@ setupFilterHandlers('filterDropdown');
 
 const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
 if (searchInput) {
-    searchInput.addEventListener('input', (e: Event) => {
-        const searchTerm = (e.target as HTMLInputElement).value.toLowerCase().trim();
-
-        if (!searchTerm) {
-            // If search is cleared, show all items (with current filters applied)
-            applyFilters();
-            return;
-        }
-
-        const filteredData = currentStockData.filter(item => {
-            const name = (item.item_name || '').toLowerCase();
-            const brand = (item.brand || '').toLowerCase();
-            const category = (item.category || '').toLowerCase();
-            const hsn = (item.hsn_sac || '').toLowerCase();
-
-            return name.includes(searchTerm) ||
-                brand.includes(searchTerm) ||
-                category.includes(searchTerm) ||
-                hsn.includes(searchTerm);
-        });
-
-        renderStockTable(filteredData);
+    searchInput.addEventListener('input', () => {
+        applyFilters();
     });
 }
 
@@ -165,43 +188,16 @@ if (refreshBtn) {
             }
         });
 
+        // Clear search bar
+        const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+        if (searchInput) searchInput.value = '';
+
         fetchStockData();
         showSuccessMessage('Stock data refreshed!');
     });
 }
 
-// ─── Low Stock Items Button ──────────────────────────────────────────────────
-
-const lowStockBtn = document.getElementById('lowStockBtn');
-if (lowStockBtn) {
-    lowStockBtn.addEventListener('click', async () => {
-        try {
-            const res = await fetch('/stock/all');
-            if (!res.ok) throw new Error('Failed');
-            const data: StockItem[] = await res.json();
-            const lowStockItems = (data || []).filter(i => {
-                const qty = Number(i.stock_quantity) || 0;
-                const minQty = Number(i.min_stock_quantity) || 0;
-                return qty < minQty || qty === 0;
-            });
-            renderStockTable(lowStockItems);
-
-            // Update filter dropdown to show "Low Stock" as active
-            const filterDropdown = document.getElementById('filterDropdown');
-            if (filterDropdown) {
-                filterDropdown.querySelectorAll('a').forEach(link => {
-                    link.classList.remove('bg-gray-100', 'font-semibold');
-                    if (link.getAttribute('data-filter') === 'Low Stock') {
-                        link.classList.add('bg-gray-100', 'font-semibold');
-                    }
-                });
-            }
-        } catch (err) {
-            console.error(err);
-            showErrorMessage('Failed to filter low stock items.');
-        }
-    });
-}
+// ─── Print Functionality ─────────────────────────────────────────────────────
 
 // ─── Sorting Functionality ───────────────────────────────────────────────────
 
@@ -256,6 +252,8 @@ function sortData(data: StockItem[], field: string, direction: 'asc' | 'desc'): 
                 break;
             case 'status':
                 const getStatusPriority = (item: StockItem): number => {
+                    const isActive = item.is_active !== false;
+                    if (!isActive) return -2; // Inactive
                     const quantity = Number(item.stock_quantity) || 0;
                     const minQuantity = Number(item.min_stock_quantity) || 0;
                     if (quantity < 0) return -1; // Negative Stock

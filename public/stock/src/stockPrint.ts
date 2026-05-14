@@ -10,8 +10,10 @@
  * @returns Formatted HTML for printing
  */
 function generateStockPrintContent(type: string, category: string, status: string): string {
-    // Filter data based on print modal selections
-    let filteredData = currentStockData;
+    // Filter data based on print modal selections and exclude deleted items
+    let filteredData = currentStockData.filter(item => {
+        return !(item.deletion && item.deletion.is_deleted === true) && !((item as any).is_deleted === true);
+    });
 
     // Apply type filter
     if (type !== 'all') {
@@ -28,10 +30,12 @@ function generateStockPrintContent(type: string, category: string, status: strin
         filteredData = filteredData.filter(item => {
             const quantity = Number(item.stock_quantity) || 0;
             const minQuantity = Number(item.min_stock_quantity) || 0;
+            const isActive = item.is_active !== false;
 
-            if (status === 'In Stock') return quantity >= minQuantity;
-            if (status === 'Low Stock') return quantity > 0 && quantity < minQuantity;
-            if (status === 'Out of Stock') return quantity === 0;
+            if (status === 'Inactive') return !isActive;
+            if (status === 'In Stock') return isActive && quantity >= minQuantity;
+            if (status === 'Low Stock') return isActive && quantity > 0 && quantity < minQuantity;
+            if (status === 'Out of Stock') return isActive && quantity === 0;
             return true;
         });
     }
@@ -56,8 +60,12 @@ function generateStockPrintContent(type: string, category: string, status: strin
         // Determine status
         let statusText = 'In Stock';
         let statusClass = 'stock-status-normal';
+        const isActive = item.is_active !== false;
 
-        if (qty < 0) {
+        if (!isActive) {
+            statusText = 'Inactive';
+            statusClass = 'stock-status-inactive';
+        } else if (qty < 0) {
             statusText = 'Negative Stock';
             statusClass = 'stock-status-negative';
         } else if (qty === 0) {
@@ -239,6 +247,17 @@ function generateStockPrintContent(type: string, category: string, status: strin
                     font-weight: 600;
                     background-color: #fecaca;
                     color: #7f1d1d;
+                    white-space: nowrap;
+                }
+
+                .stock-status-inactive {
+                    display: inline-block;
+                    padding: 2px 6px;
+                    border-radius: 10px;
+                    font-size: 7pt;
+                    font-weight: 600;
+                    background-color: #e5e7eb;
+                    color: #6b7280;
                     white-space: nowrap;
                 }
 

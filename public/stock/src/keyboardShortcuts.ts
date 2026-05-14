@@ -78,11 +78,16 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
         }
     }
 
-    // Ctrl+R or Cmd+R to refresh (prevent default and use our refresh)
+    // Ctrl+R or Cmd+R to refresh (trigger the Refresh button click)
     if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
         e.preventDefault();
-        fetchStockData();
-        showSuccessMessage('Stock data refreshed!');
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+            refreshBtn.click();
+        } else {
+            fetchStockData();
+            showSuccessMessage('Stock data refreshed!');
+        }
     }
 
     // ? key to show keyboard shortcuts help (only when not typing)

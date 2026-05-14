@@ -37,6 +37,7 @@ export interface ISecurity {
 export interface INotifications {
     low_stock_threshold?: number;
     enable_stock_alerts?: boolean;
+    stock_inactive_months?: number;
     enable_invoice_reminders?: boolean;
     invoice_reminder_days?: number;
     enable_service_reminders?: boolean;
@@ -149,6 +150,7 @@ const notificationsSchema = new Schema<INotifications>(
     {
         low_stock_threshold: { type: Number, default: 10 },
         enable_stock_alerts: { type: Boolean, default: true },
+        stock_inactive_months: { type: Number, default: 3, min: 1, max: 24 },
         enable_invoice_reminders: { type: Boolean, default: true },
         invoice_reminder_days: { type: Number, default: 7 },
         enable_service_reminders: { type: Boolean, default: true },

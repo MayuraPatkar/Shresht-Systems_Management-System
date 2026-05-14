@@ -16,7 +16,12 @@ async function fetchStockData(): Promise<void> {
         if (!response.ok) throw new Error('Failed to fetch stock data');
         const stockData: StockItem[] = await response.json();
         currentStockData = stockData || [];
-        renderStockTable(currentStockData);
+        // Delegate to applyFilters to handle the toggle view state and other filters
+        if (typeof applyFilters === 'function') {
+            applyFilters();
+        } else {
+            renderStockTable(currentStockData);
+        }
         populateCategoryFilters(currentStockData);
         showLoading(false);
     } catch (err) {

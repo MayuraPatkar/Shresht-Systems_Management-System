@@ -23,6 +23,9 @@ function loadPreferences() {
 
                 document.getElementById("pref-service-prefix").value = s.numbering?.service_prefix || 'SRV';
 
+                // Stock Management
+                document.getElementById("pref-stock-inactive-months").value = s.notifications?.stock_inactive_months || 3;
+
 
                 // Backup settings
                 document.getElementById("backup-auto-enabled").checked = s.backup?.auto_backup_enabled || false;
@@ -67,6 +70,9 @@ function savePreferences() {
             quotation_prefix: document.getElementById("pref-quotation-prefix").value,
             purchase_prefix: document.getElementById("pref-purchase-prefix").value,
             service_prefix: document.getElementById("pref-service-prefix").value,
+        },
+        notifications: {
+            stock_inactive_months: parseInt(document.getElementById("pref-stock-inactive-months").value) || 3,
         },
         backup: {
             auto_backup_enabled: document.getElementById("backup-auto-enabled").checked,

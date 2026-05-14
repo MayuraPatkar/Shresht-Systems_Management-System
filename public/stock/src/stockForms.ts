@@ -92,6 +92,11 @@ if (newStockForm) {
             return;
         }
 
+        if (!unit) {
+            showErrorMessage('Please select a unit.');
+            return;
+        }
+
         if (isNaN(purchase_price) || purchase_price <= 0) {
             showErrorMessage('Please enter a valid purchase price.');
             return;
@@ -159,6 +164,11 @@ if (editForm) {
 
         if (!item_name || !hsn_sac || !brand || !category || !item_type) {
             showErrorMessage('Please fill all required text fields.');
+            return;
+        }
+
+        if (!unit) {
+            showErrorMessage('Please select a unit.');
             return;
         }
 
@@ -253,3 +263,90 @@ document.getElementById('quantityModalInput')?.addEventListener('keydown', (e: K
         document.getElementById('confirmQuantityBtn')!.click();
     }
 });
+
+// ─── Unit → Min Stock Quantity default ──────────────────────────────────────
+
+function updateMinStockDefault(unitSelectId: string, minStockInputId: string): void {
+    const unitSelect = document.getElementById(unitSelectId) as HTMLSelectElement | null;
+    const minStockInput = document.getElementById(minStockInputId) as HTMLInputElement | null;
+    if (!unitSelect || !minStockInput) return;
+
+    unitSelect.addEventListener('change', () => {
+        const currentVal = parseInt(minStockInput.value, 10);
+        // Only auto-set if the field is empty or still at a known default (10 or 100 or the old 5)
+        if (isNaN(currentVal) || currentVal === 10 || currentVal === 5 || currentVal === 100 || minStockInput.value === '') {
+            minStockInput.value = unitSelect.value === 'm' ? '100' : '10';
+        }
+    });
+}
+
+// Add modal
+updateMinStockDefault('unit', 'minStockQuantity');
+// Edit modal
+updateMinStockDefault('editUnit', 'editMinStockQuantity');
+
+// ─── Margin ↔ Selling Price linking ────────────────────────────────────────
+
+function linkMarginAndSellingPrice(
+    purchasePriceId: string,
+    sellingPriceId: string,
+    marginId: string
+): void {
+    const purchaseInput = document.getElementById(purchasePriceId) as HTMLInputElement | null;
+    const sellingInput = document.getElementById(sellingPriceId) as HTMLInputElement | null;
+    const marginInput = document.getElementById(marginId) as HTMLInputElement | null;
+    if (!purchaseInput || !sellingInput || !marginInput) return;
+
+    // Track which field was last manually edited so purchase price changes
+    // know which one to recalculate
+    let lastEdited: 'selling' | 'margin' = 'selling';
+
+    // Helper: round to 2 decimal places
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+
+    sellingInput.addEventListener('input', () => {
+        lastEdited = 'selling';
+        const purchase = parseFloat(purchaseInput.value);
+        const selling = parseFloat(sellingInput.value);
+        if (isNaN(purchase) || purchase <= 0 || isNaN(selling)) {
+            marginInput.value = '';
+            return;
+        }
+        marginInput.value = String(round2(((selling - purchase) / purchase) * 100));
+    });
+
+    marginInput.addEventListener('input', () => {
+        lastEdited = 'margin';
+        const purchase = parseFloat(purchaseInput.value);
+        const margin = parseFloat(marginInput.value);
+        if (isNaN(purchase) || purchase <= 0 || isNaN(margin)) {
+            sellingInput.value = '';
+            return;
+        }
+        sellingInput.value = String(round2(purchase * (1 + margin / 100)));
+    });
+
+    purchaseInput.addEventListener('input', () => {
+        const purchase = parseFloat(purchaseInput.value);
+        if (isNaN(purchase) || purchase <= 0) return;
+
+        if (lastEdited === 'margin') {
+            // Recalculate selling price from margin
+            const margin = parseFloat(marginInput.value);
+            if (!isNaN(margin)) {
+                sellingInput.value = String(round2(purchase * (1 + margin / 100)));
+            }
+        } else {
+            // Recalculate margin from selling price
+            const selling = parseFloat(sellingInput.value);
+            if (!isNaN(selling)) {
+                marginInput.value = String(round2(((selling - purchase) / purchase) * 100));
+            }
+        }
+    });
+}
+
+// Add modal
+linkMarginAndSellingPrice('purchasePrice', 'sellingPrice', 'margin');
+// Edit modal
+linkMarginAndSellingPrice('editPurchasePrice', 'editSellingPrice', 'editMargin');

@@ -1,9 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { ItemModel, StockMovementModel } from '../models';
+import { ItemModel, StockMovementModel, SettingsModel } from '../models';
 import logger from '../utils/logger';
 import validators from '../middleware/validators';
 
 const router: Router = Router();
+
+// ─── Constants ──────────────────────────────────────────────────────────────
+const DEFAULT_INACTIVE_THRESHOLD_MONTHS = 3;
 
 // Helper function to log stock movements (aligned with new StockMovement schema)
 async function logStockMovement(
@@ -38,16 +41,62 @@ async function logStockMovement(
     }
 }
 
+/**
+ * Refresh is_active status for all items.
+ * Items with no stock movement in the last 3 months are marked inactive.
+ * Runs as a background fire-and-forget task — errors are logged, not thrown.
+ */
+async function refreshActiveStatus(): Promise<void> {
+    try {
+        // Read threshold from settings, fall back to default
+        const settings = await SettingsModel.findOne().lean() as any;
+        const thresholdMonths = settings?.notifications?.stock_inactive_months ?? DEFAULT_INACTIVE_THRESHOLD_MONTHS;
+
+        const cutoff = new Date();
+        cutoff.setMonth(cutoff.getMonth() - thresholdMonths);
+
+        // Get all active items that are not deleted
+        const activeItems = await ItemModel.find({ is_active: true, "deletion.is_deleted": { $ne: true } }, { _id: 1 }).lean();
+
+        for (const item of activeItems) {
+            const lastMovement = await StockMovementModel.findOne(
+                { item_id: item._id },
+                { createdAt: 1 }
+            ).sort({ createdAt: -1 }).lean();
+
+            // If no movement at all, check item creation date
+            const lastActivity = lastMovement
+                ? (lastMovement as any).createdAt
+                : (item as any).createdAt;
+
+            if (lastActivity && lastActivity < cutoff) {
+                await ItemModel.updateOne({ _id: item._id }, { is_active: false });
+                logger.info('Item deactivated due to inactivity', {
+                    service: 'stock',
+                    itemId: item._id,
+                    lastActivity
+                });
+            }
+        }
+    } catch (error: unknown) {
+        logger.error('Active status refresh failed', { service: 'stock', error: (error as Error).message });
+    }
+}
+
 // Route to get all stock items
 router.get('/all', async (req: Request, res: Response) => {
     try {
-        const stockData = await ItemModel.find().sort({ item_name: 1 }).lean();
+        // Fire-and-forget: refresh is_active status in the background
+        refreshActiveStatus();
+
+        // Return ALL items (active and soft-deleted) so the frontend can filter them locally.
+        const stockData = await ItemModel.find({}).sort({ item_name: 1 }).lean();
         const mappedData = stockData.map((item: any) => ({
             ...item,
             purchase_price: item.purchase_price ?? item.unit_price ?? 0,
             gst_rate: item.gst_rate ?? item.GST ?? 0,
             stock_quantity: item.stock_quantity ?? item.quantity ?? 0,
-            min_stock_quantity: item.min_stock_quantity ?? item.min_quantity ?? 5,
+            min_stock_quantity: item.min_stock_quantity ?? item.min_quantity ?? (item.unit === 'm' ? 100 : 10),
             brand: item.brand ?? item.company ?? '',
             hsn_sac: item.hsn_sac ?? item.HSN_SAC ?? '',
             item_type: item.item_type ?? item.type ?? 'Material'
@@ -61,15 +110,24 @@ router.get('/all', async (req: Request, res: Response) => {
 
 // Route to Add Item to Stock
 router.post('/addItem', validators.createStock, async (req: Request, res: Response) => {
-    const { item_name, hsn_sac, specifications, brand, category, item_type, purchase_price, stock_quantity, gst_rate, min_stock_quantity } = req.body;
+    const { item_name, hsn_sac, specifications, brand, category, item_type, unit, purchase_price, selling_price, margin, stock_quantity, gst_rate, min_stock_quantity, remarks } = req.body;
 
     try {
-        // Check if item already exists
-        const existingItem = await ItemModel.findOne({ item_name: item_name.trim() });
+        // Check if active item already exists
+        const existingItem = await ItemModel.findOne({
+            item_name: item_name.trim(),
+            "deletion.is_deleted": { $ne: true }
+        });
 
         if (existingItem) {
             return res.status(400).json({ error: 'Item already exists in stock' });
         }
+
+        // Compute selling_price / margin defaults to keep them consistent
+        const effectiveMargin = margin || 0;
+        const effectiveSellingPrice = selling_price
+            ? selling_price
+            : Math.round(purchase_price * (1 + effectiveMargin / 100) * 100) / 100;
 
         // Add new stock item
         const newItem = new ItemModel({
@@ -79,10 +137,14 @@ router.post('/addItem', validators.createStock, async (req: Request, res: Respon
             brand,
             category,
             item_type: item_type || 'Material',
+            unit,
             purchase_price,
-            stock_quantity: stock_quantity || 0,
+            selling_price: effectiveSellingPrice,
+            margin: effectiveMargin,
             gst_rate,
-            min_stock_quantity: min_stock_quantity || 5,
+            stock_quantity: stock_quantity || 0,
+            min_stock_quantity: min_stock_quantity || (unit === 'm' ? 100 : 10),
+            remarks,
         });
 
         await newItem.save();
@@ -126,6 +188,8 @@ router.post('/addToStock', async (req: Request, res: Response) => {
 
         const stockBefore = item.stock_quantity || 0;
         item.stock_quantity = stockBefore + quantity;
+        // Re-activate item on stock movement
+        if (!item.is_active) item.is_active = true;
         await item.save();
 
         // Log stock movement
@@ -169,6 +233,8 @@ router.post('/removeFromStock', async (req: Request, res: Response) => {
         }
 
         item.stock_quantity = stockBefore - quantity;
+        // Re-activate item on stock movement
+        if (!item.is_active) item.is_active = true;
         await item.save();
 
         // Log stock movement
@@ -194,7 +260,7 @@ router.post('/removeFromStock', async (req: Request, res: Response) => {
 
 // Route to Edit Item Details
 router.post('/editItem', async (req: Request, res: Response) => {
-    const { itemId, item_name, hsn_sac, specifications, brand, category, item_type, purchase_price, gst_rate, min_stock_quantity } = req.body;
+    const { itemId, item_name, hsn_sac, specifications, brand, category, item_type, unit, purchase_price, selling_price, margin, stock_quantity, gst_rate, min_stock_quantity, remarks } = req.body;
 
     try {
         // Input validation
@@ -210,10 +276,11 @@ router.post('/editItem', async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'GST rate must be a valid number between 0 and 100' });
         }
 
-        // Check if another item with the same name exists (excluding current item)
+        // Check if another active item with the same name exists (excluding current item)
         const existingItem = await ItemModel.findOne({
             item_name: item_name.trim(),
-            _id: { $ne: itemId }
+            _id: { $ne: itemId },
+            "deletion.is_deleted": { $ne: true }
         });
 
         if (existingItem) {
@@ -225,17 +292,21 @@ router.post('/editItem', async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Item not found' });
         }
 
-        // Update item details (stock_quantity is managed separately via stock in/out operations)
+        // Update item details
         item.item_name = item_name.trim();
         item.hsn_sac = hsn_sac;
         item.specifications = specifications;
         item.brand = brand;
         item.category = category;
         item.item_type = item_type;
+        item.unit = unit;
         item.purchase_price = purchase_price;
+        item.selling_price = selling_price;
+        item.margin = margin;
+        item.stock_quantity = stock_quantity;
         item.gst_rate = gst_rate;
-        item.min_stock_quantity = min_stock_quantity;
-        item.updatedAt = new Date();
+        item.min_stock_quantity = min_stock_quantity || (unit === 'm' ? 100 : 10);
+        item.remarks = remarks;
         await item.save();
 
         res.status(200).json({ message: 'Item updated successfully' });
@@ -251,7 +322,10 @@ router.get("/get-stock-item", async (req: Request, res: Response) => {
         const itemName = req.query.item as string;
         if (!itemName) return res.status(400).json({ message: "Item name required" });
 
-        const stockItem = await ItemModel.findOne({ item_name: itemName }).lean() as any;
+        const stockItem = await ItemModel.findOne({
+            item_name: itemName,
+            "deletion.is_deleted": { $ne: true }
+        }).lean() as any;
         if (!stockItem) return res.json(null); // Return null instead of 404 to avoid console errors
 
         const mappedItem = {
@@ -273,7 +347,7 @@ router.get("/get-stock-item", async (req: Request, res: Response) => {
 
 router.get("/get-names", async (req: Request, res: Response) => {
     try {
-        const stockItems = await ItemModel.find({}, { item_name: 1 });
+        const stockItems = await ItemModel.find({ "deletion.is_deleted": { $ne: true } }, { item_name: 1 });
         res.json(stockItems.map(item => item.item_name));
     } catch (error: unknown) {
         logger.error("Stock names fetch failed", { service: "stock", error: (error as Error).message });
@@ -284,7 +358,7 @@ router.get("/get-names", async (req: Request, res: Response) => {
 // Get stock items with IDs for autocomplete (used by reports)
 router.get("/get-items-with-ids", async (req: Request, res: Response) => {
     try {
-        const stockItems = await ItemModel.find({}, { _id: 1, item_name: 1 });
+        const stockItems = await ItemModel.find({ "deletion.is_deleted": { $ne: true } }, { _id: 1, item_name: 1 });
         res.json(stockItems.map(item => ({ id: item._id, name: item.item_name })));
     } catch (error: unknown) {
         logger.error("Stock items fetch failed", { service: "stock", error: (error as Error).message });
@@ -297,7 +371,8 @@ router.get('/search/:itemName', async (req: Request, res: Response) => {
     try {
         const itemName = (req.params.itemName as string).trim();
         const stockItem = await ItemModel.findOne({
-            item_name: { $regex: new RegExp(`^${itemName}$`, 'i') }
+            item_name: { $regex: new RegExp(`^${itemName}$`, 'i') },
+            "deletion.is_deleted": { $ne: true }
         }).lean() as any;
 
         if (stockItem) {
@@ -322,7 +397,7 @@ router.get('/search/:itemName', async (req: Request, res: Response) => {
 
 // Delete stock item
 router.post('/deleteItem', async (req: Request, res: Response) => {
-    const { itemId } = req.body;
+    const { itemId, username } = req.body;
     try {
         const item = await ItemModel.findOne({ _id: itemId }) as any;
         if (!item) {
@@ -346,11 +421,88 @@ router.post('/deleteItem', async (req: Request, res: Response) => {
             );
         }
 
-        await ItemModel.deleteOne({ _id: itemId });
+        if (!item.deletion) {
+            item.deletion = {};
+        }
+        item.deletion.is_deleted = true;
+        item.deletion.deleted_at = new Date();
+        item.deletion.deleted_by = username || 'Admin';
+        await item.save();
+
         res.json({ success: true });
     } catch (error: unknown) {
         logger.error('Stock item deletion failed', { service: "stock", itemId, error: (error as Error).message });
         res.status(500).json({ error: 'Failed to delete item' });
+    }
+});
+
+// Restore stock item
+router.post('/restoreItem', async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const item = await ItemModel.findOne({ _id: itemId }) as any;
+        if (!item) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+
+        if (item.deletion) {
+            item.deletion.is_deleted = false;
+            item.deletion.deleted_at = undefined;
+            item.deletion.deleted_by = undefined;
+            await item.save();
+        }
+
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Stock item restore failed', { service: "stock", itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to restore item' });
+    }
+});
+
+// Permanently delete stock item
+router.post('/hardDeleteItem', async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const result = await ItemModel.deleteOne({ _id: itemId });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+        res.json({ success: true });
+    } catch (error: unknown) {
+        res.status(500).json({ error: 'Failed to permanently delete item' });
+    }
+});
+
+// Bulk restore stock items
+router.post('/bulkRestore', async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        await ItemModel.updateMany(
+            { _id: { $in: itemIds } },
+            { 
+                $set: { 
+                    "deletion.is_deleted": false,
+                    "deletion.deleted_at": undefined,
+                    "deletion.deleted_by": undefined
+                } 
+            }
+        );
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk stock item restore failed', { service: "stock", count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk restore items' });
+    }
+});
+
+// Bulk permanently delete stock items
+router.post('/bulkHardDelete', async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        await ItemModel.deleteMany({ _id: { $in: itemIds } });
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk stock item permanent deletion failed', { service: "stock", count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk permanently delete items' });
     }
 });
 
