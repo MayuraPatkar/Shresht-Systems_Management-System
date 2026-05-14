@@ -1,3 +1,4 @@
+// @ts-nocheck
 async function getQuotationHeaderHTML() {
     if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
         return await window.SectionRenderers.renderQuotationDocumentHeader();

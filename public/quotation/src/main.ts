@@ -1,12 +1,21 @@
-const quotationListDiv = document.querySelector(".records");
+// @ts-nocheck
+/**
+ * Quotation Module - Main Entry Point
+ * Handles: initial load, search, filters, navigation, and keyboard shortcuts.
+ * Card/table rendering → quotationTable.ts
+ * Form/edit/clone logic → quotationForms.ts
+ * View/preview rendering → quotationView.ts
+ */
+
+const quotationListDiv = document.querySelector(".records") as HTMLElement;
 
 // Filter state
-let allQuotations = [];
+let allQuotations: any[] = [];
 let currentFilters = {
     dateFilter: 'all',
     sortBy: 'date-desc',
-    customStartDate: null,
-    customEndDate: null
+    customStartDate: null as string | null,
+    customEndDate: null as string | null
 };
 
 const QUOTATION_SHORTCUT_GROUPS = [
@@ -35,17 +44,17 @@ const QUOTATION_SHORTCUT_GROUPS = [
     }
 ];
 
-let shortcutsModalRef = null;
+let shortcutsModalRef: HTMLElement | null = null;
 
 const isMac = navigator.userAgent.toLowerCase().includes('mac');
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentQuotations();
 
-    document.getElementById('new-quotation').addEventListener('click', showNewQuotationForm);
+    document.getElementById('new-quotation')!.addEventListener('click', showNewQuotationForm);
 
     // Attach search: Enter key and real-time input (debounced)
-    const qSearchInput = document.getElementById('search-input');
+    const qSearchInput = document.getElementById('search-input') as HTMLInputElement;
     qSearchInput.addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
@@ -60,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initShortcutsModal();
     initQuotationFilters();
 
-    const dateInput = document.getElementById('quotation-date');
+    const dateInput = document.getElementById('quotation-date') as HTMLInputElement;
 
     if (dateInput) {
         dateInput.addEventListener('change', function () {
@@ -77,6 +86,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
 });
+
+// ====== Data Loading ======
 
 // Load recent quotations from the server
 async function loadRecentQuotations() {
@@ -108,6 +119,8 @@ async function loadRecentQuotations() {
     }
 }
 
+// ====== Filters ======
+
 // Apply filters to quotations
 function applyQuotationFilters() {
     const filtered = applyFilters(allQuotations, {
@@ -119,17 +132,19 @@ function applyQuotationFilters() {
         customStartDate: currentFilters.customStartDate,
         customEndDate: currentFilters.customEndDate
     });
-    renderQuotations(filtered);
+    if (window.quotationTable) {
+        window.quotationTable.renderQuotations(filtered);
+    }
 }
 
 // Initialize filter event listeners
 function initQuotationFilters() {
-    const filterBtn = document.getElementById('filter-btn');
-    const filterPopover = document.getElementById('filter-popover');
-    const dateFilter = document.getElementById('date-filter');
-    const sortFilter = document.getElementById('sort-filter');
-    const clearFiltersBtn = document.getElementById('clear-filters-btn');
-    const applyFiltersBtn = document.getElementById('apply-filters-btn');
+    const filterBtn = document.getElementById('filter-btn') as HTMLButtonElement;
+    const filterPopover = document.getElementById('filter-popover') as HTMLElement;
+    const dateFilter = document.getElementById('date-filter') as HTMLSelectElement;
+    const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement;
+    const clearFiltersBtn = document.getElementById('clear-filters-btn') as HTMLButtonElement;
+    const applyFiltersBtn = document.getElementById('apply-filters-btn') as HTMLButtonElement;
 
     // Toggle filter popover
     if (filterBtn && filterPopover) {
@@ -143,7 +158,7 @@ function initQuotationFilters() {
 
         // Close popover when clicking outside
         document.addEventListener('click', (e) => {
-            if (!filterPopover.contains(e.target) && e.target !== filterBtn) {
+            if (!filterPopover.contains(e.target as Node) && e.target !== filterBtn) {
                 filterPopover.classList.add('hidden');
             }
         });
@@ -152,9 +167,9 @@ function initQuotationFilters() {
     // Handle date filter custom option
     if (dateFilter) {
         dateFilter.addEventListener('change', (e) => {
-            const value = e.target.value;
+            const value = (e.target as HTMLSelectElement).value;
             if (value === 'custom') {
-                showCustomDateModal((startDate, endDate) => {
+                showCustomDateModal((startDate: string, endDate: string) => {
                     currentFilters.dateFilter = 'custom';
                     currentFilters.customStartDate = startDate;
                     currentFilters.customEndDate = endDate;
@@ -195,173 +210,12 @@ function initQuotationFilters() {
     }
 }
 
-// Render quotations in the list
-function renderQuotations(quotations) {
-    quotationListDiv.innerHTML = "";
-    if (!quotations || quotations.length === 0) {
-        quotationListDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-                <div class="text-purple-500 text-5xl mb-4">
-                    <i class="fas fa-file-invoice"></i>
-                </div>
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">No Quotations Found</h2>
-                <p class="text-gray-600">Start creating professional quotations for your clients</p>
-            </div>
-        `;
-        return;
-    }
-    quotations.forEach(quotation => {
-        const quotationCard = createQuotationCard(quotation);
-        quotationListDiv.appendChild(quotationCard);
-    });
-}
+// ====== Navigation ======
 
-document.getElementById('home-btn').addEventListener('click', () => {
+document.getElementById('home-btn')!.addEventListener('click', () => {
     sessionStorage.removeItem('currentTab-status');
-    window.location = '/quotation';
+    (window as any).location = '/quotation';
 });
-
-// Global toast function
-function showToast(message) {
-    const existingToast = document.getElementById('global-toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-    const toast = document.createElement('div');
-    toast.id = 'global-toast';
-    toast.textContent = message;
-    toast.style.cssText = 'display:none;position:fixed;bottom:20px;right:20px;background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;';
-    document.body.appendChild(toast);
-    toast.style.display = 'block';
-    setTimeout(() => {
-        toast.style.display = 'none';
-        toast.remove();
-    }, 2000);
-}
-
-// Create a quotation card element
-function createQuotationCard(quotation) {
-    const quotationCard = document.createElement("div");
-    quotationCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-400 overflow-hidden fade-in";
-
-    // Format the date for display
-    const formattedDate = quotation.quotation_date ? formatDateIndian(quotation.quotation_date) : '-';
-
-    quotationCard.innerHTML = `
-        <!-- Left Border Accent -->
-        <div class="flex">
-            <div class="w-1.5 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-l-lg"></div>
-            <div class="relative p-5 flex-1">
-            <!-- Top Row: Header with Title & Actions -->
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-200">
-                        <i class="fas fa-file-invoice text-lg text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900 truncate" title="${quotation.project_name}">${quotation.project_name}</h3>
-                    </div>
-                </div>
-                
-                <!-- Actions -->
-                <div class="flex items-center gap-2">
-                    <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="action-btn duplicate-btn px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all border border-indigo-200 hover:border-indigo-400" title="Clone Quotation">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                    <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- ID & Date Row -->
-            <div class="flex items-center gap-2 mb-3">
-                <span class="text-sm font-bold text-gray-800 cursor-pointer hover:text-purple-600 copy-text transition-colors" title="Click to copy ID">
-                    ${quotation.quotation_id}
-                    <i class="fas fa-copy text-xs ml-1 opacity-50"></i>
-                </span>
-                <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                <span class="text-xs text-gray-500">
-                    <i class="fas fa-calendar-alt mr-1"></i>${formattedDate}
-                </span>
-            </div>
-            
-            <!-- Bottom Row: Customer & Amount -->
-            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-user text-blue-600 text-xs"></i>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-gray-800 truncate" title="${quotation.customer_name || '-'}">${quotation.customer_name || '-'}</p>
-                        <p class="text-xs text-gray-500 truncate" title="${quotation.customer_address || '-'}">${quotation.customer_address || '-'}</p>
-                    </div>
-                </div>
-                
-                <div class="flex-shrink-0 ml-4 text-right">
-                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Total</p>
-                    <p class="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">₹${formatIndian(quotation.total_amount_tax || 0, 2)}</p>
-                </div>
-            </div>
-        </div>
-        </div>
-    `;
-
-    const copyElement = quotationCard.querySelector('.copy-text');
-    const viewBtn = quotationCard.querySelector('.view-btn');
-    const duplicateBtn = quotationCard.querySelector('.duplicate-btn');
-    const editBtn = quotationCard.querySelector('.edit-btn');
-    const deleteBtn = quotationCard.querySelector('.delete-btn');
-
-    // Copy ID functionality
-    copyElement.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(quotation.quotation_id);
-            showToast('ID Copied to Clipboard!');
-        } catch (err) {
-            console.error('Copy failed', err);
-        }
-    });
-
-    // Action button handlers - view with default type (1 = Without Tax)
-    viewBtn.addEventListener('click', () => {
-        viewQuotation(quotation.quotation_id, 1);
-    });
-
-    duplicateBtn.addEventListener('click', () => {
-        sessionStorage.setItem('currentTab-status', 'clone');
-        cloneQuotation(quotation.quotation_id);
-    });
-
-    editBtn.addEventListener('click', () => {
-        sessionStorage.setItem('currentTab-status', 'update');
-        openQuotation(quotation.quotation_id);
-    });
-
-    deleteBtn.addEventListener('click', () => {
-        window.electronAPI.showAlert2('Are you sure you want to delete this quotation?');
-        if (window.electronAPI) {
-            window.electronAPI.receiveAlertResponse((response) => {
-                if (response === "Yes") {
-                    deleteQuotation(quotation.quotation_id);
-                }
-            });
-        }
-    });
-
-    return quotationCard;
-}
-
-// Delete a quotation
-async function deleteQuotation(quotationId) {
-    await deleteDocument('quotation', quotationId, 'Quotation', loadRecentQuotations);
-}
 
 // Show the new quotation form
 function showNewQuotationForm() {
@@ -378,7 +232,7 @@ function showNewQuotationForm() {
     });
 
     // Set default date to today
-    const dateInput = document.getElementById('quotation-date');
+    const dateInput = document.getElementById('quotation-date') as HTMLInputElement;
     if (dateInput) {
         const today = new Date();
         const yyyy = today.getFullYear();
@@ -389,21 +243,21 @@ function showNewQuotationForm() {
 
     // Focus on the Quotation ID field and hide Print/PDF buttons for new quotations
     setTimeout(() => {
-        const idInput = document.getElementById('id');
+        const idInput = document.getElementById('id') as HTMLInputElement;
         if (idInput) {
             idInput.readOnly = false;
             idInput.style.backgroundColor = ''; // Reset to default
             idInput.value = ''; // Clear any previous value
             idInput.focus();
         }
-        // Reset custom ID flag (it's in quotation_form.js scope)
+        // Reset custom ID flag (it's in quotationForms.ts scope)
         if (typeof isCustomId !== 'undefined') {
-            isCustomId = false;
+            (window as any).isCustomId = false;
         }
         // Hide Print and Save as PDF buttons for new quotations
-        const printBtn = document.getElementById('print-btn');
-        const savePdfBtn = document.getElementById('save-pdf-btn');
-        const viewPreviewBtn = document.getElementById('view-preview');
+        const printBtn = document.getElementById('print-btn') as HTMLButtonElement;
+        const savePdfBtn = document.getElementById('save-pdf-btn') as HTMLButtonElement;
+        const viewPreviewBtn = document.getElementById('view-preview') as HTMLButtonElement;
 
         if (printBtn) printBtn.style.display = 'none';
         if (savePdfBtn) savePdfBtn.style.display = 'none';
@@ -411,21 +265,48 @@ function showNewQuotationForm() {
     }, 100);
 }
 
+// ====== Search ======
+
 // Handle search functionality
 async function handleSearch() {
-    const query = document.getElementById('search-input').value.trim();
+    const query = (document.getElementById('search-input') as HTMLInputElement).value.trim();
     if (!query) {
         await loadRecentQuotations();
         return;
     }
 
-    await searchDocuments('quotation', query, quotationListDiv, createQuotationCard,
-        `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-            <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
-            <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-            <p class="text-gray-500">No quotations match your search</p>
-        </div>`);
+    const cardRenderer = window.quotationTable ? window.quotationTable.createQuotationCard.bind(window.quotationTable) : null;
+    
+    if (cardRenderer) {
+        await searchDocuments('quotation', query, quotationListDiv, cardRenderer,
+            `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
+                <p class="text-gray-500">No quotations match your search</p>
+            </div>`);
+    }
 }
+
+// ====== Global Toast ======
+
+function showToast(message: string) {
+    const existingToast = document.getElementById('global-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    const toast = document.createElement('div');
+    toast.id = 'global-toast';
+    toast.textContent = message;
+    toast.style.cssText = 'display:none;position:fixed;bottom:20px;right:20px;background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;';
+    document.body.appendChild(toast);
+    toast.style.display = 'block';
+    setTimeout(() => {
+        toast.style.display = 'none';
+        toast.remove();
+    }, 2000);
+}
+
+// ====== Shortcuts Modal ======
 
 function initShortcutsModal() {
     shortcutsModalRef = document.getElementById('shortcuts-modal');
@@ -454,8 +335,8 @@ function initShortcutsModal() {
     });
 }
 
-function renderShortcutSection(section) {
-    const sectionHeader = `
+function renderShortcutSection(section: any) {
+    return `
         <div class="shortcuts-section">
             <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <i class="${section.icon}"></i>
@@ -466,10 +347,9 @@ function renderShortcutSection(section) {
             </div>
         </div>
     `;
-    return sectionHeader;
 }
 
-function renderShortcutRow(item) {
+function renderShortcutRow(item: any) {
     return `
         <div class="shortcut-row">
             <span class="text-gray-700">${item.label}</span>
@@ -478,7 +358,7 @@ function renderShortcutRow(item) {
     `;
 }
 
-function renderShortcutKeys(keys) {
+function renderShortcutKeys(keys: string[]) {
     const keyCaps = keys.map((key, index) => {
         const displayKey = key === 'Ctrl' && isMac ? 'Cmd' : key;
         const separator = index > 0 ? '<span>+</span>' : '';
@@ -497,29 +377,31 @@ function hideShortcutsModal() {
     shortcutsModalRef.classList.add('hidden');
 }
 
-function isSectionVisible(sectionId) {
+// ====== Keyboard Shortcuts ======
+
+function isSectionVisible(sectionId: string): boolean {
     const el = document.getElementById(sectionId);
     if (!el) return false;
     return window.getComputedStyle(el).display !== 'none';
 }
 
-function isFormActive() {
+function isFormActive(): boolean {
     return isSectionVisible('new');
 }
 
-function isExistingDocument() {
+function isExistingDocument(): boolean {
     const status = sessionStorage.getItem('currentTab-status');
     return status === 'update' || status === 'clone';
 }
 
-function isPreviewStepActive() {
+function isPreviewStepActive(): boolean {
     if (typeof currentStep === 'undefined' || typeof totalSteps === 'undefined') {
         return false;
     }
     return currentStep === totalSteps;
 }
 
-async function runOnPreviewStep(callback) {
+async function runOnPreviewStep(callback: () => void) {
     if (typeof callback !== 'function') {
         return;
     }
@@ -539,7 +421,7 @@ async function runOnPreviewStep(callback) {
 
     // Navigate step-by-step using the Next button to trigger validation at each step
     const navigateToPreview = async () => {
-        const nextBtn = document.getElementById('next-btn');
+        const nextBtn = document.getElementById('next-btn') as HTMLButtonElement;
         if (!nextBtn) {
             return;
         }
@@ -577,30 +459,30 @@ async function runOnPreviewStep(callback) {
     await navigateToPreview();
 }
 
-function isItemsStepActive() {
+function isItemsStepActive(): boolean {
     if (typeof currentStep === 'undefined') {
         return false;
     }
     return currentStep === 3;
 }
 
-function isHomeScreenActive() {
+function isHomeScreenActive(): boolean {
     const homeSectionVisible = isSectionVisible('home');
     return homeSectionVisible && !isFormActive() && !isSectionVisible('view');
 }
 
-function triggerAddEntry() {
+function triggerAddEntry(): boolean {
     if (!isFormActive()) {
         return false;
     }
 
-    const itemsBtn = document.getElementById('add-item-btn');
+    const itemsBtn = document.getElementById('add-item-btn') as HTMLButtonElement;
     if (itemsBtn && isItemsStepActive()) {
         itemsBtn.click();
         return true;
     }
 
-    const nonItemBtn = document.getElementById('add-non-item-btn');
+    const nonItemBtn = document.getElementById('add-non-item-btn') as HTMLButtonElement;
     if (nonItemBtn && typeof currentStep !== 'undefined' && currentStep === 4) {
         nonItemBtn.click();
         return true;
@@ -609,15 +491,15 @@ function triggerAddEntry() {
     return false;
 }
 
-function triggerPrintAction() {
-    const formPrintBtn = document.getElementById('print-btn');
+function triggerPrintAction(): boolean {
+    const formPrintBtn = document.getElementById('print-btn') as HTMLButtonElement;
     // Only trigger print if button exists, form is active, AND button is visible
     if (formPrintBtn && isFormActive() && window.getComputedStyle(formPrintBtn).display !== 'none') {
         runOnPreviewStep(() => formPrintBtn.click());
         return true;
     }
 
-    const viewPrintBtn = document.getElementById('printProject');
+    const viewPrintBtn = document.getElementById('printProject') as HTMLButtonElement;
     if (viewPrintBtn && isSectionVisible('view')) {
         viewPrintBtn.click();
         return true;
@@ -626,14 +508,14 @@ function triggerPrintAction() {
     return false;
 }
 
-function isTypingContext() {
+function isTypingContext(): boolean {
     const active = document.activeElement;
     if (!active) return false;
     const tagName = active.tagName;
-    return tagName === 'INPUT' || tagName === 'TEXTAREA' || active.isContentEditable || tagName === 'SELECT';
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' || (active as HTMLElement).isContentEditable || tagName === 'SELECT';
 }
 
-function handleQuotationKeyboardShortcuts(event) {
+function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
     const keyLower = event.key.toLowerCase();
     const isModifierPressed = event.ctrlKey || event.metaKey;
     const homeButton = document.getElementById('home-btn');
@@ -645,7 +527,7 @@ function handleQuotationKeyboardShortcuts(event) {
     if (!event.altKey && isModifierPressed) {
         switch (keyLower) {
             case 'n': {
-                const newBtn = document.getElementById('new-quotation');
+                const newBtn = document.getElementById('new-quotation') as HTMLButtonElement;
                 if (newBtn && window.getComputedStyle(newBtn).display !== 'none') {
                     event.preventDefault();
                     event.stopPropagation();
@@ -654,7 +536,7 @@ function handleQuotationKeyboardShortcuts(event) {
                 break;
             }
             case 's': {
-                const saveBtn = document.getElementById('save-btn');
+                const saveBtn = document.getElementById('save-btn') as HTMLButtonElement;
                 if (saveBtn && isFormActive()) {
                     // For new documents, only allow save on preview step
                     // For existing documents, allow save from any step
@@ -674,7 +556,7 @@ function handleQuotationKeyboardShortcuts(event) {
                         event.stopPropagation();
                     }
                 } else {
-                    const previewBtn = document.getElementById('view-preview');
+                    const previewBtn = document.getElementById('view-preview') as HTMLButtonElement;
                     if (previewBtn && window.getComputedStyle(previewBtn).display !== 'none') {
                         event.preventDefault();
                         event.stopPropagation();
@@ -702,7 +584,7 @@ function handleQuotationKeyboardShortcuts(event) {
                 break;
             }
             case 'f': {
-                const searchInput = document.getElementById('search-input');
+                const searchInput = document.getElementById('search-input') as HTMLInputElement;
                 if (searchInput) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -732,7 +614,7 @@ function handleQuotationKeyboardShortcuts(event) {
         if (isHomeScreenActive()) {
             event.preventDefault();
             event.stopPropagation();
-            window.location = '/dashboard';
+            (window as any).location = '/dashboard';
             return;
         }
 
@@ -759,7 +641,7 @@ function handleQuotationKeyboardShortcuts(event) {
         }
 
         if (isFormActive()) {
-            const nextBtn = document.getElementById('next-btn');
+            const nextBtn = document.getElementById('next-btn') as HTMLButtonElement;
             if (nextBtn && !nextBtn.disabled) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -770,7 +652,7 @@ function handleQuotationKeyboardShortcuts(event) {
     }
 
     if (event.key === 'Backspace' && isFormActive()) {
-        const prevBtn = document.getElementById('prev-btn');
+        const prevBtn = document.getElementById('prev-btn') as HTMLButtonElement;
         if (prevBtn && !prevBtn.disabled) {
             event.preventDefault();
             event.stopPropagation();

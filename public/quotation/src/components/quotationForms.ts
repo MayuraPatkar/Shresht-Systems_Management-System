@@ -1,3 +1,4 @@
+// @ts-nocheck
 const totalSteps = 6;
 let quotationId = '';
 let totalAmountNoTax = 0;
@@ -22,42 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function normalizeTermsHTML(raw) {
-    if (!raw) return '';
-    // If it already contains HTML list or block tags, return as-is
-    if (/<\s*(ul|li|ol|p|br|div|h[1-6])/.test(raw)) return raw;
-    // Otherwise, treat as newline separated text and convert to <ul><li>...
-    const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    if (lines.length === 0) return '';
-    return `<ul>${lines.map(l => `<li>${l}</li>`).join('')}</ul>`;
-}
+// Helper functions normalizeTermsHTML and getQuotationHeaderHTML are in quotationView.ts
 
-
-async function getQuotationHeaderHTML() {
-    if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
-        return await window.SectionRenderers.renderQuotationDocumentHeader();
-    }
-    // Fallback header if SectionRenderers not loaded
-    return `
-        <div class="header">
-            <div class="quotation-brand">
-                <div class="logo">
-                    <img src="../assets/icon.png" alt="Shresht Logo">
-                </div>
-                <div class="quotation-brand-text">
-                    <h1>SHRESHT SYSTEMS</h1>
-                    <p class="quotation-tagline">CCTV & Security Solutions</p>
-                </div>
-            </div>
-            <div class="company-details">
-                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-            </div>
-        </div>
-    `;
-}
-
+// Globals needed by TS
+declare let currentStep: number;
+declare let totalSteps: number;
+declare let fetchDocumentById: any;
+declare function generatePreview(): Promise<void>;
+declare function toInputDate(dateString: string): string;
+declare function showSuggestions(input: HTMLInputElement, suggestions: HTMLElement): void;
+declare function updateSpecificationsTable(): void;
+declare function handleKeyboardNavigation(event: KeyboardEvent, input: HTMLInputElement, suggestions: HTMLElement): void;
 
 document.getElementById("view-preview").addEventListener("click", async () => {
     // Navigate step-by-step to trigger validation at each step
