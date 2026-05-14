@@ -1,8 +1,64 @@
 import { Router, Request, Response } from 'express';
-import { PaymentModel } from '../models';
+import { PaymentModel, CustomerModel, SupplierModel } from '../models';
 import logger from '../utils/logger';
 
 const router: Router = Router();
+
+/**
+ * GET /payment/get-parties/:type
+ * Fetch party names for suggestions
+ */
+router.get('/get-parties/:type', async (req: Request, res: Response) => {
+    try {
+        const type = req.params.type; // 'Customer' or 'Supplier'
+        let parties: any[] = [];
+
+        if (type === 'Customer') {
+            parties = await CustomerModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'customer.name': 1, _id: 1 }).lean();
+            res.json(parties.map(p => ({ id: p._id, name: p.customer.name })));
+        } else if (type === 'Supplier') {
+            parties = await SupplierModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'supplier.name': 1, _id: 1 }).lean();
+            res.json(parties.map(p => ({ id: p._id, name: p.supplier.name })));
+        } else {
+            res.status(400).json({ success: false, message: 'Invalid party type' });
+        }
+    } catch (error: unknown) {
+        logger.error('Error fetching parties:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+/**
+ * GET /payment/get-party-details/:type/:partyName
+ * Fetch details for a specific party
+ */
+router.get('/get-party-details/:type/:partyName', async (req: Request, res: Response) => {
+    try {
+        const { type, partyName } = req.params;
+        let party: any = null;
+
+        if (type === 'Customer') {
+            party = await CustomerModel.findOne({
+                'customer.name': partyName,
+                'deletion.is_deleted': { $ne: true }
+            }).lean();
+        } else if (type === 'Supplier') {
+            party = await SupplierModel.findOne({
+                'supplier.name': partyName,
+                'deletion.is_deleted': { $ne: true }
+            }).lean();
+        }
+
+        if (!party) {
+            return res.status(404).json({ success: false, message: 'Party not found' });
+        }
+
+        res.json({ success: true, party });
+    } catch (error: unknown) {
+        logger.error('Error fetching party details:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
 
 /**
  * GET /payment/all
@@ -224,6 +280,28 @@ router.delete('/:id', async (req: Request, res: Response) => {
         res.status(200).json({ success: true, message: 'Payment deleted successfully' });
     } catch (error: unknown) {
         logger.error('Error deleting payment:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+router.get('/get-party-details-by-id/:type/:id', async (req: Request, res: Response) => {
+    try {
+        const { type, id } = req.params;
+        let party: any = null;
+
+        if (type === 'Customer') {
+            party = await CustomerModel.findById(id).lean();
+        } else if (type === 'Supplier') {
+            party = await SupplierModel.findById(id).lean();
+        }
+
+        if (party) {
+            res.json({ success: true, party });
+        } else {
+            res.status(404).json({ success: false, message: 'Party not found' });
+        }
+    } catch (error: unknown) {
+        logger.error('Error fetching party details by ID:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
