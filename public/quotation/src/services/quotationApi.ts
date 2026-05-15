@@ -1,4 +1,4 @@
-export class QuotationApi {
+class QuotationApi {
     async fetchRecentQuotations(): Promise<any> {
         const response = await fetch('/quotation/recent-quotations');
         if (!response.ok) throw new Error('Failed to fetch quotations');

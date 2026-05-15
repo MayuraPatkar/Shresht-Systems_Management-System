@@ -38,6 +38,12 @@ class QuotationTable {
 
     // Format the date for display
     const formattedDate = quotation.quotation_date ? formatDateIndian(quotation.quotation_date) : '-';
+    
+    // Map fields from backend structure
+    const quotationId = quotation.quotation_no || quotation.quotation_id || 'N/A';
+    const customerName = quotation.customer_snapshot?.name || quotation.customer_name || '-';
+    const customerAddress = quotation.customer_snapshot?.billing_address?.line1 || quotation.customer_address || '-';
+    const totalAmountTax = quotation.totals?.grand_total || quotation.total_amount_tax || 0;
 
     quotationCard.innerHTML = `
         <!-- Left Border Accent -->
@@ -75,7 +81,7 @@ class QuotationTable {
             <!-- ID & Date Row -->
             <div class="flex items-center gap-2 mb-3">
                 <span class="text-sm font-bold text-gray-800 cursor-pointer hover:text-purple-600 copy-text transition-colors" title="Click to copy ID">
-                    ${quotation.quotation_id}
+                    ${quotationId}
                     <i class="fas fa-copy text-xs ml-1 opacity-50"></i>
                 </span>
                 <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
@@ -91,14 +97,14 @@ class QuotationTable {
                         <i class="fas fa-user text-blue-600 text-xs"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-gray-800 truncate" title="${quotation.customer_name || '-'}">${quotation.customer_name || '-'}</p>
-                        <p class="text-xs text-gray-500 truncate" title="${quotation.customer_address || '-'}">${quotation.customer_address || '-'}</p>
+                        <p class="text-sm font-medium text-gray-800 truncate" title="${customerName}">${customerName}</p>
+                        <p class="text-xs text-gray-500 truncate" title="${customerAddress}">${customerAddress}</p>
                     </div>
                 </div>
                 
                 <div class="flex-shrink-0 ml-4 text-right">
                     <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Total</p>
-                    <p class="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">₹${formatIndian(quotation.total_amount_tax || 0, 2)}</p>
+                    <p class="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">₹${formatIndian(totalAmountTax, 2)}</p>
                 </div>
             </div>
         </div>
@@ -114,7 +120,7 @@ class QuotationTable {
     // Copy ID functionality
     copyElement?.addEventListener('click', async () => {
         try {
-            await navigator.clipboard.writeText(quotation.quotation_id);
+            await navigator.clipboard.writeText(quotationId);
             showToast('ID Copied to Clipboard!');
         } catch (err) {
             console.error('Copy failed', err);
@@ -123,17 +129,17 @@ class QuotationTable {
 
     // Action button handlers - view with default type (1 = Without Tax)
     viewBtn?.addEventListener('click', () => {
-        viewQuotation(quotation.quotation_id, 1);
+        viewQuotation(quotationId, 1);
     });
 
     duplicateBtn?.addEventListener('click', () => {
         sessionStorage.setItem('currentTab-status', 'clone');
-        cloneQuotation(quotation.quotation_id);
+        cloneQuotation(quotationId);
     });
 
         editBtn?.addEventListener('click', () => {
             sessionStorage.setItem('currentTab-status', 'update');
-            openQuotation(quotation.quotation_id);
+            openQuotation(quotationId);
         });
 
         deleteBtn?.addEventListener('click', () => {
@@ -141,7 +147,7 @@ class QuotationTable {
             if ((window as any).electronAPI) {
                 (window as any).electronAPI.receiveAlertResponse((response: string) => {
                     if (response === "Yes") {
-                        this.deleteQuotation(quotation.quotation_id);
+                        this.deleteQuotation(quotationId);
                     }
                 });
             }

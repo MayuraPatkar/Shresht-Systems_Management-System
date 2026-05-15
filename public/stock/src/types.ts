@@ -53,19 +53,10 @@ interface ActionOption {
     icon: string;
 }
 
-// ─── Electron API ────────────────────────────────────────────────────────────
-
-interface ElectronAPI {
-    showAlert1: (message: string) => void;
-    showAlert2: (message: string) => void;
-    receiveAlertResponse: (callback: (response: string) => void) => void;
-    handlePrintEvent?: (content: string, action: string, name: string) => void;
-}
-
 // ─── Window augmentation for globals from shared scripts ─────────────────────
 
 interface Window {
-    electronAPI: ElectronAPI;
+    electronAPI: any;
     formatIndian: (value: number | string, decimals?: number) => string;
     formatDateDisplay?: (date: Date) => string;
     handlePrint?: (content: string, action: string, name: string) => void;

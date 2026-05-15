@@ -1,4 +1,4 @@
-export interface Quotation {
+interface Quotation {
     quotation_id: string;
     project_name: string;
     quotation_date: string;
@@ -11,7 +11,7 @@ export interface Quotation {
     non_items: QuotationNonItem[];
 }
 
-export interface QuotationItem {
+interface QuotationItem {
     description: string;
     quantity: number;
     unit_price: number;
@@ -20,7 +20,7 @@ export interface QuotationItem {
     specification?: string;
 }
 
-export interface QuotationNonItem {
+interface QuotationNonItem {
     description: string;
     price: number;
     rate: number;

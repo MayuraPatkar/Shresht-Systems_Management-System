@@ -560,7 +560,27 @@ async function viewQuotation(quotationId, viewType) {
         }
 
         const data = await response.json();
-        const quotation = data.quotation;
+        const rawQuotation = data.quotation;
+
+        // Map backend schema to the flat structure expected by the frontend
+        const quotation = {
+            ...rawQuotation,
+            quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
+            customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
+            customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+            customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
+            customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,
+            customer_GSTIN: rawQuotation.customer_snapshot?.gstin || rawQuotation.customer_GSTIN,
+            non_items: rawQuotation.other_charges || rawQuotation.non_items || [],
+            subject: rawQuotation.content?.subject || rawQuotation.subject,
+            letter_1: rawQuotation.content?.letter_1 || rawQuotation.letter_1,
+            letter_2: rawQuotation.content?.letter_2 || rawQuotation.letter_2,
+            letter_3: rawQuotation.content?.letter_3 || rawQuotation.letter_3,
+            headline: rawQuotation.content?.headline || rawQuotation.headline,
+            notes: rawQuotation.content?.notes || rawQuotation.notes,
+            termsAndConditions: rawQuotation.content?.terms_and_conditions || rawQuotation.termsAndConditions,
+            total_amount_tax: rawQuotation.totals?.grand_total || rawQuotation.total_amount_tax
+        };
 
         // Cache quotation for tab switching
         cachedQuotation = quotation;

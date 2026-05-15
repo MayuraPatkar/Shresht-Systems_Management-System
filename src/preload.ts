@@ -312,6 +312,7 @@ contextBridge.exposeInMainWorld('electronAPI', electronAPI);
 // Type declaration for the window object in renderer
 declare global {
     interface Window {
+        // @ts-ignore
         electronAPI: ElectronAPI;
     }
 }
