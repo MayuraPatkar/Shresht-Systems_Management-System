@@ -256,10 +256,10 @@ async function openQuotation(quotationId) {
     const idInputCustomer = document.getElementById('buyer-customer-id');
     if (idInputCustomer) idInputCustomer.value = quotation.customer_id || '';
     
-    document.getElementById('buyer-name').value = quotation.customer_name;
-    document.getElementById('buyer-address').value = quotation.customer_address;
-    document.getElementById('buyer-phone').value = quotation.customer_phone;
-    document.getElementById('buyer-email').value = quotation.customer_email;
+    document.getElementById('buyer-name').value = quotation.customer_name || '';
+    document.getElementById('buyer-address').value = quotation.customer_address || '';
+    document.getElementById('buyer-phone').value = quotation.customer_phone || '';
+    document.getElementById('buyer-email').value = quotation.customer_email || '';
     document.getElementById('buyer-gstin').value = quotation.customer_GSTIN || '';
 
     const itemsContainer = document.getElementById("items-container");
@@ -284,7 +284,7 @@ async function openQuotation(quotationId) {
         row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
+                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
                 <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
                 <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
@@ -309,7 +309,7 @@ async function openQuotation(quotationId) {
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" placeholder="Code" value="${item.HSN_SAC || ''}" required>
+                        <input type="text" placeholder="Code" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
                         <input type="number" placeholder="0" min="1" value="${item.quantity || ''}" required>
@@ -616,7 +616,7 @@ async function cloneQuotation(sourceQuotationId) {
             row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
+                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
                 <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
                 <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
@@ -640,7 +640,7 @@ async function cloneQuotation(sourceQuotationId) {
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" placeholder="Code" value="${item.HSN_SAC || ''}" required>
+                        <input type="text" placeholder="Code" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
                         <input type="number" placeholder="0" min="1" value="${item.quantity || ''}" required>

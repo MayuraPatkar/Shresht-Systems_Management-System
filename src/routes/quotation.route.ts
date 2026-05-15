@@ -79,11 +79,16 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
 
         } = req.body;
 
-        // Validate items array
+        // Validate and map items array
         if (!Array.isArray(items)) {
             return res.status(400).json({ message: 'Items must be an array.' });
         }
-        for (const item of items) {
+        const mappedItems = items.map((item: any) => ({
+            ...item,
+            hsn_sac: item.HSN_SAC || item.hsn_sac || ''
+        }));
+        
+        for (const item of mappedItems) {
             if (!isValidItem(item)) {
                 return res.status(400).json({ message: 'Invalid item structure or missing fields.' });
             }
@@ -142,7 +147,7 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
                 quotation.customer_id = buyerCustomerId;
             }
             quotation.customer_snapshot = customer_snapshot;
-            quotation.items = items;
+            quotation.items = mappedItems;
             quotation.other_charges = other_charges;
             quotation.discount = discount;
             quotation.totals = totals;
@@ -177,7 +182,7 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
                 quotation_date: quotationDate,
                 customer_id: buyerCustomerId || undefined,
                 customer_snapshot,
-                items,
+                items: mappedItems,
                 other_charges,
                 discount,
                 totals,
