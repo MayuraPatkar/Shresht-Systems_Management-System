@@ -70,6 +70,11 @@ function setupCustomerAutocomplete() {
     });
 
     input.addEventListener('keydown', (e) => {
+        // Prevent Enter from submitting the form or triggering next step
+        if (e.key === 'Enter') {
+            e.preventDefault();
+        }
+
         const items = suggestionsList.querySelectorAll('li');
         if (items.length === 0 || suggestionsList.style.display === 'none') return;
 
@@ -81,9 +86,13 @@ function setupCustomerAutocomplete() {
             e.preventDefault();
             selectedIndex = (selectedIndex - 1 + items.length) % items.length;
             updateSelection(items);
-        } else if (e.key === 'Enter' && selectedIndex >= 0) {
-            e.preventDefault();
-            selectCustomer(currentCustomers[selectedIndex]);
+        } else if (e.key === 'Enter') {
+            if (selectedIndex >= 0) {
+                selectCustomer(currentCustomers[selectedIndex]);
+            } else if (currentCustomers.length > 0) {
+                // If they press enter without selecting, select the first suggestion
+                selectCustomer(currentCustomers[0]);
+            }
         }
     });
 

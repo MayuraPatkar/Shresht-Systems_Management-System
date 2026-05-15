@@ -187,6 +187,9 @@ async function moveNext() {
 
 document.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
+    // If another script (like autocomplete) has already handled this and prevented default, respect it
+    if (event.defaultPrevented) return;
+
     // Check if we are in view mode (view section is visible)
     const viewSection = document.getElementById('view');
     if (viewSection && window.getComputedStyle(viewSection).display !== 'none') {
