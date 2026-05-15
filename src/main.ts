@@ -488,7 +488,7 @@ function setupIPCHandlers(): void {
     // Handle changelog-related IPC requests
     ipcMain.handle('get-changelog', (): ChangelogResult => {
         try {
-            const changelogPath = path.join(__dirname, 'json', 'changelog.json');
+            const changelogPath = path.join(__dirname, '..', 'json', 'changelog.json');
             const changelog = require(changelogPath);
             return { success: true, changelog: changelog };
         } catch (error) {
