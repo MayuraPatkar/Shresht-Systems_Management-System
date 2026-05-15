@@ -1407,7 +1407,17 @@ async function generatePreview() {
             }
 
             const data = await response.json();
-            const quotation = data.quotation;
+            const rawQuotation = data.quotation;
+            const quotation = {
+                ...rawQuotation,
+                subject: rawQuotation.content?.subject || rawQuotation.subject,
+                letter_1: rawQuotation.content?.letter_1 || rawQuotation.letter_1,
+                letter_2: rawQuotation.content?.letter_2 || rawQuotation.letter_2,
+                letter_3: rawQuotation.content?.letter_3 || rawQuotation.letter_3,
+                headline: rawQuotation.content?.headline || rawQuotation.headline,
+                notes: rawQuotation.content?.notes || rawQuotation.notes,
+                termsAndConditions: rawQuotation.content?.terms_and_conditions || rawQuotation.termsAndConditions
+            };
 
             const itemsPageHTML = itemPages.map((pageHTML, index) => {
                 const isLastItemsPage = index === itemPages.length - 1;
@@ -1494,11 +1504,11 @@ async function generatePreview() {
               ${buyerAddress}<br>
               ${buyerPhone}<br>
               ${buyerGSTIN ? `GSTIN: ${buyerGSTIN}<br>` : ''}
-            <p contenteditable="true"><strong>Subject:</strong> ${projectName ? `Proposal for the Supply, Installation, and Commissioning of ${projectName}` : (quotation.subject || '')}</p>
+            <p contenteditable="true"><strong>Subject:</strong> ${(quotation.subject && quotation.subject.trim() !== '') ? quotation.subject : (projectName ? `Proposal for the Supply, Installation, and Commissioning of ${projectName}` : '')}</p>
 
             <p>Dear ${buyerName},</p>
 
-            <p contenteditable="true">${projectName ? `We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>${company.company}</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.` : (quotation.letter_1 || '')}</p>
+            <p contenteditable="true">${(quotation.letter_1 && quotation.letter_1.trim() !== '') ? quotation.letter_1 : (projectName ? `We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>${company.company}</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.` : '')}</p>
             <p>Our proposal includes:</p>
             <ul contenteditable="true">
                 ${(quotation.letter_2 || []).map(li => `<li>${li}</li>`).join('')}
