@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Management</title>
+    <title>Supplier Management</title>
     <link rel="stylesheet" href="../css/tailwind.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -44,11 +44,11 @@
             }
         }
 
-        .customer-card {
+        .supplier-card {
             transition: all 0.3s ease;
         }
 
-        .customer-card:hover {
+        .supplier-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
@@ -82,12 +82,12 @@
         <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
-                <h1 class="text-xl font-bold text-gray-800">Customer Management</h1>
+                <h1 class="text-xl font-bold text-gray-800">Supplier Management</h1>
             </div>
             <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="customer-search" placeholder="Search by name, phone or email..."
+                    <input type="text" id="supplier-search" placeholder="Search by name, phone or email..."
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
@@ -95,10 +95,10 @@
                 </button>
             </div>
             <div class="flex items-center gap-3">
-                <button id="add-customer-btn"
+                <button id="add-supplier-btn"
                     class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
                     <i class="fas fa-plus"></i>
-                    Add Customer
+                    Add Supplier
                 </button>
             </div>
         </div>
@@ -115,7 +115,7 @@
                     <span>Dashboard</span>
                 </a>
                 <a href="/customer" id="customer"
-                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-users w-8 text-center"></i>
                     <span>Customers</span>
                 </a>
@@ -125,7 +125,7 @@
                     <span>Quotation</span>
                 </a>
                 <a href="/supplier" id="supplier"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
                     <i class="fas fa-truck w-8 text-center"></i>
                     <span>Suppliers</span>
                 </a>
@@ -189,52 +189,52 @@
         <!-- Stats Summary (Optional/Placeholder for future) -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <p class="text-sm text-gray-500 font-medium mb-1">Total Customers</p>
-                <h3 class="text-2xl font-bold text-gray-800" id="total-customers-count">0</h3>
+                <p class="text-sm text-gray-500 font-medium mb-1">Total Suppliers</p>
+                <h3 class="text-2xl font-bold text-gray-800" id="total-suppliers-count">0</h3>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <p class="text-sm text-gray-500 font-medium mb-1">Active</p>
-                <h3 class="text-2xl font-bold text-green-600" id="active-customers-count">0</h3>
+                <h3 class="text-2xl font-bold text-green-600" id="active-suppliers-count">0</h3>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <p class="text-sm text-gray-500 font-medium mb-1">Inactive</p>
-                <h3 class="text-2xl font-bold text-red-600" id="inactive-customers-count">0</h3>
+                <h3 class="text-2xl font-bold text-red-600" id="inactive-suppliers-count">0</h3>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <p class="text-sm text-gray-500 font-medium mb-1">Commercial</p>
-                <h3 class="text-2xl font-bold text-blue-600" id="commercial-customers-count">0</h3>
+                <h3 class="text-2xl font-bold text-blue-600" id="commercial-suppliers-count">0</h3>
             </div>
         </div>
 
-        <!-- Customer List Container -->
-        <div id="customer-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
+        <!-- Supplier List Container -->
+        <div id="supplier-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
             <!-- Loading State -->
             <div class="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
                 <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
-                <p class="text-xl">Loading customers...</p>
+                <p class="text-xl">Loading suppliers...</p>
             </div>
         </div>
 
         <!-- Empty State (Hidden) -->
         <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-gray-500 fade-in">
             <i class="fas fa-users text-6xl mb-4"></i>
-            <p class="text-2xl font-bold">No Customers Found</p>
+            <p class="text-2xl font-bold">No Suppliers Found</p>
             <p class="mt-2">Try adjusting your search or filters</p>
         </div>
     </main>
 
-    <!-- Add/Edit Customer Modal -->
-    <div id="customer-modal" class="fixed inset-0 z-50 hidden">
+    <!-- Add/Edit Supplier Modal -->
+    <div id="supplier-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto fade-in">
                 <div class="px-8 py-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
-                    <h2 id="modal-title" class="text-2xl font-bold text-gray-800">Add New Customer</h2>
+                    <h2 id="modal-title" class="text-2xl font-bold text-gray-800">Add New Supplier</h2>
                     <button id="close-modal" class="text-gray-400 hover:text-gray-600">
                         <i class="fas fa-times text-2xl"></i>
                     </button>
                 </div>
-                <form id="customer-form" class="p-8 space-y-6">
-                    <input type="hidden" id="customer-id">
+                <form id="supplier-form" class="p-8 space-y-6">
+                    <input type="hidden" id="supplier-id">
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Basic Info -->
@@ -243,24 +243,24 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-                                    <input type="text" name="customer.first_name" required class="w-full px-4 py-2 border rounded-lg">
+                                    <input type="text" name="supplier.first_name" required class="w-full px-4 py-2 border rounded-lg">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                                    <input type="text" name="customer.last_name" class="w-full px-4 py-2 border rounded-lg">
+                                    <input type="text" name="supplier.last_name" class="w-full px-4 py-2 border rounded-lg">
                                 </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
-                                <input type="tel" name="customer.phone" required pattern="[0-9]{10}" maxlength="10" title="Please enter a 10-digit phone number" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. 9876543210">
+                                <input type="tel" name="supplier.phone" required pattern="[0-9]{10}" maxlength="10" title="Please enter a 10-digit phone number" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. 9876543210">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Alternate Phone</label>
-                                <input type="tel" name="customer.alternate_phone" pattern="[0-9]{10}" maxlength="10" title="Please enter a 10-digit phone number" class="w-full px-4 py-2 border rounded-lg">
+                                <input type="tel" name="supplier.alternate_phone" pattern="[0-9]{10}" maxlength="10" title="Please enter a 10-digit phone number" class="w-full px-4 py-2 border rounded-lg">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                                <input type="email" name="customer.email" class="w-full px-4 py-2 border rounded-lg">
+                                <input type="email" name="supplier.email" class="w-full px-4 py-2 border rounded-lg">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">GST Number</label>
@@ -272,8 +272,8 @@
                         <div class="space-y-4">
                             <h3 class="text-lg font-semibold text-blue-600 border-b pb-2">Categorization</h3>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Customer Type</label>
-                                <select name="customer_type" class="w-full px-4 py-2 border rounded-lg">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Type</label>
+                                <select name="supplier_type" class="w-full px-4 py-2 border rounded-lg">
                                     <option value="Residential">Residential</option>
                                     <option value="Commercial">Commercial</option>
                                     <option value="Industrial">Industrial</option>
@@ -364,7 +364,7 @@
 
                     <div class="pt-6 border-t flex justify-end gap-4 sticky bottom-0 bg-white">
                         <button type="button" id="cancel-btn" class="px-6 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
-                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Customer</button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Supplier</button>
                     </div>
                 </form>
             </div>
@@ -382,7 +382,7 @@
         
         <div class="space-y-4 mb-6">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Customer Type</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Type</label>
                 <select id="type-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                     <option value="">All Types</option>
                     <option value="Individual">Individual</option>
@@ -417,12 +417,12 @@
     <script src="../js/shared/utils.js"></script>
     <script src="../js/shared/ipc.js"></script>
     <script src="../js/shared/globalScript.js"></script>
-    <!-- Customer module scripts (compiled from TypeScript) -->
-    <script src="../../dist/public/customer/src/types.js"></script>
-    <script src="../../dist/public/customer/src/customerApi.js"></script>
-    <script src="../../dist/public/customer/src/customerTable.js"></script>
-    <script src="../../dist/public/customer/src/customerForms.js"></script>
-    <script src="../../dist/public/customer/src/main.js"></script>
+    <!-- Supplier module scripts (compiled from TypeScript) -->
+    <script src="../../dist/public/supplier/src/types/supplier.types.js"></script>
+    <script src="../../dist/public/supplier/src/services/supplierApi.js"></script>
+    <script src="../../dist/public/supplier/src/components/supplierTable.js"></script>
+    <script src="../../dist/public/supplier/src/components/supplierForms.js"></script>
+    <script src="../../dist/public/supplier/src/main.js"></script>
 </body>
 
 </html>

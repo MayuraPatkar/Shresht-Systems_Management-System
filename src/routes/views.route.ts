@@ -9,6 +9,8 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/dashboard', file: 'dashboard/dashboard.html' },
     { route: '/customer', file: 'customer/customer.html' },
     { route: '/customer/details', file: 'customer/customer_details.html' },
+    { route: '/supplier', file: 'supplier/supplier.html' },
+    { route: '/supplier/details', file: 'supplier/supplier_details.html' },
     { route: '/invoice', file: 'invoice/invoice.html' },
     { route: '/quotation', file: 'quotation/quotation.html' },
     { route: '/ewaybill', file: 'ewaybill/eWayBill.html' },

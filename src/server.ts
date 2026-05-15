@@ -279,6 +279,8 @@ import settingsRoutes from './routes/settings.route';
 import reportsRoutes from './routes/reports.route';
 import paymentRoutes from './routes/payment.route';
 import customerRoutes from './routes/customer.route';
+import supplierRoutes from './routes/supplier.route';
+
 
 // Health check endpoint
 exServer.get('/health', async (req: Request, res: Response) => {
@@ -322,6 +324,8 @@ exServer.use('/settings', settingsRoutes);
 exServer.use('/reports', reportsRoutes);
 exServer.use('/payment', paymentRoutes);
 exServer.use('/api/customers', customerRoutes);
+exServer.use('/api/suppliers', supplierRoutes);
+
 
 // View routes LAST (to avoid catching API routes)
 exServer.use('/', viewRoutes);

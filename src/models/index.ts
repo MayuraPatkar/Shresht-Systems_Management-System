@@ -30,6 +30,7 @@ import { ServiceModel } from "./Service.model";
 import { SettingsModel } from "./Settings.model";
 import { ItemModel } from "./Stock.model";
 import { StockMovementModel } from "./StockMovement.model";
+import { SupplierModel } from "./Supplier.model";
 
 // Re-export under the names the JS routes expect
 export const Admin = AdminModel;
@@ -43,3 +44,4 @@ export const StockMovement = StockMovementModel;
 export const service = ServiceModel;
 export const Settings = SettingsModel;
 export const Report = ReportModel;
+export const Suppliers = SupplierModel;

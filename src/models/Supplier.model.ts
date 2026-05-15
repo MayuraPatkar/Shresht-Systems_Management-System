@@ -1,15 +1,6 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
 
 /**
- * Soft delete sub-document interface
- */
-export interface ISoftDelete {
-    is_deleted: boolean;
-    deleted_at?: Date;
-    deleted_by?: string;
-}
-
-/**
  * Address sub-document interface
  */
 export interface IAddress {
@@ -25,19 +16,21 @@ export interface IAddress {
  * Contact info sub-document interface
  */
 export interface IContactInfo {
-    name?: string;
+    first_name?: string;
+    last_name?: string;
+    name?: string; // Kept for virtual/legacy
     phone?: string;
+    alternate_phone?: string;
     email?: string;
 }
 
 /**
- * Bank details sub-document interface
+ * Soft delete sub-document interface
  */
-export interface IBankDetails {
-    account_name?: string;
-    account_number?: string;
-    ifsc?: string;
-    bank_name?: string;
+export interface ISoftDelete {
+    is_deleted: boolean;
+    deleted_at?: Date;
+    deleted_by?: string;
 }
 
 /**
@@ -45,6 +38,9 @@ export interface IBankDetails {
  */
 export interface ISupplier extends Document {
     schema_version: number;
+
+    // Supplier generated ID
+    supplier_id: string;
 
     // Supplier info
     supplier: IContactInfo;
@@ -54,13 +50,14 @@ export interface ISupplier extends Document {
 
     gstin?: string;
 
-    address?: IAddress;
+    billing_address?: IAddress;
+    shipping_address?: IAddress;
 
-    supplier_type: "Vendor" | "Manufacturer" | "Distributor" | "Service Provider";
+    supplier_type: "Individual" | "Company" | "Government" | "Residential" | "Commercial" | "Industrial";
 
-    bank_details?: IBankDetails;
+    credit_score: number;
 
-    remarks?: string[];
+    remarks?: string;
 
     is_active: boolean;
 
@@ -69,6 +66,36 @@ export interface ISupplier extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
+
+/**
+ * Address sub-schema
+ */
+const addressSchema = new Schema<IAddress>(
+    {
+        line1: { type: String, trim: true },
+        line2: { type: String, trim: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true, default: "Karnataka" },
+        pincode: { type: String, trim: true },
+        country: { type: String, trim: true, default: "India" },
+    },
+    { _id: false }
+);
+
+/**
+ * Contact info sub-schema
+ */
+const contactInfoSchema = new Schema<IContactInfo>(
+    {
+        first_name: { type: String, trim: true },
+        last_name: { type: String, trim: true },
+        name: { type: String, trim: true }, // Can store full name here as well for easier search
+        phone: { type: String, trim: true },
+        alternate_phone: { type: String, trim: true },
+        email: { type: String, trim: true, lowercase: true },
+    },
+    { _id: false }
+);
 
 /**
  * Soft delete sub-schema
@@ -83,46 +110,6 @@ const softDeleteSchema = new Schema<ISoftDelete>(
 );
 
 /**
- * Address sub-schema
- */
-const addressSchema = new Schema<IAddress>(
-    {
-        line1: { type: String, trim: true },
-        line2: { type: String, trim: true },
-        city: { type: String, trim: true },
-        state: { type: String, trim: true },
-        pincode: { type: String, trim: true },
-        country: { type: String, trim: true, default: "India" },
-    },
-    { _id: false }
-);
-
-/**
- * Contact info sub-schema
- */
-const contactInfoSchema = new Schema<IContactInfo>(
-    {
-        name: { type: String, trim: true },
-        phone: { type: String, trim: true },
-        email: { type: String, trim: true, lowercase: true },
-    },
-    { _id: false }
-);
-
-/**
- * Bank details sub-schema
- */
-const bankDetailsSchema = new Schema<IBankDetails>(
-    {
-        account_name: { type: String, trim: true },
-        account_number: { type: String, trim: true },
-        ifsc: { type: String, trim: true },
-        bank_name: { type: String, trim: true },
-    },
-    { _id: false }
-);
-
-/**
  * Supplier schema
  */
 const supplierSchema = new Schema<ISupplier>(
@@ -130,6 +117,13 @@ const supplierSchema = new Schema<ISupplier>(
         schema_version: {
             type: Number,
             default: 1,
+            index: true,
+        },
+
+        // Supplier generated ID
+        supplier_id: {
+            type: String,
+            unique: true,
             index: true,
         },
 
@@ -150,23 +144,31 @@ const supplierSchema = new Schema<ISupplier>(
             index: true,
         },
 
-        address: {
+        billing_address: {
+            type: addressSchema,
+        },
+
+        shipping_address: {
             type: addressSchema,
         },
 
         supplier_type: {
             type: String,
-            enum: ["Vendor", "Manufacturer", "Distributor", "Service Provider"],
-            default: "Vendor",
+            enum: ["Individual", "Company", "Government", "Residential", "Commercial", "Industrial"],
+            default: "Individual",
             index: true,
         },
 
-        bank_details: {
-            type: bankDetailsSchema,
+        credit_score: {
+            type: Number,
+            default: 0,
         },
 
         // Audit
-        remarks: [{ type: String, trim: true }],
+        remarks: {
+            type: String,
+            trim: true,
+        },
 
         is_active: {
             type: Boolean,
@@ -187,8 +189,19 @@ const supplierSchema = new Schema<ISupplier>(
 );
 
 /**
+ * Virtuals
+ */
+supplierSchema.virtual('supplier.full_name').get(function() {
+    if (this.supplier.first_name || this.supplier.last_name) {
+        return `${this.supplier.first_name || ''} ${this.supplier.last_name || ''}`.trim();
+    }
+    return this.supplier.name;
+});
+
+/**
  * Indexes
  */
+supplierSchema.index({ "supplier.first_name": 1, "supplier.last_name": 1, "supplier.phone": 1 });
 supplierSchema.index({ "supplier.name": 1, "supplier.phone": 1 });
 supplierSchema.index({ "supplier.phone": 1 });
 supplierSchema.index({ "supplier.email": 1 });
@@ -199,3 +212,4 @@ supplierSchema.index({ "deletion.is_deleted": 1 });
  */
 export const SupplierModel: Model<ISupplier> =
     mongoose.models.Supplier || mongoose.model<ISupplier>("Supplier", supplierSchema);
+
