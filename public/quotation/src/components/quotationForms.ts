@@ -586,13 +586,13 @@ async function cloneQuotation(sourceQuotationId) {
         document.getElementById('quotation-date').value = `${yyyy}-${mm}-${dd}`;
 
         const idInputCustomer = document.getElementById('buyer-customer-id');
-        if (idInputCustomer) idInputCustomer.value = quotation.customer_id || '';
+        if (idInputCustomer) idInputCustomer.value = '';
 
-        document.getElementById('buyer-name').value = quotation.customer_name || '';
-        document.getElementById('buyer-address').value = quotation.customer_address || '';
-        document.getElementById('buyer-phone').value = quotation.customer_phone || '';
-        document.getElementById('buyer-email').value = quotation.customer_email || '';
-        document.getElementById('buyer-gstin').value = quotation.customer_GSTIN || '';
+        document.getElementById('buyer-name').value = '';
+        document.getElementById('buyer-address').value = '';
+        document.getElementById('buyer-phone').value = '';
+        document.getElementById('buyer-email').value = '';
+        document.getElementById('buyer-gstin').value = '';
 
         // Get containers
         const itemsContainer = document.getElementById("items-container");
