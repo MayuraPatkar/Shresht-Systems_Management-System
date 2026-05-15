@@ -58,7 +58,7 @@ interface ActionOption {
 // ─── Window augmentation for globals from shared scripts ─────────────────────
 
 interface Window {
-    electronAPI?: ElectronAPI;
+    electronAPI?: any;
     showDeletedItems?: boolean;
     formatIndian: (value: number | string, decimals?: number) => string;
     formatDateDisplay?: (date: Date) => string;
