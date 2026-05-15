@@ -187,6 +187,9 @@ async function moveNext() {
 
 document.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
+    // If another script (like autocomplete) has already handled this and prevented default, respect it
+    if (event.defaultPrevented) return;
+
     // Check if we are in view mode (view section is visible)
     const viewSection = document.getElementById('view');
     if (viewSection && window.getComputedStyle(viewSection).display !== 'none') {
@@ -917,12 +920,18 @@ async function fill(itemName, element) {
         }
 
         // Fill fields (indices shifted by 1 due to hidden stock_id)
-        if (inputs[2]) inputs[2].value = stockData.HSN_SAC || stockData.hsn_sac || '';
-        if (inputs[4]) inputs[4].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-        if (inputs[5]) inputs[5].value = stockData.GST || stockData.gst_rate || 0;
+        if (inputs[2]) inputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
+        
+        if (inputs[3] && (!inputs[3].value || inputs[3].value === '0')) {
+          inputs[3].value = 1;
+        }
+
+        if (inputs[4]) inputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+        if (inputs[5]) inputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
 
         // Trigger input events to sync with table
         if (inputs[2]) inputs[2].dispatchEvent(new Event('input', { bubbles: true }));
+        if (inputs[3]) inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
         if (inputs[4]) inputs[4].dispatchEvent(new Event('input', { bubbles: true }));
         if (inputs[5]) inputs[5].dispatchEvent(new Event('input', { bubbles: true }));
 
@@ -938,9 +947,11 @@ async function fill(itemName, element) {
           }
 
           if (rowInputs.length >= 6) {
-            rowInputs[2].value = stockData.HSN_SAC || stockData.hsn_sac || '';
-            rowInputs[4].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-            rowInputs[5].value = stockData.GST || stockData.gst_rate || 0;
+            rowInputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
+            if (!rowInputs[3].value || rowInputs[3].value === '0') rowInputs[3].value = 1;
+            rowInputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+            rowInputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
+            rowInputs[3].dispatchEvent(new Event('input', { bubbles: true }));
             rowInputs[4].dispatchEvent(new Event('input', { bubbles: true }));
             rowInputs[5].dispatchEvent(new Event('input', { bubbles: true }));
           }
@@ -955,20 +966,28 @@ async function fill(itemName, element) {
         }
 
         if (rowInputs.length >= 6) {
-          rowInputs[2].value = stockData.HSN_SAC || stockData.hsn_sac || '';
-          rowInputs[4].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
-          rowInputs[5].value = stockData.GST || stockData.gst_rate || 0;
+          rowInputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
+          if (!rowInputs[3].value || rowInputs[3].value === '0') rowInputs[3].value = 1;
+          rowInputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+          rowInputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
         }
       }
     } else if (isCard) {
       // Standard card fill (Invoice, Quotation, etc.)
       const inputs = element.querySelectorAll('input');
-      inputs[1].value = stockData.HSN_SAC || ""; // HSN/SAC
-      inputs[3].value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0; // Unit Price
-      inputs[4].value = stockData.GST || 0; // Rate
+      inputs[1].value = stockData.hsn_sac || stockData.HSN_SAC || ""; // HSN/SAC
+      
+      // Default quantity to 1 if empty or 0
+      if (!inputs[2].value || inputs[2].value === '0') {
+          inputs[2].value = 1;
+      }
+
+      inputs[3].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0; // Unit Price
+      inputs[4].value = stockData.gst_rate ?? stockData.GST ?? 0; // Rate
 
       // Trigger input events to sync with table
       inputs[1].dispatchEvent(new Event('input', { bubbles: true }));
+      inputs[2].dispatchEvent(new Event('input', { bubbles: true }));
       inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
       inputs[4].dispatchEvent(new Event('input', { bubbles: true }));
 
@@ -977,30 +996,42 @@ async function fill(itemName, element) {
       const tableRow = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`);
       if (tableRow) {
         const hsnInput = tableRow.querySelector("input[placeholder='HSN/SAC']");
+        const qtyInput = tableRow.querySelector(".qty-input") || tableRow.querySelector("input[placeholder='Qty']");
         const unitInput = tableRow.querySelector("input[placeholder='Unit Price']");
         const rateInput = tableRow.querySelector("input[placeholder='Rate']");
-        if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
+        
+        if (hsnInput) hsnInput.value = stockData.hsn_sac || stockData.HSN_SAC || "";
+        if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) {
+            qtyInput.value = 1;
+            qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
         if (unitInput) {
-          unitInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+          unitInput.value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
           unitInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         if (rateInput) {
-          rateInput.value = stockData.GST || 0;
+          rateInput.value = stockData.gst_rate ?? stockData.GST ?? 0;
           rateInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
       }
     } else {
       // Fill table row (backward compatibility)
       const hsnInput = element.querySelector("input[placeholder='HSN/SAC']");
+      const qtyInput = element.querySelector(".qty-input") || element.querySelector("input[placeholder='Qty']");
       const unitInput = element.querySelector("input[placeholder='Unit Price']");
       const rateInput = element.querySelector("input[placeholder='Rate']");
-      if (hsnInput) hsnInput.value = stockData.HSN_SAC || "";
+      
+      if (hsnInput) hsnInput.value = stockData.hsn_sac || stockData.HSN_SAC || "";
+      if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) {
+          qtyInput.value = 1;
+          qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
       if (unitInput) {
-        unitInput.value = parseFloat(stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
+        unitInput.value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
         unitInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
       if (rateInput) {
-        rateInput.value = stockData.GST || 0;
+        rateInput.value = stockData.gst_rate ?? stockData.GST ?? 0;
         rateInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
       // Update specifications table when item is filled

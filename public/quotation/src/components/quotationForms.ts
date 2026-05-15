@@ -1,9 +1,142 @@
+// @ts-nocheck
 const totalSteps = 6;
 let quotationId = '';
 let totalAmountNoTax = 0;
 let totalAmountTax = 0;
 let totalTax = 0;
 let isCustomId = false; // Tracks if user manually entered a custom ID
+
+// Setup Customer Autocomplete
+function setupCustomerAutocomplete() {
+    const input = document.getElementById('buyer-name');
+    const suggestionsList = document.getElementById('customer-suggestions');
+    if (!input || !suggestionsList) return;
+
+    let debounceTimer;
+    let selectedIndex = -1;
+    let currentCustomers = [];
+
+    async function fetchCustomers(query) {
+        try {
+            const response = await fetch(`/api/customers?search=${encodeURIComponent(query)}`);
+            return await response.json();
+        } catch (err) {
+            console.error('Failed to fetch customers:', err);
+            return [];
+        }
+    }
+
+    input.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        const query = input.value.trim();
+        
+        // Clear hidden ID when input changes manually
+        const idInput = document.getElementById('buyer-customer-id');
+        if (idInput) idInput.value = '';
+        
+        if (query.length < 2) {
+            suggestionsList.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(async () => {
+            currentCustomers = await fetchCustomers(query);
+            suggestionsList.innerHTML = '';
+            selectedIndex = -1;
+
+            if (currentCustomers.length === 0) {
+                suggestionsList.style.display = 'none';
+                return;
+            }
+
+            suggestionsList.style.display = 'block';
+            
+            currentCustomers.forEach((customer, index) => {
+                const li = document.createElement('li');
+                li.className = 'px-4 py-2 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-0';
+                
+                const name = customer.customer?.name || customer.customer_name || 'Unknown';
+                const phone = customer.customer?.phone || '';
+                
+                li.innerHTML = `
+                    <div class="font-medium text-gray-800">${name}</div>
+                    ${phone ? `<div class="text-sm text-gray-500">${phone}</div>` : ''}
+                `;
+                
+                li.onclick = () => selectCustomer(customer);
+                suggestionsList.appendChild(li);
+            });
+        }, 300);
+    });
+
+    input.addEventListener('keydown', (e) => {
+        // Prevent Enter from submitting the form or triggering next step
+        if (e.key === 'Enter') {
+            e.preventDefault();
+        }
+
+        const items = suggestionsList.querySelectorAll('li');
+        if (items.length === 0 || suggestionsList.style.display === 'none') return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = (selectedIndex + 1) % items.length;
+            updateSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+            updateSelection(items);
+        } else if (e.key === 'Enter') {
+            if (selectedIndex >= 0) {
+                selectCustomer(currentCustomers[selectedIndex]);
+            } else if (currentCustomers.length > 0) {
+                // If they press enter without selecting, select the first suggestion
+                selectCustomer(currentCustomers[0]);
+            }
+        }
+    });
+
+    // Hide suggestions on outside click
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !suggestionsList.contains(e.target)) {
+            suggestionsList.style.display = 'none';
+        }
+    });
+
+    function updateSelection(items) {
+        items.forEach((item, idx) => {
+            if (idx === selectedIndex) {
+                item.classList.add('bg-purple-100');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('bg-purple-100');
+            }
+        });
+    }
+
+    function selectCustomer(customer) {
+        input.value = customer.customer?.name || customer.customer_name || '';
+        
+        // Populate other fields
+        const idInput = document.getElementById('buyer-customer-id');
+        const addressInput = document.getElementById('buyer-address');
+        const phoneInput = document.getElementById('buyer-phone');
+        const emailInput = document.getElementById('buyer-email');
+        const gstinInput = document.getElementById('buyer-gstin');
+
+        if (idInput) idInput.value = customer._id || '';
+        
+        if (addressInput) {
+            const billing = customer.billing_address || {};
+            addressInput.value = billing.line1 || customer.customer_address || '';
+        }
+        if (phoneInput) phoneInput.value = customer.customer?.phone || customer.customer_phone || '';
+        if (emailInput) emailInput.value = customer.customer?.email || customer.customer_email || '';
+        if (gstinInput) gstinInput.value = customer.gstin || customer.customer_GSTIN || '';
+
+        suggestionsList.style.display = 'none';
+    }
+}
 
 // Initialize the step indicator on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,44 +153,21 @@ document.addEventListener('DOMContentLoaded', () => {
             isCustomId = true; // User manually typed in the ID field
         });
     }
+    
+    setupCustomerAutocomplete();
 });
 
-function normalizeTermsHTML(raw) {
-    if (!raw) return '';
-    // If it already contains HTML list or block tags, return as-is
-    if (/<\s*(ul|li|ol|p|br|div|h[1-6])/.test(raw)) return raw;
-    // Otherwise, treat as newline separated text and convert to <ul><li>...
-    const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    if (lines.length === 0) return '';
-    return `<ul>${lines.map(l => `<li>${l}</li>`).join('')}</ul>`;
-}
+// Helper functions normalizeTermsHTML and getQuotationHeaderHTML are in quotationView.ts
 
-
-async function getQuotationHeaderHTML() {
-    if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
-        return await window.SectionRenderers.renderQuotationDocumentHeader();
-    }
-    // Fallback header if SectionRenderers not loaded
-    return `
-        <div class="header">
-            <div class="quotation-brand">
-                <div class="logo">
-                    <img src="../assets/icon.png" alt="Shresht Logo">
-                </div>
-                <div class="quotation-brand-text">
-                    <h1>SHRESHT SYSTEMS</h1>
-                    <p class="quotation-tagline">CCTV & Security Solutions</p>
-                </div>
-            </div>
-            <div class="company-details">
-                <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
-                <p>Ph: 7204657707 / 9901730305 | GSTIN: 29AGCPN4093N1ZS</p>
-                <p>Email: shreshtsystems@gmail.com | Website: www.shreshtsystems.com</p>
-            </div>
-        </div>
-    `;
-}
-
+// Globals needed by TS
+declare let currentStep: number;
+declare let totalSteps: number;
+declare let fetchDocumentById: any;
+declare function generatePreview(): Promise<void>;
+declare function toInputDate(dateString: string): string;
+declare function showSuggestions(input: HTMLInputElement, suggestions: HTMLElement): void;
+declare function updateSpecificationsTable(): void;
+declare function handleKeyboardNavigation(event: KeyboardEvent, input: HTMLInputElement, suggestions: HTMLElement): void;
 
 document.getElementById("view-preview").addEventListener("click", async () => {
     // Navigate step-by-step to trigger validation at each step
@@ -98,7 +208,27 @@ async function openQuotation(quotationId) {
     const data = await fetchDocumentById('quotation', quotationId);
     if (!data) return;
 
-    const quotation = data.quotation;
+    const rawQuotation = data.quotation;
+    // Map backend schema to the flat structure expected by the frontend
+    const quotation = {
+        ...rawQuotation,
+        quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
+        customer_id: rawQuotation.customer_snapshot?.customer_id || '',
+        customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
+        customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+        customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
+        customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,
+        customer_GSTIN: rawQuotation.customer_snapshot?.gstin || rawQuotation.customer_GSTIN,
+        non_items: rawQuotation.other_charges || rawQuotation.non_items || [],
+        subject: rawQuotation.content?.subject || rawQuotation.subject,
+        letter_1: rawQuotation.content?.letter_1 || rawQuotation.letter_1,
+        letter_2: rawQuotation.content?.letter_2 || rawQuotation.letter_2,
+        letter_3: rawQuotation.content?.letter_3 || rawQuotation.letter_3,
+        headline: rawQuotation.content?.headline || rawQuotation.headline,
+        notes: rawQuotation.content?.notes || rawQuotation.notes,
+        termsAndConditions: rawQuotation.content?.terms_and_conditions || rawQuotation.termsAndConditions,
+        total_amount_tax: rawQuotation.totals?.grand_total || rawQuotation.total_amount_tax
+    };
 
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
@@ -122,10 +252,14 @@ async function openQuotation(quotationId) {
     document.getElementById('project-name').value = quotation.project_name;
     // Use input-safe ISO date for the date field
     document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
-    document.getElementById('buyer-name').value = quotation.customer_name;
-    document.getElementById('buyer-address').value = quotation.customer_address;
-    document.getElementById('buyer-phone').value = quotation.customer_phone;
-    document.getElementById('buyer-email').value = quotation.customer_email;
+    
+    const idInputCustomer = document.getElementById('buyer-customer-id');
+    if (idInputCustomer) idInputCustomer.value = quotation.customer_id || '';
+    
+    document.getElementById('buyer-name').value = quotation.customer_name || '';
+    document.getElementById('buyer-address').value = quotation.customer_address || '';
+    document.getElementById('buyer-phone').value = quotation.customer_phone || '';
+    document.getElementById('buyer-email').value = quotation.customer_email || '';
     document.getElementById('buyer-gstin').value = quotation.customer_GSTIN || '';
 
     const itemsContainer = document.getElementById("items-container");
@@ -150,7 +284,7 @@ async function openQuotation(quotationId) {
         row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
+                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
                 <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
                 <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
@@ -175,7 +309,7 @@ async function openQuotation(quotationId) {
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" placeholder="Code" value="${item.HSN_SAC || ''}" required>
+                        <input type="text" placeholder="Code" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
                         <input type="number" placeholder="0" min="1" value="${item.quantity || ''}" required>
@@ -377,7 +511,27 @@ async function cloneQuotation(sourceQuotationId) {
             return;
         }
 
-        const quotation = data.quotation;
+        const rawQuotation = data.quotation;
+        // Map backend schema to the flat structure expected by the frontend
+        const quotation = {
+            ...rawQuotation,
+            quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
+            customer_id: rawQuotation.customer_snapshot?.customer_id || '',
+            customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
+            customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+            customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
+            customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,
+            customer_GSTIN: rawQuotation.customer_snapshot?.gstin || rawQuotation.customer_GSTIN,
+            non_items: rawQuotation.other_charges || rawQuotation.non_items || [],
+            subject: rawQuotation.content?.subject || rawQuotation.subject,
+            letter_1: rawQuotation.content?.letter_1 || rawQuotation.letter_1,
+            letter_2: rawQuotation.content?.letter_2 || rawQuotation.letter_2,
+            letter_3: rawQuotation.content?.letter_3 || rawQuotation.letter_3,
+            headline: rawQuotation.content?.headline || rawQuotation.headline,
+            notes: rawQuotation.content?.notes || rawQuotation.notes,
+            termsAndConditions: rawQuotation.content?.terms_and_conditions || rawQuotation.termsAndConditions,
+            total_amount_tax: rawQuotation.totals?.grand_total || rawQuotation.total_amount_tax
+        };
 
         // Show the form (similar to showNewQuotationForm)
         document.getElementById('home').style.display = 'none';
@@ -431,11 +585,14 @@ async function cloneQuotation(sourceQuotationId) {
         const dd = String(today.getDate()).padStart(2, '0');
         document.getElementById('quotation-date').value = `${yyyy}-${mm}-${dd}`;
 
-        document.getElementById('buyer-name').value = quotation.customer_name || '';
-        document.getElementById('buyer-address').value = quotation.customer_address || '';
-        document.getElementById('buyer-phone').value = quotation.customer_phone || '';
-        document.getElementById('buyer-email').value = quotation.customer_email || '';
-        document.getElementById('buyer-gstin').value = quotation.customer_GSTIN || '';
+        const idInputCustomer = document.getElementById('buyer-customer-id');
+        if (idInputCustomer) idInputCustomer.value = '';
+
+        document.getElementById('buyer-name').value = '';
+        document.getElementById('buyer-address').value = '';
+        document.getElementById('buyer-phone').value = '';
+        document.getElementById('buyer-email').value = '';
+        document.getElementById('buyer-gstin').value = '';
 
         // Get containers
         const itemsContainer = document.getElementById("items-container");
@@ -459,7 +616,7 @@ async function cloneQuotation(sourceQuotationId) {
             row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required></td>
+                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
                 <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
                 <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
@@ -483,7 +640,7 @@ async function cloneQuotation(sourceQuotationId) {
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" placeholder="Code" value="${item.HSN_SAC || ''}" required>
+                        <input type="text" placeholder="Code" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
                         <input type="number" placeholder="0" min="1" value="${item.quantity || ''}" required>
@@ -1250,7 +1407,17 @@ async function generatePreview() {
             }
 
             const data = await response.json();
-            const quotation = data.quotation;
+            const rawQuotation = data.quotation;
+            const quotation = {
+                ...rawQuotation,
+                subject: rawQuotation.content?.subject || rawQuotation.subject,
+                letter_1: rawQuotation.content?.letter_1 || rawQuotation.letter_1,
+                letter_2: rawQuotation.content?.letter_2 || rawQuotation.letter_2,
+                letter_3: rawQuotation.content?.letter_3 || rawQuotation.letter_3,
+                headline: rawQuotation.content?.headline || rawQuotation.headline,
+                notes: rawQuotation.content?.notes || rawQuotation.notes,
+                termsAndConditions: rawQuotation.content?.terms_and_conditions || rawQuotation.termsAndConditions
+            };
 
             const itemsPageHTML = itemPages.map((pageHTML, index) => {
                 const isLastItemsPage = index === itemPages.length - 1;
@@ -1337,11 +1504,11 @@ async function generatePreview() {
               ${buyerAddress}<br>
               ${buyerPhone}<br>
               ${buyerGSTIN ? `GSTIN: ${buyerGSTIN}<br>` : ''}
-            <p contenteditable="true"><strong>Subject:</strong> ${projectName ? `Proposal for the Supply, Installation, and Commissioning of ${projectName}` : (quotation.subject || '')}</p>
+            <p contenteditable="true"><strong>Subject:</strong> ${(quotation.subject && quotation.subject.trim() !== '') ? quotation.subject : (projectName ? `Proposal for the Supply, Installation, and Commissioning of ${projectName}` : '')}</p>
 
             <p>Dear ${buyerName},</p>
 
-            <p contenteditable="true">${projectName ? `We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>${company.company}</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.` : (quotation.letter_1 || '')}</p>
+            <p contenteditable="true">${(quotation.letter_1 && quotation.letter_1.trim() !== '') ? quotation.letter_1 : (projectName ? `We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>${company.company}</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.` : '')}</p>
             <p>Our proposal includes:</p>
             <ul contenteditable="true">
                 ${(quotation.letter_2 || []).map(li => `<li>${li}</li>`).join('')}
@@ -1489,6 +1656,7 @@ function collectFormData() {
         isCustomId: isCustomId, // True if user manually typed the ID
         projectName: document.getElementById("project-name").value,
         quotationDate: document.getElementById("quotation-date").value,
+        buyerCustomerId: document.getElementById("buyer-customer-id")?.value || '',
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,
         buyerPhone: document.getElementById("buyer-phone").value,

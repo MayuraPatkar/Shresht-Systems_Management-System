@@ -42,6 +42,7 @@ export interface IQuotationItem {
     hsn_sac?: string;
     unit?: string;
     unit_price?: number;
+    rate?: number;
     gst_rate?: number;
     quantity?: number;
     discount_percent?: number;
@@ -56,6 +57,7 @@ export interface IOtherCharges {
     description?: string;
     specification?: string;
     price?: number;
+    rate?: number;
     discount_percent?: number;
     total?: number;
 }
@@ -173,6 +175,7 @@ const quotationItemSchema = new Schema<IQuotationItem>(
         hsn_sac: { type: String, trim: true },
         unit: { type: String, trim: true },
         unit_price: { type: Number },
+        rate: { type: Number },
         gst_rate: { type: Number },
         quantity: { type: Number, min: 1 },
         discount_percent: { type: Number },
@@ -190,6 +193,7 @@ const otherChargesSchema = new Schema<IOtherCharges>(
         description: { type: String, trim: true },
         specification: { type: String, trim: true },
         price: { type: Number },
+        rate: { type: Number },
         discount_percent: { type: Number },
         total: { type: Number },
     },

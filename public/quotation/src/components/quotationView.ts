@@ -1,3 +1,4 @@
+// @ts-nocheck
 async function getQuotationHeaderHTML() {
     if (window.SectionRenderers && typeof window.SectionRenderers.renderQuotationDocumentHeader === "function") {
         return await window.SectionRenderers.renderQuotationDocumentHeader();
@@ -103,7 +104,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
         const unitPrice = parseFloat(item.unit_price || 0);
         const taxRate = parseFloat(item.rate || 0);
         const description = item.description || '';
-        const hsnSac = item.HSN_SAC || '';
+        const hsnSac = item.HSN_SAC || item.hsn_sac || '';
         const taxableValue = qty * unitPrice;
         const taxAmount = (taxableValue * taxRate) / 100;
         totalTaxableValue += taxableValue;
@@ -344,16 +345,17 @@ async function renderQuotationView(quotation, viewType) {
             row.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || item.hsn_sac || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.unit_price ? formatIndian(item.unit_price, 2) : '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${taxRate ? taxRate + '%' : '-'}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-gray-900">${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td>
             `;
         } else if (viewType === 1) {
             row.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || item.hsn_sac || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.unit_price ? formatIndian(item.unit_price, 2) : '-'}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-gray-900">${taxableValue ? formatIndian(taxableValue, 2) : '-'}</td>
@@ -362,7 +364,7 @@ async function renderQuotationView(quotation, viewType) {
             row.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || item.hsn_sac || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.unit_price ? formatIndian(item.unit_price, 2) : '-'}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-gray-900">${taxRate ? taxRate + '%' : '-'}</td>
@@ -505,6 +507,7 @@ async function renderQuotationView(quotation, viewType) {
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Rate</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
         `;
     } else if (viewType === 1) {
@@ -559,7 +562,27 @@ async function viewQuotation(quotationId, viewType) {
         }
 
         const data = await response.json();
-        const quotation = data.quotation;
+        const rawQuotation = data.quotation;
+
+        // Map backend schema to the flat structure expected by the frontend
+        const quotation = {
+            ...rawQuotation,
+            quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
+            customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
+            customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+            customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
+            customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,
+            customer_GSTIN: rawQuotation.customer_snapshot?.gstin || rawQuotation.customer_GSTIN,
+            non_items: rawQuotation.other_charges || rawQuotation.non_items || [],
+            subject: rawQuotation.content?.subject || rawQuotation.subject,
+            letter_1: rawQuotation.content?.letter_1 || rawQuotation.letter_1,
+            letter_2: rawQuotation.content?.letter_2 || rawQuotation.letter_2,
+            letter_3: rawQuotation.content?.letter_3 || rawQuotation.letter_3,
+            headline: rawQuotation.content?.headline || rawQuotation.headline,
+            notes: rawQuotation.content?.notes || rawQuotation.notes,
+            termsAndConditions: rawQuotation.content?.terms_and_conditions || rawQuotation.termsAndConditions,
+            total_amount_tax: rawQuotation.totals?.grand_total || rawQuotation.total_amount_tax
+        };
 
         // Cache quotation for tab switching
         cachedQuotation = quotation;
