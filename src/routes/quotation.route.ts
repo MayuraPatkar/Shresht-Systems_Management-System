@@ -91,7 +91,6 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
 
         // Build customer_snapshot sub-document
         const customer_snapshot: any = {};
-        if (buyerCustomerId) customer_snapshot.customer_id = buyerCustomerId;
         if (buyerName) customer_snapshot.name = buyerName;
         if (buyerPhone) customer_snapshot.phone = buyerPhone;
         if (buyerEmail) customer_snapshot.email = buyerEmail;
@@ -139,6 +138,9 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
 
             quotation.project_name = projectName;
             quotation.quotation_date = quotationDate;
+            if (buyerCustomerId) {
+                quotation.customer_id = buyerCustomerId;
+            }
             quotation.customer_snapshot = customer_snapshot;
             quotation.items = items;
             quotation.other_charges = other_charges;
@@ -173,6 +175,7 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
                 quotation_no: newId,
                 project_name: projectName,
                 quotation_date: quotationDate,
+                customer_id: buyerCustomerId || undefined,
                 customer_snapshot,
                 items,
                 other_charges,

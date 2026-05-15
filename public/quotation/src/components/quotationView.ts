@@ -104,7 +104,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
         const unitPrice = parseFloat(item.unit_price || 0);
         const taxRate = parseFloat(item.rate || 0);
         const description = item.description || '';
-        const hsnSac = item.HSN_SAC || '';
+        const hsnSac = item.HSN_SAC || item.hsn_sac || '';
         const taxableValue = qty * unitPrice;
         const taxAmount = (taxableValue * taxRate) / 100;
         totalTaxableValue += taxableValue;
@@ -345,16 +345,17 @@ async function renderQuotationView(quotation, viewType) {
             row.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || item.hsn_sac || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.unit_price ? formatIndian(item.unit_price, 2) : '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${taxRate ? taxRate + '%' : '-'}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-gray-900">${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td>
             `;
         } else if (viewType === 1) {
             row.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || item.hsn_sac || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.unit_price ? formatIndian(item.unit_price, 2) : '-'}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-gray-900">${taxableValue ? formatIndian(taxableValue, 2) : '-'}</td>
@@ -363,7 +364,7 @@ async function renderQuotationView(quotation, viewType) {
             row.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || item.hsn_sac || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.unit_price ? formatIndian(item.unit_price, 2) : '-'}</td>
                 <td class="px-4 py-3 text-sm font-semibold text-gray-900">${taxRate ? taxRate + '%' : '-'}</td>
@@ -506,6 +507,7 @@ async function renderQuotationView(quotation, viewType) {
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Rate</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
         `;
     } else if (viewType === 1) {
