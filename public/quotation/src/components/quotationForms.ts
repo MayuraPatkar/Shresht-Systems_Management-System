@@ -6,6 +6,129 @@ let totalAmountTax = 0;
 let totalTax = 0;
 let isCustomId = false; // Tracks if user manually entered a custom ID
 
+// Setup Customer Autocomplete
+function setupCustomerAutocomplete() {
+    const input = document.getElementById('buyer-name');
+    const suggestionsList = document.getElementById('customer-suggestions');
+    if (!input || !suggestionsList) return;
+
+    let debounceTimer;
+    let selectedIndex = -1;
+    let currentCustomers = [];
+
+    async function fetchCustomers(query) {
+        try {
+            const response = await fetch(`/api/customers?search=${encodeURIComponent(query)}`);
+            return await response.json();
+        } catch (err) {
+            console.error('Failed to fetch customers:', err);
+            return [];
+        }
+    }
+
+    input.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        const query = input.value.trim();
+        
+        // Clear hidden ID when input changes manually
+        const idInput = document.getElementById('buyer-customer-id');
+        if (idInput) idInput.value = '';
+        
+        if (query.length < 2) {
+            suggestionsList.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(async () => {
+            currentCustomers = await fetchCustomers(query);
+            suggestionsList.innerHTML = '';
+            selectedIndex = -1;
+
+            if (currentCustomers.length === 0) {
+                suggestionsList.style.display = 'none';
+                return;
+            }
+
+            suggestionsList.style.display = 'block';
+            
+            currentCustomers.forEach((customer, index) => {
+                const li = document.createElement('li');
+                li.className = 'px-4 py-2 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-0';
+                
+                const name = customer.customer?.name || customer.customer_name || 'Unknown';
+                const phone = customer.customer?.phone || '';
+                
+                li.innerHTML = `
+                    <div class="font-medium text-gray-800">${name}</div>
+                    ${phone ? `<div class="text-sm text-gray-500">${phone}</div>` : ''}
+                `;
+                
+                li.onclick = () => selectCustomer(customer);
+                suggestionsList.appendChild(li);
+            });
+        }, 300);
+    });
+
+    input.addEventListener('keydown', (e) => {
+        const items = suggestionsList.querySelectorAll('li');
+        if (items.length === 0 || suggestionsList.style.display === 'none') return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = (selectedIndex + 1) % items.length;
+            updateSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+            updateSelection(items);
+        } else if (e.key === 'Enter' && selectedIndex >= 0) {
+            e.preventDefault();
+            selectCustomer(currentCustomers[selectedIndex]);
+        }
+    });
+
+    // Hide suggestions on outside click
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !suggestionsList.contains(e.target)) {
+            suggestionsList.style.display = 'none';
+        }
+    });
+
+    function updateSelection(items) {
+        items.forEach((item, idx) => {
+            if (idx === selectedIndex) {
+                item.classList.add('bg-purple-100');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('bg-purple-100');
+            }
+        });
+    }
+
+    function selectCustomer(customer) {
+        input.value = customer.customer?.name || customer.customer_name || '';
+        
+        // Populate other fields
+        const idInput = document.getElementById('buyer-customer-id');
+        const addressInput = document.getElementById('buyer-address');
+        const phoneInput = document.getElementById('buyer-phone');
+        const emailInput = document.getElementById('buyer-email');
+        const gstinInput = document.getElementById('buyer-gstin');
+
+        if (idInput) idInput.value = customer._id || '';
+        
+        if (addressInput) {
+            const billing = customer.billing_address || {};
+            addressInput.value = billing.line1 || customer.customer_address || '';
+        }
+        if (phoneInput) phoneInput.value = customer.customer?.phone || customer.customer_phone || '';
+        if (emailInput) emailInput.value = customer.customer?.email || customer.customer_email || '';
+        if (gstinInput) gstinInput.value = customer.gstin || customer.customer_GSTIN || '';
+
+        suggestionsList.style.display = 'none';
+    }
+}
+
 // Initialize the step indicator on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const stepIndicator = document.getElementById('step-indicator');
@@ -21,6 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
             isCustomId = true; // User manually typed in the ID field
         });
     }
+    
+    setupCustomerAutocomplete();
 });
 
 // Helper functions normalizeTermsHTML and getQuotationHeaderHTML are in quotationView.ts
@@ -79,6 +204,7 @@ async function openQuotation(quotationId) {
     const quotation = {
         ...rawQuotation,
         quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
+        customer_id: rawQuotation.customer_snapshot?.customer_id || '',
         customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
         customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
         customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
@@ -117,6 +243,10 @@ async function openQuotation(quotationId) {
     document.getElementById('project-name').value = quotation.project_name;
     // Use input-safe ISO date for the date field
     document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
+    
+    const idInputCustomer = document.getElementById('buyer-customer-id');
+    if (idInputCustomer) idInputCustomer.value = quotation.customer_id || '';
+    
     document.getElementById('buyer-name').value = quotation.customer_name;
     document.getElementById('buyer-address').value = quotation.customer_address;
     document.getElementById('buyer-phone').value = quotation.customer_phone;
@@ -377,6 +507,7 @@ async function cloneQuotation(sourceQuotationId) {
         const quotation = {
             ...rawQuotation,
             quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
+            customer_id: rawQuotation.customer_snapshot?.customer_id || '',
             customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
             customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
             customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
@@ -444,6 +575,9 @@ async function cloneQuotation(sourceQuotationId) {
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         document.getElementById('quotation-date').value = `${yyyy}-${mm}-${dd}`;
+
+        const idInputCustomer = document.getElementById('buyer-customer-id');
+        if (idInputCustomer) idInputCustomer.value = quotation.customer_id || '';
 
         document.getElementById('buyer-name').value = quotation.customer_name || '';
         document.getElementById('buyer-address').value = quotation.customer_address || '';
@@ -1503,6 +1637,7 @@ function collectFormData() {
         isCustomId: isCustomId, // True if user manually typed the ID
         projectName: document.getElementById("project-name").value,
         quotationDate: document.getElementById("quotation-date").value,
+        buyerCustomerId: document.getElementById("buyer-customer-id")?.value || '',
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,
         buyerPhone: document.getElementById("buyer-phone").value,

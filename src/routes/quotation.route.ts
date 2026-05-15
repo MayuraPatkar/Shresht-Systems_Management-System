@@ -54,6 +54,7 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
             quotation_id = '', // Could be a preview ID (new) or existing ID (update)
             projectName,
             quotationDate,
+            buyerCustomerId = '',
             buyerName = '',
             buyerAddress = '',
             buyerPhone = '',
@@ -90,6 +91,7 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
 
         // Build customer_snapshot sub-document
         const customer_snapshot: any = {};
+        if (buyerCustomerId) customer_snapshot.customer_id = buyerCustomerId;
         if (buyerName) customer_snapshot.name = buyerName;
         if (buyerPhone) customer_snapshot.phone = buyerPhone;
         if (buyerEmail) customer_snapshot.email = buyerEmail;
