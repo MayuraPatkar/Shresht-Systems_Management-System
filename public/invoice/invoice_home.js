@@ -490,7 +490,8 @@ function createInvoiceCard(invoice) {
     if (editBtn) {
         editBtn.addEventListener('click', () => {
             sessionStorage.setItem('currentTab-status', 'update');
-            sessionStorage.setItem('update-invoice', 'duplicate');
+            const editType = editOriginalBtn ? 'duplicate' : 'original';
+            sessionStorage.setItem('update-invoice', editType);
             openInvoice(invoice.invoice_id);
         });
     }
