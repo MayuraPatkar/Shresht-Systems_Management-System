@@ -471,25 +471,10 @@
         <div id="view">
             <div id="project-details-view" class="w-full max-w-6xl mx-auto px-4 space-y-6">
 
-                <!-- View Type Switcher - Segmented Control -->
+                <!-- View Type Switcher - Segmented Control (populated dynamically based on role) -->
                 <div class="flex justify-center fade-in">
                     <div id="view-type-tabs" class="inline-flex bg-gray-100 rounded-lg p-1 gap-1">
-                        <button type="button" data-view-type="duplicate"
-                            class="view-type-tab active px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-blue-600 text-white shadow-sm">
-                            Duplicate
-                        </button>
-                        <button type="button" data-view-type="duplicate-tax"
-                            class="view-type-tab px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Duplicate + Tax
-                        </button>
-                        <button type="button" data-view-type="original"
-                            class="view-type-tab px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Original
-                        </button>
-                        <button type="button" data-view-type="original-tax"
-                            class="view-type-tab px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Original + Tax
-                        </button>
+                        <!-- Tabs are populated by invoice_view.js based on user role -->
                     </div>
                 </div>
 
