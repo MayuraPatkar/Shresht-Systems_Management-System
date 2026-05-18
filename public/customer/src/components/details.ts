@@ -142,16 +142,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Show loading state, disable other options
             const originalHtml = btn.innerHTML;
-            btn.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-sm shadow-sm"><i class="fas fa-spinner fa-spin text-slate-400"></i></div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-800">Generating report...</p>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Assembling ledger and invoices</p>
-                    </div>
-                </div>
-            `;
             exportOptBtns.forEach(b => (b as HTMLButtonElement).disabled = true);
+
+            if (format === 'pdf') {
+                btn.classList.add('processing-pdf');
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 w-full animate-fade-in">
+                        <div class="w-10 h-10 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-sm shadow-sm shrink-0">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-extrabold text-rose-700 truncate">Generating PDF Report...</p>
+                            <p class="text-[10px] text-rose-500 mt-0.5 truncate font-medium">Preparing customer profile, invoices, and ledger</p>
+                        </div>
+                    </div>
+                `;
+            } else if (format === 'excel') {
+                btn.classList.add('processing-pdf');
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 w-full animate-fade-in">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm shadow-sm shrink-0">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-extrabold text-emerald-700 truncate">Generating Spreadsheet...</p>
+                            <p class="text-[10px] text-emerald-500 mt-0.5 truncate font-medium">Assembling financial registers and records</p>
+                        </div>
+                    </div>
+                `;
+            } else if (format === 'json') {
+                btn.classList.add('processing-pdf');
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 w-full animate-fade-in">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm shadow-sm shrink-0">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-extrabold text-blue-700 truncate">Assembling JSON Data...</p>
+                            <p class="text-[10px] text-blue-500 mt-0.5 truncate font-medium">Compiling full database object parameters</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Simulate slight generation delay to ensure the user can feel the professional feedback/animation
+            await new Promise(resolve => setTimeout(resolve, 800));
 
             try {
                 // Fetch full details of the customer to build export payload
@@ -210,20 +245,325 @@ document.addEventListener('DOMContentLoaded', () => {
                     downloadAnchor.click();
                     downloadAnchor.remove();
                 } else if (format === 'pdf') {
-                    // For PDF, trigger print
+                    // For PDF, generate a clean, structured print report
+                    const printContainer = document.getElementById('print-report-container');
+                    if (printContainer) {
+                        const formatDateLocal = (dateStr: any) => {
+                            if (!dateStr) return 'N/A';
+                            try {
+                                const d = new Date(dateStr);
+                                if (isNaN(d.getTime())) return dateStr;
+                                return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                            } catch (e) {
+                                return dateStr || 'N/A';
+                            }
+                        };
+
+                        const fullName = `${data.customer.customer.first_name} ${data.customer.customer.last_name || ''}`.trim();
+                        
+                        // Financial Aggregations
+                        const totalQuotes = (data.quotations || []).length;
+                        const totalInvoices = (data.invoices || []).length;
+                        const totalInvoicedAmt = (data.invoices || []).reduce((sum: number, inv: any) => sum + (inv.grand_total || 0), 0);
+                        const totalPaidAmt = (data.payments || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+                        const outstandingAmt = Math.max(0, totalInvoicedAmt - totalPaidAmt);
+                        const activeServicesCount = (data.services || []).length;
+
+                        // Build quotations table
+                        let quotesRows = '';
+                        if ((data.quotations || []).length > 0) {
+                            data.quotations.forEach((q: any) => {
+                                quotesRows += `
+                                    <tr>
+                                        <td>${q.quotation_id}</td>
+                                        <td>${formatDateLocal(q.quotation_date)}</td>
+                                        <td><span style="font-weight:700;">${q.status}</span></td>
+                                        <td>₹${(q.grand_total || 0).toLocaleString()}</td>
+                                    </tr>`;
+                            });
+                        } else {
+                            quotesRows = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 15px;">No quotation records found</td></tr>`;
+                        }
+
+                        // Build invoices table
+                        let invoiceRows = '';
+                        if ((data.invoices || []).length > 0) {
+                            data.invoices.forEach((inv: any) => {
+                                invoiceRows += `
+                                    <tr>
+                                        <td>${inv.invoice_id}</td>
+                                        <td>${formatDateLocal(inv.invoice_date)}</td>
+                                        <td><span style="font-weight:700;">${inv.status}</span></td>
+                                        <td>₹${(inv.grand_total || 0).toLocaleString()}</td>
+                                    </tr>`;
+                            });
+                        } else {
+                            invoiceRows = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 15px;">No invoice records found</td></tr>`;
+                        }
+
+                        // Build services table
+                        let serviceRows = '';
+                        if ((data.services || []).length > 0) {
+                            data.services.forEach((s: any) => {
+                                serviceRows += `
+                                    <tr>
+                                        <td>${s.service_id}</td>
+                                        <td>${formatDateLocal(s.service_date)}</td>
+                                        <td>${s.service_name}</td>
+                                        <td>${s.remarks || '-'}</td>
+                                    </tr>`;
+                            });
+                        } else {
+                            serviceRows = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 15px;">No active services found</td></tr>`;
+                        }
+
+                        // Build payments table
+                        let paymentRows = '';
+                        if ((data.payments || []).length > 0) {
+                            data.payments.forEach((p: any) => {
+                                paymentRows += `
+                                    <tr>
+                                        <td>${p.payment_id}</td>
+                                        <td>${formatDateLocal(p.payment_date)}</td>
+                                        <td>${p.payment_mode}</td>
+                                        <td>₹${(p.amount || 0).toLocaleString()}</td>
+                                    </tr>`;
+                            });
+                        } else {
+                            paymentRows = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 15px;">No payment records found</td></tr>`;
+                        }
+
+                        // Render the fully structured CRM business document
+                        printContainer.innerHTML = `
+                            <div class="print-header">
+                                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                                    <div style="flex:1;">
+                                        <h1 style="font-size:18pt; font-weight:800; color:#1e3a8a; margin:0; letter-spacing:-0.5px;">SHRESHT SYSTEMS</h1>
+                                        <p style="font-size:9.5pt; color:#64748b; margin:4px 0 0 0; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Customer Account Summary Report</p>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <p style="font-size:8pt; font-weight:700; color:#64748b; margin:0; text-transform:uppercase; letter-spacing:0.5px;">Generated On</p>
+                                        <p style="font-size:9.5pt; font-weight:600; color:#0f172a; margin:2px 0 0 0;">${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h2 class="print-section-title" style="margin-top:0;">1. Customer Profile Identity</h2>
+                            <div class="print-grid">
+                                <div>
+                                    <div class="print-meta-label">Customer Name</div>
+                                    <div class="print-meta-value">${fullName}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Customer ID</div>
+                                    <div class="print-meta-value">${data.customer.customer_id || 'ID Pending'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Customer Type</div>
+                                    <div class="print-meta-value">${data.customer.customer_type || 'Individual'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Profile Status</div>
+                                    <div class="print-meta-value">${data.customer.is_archived ? 'Archived' : (data.customer.is_active ? 'Active' : 'Inactive')}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Primary Phone</div>
+                                    <div class="print-meta-value">${data.customer.customer.phone || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Alternate Phone</div>
+                                    <div class="print-meta-value">${data.customer.customer.alternate_phone || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Email Address</div>
+                                    <div class="print-meta-value">${data.customer.customer.email || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">GSTIN / TAX ID</div>
+                                    <div class="print-meta-value">${data.customer.gstin || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Customer Since</div>
+                                    <div class="print-meta-value">${formatDateLocal(data.customer.createdAt)}</div>
+                                </div>
+                            </div>
+
+                            <h2 class="print-section-title">2. Billing & Location Address</h2>
+                            <div class="print-grid">
+                                <div style="grid-column: span 2;">
+                                    <div class="print-meta-label">Billing Address</div>
+                                    <div class="print-meta-value">
+                                        ${data.customer.billing_address?.line1 || ''}
+                                        ${data.customer.billing_address?.line2 ? ', ' + data.customer.billing_address.line2 : ''}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">City</div>
+                                    <div class="print-meta-value">${data.customer.billing_address?.city || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">State & Pincode</div>
+                                    <div class="print-meta-value">${data.customer.billing_address?.state || 'N/A'} - ${data.customer.billing_address?.pincode || 'N/A'}</div>
+                                </div>
+                            </div>
+
+                            <h2 class="print-section-title">3. Financial Ledger Summary</h2>
+                            <div class="print-grid" style="grid-template-columns: repeat(5, minmax(0, 1fr)) !important; text-align: center; background-color:#f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
+                                <div>
+                                    <div class="print-meta-label">Quotations</div>
+                                    <div class="print-meta-value" style="color:#2563eb; font-size:12pt; font-weight:800; margin-top:4px;">${totalQuotes}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Invoices</div>
+                                    <div class="print-meta-value" style="color:#4f46e5; font-size:12pt; font-weight:800; margin-top:4px;">${totalInvoices}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Total Invoiced</div>
+                                    <div class="print-meta-value" style="color:#0f172a; font-size:12pt; font-weight:800; margin-top:4px;">₹${totalInvoicedAmt.toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Total Paid</div>
+                                    <div class="print-meta-value" style="color:#16a34a; font-size:12pt; font-weight:800; margin-top:4px;">₹${totalPaidAmt.toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Outstanding</div>
+                                    <div class="print-meta-value" style="color:#dc2626; font-size:12pt; font-weight:800; margin-top:4px;">₹${outstandingAmt.toLocaleString()}</div>
+                                </div>
+                            </div>
+
+                            <h2 class="print-section-title">4. Active Services Registry</h2>
+                            <table class="print-table">
+                                <thead>
+                                    <tr>
+                                        <th>Service ID</th>
+                                        <th>Date Initiated</th>
+                                        <th>Service Name</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${serviceRows}
+                                </tbody>
+                            </table>
+
+                            <h2 class="print-section-title" style="page-break-before: always;">5. Quotation History</h2>
+                            <table class="print-table">
+                                <thead>
+                                    <tr>
+                                        <th>Quotation ID</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Grand Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${quotesRows}
+                                </tbody>
+                            </table>
+
+                            <h2 class="print-section-title">6. Invoice Records</h2>
+                            <table class="print-table">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice ID</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Total Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${invoiceRows}
+                                </tbody>
+                            </table>
+
+                            <h2 class="print-section-title">7. Payment Ledger</h2>
+                            <table class="print-table">
+                                <thead>
+                                    <tr>
+                                        <th>Payment ID</th>
+                                        <th>Date</th>
+                                        <th>Method</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${paymentRows}
+                                </tbody>
+                            </table>
+
+                            ${data.customer.remarks ? `
+                            <h2 class="print-section-title">8. Administrative Remarks</h2>
+                            <div style="background-color:#fafaf9; border:1px solid #e4e4e7; border-radius:8px; padding:12px; font-size:9.5pt; color:#475569; font-weight:500; line-height:1.5;">
+                                ${data.customer.remarks}
+                            </div>` : ''}
+
+                            <div style="margin-top:40px; border-top:1px solid #e2e8f0; padding-top:15px; text-align:center; font-size:8pt; color:#94a3b8; font-weight:600;">
+                                Official Record • Shresht Systems CRM Management Suite
+                            </div>
+                        `;
+                    }
                     window.print();
+                }
+
+                // Show Success State on the button
+                btn.classList.remove('processing-pdf');
+                btn.classList.add('success-pdf');
+                if (format === 'pdf') {
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-3 w-full animate-fade-in">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-extrabold text-emerald-700 truncate">PDF Exported Successfully</p>
+                                <p class="text-[10px] text-emerald-500 mt-0.5 truncate font-medium">Report is fully generated and ready for print</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-3 w-full animate-fade-in">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-extrabold text-emerald-700 truncate">Data Exported Successfully</p>
+                                <p class="text-[10px] text-emerald-500 mt-0.5 truncate font-medium">File download initiated</p>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 // Show success toast
                 (window as any).showToast('Customer data exported successfully');
+                
+                // Wait slightly for the success animation to be readable, then close the modal
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 if (exportModal && exportModalCard) {
                     closeModalHelper(exportModal, exportModalCard);
                 }
             } catch (err) {
                 console.error(err);
+                btn.classList.remove('processing-pdf');
+                btn.classList.add('error-pdf');
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 w-full animate-fade-in">
+                        <div class="w-10 h-10 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-extrabold text-rose-700 truncate">Failed to Generate Export</p>
+                            <p class="text-[10px] text-rose-500 mt-0.5 truncate font-medium">Please check configuration and try again</p>
+                        </div>
+                    </div>
+                `;
                 (window as any).showToast('Failed to export data', 'error');
+                
+                // Wait to display the error, then restore the card
+                await new Promise(resolve => setTimeout(resolve, 2000));
             } finally {
                 // Restore button state
+                btn.classList.remove('processing-pdf', 'success-pdf', 'error-pdf');
                 btn.innerHTML = originalHtml;
                 exportOptBtns.forEach(b => (b as HTMLButtonElement).disabled = false);
             }
