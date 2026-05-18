@@ -1196,12 +1196,15 @@
     <script src="../js/shared/keyboardNavigation.js"></script>
     <script src="../js/shared/globalScript.js"></script>
 
-    <!-- Settings module scripts (load in order) -->
-    <script src="./settings_admin.js"></script>
-    <script src="./settings_backup.js"></script>
-    <script src="./settings_preferences.js"></script>
-    <script src="./settings_system.js"></script>
-    <script src="./settings.js"></script>
+    <!-- Settings module scripts (load in order, compiled from TypeScript) -->
+    <script src="../../dist/public/settings/src/types/settings.types.js"></script>
+    <script src="../../dist/public/settings/src/services/settingsApi.js"></script>
+    <script src="../../dist/public/settings/src/utils/settingsUtils.js"></script>
+    <script src="../../dist/public/settings/src/components/settingsAdmin.js"></script>
+    <script src="../../dist/public/settings/src/components/settingsBackup.js"></script>
+    <script src="../../dist/public/settings/src/components/settingsPreferences.js"></script>
+    <script src="../../dist/public/settings/src/components/settingsSystem.js"></script>
+    <script src="../../dist/public/settings/src/main.js"></script>
 </body>
 
 </html>
