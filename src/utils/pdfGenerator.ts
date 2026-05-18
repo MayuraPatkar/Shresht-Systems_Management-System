@@ -54,6 +54,16 @@ interface QuotationData {
     subject?: string;
     notes?: string[];
     termsAndConditions?: string;
+    discount?: number;
+    totals?: {
+        taxable_value?: number;
+        cgst?: number;
+        sgst?: number;
+        igst?: number;
+        total_tax?: number;
+        round_off?: number;
+        grand_total?: number;
+    };
 }
 
 interface InvoiceItem {
@@ -241,71 +251,107 @@ export function generateQuotationHTML(
 
     let sno = 0;
     let itemsHTML = "";
+    let totalQtySum = 0;
+    let totalTaxableSum = 0;
+    let totalPriceSum = 0;
 
     items.forEach((item) => {
-        const description = item.description || "-";
-        const hsnSac = item.HSN_SAC || "-";
         const qty = parseFloat(String(item.quantity || 0));
         const unitPrice = parseFloat(String(item.unit_price || 0));
         const rate = parseFloat(String(item.rate || 0));
         const taxableValue = qty * unitPrice;
+        
+        totalQtySum += qty;
+        totalTaxableSum += taxableValue;
 
         if (hasTax && rate > 0) {
             const cgstValue = (taxableValue * rate) / 2 / 100;
             const sgstValue = (taxableValue * rate) / 2 / 100;
             const rowTotal = taxableValue + cgstValue + sgstValue;
+            totalPriceSum += rowTotal;
             itemsHTML += `<tr>
-                <td>${++sno}</td>
-                <td>${description}</td>
-                <td>${hsnSac}</td>
-                <td>${qty}</td>
-                <td>${formatIndian(unitPrice)}</td>
-                <td>${formatIndian(taxableValue)}</td>
-                <td>${rate.toFixed(2)}</td>
-                <td>${formatIndian(rowTotal)}</td>
+                <td style="text-align: center;">${++sno}</td>
+                <td>${item.description || "-"}</td>
+                <td style="text-align: center;">${item.HSN_SAC || "-"}</td>
+                <td style="text-align: right;">${qty}</td>
+                <td style="text-align: right;">₹${formatIndian(unitPrice)}</td>
+                <td style="text-align: right;">₹${formatIndian(taxableValue)}</td>
+                <td style="text-align: right;">${rate.toFixed(2)}%</td>
+                <td style="text-align: right;">₹${formatIndian(rowTotal)}</td>
             </tr>`;
         } else {
+            const rowTotal = taxableValue;
+            totalPriceSum += rowTotal;
             itemsHTML += `<tr>
-                <td>${++sno}</td>
-                <td>${description}</td>
-                <td>${hsnSac}</td>
-                <td>${qty}</td>
-                <td>${formatIndian(unitPrice)}</td>
-                <td>${formatIndian(taxableValue)}</td>
+                <td style="text-align: center;">${++sno}</td>
+                <td>${item.description || "-"}</td>
+                <td style="text-align: center;">${item.HSN_SAC || "-"}</td>
+                <td style="text-align: right;">${qty}</td>
+                <td style="text-align: right;">₹${formatIndian(unitPrice)}</td>
+                <td style="text-align: right;">₹${formatIndian(rowTotal)}</td>
             </tr>`;
         }
     });
 
     non_items.forEach((item) => {
-        const description = item.description || "-";
         const price = parseFloat(String(item.price || 0));
         const rate = parseFloat(String(item.rate || 0));
+
+        totalTaxableSum += price;
 
         if (hasTax && rate > 0) {
             const cgstValue = (price * rate) / 2 / 100;
             const sgstValue = (price * rate) / 2 / 100;
             const rowTotal = price + cgstValue + sgstValue;
+            totalPriceSum += rowTotal;
             itemsHTML += `<tr>
-                <td>${++sno}</td>
-                <td>${description}</td>
-                <td>-</td>
-                <td>1</td>
-                <td>${formatIndian(price)}</td>
-                <td>${formatIndian(price)}</td>
-                <td>${rate.toFixed(2)}</td>
-                <td>${formatIndian(rowTotal)}</td>
+                <td style="text-align: center;">${++sno}</td>
+                <td>${item.description || "-"}</td>
+                <td style="text-align: center;">-</td>
+                <td style="text-align: right;">-</td>
+                <td style="text-align: right;">-</td>
+                <td style="text-align: right;">₹${formatIndian(price)}</td>
+                <td style="text-align: right;">${rate.toFixed(2)}%</td>
+                <td style="text-align: right;">₹${formatIndian(rowTotal)}</td>
             </tr>`;
         } else {
+            const rowTotal = price;
+            totalPriceSum += rowTotal;
             itemsHTML += `<tr>
-                <td>${++sno}</td>
-                <td>${description}</td>
-                <td>-</td>
-                <td>1</td>
-                <td>${formatIndian(price)}</td>
-                <td>${formatIndian(price)}</td>
+                <td style="text-align: center;">${++sno}</td>
+                <td>${item.description || "-"}</td>
+                <td style="text-align: center;">-</td>
+                <td style="text-align: right;">-</td>
+                <td style="text-align: right;">-</td>
+                <td style="text-align: right;">₹${formatIndian(rowTotal)}</td>
             </tr>`;
         }
     });
+
+    // Totals Row
+    let totalsRowHTML = "";
+    if (hasTax) {
+        totalsRowHTML = `
+            <tr style="font-weight: bold; background-color: #f5f5f5;">
+                <td colspan="3">TOTAL</td>
+                <td style="text-align: right;">${totalQtySum}</td>
+                <td style="text-align: right;">-</td>
+                <td style="text-align: right;">₹${formatIndian(totalTaxableSum)}</td>
+                <td style="text-align: right;">-</td>
+                <td style="text-align: right;">₹${formatIndian(totalPriceSum)}</td>
+            </tr>
+        `;
+    } else {
+        totalsRowHTML = `
+            <tr style="font-weight: bold; background-color: #f5f5f5;">
+                <td colspan="3">TOTAL</td>
+                <td style="text-align: right;">${totalQtySum}</td>
+                <td style="text-align: right;">-</td>
+                <td style="text-align: right;">₹${formatIndian(totalPriceSum)}</td>
+            </tr>
+        `;
+    }
+    itemsHTML += totalsRowHTML;
 
     const totalAmount = total_amount_tax || total_amount_no_tax || 0;
     const cgst = (total_tax || 0) / 2;
@@ -323,8 +369,18 @@ export function generateQuotationHTML(
     };
 
     const tableHeaders = hasTax
-        ? "<th>S.No</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Taxable Value</th><th>Rate (%)</th><th>Total</th>"
-        : "<th>S.No</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Total</th>";
+        ? "<th style=\"text-align: center;\">S.No</th><th style=\"text-align: left;\">Description</th><th style=\"text-align: center;\">HSN/SAC</th><th style=\"text-align: right;\">Qty</th><th style=\"text-align: right;\">Unit Price</th><th style=\"text-align: right;\">Taxable Value</th><th style=\"text-align: right;\">Rate (%)</th><th style=\"text-align: right;\">Total</th>"
+        : "<th style=\"text-align: center;\">S.No</th><th style=\"text-align: left;\">Description</th><th style=\"text-align: center;\">HSN/SAC</th><th style=\"text-align: right;\">Qty</th><th style=\"text-align: right;\">Unit Price</th><th style=\"text-align: right;\">Total</th>";
+
+    const totalsObj = quotation.totals || {};
+    const discountAmount = quotation.discount || 0;
+
+    const taxableValue = totalsObj.taxable_value ?? (total_amount_no_tax || totalTaxableSum);
+    const totalCGST = totalsObj.cgst ?? (cgst);
+    const totalSGST = totalsObj.sgst ?? (sgst);
+    const totalIGST = totalsObj.igst ?? 0;
+    const roundOff = totalsObj.round_off ?? (Math.round(totalAmount) - totalAmount);
+    const finalGrandTotal = totalsObj.grand_total ?? Math.round(totalAmount);
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -391,7 +447,7 @@ export function generateQuotationHTML(
             <div class="buyer-details">
                 <p><strong>To:</strong></p>
                 <p>${customer_name || ""}</p>
-                <p>${customer_address || ""}</p>
+                <p style="white-space: pre-line;">${customer_address || ""}</p>
                 <p>Ph: ${customer_phone || ""}</p>
             </div>
             <div class="doc-info">
@@ -413,21 +469,24 @@ export function generateQuotationHTML(
         <div class="totals">
             <div class="totals-row">
                 <table class="totals-table">
+                    <tr><td class="label">Subtotal (Taxable Value):</td><td class="value">₹${formatIndian(taxableValue)}</td></tr>
                     ${hasTax
-            ? `
-                    <tr><td class="label">Taxable Value:</td><td class="value">₹${formatIndian(total_amount_no_tax || 0)}</td></tr>
-                    <tr><td class="label">CGST:</td><td class="value">₹${formatIndian(cgst)}</td></tr>
-                    <tr><td class="label">SGST:</td><td class="value">₹${formatIndian(sgst)}</td></tr>
-                    `
+            ? (totalIGST > 0
+                ? `<tr><td class="label">Total IGST:</td><td class="value">₹${formatIndian(totalIGST)}</td></tr>`
+                : `<tr><td class="label">Total CGST:</td><td class="value">₹${formatIndian(totalCGST)}</td></tr>
+                   <tr><td class="label">Total SGST:</td><td class="value">₹${formatIndian(totalSGST)}</td></tr>`
+              )
             : ""
         }
+                    ${discountAmount > 0 ? `<tr><td class="label">Discount:</td><td class="value">-₹${formatIndian(discountAmount)}</td></tr>` : ""}
+                    <tr><td class="label">Round Off:</td><td class="value">₹${roundOff >= 0 ? "+" : ""}${formatIndian(roundOff)}</td></tr>
                     <tr style="font-weight: bold; font-size: 14px;">
                         <td class="label">Grand Total:</td>
-                        <td class="value">₹${formatIndian(totalAmount)}</td>
+                        <td class="value">₹${formatIndian(finalGrandTotal)}</td>
                     </tr>
                 </table>
             </div>
-            <p class="total-words"><strong>Amount in Words:</strong> ${numberToWords(Math.round(totalAmount))} Rupees Only</p>
+            <p class="total-words"><strong>Amount in Words:</strong> ${numberToWords(Math.round(finalGrandTotal))} Rupees Only</p>
         </div>
 
         ${notes.length > 0

@@ -101,14 +101,9 @@ async function generateViewPreviewHTML(quotation, viewType) {
     const bank = company.bank_details || {};
     const phoneStr = company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '');
 
-    let totalTaxableValue = 0;
-    let totalTax = 0;
-    let totalPrice = 0;
-    let sno = 0;
-
-    const allRenderableItems = [];
-    const CHARS_PER_LINE = 60; // Estimated row height for pagination
-    const headerHTML = await getQuotationHeaderHTML();
+    let totalQtySum = 0;
+    let totalTaxableSum = 0;
+    let totalPriceSum = 0;
 
     // Process regular items
     (quotation.items || []).forEach(item => {
@@ -119,6 +114,9 @@ async function generateViewPreviewHTML(quotation, viewType) {
         const hsnSac = item.HSN_SAC || item.hsn_sac || '';
         const taxableValue = qty * unitPrice;
         const taxAmount = (taxableValue * taxRate) / 100;
+        
+        totalQtySum += qty;
+        totalTaxableSum += taxableValue;
         totalTaxableValue += taxableValue;
         totalTax += taxAmount;
         sno++;
@@ -127,13 +125,15 @@ async function generateViewPreviewHTML(quotation, viewType) {
         if (viewType === 2) {
             const totalWithTax = taxableValue + taxAmount;
             totalPrice += totalWithTax;
-            itemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${hsnSac || '-'}</td><td>${qty || '-'}</td><td>${unitPrice ? formatIndian(unitPrice, 2) : '-'}</td><td>${taxableValue ? formatIndian(taxableValue, 2) : '-'}</td><td>${taxRate}%</td><td>${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
+            totalPriceSum += totalWithTax;
+            itemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac || '-'}</td><td class="text-right">${qty || '-'}</td><td class="text-right">${unitPrice ? '₹ ' + formatIndian(unitPrice, 2) : '-'}</td><td class="text-right">${taxableValue ? '₹ ' + formatIndian(taxableValue, 2) : '-'}</td><td class="text-right">${taxRate}%</td><td class="text-right">${totalWithTax ? '₹ ' + formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
         } else if (viewType === 1) {
             totalPrice += taxableValue;
-            itemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${hsnSac || '-'}</td><td>${qty || '-'}</td><td>${unitPrice ? formatIndian(unitPrice, 2) : '-'}</td><td>${taxableValue ? formatIndian(taxableValue, 2) : '-'}</td></tr>`;
+            totalPriceSum += taxableValue;
+            itemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac || '-'}</td><td class="text-right">${qty || '-'}</td><td class="text-right">${unitPrice ? '₹ ' + formatIndian(unitPrice, 2) : '-'}</td><td class="text-right">${taxableValue ? '₹ ' + formatIndian(taxableValue, 2) : '-'}</td></tr>`;
         } else {
             totalPrice += taxableValue + taxAmount;
-            itemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${item.specification || ''}</td><td>${qty || '-'}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-left">${item.specification || ''}</td><td class="text-center">${qty || '-'}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
@@ -147,6 +147,8 @@ async function generateViewPreviewHTML(quotation, viewType) {
         const description = item.description || '-';
         const taxableValue = price;
         const taxAmount = (taxableValue * taxRate) / 100;
+        
+        totalTaxableSum += price;
         totalTaxableValue += taxableValue;
         totalTax += taxAmount;
         sno++;
@@ -155,20 +157,31 @@ async function generateViewPreviewHTML(quotation, viewType) {
         if (viewType === 2) {
             const totalWithTax = taxableValue + taxAmount;
             totalNonItemsPrice += totalWithTax;
-            nonItemHTML = `<tr><td>${sno}</td><td>${description}</td><td>-</td><td>-</td><td>-</td><td>${price ? formatIndian(price, 2) : '-'}</td><td>${taxRate}%</td><td>${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
+            totalPriceSum += totalWithTax;
+            nonItemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">${price ? '₹ ' + formatIndian(price, 2) : '-'}</td><td class="text-right">${taxRate}%</td><td class="text-right">${totalWithTax ? '₹ ' + formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
         } else if (viewType === 1) {
             totalNonItemsPrice += taxableValue;
-            nonItemHTML = `<tr><td>${sno}</td><td>${description}</td><td>-</td><td>-</td><td>-</td><td>${price ? formatIndian(price, 2) : '-'}</td></tr>`;
+            totalPriceSum += taxableValue;
+            nonItemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">${price ? '₹ ' + formatIndian(price, 2) : '-'}</td></tr>`;
         } else {
             totalNonItemsPrice += taxableValue;
-            nonItemHTML = `<tr><td>${sno}</td><td>${description}</td><td>${item.specification || ''}</td><td>-</td></tr>`;
+            nonItemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-left">${item.specification || ''}</td><td class="text-center">-</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: nonItemHTML, rowCount: rowCount });
     });
 
-    // Grand totals - round off to nearest rupee
-    let grandTotal = Math.round(totalPrice + totalNonItemsPrice);
+    // Grand totals - read directly from quotation totals if saved
+    const totals = quotation.totals || {};
+    const hasTaxVal = viewType === 2;
+    const discountAmount = quotation.discount || 0;
+
+    const taxableValue = totals.taxable_value ?? totalTaxableValue;
+    const totalCGST = totals.cgst ?? (totalTax / 2);
+    const totalSGST = totals.sgst ?? (totalTax - totalCGST);
+    const totalIGST = totals.igst ?? 0;
+    const roundOff = totals.round_off ?? (Math.round(totalPrice + totalNonItemsPrice) - (totalPrice + totalNonItemsPrice));
+    const grandTotal = totals.grand_total ?? Math.round(totalPrice + totalNonItemsPrice);
 
     // Format the date for display (DD/MM/YYYY format)
     const formattedDate = formatDateIndian(quotation.quotation_date);
@@ -176,43 +189,78 @@ async function generateViewPreviewHTML(quotation, viewType) {
     // Table headers
     let tableHead = "";
     if (viewType === 2) {
-        tableHead = `<th>Sr. No</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Taxable Value</th><th>Rate</th><th>Total (With Tax)</th>`;
+        tableHead = `<th class="text-center">Sr. No</th><th class="text-left">Description</th><th class="text-center">HSN/SAC</th><th class="text-right">Qty</th><th class="text-right">Unit Price</th><th class="text-right">Taxable Value</th><th class="text-right">Rate</th><th class="text-right">Total (With Tax)</th>`;
     } else if (viewType === 1) {
-        tableHead = `<th>Sr. No</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Total</th>`;
+        tableHead = `<th class="text-center">Sr. No</th><th class="text-left">Description</th><th class="text-center">HSN/SAC</th><th class="text-right">Qty</th><th class="text-right">Unit Price</th><th class="text-right">Total</th>`;
     } else {
-        tableHead = `<th>Sr. No</th><th>Description</th><th>Specifications</th><th>Qty</th>`;
+        tableHead = `<th class="text-center">Sr. No</th><th class="text-left">Description</th><th class="text-left">Specifications</th><th class="text-center">Qty</th>`;
     }
 
     // Totals HTML
     let totalsHTML = "";
-    if (viewType === 2) {
-        const totalCGST = totalTax / 2;
-        const totalSGST = totalTax / 2;
+    if (hasTaxVal) {
         totalsHTML = `
         <div style="display: flex; width: 100%;">
-            <div class="totals-section-sub1" style="width: 50%;">
-                <p>Taxable Value:</p>
+            <div class="totals-section-sub1" style="width: 55%;">
+                <p>Subtotal (Taxable Value):</p>
+                ${totalIGST > 0 ? `
+                <p>Total IGST:</p>` : `
                 <p>Total CGST:</p>
-                <p>Total SGST:</p>
+                <p>Total SGST:</p>`}
+                ${discountAmount > 0 ? `<p>Discount:</p>` : ""}
+                <p>Round Off:</p>
                 <p>Grand Total:</p>
             </div>
-            <div class="totals-section-sub2" style="width: 50%;">
-                <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+            <div class="totals-section-sub2" style="width: 45%;">
+                <p>₹ ${formatIndian(taxableValue, 2)}</p>
+                ${totalIGST > 0 ? `
+                <p>₹ ${formatIndian(totalIGST, 2)}</p>` : `
                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
-                <p>₹ ${formatIndian(totalSGST, 2)}</p>
+                <p>₹ ${formatIndian(totalSGST, 2)}</p>`}
+                ${discountAmount > 0 ? `<p>-₹ ${formatIndian(discountAmount, 2)}</p>` : ""}
+                <p>₹ ${roundOff >= 0 ? "+" : ""}${formatIndian(roundOff, 2)}</p>
                 <p>₹ ${formatIndian(grandTotal, 2)}</p>
             </div>
         </div>`;
     } else {
         totalsHTML = `
         <div style="display: flex; width: 100%;">
-            <div class="totals-section-sub1" style="width: 50%;">
+            <div class="totals-section-sub1" style="width: 55%;">
+                <p>Subtotal (Taxable Value):</p>
+                ${discountAmount > 0 ? `<p>Discount:</p>` : ""}
+                <p>Round Off:</p>
                 <p>Grand Total:</p>
             </div>
-            <div class="totals-section-sub2" style="width: 50%;">
+            <div class="totals-section-sub2" style="width: 45%;">
+                <p>₹ ${formatIndian(taxableValue, 2)}</p>
+                ${discountAmount > 0 ? `<p>-₹ ${formatIndian(discountAmount, 2)}</p>` : ""}
+                <p>₹ ${roundOff >= 0 ? "+" : ""}${formatIndian(roundOff, 2)}</p>
                 <p>₹ ${formatIndian(grandTotal, 2)}</p>
             </div>
         </div>`;
+    }
+
+    let totalsRowHTML = "";
+    if (viewType === 2) {
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-right">${totalQtySum}</td>
+                <td class="text-right">-</td>
+                <td class="text-right">₹ ${formatIndian(totalTaxableSum, 2)}</td>
+                <td class="text-right">-</td>
+                <td class="text-right">₹ ${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
+    } else if (viewType === 1) {
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-right">${totalQtySum}</td>
+                <td class="text-right">-</td>
+                <td class="text-right">₹ ${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
     }
 
     const ITEMS_PER_PAGE = 20;
@@ -242,12 +290,13 @@ async function generateViewPreviewHTML(quotation, viewType) {
 
     const itemsPageHTML = itemPages.map((pageHTML, index) => {
         const isLastItemsPage = index === itemPages.length - 1;
+        const contentHTML = isLastItemsPage ? (pageHTML + totalsRowHTML) : pageHTML;
         return `
         <div class="preview-container doc-quotation">
             ${headerHTML}
             <div class="items-section">
                 ${index === 0 ? `<div class="table headline-section"><p><u>${quotation.headline || 'Items and Charges'}</u></p></div>` : ''}
-                <table class="items-table"><thead><tr>${tableHead}</tr></thead><tbody>${pageHTML}</tbody></table>
+                <table class="items-table"><thead><tr>${tableHead}</tr></thead><tbody>${contentHTML}</tbody></table>
             </div>
             ${!isLastItemsPage ? `<div class="continuation-text">Continued on next page...</div>` : ''}
             ${isLastItemsPage ? `

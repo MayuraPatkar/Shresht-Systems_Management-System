@@ -1023,11 +1023,6 @@ async function generatePreview() {
     const headerHTML = await getQuotationHeaderHTML();
 
     let totalPrice = 0;
-    let totalCGST = 0;
-    let totalSGST = 0;
-    let totalTaxableValue = 0;
-    let grandTotal = 0;
-    let roundOff = 0;
     let sno = 0;
 
     const allRenderableItems = [];
@@ -1035,6 +1030,10 @@ async function generatePreview() {
 
     // Check if rate column is populated
     let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[5].querySelector("input").value) > 0);
+
+    let totalQtySum = 0;
+    let totalTaxableSum = 0;
+    let totalPriceSum = 0;
 
     // Process regular items
     for (const row of itemsTable.rows) {
@@ -1045,25 +1044,20 @@ async function generatePreview() {
         const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
 
         const taxableValue = qty * unitPrice;
-        totalTaxableValue += taxableValue;
+        totalQtySum += qty;
+        totalTaxableSum += taxableValue;
         let itemHTML = "";
 
         if (hasTax) {
-            const cgstPercent = rate / 2;
-            const sgstPercent = rate / 2;
-            const cgstValue = (taxableValue * cgstPercent) / 100;
-            const sgstValue = (taxableValue * sgstPercent) / 100;
-            const rowTotal = taxableValue + cgstValue + sgstValue;
+            const taxAmount = (taxableValue * rate) / 100;
+            const rowTotal = taxableValue + taxAmount;
+            totalPriceSum += rowTotal;
 
-            totalCGST += cgstValue;
-            totalSGST += sgstValue;
-            totalPrice += rowTotal;
-
-            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(taxableValue, 2)}</td><td>${rate.toFixed(2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac}</td><td class="text-right">${qty}</td><td class="text-right">₹ ${formatIndian(unitPrice, 2)}</td><td class="text-right">₹ ${formatIndian(taxableValue, 2)}</td><td class="text-right">${rate.toFixed(2)}%</td><td class="text-right">₹ ${formatIndian(rowTotal, 2)}</td></tr>`;
         } else {
             const rowTotal = taxableValue;
-            totalPrice += rowTotal;
-            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
+            totalPriceSum += rowTotal;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac}</td><td class="text-right">${qty}</td><td class="text-right">₹ ${formatIndian(unitPrice, 2)}</td><td class="text-right">₹ ${formatIndian(rowTotal, 2)}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
@@ -1082,64 +1076,119 @@ async function generatePreview() {
         const price = Number(item.price) || 0;
         const rate = Number(item.rate) || 0;
 
+        totalTaxableSum += price;
+
         let rowTotal = price;
-        totalTaxableValue += price; // Add non-item price to taxable value
-
         if (hasTax && rate > 0) {
-            const cgstPercent = rate / 2;
-            const sgstPercent = rate / 2;
-            const cgstValue = (price * cgstPercent) / 100;
-            const sgstValue = (price * sgstPercent) / 100;
-
-            totalCGST += cgstValue;
-            totalSGST += sgstValue;
-            rowTotal += cgstValue + sgstValue;
+            const taxAmount = (price * rate) / 100;
+            rowTotal += taxAmount;
         }
-
-        totalPrice += rowTotal; // Add the final row total to the grand total
+        totalPriceSum += rowTotal;
 
         // Generate HTML with consistent columns: S.No, Description, HSN/SAC, Qty, Unit Price, [Taxable Value, Rate %], Total
         let itemHTML = "";
         if (hasTax) {
-            // With tax: 8 columns (S.No, Description, HSN/SAC, Qty, Unit Price, Taxable Value, Rate %, Total)
-            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td><td>${formatIndian(price, 2)}</td><td>${formatIndian(price, 2)}</td><td>${rate.toFixed(2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">₹ ${formatIndian(price, 2)}</td><td class="text-right">${rate.toFixed(2)}%</td><td class="text-right">₹ ${formatIndian(rowTotal, 2)}</td></tr>`;
         } else {
-            // Without tax: 6 columns (S.No, Description, HSN/SAC, Qty, Unit Price, Total)
-            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td><td>${formatIndian(price, 2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">₹ ${formatIndian(rowTotal, 2)}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
         sno++;
     }
 
-    totalPrice = Math.max(totalPrice - discountAmount, 0);
-    totalTaxableValue = Math.max(totalTaxableValue - discountAmount, 0);
-    grandTotal = totalPrice; // Use totalPrice which now includes non-items
-    roundOff = Math.round(grandTotal) - grandTotal;
-    totalTax = totalCGST + totalSGST;
+    // Calculate actual pro-rata totals matching backend exactly
+    const placeOfSupply = document.getElementById("buyer-state")?.value || "Karnataka";
+    const isInterState = String(placeOfSupply).trim().toLowerCase() !== "karnataka";
+
+    const discountRatio = totalTaxableSum > 0 ? Math.max(totalTaxableSum - discountAmount, 0) / totalTaxableSum : 1;
+
+    let totalCGST = 0;
+    let totalSGST = 0;
+    let totalIGST = 0;
+    const totalTaxableValue = Math.max(totalTaxableSum - discountAmount, 0);
+
+    for (const row of itemsTable.rows) {
+        const qty = parseFloat(row.cells[3].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[4].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
+        const taxable = qty * unitPrice * discountRatio;
+        const tax = (taxable * rate) / 100;
+        if (isInterState) {
+            totalIGST += tax;
+        } else {
+            totalCGST += tax / 2;
+            totalSGST += tax - (tax / 2);
+        }
+    }
+    for (const item of nonItems) {
+        const price = Number(item.price) || 0;
+        const rate = Number(item.rate) || 0;
+        const taxable = price * discountRatio;
+        const tax = (taxable * rate) / 100;
+        if (isInterState) {
+            totalIGST += tax;
+        } else {
+            totalCGST += tax / 2;
+            totalSGST += tax - (tax / 2);
+        }
+    }
+
+    const totalTax = totalIGST + totalCGST + totalSGST;
+    totalPrice = totalTaxableValue + totalTax;
+    const roundedGrandTotal = Math.round(totalPrice);
+    const roundOff = roundedGrandTotal - totalPrice;
+
     totalAmountNoTax = totalTaxableValue;
-    totalAmountTax = (totalPrice + roundOff).toFixed(2);
+    totalAmountTax = roundedGrandTotal.toFixed(2);
 
     const totalsHTML = `
         <div style="display: flex; width: 100%;">
-            <div class="totals-section-sub1" style="width: 50%;">
-                ${hasTax ? `
-                <p>Taxable Value:</p>
+            <div class="totals-section-sub1" style="width: 55%;">
+                <p>Subtotal (Taxable Value):</p>
+                ${hasTax ? (totalIGST > 0 ? `
+                <p>Total IGST:</p>` : `
                 <p>Total CGST:</p>
-                <p>Total SGST:</p>` : ""}
+                <p>Total SGST:</p>`) : ""}
                 ${discountAmount ? `<p>Discount:</p>` : ""}
                 <p>Round Off:</p>
                 <p>Grand Total:</p>
             </div>
-            <div class="totals-section-sub2" style="width: 50%;">
-                ${hasTax ? `
+            <div class="totals-section-sub2" style="width: 45%;">
                 <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+                ${hasTax ? (totalIGST > 0 ? `
+                <p>₹ ${formatIndian(totalIGST, 2)}</p>` : `
                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
-                <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-                <p>₹ ${formatIndian(Math.round(totalPrice), 2)}</p>
+                <p>₹ ${formatIndian(totalSGST, 2)}</p>`) : ""}
+                ${discountAmount ? `<p>-₹ ${formatIndian(discountAmount, 2)}</p>` : ""}
+                <p>₹ ${roundOff >= 0 ? "+" : ""}${formatIndian(roundOff, 2)}</p>
+                <p>₹ ${formatIndian(roundedGrandTotal, 2)}</p>
             </div>
         </div>
     `;
+
+    let totalsRowHTML = "";
+    if (hasTax) {
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-right">${totalQtySum}</td>
+                <td class="text-right">-</td>
+                <td class="text-right">₹ ${formatIndian(totalTaxableSum, 2)}</td>
+                <td class="text-right">-</td>
+                <td class="text-right">₹ ${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
+    } else {
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-right">${totalQtySum}</td>
+                <td class="text-right">-</td>
+                <td class="text-right">₹ ${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
+    }
 
     const ITEMS_PER_PAGE = 20; // Represents available lines on a page for items.
     const SUMMARY_SECTION_ROW_COUNT = 8; // Estimated height of totals, payment, and notes sections.
@@ -1189,19 +1238,19 @@ async function generatePreview() {
                 <table class="items-table">
                     <thead>
                         <tr>
-                            <th>S. No</th>
-                            <th>Description</th>
-                            <th>HSN/SAC</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
+                            <th class="text-center">S. No</th>
+                            <th class="text-left">Description</th>
+                            <th class="text-center">HSN/SAC</th>
+                            <th class="text-right">Qty</th>
+                            <th class="text-right">Unit Price</th>
                             ${hasTax ? `
-                            <th>Taxable Value (₹)</th>
-                            <th>Rate (%)</th>` : ""}
-                            <th>Total Price (₹)</th>
+                            <th class="text-right">Taxable Value (₹)</th>
+                            <th class="text-right">Rate (%)</th>` : ""}
+                            <th class="text-right">Total Price (₹)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${pageHTML}
+                        ${isLastItemsPage ? (pageHTML + totalsRowHTML) : pageHTML}
                     </tbody>
                 </table>
             </div>
@@ -1214,7 +1263,7 @@ async function generatePreview() {
                     <div class="fifth-section-sub2">
                         <div class="fifth-section-sub3">
                             <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
-                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(roundedGrandTotal)} Only</span></p>
                         </div>
                         <h3>Payment Details</h3>
                         <div class="bank-details">
@@ -1381,19 +1430,19 @@ async function generatePreview() {
                 <table class="items-table">
                     <thead>
                         <tr>
-                            <th>S. No</th>
-                            <th>Description</th>
-                            <th>HSN/SAC</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
+                            <th class="text-center">S. No</th>
+                            <th class="text-left">Description</th>
+                            <th class="text-center">HSN/SAC</th>
+                            <th class="text-right">Qty</th>
+                            <th class="text-right">Unit Price</th>
                             ${hasTax ? `
-                            <th>Taxable Value (₹)</th>
-                            <th>Rate (%)</th>` : ""}
-                            <th>Total Price (₹)</th>
+                            <th class="text-right">Taxable Value (₹)</th>
+                            <th class="text-right">Rate (%)</th>` : ""}
+                            <th class="text-right">Total Price (₹)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${pageHTML}
+                        ${isLastItemsPage ? (pageHTML + totalsRowHTML) : pageHTML}
                     </tbody>
                 </table>
             </div>
@@ -1406,7 +1455,7 @@ async function generatePreview() {
                     <div class="fifth-section-sub2">
                         <div class="fifth-section-sub3">
                             <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
-                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(roundedGrandTotal)} Only</span></p>
                         </div>
                         <h3>Payment Details</h3>
                         <div class="bank-details">
@@ -1533,19 +1582,19 @@ async function generatePreview() {
                 <table class="items-table">
                     <thead>
                         <tr>
-                            <th>S. No</th>
-                            <th>Description</th>
-                            <th>HSN/SAC</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
+                            <th class="text-center">S. No</th>
+                            <th class="text-left">Description</th>
+                            <th class="text-center">HSN/SAC</th>
+                            <th class="text-right">Qty</th>
+                            <th class="text-right">Unit Price</th>
                             ${hasTax ? `
-                            <th>Taxable Value (₹)</th>
-                            <th>Rate (%)</th>` : ""}
-                            <th>Total Price (₹)</th>
+                            <th class="text-right">Taxable Value (₹)</th>
+                            <th class="text-right">Rate (%)</th>` : ""}
+                            <th class="text-right">Total Price (₹)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${pageHTML}
+                        ${isLastItemsPage ? (pageHTML + totalsRowHTML) : pageHTML}
                     </tbody>
                 </table>
             </div>
@@ -1558,7 +1607,7 @@ async function generatePreview() {
                     <div class="fifth-section-sub2">
                         <div class="fifth-section-sub3">
                             <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
-                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(roundedGrandTotal)} Only</span></p>
                         </div>
                         <h3>Payment Details</h3>
                         <div class="bank-details">
