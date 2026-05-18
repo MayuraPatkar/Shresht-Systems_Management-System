@@ -58,6 +58,8 @@ export interface IOtherCharges {
     specification?: string;
     price?: number;
     rate?: number;
+    gst_rate?: number;
+    taxable_value?: number;
     discount_percent?: number;
     total?: number;
 }
@@ -105,7 +107,7 @@ export interface IQuotation extends Document {
     customer_snapshot?: ICustomerSnapshot;
 
     items?: IQuotationItem[];
-    other_charges?: IOtherCharges;
+    other_charges?: IOtherCharges[];
 
     discount: number;
     totals?: ITotals;
@@ -118,6 +120,9 @@ export interface IQuotation extends Document {
     remarks?: string;
 
     deletion: ISoftDelete;
+    is_deleted: boolean;
+    deleted_at?: Date;
+    deleted_by?: string;
 
     createdAt: Date;
     updatedAt: Date;
@@ -194,6 +199,8 @@ const otherChargesSchema = new Schema<IOtherCharges>(
         specification: { type: String, trim: true },
         price: { type: Number },
         rate: { type: Number },
+        gst_rate: { type: Number },
+        taxable_value: { type: Number },
         discount_percent: { type: Number },
         total: { type: Number },
     },
@@ -239,7 +246,7 @@ const quotationSchema = new Schema<IQuotation>(
     {
         schema_version: {
             type: Number,
-            default: 1,
+            default: 2,
             index: true,
         },
 
@@ -287,9 +294,7 @@ const quotationSchema = new Schema<IQuotation>(
 
         items: [quotationItemSchema],
 
-        other_charges: {
-            type: otherChargesSchema,
-        },
+        other_charges: [otherChargesSchema],
 
         discount: {
             type: Number,
@@ -325,6 +330,21 @@ const quotationSchema = new Schema<IQuotation>(
         deletion: {
             type: softDeleteSchema,
             default: () => ({ is_deleted: false }),
+        },
+
+        is_deleted: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+
+        deleted_at: {
+            type: Date,
+        },
+
+        deleted_by: {
+            type: String,
+            trim: true,
         },
     },
     {

@@ -79,6 +79,18 @@ function normalizeTermsHTML(raw) {
     return `<ul>${lines.map(l => `<li>${l}</li>`).join('')}</ul>`;
 }
 
+function getQuotationStatusClass(status) {
+    const styles = {
+        Draft: 'bg-gray-100 text-gray-700 border-gray-200',
+        Sent: 'bg-blue-100 text-blue-700 border-blue-200',
+        Approved: 'bg-green-100 text-green-700 border-green-200',
+        Rejected: 'bg-red-100 text-red-700 border-red-200',
+        Converted: 'bg-purple-100 text-purple-700 border-purple-200',
+        Expired: 'bg-orange-100 text-orange-700 border-orange-200'
+    };
+    return styles[status || 'Draft'] || styles.Draft;
+}
+
 /**
  * Generate and display the preview for the quotation in view-preview-content.
  * This works for both withTax and withoutTax view modes.
@@ -270,6 +282,8 @@ async function generateViewPreviewHTML(quotation, viewType) {
         <div class="title">Quotation-${quotation.quotation_id}</div>
         <div class="quotation-letter-date">
             <p><strong>Date:</strong> ${formattedDate}</p>
+            ${quotation.valid_till ? `<p><strong>Valid Till:</strong> ${formatDateIndian(quotation.valid_till)}</p>` : ''}
+            <p><strong>Status:</strong> ${quotation.quotation_status || 'Draft'}</p>
         </div>
         <div class="quotation-letter-content">
             <p><strong>To:</strong><br>${quotation.customer_name}<br>${quotation.customer_address}<br>${quotation.customer_phone}${quotation.customer_GSTIN ? '<br>GSTIN: ' + quotation.customer_GSTIN : ''}</p>
@@ -307,6 +321,13 @@ async function renderQuotationView(quotation, viewType) {
     document.getElementById('view-project-name').textContent = quotation.project_name || '-';
     document.getElementById('view-project-id').textContent = quotation.quotation_id || '-';
     document.getElementById('view-quotation-date').textContent = formatDateIndian(quotation.quotation_date) || '-';
+    const statusEl = document.getElementById('view-quotation-status');
+    if (statusEl) {
+        statusEl.textContent = quotation.quotation_status || 'Draft';
+        statusEl.className = `inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getQuotationStatusClass(quotation.quotation_status)}`;
+    }
+    const validTillEl = document.getElementById('view-valid-till');
+    if (validTillEl) validTillEl.textContent = quotation.valid_till ? formatDateIndian(quotation.valid_till) : '-';
 
     // Buyer Details
     document.getElementById('view-buyer-name').textContent = quotation.customer_name || '-';
@@ -497,6 +518,13 @@ async function renderQuotationView(quotation, viewType) {
     document.getElementById('view-subtotal').textContent = `₹ ${formatIndian(subtotal, 2) || '-'}`;
     document.getElementById('view-tax').textContent = viewType === 2 ? `₹ ${formatIndian(tax, 2) || '-'}` : 'No Tax';
     document.getElementById('view-grand-total').textContent = `₹ ${formatIndian(total, 2) || '-'}`;
+    const totals = quotation.totals || {};
+    const cgstEl = document.getElementById('view-cgst');
+    const sgstEl = document.getElementById('view-sgst');
+    const roundOffEl = document.getElementById('view-round-off');
+    if (cgstEl) cgstEl.textContent = `₹ ${formatIndian(totals.cgst ?? (tax / 2), 2)}`;
+    if (sgstEl) sgstEl.textContent = `₹ ${formatIndian(totals.sgst ?? (tax / 2), 2)}`;
+    if (roundOffEl) roundOffEl.textContent = `₹ ${formatIndian(totals.round_off ?? (total - grandTotal), 2)}`;
 
     // Update table header based on view type
     const tableHead = document.querySelector("#view-items-table thead tr");
@@ -552,6 +580,24 @@ async function renderQuotationView(quotation, viewType) {
             window.print();
         }
     };
+    const convertBtn = document.getElementById('convertToInvoice');
+    if (convertBtn) {
+        convertBtn.style.display = quotation.quotation_status === 'Converted' ? 'none' : 'inline-flex';
+        convertBtn.onclick = async () => {
+            try {
+                const response = await fetch(`/quotation/${quotation.quotation_id}/convert-to-invoice`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Failed to convert quotation');
+                window.electronAPI?.showAlert1(`Converted to invoice ${data.invoice_no || data.invoice_id || ''}`);
+                quotation.quotation_status = 'Converted';
+                quotation.converted_invoice_id = data.invoice?._id;
+                await renderQuotationView(quotation, viewType);
+            } catch (error) {
+                console.error('Quotation conversion failed', error);
+                window.electronAPI?.showAlert1(error.message || 'Failed to convert quotation.');
+            }
+        };
+    }
 }
 
 async function viewQuotation(quotationId, viewType) {
@@ -568,6 +614,8 @@ async function viewQuotation(quotationId, viewType) {
         const quotation = {
             ...rawQuotation,
             quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
+            quotation_status: rawQuotation.quotation_status || 'Draft',
+            valid_till: rawQuotation.valid_till,
             customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
             customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
             customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,

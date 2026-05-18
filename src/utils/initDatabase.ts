@@ -7,9 +7,12 @@ import { AdminModel } from "../models/Admin.model";
 import fs from "fs";
 import path from "path";
 import logger from "./logger";
+import { migrateLegacyQuotations } from "./quotationMigration";
 
 async function initializeDatabase(): Promise<void> {
     try {
+        await migrateLegacyQuotations();
+
         // Check if admin users already exist
         const existingAdmins = await AdminModel.countDocuments();
 

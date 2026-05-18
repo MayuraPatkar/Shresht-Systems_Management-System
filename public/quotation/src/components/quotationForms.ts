@@ -6,6 +6,64 @@ let totalAmountTax = 0;
 let totalTax = 0;
 let isCustomId = false; // Tracks if user manually entered a custom ID
 
+function calculateLineTotals(quantity, unitPrice, gstRate) {
+    const taxable_value = Math.round((Number(quantity || 0) * Number(unitPrice || 0)) * 100) / 100;
+    const tax_amount = Math.round((taxable_value * Number(gstRate || 0) / 100) * 100) / 100;
+    return {
+        taxable_value,
+        tax_amount,
+        total: Math.round((taxable_value + tax_amount) * 100) / 100
+    };
+}
+
+function getBillingAddressSnapshot() {
+    return {
+        line1: document.getElementById("buyer-address")?.value || "",
+        line2: "",
+        city: document.getElementById("buyer-city")?.value || "",
+        state: document.getElementById("buyer-state")?.value || "Karnataka",
+        pincode: document.getElementById("buyer-pincode")?.value || "",
+        country: document.getElementById("buyer-country")?.value || "India"
+    };
+}
+
+async function autofillStockItem(input) {
+    const itemName = input?.value?.trim();
+    if (!itemName) return;
+    try {
+        const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
+        if (!response.ok) return;
+        const item = await response.json();
+        if (!item) return;
+
+        const card = input.closest('.item-card');
+        const cards = Array.from(document.querySelectorAll('#items-container .item-card'));
+        const index = cards.indexOf(card);
+        const row = document.querySelectorAll('#items-table tbody tr')[index];
+        if (row) row.dataset.itemId = item._id || '';
+
+        const values = {
+            hsn: item.hsn_sac || '',
+            price: item.selling_price || item.purchase_price || 0,
+            gst: item.gst_rate || 0
+        };
+
+        const cardInputs = card?.querySelectorAll('input') || [];
+        if (cardInputs[1] && !cardInputs[1].value) cardInputs[1].value = values.hsn;
+        if (cardInputs[3] && !Number(cardInputs[3].value || 0)) cardInputs[3].value = values.price;
+        if (cardInputs[4] && !Number(cardInputs[4].value || 0)) cardInputs[4].value = values.gst;
+
+        if (row) {
+            const rowInputs = row.querySelectorAll('input');
+            if (rowInputs[1] && !rowInputs[1].value) rowInputs[1].value = values.hsn;
+            if (rowInputs[3] && !Number(rowInputs[3].value || 0)) rowInputs[3].value = values.price;
+            if (rowInputs[4] && !Number(rowInputs[4].value || 0)) rowInputs[4].value = values.gst;
+        }
+    } catch (error) {
+        console.warn('Stock autofill failed', error);
+    }
+}
+
 // Setup Customer Autocomplete
 function setupCustomerAutocomplete() {
     const input = document.getElementById('buyer-name');
@@ -120,6 +178,10 @@ function setupCustomerAutocomplete() {
         // Populate other fields
         const idInput = document.getElementById('buyer-customer-id');
         const addressInput = document.getElementById('buyer-address');
+        const cityInput = document.getElementById('buyer-city');
+        const stateInput = document.getElementById('buyer-state');
+        const pincodeInput = document.getElementById('buyer-pincode');
+        const countryInput = document.getElementById('buyer-country');
         const phoneInput = document.getElementById('buyer-phone');
         const emailInput = document.getElementById('buyer-email');
         const gstinInput = document.getElementById('buyer-gstin');
@@ -129,6 +191,10 @@ function setupCustomerAutocomplete() {
         if (addressInput) {
             const billing = customer.billing_address || {};
             addressInput.value = billing.line1 || customer.customer_address || '';
+            if (cityInput) cityInput.value = billing.city || '';
+            if (stateInput) stateInput.value = billing.state || 'Karnataka';
+            if (pincodeInput) pincodeInput.value = billing.pincode || '';
+            if (countryInput) countryInput.value = billing.country || 'India';
         }
         if (phoneInput) phoneInput.value = customer.customer?.phone || customer.customer_phone || '';
         if (emailInput) emailInput.value = customer.customer?.email || customer.customer_email || '';
@@ -213,9 +279,10 @@ async function openQuotation(quotationId) {
     const quotation = {
         ...rawQuotation,
         quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
-        customer_id: rawQuotation.customer_snapshot?.customer_id || '',
+        customer_id: rawQuotation.customer_id || rawQuotation.customer_snapshot?.customer_id || '',
         customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
         customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+        billing_address: rawQuotation.customer_snapshot?.billing_address || {},
         customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
         customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,
         customer_GSTIN: rawQuotation.customer_snapshot?.gstin || rawQuotation.customer_GSTIN,
@@ -252,12 +319,19 @@ async function openQuotation(quotationId) {
     document.getElementById('project-name').value = quotation.project_name;
     // Use input-safe ISO date for the date field
     document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
+    document.getElementById('valid-till').value = toInputDate(quotation.valid_till);
+    document.getElementById('quotation-status').value = quotation.quotation_status || 'Draft';
+    document.getElementById('quotation-discount').value = quotation.discount || 0;
     
     const idInputCustomer = document.getElementById('buyer-customer-id');
     if (idInputCustomer) idInputCustomer.value = quotation.customer_id || '';
     
     document.getElementById('buyer-name').value = quotation.customer_name || '';
     document.getElementById('buyer-address').value = quotation.customer_address || '';
+    document.getElementById('buyer-city').value = quotation.billing_address?.city || '';
+    document.getElementById('buyer-state').value = quotation.billing_address?.state || 'Karnataka';
+    document.getElementById('buyer-pincode').value = quotation.billing_address?.pincode || '';
+    document.getElementById('buyer-country').value = quotation.billing_address?.country || 'India';
     document.getElementById('buyer-phone').value = quotation.customer_phone || '';
     document.getElementById('buyer-email').value = quotation.customer_email || '';
     document.getElementById('buyer-gstin').value = quotation.customer_GSTIN || '';
@@ -281,6 +355,7 @@ async function openQuotation(quotationId) {
     (quotation.items || []).forEach((item, index) => {
         // Create table row first
         const row = document.createElement("tr");
+        row.dataset.itemId = item.item_id || '';
         row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
@@ -516,9 +591,10 @@ async function cloneQuotation(sourceQuotationId) {
         const quotation = {
             ...rawQuotation,
             quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
-            customer_id: rawQuotation.customer_snapshot?.customer_id || '',
+            customer_id: rawQuotation.customer_id || rawQuotation.customer_snapshot?.customer_id || '',
             customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
             customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+            billing_address: rawQuotation.customer_snapshot?.billing_address || {},
             customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
             customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,
             customer_GSTIN: rawQuotation.customer_snapshot?.gstin || rawQuotation.customer_GSTIN,
@@ -584,12 +660,19 @@ async function cloneQuotation(sourceQuotationId) {
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         document.getElementById('quotation-date').value = `${yyyy}-${mm}-${dd}`;
+        document.getElementById('valid-till').value = '';
+        document.getElementById('quotation-status').value = 'Draft';
+        document.getElementById('quotation-discount').value = quotation.discount || 0;
 
         const idInputCustomer = document.getElementById('buyer-customer-id');
         if (idInputCustomer) idInputCustomer.value = '';
 
         document.getElementById('buyer-name').value = '';
         document.getElementById('buyer-address').value = '';
+        document.getElementById('buyer-city').value = '';
+        document.getElementById('buyer-state').value = 'Karnataka';
+        document.getElementById('buyer-pincode').value = '';
+        document.getElementById('buyer-country').value = 'India';
         document.getElementById('buyer-phone').value = '';
         document.getElementById('buyer-email').value = '';
         document.getElementById('buyer-gstin').value = '';
@@ -613,6 +696,7 @@ async function cloneQuotation(sourceQuotationId) {
         // Copy items (same logic as openQuotation)
         (quotation.items || []).forEach((item, index) => {
             const row = document.createElement("tr");
+            row.dataset.itemId = item.item_id || '';
             row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
@@ -916,6 +1000,9 @@ async function generatePreview() {
     }
     const projectName = document.getElementById("project-name").value || "";
     const quotationDate = document.getElementById("quotation-date").value || "";
+    const validTill = document.getElementById("valid-till")?.value || "";
+    const quotationStatus = document.getElementById("quotation-status")?.value || "Draft";
+    const discountAmount = Number(document.getElementById("quotation-discount")?.value || 0);
     const buyerName = document.getElementById("buyer-name").value || "";
     const buyerAddress = document.getElementById("buyer-address").value || "";
     const buyerPhone = document.getElementById("buyer-phone").value || "";
@@ -1014,6 +1101,8 @@ async function generatePreview() {
         sno++;
     }
 
+    totalPrice = Math.max(totalPrice - discountAmount, 0);
+    totalTaxableValue = Math.max(totalTaxableValue - discountAmount, 0);
     grandTotal = totalPrice; // Use totalPrice which now includes non-items
     roundOff = Math.round(grandTotal) - grandTotal;
     totalTax = totalCGST + totalSGST;
@@ -1027,6 +1116,8 @@ async function generatePreview() {
                 <p>Taxable Value:</p>
                 <p>Total CGST:</p>
                 <p>Total SGST:</p>` : ""}
+                ${discountAmount ? `<p>Discount:</p>` : ""}
+                <p>Round Off:</p>
                 <p>Grand Total:</p>
             </div>
             <div class="totals-section-sub2" style="width: 50%;">
@@ -1186,6 +1277,8 @@ async function generatePreview() {
         <div class="title">Quotation-${quotationId}</div>
         <div class="quotation-letter-date">
             <p><strong>Date:</strong> ${formattedDate}</p>
+            ${validTill ? `<p><strong>Valid Till:</strong> ${formatDateIndian(validTill)}</p>` : ''}
+            <p><strong>Status:</strong> ${quotationStatus}</p>
         </div>
         <div class="quotation-letter-content" >
             <p><strong>To:</strong></p>
@@ -1651,31 +1744,71 @@ function collectFormData() {
         return "";
     };
 
+    const itemRows = Array.from(document.querySelectorAll("#items-table tbody tr"));
+    const chargeRows = Array.from(document.querySelectorAll("#non-items-table tbody tr"));
+    const items = itemRows.map(row => {
+        const quantity = Number(row.querySelector("td:nth-child(4) input").value) || 0;
+        const unit_price = Number(row.querySelector("td:nth-child(5) input").value) || 0;
+        const gst_rate = Number(row.querySelector("td:nth-child(6) input").value) || 0;
+        const lineTotals = calculateLineTotals(quantity, unit_price, gst_rate);
+        return {
+            item_id: row.dataset.itemId || '',
+            description: row.querySelector("td:nth-child(2) input").value,
+            hsn_sac: row.querySelector("td:nth-child(3) input").value,
+            HSN_SAC: row.querySelector("td:nth-child(3) input").value,
+            quantity,
+            unit_price,
+            gst_rate,
+            rate: gst_rate,
+            taxable_value: lineTotals.taxable_value,
+            total: lineTotals.total,
+            specification: getSpecification(row.querySelector("td:nth-child(2) input").value)
+        };
+    });
+    const otherCharges = chargeRows.map(row => {
+        const price = Number(row.querySelector("td:nth-child(3) input").value) || 0;
+        const gst_rate = Number(row.querySelector("td:nth-child(4) input").value) || 0;
+        const lineTotals = calculateLineTotals(1, price, gst_rate);
+        return {
+            description: row.querySelector("td:nth-child(2) input").value,
+            price,
+            gst_rate,
+            rate: gst_rate,
+            taxable_value: lineTotals.taxable_value,
+            total: lineTotals.total,
+            specification: getSpecification(row.querySelector("td:nth-child(2) input").value)
+        };
+    });
+
     return {
+        schema_version: 2,
         quotation_id: document.getElementById("id").value,
+        quotation_no: document.getElementById("id").value,
         isCustomId: isCustomId, // True if user manually typed the ID
         projectName: document.getElementById("project-name").value,
+        project_name: document.getElementById("project-name").value,
         quotationDate: document.getElementById("quotation-date").value,
+        quotation_date: document.getElementById("quotation-date").value,
+        valid_till: document.getElementById("valid-till")?.value || '',
+        quotation_status: document.getElementById("quotation-status")?.value || 'Draft',
         buyerCustomerId: document.getElementById("buyer-customer-id")?.value || '',
+        customer_id: document.getElementById("buyer-customer-id")?.value || '',
         buyerName: document.getElementById("buyer-name").value,
         buyerAddress: document.getElementById("buyer-address").value,
         buyerPhone: document.getElementById("buyer-phone").value,
         buyerEmail: document.getElementById("buyer-email").value,
         buyerGSTIN: document.getElementById("buyer-gstin").value,
-        items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
-            description: row.querySelector("td:nth-child(2) input").value,
-            HSN_SAC: row.querySelector("td:nth-child(3) input").value,
-            quantity: Number(row.querySelector("td:nth-child(4) input").value) || 0,
-            unit_price: Number(row.querySelector("td:nth-child(5) input").value) || 0,
-            rate: Number(row.querySelector("td:nth-child(6) input").value) || 0,
-            specification: getSpecification(row.querySelector("td:nth-child(2) input").value)
-        })),
-        non_items: Array.from(document.querySelectorAll("#non-items-table tbody tr")).map(row => ({
-            description: row.querySelector("td:nth-child(2) input").value,
-            price: Number(row.querySelector("td:nth-child(3) input").value) || 0,
-            rate: Number(row.querySelector("td:nth-child(4) input").value) || 0,
-            specification: getSpecification(row.querySelector("td:nth-child(2) input").value)
-        })),
+        customer_snapshot: {
+            name: document.getElementById("buyer-name").value,
+            phone: document.getElementById("buyer-phone").value,
+            email: document.getElementById("buyer-email").value,
+            gstin: document.getElementById("buyer-gstin").value,
+            billing_address: getBillingAddressSnapshot()
+        },
+        discount: Number(document.getElementById("quotation-discount")?.value) || 0,
+        items,
+        other_charges: otherCharges,
+        non_items: otherCharges,
         totalTax: totalTax,
         totalAmountNoTax: totalAmountNoTax,
         totalAmountTax: totalAmountTax,
@@ -1689,7 +1822,16 @@ function collectFormData() {
         letter_3: document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[2]?.innerText.trim() || '',
         notes: Array.from(document.querySelector("#preview-content .notes-section ul")?.querySelectorAll("li") || []).map(li => li.innerText.trim()),
         termsAndConditions: document.querySelector("#preview-content .terms-section")?.innerHTML.trim() || '',
-        headline: document.querySelector("#preview-content .headline-section p[contenteditable]")?.innerText.trim() || ''
+        headline: document.querySelector("#preview-content .headline-section p[contenteditable]")?.innerText.trim() || '',
+        content: {
+            subject: document.querySelector("#preview-content .quotation-letter-content p[contenteditable]")?.innerText.replace("Subject:", "").trim() || '',
+            letter_1: document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[1]?.innerText.trim() || '',
+            letter_2: Array.from(document.querySelectorAll("#preview-content .quotation-letter-content ul[contenteditable] li") || []).map(li => li.innerText.trim()),
+            letter_3: document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[2]?.innerText.trim() || '',
+            notes: Array.from(document.querySelector("#preview-content .notes-section ul")?.querySelectorAll("li") || []).map(li => li.innerText.trim()),
+            terms_and_conditions: document.querySelector("#preview-content .terms-section")?.innerHTML.trim() || '',
+            headline: document.querySelector("#preview-content .headline-section p[contenteditable]")?.innerText.trim() || ''
+        }
     };
 }
 
@@ -1870,6 +2012,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('input', function (e) {
         if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(4)')?.querySelector('input') === e.target)) {
             e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        }
+    });
+    document.body.addEventListener('change', function (e) {
+        if (e.target && e.target.matches('.item_name')) {
+            autofillStockItem(e.target);
         }
     });
 });

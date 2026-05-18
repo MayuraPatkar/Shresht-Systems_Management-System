@@ -127,6 +127,19 @@ function showNewQuotationForm() {
         dateInput.value = `${yyyy}-${mm}-${dd}`;
     }
 
+    const validTillInput = document.getElementById('valid-till') as HTMLInputElement;
+    if (validTillInput) {
+        const validTill = new Date();
+        validTill.setDate(validTill.getDate() + 30);
+        const yyyy = validTill.getFullYear();
+        const mm = String(validTill.getMonth() + 1).padStart(2, '0');
+        const dd = String(validTill.getDate()).padStart(2, '0');
+        validTillInput.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    const statusInput = document.getElementById('quotation-status') as HTMLSelectElement;
+    if (statusInput) statusInput.value = 'Draft';
+
     // Focus on the Quotation ID field and hide Print/PDF buttons for new quotations
     setTimeout(() => {
         const idInput = document.getElementById('id') as HTMLInputElement;
