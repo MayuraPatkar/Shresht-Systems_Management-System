@@ -162,7 +162,8 @@
                         <div class="space-y-4">
                             <input type="hidden" id="id">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
+                            <!-- Row 1: Project Name (Full Width) -->
+                            <div class="md:col-span-2">
                                 <label for="project-name" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-briefcase text-gray-500 mr-1"></i>Project Name <span
                                         class="text-red-500">*</span>
@@ -170,20 +171,8 @@
                                 <input type="text" id="project-name" required placeholder="Enter project name"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             </div>
-                            <div>
-                                <label for="quotation-status" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-signal text-gray-500 mr-1"></i>Status
-                                </label>
-                                <select id="quotation-status"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                                    <option value="Draft">Draft</option>
-                                    <option value="Sent">Sent</option>
-                                    <option value="Approved">Approved</option>
-                                    <option value="Rejected">Rejected</option>
-                                    <option value="Converted">Converted</option>
-                                    <option value="Expired">Expired</option>
-                                </select>
-                            </div>
+
+                            <!-- Row 2: Dates (Two Columns) -->
                             <div>
                                 <label for="quotation-date" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-calendar text-gray-500 mr-1"></i>Quotation Date <span
@@ -199,12 +188,28 @@
                                 <input type="date" id="valid-till"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             </div>
-                            <div class="md:col-span-2">
+
+                            <!-- Row 3: Discount & Status (Two Columns) -->
+                            <div>
                                 <label for="quotation-discount" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-percent text-gray-500 mr-1"></i>Discount
                                 </label>
                                 <input type="number" id="quotation-discount" min="0" step="0.01" value="0"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="quotation-status" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-signal text-gray-500 mr-1"></i>Status
+                                </label>
+                                <select id="quotation-status"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    <option value="Draft">Draft</option>
+                                    <option value="Sent">Sent</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Rejected">Rejected</option>
+                                    <option value="Converted">Converted</option>
+                                    <option value="Expired">Expired</option>
+                                </select>
                             </div>
                             </div>
                         </div>
@@ -229,30 +234,58 @@
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                                 <ul id="customer-suggestions" class="suggestions hidden absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto" style="display: none;"></ul>
                             </div>
+                            <!-- Row 2: Address Line 1 (Full Width) -->
                             <div class="md:col-span-2">
-                                <label for="buyer-address" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address <span
+                                <label for="buyer-address-line1" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-map-marked-alt text-gray-500 mr-1"></i>Address Line 1 <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <textarea id="buyer-address" rows="3" placeholder="Enter complete address"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+                                <input type="text" id="buyer-address-line1" required placeholder="Flat, House no., Building, Company, Apartment"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            </div>
+
+                            <!-- Row 3: Address Line 2 (Full Width) -->
+                            <div class="md:col-span-2">
+                                <label for="buyer-address-line2" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-road text-gray-500 mr-1"></i>Address Line 2
+                                </label>
+                                <input type="text" id="buyer-address-line2" placeholder="Area, Street, Sector, Village"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            </div>
+
+                            <!-- Row 4: City & State (Two Columns) -->
+                            <div>
+                                <label for="buyer-city" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-city text-gray-500 mr-1"></i>City <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="buyer-city" required placeholder="Enter city"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <div>
-                                <label for="buyer-city" class="block text-sm font-medium text-gray-700 mb-2">City</label>
-                                <input type="text" id="buyer-city" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <label for="buyer-state" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-map text-gray-500 mr-1"></i>State <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="buyer-state" required value="Karnataka" placeholder="Enter state"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            </div>
+
+                            <!-- Row 5: Pincode & Country (Two Columns) -->
+                            <div>
+                                <label for="buyer-pincode" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-map-pin text-gray-500 mr-1"></i>Pincode <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="buyer-pincode" required placeholder="6-digit pincode" maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <div>
-                                <label for="buyer-state" class="block text-sm font-medium text-gray-700 mb-2">State</label>
-                                <input type="text" id="buyer-state" value="Karnataka" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <label for="buyer-country" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-globe text-gray-500 mr-1"></i>Country
+                                </label>
+                                <input type="text" id="buyer-country" value="India" placeholder="Enter country"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
-                            <div>
-                                <label for="buyer-pincode" class="block text-sm font-medium text-gray-700 mb-2">Pincode</label>
-                                <input type="text" id="buyer-pincode" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="buyer-country" class="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                                <input type="text" id="buyer-country" value="India" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            </div>
+
+                            <!-- Row 6: Phone & Email (Two Columns) -->
                             <div>
                                 <label for="buyer-phone" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number <span
@@ -270,6 +303,8 @@
                                     placeholder="Enter email address"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
+
+                            <!-- Row 7: GSTIN (One Column / Half-Width) -->
                             <div>
                                 <label for="buyer-gstin" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-id-card text-gray-500 mr-1"></i>GSTIN
@@ -537,7 +572,7 @@
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Address</span>
-                            <span class="text-gray-900 font-semibold" id="view-buyer-address">-</span>
+                            <span class="text-gray-900 font-semibold whitespace-pre-line" id="view-buyer-address">-</span>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Phone</span>

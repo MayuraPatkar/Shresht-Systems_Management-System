@@ -18,12 +18,12 @@ function calculateLineTotals(quantity, unitPrice, gstRate) {
 
 function getBillingAddressSnapshot() {
     return {
-        line1: document.getElementById("buyer-address")?.value || "",
-        line2: "",
-        city: document.getElementById("buyer-city")?.value || "",
-        state: document.getElementById("buyer-state")?.value || "Karnataka",
-        pincode: document.getElementById("buyer-pincode")?.value || "",
-        country: document.getElementById("buyer-country")?.value || "India"
+        line1: (document.getElementById("buyer-address-line1") as HTMLInputElement)?.value || "",
+        line2: (document.getElementById("buyer-address-line2") as HTMLInputElement)?.value || "",
+        city: (document.getElementById("buyer-city") as HTMLInputElement)?.value || "",
+        state: (document.getElementById("buyer-state") as HTMLInputElement)?.value || "Karnataka",
+        pincode: (document.getElementById("buyer-pincode") as HTMLInputElement)?.value || "",
+        country: (document.getElementById("buyer-country") as HTMLInputElement)?.value || "India"
     };
 }
 
@@ -176,26 +176,26 @@ function setupCustomerAutocomplete() {
         input.value = customer.customer?.name || customer.customer_name || '';
         
         // Populate other fields
-        const idInput = document.getElementById('buyer-customer-id');
-        const addressInput = document.getElementById('buyer-address');
-        const cityInput = document.getElementById('buyer-city');
-        const stateInput = document.getElementById('buyer-state');
-        const pincodeInput = document.getElementById('buyer-pincode');
-        const countryInput = document.getElementById('buyer-country');
-        const phoneInput = document.getElementById('buyer-phone');
-        const emailInput = document.getElementById('buyer-email');
-        const gstinInput = document.getElementById('buyer-gstin');
+        const idInput = document.getElementById('buyer-customer-id') as HTMLInputElement;
+        const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
+        const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement;
+        const cityInput = document.getElementById('buyer-city') as HTMLInputElement;
+        const stateInput = document.getElementById('buyer-state') as HTMLInputElement;
+        const pincodeInput = document.getElementById('buyer-pincode') as HTMLInputElement;
+        const countryInput = document.getElementById('buyer-country') as HTMLInputElement;
+        const phoneInput = document.getElementById('buyer-phone') as HTMLInputElement;
+        const emailInput = document.getElementById('buyer-email') as HTMLInputElement;
+        const gstinInput = document.getElementById('buyer-gstin') as HTMLInputElement;
 
         if (idInput) idInput.value = customer._id || '';
         
-        if (addressInput) {
-            const billing = customer.billing_address || {};
-            addressInput.value = billing.line1 || customer.customer_address || '';
-            if (cityInput) cityInput.value = billing.city || '';
-            if (stateInput) stateInput.value = billing.state || 'Karnataka';
-            if (pincodeInput) pincodeInput.value = billing.pincode || '';
-            if (countryInput) countryInput.value = billing.country || 'India';
-        }
+        const billing = customer.billing_address || {};
+        if (line1Input) line1Input.value = billing.line1 || customer.customer_address || '';
+        if (line2Input) line2Input.value = billing.line2 || '';
+        if (cityInput) cityInput.value = billing.city || '';
+        if (stateInput) stateInput.value = billing.state || 'Karnataka';
+        if (pincodeInput) pincodeInput.value = billing.pincode || '';
+        if (countryInput) countryInput.value = billing.country || 'India';
         if (phoneInput) phoneInput.value = customer.customer?.phone || customer.customer_phone || '';
         if (emailInput) emailInput.value = customer.customer?.email || customer.customer_email || '';
         if (gstinInput) gstinInput.value = customer.gstin || customer.customer_GSTIN || '';
@@ -320,7 +320,10 @@ async function openQuotation(quotationId) {
     if (idInputCustomer) idInputCustomer.value = quotation.customer_id || '';
     
     document.getElementById('buyer-name').value = quotation.customer_name || '';
-    document.getElementById('buyer-address').value = quotation.customer_address || '';
+    const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
+    const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement;
+    if (line1Input) line1Input.value = quotation.billing_address?.line1 || quotation.customer_address || '';
+    if (line2Input) line2Input.value = quotation.billing_address?.line2 || '';
     document.getElementById('buyer-city').value = quotation.billing_address?.city || '';
     document.getElementById('buyer-state').value = quotation.billing_address?.state || 'Karnataka';
     document.getElementById('buyer-pincode').value = quotation.billing_address?.pincode || '';
@@ -660,7 +663,10 @@ async function cloneQuotation(sourceQuotationId) {
         if (idInputCustomer) idInputCustomer.value = '';
 
         document.getElementById('buyer-name').value = '';
-        document.getElementById('buyer-address').value = '';
+        const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
+        const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement;
+        if (line1Input) line1Input.value = '';
+        if (line2Input) line2Input.value = '';
         document.getElementById('buyer-city').value = '';
         document.getElementById('buyer-state').value = 'Karnataka';
         document.getElementById('buyer-pincode').value = '';
@@ -996,7 +1002,20 @@ async function generatePreview() {
     const quotationStatus = document.getElementById("quotation-status")?.value || "Draft";
     const discountAmount = Number(document.getElementById("quotation-discount")?.value || 0);
     const buyerName = document.getElementById("buyer-name").value || "";
-    const buyerAddress = document.getElementById("buyer-address").value || "";
+    const line1 = (document.getElementById("buyer-address-line1") as HTMLInputElement)?.value || "";
+    const line2 = (document.getElementById("buyer-address-line2") as HTMLInputElement)?.value || "";
+    const city = (document.getElementById("buyer-city") as HTMLInputElement)?.value || "";
+    const state = (document.getElementById("buyer-state") as HTMLInputElement)?.value || "";
+    const pincode = (document.getElementById("buyer-pincode") as HTMLInputElement)?.value || "";
+    const country = (document.getElementById("buyer-country") as HTMLInputElement)?.value || "";
+
+    const addrParts = [
+        line1,
+        line2,
+        [city, state].filter(Boolean).join(", "),
+        [country, pincode].filter(Boolean).join(" - ")
+    ].filter(Boolean);
+    const buyerAddress = addrParts.join("<br>");
     const buyerPhone = document.getElementById("buyer-phone").value || "";
     const buyerGSTIN = document.getElementById("buyer-gstin").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
@@ -1787,7 +1806,18 @@ function collectFormData() {
         buyerCustomerId: document.getElementById("buyer-customer-id")?.value || '',
         customer_id: document.getElementById("buyer-customer-id")?.value || '',
         buyerName: document.getElementById("buyer-name").value,
-        buyerAddress: document.getElementById("buyer-address").value,
+        buyerAddress: [
+            (document.getElementById("buyer-address-line1") as HTMLInputElement)?.value || "",
+            (document.getElementById("buyer-address-line2") as HTMLInputElement)?.value || "",
+            [
+                (document.getElementById("buyer-city") as HTMLInputElement)?.value || "",
+                (document.getElementById("buyer-state") as HTMLInputElement)?.value || ""
+            ].filter(Boolean).join(", "),
+            [
+                (document.getElementById("buyer-country") as HTMLInputElement)?.value || "",
+                (document.getElementById("buyer-pincode") as HTMLInputElement)?.value || ""
+            ].filter(Boolean).join(" - ")
+        ].filter(Boolean).join("\n"),
         buyerPhone: document.getElementById("buyer-phone").value,
         buyerEmail: document.getElementById("buyer-email").value,
         buyerGSTIN: document.getElementById("buyer-gstin").value,
@@ -1855,19 +1885,43 @@ window.validateCurrentStep = async function () {
     }
 
     if (currentStep === 2) {
-        const buyerName = document.getElementById('buyer-name');
-        const buyerAddress = document.getElementById('buyer-address');
-        const buyerPhone = document.getElementById('buyer-phone');
-        const buyerEmail = document.getElementById('buyer-email');
+        const buyerName = document.getElementById('buyer-name') as HTMLInputElement;
+        const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
+        const cityInput = document.getElementById('buyer-city') as HTMLInputElement;
+        const stateInput = document.getElementById('buyer-state') as HTMLInputElement;
+        const pincodeInput = document.getElementById('buyer-pincode') as HTMLInputElement;
+        const buyerPhone = document.getElementById('buyer-phone') as HTMLInputElement;
+        const buyerEmail = document.getElementById('buyer-email') as HTMLInputElement;
 
         if (!buyerName.value.trim()) {
             window.electronAPI.showAlert1("Please enter the Buyer Name.");
             buyerName.focus();
             return false;
         }
-        if (!buyerAddress.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the Address.");
-            buyerAddress.focus();
+        if (!line1Input.value.trim()) {
+            window.electronAPI.showAlert1("Please enter Address Line 1.");
+            line1Input.focus();
+            return false;
+        }
+        if (!cityInput.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the City.");
+            cityInput.focus();
+            return false;
+        }
+        if (!stateInput.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the State.");
+            stateInput.focus();
+            return false;
+        }
+        const pinValue = pincodeInput.value.trim();
+        if (!pinValue) {
+            window.electronAPI.showAlert1("Please enter the Pincode.");
+            pincodeInput.focus();
+            return false;
+        }
+        if (!/^\d{6}$/.test(pinValue)) {
+            window.electronAPI.showAlert1("Please enter a valid 6-digit Pincode.");
+            pincodeInput.focus();
             return false;
         }
         if (!buyerPhone.value.trim()) {

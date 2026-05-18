@@ -212,7 +212,12 @@ export function normalizeQuotationDocument(doc: any) {
         createdAt: q.createdAt,
         updatedAt: q.updatedAt,
         customer_name: normalized.customer_snapshot.name,
-        customer_address: normalized.customer_snapshot.billing_address?.line1 || "",
+        customer_address: [
+            normalized.customer_snapshot.billing_address?.line1,
+            normalized.customer_snapshot.billing_address?.line2,
+            [normalized.customer_snapshot.billing_address?.city, normalized.customer_snapshot.billing_address?.state].filter(Boolean).join(", "),
+            [normalized.customer_snapshot.billing_address?.country, normalized.customer_snapshot.billing_address?.pincode].filter(Boolean).join(" - ")
+        ].filter(Boolean).join("\n"),
         customer_phone: normalized.customer_snapshot.phone,
         customer_email: normalized.customer_snapshot.email,
         customer_GSTIN: normalized.customer_snapshot.gstin,
