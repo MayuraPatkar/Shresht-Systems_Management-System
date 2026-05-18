@@ -55,3 +55,69 @@ function showErrorMessage(message: string): void {
         }, 3000);
     }
 }
+
+let undoTimeout: number | undefined;
+
+function showUndoToast(message: string, itemId: string): void {
+    const toast = document.getElementById('undoToast');
+    const msgSpan = document.getElementById('undoToastMessage');
+    const undoBtn = document.getElementById('undoToastBtn');
+    const closeBtn = document.getElementById('closeUndoToastBtn');
+
+    if (!toast || !msgSpan || !undoBtn || !closeBtn) return;
+
+    msgSpan.textContent = message;
+    
+    // Show toast
+    toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+
+    // Clear previous timeout
+    if (undoTimeout) {
+        clearTimeout(undoTimeout);
+    }
+
+    // Hide toast after 7 seconds
+    undoTimeout = window.setTimeout(() => {
+        hideUndoToast();
+    }, 7000);
+
+    // Event listeners
+    const handleUndo = async () => {
+        hideUndoToast();
+        try {
+            const res = await fetch('/stock/restoreItem', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId })
+            });
+            if (!res.ok) throw new Error('Failed to restore item');
+            await fetchStockData();
+            showSuccessMessage('Stock item restored!');
+        } catch (err) {
+            console.error(err);
+            showErrorMessage('Failed to restore item.');
+        }
+    };
+
+    const handleClose = () => {
+        hideUndoToast();
+    };
+
+    // Replace elements to clear previous listeners
+    const newUndoBtn = undoBtn.cloneNode(true);
+    undoBtn.parentNode?.replaceChild(newUndoBtn, undoBtn);
+    newUndoBtn.addEventListener('click', handleUndo);
+
+    const newCloseBtn = closeBtn.cloneNode(true);
+    closeBtn.parentNode?.replaceChild(newCloseBtn, closeBtn);
+    newCloseBtn.addEventListener('click', handleClose);
+}
+
+function hideUndoToast(): void {
+    const toast = document.getElementById('undoToast');
+    if (toast) {
+        toast.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+        toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+    }
+}
