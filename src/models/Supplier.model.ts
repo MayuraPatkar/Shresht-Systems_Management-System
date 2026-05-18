@@ -195,8 +195,6 @@ const supplierSchema = new Schema<ISupplier>(
  * Indexes
  */
 supplierSchema.index({ "supplier_name": 1, "phone": 1 });
-supplierSchema.index({ "phone": 1 });
-supplierSchema.index({ "email": 1 });
 supplierSchema.index({ "deletion.is_deleted": 1 });
 
 /**

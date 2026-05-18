@@ -87,7 +87,8 @@ class CustomerApi {
 
     async deleteCustomer(id: string): Promise<void> {
         try {
-            const response = await fetch(`${this.baseUrl}/${id}`, { method: 'DELETE' });
+            const username = sessionStorage.getItem('username') || 'Admin';
+            const response = await fetch(`${this.baseUrl}/${id}?username=${encodeURIComponent(username)}`, { method: 'DELETE' });
             if (!response.ok) throw new Error('Failed to delete customer');
         } catch (error) {
             console.error('Error in deleteCustomer:', error);
