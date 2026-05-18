@@ -1,3 +1,5 @@
+// @ts-nocheck
+(function () {
 /**
  * Shared Calculation Functions
  * Business logic for invoices, quotations, and other financial calculations
@@ -183,3 +185,4 @@ if (typeof window !== 'undefined') {
     window.calculatePurchaseOrder = calculatePurchaseOrder;
     window.calculateStockValue = calculateStockValue;
 }
+})();

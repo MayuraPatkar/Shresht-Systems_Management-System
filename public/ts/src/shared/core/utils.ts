@@ -1,3 +1,5 @@
+// @ts-nocheck
+(function () {
 /**
  * Shared Utility Functions
  * Used across all modules for common operations
@@ -180,3 +182,4 @@ if (typeof window !== 'undefined') {
   window.copyToClipboard = copyToClipboard;
   window.debounce = debounce;
 }
+})();

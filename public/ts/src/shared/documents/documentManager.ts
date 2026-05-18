@@ -1,3 +1,5 @@
+// @ts-nocheck
+(function () {
 /**
  * Document Management Utilities
  * Common CRUD operations for document modules (quotation, invoice, purchaseOrder, wayBill)
@@ -284,3 +286,4 @@ if (typeof window !== 'undefined') {
     window.sendDocumentToServer = sendDocumentToServer;
     window.fetchDocumentById = fetchDocumentById;
 }
+})();

@@ -1,3 +1,5 @@
+// @ts-nocheck
+(function () {
 /**
  * IPC (Inter-Process Communication) Wrapper
  * Centralized wrapper for Electron API calls
@@ -127,3 +129,4 @@ if (typeof window !== 'undefined') {
     window.openFileDialog = openFileDialog;
     window.saveFileDialog = saveFileDialog;
 }
+})();

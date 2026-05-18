@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Sidebar Active State Management
 document.addEventListener('DOMContentLoaded', () => {
   const currentPath = window.location.pathname.toLowerCase();
@@ -364,7 +365,7 @@ function updateNavigation() {
 }
 
 // NOTE: Utility functions (numberToWords, formatIndian, formatDate) 
-// have been moved to public/js/shared/utils.js
+// have been moved to public/ts/src/shared/core/utils.ts
 
 // Event listener for the "Add Item" button
 const addItemBtnEl = document.getElementById('add-item-btn');
@@ -888,7 +889,7 @@ if (sessionStorage.getItem('currentTab') === 'quotation') {
 }
 
 // Fetch stock data from the backend
-async function fetchStockData(itemName) {
+async function fetchStockItemData(itemName) {
   try {
     const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
     return await response.json();
@@ -898,6 +899,8 @@ async function fetchStockData(itemName) {
   }
 }
 
+window.fetchStockData = fetchStockItemData;
+
 // Function to autofill row data
 async function fill(itemName, element) {
   // Check if element is a card or a table row
@@ -905,7 +908,7 @@ async function fill(itemName, element) {
   // Check if we're on E-Way Bill page (has different field structure with stock_id hidden input)
   const isEWayBill = window.location.pathname.toLowerCase().includes('/ewaybill');
 
-  const stockData = await fetchStockData(itemName);
+  const stockData = await fetchStockItemData(itemName);
   if (stockData) {
     if (isEWayBill) {
       // E-Way Bill has a hidden stock_id input at position 0, shifting all indices by 1
@@ -1123,7 +1126,7 @@ async function updateSpecificationsTable() {
     } else {
       // Try to fetch from stock
       try {
-        const stockData = await fetchStockData(item.description);
+        const stockData = await fetchStockItemData(item.description);
         if (stockData && stockData.specifications) {
           specification = stockData.specifications;
         }

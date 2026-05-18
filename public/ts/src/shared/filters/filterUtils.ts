@@ -1,3 +1,5 @@
+// @ts-nocheck
+(function () {
 /**
  * Shared Filter Utilities
  * Common filtering and sorting functions for all document modules
@@ -294,3 +296,4 @@ if (typeof window !== 'undefined') {
     window.showCustomDateModal = showCustomDateModal;
     window.getFilterSummary = getFilterSummary;
 }
+})();

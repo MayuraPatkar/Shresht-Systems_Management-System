@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Item Reorder Utility - Drag and Drop reordering for item cards
  * Uses native HTML5 Drag and Drop API

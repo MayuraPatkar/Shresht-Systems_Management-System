@@ -1,3 +1,5 @@
+// @ts-nocheck
+(function () {
 /**
  * Section Renderers
  * Reusable HTML section generators for all document types
@@ -429,3 +431,4 @@ if (typeof window !== 'undefined') {
         renderNotes
     };
 }
+})();

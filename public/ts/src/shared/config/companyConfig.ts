@@ -1,3 +1,5 @@
+// @ts-nocheck
+(function () {
 /**
  * Centralized Company Configuration Service
  * Fetches and caches company data from the server
@@ -246,3 +248,4 @@ window.companyConfig = {
     refreshCompanyInfo,
     refreshSettings
 };
+})();

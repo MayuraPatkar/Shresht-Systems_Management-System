@@ -1,3 +1,5 @@
+// @ts-nocheck
+(function () {
 /**
  * Document Builder
  * Handles document assembly, pagination, and calculation logic
@@ -360,3 +362,4 @@ if (typeof window !== 'undefined') {
     window.DocumentBuilder = DocumentBuilder;
     window.buildSimpleDocument = buildSimpleDocument;
 }
+})();

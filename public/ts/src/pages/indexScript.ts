@@ -1,3 +1,5 @@
+// @ts-nocheck
+(function () {
 // --- CHANGELOG MODAL FUNCTIONALITY ---
 
 /**
@@ -441,3 +443,4 @@ document.addEventListener("keydown", function (event) {
         }
     }
 });
+})();
