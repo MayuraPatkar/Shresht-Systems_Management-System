@@ -29,7 +29,6 @@
     "dotenv": "^17.2.2",
     "ejs": "^3.1.10",
     "electron-log": "^5.4.3",
-    "electron-reload": "^2.0.0-alpha.1",
     "electron-updater": "^6.6.2",
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
@@ -43,7 +42,8 @@
     "winston": "^3.18.3"
   },
   "optionalDependencies": {
-    "keytar": "npm:null@^7.10.0"
+    "keytar": "npm:null@^7.10.0",
+    "electron-reload": "^2.0.0-alpha.1"
   },
   "repository": {
     "type": "git",
