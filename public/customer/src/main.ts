@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
     const resetBtn = document.getElementById('reset-filters');
     const addBtn = document.getElementById('add-customer-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
     const filterBtn = document.getElementById('filter-btn');
     const filterPopover = document.getElementById('filter-popover');
     const closeFilter = document.getElementById('close-filter');
@@ -46,6 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listeners
     if (addBtn) addBtn.onclick = () => customerForms.openAddModal();
+    if (refreshBtn) {
+        refreshBtn.onclick = () => {
+            const icon = refreshBtn.querySelector('i');
+            if (icon) icon.classList.add('fa-spin');
+            (window as any).fetchCustomers();
+            setTimeout(() => {
+                if (icon) icon.classList.remove('fa-spin');
+            }, 600);
+        };
+    }
     if (closeModal) closeModal.onclick = () => customerForms.closeModal();
     if (cancelBtn) cancelBtn.onclick = () => customerForms.closeModal();
 

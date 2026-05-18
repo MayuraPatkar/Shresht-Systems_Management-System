@@ -72,9 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const editBtn = document.getElementById('edit-customer-btn');
-    if (editBtn) editBtn.addEventListener('click', openEdit);
-
     const dropdownEditBtn = document.getElementById('dropdown-edit-btn');
     if (dropdownEditBtn) dropdownEditBtn.addEventListener('click', openEdit);
 
