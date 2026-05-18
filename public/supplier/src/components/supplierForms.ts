@@ -30,6 +30,14 @@ class SupplierForms {
                     accountInput.value = accountInput.value.replace(/[^0-9]/g, '');
                 });
             }
+
+            // Limit phone number to numbers only
+            const phoneInput = form.querySelector('[name="phone"]') as HTMLInputElement;
+            if (phoneInput) {
+                phoneInput.addEventListener('input', () => {
+                    phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '');
+                });
+            }
         }
 
         const closeBtn = document.getElementById('close-modal');
