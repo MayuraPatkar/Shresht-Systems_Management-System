@@ -14,6 +14,22 @@ class SupplierForms {
         const form = document.getElementById(this.formId) as HTMLFormElement;
         if (form) {
             form.onsubmit = (e) => this.handleSubmit(e);
+
+            // Limit pincode to numbers only
+            const pincodeInput = form.querySelector('[name="billing_address.pincode"]') as HTMLInputElement;
+            if (pincodeInput) {
+                pincodeInput.addEventListener('input', () => {
+                    pincodeInput.value = pincodeInput.value.replace(/[^0-9]/g, '');
+                });
+            }
+
+            // Limit bank account number to numbers only
+            const accountInput = form.querySelector('[name="bank_details.account_number"]') as HTMLInputElement;
+            if (accountInput) {
+                accountInput.addEventListener('input', () => {
+                    accountInput.value = accountInput.value.replace(/[^0-9]/g, '');
+                });
+            }
         }
 
         const closeBtn = document.getElementById('close-modal');

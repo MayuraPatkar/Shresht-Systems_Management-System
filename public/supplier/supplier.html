@@ -38,6 +38,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -185,7 +186,7 @@
 
     <!-- Main Content -->
     <main class="ml-[280px] pt-24 mt-6 p-8">
-        
+
         <!-- Stats Summary (Optional/Placeholder for future) -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
@@ -235,26 +236,33 @@
                 </div>
                 <form id="supplier-form" class="p-8 space-y-6">
                     <input type="hidden" id="supplier-id">
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Basic Info -->
                         <div class="space-y-4">
                             <h3 class="text-lg font-semibold text-blue-600 border-b pb-2">Basic Information</h3>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Name *</label>
-                                <input type="text" name="supplier_name" required class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. Acme Corp">
+                                <input type="text" name="supplier_name" required
+                                    class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. Acme Corp">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
-                                <input type="tel" name="phone" required pattern="[0-9]{10}" maxlength="10" title="Please enter a 10-digit phone number" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. 9876543210">
+                                <input type="tel" name="phone" required pattern="[0-9]{10}" maxlength="10"
+                                    title="Please enter a 10-digit phone number"
+                                    class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. 9876543210">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                                <input type="email" name="email" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. supplier@example.com">
+                                <input type="email" name="email" pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+                                    title="Please enter a valid email address"
+                                    class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. supplier@example.com">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">GST Number</label>
-                                <input type="text" name="gstin" id="gstin-input" pattern="^[0-9a-zA-Z]{15}$" maxlength="15" title="Please enter a 15-character GSTIN" class="w-full px-4 py-2 border rounded-lg" placeholder="15-digit GSTIN">
+                                <input type="text" name="gstin" id="gstin-input" pattern="^[0-9a-zA-Z]{15}$"
+                                    maxlength="15" title="Please enter a 15-character GSTIN"
+                                    class="w-full px-4 py-2 border rounded-lg" placeholder="15-digit GSTIN">
                             </div>
                         </div>
 
@@ -288,21 +296,28 @@
                             <h3 class="text-lg font-semibold text-blue-600 border-b pb-2">Address Information</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 1 <span class="text-red-500">*</span></label>
-                                    <input type="text" name="billing_address.line1" class="w-full px-4 py-2 border rounded-lg" required>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 1 <span
+                                            class="text-red-500">*</span></label>
+                                    <input type="text" name="billing_address.line1"
+                                        class="w-full px-4 py-2 border rounded-lg" required>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
-                                    <input type="text" name="billing_address.line2" class="w-full px-4 py-2 border rounded-lg">
+                                    <input type="text" name="billing_address.line2"
+                                        class="w-full px-4 py-2 border rounded-lg">
                                 </div>
                                 <div class="grid grid-cols-5 gap-4 md:col-span-2">
                                     <div class="col-span-2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">City <span class="text-red-500">*</span></label>
-                                        <input type="text" name="billing_address.city" class="w-full px-4 py-2 border rounded-lg" required>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">City <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="text" name="billing_address.city"
+                                            class="w-full px-4 py-2 border rounded-lg" required>
                                     </div>
                                     <div class="col-span-2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">State <span class="text-red-500">*</span></label>
-                                        <select name="billing_address.state" class="w-full px-4 py-2 border rounded-lg bg-white" required>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">State <span
+                                                class="text-red-500">*</span></label>
+                                        <select name="billing_address.state"
+                                            class="w-full px-4 py-2 border rounded-lg bg-white" required>
                                             <option value="Andhra Pradesh">Andhra Pradesh</option>
                                             <option value="Arunachal Pradesh">Arunachal Pradesh</option>
                                             <option value="Assam">Assam</option>
@@ -331,9 +346,11 @@
                                             <option value="Uttar Pradesh">Uttar Pradesh</option>
                                             <option value="Uttarakhand">Uttarakhand</option>
                                             <option value="West Bengal">West Bengal</option>
-                                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands
+                                            </option>
                                             <option value="Chandigarh">Chandigarh</option>
-                                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar
+                                                Haveli and Daman and Diu</option>
                                             <option value="Delhi">Delhi</option>
                                             <option value="Jammu and Kashmir">Jammu and Kashmir</option>
                                             <option value="Ladakh">Ladakh</option>
@@ -342,8 +359,11 @@
                                         </select>
                                     </div>
                                     <div class="col-span-1">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Pincode <span class="text-red-500">*</span></label>
-                                        <input type="text" name="billing_address.pincode" pattern="[0-9]{6}" maxlength="6" title="Please enter a 6-digit pincode" class="w-full px-4 py-2 border rounded-lg" required>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Pincode <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="text" name="billing_address.pincode" pattern="[0-9]{6}"
+                                            inputmode="numeric" maxlength="6" title="Please enter a 6-digit pincode"
+                                            class="w-full px-4 py-2 border rounded-lg" required>
                                     </div>
                                 </div>
                             </div>
@@ -354,28 +374,37 @@
                             <h3 class="text-lg font-semibold text-blue-600 border-b pb-2">Bank Details</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Account Holder Name</label>
-                                    <input type="text" name="bank_details.account_name" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. Acme Corp">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Account Holder
+                                        Name</label>
+                                    <input type="text" name="bank_details.account_name"
+                                        class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. Acme Corp">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
-                                    <input type="text" name="bank_details.bank_name" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. HDFC Bank">
+                                    <input type="text" name="bank_details.bank_name"
+                                        class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. HDFC Bank">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Account Number</label>
-                                    <input type="text" name="bank_details.account_number" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. 50100234567890">
+                                    <input type="text" name="bank_details.account_number" pattern="[0-9]+"
+                                        inputmode="numeric"
+                                        title="Please enter a valid bank account number (digits only)"
+                                        class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. 50100234567890">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">IFSC Code</label>
-                                    <input type="text" name="bank_details.ifsc" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. HDFC0001234">
+                                    <input type="text" name="bank_details.ifsc"
+                                        class="w-full px-4 py-2 border rounded-lg" placeholder="e.g. HDFC0001234">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="pt-6 border-t flex justify-end gap-4 sticky bottom-0 bg-white">
-                        <button type="button" id="cancel-btn" class="px-6 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
-                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Supplier</button>
+                        <button type="button" id="cancel-btn"
+                            class="px-6 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save
+                            Supplier</button>
                     </div>
                 </form>
             </div>
@@ -390,11 +419,12 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
+
         <div class="space-y-4 mb-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Supplier Type</label>
-                <select id="type-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                <select id="type-filter"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                     <option value="">All Types</option>
                     <option value="Vendor">Vendor</option>
                     <option value="Manufacturer">Manufacturer</option>
@@ -404,7 +434,8 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select id="status-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                <select id="status-filter"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                     <option value="">All Status</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -413,10 +444,12 @@
         </div>
 
         <div class="flex gap-2">
-            <button id="reset-filters" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm">
+            <button id="reset-filters"
+                class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm">
                 Clear
             </button>
-            <button id="apply-filters-btn" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">
+            <button id="apply-filters-btn"
+                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">
                 Apply
             </button>
         </div>
@@ -435,4 +468,3 @@
 </body>
 
 </html>
-
