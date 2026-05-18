@@ -38,12 +38,91 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const editBtn = document.getElementById('edit-customer-btn');
-    if (editBtn) {
-        editBtn.addEventListener('click', () => {
-            if ((window as any).customerForms && (window as any).currentCustomer) {
-                (window as any).customerForms.openEditModal((window as any).currentCustomer);
+    // Kebab Menu Dropdown Elements
+    const kebabBtn = document.getElementById('kebab-menu-btn');
+    const kebabDropdown = document.getElementById('kebab-dropdown');
+    
+    if (kebabBtn && kebabDropdown) {
+        kebabBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isHidden = kebabDropdown.classList.toggle('hidden');
+            if (!isHidden) {
+                kebabDropdown.classList.add('animate-dropdown');
+            } else {
+                kebabDropdown.classList.remove('animate-dropdown');
             }
+        });
+
+        document.addEventListener('click', () => {
+            kebabDropdown.classList.add('hidden');
+            kebabDropdown.classList.remove('animate-dropdown');
+        });
+
+        kebabDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    // Edit Profile triggers (both main button and dropdown item)
+    const openEdit = () => {
+        if ((window as any).customerForms && (window as any).currentCustomer) {
+            (window as any).customerForms.openEditModal((window as any).currentCustomer);
+            kebabDropdown?.classList.add('hidden');
+            kebabDropdown?.classList.remove('animate-dropdown');
+        }
+    };
+
+    const editBtn = document.getElementById('edit-customer-btn');
+    if (editBtn) editBtn.addEventListener('click', openEdit);
+
+    const dropdownEditBtn = document.getElementById('dropdown-edit-btn');
+    if (dropdownEditBtn) dropdownEditBtn.addEventListener('click', openEdit);
+
+    // Export & Archive Placeholders
+    const dropdownExportBtn = document.getElementById('dropdown-export-btn');
+    if (dropdownExportBtn) {
+        dropdownExportBtn.addEventListener('click', () => {
+            (window as any).showToast('Export feature coming soon!');
+            kebabDropdown?.classList.add('hidden');
+            kebabDropdown?.classList.remove('animate-dropdown');
+        });
+    }
+
+    const dropdownArchiveBtn = document.getElementById('dropdown-archive-btn');
+    if (dropdownArchiveBtn) {
+        dropdownArchiveBtn.addEventListener('click', () => {
+            (window as any).showToast('Archive feature coming soon!');
+            kebabDropdown?.classList.add('hidden');
+            kebabDropdown?.classList.remove('animate-dropdown');
+        });
+    }
+
+    // Delete Customer Trigger (within dropdown)
+    const deleteBtn = document.getElementById('delete-customer-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+            kebabDropdown?.classList.add('hidden');
+            kebabDropdown?.classList.remove('animate-dropdown');
+            
+            const customer = (window as any).currentCustomer;
+            if (!customer) return;
+            const fullName = customer.customer.first_name 
+                ? `${customer.customer.first_name} ${customer.customer.last_name || ''}`.trim() 
+                : (customer.customer.name || '-');
+            
+            showConfirm(`Are you sure you want to delete customer "${fullName}"?`, async (confirmed) => {
+                if (confirmed === 'Yes') {
+                    try {
+                        await customerApi.deleteCustomer(customerId!);
+                        showAlert('Customer deleted successfully');
+                        setTimeout(() => {
+                            window.location.href = '/customer';
+                        }, 1000);
+                    } catch (error) {
+                        showAlert('Failed to delete customer');
+                    }
+                }
+            });
         });
     }
 

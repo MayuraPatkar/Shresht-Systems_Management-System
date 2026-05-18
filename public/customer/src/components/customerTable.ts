@@ -83,12 +83,6 @@ class CustomerTable {
                 <button class="view-btn flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg font-semibold hover:bg-blue-100 transition-colors">
                     View Profile
                 </button>
-                <button class="edit-btn p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="delete-btn p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
             </div>
         `;
 
@@ -100,18 +94,6 @@ class CustomerTable {
             if (customer.customer_id) {
                 (window as any).copyToClipboard(customer.customer_id);
                 (window as any).showToast('Customer ID copied');
-            }
-        });
-
-        card.querySelector('.edit-btn')?.addEventListener('click', () => {
-            if ((window as any).customerForms) {
-                (window as any).customerForms.openEditModal(customer);
-            }
-        });
-
-        card.querySelector('.delete-btn')?.addEventListener('click', () => {
-            if ((window as any).handleDelete) {
-                (window as any).handleDelete(customer._id, fullName);
             }
         });
 
