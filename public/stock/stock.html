@@ -863,6 +863,20 @@
         </div>
     </div>
 
+    <!-- Undo Toast Notification -->
+    <div id="undoToast" class="fixed bottom-6 right-6 bg-gray-800 text-white px-4 py-3 rounded-lg shadow-xl z-50 flex items-center gap-4 transition-transform duration-300 transform translate-y-24 opacity-0 pointer-events-none">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-info-circle text-blue-400"></i>
+            <span id="undoToastMessage" class="text-sm font-medium">Stock item deleted.</span>
+        </div>
+        <button id="undoToastBtn" class="text-yellow-400 hover:text-yellow-300 text-sm font-bold uppercase tracking-wider px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded">
+            Undo
+        </button>
+        <button id="closeUndoToastBtn" class="text-gray-400 hover:text-white">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
     <!-- Scripts -->
     <!-- Shared utilities -->
     <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
@@ -874,15 +888,15 @@
     <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
 
     <!-- Stock module scripts (compiled from TypeScript) -->
-    <script src="../../dist/public/stock/src/types.js"></script>
-    <script src="../../dist/public/stock/src/utils.js"></script>
-    <script src="../../dist/public/stock/src/modal.js"></script>
-    <script src="../../dist/public/stock/src/stockTable.js"></script>
-    <script src="../../dist/public/stock/src/stockApi.js"></script>
-    <script src="../../dist/public/stock/src/stockForms.js"></script>
-    <script src="../../dist/public/stock/src/stockFilters.js"></script>
-    <script src="../../dist/public/stock/src/stockPrint.js"></script>
-    <script src="../../dist/public/stock/src/keyboardShortcuts.js"></script>
+    <script src="../../dist/public/stock/src/types/types.js"></script>
+    <script src="../../dist/public/stock/src/utils/utils.js"></script>
+    <script src="../../dist/public/stock/src/services/stockApi.js"></script>
+    <script src="../../dist/public/stock/src/components/modal.js"></script>
+    <script src="../../dist/public/stock/src/components/stockTable.js"></script>
+    <script src="../../dist/public/stock/src/components/stockForms.js"></script>
+    <script src="../../dist/public/stock/src/components/stockFilters.js"></script>
+    <script src="../../dist/public/stock/src/components/stockPrint.js"></script>
+    <script src="../../dist/public/stock/src/components/keyboardShortcuts.js"></script>
     <script src="../../dist/public/stock/src/main.js"></script>
 
 </body>

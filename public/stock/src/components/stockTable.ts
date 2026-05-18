@@ -131,7 +131,9 @@ function renderStockTable(data: StockItem[]): void {
                                 });
                                 if (!res.ok) throw new Error('Failed to delete item');
                                 await fetchStockData();
-                                window.electronAPI!.showAlert1('Stock item deleted successfully!');
+                                
+                                // Show the undo toast instead of a blocking alert
+                                showUndoToast(`Deleted "${name}"`, id);
                             } catch (err) {
                                 console.error(err);
                                 if (window.electronAPI && window.electronAPI.showAlert1) {
