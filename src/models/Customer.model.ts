@@ -61,6 +61,8 @@ export interface ICustomer extends Document {
 
     is_active: boolean;
 
+    is_archived: boolean;
+
     deletion: ISoftDelete;
 
     createdAt: Date;
@@ -173,6 +175,12 @@ const customerSchema = new Schema<ICustomer>(
         is_active: {
             type: Boolean,
             default: true,
+            index: true,
+        },
+
+        is_archived: {
+            type: Boolean,
+            default: false,
             index: true,
         },
 

@@ -75,22 +75,227 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropdownEditBtn = document.getElementById('dropdown-edit-btn');
     if (dropdownEditBtn) dropdownEditBtn.addEventListener('click', openEdit);
 
-    // Export & Archive Placeholders
+    // Modal Helpers
+    const openModalHelper = (modal: HTMLElement, card: HTMLElement) => {
+        modal.classList.remove('hidden');
+        // Force reflow
+        modal.offsetHeight;
+        modal.classList.remove('opacity-0');
+        card.classList.remove('scale-95', 'opacity-0');
+        
+        // Add escape-to-close listener
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                closeModalHelper(modal, card);
+                document.removeEventListener('keydown', onKeyDown);
+            }
+        };
+        document.addEventListener('keydown', onKeyDown);
+    };
+
+    const closeModalHelper = (modal: HTMLElement, card: HTMLElement) => {
+        modal.classList.add('opacity-0');
+        card.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    };
+
+    // Export Modal References
+    const exportModal = document.getElementById('export-modal');
+    const exportModalCard = document.getElementById('export-modal-card');
+    const closeExportModal = document.getElementById('close-export-modal');
+    const cancelExportBtn = document.getElementById('cancel-export-btn');
+    const exportOptBtns = document.querySelectorAll('.export-opt-btn');
+
+    // Archive Modal References
+    const archiveModal = document.getElementById('archive-modal');
+    const archiveModalCard = document.getElementById('archive-modal-card');
+    const cancelArchiveBtn = document.getElementById('cancel-archive-btn') as HTMLButtonElement | null;
+    const confirmArchiveBtn = document.getElementById('confirm-archive-btn') as HTMLButtonElement | null;
+    const archiveBtnText = document.getElementById('archive-btn-text');
+    const archiveBtnSpinner = document.getElementById('archive-btn-spinner');
+
+    // Export Trigger
     const dropdownExportBtn = document.getElementById('dropdown-export-btn');
-    if (dropdownExportBtn) {
+    if (dropdownExportBtn && exportModal && exportModalCard) {
         dropdownExportBtn.addEventListener('click', () => {
-            (window as any).showToast('Export feature coming soon!');
+            openModalHelper(exportModal, exportModalCard);
             kebabDropdown?.classList.add('hidden');
             kebabDropdown?.classList.remove('animate-dropdown');
         });
     }
 
+    if (closeExportModal && exportModal && exportModalCard) {
+        closeExportModal.addEventListener('click', () => closeModalHelper(exportModal, exportModalCard));
+    }
+    if (cancelExportBtn && exportModal && exportModalCard) {
+        cancelExportBtn.addEventListener('click', () => closeModalHelper(exportModal, exportModalCard));
+    }
+
+    // Handle export generation choice
+    exportOptBtns.forEach(btnEl => {
+        const btn = btnEl as HTMLButtonElement;
+        btn.addEventListener('click', async () => {
+            const format = btn.getAttribute('data-format');
+            if (!format) return;
+
+            // Show loading state, disable other options
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-sm shadow-sm"><i class="fas fa-spinner fa-spin text-slate-400"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-800">Generating report...</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Assembling ledger and invoices</p>
+                    </div>
+                </div>
+            `;
+            exportOptBtns.forEach(b => (b as HTMLButtonElement).disabled = true);
+
+            try {
+                // Fetch full details of the customer to build export payload
+                const data = (window as any).currentCustomerDetails;
+                if (!data) throw new Error('Details not loaded yet');
+
+                // Perform the export generation
+                if (format === 'json') {
+                    // Export JSON file
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 4));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href",     dataStr);
+                    downloadAnchor.setAttribute("download", `customer_export_${data.customer.customer_id || 'export'}.json`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                } else if (format === 'excel') {
+                    // For Excel, we construct a beautiful structured CSV spreadsheet
+                    let csvContent = "data:text/csv;charset=utf-8,";
+                    csvContent += "CUSTOMER DETAILS\n";
+                    csvContent += `ID,${data.customer.customer_id}\n`;
+                    csvContent += `Name,${data.customer.customer.first_name} ${data.customer.customer.last_name}\n`;
+                    csvContent += `Phone,${data.customer.customer.phone || 'N/A'}\n`;
+                    csvContent += `Email,${data.customer.customer.email || 'N/A'}\n`;
+                    csvContent += `GSTIN,${data.customer.gstin || 'N/A'}\n\n`;
+
+                    csvContent += "QUOTATIONS\n";
+                    csvContent += "Quotation ID,Date,Status,Grand Total\n";
+                    (data.quotations || []).forEach((q: any) => {
+                        csvContent += `"${q.quotation_id}","${formatDate(q.quotation_date)}","${q.status}","${q.grand_total}"\n`;
+                    });
+
+                    csvContent += "\nINVOICES\n";
+                    csvContent += "Invoice ID,Date,Status,Total Amount\n";
+                    (data.invoices || []).forEach((inv: any) => {
+                        csvContent += `"${inv.invoice_id}","${formatDate(inv.invoice_date)}","${inv.status}","${inv.grand_total}"\n`;
+                    });
+
+                    csvContent += "\nSERVICES\n";
+                    csvContent += "Service ID,Date,Service Name,Remarks\n";
+                    (data.services || []).forEach((s: any) => {
+                        csvContent += `"${s.service_id}","${formatDate(s.service_date)}","${s.service_name}","${s.remarks || ''}"\n`;
+                    });
+
+                    csvContent += "\nPAYMENTS\n";
+                    csvContent += "Payment ID,Date,Method,Amount\n";
+                    (data.payments || []).forEach((p: any) => {
+                        csvContent += `"${p.payment_id}","${formatDate(p.payment_date)}","${p.payment_mode}","${p.amount}"\n`;
+                    });
+
+                    const encodedUri = encodeURI(csvContent);
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", encodedUri);
+                    downloadAnchor.setAttribute("download", `customer_ledger_${data.customer.customer_id || 'export'}.csv`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                } else if (format === 'pdf') {
+                    // For PDF, trigger print
+                    window.print();
+                }
+
+                // Show success toast
+                (window as any).showToast('Customer data exported successfully');
+                if (exportModal && exportModalCard) {
+                    closeModalHelper(exportModal, exportModalCard);
+                }
+            } catch (err) {
+                console.error(err);
+                (window as any).showToast('Failed to export data', 'error');
+            } finally {
+                // Restore button state
+                btn.innerHTML = originalHtml;
+                exportOptBtns.forEach(b => (b as HTMLButtonElement).disabled = false);
+            }
+        });
+    });
+
+    // Archive Trigger
     const dropdownArchiveBtn = document.getElementById('dropdown-archive-btn');
-    if (dropdownArchiveBtn) {
+    if (dropdownArchiveBtn && archiveModal && archiveModalCard) {
         dropdownArchiveBtn.addEventListener('click', () => {
-            (window as any).showToast('Archive feature coming soon!');
+            const customer = (window as any).currentCustomer;
+            if (customer) {
+                const isCurrentlyArchived = customer.is_archived;
+                const titleEl = archiveModal.querySelector('h3');
+                const descEl = archiveModal.querySelector('p.text-xs');
+                
+                if (titleEl && descEl && archiveBtnText) {
+                    if (isCurrentlyArchived) {
+                        titleEl.textContent = 'Restore Customer?';
+                        descEl.textContent = 'This customer will be restored to active records and all operations can be resumed.';
+                        archiveBtnText.textContent = 'Restore Customer';
+                    } else {
+                        titleEl.textContent = 'Archive Customer?';
+                        descEl.textContent = 'This customer will be hidden from active records but can be restored later. Preserves full transaction history.';
+                        archiveBtnText.textContent = 'Archive Customer';
+                    }
+                }
+                
+                openModalHelper(archiveModal, archiveModalCard);
+            }
             kebabDropdown?.classList.add('hidden');
             kebabDropdown?.classList.remove('animate-dropdown');
+        });
+    }
+
+    if (cancelArchiveBtn && archiveModal && archiveModalCard) {
+        cancelArchiveBtn.addEventListener('click', () => closeModalHelper(archiveModal, archiveModalCard));
+    }
+
+    if (confirmArchiveBtn && archiveModal && archiveModalCard && archiveBtnText && archiveBtnSpinner) {
+        confirmArchiveBtn.addEventListener('click', async () => {
+            const customer = (window as any).currentCustomer;
+            if (!customer) return;
+
+            // Show loading state
+            confirmArchiveBtn.disabled = true;
+            cancelArchiveBtn?.classList.add('opacity-50');
+            (cancelArchiveBtn as HTMLButtonElement).disabled = true;
+            archiveBtnSpinner.classList.remove('hidden');
+
+            try {
+                const isCurrentlyArchived = customer.is_archived;
+                if (isCurrentlyArchived) {
+                    await (window as any).customerApi.restoreCustomer(customer._id);
+                    (window as any).showToast('Customer restored successfully');
+                } else {
+                    await (window as any).customerApi.archiveCustomer(customer._id);
+                    (window as any).showToast('Customer archived successfully');
+                }
+                
+                closeModalHelper(archiveModal, archiveModalCard);
+                fetchFullDetails();
+            } catch (err) {
+                console.error(err);
+                (window as any).showToast(customer.is_archived ? 'Failed to restore customer' : 'Failed to archive customer', 'error');
+            } finally {
+                // Restore loading state
+                confirmArchiveBtn.disabled = false;
+                cancelArchiveBtn?.classList.remove('opacity-50');
+                (cancelArchiveBtn as HTMLButtonElement).disabled = false;
+                archiveBtnSpinner.classList.add('hidden');
+            }
         });
     }
 
@@ -127,6 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await customerApi.getCustomerDetails(customerId!);
             (window as any).currentCustomer = data.customer;
+            (window as any).currentCustomerDetails = data;
             populateData(data);
         } catch (error) {
             showAlert('Failed to load customer profile');
@@ -177,6 +383,55 @@ document.addEventListener('DOMContentLoaded', () => {
         const fullName = customer.customer.first_name 
             ? `${customer.customer.first_name} ${customer.customer.last_name || ''}`.trim() 
             : (customer.customer.name || '-');
+
+        // Dynamic Archived alert banner & menu dropdown text logic
+        const dropdownArchiveBtnText = document.getElementById('dropdown-archive-btn');
+        if (dropdownArchiveBtnText) {
+            if (customer.is_archived) {
+                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-box-open text-slate-400 w-4"></i> Restore Customer`;
+            } else {
+                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-archive text-slate-400 w-4"></i> Archive Customer`;
+            }
+        }
+
+        const bannerContainer = document.getElementById('archived-banner-container');
+        if (bannerContainer) {
+            if (customer.is_archived) {
+                bannerContainer.innerHTML = `
+                    <div class="bg-amber-50 border border-amber-200/80 text-amber-800 text-xs px-5 py-3.5 rounded-2xl flex items-center justify-between mb-6 shadow-sm">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+                                <i class="fas fa-archive"></i>
+                            </div>
+                            <div>
+                                <span class="font-bold">This customer is archived.</span>
+                                <span class="text-amber-700/90 ml-1">Active operations are suspended, but historical records remain preserved.</span>
+                            </div>
+                        </div>
+                        <button id="restore-banner-btn" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold rounded-xl transition-all duration-150 active:scale-95 uppercase tracking-wider text-[10px] shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/20">
+                            Restore Customer
+                        </button>
+                    </div>
+                `;
+
+                // Bind banner restore button
+                const restoreBannerBtn = document.getElementById('restore-banner-btn');
+                if (restoreBannerBtn) {
+                    restoreBannerBtn.addEventListener('click', async () => {
+                        try {
+                            await (window as any).customerApi.restoreCustomer(customer._id);
+                            (window as any).showToast('Customer restored successfully');
+                            fetchFullDetails();
+                        } catch (err) {
+                            console.error(err);
+                            (window as any).showToast('Failed to restore customer', 'error');
+                        }
+                    });
+                }
+            } else {
+                bannerContainer.innerHTML = '';
+            }
+        }
 
         const nameInitialEl = document.getElementById('name-initials');
         if (nameInitialEl) {

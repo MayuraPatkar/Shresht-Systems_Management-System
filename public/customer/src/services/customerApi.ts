@@ -63,6 +63,28 @@ class CustomerApi {
         }
     }
 
+    async archiveCustomer(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/${id}/archive`, { method: 'PUT' });
+            if (!response.ok) throw new Error('Failed to archive customer');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in archiveCustomer:', error);
+            throw error;
+        }
+    }
+
+    async restoreCustomer(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/${id}/restore`, { method: 'PUT' });
+            if (!response.ok) throw new Error('Failed to restore customer');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in restoreCustomer:', error);
+            throw error;
+        }
+    }
+
     async deleteCustomer(id: string): Promise<void> {
         try {
             const response = await fetch(`${this.baseUrl}/${id}`, { method: 'DELETE' });

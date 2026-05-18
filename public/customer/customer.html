@@ -178,6 +178,21 @@
         .customer-card-premium:active {
             transform: translateY(-1px);
         }
+
+        .customer-card-premium.archived {
+            opacity: 0.65;
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            filter: grayscale(40%);
+        }
+
+        .customer-card-premium.archived:hover {
+            opacity: 0.9;
+            transform: none;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+            border-color: #94a3b8;
+            filter: none;
+        }
     </style>
 </head>
 
@@ -205,6 +220,13 @@
                     class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="Refresh List">
                     <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="archived-customers-btn"
+                    class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="View Archived Customers">
+                    <i class="fas fa-archive text-slate-400"></i>
+                    <span>Archived</span>
+                    <span id="archived-count-badge" class="ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold">0</span>
                 </button>
                 <button id="add-customer-btn"
                     class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
@@ -510,6 +532,7 @@
                     <option value="">All Status</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
+                    <option value="archived">Archived</option>
                 </select>
             </div>
         </div>

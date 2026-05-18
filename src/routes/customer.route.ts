@@ -133,7 +133,12 @@ router.get('/', async (req: Request, res: Response) => {
         }
 
         if (type) query.customer_type = type;
-        if (status) query.is_active = status === 'active';
+        if (status === 'archived') {
+            query.is_archived = true;
+        } else {
+            query.is_archived = { $ne: true };
+            if (status) query.is_active = status === 'active';
+        }
 
         const customers = await CustomerModel.find(query).sort({ createdAt: -1 });
         res.json(customers);
@@ -217,6 +222,52 @@ router.delete('/:id', async (req: Request, res: Response) => {
         res.json({ message: 'Customer deleted successfully' });
     } catch (err: unknown) {
         logger.error('Error deleting customer:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+/**
+ * @route   PUT /customer/:id/archive
+ * @desc    Archive customer
+ */
+router.put('/:id/archive', async (req: Request, res: Response) => {
+    try {
+        const customerId = String(req.params.id || '');
+        if (!Types.ObjectId.isValid(customerId)) {
+            return res.status(400).json({ error: 'Invalid customer ID' });
+        }
+        const customer = await CustomerModel.findOneAndUpdate(
+            { _id: customerId, 'deletion.is_deleted': false },
+            { $set: { is_archived: true } },
+            { new: true }
+        );
+        if (!customer) return res.status(404).json({ error: 'Customer not found' });
+        res.json({ message: 'Customer archived successfully', customer });
+    } catch (err: unknown) {
+        logger.error('Error archiving customer:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+/**
+ * @route   PUT /customer/:id/restore
+ * @desc    Restore customer from archive
+ */
+router.put('/:id/restore', async (req: Request, res: Response) => {
+    try {
+        const customerId = String(req.params.id || '');
+        if (!Types.ObjectId.isValid(customerId)) {
+            return res.status(400).json({ error: 'Invalid customer ID' });
+        }
+        const customer = await CustomerModel.findOneAndUpdate(
+            { _id: customerId, 'deletion.is_deleted': false },
+            { $set: { is_archived: false } },
+            { new: true }
+        );
+        if (!customer) return res.status(404).json({ error: 'Customer not found' });
+        res.json({ message: 'Customer restored successfully', customer });
+    } catch (err: unknown) {
+        logger.error('Error restoring customer:', err);
         res.status(500).json({ error: 'Server error' });
     }
 });

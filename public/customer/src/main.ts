@@ -9,12 +9,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('reset-filters');
     const addBtn = document.getElementById('add-customer-btn');
     const refreshBtn = document.getElementById('refresh-btn');
+    const archivedBtn = document.getElementById('archived-customers-btn') as HTMLButtonElement | null;
     const filterBtn = document.getElementById('filter-btn');
     const filterPopover = document.getElementById('filter-popover');
     const closeFilter = document.getElementById('close-filter');
     const applyFiltersBtn = document.getElementById('apply-filters-btn');
     const closeModal = document.getElementById('close-modal');
     const cancelBtn = document.getElementById('cancel-btn');
+
+    // Update Archived Customers count function
+    const updateArchivedCount = async () => {
+        try {
+            const archived = await customerApi.fetchCustomers('', '', 'archived');
+            const countBadge = document.getElementById('archived-count-badge');
+            if (countBadge) {
+                countBadge.textContent = archived.length.toString();
+            }
+        } catch (err) {
+            console.error('Failed to update archived count:', err);
+        }
+    };
+    (window as any).updateArchivedCount = updateArchivedCount;
 
     // Fetch and render function exposed to window for forms to call
     (window as any).fetchCustomers = async () => {
@@ -25,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const customers = await customerApi.fetchCustomers(search, type, status);
             customerTable.render(customers);
+            updateArchivedCount();
         } catch (error) {
             showAlert('Failed to load customers');
         }
@@ -60,11 +76,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeModal) closeModal.onclick = () => customerForms.closeModal();
     if (cancelBtn) cancelBtn.onclick = () => customerForms.closeModal();
 
+    if (archivedBtn && statusFilter) {
+        archivedBtn.onclick = () => {
+            if (statusFilter.value === 'archived') {
+                statusFilter.value = '';
+                archivedBtn.classList.remove('bg-amber-50', 'text-amber-700', 'border-amber-200');
+                archivedBtn.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
+            } else {
+                statusFilter.value = 'archived';
+                archivedBtn.classList.add('bg-amber-50', 'text-amber-700', 'border-amber-200');
+                archivedBtn.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
+            }
+            (window as any).fetchCustomers();
+        };
+    }
+
     if (resetBtn) {
         resetBtn.onclick = () => {
             if (searchInput) searchInput.value = '';
             if (typeFilter) typeFilter.value = '';
             if (statusFilter) statusFilter.value = '';
+            archivedBtn?.classList.remove('bg-amber-50', 'text-amber-700', 'border-amber-200');
+            archivedBtn?.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
             (window as any).fetchCustomers();
             filterPopover?.classList.add('hidden');
         };
@@ -83,6 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeFilter) closeFilter.onclick = () => filterPopover?.classList.add('hidden');
     if (applyFiltersBtn) {
         applyFiltersBtn.onclick = () => {
+            if (statusFilter && statusFilter.value === 'archived') {
+                archivedBtn?.classList.add('bg-amber-50', 'text-amber-700', 'border-amber-200');
+                archivedBtn?.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
+            } else {
+                archivedBtn?.classList.remove('bg-amber-50', 'text-amber-700', 'border-amber-200');
+                archivedBtn?.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
+            }
             (window as any).fetchCustomers();
             filterPopover?.classList.add('hidden');
         };

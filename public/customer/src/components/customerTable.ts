@@ -44,12 +44,19 @@ class CustomerTable {
 
     private createCustomerCard(customer: any): HTMLElement {
         const card = document.createElement('div');
-        card.className = 'customer-card-premium p-5 flex flex-col justify-between group';
-        
-        const statusClass = customer.is_active 
-            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/40' 
-            : 'bg-rose-50 text-rose-700 border border-rose-100/40';
-        const statusText = customer.is_active ? 'Active' : 'Inactive';
+        let statusClass = 'bg-emerald-50 text-emerald-700 border border-emerald-100/40';
+        let statusText = 'Active';
+        if (customer.is_archived) {
+            statusClass = 'bg-slate-100 text-slate-600 border border-slate-200';
+            statusText = 'Archived';
+            card.className = 'customer-card-premium archived p-5 flex flex-col justify-between group';
+        } else if (!customer.is_active) {
+            statusClass = 'bg-rose-50 text-rose-700 border border-rose-100/40';
+            statusText = 'Inactive';
+            card.className = 'customer-card-premium p-5 flex flex-col justify-between group';
+        } else {
+            card.className = 'customer-card-premium p-5 flex flex-col justify-between group';
+        }
 
         const fullName = this.getCustomerDisplayName(customer);
         const initials = fullName !== '-' 
@@ -83,6 +90,17 @@ class CustomerTable {
                 </div>`;
         }
 
+        let restoreHtml = '';
+        if (customer.is_archived) {
+            restoreHtml = `
+                <div class="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+                    <button class="restore-card-btn px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider rounded-lg flex items-center gap-1.5 transition-all focus:outline-none active:scale-95 cursor-pointer">
+                        <i class="fas fa-box-open"></i> Restore Customer
+                    </button>
+                </div>
+            `;
+        }
+
         card.innerHTML = `
             <div>
                 <div class="flex items-center gap-3.5 mb-4">
@@ -106,6 +124,7 @@ class CustomerTable {
                 <div class="space-y-2 text-slate-600">
                     ${contactHtml}
                 </div>
+                ${restoreHtml}
             </div>
         `;
 
@@ -131,6 +150,26 @@ class CustomerTable {
             }
         });
 
+        // Prevent navigation when clicking restore
+        card.querySelector('.restore-card-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showConfirm(`Are you sure you want to restore customer "${fullName}"?`, async (confirmed) => {
+                if (confirmed === 'Yes') {
+                    try {
+                        await customerApi.restoreCustomer(customer._id);
+                        (window as any).showToast('Customer restored successfully');
+                        (window as any).fetchCustomers();
+                        if ((window as any).updateArchivedCount) {
+                            (window as any).updateArchivedCount();
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        (window as any).showToast('Failed to restore customer', 'error');
+                    }
+                }
+            });
+        });
+
         return card;
     }
 
@@ -143,8 +182,8 @@ class CustomerTable {
         if (!totalCountEl || !activeCountEl || !inactiveCountEl || !commercialCountEl) return;
 
         const total = customers.length;
-        const active = customers.filter(c => c.is_active).length;
-        const inactive = total - active;
+        const active = customers.filter(c => c.is_active && !c.is_archived).length;
+        const inactive = customers.filter(c => !c.is_active && !c.is_archived).length;
         const commercial = customers.filter(c => c.customer_type === 'Commercial' || c.customer_type === 'Company').length;
 
         totalCountEl.textContent = total.toString();
