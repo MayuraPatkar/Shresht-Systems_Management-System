@@ -864,15 +864,15 @@
     </div>
 
     <!-- Undo Toast Notification -->
-    <div id="undoToast" class="fixed bottom-6 right-6 bg-gray-800 text-white px-4 py-3 rounded-lg shadow-xl z-50 flex items-center gap-4 transition-transform duration-300 transform translate-y-24 opacity-0 pointer-events-none">
+    <div id="undoToast" class="fixed bottom-6 right-6 bg-white border border-gray-200 text-gray-800 px-4 py-3 rounded-lg shadow-xl z-50 flex items-center gap-4 transition-transform duration-300 transform translate-y-24 opacity-0 pointer-events-none">
         <div class="flex items-center gap-2">
-            <i class="fas fa-info-circle text-blue-400"></i>
-            <span id="undoToastMessage" class="text-sm font-medium">Stock item deleted.</span>
+            <i class="fas fa-trash-alt text-blue-600"></i>
+            <span id="undoToastMessage" class="text-sm font-semibold">Stock item deleted.</span>
         </div>
-        <button id="undoToastBtn" class="text-yellow-400 hover:text-yellow-300 text-sm font-bold uppercase tracking-wider px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded">
+        <button id="undoToastBtn" class="text-blue-600 hover:text-blue-700 text-sm font-bold uppercase tracking-wider px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded transition-colors">
             Undo
         </button>
-        <button id="closeUndoToastBtn" class="text-gray-400 hover:text-white">
+        <button id="closeUndoToastBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
             <i class="fas fa-times"></i>
         </button>
     </div>
