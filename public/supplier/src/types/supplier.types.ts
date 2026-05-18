@@ -25,7 +25,7 @@ interface Supplier {
     supplier: ContactInfo;
     billing_address: Address;
     gstin?: string;
-    supplier_type: 'Residential' | 'Commercial' | 'Industrial' | 'Individual' | 'Company' | 'Government';
+    supplier_type: 'Vendor' | 'Manufacturer' | 'Distributor' | 'Service Provider';
     is_active: boolean;
     remarks?: string;
     createdAt?: string;

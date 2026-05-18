@@ -75,7 +75,7 @@ class SupplierForms {
         elements['supplier.alternate_phone'].value = supplier.supplier?.alternate_phone || '';
         elements['supplier.email'].value = supplier.supplier?.email || '';
         elements['gstin'].value = supplier.gstin || '';
-        elements['supplier_type'].value = supplier.supplier_type || 'Individual';
+        elements['supplier_type'].value = supplier.supplier_type || 'Vendor';
         elements['is_active'].value = supplier.is_active.toString();
         elements['remarks'].value = supplier.remarks || '';
         elements['billing_address.line1'].value = supplier.billing_address?.line1 || '';

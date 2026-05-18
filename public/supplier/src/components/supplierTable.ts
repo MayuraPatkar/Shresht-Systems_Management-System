@@ -61,7 +61,7 @@ class SupplierTable {
                 </div>
                 <p class="cust-id-label text-[10px] font-black text-blue-600 mb-1 uppercase tracking-wider cursor-pointer hover:underline" title="Click to copy ID">${supplier.supplier_id || 'ID Pending'}</p>
                 <h3 class="text-xl font-bold text-gray-800 mb-1">${fullName}</h3>
-                <p class="text-sm text-gray-500 mb-4 font-medium">${supplier.supplier_type || 'Individual'}</p>
+                <p class="text-sm text-gray-500 mb-4 font-medium">${supplier.supplier_type || 'Vendor'}</p>
                 
                 <div class="space-y-2 mb-6">
                     <div class="flex items-center gap-3 text-gray-600">
@@ -129,12 +129,12 @@ class SupplierTable {
         const total = suppliers.length;
         const active = suppliers.filter(c => c.is_active).length;
         const inactive = total - active;
-        const commercial = suppliers.filter(c => c.supplier_type === 'Commercial' || c.supplier_type === 'Company').length;
+        const vendors = suppliers.filter(c => c.supplier_type === 'Vendor').length;
 
         totalCountEl.textContent = total.toString();
         activeCountEl.textContent = active.toString();
         inactiveCountEl.textContent = inactive.toString();
-        commercialCountEl.textContent = commercial.toString();
+        commercialCountEl.textContent = vendors.toString();
     }
 }
 

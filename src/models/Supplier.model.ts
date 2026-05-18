@@ -45,17 +45,12 @@ export interface ISupplier extends Document {
     // Supplier info
     supplier: IContactInfo;
 
-    // Contact person info
-    contact_person: IContactInfo;
-
     gstin?: string;
 
     billing_address?: IAddress;
     shipping_address?: IAddress;
 
-    supplier_type: "Individual" | "Company" | "Government" | "Residential" | "Commercial" | "Industrial";
-
-    credit_score: number;
+    supplier_type: "Vendor" | "Manufacturer" | "Distributor" | "Service Provider";
 
     remarks?: string;
 
@@ -133,11 +128,6 @@ const supplierSchema = new Schema<ISupplier>(
             required: true,
         },
 
-        // Contact person info
-        contact_person: {
-            type: contactInfoSchema,
-        },
-
         gstin: {
             type: String,
             trim: true,
@@ -154,14 +144,9 @@ const supplierSchema = new Schema<ISupplier>(
 
         supplier_type: {
             type: String,
-            enum: ["Individual", "Company", "Government", "Residential", "Commercial", "Industrial"],
-            default: "Individual",
+            enum: ["Vendor", "Manufacturer", "Distributor", "Service Provider"],
+            default: "Vendor",
             index: true,
-        },
-
-        credit_score: {
-            type: Number,
-            default: 0,
         },
 
         // Audit
