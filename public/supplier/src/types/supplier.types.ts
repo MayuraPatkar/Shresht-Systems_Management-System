@@ -2,13 +2,11 @@
  * Supplier Module Types
  */
 
-interface ContactInfo {
-    first_name: string;
-    last_name?: string;
-    name?: string;
-    phone: string;
-    alternate_phone?: string;
-    email: string;
+interface SupplierBankDetails {
+    account_name?: string;
+    account_number?: string;
+    ifsc?: string;
+    bank_name?: string;
 }
 
 interface Address {
@@ -22,12 +20,15 @@ interface Address {
 interface Supplier {
     _id?: string;
     supplier_id?: string;
-    supplier: ContactInfo;
+    supplier_name: string;
+    phone: string;
+    email: string;
     billing_address: Address;
     gstin?: string;
     supplier_type: 'Vendor' | 'Manufacturer' | 'Distributor' | 'Service Provider';
     is_active: boolean;
     remarks?: string;
+    bank_details?: SupplierBankDetails;
     createdAt?: string;
     updatedAt?: string;
 }

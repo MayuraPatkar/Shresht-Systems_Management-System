@@ -98,9 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { supplier, stats, purchases, payments } = data;
 
         // Header info
-        const fullName = supplier.supplier.first_name 
-            ? `${supplier.supplier.first_name} ${supplier.supplier.last_name || ''}`.trim() 
-            : (supplier.supplier.name || '-');
+        const fullName = valOrDash(supplier.supplier_name);
 
         const nameInitialEl = document.getElementById('name-initials');
         if (nameInitialEl) {
@@ -132,10 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const displayPhone = document.getElementById('display-phone');
-        if (displayPhone) displayPhone.textContent = valOrDash(supplier.supplier.phone);
+        if (displayPhone) displayPhone.textContent = valOrDash(supplier.phone);
 
         const displayEmail = document.getElementById('display-email');
-        if (displayEmail) displayEmail.textContent = valOrDash(supplier.supplier.email);
+        if (displayEmail) displayEmail.textContent = valOrDash(supplier.email);
 
         const pendingBalanceEl = document.getElementById('pending-balance');
         if (pendingBalanceEl) pendingBalanceEl.textContent = formatCurrency(stats.pendingBalance);
@@ -164,20 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const infoFirstName = document.getElementById('info-first-name');
-        if (infoFirstName) infoFirstName.textContent = valOrDash(supplier.supplier.first_name);
-
-        const infoLastName = document.getElementById('info-last-name');
-        if (infoLastName) infoLastName.textContent = valOrDash(supplier.supplier.last_name);
+        const infoSupplierName = document.getElementById('info-supplier-name');
+        if (infoSupplierName) infoSupplierName.textContent = fullName;
 
         const infoPhone = document.getElementById('info-phone');
-        if (infoPhone) infoPhone.textContent = valOrDash(supplier.supplier.phone);
-
-        const infoAltPhone = document.getElementById('info-alt-phone');
-        if (infoAltPhone) infoAltPhone.textContent = valOrDash(supplier.supplier.alternate_phone);
+        if (infoPhone) infoPhone.textContent = valOrDash(supplier.phone);
 
         const infoEmail = document.getElementById('info-email');
-        if (infoEmail) infoEmail.textContent = valOrDash(supplier.supplier.email);
+        if (infoEmail) infoEmail.textContent = valOrDash(supplier.email);
 
         const infoGstin = document.getElementById('info-gstin');
         if (infoGstin) infoGstin.textContent = valOrDash(supplier.gstin);
@@ -208,8 +200,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const addrPincode = document.getElementById('info-address-pincode');
         if (addrPincode) addrPincode.textContent = valOrDash(supplier.billing_address?.pincode);
 
-        const addrCountry = document.getElementById('info-address-country');
-        if (addrCountry) addrCountry.textContent = valOrDash(supplier.billing_address?.country || 'India');
+        // Overview Tab - Bank Details
+        const bankAccName = document.getElementById('info-bank-acc-name');
+        if (bankAccName) bankAccName.textContent = valOrDash(supplier.bank_details?.account_name);
+
+        const bankName = document.getElementById('info-bank-name');
+        if (bankName) bankName.textContent = valOrDash(supplier.bank_details?.bank_name);
+
+        const bankAccNum = document.getElementById('info-bank-acc-num');
+        if (bankAccNum) bankAccNum.textContent = valOrDash(supplier.bank_details?.account_number);
+
+        const bankIfsc = document.getElementById('info-bank-ifsc');
+        if (bankIfsc) bankIfsc.textContent = valOrDash(supplier.bank_details?.ifsc);
 
         const remarksEl = document.getElementById('info-remarks');
         if (remarksEl) remarksEl.textContent = supplier.remarks || 'No notes available for this supplier.';

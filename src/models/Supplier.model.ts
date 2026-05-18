@@ -9,19 +9,16 @@ export interface IAddress {
     city?: string;
     state?: string;
     pincode?: string;
-    country?: string;
 }
 
 /**
- * Contact info sub-document interface
+ * Bank details sub-document interface
  */
-export interface IContactInfo {
-    first_name?: string;
-    last_name?: string;
-    name?: string; // Kept for virtual/legacy
-    phone?: string;
-    alternate_phone?: string;
-    email?: string;
+export interface IBankDetails {
+    account_name?: string;
+    account_number?: string;
+    ifsc?: string;
+    bank_name?: string;
 }
 
 /**
@@ -43,12 +40,16 @@ export interface ISupplier extends Document {
     supplier_id: string;
 
     // Supplier info
-    supplier: IContactInfo;
+    supplier_name: string;
+    phone?: string;
+    email?: string;
 
     gstin?: string;
 
     billing_address?: IAddress;
     shipping_address?: IAddress;
+
+    bank_details?: IBankDetails;
 
     supplier_type: "Vendor" | "Manufacturer" | "Distributor" | "Service Provider";
 
@@ -72,22 +73,19 @@ const addressSchema = new Schema<IAddress>(
         city: { type: String, trim: true },
         state: { type: String, trim: true, default: "Karnataka" },
         pincode: { type: String, trim: true },
-        country: { type: String, trim: true, default: "India" },
     },
     { _id: false }
 );
 
 /**
- * Contact info sub-schema
+ * Bank details sub-schema
  */
-const contactInfoSchema = new Schema<IContactInfo>(
+const bankDetailsSchema = new Schema<IBankDetails>(
     {
-        first_name: { type: String, trim: true },
-        last_name: { type: String, trim: true },
-        name: { type: String, trim: true }, // Can store full name here as well for easier search
-        phone: { type: String, trim: true },
-        alternate_phone: { type: String, trim: true },
-        email: { type: String, trim: true, lowercase: true },
+        account_name: { type: String, trim: true },
+        account_number: { type: String, trim: true },
+        ifsc: { type: String, trim: true },
+        bank_name: { type: String, trim: true },
     },
     { _id: false }
 );
@@ -123,9 +121,25 @@ const supplierSchema = new Schema<ISupplier>(
         },
 
         // Supplier info
-        supplier: {
-            type: contactInfoSchema,
+        supplier_name: {
+            type: String,
             required: true,
+            trim: true,
+            index: true,
+        },
+
+        phone: {
+            type: String,
+            required: true,
+            trim: true,
+            index: true,
+        },
+
+        email: {
+            type: String,
+            trim: true,
+            lowercase: true,
+            index: true,
         },
 
         gstin: {
@@ -140,6 +154,10 @@ const supplierSchema = new Schema<ISupplier>(
 
         shipping_address: {
             type: addressSchema,
+        },
+
+        bank_details: {
+            type: bankDetailsSchema,
         },
 
         supplier_type: {
@@ -174,22 +192,11 @@ const supplierSchema = new Schema<ISupplier>(
 );
 
 /**
- * Virtuals
- */
-supplierSchema.virtual('supplier.full_name').get(function() {
-    if (this.supplier.first_name || this.supplier.last_name) {
-        return `${this.supplier.first_name || ''} ${this.supplier.last_name || ''}`.trim();
-    }
-    return this.supplier.name;
-});
-
-/**
  * Indexes
  */
-supplierSchema.index({ "supplier.first_name": 1, "supplier.last_name": 1, "supplier.phone": 1 });
-supplierSchema.index({ "supplier.name": 1, "supplier.phone": 1 });
-supplierSchema.index({ "supplier.phone": 1 });
-supplierSchema.index({ "supplier.email": 1 });
+supplierSchema.index({ "supplier_name": 1, "phone": 1 });
+supplierSchema.index({ "phone": 1 });
+supplierSchema.index({ "email": 1 });
 supplierSchema.index({ "deletion.is_deleted": 1 });
 
 /**

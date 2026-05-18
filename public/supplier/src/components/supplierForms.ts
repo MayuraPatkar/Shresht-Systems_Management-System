@@ -34,12 +34,6 @@ class SupplierForms {
         }
     }
 
-    private getDisplayName(supplier: any): string {
-        const firstName = supplier?.supplier?.first_name || '';
-        const lastName = supplier?.supplier?.last_name || '';
-        return `${firstName} ${lastName}`.trim() || supplier?.supplier?.name || '';
-    }
-
     openAddModal() {
         const modal = document.getElementById(this.modalId);
         const title = document.getElementById('modal-title');
@@ -64,16 +58,12 @@ class SupplierForms {
 
         title.textContent = 'Edit Supplier';
         idInput.value = supplier._id;
-
-        const fallbackName = this.getDisplayName(supplier);
         
         // Populate form fields
         const elements = form.elements as any;
-        elements['supplier.first_name'].value = supplier.supplier?.first_name || fallbackName || '';
-        elements['supplier.last_name'].value = supplier.supplier?.last_name || '';
-        elements['supplier.phone'].value = supplier.supplier?.phone || '';
-        elements['supplier.alternate_phone'].value = supplier.supplier?.alternate_phone || '';
-        elements['supplier.email'].value = supplier.supplier?.email || '';
+        elements['supplier_name'].value = supplier.supplier_name || '';
+        elements['phone'].value = supplier.phone || '';
+        elements['email'].value = supplier.email || '';
         elements['gstin'].value = supplier.gstin || '';
         elements['supplier_type'].value = supplier.supplier_type || 'Vendor';
         elements['is_active'].value = supplier.is_active.toString();
@@ -83,6 +73,12 @@ class SupplierForms {
         elements['billing_address.city'].value = supplier.billing_address?.city || '';
         elements['billing_address.state'].value = supplier.billing_address?.state || 'Karnataka';
         elements['billing_address.pincode'].value = supplier.billing_address?.pincode || '';
+
+        // Bank details
+        elements['bank_details.account_name'].value = supplier.bank_details?.account_name || '';
+        elements['bank_details.bank_name'].value = supplier.bank_details?.bank_name || '';
+        elements['bank_details.account_number'].value = supplier.bank_details?.account_number || '';
+        elements['bank_details.ifsc'].value = supplier.bank_details?.ifsc || '';
 
         modal.classList.remove('hidden');
     }
@@ -104,19 +100,11 @@ class SupplierForms {
 
         const formData = new FormData(form);
         const id = (document.getElementById('supplier-id') as HTMLInputElement).value;
-        const firstName = String(formData.get('supplier.first_name') || '').trim();
-        const lastName = String(formData.get('supplier.last_name') || '').trim();
-        const displayName = `${firstName} ${lastName}`.trim();
 
         const data = {
-            supplier: {
-                first_name: firstName,
-                last_name: lastName,
-                name: displayName || firstName,
-                phone: String(formData.get('supplier.phone') || '').replace(/\D/g, '').slice(0, 10),
-                alternate_phone: String(formData.get('supplier.alternate_phone') || '').replace(/\D/g, '').slice(0, 10),
-                email: String(formData.get('supplier.email') || '').trim().toLowerCase()
-            },
+            supplier_name: String(formData.get('supplier_name') || '').trim(),
+            phone: String(formData.get('phone') || '').replace(/\D/g, '').slice(0, 10),
+            email: String(formData.get('email') || '').trim().toLowerCase(),
             gstin: String(formData.get('gstin') || '').trim().toUpperCase(),
             supplier_type: formData.get('supplier_type'),
             is_active: formData.get('is_active') === 'true',
@@ -127,6 +115,12 @@ class SupplierForms {
                 city: formData.get('billing_address.city'),
                 state: formData.get('billing_address.state'),
                 pincode: formData.get('billing_address.pincode')
+            },
+            bank_details: {
+                account_name: formData.get('bank_details.account_name'),
+                bank_name: formData.get('bank_details.bank_name'),
+                account_number: formData.get('bank_details.account_number'),
+                ifsc: formData.get('bank_details.ifsc')
             }
         };
 
