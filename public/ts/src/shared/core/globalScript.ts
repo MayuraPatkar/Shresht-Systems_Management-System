@@ -8,10 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
     '/dashboard': 'dashboard',
     '/customer': 'customer',
     '/quotation': 'quotation',
+    '/supplier': 'supplier',
     '/purchaseorder': 'postOrder',
     '/invoice': 'invoice',
     '/ewaybill': 'wayBill',
     '/service': 'service',
+    '/payment': 'payment',
     '/stock': 'stock',
     '/comms': 'comms',
     '/reports': 'reports',
@@ -66,10 +68,12 @@ if (!window._ctrlTabNavRegistered) {
         '/dashboard',
         '/customer',
         '/quotation',
+        '/supplier',
         '/purchaseorder',
         '/invoice',
         '/ewaybill',
         '/service',
+        '/payment',
         '/stock',
         '/comms',
         '/reports',
@@ -124,6 +128,11 @@ document.getElementById('quotation')?.addEventListener('click', () => {
   sessionStorage.setItem('currentTab', 'quotation');
 })
 
+document.getElementById('supplier')?.addEventListener('click', () => {
+  window.location = '/supplier';
+  sessionStorage.setItem('currentTab', 'supplier');
+})
+
 document.getElementById('postOrder')?.addEventListener('click', () => {
   window.location = '/purchaseorder';
   sessionStorage.setItem('currentTab', 'purchaseorder');
@@ -142,6 +151,11 @@ document.getElementById('invoice')?.addEventListener('click', () => {
 document.getElementById('service')?.addEventListener('click', () => {
   window.location = '/service';
   sessionStorage.setItem('currentTab', 'service');
+})
+
+document.getElementById('payment')?.addEventListener('click', () => {
+  window.location = '/payment';
+  sessionStorage.setItem('currentTab', 'payment');
 })
 
 document.getElementById('stock')?.addEventListener('click', () => {
