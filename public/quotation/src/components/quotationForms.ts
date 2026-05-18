@@ -4,7 +4,7 @@ let quotationId = '';
 let totalAmountNoTax = 0;
 let totalAmountTax = 0;
 let totalTax = 0;
-let isCustomId = false; // Tracks if user manually entered a custom ID
+// isCustomId has been deprecated as all quotation IDs are now system-generated and immutable.
 
 function calculateLineTotals(quantity, unitPrice, gstRate) {
     const taxable_value = Math.round((Number(quantity || 0) * Number(unitPrice || 0)) * 100) / 100;
@@ -211,14 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stepIndicator.textContent = `Step 1 of ${totalSteps}`;
     }
 
-    // Add listener for custom ID input
-    const idInput = document.getElementById('id');
-    if (idInput) {
-        idInput.addEventListener('input', () => {
-            quotationId = idInput.value.trim();
-            isCustomId = true; // User manually typed in the ID field
-        });
-    }
+    // Custom ID listener removed as all IDs are system-generated.
     
     setupCustomerAutocomplete();
 });
@@ -623,13 +616,12 @@ async function cloneQuotation(sourceQuotationId) {
         if (!idResponse.ok) throw new Error("Failed to generate new quotation ID");
         const { quotation_id: newId } = await idResponse.json();
 
-        // Set the new ID and make it editable (it's a new quotation)
+        // Set the new ID (hidden field)
         const idInput = document.getElementById('id');
-        idInput.value = newId;
-        idInput.readOnly = false;
-        idInput.style.backgroundColor = ''; // Reset to default (editable)
+        if (idInput) {
+            idInput.value = newId;
+        }
         quotationId = newId;
-        isCustomId = false;
 
         // Hide Print and Save as PDF buttons for cloned (new) quotations
         const printBtn = document.getElementById('print-btn');
@@ -1784,7 +1776,8 @@ function collectFormData() {
         schema_version: 2,
         quotation_id: document.getElementById("id").value,
         quotation_no: document.getElementById("id").value,
-        isCustomId: isCustomId, // True if user manually typed the ID
+        isUpdate: sessionStorage.getItem('currentTab-status') === 'update',
+        isCustomId: false,
         projectName: document.getElementById("project-name").value,
         project_name: document.getElementById("project-name").value,
         quotationDate: document.getElementById("quotation-date").value,
@@ -1847,29 +1840,7 @@ window.validateCurrentStep = async function () {
     if (currentStep === 1) {
         const projectName = document.getElementById('project-name');
         const quoteDate = document.getElementById('quotation-date');
-        const idInput = document.getElementById('id');
-        const enteredId = idInput.value.trim();
-
-        // Check for duplicate ID if not in update mode and ID is provided
-        if (sessionStorage.getItem('currentTab-status') !== 'update' && enteredId) {
-            try {
-                const response = await fetch(`/quotation/${enteredId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.quotation) {
-                        window.electronAPI.showAlert1("Quotation with this ID already exists. Please use a different ID.");
-                        idInput.focus();
-                        return false;
-                    }
-                }
-                // 404 is expected for new custom IDs - this is the desired outcome
-            } catch (error) {
-                // Network errors should block, but don't log 404s as errors
-                console.error("Error checking for duplicate quotation ID:", error);
-                window.electronAPI.showAlert1("Error verifying Quotation ID. Please try again.");
-                return false;
-            }
-        }
+        // Duplicate ID checks removed.
 
         if (!projectName.value.trim()) {
             window.electronAPI.showAlert1("Please enter the Project Name.");

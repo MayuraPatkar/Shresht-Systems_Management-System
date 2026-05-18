@@ -140,18 +140,15 @@ function showNewQuotationForm() {
     const statusInput = document.getElementById('quotation-status') as HTMLSelectElement;
     if (statusInput) statusInput.value = 'Draft';
 
-    // Focus on the Quotation ID field and hide Print/PDF buttons for new quotations
+    // Focus on the Project Name field and hide Print/PDF buttons for new quotations
     setTimeout(() => {
         const idInput = document.getElementById('id') as HTMLInputElement;
         if (idInput) {
-            idInput.readOnly = false;
-            idInput.style.backgroundColor = ''; // Reset to default
             idInput.value = ''; // Clear any previous value
-            idInput.focus();
         }
-        // Reset custom ID flag (it's in quotationForms.ts scope)
-        if (typeof isCustomId !== 'undefined') {
-            (window as any).isCustomId = false;
+        const projectNameInput = document.getElementById('project-name') as HTMLInputElement;
+        if (projectNameInput) {
+            projectNameInput.focus();
         }
         // Hide Print and Save as PDF buttons for new quotations
         const printBtn = document.getElementById('print-btn') as HTMLButtonElement;

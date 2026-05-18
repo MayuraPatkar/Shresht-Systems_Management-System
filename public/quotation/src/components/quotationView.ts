@@ -320,6 +320,37 @@ async function renderQuotationView(quotation, viewType) {
     // Fill Project Details
     document.getElementById('view-project-name').textContent = quotation.project_name || '-';
     document.getElementById('view-project-id').textContent = quotation.quotation_id || '-';
+    
+    // Click-to-copy Quotation ID with premium visual feedback
+    const copyBtn = document.getElementById('copy-quotation-id-btn');
+    if (copyBtn) {
+        const newCopyBtn = copyBtn.cloneNode(true) as HTMLButtonElement;
+        copyBtn.parentNode?.replaceChild(newCopyBtn, copyBtn);
+        newCopyBtn.addEventListener('click', async () => {
+            const qId = quotation.quotation_id || quotation.quotation_no || '';
+            if (qId && qId !== '-') {
+                try {
+                    await navigator.clipboard.writeText(qId);
+                    const icon = newCopyBtn.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fas fa-check text-green-500 text-lg';
+                        const originalTitle = newCopyBtn.title;
+                        newCopyBtn.title = 'Copied!';
+                        setTimeout(() => {
+                            icon.className = 'far fa-copy text-lg';
+                            newCopyBtn.title = originalTitle;
+                        }, 2000);
+                    }
+                    if (typeof showToast === 'function') {
+                        showToast('Quotation ID copied to clipboard!');
+                    }
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                }
+            }
+        });
+    }
+
     document.getElementById('view-quotation-date').textContent = formatDateIndian(quotation.quotation_date) || '-';
     const statusEl = document.getElementById('view-quotation-status');
     if (statusEl) {

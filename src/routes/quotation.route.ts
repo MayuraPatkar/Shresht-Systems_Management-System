@@ -121,27 +121,22 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'At least one quotation item is required.' });
         }
 
-        let quotation: any = incomingId
-            ? await QuotationModel.findOne({ $or: [{ quotation_no: incomingId }, { quotation_id: incomingId }] } as any)
-            : null;
+        const isUpdate = req.body.isUpdate === true || req.body.isUpdate === 'true';
+        let quotation: any = null;
+        if (isUpdate && incomingId) {
+            quotation = await QuotationModel.findOne({ $or: [{ quotation_no: incomingId }, { quotation_id: incomingId }] } as any);
+        }
 
         if (!quotation) {
-            let newId: string;
-            if (req.body.isCustomId && incomingId) {
-                const existingCustom = await QuotationModel.findOne({ quotation_no: incomingId });
-                if (existingCustom) {
-                    return res.status(400).json({ message: `Quotation ID "${incomingId}" already exists. Please use a different ID.` });
-                }
-                newId = incomingId;
-            } else {
-                newId = await generateNextId('quotation');
-            }
+            // Always generate next ID server-side for new quotations
+            const newId = await generateNextId('quotation');
             quotation = new QuotationModel({ ...payload, quotation_no: newId });
         } else {
             if (quotation.quotation_status === 'Converted') {
                 return res.status(409).json({ message: 'Converted quotations cannot be edited.' });
             }
-            Object.assign(quotation, payload, { quotation_no: quotation.quotation_no || incomingId });
+            // Keep quotation_no immutable: ignore payload or incomingId override
+            Object.assign(quotation, payload, { quotation_no: quotation.quotation_no });
         }
 
         quotation.schema_version = QUOTATION_SCHEMA_VERSION;
@@ -149,9 +144,6 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
         quotation.deletion = { ...(quotation.deletion || {}), is_deleted: false };
 
         const savedQuotation = await quotation.save();
-        if (req.body.isCustomId && savedQuotation.quotation_no) {
-            await syncCounterIfNeeded('quotation', savedQuotation.quotation_no);
-        }
 
         const normalized = normalizeQuotationDocument(savedQuotation);
         return res.status(201).json({
