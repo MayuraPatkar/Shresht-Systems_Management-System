@@ -92,7 +92,10 @@ class CustomerTable {
                     <div class="min-w-0 flex-1">
                         <h3 class="text-base font-extrabold text-slate-800 tracking-tight leading-snug truncate group-hover:text-blue-600 transition-colors">${fullName}</h3>
                         <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                            <span class="cursor-pointer hover:underline hover:text-blue-600 transition-colors cust-id-label" title="Click to copy ID">${customer.customer_id || 'ID Pending'}</span>
+                            <span class="cursor-pointer hover:underline hover:text-blue-600 transition-colors cust-id-label inline-flex items-center gap-1" title="Click to copy ID">
+                                ${customer.customer_id || 'ID Pending'}
+                                <i class="fas fa-copy text-[8px] opacity-50"></i>
+                            </span>
                             <span class="text-slate-300 font-normal">•</span>
                             <span>${customer.customer_type || 'Individual'}</span>
                         </div>
@@ -112,11 +115,19 @@ class CustomerTable {
         });
 
         // Prevent navigation when copying ID
-        card.querySelector('.cust-id-label')?.addEventListener('click', (e) => {
+        card.querySelector('.cust-id-label')?.addEventListener('click', async (e) => {
             e.stopPropagation();
             if (customer.customer_id) {
-                (window as any).copyToClipboard(customer.customer_id);
+                await (window as any).copyToClipboard(customer.customer_id);
                 (window as any).showToast('Customer ID copied');
+                
+                const icon = card.querySelector('.cust-id-label i');
+                if (icon) {
+                    icon.className = 'fas fa-check text-[8px] text-emerald-500 scale-125 transition-all';
+                    setTimeout(() => {
+                        icon.className = 'fas fa-copy text-[8px] opacity-50';
+                    }, 1000);
+                }
             }
         });
 

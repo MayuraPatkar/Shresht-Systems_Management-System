@@ -84,6 +84,21 @@
             background: #1d4ed8 !important;
         }
 
+        /* Make text unselectable globally except for inputs */
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        input, textarea, select, [contenteditable="true"] {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
         button, [role="button"] {
             cursor: pointer !important;
         }

@@ -198,11 +198,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (displayCustId) {
             displayCustId.textContent = valOrDash(customer.customer_id);
             if (customer.customer_id) {
-                displayCustId.classList.add('cursor-pointer', 'hover:underline');
+                displayCustId.innerHTML = `${customer.customer_id} <i class="fas fa-copy text-[10px] ml-1 opacity-50 hover:opacity-100 transition-opacity"></i>`;
+                displayCustId.className = 'cursor-pointer hover:text-blue-600 transition-all duration-150 inline-flex items-center gap-1 hover:underline';
                 displayCustId.title = 'Click to copy ID';
-                displayCustId.onclick = () => {
-                    (window as any).copyToClipboard(customer.customer_id);
+                displayCustId.onclick = async () => {
+                    await (window as any).copyToClipboard(customer.customer_id);
                     (window as any).showToast('Customer ID copied');
+                    
+                    const icon = displayCustId.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fas fa-check text-[10px] ml-1 text-emerald-500 scale-125 transition-all';
+                        setTimeout(() => {
+                            icon.className = 'fas fa-copy text-[10px] ml-1 opacity-50 hover:opacity-100 transition-opacity';
+                        }, 1000);
+                    }
                 };
             }
         }
@@ -234,11 +243,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (infoCustId) {
             infoCustId.textContent = valOrDash(customer.customer_id);
             if (customer.customer_id) {
-                infoCustId.classList.add('cursor-pointer', 'hover:underline');
+                infoCustId.innerHTML = `${customer.customer_id} <i class="fas fa-copy text-[10px] ml-1 opacity-50 hover:opacity-100 transition-opacity"></i>`;
+                infoCustId.className = 'cursor-pointer hover:text-blue-600 transition-all duration-150 inline-flex items-center gap-1 hover:underline';
                 infoCustId.title = 'Click to copy ID';
-                infoCustId.onclick = () => {
-                    (window as any).copyToClipboard(customer.customer_id);
+                infoCustId.onclick = async () => {
+                    await (window as any).copyToClipboard(customer.customer_id);
                     (window as any).showToast('Customer ID copied');
+                    
+                    const icon = infoCustId.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fas fa-check text-[10px] ml-1 text-emerald-500 scale-125 transition-all';
+                        setTimeout(() => {
+                            icon.className = 'fas fa-copy text-[10px] ml-1 opacity-50 hover:opacity-100 transition-opacity';
+                        }, 1000);
+                    }
                 };
             }
         }
@@ -373,3 +391,42 @@ document.addEventListener('DOMContentLoaded', () => {
     (window as any).fetchFullDetails = fetchFullDetails;
     fetchFullDetails();
 });
+
+// ====== Global Toast ======
+(window as any).showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    const existingToast = document.getElementById('global-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    const toast = document.createElement('div');
+    toast.id = 'global-toast';
+    toast.className = 'fixed bottom-5 right-5 z-[9999] flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm shadow-xl transition-all duration-350';
+    
+    if (type === 'error') {
+        toast.style.background = '#ef4444';
+        toast.innerHTML = `<i class="fas fa-exclamation-circle text-base"></i><span>${message}</span>`;
+    } else {
+        toast.style.background = '#10b981';
+        toast.innerHTML = `<i class="fas fa-check-circle text-base"></i><span>${message}</span>`;
+    }
+
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(10px)';
+    
+    document.body.appendChild(toast);
+
+    // Trigger reflow
+    toast.offsetHeight;
+
+    // Animate in
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 2000);
+};

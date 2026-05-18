@@ -113,3 +113,42 @@ document.addEventListener('DOMContentLoaded', () => {
         customerForms.openAddModal();
     }
 });
+
+// ====== Global Toast ======
+(window as any).showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    const existingToast = document.getElementById('global-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    const toast = document.createElement('div');
+    toast.id = 'global-toast';
+    toast.className = 'fixed bottom-5 right-5 z-[9999] flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm shadow-xl transition-all duration-350';
+    
+    if (type === 'error') {
+        toast.style.background = '#ef4444';
+        toast.innerHTML = `<i class="fas fa-exclamation-circle text-base"></i><span>${message}</span>`;
+    } else {
+        toast.style.background = '#10b981';
+        toast.innerHTML = `<i class="fas fa-check-circle text-base"></i><span>${message}</span>`;
+    }
+
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(10px)';
+    
+    document.body.appendChild(toast);
+
+    // Trigger reflow
+    toast.offsetHeight;
+
+    // Animate in
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 2000);
+};
