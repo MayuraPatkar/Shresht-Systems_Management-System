@@ -95,7 +95,12 @@ router.get('/', async (req: Request, res: Response) => {
         }
 
         if (type) query.supplier_type = type;
-        if (status) query.is_active = status === 'active';
+        if (status === 'archived') {
+            query.is_archived = true;
+        } else {
+            query.is_archived = { $ne: true };
+            if (status) query.is_active = status === 'active';
+        }
 
         const suppliers = await SupplierModel.find(query).sort({ createdAt: -1 });
         res.json(suppliers);
@@ -180,6 +185,52 @@ router.delete('/:id', async (req: Request, res: Response) => {
         res.json({ message: 'Supplier deleted successfully' });
     } catch (err: unknown) {
         logger.error('Error deleting supplier:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+/**
+ * @route   PUT /supplier/:id/archive
+ * @desc    Archive supplier
+ */
+router.put('/:id/archive', async (req: Request, res: Response) => {
+    try {
+        const supplierId = String(req.params.id || '');
+        if (!Types.ObjectId.isValid(supplierId)) {
+            return res.status(400).json({ error: 'Invalid supplier ID' });
+        }
+        const supplier = await SupplierModel.findOneAndUpdate(
+            { _id: supplierId, 'deletion.is_deleted': false },
+            { $set: { is_archived: true } },
+            { returnDocument: 'after' }
+        );
+        if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
+        res.json({ message: 'Supplier archived successfully', supplier });
+    } catch (err: unknown) {
+        logger.error('Error archiving supplier:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+/**
+ * @route   PUT /supplier/:id/restore
+ * @desc    Restore supplier from archive
+ */
+router.put('/:id/restore', async (req: Request, res: Response) => {
+    try {
+        const supplierId = String(req.params.id || '');
+        if (!Types.ObjectId.isValid(supplierId)) {
+            return res.status(400).json({ error: 'Invalid supplier ID' });
+        }
+        const supplier = await SupplierModel.findOneAndUpdate(
+            { _id: supplierId, 'deletion.is_deleted': false },
+            { $set: { is_archived: false } },
+            { returnDocument: 'after' }
+        );
+        if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
+        res.json({ message: 'Supplier restored successfully', supplier });
+    } catch (err: unknown) {
+        logger.error('Error restoring supplier:', err);
         res.status(500).json({ error: 'Server error' });
     }
 });

@@ -15,6 +15,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = document.getElementById('close-modal');
     const cancelBtn = document.getElementById('cancel-btn');
 
+    const archivedBtn = document.getElementById('archived-suppliers-btn') as HTMLButtonElement | null;
+
+    // Update Archived Suppliers count function
+    const updateArchivedCount = async () => {
+        try {
+            const archived = await supplierApi.fetchSuppliers('', '', 'archived');
+            const countBadge = document.getElementById('archived-count-badge');
+            if (countBadge) {
+                countBadge.textContent = archived.length.toString();
+            }
+        } catch (err) {
+            console.error('Failed to update archived count:', err);
+        }
+    };
+    (window as any).updateArchivedCount = updateArchivedCount;
+
     // Fetch and render function exposed to window for forms to call
     (window as any).fetchSuppliers = async () => {
         try {
@@ -24,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const suppliers = await supplierApi.fetchSuppliers(search, type, status);
             supplierTable.render(suppliers);
+            updateArchivedCount();
         } catch (error) {
             showAlert('Failed to load suppliers');
         }
@@ -61,11 +78,28 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    if (archivedBtn && statusFilter) {
+        archivedBtn.onclick = () => {
+            if (statusFilter.value === 'archived') {
+                statusFilter.value = '';
+                archivedBtn.classList.remove('bg-amber-50', 'text-amber-700', 'border-amber-200');
+                archivedBtn.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
+            } else {
+                statusFilter.value = 'archived';
+                archivedBtn.classList.add('bg-amber-50', 'text-amber-700', 'border-amber-200');
+                archivedBtn.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
+            }
+            (window as any).fetchSuppliers();
+        };
+    }
+
     if (resetBtn) {
         resetBtn.onclick = () => {
             if (searchInput) searchInput.value = '';
             if (typeFilter) typeFilter.value = '';
             if (statusFilter) statusFilter.value = '';
+            archivedBtn?.classList.remove('bg-amber-50', 'text-amber-700', 'border-amber-200');
+            archivedBtn?.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
             (window as any).fetchSuppliers();
             filterPopover?.classList.add('hidden');
         };
