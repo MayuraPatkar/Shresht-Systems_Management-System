@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await supplierApi.getSupplierDetails(supplierId!);
             (window as any).currentSupplier = data.supplier;
+            (window as any).currentSupplierDetails = data;
             populateData(data);
         } catch (error) {
             showAlert('Failed to load supplier profile');
@@ -360,6 +361,391 @@ document.addEventListener('DOMContentLoaded', () => {
             if (action === 'view-purchase') window.location.href = `/purchaseorder?id=${id}`;
         };
     }
+
+    // Modal helpers
+    const openModalHelper = (modal: HTMLElement, card: HTMLElement) => {
+        modal.classList.remove('hidden');
+        modal.offsetHeight; // Force reflow
+        modal.classList.add('opacity-100');
+        card.classList.remove('scale-95', 'opacity-0');
+        card.classList.add('scale-100', 'opacity-100');
+    };
+
+    const closeModalHelper = (modal: HTMLElement, card: HTMLElement) => {
+        modal.classList.remove('opacity-100');
+        card.classList.remove('scale-100', 'opacity-100');
+        card.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    };
+
+    // Export Modal References
+    const exportModal = document.getElementById('export-modal');
+    const exportModalCard = document.getElementById('export-modal-card');
+    const closeExportModal = document.getElementById('close-export-modal');
+    const cancelExportBtn = document.getElementById('cancel-export-btn');
+    const exportOptBtns = document.querySelectorAll('.export-opt-btn');
+
+    // Export Trigger
+    const dropdownExportBtn = document.getElementById('dropdown-export-btn');
+    if (dropdownExportBtn && exportModal && exportModalCard) {
+        dropdownExportBtn.addEventListener('click', () => {
+            openModalHelper(exportModal, exportModalCard);
+        });
+    }
+
+    if (closeExportModal && exportModal && exportModalCard) {
+        closeExportModal.addEventListener('click', () => closeModalHelper(exportModal, exportModalCard));
+    }
+    if (cancelExportBtn && exportModal && exportModalCard) {
+        cancelExportBtn.addEventListener('click', () => closeModalHelper(exportModal, exportModalCard));
+    }
+
+    // Handle export generation choice
+    exportOptBtns.forEach(btnEl => {
+        const btn = btnEl as HTMLButtonElement;
+        btn.addEventListener('click', async () => {
+            const format = btn.getAttribute('data-format');
+            if (!format) return;
+
+            // Show loading state, disable other options
+            const originalHtml = btn.innerHTML;
+            exportOptBtns.forEach(b => (b as HTMLButtonElement).disabled = true);
+
+            if (format === 'pdf') {
+                btn.classList.add('processing-pdf');
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 w-full animate-fade-in">
+                        <div class="w-10 h-10 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-sm shadow-sm shrink-0">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-extrabold text-rose-700 truncate">Generating PDF Report...</p>
+                            <p class="text-[10px] text-rose-500 mt-0.5 truncate font-medium">Preparing supplier profile, purchases, and ledger</p>
+                        </div>
+                    </div>
+                `;
+            } else if (format === 'excel') {
+                btn.classList.add('processing-pdf');
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 w-full animate-fade-in">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm shadow-sm shrink-0">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-extrabold text-emerald-700 truncate">Generating Spreadsheet...</p>
+                            <p class="text-[10px] text-emerald-500 mt-0.5 truncate font-medium">Assembling financial registers and records</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Simulate slight generation delay to ensure the user can feel the professional feedback/animation
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            try {
+                // Fetch full details of the supplier to build export payload
+                const data = (window as any).currentSupplierDetails;
+                if (!data) throw new Error('Details not loaded yet');
+
+                // Perform the export generation
+                if (format === 'excel') {
+                    // For Excel, we construct a beautifully structured CSV spreadsheet
+                    let csvContent = "data:text/csv;charset=utf-8,";
+                    csvContent += "SUPPLIER DETAILS\n";
+                    csvContent += `ID,${data.supplier.supplier_id}\n`;
+                    csvContent += `Name,${data.supplier.supplier_name}\n`;
+                    csvContent += `Phone,${data.supplier.phone || 'N/A'}\n`;
+                    csvContent += `Email,${data.supplier.email || 'N/A'}\n`;
+                    csvContent += `GSTIN,${data.supplier.gstin || 'N/A'}\n\n`;
+
+                    csvContent += "PURCHASE ORDERS\n";
+                    csvContent += "Purchase Order ID,Date,Status,Grand Total\n";
+                    (data.purchases || []).forEach((p: any) => {
+                        csvContent += `"${p.purchase_order_id || p._id}","${formatDate(p.order_date || p.createdAt)}","${p.status || p.payment_status}","${p.grand_total || p.total_amount}"\n`;
+                    });
+
+                    csvContent += "\nPAYMENTS\n";
+                    csvContent += "Payment ID,Date,Method,Amount\n";
+                    (data.payments || []).forEach((p: any) => {
+                        csvContent += `"${p.payment_id || p._id}","${formatDate(p.payment_date || p.createdAt)}","${p.payment_mode}","${p.amount}"\n`;
+                    });
+
+                    const encodedUri = encodeURI(csvContent);
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", encodedUri);
+                    downloadAnchor.setAttribute("download", `supplier_ledger_${data.supplier.supplier_id || 'export'}.csv`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                } else if (format === 'pdf') {
+                    // For PDF, generate a clean, structured print report
+                    const printContainer = document.getElementById('print-report-container');
+                    if (printContainer) {
+                        const formatDateLocal = (dateStr: any) => {
+                            if (!dateStr) return 'N/A';
+                            try {
+                                const d = new Date(dateStr);
+                                if (isNaN(d.getTime())) return dateStr;
+                                return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                            } catch (e) {
+                                return dateStr || 'N/A';
+                            }
+                        };
+
+                        const fullName = data.supplier.supplier_name || '-';
+                        
+                        // Financial Aggregations
+                        const totalPurchasesCount = (data.purchases || []).length;
+                        const totalPurchasedAmt = (data.purchases || []).reduce((sum: number, p: any) => sum + (Number(p.grand_total || p.total_amount) || 0), 0);
+                        const totalPaidAmt = (data.payments || []).reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0);
+                        const outstandingAmt = Math.max(0, totalPurchasedAmt - totalPaidAmt);
+
+                        // Build purchases table
+                        let purchasesRows = '';
+                        if ((data.purchases || []).length > 0) {
+                            data.purchases.forEach((p: any) => {
+                                purchasesRows += `
+                                    <tr>
+                                        <td>${p.purchase_order_id || p._id}</td>
+                                        <td>${formatDateLocal(p.order_date || p.createdAt)}</td>
+                                        <td><span style="font-weight:700;">${p.status || p.payment_status}</span></td>
+                                        <td>₹${(Number(p.grand_total || p.total_amount) || 0).toLocaleString()}</td>
+                                    </tr>`;
+                            });
+                        } else {
+                            purchasesRows = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 15px;">No purchase records found</td></tr>`;
+                        }
+
+                        // Build payments table
+                        let paymentRows = '';
+                        if ((data.payments || []).length > 0) {
+                            data.payments.forEach((p: any) => {
+                                paymentRows += `
+                                    <tr>
+                                        <td>${p.payment_id || p._id}</td>
+                                        <td>${formatDateLocal(p.payment_date || p.createdAt)}</td>
+                                        <td>${p.payment_mode}</td>
+                                        <td>₹${(Number(p.amount) || 0).toLocaleString()}</td>
+                                    </tr>`;
+                            });
+                        } else {
+                            paymentRows = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 15px;">No payment records found</td></tr>`;
+                        }
+
+                        // Render the fully structured CRM business document
+                        printContainer.innerHTML = `
+                            <div class="print-header">
+                                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                                    <div style="flex:1;">
+                                        <h1 style="font-size:18pt; font-weight:800; color:#1e3a8a; margin:0; letter-spacing:-0.5px;">SHRESHT SYSTEMS</h1>
+                                        <p style="font-size:9.5pt; color:#64748b; margin:4px 0 0 0; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Supplier Account Summary Report</p>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <p style="font-size:8pt; font-weight:700; color:#64748b; margin:0; text-transform:uppercase; letter-spacing:0.5px;">Generated On</p>
+                                        <p style="font-size:9.5pt; font-weight:600; color:#0f172a; margin:2px 0 0 0;">${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h2 class="print-section-title" style="margin-top:0;">1. Supplier Profile Identity</h2>
+                            <div class="print-grid">
+                                <div>
+                                    <div class="print-meta-label">Supplier Name</div>
+                                    <div class="print-meta-value">${fullName}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Supplier ID</div>
+                                    <div class="print-meta-value">${data.supplier.supplier_id || 'ID Pending'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Company Name</div>
+                                    <div class="print-meta-value">${data.supplier.company_name || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Profile Status</div>
+                                    <div class="print-meta-value">${data.supplier.is_archived ? 'Archived' : (data.supplier.is_active ? 'Active' : 'Inactive')}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Primary Phone</div>
+                                    <div class="print-meta-value">${data.supplier.phone || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Email Address</div>
+                                    <div class="print-meta-value">${data.supplier.email || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">GSTIN / TAX ID</div>
+                                    <div class="print-meta-value">${data.supplier.gstin || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Supplier Since</div>
+                                    <div class="print-meta-value">${formatDateLocal(data.supplier.createdAt)}</div>
+                                </div>
+                            </div>
+
+                            <h2 class="print-section-title">2. Registered & Billing Address</h2>
+                            <div class="print-grid">
+                                <div style="grid-column: span 2;">
+                                    <div class="print-meta-label">Address</div>
+                                    <div class="print-meta-value">
+                                        ${data.supplier.billing_address?.line1 || ''}
+                                        ${data.supplier.billing_address?.line2 ? ', ' + data.supplier.billing_address.line2 : ''}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">City</div>
+                                    <div class="print-meta-value">${data.supplier.billing_address?.city || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">State & Pincode</div>
+                                    <div class="print-meta-value">${data.supplier.billing_address?.state || 'N/A'} - ${data.supplier.billing_address?.pincode || 'N/A'}</div>
+                                </div>
+                            </div>
+
+                            <h2 class="print-section-title">3. Bank Account Information</h2>
+                            <div class="print-grid">
+                                <div>
+                                    <div class="print-meta-label">Account Holder Name</div>
+                                    <div class="print-meta-value">${data.supplier.bank_details?.account_name || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Bank Name</div>
+                                    <div class="print-meta-value">${data.supplier.bank_details?.bank_name || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Account Number</div>
+                                    <div class="print-meta-value">${data.supplier.bank_details?.account_number || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">IFSC Code</div>
+                                    <div class="print-meta-value">${data.supplier.bank_details?.ifsc || 'N/A'}</div>
+                                </div>
+                            </div>
+
+                            <h2 class="print-section-title">4. Financial Ledger Summary</h2>
+                            <div class="print-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr)) !important; text-align: center; background-color:#f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
+                                <div>
+                                    <div class="print-meta-label">Purchases</div>
+                                    <div class="print-meta-value" style="color:#2563eb; font-size:12pt; font-weight:800; margin-top:4px;">${totalPurchasesCount}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Total Purchased</div>
+                                    <div class="print-meta-value" style="color:#0f172a; font-size:12pt; font-weight:800; margin-top:4px;">₹${totalPurchasedAmt.toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Total Paid</div>
+                                    <div class="print-meta-value" style="color:#16a34a; font-size:12pt; font-weight:800; margin-top:4px;">₹${totalPaidAmt.toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Outstanding Balance</div>
+                                    <div class="print-meta-value" style="color:#dc2626; font-size:12pt; font-weight:800; margin-top:4px;">₹${outstandingAmt.toLocaleString()}</div>
+                                </div>
+                            </div>
+
+                            <h2 class="print-section-title">5. Purchase Order History</h2>
+                            <table class="print-table">
+                                <thead>
+                                    <tr>
+                                        <th>Purchase Order ID</th>
+                                        <th>Order Date</th>
+                                        <th>Status</th>
+                                        <th>Grand Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${purchasesRows}
+                                </tbody>
+                            </table>
+
+                            <h2 class="print-section-title">6. Payment History</h2>
+                            <table class="print-table">
+                                <thead>
+                                    <tr>
+                                        <th>Payment ID</th>
+                                        <th>Payment Date</th>
+                                        <th>Method</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${paymentRows}
+                                </tbody>
+                            </table>
+
+                            <div style="margin-top:40px; border-top:1px solid #e2e8f0; padding-top:15px; text-align:center; font-size:8pt; color:#94a3b8; font-weight:600;">
+                                Official Record • Shresht Systems CRM Management Suite
+                            </div>
+                        `;
+                    }
+                    window.print();
+                }
+
+                // Show Success State on the button
+                btn.classList.remove('processing-pdf');
+                btn.classList.add('success-pdf');
+                if (format === 'pdf') {
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-3 w-full animate-fade-in">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-extrabold text-emerald-700 truncate">PDF Exported Successfully</p>
+                                <p class="text-[10px] text-emerald-500 mt-0.5 truncate font-medium">Report is fully generated and ready for print</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-3 w-full animate-fade-in">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-extrabold text-emerald-700 truncate">Data Exported Successfully</p>
+                                <p class="text-[10px] text-emerald-500 mt-0.5 truncate font-medium">File download initiated</p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Show success toast
+                (window as any).showToast('Supplier data exported successfully');
+                
+                // Wait slightly for the success animation to be readable, then close the modal
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                if (exportModal && exportModalCard) {
+                    closeModalHelper(exportModal, exportModalCard);
+                }
+            } catch (err) {
+                console.error(err);
+                btn.classList.remove('processing-pdf');
+                btn.classList.add('error-pdf');
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 w-full animate-fade-in">
+                        <div class="w-10 h-10 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-extrabold text-rose-700 truncate">Failed to Generate Export</p>
+                            <p class="text-[10px] text-rose-500 mt-0.5 truncate font-medium">Please check configuration and try again</p>
+                        </div>
+                    </div>
+                `;
+                (window as any).showToast('Failed to export data', 'error');
+                
+                // Wait to display the error, then restore the card
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            } finally {
+                // Restore button state
+                btn.classList.remove('processing-pdf', 'success-pdf', 'error-pdf');
+                btn.innerHTML = originalHtml;
+                exportOptBtns.forEach(b => (b as HTMLButtonElement).disabled = false);
+            }
+        });
+    });
 
     (window as any).fetchFullDetails = fetchFullDetails;
     fetchFullDetails();
