@@ -69,6 +69,10 @@ class SupplierForms {
             idInput.value = '';
             form.reset();
             modal.classList.remove('hidden');
+            setTimeout(() => {
+                const nameInput = form.querySelector('[name="supplier_name"]') as HTMLInputElement;
+                if (nameInput) nameInput.focus();
+            }, 50);
         }
     }
 
@@ -105,6 +109,10 @@ class SupplierForms {
         elements['bank_details.ifsc'].value = supplier.bank_details?.ifsc || '';
 
         modal.classList.remove('hidden');
+        setTimeout(() => {
+            const nameInput = form.querySelector('[name="supplier_name"]') as HTMLInputElement;
+            if (nameInput) nameInput.focus();
+        }, 50);
     }
 
     closeModal() {

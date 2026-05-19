@@ -144,7 +144,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         const supplier = await SupplierModel.findOneAndUpdate(
             { _id: supplierId, 'deletion.is_deleted': false },
             { $set: payload },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
         res.json(supplier);
@@ -174,7 +174,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
                     'deletion.deleted_by': username
                 } 
             },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
         res.json({ message: 'Supplier deleted successfully' });
