@@ -6,6 +6,8 @@ class CustomerForms {
     private modalId = 'customer-modal';
     private formId = 'customer-form';
 
+    private validator!: any;
+
     constructor() {
         this.init();
     }
@@ -14,6 +16,46 @@ class CustomerForms {
         const form = document.getElementById(this.formId) as HTMLFormElement;
         if (form) {
             form.onsubmit = (e) => this.handleSubmit(e);
+
+            // Initialize Form Validator
+            if ((window as any).FormValidator && (window as any).Validators) {
+                const V = (window as any).Validators;
+                this.validator = new (window as any).FormValidator(form);
+                
+                // Register rules
+                this.validator.registerField('customer.first_name', [V.required('First name is required')]);
+                this.validator.registerField('customer.phone', [
+                    V.required('Phone number is required'),
+                    V.phone(true, 'Please enter a valid 10-digit phone number')
+                ]);
+                this.validator.registerField('customer.alternate_phone', [
+                    V.phone(false, 'Please enter a valid 10-digit phone number')
+                ]);
+                this.validator.registerField('customer.email', [
+                    V.email(false, 'Please enter a valid email address')
+                ]);
+                this.validator.registerField('billing_address.line1', [V.required('Address is required')]);
+                this.validator.registerField('billing_address.city', [V.required('City is required')]);
+                this.validator.registerField('billing_address.state', [V.required('State is required')]);
+                this.validator.registerField('billing_address.pincode', [
+                    V.required('Pincode is required'),
+                    V.pincode(true, 'Please enter a valid 6-digit pincode')
+                ]);
+                this.validator.registerField('gstin', [
+                    V.gstin(false, 'Please enter a valid 15-digit GSTIN')
+                ]);
+            }
+
+            // Bind Numeric Input restrictions
+            if ((window as any).setupNumericInput) {
+                const phoneInput = form.querySelector('[name="customer.phone"]') as HTMLInputElement;
+                const altPhoneInput = form.querySelector('[name="customer.alternate_phone"]') as HTMLInputElement;
+                const pincodeInput = form.querySelector('[name="billing_address.pincode"]') as HTMLInputElement;
+
+                if (phoneInput) (window as any).setupNumericInput(phoneInput, 10);
+                if (altPhoneInput) (window as any).setupNumericInput(altPhoneInput, 10);
+                if (pincodeInput) (window as any).setupNumericInput(pincodeInput, 6);
+            }
         }
 
         const closeBtn = document.getElementById('close-modal');
@@ -50,6 +92,7 @@ class CustomerForms {
             title.textContent = 'Add New Customer';
             idInput.value = '';
             form.reset();
+            if (this.validator) this.validator.clearAllErrors();
             modal.classList.remove('hidden');
         }
     }
@@ -84,21 +127,22 @@ class CustomerForms {
         elements['billing_address.state'].value = customer.billing_address?.state || 'Karnataka';
         elements['billing_address.pincode'].value = customer.billing_address?.pincode || '';
 
+        if (this.validator) this.validator.clearAllErrors();
         modal.classList.remove('hidden');
     }
 
     closeModal() {
         const modal = document.getElementById(this.modalId);
         if (modal) modal.classList.add('hidden');
+        if (this.validator) this.validator.clearAllErrors();
     }
 
     private async handleSubmit(e: Event) {
         e.preventDefault();
         const form = e.target as HTMLFormElement;
 
-        // Trigger HTML5 validation
-        if (!form.checkValidity()) {
-            form.reportValidity();
+        // Custom validation check
+        if (this.validator && !this.validator.validateAll()) {
             return;
         }
 
