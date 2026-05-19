@@ -63,6 +63,28 @@ class SupplierApi {
         }
     }
 
+    async archiveSupplier(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/${id}/archive`, { method: 'PUT' });
+            if (!response.ok) throw new Error('Failed to archive supplier');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in archiveSupplier:', error);
+            throw error;
+        }
+    }
+
+    async restoreSupplier(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/${id}/restore`, { method: 'PUT' });
+            if (!response.ok) throw new Error('Failed to restore supplier');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in restoreSupplier:', error);
+            throw error;
+        }
+    }
+
     async deleteSupplier(id: string): Promise<void> {
         try {
             const username = sessionStorage.getItem('username') || 'Admin';

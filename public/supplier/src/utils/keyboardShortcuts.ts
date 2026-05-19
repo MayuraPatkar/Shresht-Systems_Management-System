@@ -32,7 +32,7 @@
                 { label: 'Export Supplier', keys: ['Ctrl', 'P'] },
                 { label: 'Copy Supplier ID', keys: ['Ctrl', 'C'] },
                 { label: 'Delete Supplier', keys: ['Ctrl', 'Delete'] },
-                { label: 'Archive Supplier', keys: ['Ctrl', 'Shift', 'D'] }
+                { label: 'Archive / Restore Supplier', keys: ['Ctrl', 'Shift', 'D'] }
             ] : [
                 { label: 'New Supplier', keys: ['Ctrl', 'N'] },
                 { label: 'Save Supplier', keys: ['Ctrl', 'S'] },

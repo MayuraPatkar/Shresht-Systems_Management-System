@@ -70,6 +70,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const archiveBtn = document.getElementById('dropdown-archive-btn');
+    if (archiveBtn) {
+        archiveBtn.addEventListener('click', () => {
+            const supplier = (window as any).currentSupplier;
+            if (!supplier) return;
+
+            const isCurrentlyArchived = supplier.is_archived;
+            const fullName = supplier.supplier_name || '-';
+
+            if (isCurrentlyArchived) {
+                showConfirm(`Are you sure you want to restore supplier "${fullName}"?`, async (confirmed) => {
+                    if (confirmed === 'Yes') {
+                        try {
+                            await supplierApi.restoreSupplier(supplierId!);
+                            (window as any).showToast('Supplier restored successfully');
+                            fetchFullDetails();
+                        } catch (err) {
+                            console.error(err);
+                            (window as any).showToast('Failed to restore supplier', 'error');
+                        }
+                    }
+                });
+            } else {
+                showConfirm(`Are you sure you want to archive supplier "${fullName}"?`, async (confirmed) => {
+                    if (confirmed === 'Yes') {
+                        try {
+                            await supplierApi.archiveSupplier(supplierId!);
+                            (window as any).showToast('Supplier archived successfully');
+                            fetchFullDetails();
+                        } catch (err) {
+                            console.error(err);
+                            (window as any).showToast('Failed to archive supplier', 'error');
+                        }
+                    }
+                });
+            }
+        });
+    }
+
     async function fetchFullDetails() {
         try {
             const data = await supplierApi.getSupplierDetails(supplierId!);
@@ -122,6 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Header info
         const fullName = valOrDash(supplier.supplier_name);
+
+        // Dynamic Archived alert banner & menu dropdown text logic
+        const dropdownArchiveBtnText = document.getElementById('dropdown-archive-btn');
+        if (dropdownArchiveBtnText) {
+            if (supplier.is_archived) {
+                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-box-open"></i> Restore Supplier`;
+            } else {
+                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-archive"></i> Archive Supplier`;
+            }
+        }
 
         const nameInitialEl = document.getElementById('name-initials');
         if (nameInitialEl) {
