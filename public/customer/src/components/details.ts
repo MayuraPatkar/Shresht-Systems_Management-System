@@ -170,19 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `;
-            } else if (format === 'json') {
-                btn.classList.add('processing-pdf');
-                btn.innerHTML = `
-                    <div class="flex items-center gap-3 w-full animate-fade-in">
-                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm shadow-sm shrink-0">
-                            <i class="fas fa-spinner fa-spin"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-extrabold text-blue-700 truncate">Assembling JSON Data...</p>
-                            <p class="text-[10px] text-blue-500 mt-0.5 truncate font-medium">Compiling full database object parameters</p>
-                        </div>
-                    </div>
-                `;
             }
 
             // Simulate slight generation delay to ensure the user can feel the professional feedback/animation
@@ -194,16 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!data) throw new Error('Details not loaded yet');
 
                 // Perform the export generation
-                if (format === 'json') {
-                    // Export JSON file
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 4));
-                    const downloadAnchor = document.createElement('a');
-                    downloadAnchor.setAttribute("href",     dataStr);
-                    downloadAnchor.setAttribute("download", `customer_export_${data.customer.customer_id || 'export'}.json`);
-                    document.body.appendChild(downloadAnchor);
-                    downloadAnchor.click();
-                    downloadAnchor.remove();
-                } else if (format === 'excel') {
+                if (format === 'excel') {
                     // For Excel, we construct a beautiful structured CSV spreadsheet
                     let csvContent = "data:text/csv;charset=utf-8,";
                     csvContent += "CUSTOMER DETAILS\n";
@@ -491,11 +469,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </tbody>
                             </table>
 
-                            ${data.customer.remarks ? `
-                            <h2 class="print-section-title">8. Administrative Remarks</h2>
-                            <div style="background-color:#fafaf9; border:1px solid #e4e4e7; border-radius:8px; padding:12px; font-size:9.5pt; color:#475569; font-weight:500; line-height:1.5;">
-                                ${data.customer.remarks}
-                            </div>` : ''}
 
                             <div style="margin-top:40px; border-top:1px solid #e2e8f0; padding-top:15px; text-align:center; font-size:8pt; color:#94a3b8; font-weight:600;">
                                 Official Record • Shresht Systems CRM Management Suite
@@ -572,69 +545,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Archive Trigger
     const dropdownArchiveBtn = document.getElementById('dropdown-archive-btn');
-    if (dropdownArchiveBtn && archiveModal && archiveModalCard) {
+    if (dropdownArchiveBtn) {
         dropdownArchiveBtn.addEventListener('click', () => {
-            const customer = (window as any).currentCustomer;
-            if (customer) {
-                const isCurrentlyArchived = customer.is_archived;
-                const titleEl = archiveModal.querySelector('h3');
-                const descEl = archiveModal.querySelector('p.text-xs');
-                
-                if (titleEl && descEl && archiveBtnText) {
-                    if (isCurrentlyArchived) {
-                        titleEl.textContent = 'Restore Customer?';
-                        descEl.textContent = 'This customer will be restored to active records and all operations can be resumed.';
-                        archiveBtnText.textContent = 'Restore Customer';
-                    } else {
-                        titleEl.textContent = 'Archive Customer?';
-                        descEl.textContent = 'This customer will be hidden from active records but can be restored later. Preserves full transaction history.';
-                        archiveBtnText.textContent = 'Archive Customer';
-                    }
-                }
-                
-                openModalHelper(archiveModal, archiveModalCard);
-            }
             kebabDropdown?.classList.add('hidden');
             kebabDropdown?.classList.remove('animate-dropdown');
-        });
-    }
 
-    if (cancelArchiveBtn && archiveModal && archiveModalCard) {
-        cancelArchiveBtn.addEventListener('click', () => closeModalHelper(archiveModal, archiveModalCard));
-    }
-
-    if (confirmArchiveBtn && archiveModal && archiveModalCard && archiveBtnText && archiveBtnSpinner) {
-        confirmArchiveBtn.addEventListener('click', async () => {
             const customer = (window as any).currentCustomer;
             if (!customer) return;
 
-            // Show loading state
-            confirmArchiveBtn.disabled = true;
-            cancelArchiveBtn?.classList.add('opacity-50');
-            (cancelArchiveBtn as HTMLButtonElement).disabled = true;
-            archiveBtnSpinner.classList.remove('hidden');
+            const isCurrentlyArchived = customer.is_archived;
+            const fullName = customer.customer.first_name 
+                ? `${customer.customer.first_name} ${customer.customer.last_name || ''}`.trim() 
+                : (customer.customer.name || '-');
 
-            try {
-                const isCurrentlyArchived = customer.is_archived;
-                if (isCurrentlyArchived) {
-                    await (window as any).customerApi.restoreCustomer(customer._id);
-                    (window as any).showToast('Customer restored successfully');
-                } else {
-                    await (window as any).customerApi.archiveCustomer(customer._id);
-                    (window as any).showToast('Customer archived successfully');
-                }
-                
-                closeModalHelper(archiveModal, archiveModalCard);
-                fetchFullDetails();
-            } catch (err) {
-                console.error(err);
-                (window as any).showToast(customer.is_archived ? 'Failed to restore customer' : 'Failed to archive customer', 'error');
-            } finally {
-                // Restore loading state
-                confirmArchiveBtn.disabled = false;
-                cancelArchiveBtn?.classList.remove('opacity-50');
-                (cancelArchiveBtn as HTMLButtonElement).disabled = false;
-                archiveBtnSpinner.classList.add('hidden');
+            if (isCurrentlyArchived) {
+                showConfirm(`Are you sure you want to restore customer "${fullName}"?`, async (confirmed) => {
+                    if (confirmed === 'Yes') {
+                        try {
+                            await (window as any).customerApi.restoreCustomer(customer._id);
+                            (window as any).showToast('Customer restored successfully');
+                            fetchFullDetails();
+                        } catch (err) {
+                            console.error(err);
+                            (window as any).showToast('Failed to restore customer', 'error');
+                        }
+                    }
+                });
+            } else {
+                showConfirm(`Are you sure you want to archive customer "${fullName}"?`, async (confirmed) => {
+                    if (confirmed === 'Yes') {
+                        try {
+                            await (window as any).customerApi.archiveCustomer(customer._id);
+                            (window as any).showToast('Customer archived successfully');
+                            fetchFullDetails();
+                        } catch (err) {
+                            console.error(err);
+                            (window as any).showToast('Failed to archive customer', 'error');
+                        }
+                    }
+                });
             }
         });
     }
@@ -728,9 +677,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const dropdownArchiveBtnText = document.getElementById('dropdown-archive-btn');
         if (dropdownArchiveBtnText) {
             if (customer.is_archived) {
-                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-box-open text-slate-400 w-4"></i> Restore Customer`;
+                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-box-open"></i> Restore Customer`;
             } else {
-                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-archive text-slate-400 w-4"></i> Archive Customer`;
+                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-archive"></i> Archive Customer`;
             }
         }
 
@@ -758,14 +707,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const restoreBannerBtn = document.getElementById('restore-banner-btn');
                 if (restoreBannerBtn) {
                     restoreBannerBtn.addEventListener('click', async () => {
-                        try {
-                            await (window as any).customerApi.restoreCustomer(customer._id);
-                            (window as any).showToast('Customer restored successfully');
-                            fetchFullDetails();
-                        } catch (err) {
-                            console.error(err);
-                            (window as any).showToast('Failed to restore customer', 'error');
-                        }
+                        showConfirm(`Are you sure you want to restore customer "${fullName}"?\n\nThis customer will be restored to active records and all operations can be resumed.`, async (confirmed) => {
+                            if (confirmed === 'Yes') {
+                                try {
+                                    await (window as any).customerApi.restoreCustomer(customer._id);
+                                    (window as any).showToast('Customer restored successfully');
+                                    fetchFullDetails();
+                                } catch (err) {
+                                    console.error(err);
+                                    (window as any).showToast('Failed to restore customer', 'error');
+                                }
+                            }
+                        });
                     });
                 }
             } else {
@@ -830,8 +783,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const statServices = document.getElementById('stat-services');
         if (statServices) statServices.textContent = (stats.totalServices || 0).toString();
 
-        const statPaid = document.getElementById('stat-paid');
-        if (statPaid) statPaid.textContent = formatCurrency(stats.totalPaidAmount);
+        const statOutstanding = document.getElementById('stat-outstanding');
+        if (statOutstanding) statOutstanding.textContent = formatCurrency(stats.pendingBalance);
 
         // Overview Tab - Contact Details
         const infoCustId = document.getElementById('info-customer-id');
