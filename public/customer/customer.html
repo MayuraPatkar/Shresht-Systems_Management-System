@@ -215,16 +215,17 @@
                     <i class="fas fa-filter"></i>
                 </button>
             </div>
-            <div class="flex items-center gap-2">
-                <button id="shortcuts-btn"
-                    class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
-                    title="Keyboard Shortcuts (?)">
-                    <i class="fas fa-keyboard"></i>
-                </button>
+            <div class="flex items-center gap-2">      
                 <button id="refresh-btn"
                     class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="Refresh List (Ctrl+R)">
                     <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="add-customer-btn"
+                    class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium"
+                    title="Add Customer (Ctrl+N)">
+                    <i class="fas fa-plus"></i>
+                    Add Customer
                 </button>
                 <button id="archived-customers-btn"
                     class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
@@ -233,11 +234,15 @@
                     <span>Archived</span>
                     <span id="archived-count-badge" class="ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold">0</span>
                 </button>
-                <button id="add-customer-btn"
-                    class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium"
-                    title="Add Customer (Ctrl+N)">
-                    <i class="fas fa-plus"></i>
-                    Add Customer
+                <button id="showDeletedBtn"
+                    class="bg-gray-200 text-gray-700 h-10 px-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-gray-300"
+                    title="View Trash">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button id="shortcuts-btn"
+                    class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-keyboard"></i>
                 </button>
             </div>
         </div>
