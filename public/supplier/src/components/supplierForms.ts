@@ -5,6 +5,7 @@
 class SupplierForms {
     private modalId = 'supplier-modal';
     private formId = 'supplier-form';
+    private validator!: any;
 
     constructor() {
         this.init();
@@ -15,28 +16,41 @@ class SupplierForms {
         if (form) {
             form.onsubmit = (e) => this.handleSubmit(e);
 
-            // Limit pincode to numbers only
-            const pincodeInput = form.querySelector('[name="billing_address.pincode"]') as HTMLInputElement;
-            if (pincodeInput) {
-                pincodeInput.addEventListener('input', () => {
-                    pincodeInput.value = pincodeInput.value.replace(/[^0-9]/g, '');
-                });
+            // Initialize Unified Form Validator
+            if ((window as any).FormValidator && (window as any).Validators) {
+                const V = (window as any).Validators;
+                this.validator = new (window as any).FormValidator(form);
+
+                // Register rules
+                this.validator.registerField('supplier_name', [V.required('Supplier name is required')]);
+                this.validator.registerField('phone', [
+                    V.required('Phone number is required'),
+                    V.phone(true, 'Please enter a valid 10-digit phone number')
+                ]);
+                this.validator.registerField('email', [
+                    V.email(false, 'Please enter a valid email address')
+                ]);
+                this.validator.registerField('billing_address.line1', [V.required('Address is required')]);
+                this.validator.registerField('billing_address.city', [V.required('City is required')]);
+                this.validator.registerField('billing_address.state', [V.required('State is required')]);
+                this.validator.registerField('billing_address.pincode', [
+                    V.required('Pincode is required'),
+                    V.pincode(true, 'Please enter a valid 6-digit pincode')
+                ]);
+                this.validator.registerField('gstin', [
+                    V.gstin(false, 'Please enter a valid 15-character GSTIN')
+                ]);
             }
 
-            // Limit bank account number to numbers only
-            const accountInput = form.querySelector('[name="bank_details.account_number"]') as HTMLInputElement;
-            if (accountInput) {
-                accountInput.addEventListener('input', () => {
-                    accountInput.value = accountInput.value.replace(/[^0-9]/g, '');
-                });
-            }
+            // Bind Numeric Input restrictions
+            if ((window as any).setupNumericInput) {
+                const phoneInput = form.querySelector('[name="phone"]') as HTMLInputElement;
+                const pincodeInput = form.querySelector('[name="billing_address.pincode"]') as HTMLInputElement;
+                const accountInput = form.querySelector('[name="bank_details.account_number"]') as HTMLInputElement;
 
-            // Limit phone number to numbers only
-            const phoneInput = form.querySelector('[name="phone"]') as HTMLInputElement;
-            if (phoneInput) {
-                phoneInput.addEventListener('input', () => {
-                    phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '');
-                });
+                if (phoneInput) (window as any).setupNumericInput(phoneInput, 10);
+                if (pincodeInput) (window as any).setupNumericInput(pincodeInput, 6);
+                if (accountInput) (window as any).setupNumericInput(accountInput, 20); // Arbitrary large max length for bank account
             }
         }
 
@@ -68,6 +82,7 @@ class SupplierForms {
             title.textContent = 'Add New Supplier';
             idInput.value = '';
             form.reset();
+            if (this.validator) this.validator.clearAllErrors();
             modal.classList.remove('hidden');
             setTimeout(() => {
                 const nameInput = form.querySelector('[name="supplier_name"]') as HTMLInputElement;
@@ -108,6 +123,7 @@ class SupplierForms {
         elements['bank_details.account_number'].value = supplier.bank_details?.account_number || '';
         elements['bank_details.ifsc'].value = supplier.bank_details?.ifsc || '';
 
+        if (this.validator) this.validator.clearAllErrors();
         modal.classList.remove('hidden');
         setTimeout(() => {
             const nameInput = form.querySelector('[name="supplier_name"]') as HTMLInputElement;
@@ -118,15 +134,15 @@ class SupplierForms {
     closeModal() {
         const modal = document.getElementById(this.modalId);
         if (modal) modal.classList.add('hidden');
+        if (this.validator) this.validator.clearAllErrors();
     }
 
     private async handleSubmit(e: Event) {
         e.preventDefault();
         const form = e.target as HTMLFormElement;
 
-        // Trigger HTML5 validation
-        if (!form.checkValidity()) {
-            form.reportValidity();
+        // Custom validation check
+        if (this.validator && !this.validator.validateAll()) {
             return;
         }
 

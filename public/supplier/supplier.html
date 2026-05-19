@@ -395,25 +395,22 @@
                             <h3 class="form-section-header">Basic Information</h3>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">Supplier Name *</label>
-                                <input type="text" name="supplier_name" required
+                                <input type="text" name="supplier_name"
                                     class="w-full px-4 py-2.5 form-input-premium">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">Phone Number *</label>
-                                <input type="tel" name="phone" required pattern="[0-9]{10}" maxlength="10"
-                                    inputmode="numeric" title="Please enter a 10-digit phone number"
+                                <input type="tel" name="phone"
                                     class="w-full px-4 py-2.5 form-input-premium">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">Email Address</label>
-                                <input type="email" name="email" pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                                    title="Please enter a valid email address"
+                                <input type="email" name="email"
                                     class="w-full px-4 py-2.5 form-input-premium">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">GST Number</label>
-                                <input type="text" name="gstin" id="gstin-input" pattern="^[0-9a-zA-Z]{15}$"
-                                    maxlength="15" title="Please enter a 15-character GSTIN"
+                                <input type="text" name="gstin" id="gstin-input"
                                     class="w-full px-4 py-2.5 form-input-premium">
                             </div>
                         </div>
@@ -451,7 +448,7 @@
                                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">Address Line 1 <span
                                             class="text-red-500">*</span></label>
                                     <input type="text" name="billing_address.line1"
-                                        class="w-full px-4 py-2.5 form-input-premium" required>
+                                        class="w-full px-4 py-2.5 form-input-premium">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">Address Line 2</label>
@@ -463,13 +460,13 @@
                                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">City <span
                                                 class="text-red-500">*</span></label>
                                         <input type="text" name="billing_address.city"
-                                            class="w-full px-4 py-2.5 form-input-premium" required>
+                                            class="w-full px-4 py-2.5 form-input-premium">
                                     </div>
                                     <div class="col-span-2">
                                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">State <span
                                                 class="text-red-500">*</span></label>
                                         <select name="billing_address.state"
-                                            class="w-full px-4 py-2.5 form-input-premium bg-white" required>
+                                            class="w-full px-4 py-2.5 form-input-premium bg-white">
                                             <option value="Andhra Pradesh">Andhra Pradesh</option>
                                             <option value="Arunachal Pradesh">Arunachal Pradesh</option>
                                             <option value="Assam">Assam</option>
@@ -513,9 +510,8 @@
                                     <div class="col-span-1">
                                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Pincode <span
                                                 class="text-red-500">*</span></label>
-                                        <input type="text" name="billing_address.pincode" pattern="[0-9]{6}"
-                                            inputmode="numeric" maxlength="6" title="Please enter a 6-digit pincode"
-                                            class="w-full px-4 py-2.5 form-input-premium" required>
+                                        <input type="text" name="billing_address.pincode"
+                                            class="w-full px-4 py-2.5 form-input-premium">
                                     </div>
                                 </div>
                             </div>
@@ -611,6 +607,7 @@
     <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
     <script src="../../dist/public/ts/src/shared/core/ipc.js"></script>
     <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/validation.js"></script>
     <!-- Supplier module scripts (compiled from TypeScript) -->
     <script src="../../dist/public/supplier/src/types/supplier.types.js"></script>
     <script src="../../dist/public/supplier/src/services/supplierApi.js"></script>
