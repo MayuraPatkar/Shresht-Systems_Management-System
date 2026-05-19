@@ -817,6 +817,52 @@
         </div>
     </div>
 
+    <!-- Export Modal -->
+    <div id="export-modal" class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center hidden opacity-0 transition-opacity duration-200" role="dialog" aria-modal="true">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl p-6 w-[420px] scale-95 opacity-0 transition-all duration-200 transform" id="export-modal-card">
+            <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                <h3 class="font-extrabold text-slate-800 text-lg">Export Supplier Data</h3>
+                <button id="close-export-modal" class="text-slate-400 hover:text-slate-600 focus:outline-none w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-500 mb-5 leading-relaxed">Choose your preferred file format to download this supplier's profile, contact info, purchases, and complete payment histories.</p>
+            
+            <div class="space-y-3 mb-6">
+                <!-- PDF option -->
+                <button data-format="pdf" class="export-opt-btn w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-xl flex items-center justify-between transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left active:scale-[0.99] cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center text-sm font-bold shadow-sm">PDF</div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Portable Document Format (.pdf)</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Best for official summaries and printing</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                </button>
+                <!-- Excel option -->
+                <button data-format="excel" class="export-opt-btn w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-xl flex items-center justify-between transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left active:scale-[0.99] cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm">XLS</div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Microsoft Excel Spreadsheet (.xlsx)</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Best for detailed ledger analysis & calculations</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                </button>
+            </div>
+            
+            <div class="flex justify-end gap-2.5 pt-4 border-t border-slate-100">
+                <button id="cancel-export-btn" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Report Container -->
+    <div id="print-report-container"></div>
+
     <!-- Scripts -->
     <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
     <script src="../../dist/public/ts/src/shared/core/ipc.js"></script>
