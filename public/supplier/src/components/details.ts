@@ -120,11 +120,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (displayCustId) {
             displayCustId.textContent = valOrDash(supplier.supplier_id);
             if (supplier.supplier_id) {
-                displayCustId.classList.add('cursor-pointer', 'hover:underline');
+                displayCustId.innerHTML = `${supplier.supplier_id} <i class="fas fa-copy text-[10px] ml-1 opacity-50 hover:opacity-100 transition-opacity"></i>`;
+                displayCustId.className = 'cursor-pointer hover:text-blue-600 transition-all duration-150 inline-flex items-center gap-1 hover:underline';
                 displayCustId.title = 'Click to copy ID';
-                displayCustId.onclick = () => {
-                    (window as any).copyToClipboard(supplier.supplier_id);
+                displayCustId.onclick = async () => {
+                    await (window as any).copyToClipboard(supplier.supplier_id);
                     (window as any).showToast('Supplier ID copied');
+                    
+                    const icon = displayCustId.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fas fa-check text-[10px] ml-1 text-emerald-500 scale-125 transition-all';
+                        setTimeout(() => {
+                            icon.className = 'fas fa-copy text-[10px] ml-1 opacity-50 hover:opacity-100 transition-opacity';
+                        }, 1000);
+                    }
                 };
             }
         }
@@ -153,11 +162,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (infoCustId) {
             infoCustId.textContent = valOrDash(supplier.supplier_id);
             if (supplier.supplier_id) {
-                infoCustId.classList.add('cursor-pointer', 'hover:underline');
+                infoCustId.innerHTML = `${supplier.supplier_id} <i class="fas fa-copy text-[10px] ml-1 opacity-50 hover:opacity-100 transition-opacity"></i>`;
+                infoCustId.className = 'cursor-pointer hover:text-blue-600 transition-all duration-150 inline-flex items-center gap-1 hover:underline';
                 infoCustId.title = 'Click to copy ID';
-                infoCustId.onclick = () => {
-                    (window as any).copyToClipboard(supplier.supplier_id);
+                infoCustId.onclick = async () => {
+                    await (window as any).copyToClipboard(supplier.supplier_id);
                     (window as any).showToast('Supplier ID copied');
+                    
+                    const icon = infoCustId.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fas fa-check text-[10px] ml-1 text-emerald-500 scale-125 transition-all';
+                        setTimeout(() => {
+                            icon.className = 'fas fa-copy text-[10px] ml-1 opacity-50 hover:opacity-100 transition-opacity';
+                        }, 1000);
+                    }
                 };
             }
         }
