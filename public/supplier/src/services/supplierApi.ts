@@ -17,11 +17,12 @@ declare function fetchSuppliers(): void;
 class SupplierApi {
     private baseUrl = '/api/suppliers';
 
-    async fetchSuppliers(search: string = '', type: string = '', status: string = ''): Promise<any[]> {
+    async fetchSuppliers(search: string = '', type: string = '', status: string = '', deleted: boolean = false): Promise<any[]> {
         try {
             let url = `${this.baseUrl}?search=${encodeURIComponent(search)}`;
             if (type) url += `&type=${type}`;
             if (status) url += `&status=${status}`;
+            if (deleted) url += `&deleted=true`;
 
             const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch suppliers');
@@ -92,6 +93,66 @@ class SupplierApi {
             if (!response.ok) throw new Error('Failed to delete supplier');
         } catch (error) {
             console.error('Error in deleteSupplier:', error);
+            throw error;
+        }
+    }
+
+    async restoreSupplierFromTrash(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/restoreItem`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId: id })
+            });
+            if (!response.ok) throw new Error('Failed to restore supplier from trash');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in restoreSupplierFromTrash:', error);
+            throw error;
+        }
+    }
+
+    async hardDeleteSupplier(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/hardDeleteItem`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId: id })
+            });
+            if (!response.ok) throw new Error('Failed to permanently delete supplier');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in hardDeleteSupplier:', error);
+            throw error;
+        }
+    }
+
+    async bulkRestoreSuppliers(ids: string[]): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/bulkRestore`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemIds: ids })
+            });
+            if (!response.ok) throw new Error('Failed bulk restore');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in bulkRestoreSuppliers:', error);
+            throw error;
+        }
+    }
+
+    async bulkHardDeleteSuppliers(ids: string[]): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/bulkHardDelete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemIds: ids })
+            });
+            if (!response.ok) throw new Error('Failed bulk hard delete');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in bulkHardDeleteSuppliers:', error);
             throw error;
         }
     }
