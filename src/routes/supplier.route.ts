@@ -171,8 +171,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
                 $set: { 
                     'deletion.is_deleted': true, 
                     'deletion.deleted_at': new Date(),
-                    'deletion.deleted_by': username,
-                    is_active: false
+                    'deletion.deleted_by': username
                 } 
             },
             { new: true }
