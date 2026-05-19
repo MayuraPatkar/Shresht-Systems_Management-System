@@ -701,9 +701,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const dropdownArchiveBtnText = document.getElementById('dropdown-archive-btn');
         if (dropdownArchiveBtnText) {
             if (customer.is_archived) {
-                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-box-open text-slate-400 w-4"></i> Restore Customer`;
+                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-box-open"></i> Restore Customer`;
             } else {
-                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-archive text-slate-400 w-4"></i> Archive Customer`;
+                dropdownArchiveBtnText.innerHTML = `<i class="fas fa-archive"></i> Archive Customer`;
             }
         }
 
@@ -803,8 +803,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const statServices = document.getElementById('stat-services');
         if (statServices) statServices.textContent = (stats.totalServices || 0).toString();
 
-        const statPaid = document.getElementById('stat-paid');
-        if (statPaid) statPaid.textContent = formatCurrency(stats.totalPaidAmount);
+        const statOutstanding = document.getElementById('stat-outstanding');
+        if (statOutstanding) statOutstanding.textContent = formatCurrency(stats.pendingBalance);
 
         // Overview Tab - Contact Details
         const infoCustId = document.getElementById('info-customer-id');
