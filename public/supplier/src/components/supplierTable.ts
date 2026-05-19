@@ -38,74 +38,92 @@ class SupplierTable {
 
     private createSupplierCard(supplier: any): HTMLElement {
         const card = document.createElement('div');
-        card.className = 'supplier-card bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col justify-between';
         
-        const statusClass = supplier.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-        const statusText = supplier.is_active ? 'Active' : 'Inactive';
+        let statusClass = 'bg-emerald-50 text-emerald-700 border border-emerald-100/40';
+        let statusText = 'Active';
+        if (!supplier.is_active) {
+            statusClass = 'bg-rose-50 text-rose-700 border border-rose-100/40';
+            statusText = 'Inactive';
+        }
+        card.className = 'supplier-card-premium p-5 flex flex-col justify-between group';
 
         const supplierName = supplier.supplier_name || '-';
+        const initials = supplierName !== '-' 
+            ? supplierName.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2)
+            : '?';
+
+        // Construct contact list dynamically, omitting missing fields
+        let contactHtml = '';
+        if (supplier.phone) {
+            contactHtml += `
+                <div class="flex items-center gap-2.5 text-slate-600">
+                    <i class="fas fa-phone w-4 text-center text-xs text-slate-400"></i>
+                    <span class="text-xs font-semibold">${supplier.phone}</span>
+                </div>`;
+        }
+        if (supplier.email) {
+            contactHtml += `
+                <div class="flex items-center gap-2.5 text-slate-600">
+                    <i class="fas fa-envelope w-4 text-center text-xs text-slate-400"></i>
+                    <span class="text-xs font-semibold truncate max-w-[180px]" title="${supplier.email}">${supplier.email}</span>
+                </div>`;
+        }
+        const city = supplier.billing_address?.city || '';
+        const state = supplier.billing_address?.state || '';
+        const fullAddress = (city || state) ? `${city}${state ? ', ' + state : ''}`.trim() : '';
+        if (fullAddress) {
+            contactHtml += `
+                <div class="flex items-center gap-2.5 text-slate-600">
+                    <i class="fas fa-map-marker-alt w-4 text-center text-xs text-slate-400"></i>
+                    <span class="text-xs font-semibold truncate max-w-[180px]" title="${fullAddress}">${fullAddress}</span>
+                </div>`;
+        }
 
         card.innerHTML = `
             <div>
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-3 bg-blue-50 rounded-lg">
-                        <i class="fas fa-user text-blue-600 text-xl"></i>
+                <div class="flex items-center gap-3.5 mb-4">
+                    <div class="w-11 h-11 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-bold text-sm tracking-tight shadow-sm shrink-0">
+                        ${initials}
                     </div>
-                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase ${statusClass}">${statusText}</span>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-base font-extrabold text-slate-800 tracking-tight leading-snug truncate group-hover:text-blue-600 transition-colors">${supplierName}</h3>
+                        <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                            <span class="cursor-pointer hover:underline hover:text-blue-600 transition-colors cust-id-label inline-flex items-center gap-1" title="Click to copy ID">
+                                ${supplier.supplier_id || 'ID Pending'}
+                                <i class="fas fa-copy text-[8px] opacity-50"></i>
+                            </span>
+                            <span class="text-slate-300 font-normal">•</span>
+                            <span>${supplier.supplier_type || 'Vendor'}</span>
+                        </div>
+                    </div>
+                    <span class="shrink-0 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${statusClass}">${statusText}</span>
                 </div>
-                <p class="cust-id-label text-[10px] font-black text-blue-600 mb-1 uppercase tracking-wider cursor-pointer hover:underline" title="Click to copy ID">${supplier.supplier_id || 'ID Pending'}</p>
-                <h3 class="text-xl font-bold text-gray-800 mb-1">${supplierName}</h3>
-                <p class="text-sm text-gray-500 mb-4 font-medium">${supplier.supplier_type || 'Vendor'}</p>
                 
-                <div class="space-y-2 mb-6">
-                    <div class="flex items-center gap-3 text-gray-600">
-                        <i class="fas fa-phone w-5 text-center text-sm"></i>
-                        <span class="text-sm">${supplier.phone || '-'}</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-gray-600">
-                        <i class="fas fa-envelope w-5 text-center text-sm"></i>
-                        <span class="text-sm truncate">${supplier.email || '-'}</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-gray-600">
-                        <i class="fas fa-map-marker-alt w-5 text-center text-sm"></i>
-                        <span class="text-sm truncate">${supplier.billing_address?.city || '-'}${supplier.billing_address?.state ? ', ' + supplier.billing_address.state : ''}</span>
-                    </div>
+                <div class="space-y-2 text-slate-600">
+                    ${contactHtml}
                 </div>
-            </div>
-            
-            <div class="flex items-center gap-2 pt-4 border-t border-gray-100">
-                <button class="view-btn flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg font-semibold hover:bg-blue-100 transition-colors">
-                    View Profile
-                </button>
-                <button class="edit-btn p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="delete-btn p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
             </div>
         `;
 
-        card.querySelector('.view-btn')?.addEventListener('click', () => {
+        // Click handler for entire card
+        card.addEventListener('click', () => {
             window.location.href = `/supplier/details?id=${supplier._id}`;
         });
 
-        card.querySelector('.cust-id-label')?.addEventListener('click', () => {
+        // Prevent navigation when copying ID
+        card.querySelector('.cust-id-label')?.addEventListener('click', async (e) => {
+            e.stopPropagation();
             if (supplier.supplier_id) {
-                (window as any).copyToClipboard(supplier.supplier_id);
+                await (window as any).copyToClipboard(supplier.supplier_id);
                 (window as any).showToast('Supplier ID copied');
-            }
-        });
-
-        card.querySelector('.edit-btn')?.addEventListener('click', () => {
-            if ((window as any).supplierForms) {
-                (window as any).supplierForms.openEditModal(supplier);
-            }
-        });
-
-        card.querySelector('.delete-btn')?.addEventListener('click', () => {
-            if ((window as any).handleDelete) {
-                (window as any).handleDelete(supplier._id, supplierName);
+                
+                const icon = card.querySelector('.cust-id-label i');
+                if (icon) {
+                    icon.className = 'fas fa-check text-[8px] text-emerald-500 scale-125 transition-all';
+                    setTimeout(() => {
+                        icon.className = 'fas fa-copy text-[8px] opacity-50';
+                    }, 1000);
+                }
             }
         });
 
