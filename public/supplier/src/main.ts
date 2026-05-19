@@ -38,10 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = typeFilter?.value || '';
             const status = statusFilter?.value || '';
 
-            const suppliers = await supplierApi.fetchSuppliers(search, type, status);
+            const suppliers = await supplierApi.fetchSuppliers(search, type, status, !!window.showDeletedItems);
+            (window as any).currentSuppliers = suppliers || [];
             supplierTable.render(suppliers);
             updateArchivedCount();
             updateArchivedButtonVisuals();
+            updateBulkButtonLabels();
         } catch (error) {
             showAlert('Failed to load suppliers');
         }
@@ -57,6 +59,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     (window as any).fetchSuppliers();
                 } catch (error) {
                     showAlert('Failed to delete supplier');
+                }
+            }
+        });
+    };
+
+    // Restore from trash handler
+    (window as any).handleRestoreFromTrash = (id: string, name: string) => {
+        showConfirm(`Are you sure you want to restore "${name}" from trash?`, async (response) => {
+            if (response === 'Yes') {
+                try {
+                    await supplierApi.restoreSupplierFromTrash(id);
+                    showAlert('Supplier restored successfully');
+                    (window as any).fetchSuppliers();
+                } catch (error) {
+                    showAlert('Failed to restore supplier');
+                }
+            }
+        });
+    };
+
+    // Permanent delete handler
+    (window as any).handleHardDelete = (id: string, name: string) => {
+        showConfirm(`Are you sure you want to PERMANENTLY delete supplier "${name}"? This cannot be undone.`, async (response) => {
+            if (response === 'Yes') {
+                try {
+                    await supplierApi.hardDeleteSupplier(id);
+                    showAlert('Supplier permanently deleted');
+                    (window as any).fetchSuppliers();
+                } catch (error) {
+                    showAlert('Failed to permanently delete supplier');
                 }
             }
         });
@@ -130,6 +162,127 @@ document.addEventListener('DOMContentLoaded', () => {
             if (statusFilter) statusFilter.value = '';
             (window as any).fetchSuppliers();
             filterPopover?.classList.add('hidden');
+        };
+    }
+
+    const showDeletedBtn = document.getElementById('showDeletedBtn');
+    const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+    const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+    if (showDeletedBtn) {
+        showDeletedBtn.onclick = () => {
+            window.showDeletedItems = !window.showDeletedItems;
+            
+            if (window.showDeletedItems) {
+                showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
+                showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> Close Trash';
+                showDeletedBtn.title = 'Close Trash';
+
+                if (addBtn) addBtn.classList.add('hidden');
+                if (archivedBtn) archivedBtn.classList.add('hidden');
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.classList.remove('hidden');
+                    bulkRestoreBtn.classList.add('flex');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.classList.remove('hidden');
+                    bulkDeleteBtn.classList.add('flex');
+                }
+            } else {
+                showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700');
+                showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
+                showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                showDeletedBtn.title = 'View Trash';
+
+                if (addBtn) addBtn.classList.remove('hidden');
+                if (archivedBtn) archivedBtn.classList.remove('hidden');
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.classList.add('hidden');
+                    bulkRestoreBtn.classList.remove('flex');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.classList.add('hidden');
+                    bulkDeleteBtn.classList.remove('flex');
+                }
+            }
+            (window as any).fetchSuppliers();
+        };
+    }
+
+    function updateBulkButtonLabels() {
+        const search = searchInput?.value || '';
+        const type = typeFilter?.value || '';
+        const status = statusFilter?.value || '';
+        const isFiltered = search !== '' || type !== '' || status !== '';
+        
+        if (bulkRestoreBtn) {
+            const span = bulkRestoreBtn.querySelector('span');
+            if (span) {
+                span.textContent = isFiltered ? 'Restore All Filtered' : 'Restore All';
+            }
+        }
+        if (bulkDeleteBtn) {
+            const span = bulkDeleteBtn.querySelector('span');
+            if (span) {
+                span.textContent = isFiltered ? 'Delete All Filtered' : 'Delete All';
+            }
+        }
+    }
+
+    if (bulkRestoreBtn) {
+        bulkRestoreBtn.onclick = () => {
+            const filteredData = (window as any).currentSuppliers || [];
+            if (filteredData.length === 0) {
+                showAlert('No suppliers to restore.');
+                return;
+            }
+
+            const search = searchInput?.value || '';
+            const type = typeFilter?.value || '';
+            const status = statusFilter?.value || '';
+            const isFiltered = search !== '' || type !== '' || status !== '';
+            const message = `Are you sure you want to restore all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}suppliers?`;
+
+            showConfirm(message, async (response) => {
+                if (response === 'Yes') {
+                    try {
+                        await supplierApi.bulkRestoreSuppliers(filteredData.map((s: any) => s._id));
+                        showAlert('Suppliers restored successfully!');
+                        (window as any).fetchSuppliers();
+                    } catch (err) {
+                        showAlert('Failed to bulk restore suppliers.');
+                    }
+                }
+            });
+        };
+    }
+
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.onclick = () => {
+            const filteredData = (window as any).currentSuppliers || [];
+            if (filteredData.length === 0) {
+                showAlert('No suppliers to delete.');
+                return;
+            }
+
+            const search = searchInput?.value || '';
+            const type = typeFilter?.value || '';
+            const status = statusFilter?.value || '';
+            const isFiltered = search !== '' || type !== '' || status !== '';
+            const message = `Are you sure you want to PERMANENTLY delete all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}suppliers? This cannot be undone.`;
+
+            showConfirm(message, async (response) => {
+                if (response === 'Yes') {
+                    try {
+                        await supplierApi.bulkHardDeleteSuppliers(filteredData.map((s: any) => s._id));
+                        showAlert('Suppliers permanently deleted!');
+                        (window as any).fetchSuppliers();
+                    } catch (err) {
+                        showAlert('Failed to bulk delete suppliers.');
+                    }
+                }
+            });
         };
     }
 

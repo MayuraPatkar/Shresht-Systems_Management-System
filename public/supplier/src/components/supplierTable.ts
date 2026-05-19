@@ -41,11 +41,19 @@ class SupplierTable {
         
         let statusClass = 'bg-emerald-50 text-emerald-700 border border-emerald-100/40';
         let statusText = 'Active';
-        if (!supplier.is_active) {
+        if (window.showDeletedItems) {
+            statusClass = 'bg-rose-50 text-rose-700 border border-rose-100/40';
+            statusText = 'Deleted';
+        } else if (!supplier.is_active) {
             statusClass = 'bg-rose-50 text-rose-700 border border-rose-100/40';
             statusText = 'Inactive';
         }
-        card.className = 'supplier-card-premium p-5 flex flex-col justify-between group';
+        
+        if (window.showDeletedItems) {
+            card.className = 'supplier-card-premium p-5 flex flex-col justify-between group border border-rose-100 bg-rose-50/10 cursor-default';
+        } else {
+            card.className = 'supplier-card-premium p-5 flex flex-col justify-between group';
+        }
 
         const supplierName = supplier.supplier_name || '-';
         const initials = supplierName !== '-' 
@@ -86,7 +94,7 @@ class SupplierTable {
                         ${initials}
                     </div>
                     <div class="min-w-0 flex-1">
-                        <h3 class="text-base font-extrabold text-slate-800 tracking-tight leading-snug truncate group-hover:text-blue-600 transition-colors">${supplierName}</h3>
+                        <h3 class="text-base font-extrabold text-slate-800 tracking-tight leading-snug truncate ${window.showDeletedItems ? '' : 'group-hover:text-blue-600'} transition-colors">${supplierName}</h3>
                         <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                             <span class="cursor-pointer hover:underline hover:text-blue-600 transition-colors cust-id-label inline-flex items-center gap-1" title="Click to copy ID">
                                 ${supplier.supplier_id || 'ID Pending'}
@@ -105,8 +113,22 @@ class SupplierTable {
             </div>
         `;
 
+        if (window.showDeletedItems) {
+            card.innerHTML += `
+                <div class="flex items-center gap-3 mt-4 pt-3 border-t border-slate-100 z-20">
+                    <button class="flex-1 py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100/50 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer restore-btn">
+                        <i class="fas fa-trash-restore"></i> Restore
+                    </button>
+                    <button class="flex-1 py-2 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100/50 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer delete-btn">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </div>
+            `;
+        }
+
         // Click handler for entire card
         card.addEventListener('click', () => {
+            if (window.showDeletedItems) return;
             window.location.href = `/supplier/details?id=${supplier._id}`;
         });
 
@@ -126,6 +148,17 @@ class SupplierTable {
                 }
             }
         });
+
+        if (window.showDeletedItems) {
+            card.querySelector('.restore-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                (window as any).handleRestoreFromTrash(supplier._id, supplier.supplier_name);
+            });
+            card.querySelector('.delete-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                (window as any).handleHardDelete(supplier._id, supplier.supplier_name);
+            });
+        }
 
         return card;
     }

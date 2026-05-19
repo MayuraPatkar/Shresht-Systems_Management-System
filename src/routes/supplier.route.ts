@@ -81,8 +81,14 @@ router.post('/', async (req: Request, res: Response) => {
  */
 router.get('/', async (req: Request, res: Response) => {
     try {
-        const { search, type, status } = req.query;
-        let query: any = { 'deletion.is_deleted': false };
+        const { search, type, status, deleted } = req.query;
+        let query: any = {};
+
+        if (deleted === 'true') {
+            query['deletion.is_deleted'] = true;
+        } else {
+            query['deletion.is_deleted'] = false;
+        }
 
         if (search) {
             const searchRegex = { $regex: search as string, $options: 'i' };
@@ -283,6 +289,77 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
     } catch (err: unknown) {
         logger.error('Error fetching full supplier details:', err);
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Restore soft-deleted supplier
+router.post('/restoreItem', async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const supplier = await SupplierModel.findOne({ _id: itemId });
+        if (!supplier) {
+            return res.status(404).json({ error: 'Supplier not found' });
+        }
+
+        if (supplier.deletion) {
+            supplier.deletion.is_deleted = false;
+            supplier.deletion.deleted_at = undefined;
+            supplier.deletion.deleted_by = undefined;
+            await supplier.save();
+        }
+
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Supplier restore failed', { service: "supplier", itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to restore supplier' });
+    }
+});
+
+// Permanently delete supplier
+router.post('/hardDeleteItem', async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const result = await SupplierModel.deleteOne({ _id: itemId });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: 'Supplier not found' });
+        }
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Supplier permanent deletion failed', { service: "supplier", itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to permanently delete supplier' });
+    }
+});
+
+// Bulk restore suppliers
+router.post('/bulkRestore', async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        await SupplierModel.updateMany(
+            { _id: { $in: itemIds } },
+            { 
+                $set: { 
+                    "deletion.is_deleted": false,
+                    "deletion.deleted_at": undefined,
+                    "deletion.deleted_by": undefined
+                } 
+            }
+        );
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk supplier restore failed', { service: "supplier", count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk restore suppliers' });
+    }
+});
+
+// Bulk permanently delete suppliers
+router.post('/bulkHardDelete', async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        await SupplierModel.deleteMany({ _id: { $in: itemIds } });
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk supplier permanent deletion failed', { service: "supplier", count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk permanently delete suppliers' });
     }
 });
 
