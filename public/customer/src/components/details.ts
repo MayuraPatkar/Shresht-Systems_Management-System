@@ -170,19 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `;
-            } else if (format === 'json') {
-                btn.classList.add('processing-pdf');
-                btn.innerHTML = `
-                    <div class="flex items-center gap-3 w-full animate-fade-in">
-                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm shadow-sm shrink-0">
-                            <i class="fas fa-spinner fa-spin"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-extrabold text-blue-700 truncate">Assembling JSON Data...</p>
-                            <p class="text-[10px] text-blue-500 mt-0.5 truncate font-medium">Compiling full database object parameters</p>
-                        </div>
-                    </div>
-                `;
             }
 
             // Simulate slight generation delay to ensure the user can feel the professional feedback/animation
@@ -194,16 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!data) throw new Error('Details not loaded yet');
 
                 // Perform the export generation
-                if (format === 'json') {
-                    // Export JSON file
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 4));
-                    const downloadAnchor = document.createElement('a');
-                    downloadAnchor.setAttribute("href",     dataStr);
-                    downloadAnchor.setAttribute("download", `customer_export_${data.customer.customer_id || 'export'}.json`);
-                    document.body.appendChild(downloadAnchor);
-                    downloadAnchor.click();
-                    downloadAnchor.remove();
-                } else if (format === 'excel') {
+                if (format === 'excel') {
                     // For Excel, we construct a beautiful structured CSV spreadsheet
                     let csvContent = "data:text/csv;charset=utf-8,";
                     csvContent += "CUSTOMER DETAILS\n";
@@ -491,11 +469,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </tbody>
                             </table>
 
-                            ${data.customer.remarks ? `
-                            <h2 class="print-section-title">8. Administrative Remarks</h2>
-                            <div style="background-color:#fafaf9; border:1px solid #e4e4e7; border-radius:8px; padding:12px; font-size:9.5pt; color:#475569; font-weight:500; line-height:1.5;">
-                                ${data.customer.remarks}
-                            </div>` : ''}
 
                             <div style="margin-top:40px; border-top:1px solid #e2e8f0; padding-top:15px; text-align:center; font-size:8pt; color:#94a3b8; font-weight:600;">
                                 Official Record • Shresht Systems CRM Management Suite
