@@ -545,69 +545,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Archive Trigger
     const dropdownArchiveBtn = document.getElementById('dropdown-archive-btn');
-    if (dropdownArchiveBtn && archiveModal && archiveModalCard) {
+    if (dropdownArchiveBtn) {
         dropdownArchiveBtn.addEventListener('click', () => {
-            const customer = (window as any).currentCustomer;
-            if (customer) {
-                const isCurrentlyArchived = customer.is_archived;
-                const titleEl = archiveModal.querySelector('h3');
-                const descEl = archiveModal.querySelector('p.text-xs');
-                
-                if (titleEl && descEl && archiveBtnText) {
-                    if (isCurrentlyArchived) {
-                        titleEl.textContent = 'Restore Customer?';
-                        descEl.textContent = 'This customer will be restored to active records and all operations can be resumed.';
-                        archiveBtnText.textContent = 'Restore Customer';
-                    } else {
-                        titleEl.textContent = 'Archive Customer?';
-                        descEl.textContent = 'This customer will be hidden from active records but can be restored later. Preserves full transaction history.';
-                        archiveBtnText.textContent = 'Archive Customer';
-                    }
-                }
-                
-                openModalHelper(archiveModal, archiveModalCard);
-            }
             kebabDropdown?.classList.add('hidden');
             kebabDropdown?.classList.remove('animate-dropdown');
-        });
-    }
 
-    if (cancelArchiveBtn && archiveModal && archiveModalCard) {
-        cancelArchiveBtn.addEventListener('click', () => closeModalHelper(archiveModal, archiveModalCard));
-    }
-
-    if (confirmArchiveBtn && archiveModal && archiveModalCard && archiveBtnText && archiveBtnSpinner) {
-        confirmArchiveBtn.addEventListener('click', async () => {
             const customer = (window as any).currentCustomer;
             if (!customer) return;
 
-            // Show loading state
-            confirmArchiveBtn.disabled = true;
-            cancelArchiveBtn?.classList.add('opacity-50');
-            (cancelArchiveBtn as HTMLButtonElement).disabled = true;
-            archiveBtnSpinner.classList.remove('hidden');
+            const isCurrentlyArchived = customer.is_archived;
+            const fullName = customer.customer.first_name 
+                ? `${customer.customer.first_name} ${customer.customer.last_name || ''}`.trim() 
+                : (customer.customer.name || '-');
 
-            try {
-                const isCurrentlyArchived = customer.is_archived;
-                if (isCurrentlyArchived) {
-                    await (window as any).customerApi.restoreCustomer(customer._id);
-                    (window as any).showToast('Customer restored successfully');
-                } else {
-                    await (window as any).customerApi.archiveCustomer(customer._id);
-                    (window as any).showToast('Customer archived successfully');
-                }
-                
-                closeModalHelper(archiveModal, archiveModalCard);
-                fetchFullDetails();
-            } catch (err) {
-                console.error(err);
-                (window as any).showToast(customer.is_archived ? 'Failed to restore customer' : 'Failed to archive customer', 'error');
-            } finally {
-                // Restore loading state
-                confirmArchiveBtn.disabled = false;
-                cancelArchiveBtn?.classList.remove('opacity-50');
-                (cancelArchiveBtn as HTMLButtonElement).disabled = false;
-                archiveBtnSpinner.classList.add('hidden');
+            if (isCurrentlyArchived) {
+                showConfirm(`Are you sure you want to restore customer "${fullName}"?`, async (confirmed) => {
+                    if (confirmed === 'Yes') {
+                        try {
+                            await (window as any).customerApi.restoreCustomer(customer._id);
+                            (window as any).showToast('Customer restored successfully');
+                            fetchFullDetails();
+                        } catch (err) {
+                            console.error(err);
+                            (window as any).showToast('Failed to restore customer', 'error');
+                        }
+                    }
+                });
+            } else {
+                showConfirm(`Are you sure you want to archive customer "${fullName}"?`, async (confirmed) => {
+                    if (confirmed === 'Yes') {
+                        try {
+                            await (window as any).customerApi.archiveCustomer(customer._id);
+                            (window as any).showToast('Customer archived successfully');
+                            fetchFullDetails();
+                        } catch (err) {
+                            console.error(err);
+                            (window as any).showToast('Failed to archive customer', 'error');
+                        }
+                    }
+                });
             }
         });
     }
@@ -731,14 +707,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const restoreBannerBtn = document.getElementById('restore-banner-btn');
                 if (restoreBannerBtn) {
                     restoreBannerBtn.addEventListener('click', async () => {
-                        try {
-                            await (window as any).customerApi.restoreCustomer(customer._id);
-                            (window as any).showToast('Customer restored successfully');
-                            fetchFullDetails();
-                        } catch (err) {
-                            console.error(err);
-                            (window as any).showToast('Failed to restore customer', 'error');
-                        }
+                        showConfirm(`Are you sure you want to restore customer "${fullName}"?\n\nThis customer will be restored to active records and all operations can be resumed.`, async (confirmed) => {
+                            if (confirmed === 'Yes') {
+                                try {
+                                    await (window as any).customerApi.restoreCustomer(customer._id);
+                                    (window as any).showToast('Customer restored successfully');
+                                    fetchFullDetails();
+                                } catch (err) {
+                                    console.error(err);
+                                    (window as any).showToast('Failed to restore customer', 'error');
+                                }
+                            }
+                        });
                     });
                 }
             } else {
