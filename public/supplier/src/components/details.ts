@@ -38,12 +38,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const editBtn = document.getElementById('edit-supplier-btn');
+    const editBtn = document.getElementById('dropdown-edit-btn');
     if (editBtn) {
         editBtn.addEventListener('click', () => {
             if ((window as any).supplierForms && (window as any).currentSupplier) {
                 (window as any).supplierForms.openEditModal((window as any).currentSupplier);
             }
+        });
+    }
+
+    const deleteBtn = document.getElementById('delete-supplier-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+            const supplier = (window as any).currentSupplier;
+            if (!supplier) return;
+            const fullName = supplier.supplier_name || '-';
+            
+            showConfirm(`Are you sure you want to delete supplier "${fullName}"?`, async (confirmed) => {
+                if (confirmed === 'Yes') {
+                    try {
+                        await supplierApi.deleteSupplier(supplierId!);
+                        showAlert('Supplier deleted successfully');
+                        setTimeout(() => {
+                            window.location.href = '/supplier';
+                        }, 1000);
+                    } catch (error) {
+                        showAlert('Failed to delete supplier');
+                    }
+                }
+            });
         });
     }
 
