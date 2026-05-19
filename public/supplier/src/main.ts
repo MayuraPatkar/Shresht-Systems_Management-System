@@ -49,6 +49,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeModal) closeModal.onclick = () => supplierForms.closeModal();
     if (cancelBtn) cancelBtn.onclick = () => supplierForms.closeModal();
 
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.onclick = () => {
+            const icon = refreshBtn.querySelector('i');
+            if (icon) {
+                icon.classList.add('fa-spin');
+                setTimeout(() => icon.classList.remove('fa-spin'), 600);
+            }
+            (window as any).fetchSuppliers();
+        };
+    }
+
     if (resetBtn) {
         resetBtn.onclick = () => {
             if (searchInput) searchInput.value = '';
