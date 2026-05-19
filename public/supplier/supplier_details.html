@@ -429,32 +429,32 @@
         </nav>
     </aside>
 
+
     <!-- Main -->
     <main class="ml-[280px] pt-24 mt-6 p-8">
 
         <!-- Supplier Summary Header -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 mb-8 fade-in">
-            <div class="flex flex-wrap items-start justify-between gap-6">
+            <div class="flex flex-wrap items-center justify-between gap-6">
                 <div class="flex items-center gap-5">
-                    <div
-                        class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-4xl font-bold">
-                        <span id="name-initials">JS</span>
-                    </div>
-                    <div>
-                        <h2 id="supplier-name" class="text-2xl font-extrabold text-slate-800 tracking-tight">Loading...</h2>
-                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-xs font-medium">
+                    <div class="w-16 h-16 bg-blue-50 border border-blue-100/50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl font-bold shadow-sm" id="name-initials">JS</div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-3">
+                            <h2 id="supplier-name" class="text-2xl font-extrabold text-slate-800 tracking-tight">Loading...</h2>
                             <span id="supplier-type-badge" class="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider">Residential</span>
-                            <div class="flex items-center gap-2">
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-xs font-medium">
+                            <div class="flex items-center gap-1.5" id="display-supplier-id-container">
                                 <i class="fas fa-id-badge text-slate-400"></i>
                                 <span id="display-supplier-id" class="font-semibold text-slate-600">N/A</span>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1.5">
                                 <i class="fas fa-phone text-slate-400"></i>
-                                <span id="display-phone">N/A</span>
+                                <span id="display-phone" class="text-slate-600">N/A</span>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1.5">
                                 <i class="fas fa-envelope text-slate-400"></i>
-                                <span id="display-email">N/A</span>
+                                <span id="display-email" class="text-slate-600">N/A</span>
                             </div>
                         </div>
                     </div>
