@@ -207,12 +207,14 @@ router.delete('/:id', async (req: Request, res: Response) => {
         if (!Types.ObjectId.isValid(customerId)) {
             return res.status(400).json({ error: 'Invalid customer ID' });
         }
+        const username = String(req.query.username || req.headers['x-username'] || req.body.username || 'Admin');
         const customer = await CustomerModel.findOneAndUpdate(
             { _id: customerId, 'deletion.is_deleted': false },
             { 
                 $set: { 
                     'deletion.is_deleted': true, 
                     'deletion.deleted_at': new Date(),
+                    'deletion.deleted_by': username,
                     is_active: false
                 } 
             },

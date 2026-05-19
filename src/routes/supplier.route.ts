@@ -6,42 +6,34 @@ import { generateNextId } from '../utils/idGenerator';
 
 const router: Router = Router();
 
-function buildSupplierDisplayName(supplier: any): string {
-    const firstName = String(supplier?.first_name ?? '').trim();
-    const lastName = String(supplier?.last_name ?? '').trim();
-    return [firstName, lastName].filter(Boolean).join(' ').trim() || String(supplier?.name ?? '').trim();
-}
-
 function normalizeSupplierPayload(payload: any) {
-    const supplier = { ...(payload?.supplier || {}) };
     const billingAddress = { ...(payload?.billing_address || {}) };
     const shippingAddress = { ...(payload?.shipping_address || {}) };
+    const bankDetails = { ...(payload?.bank_details || {}) };
 
-    supplier.first_name = String(supplier.first_name ?? '').trim();
-    supplier.last_name = String(supplier.last_name ?? '').trim();
-    supplier.phone = String(supplier.phone ?? '').replace(/\D/g, '').slice(0, 10);
-    supplier.alternate_phone = String(supplier.alternate_phone ?? '').replace(/\D/g, '').slice(0, 10);
-    supplier.email = String(supplier.email ?? '').trim().toLowerCase();
-
-    const displayName = buildSupplierDisplayName(supplier);
-    supplier.name = displayName;
+    // Remove country from address
+    delete billingAddress.country;
+    delete shippingAddress.country;
 
     return {
         ...payload,
-        supplier,
+        supplier_name: String(payload?.supplier_name ?? '').trim(),
+        phone: String(payload?.phone ?? '').replace(/\D/g, '').slice(0, 10),
+        email: String(payload?.email ?? '').trim().toLowerCase(),
         gstin: String(payload?.gstin ?? '').trim().toUpperCase(),
         billing_address: billingAddress,
-        shipping_address: shippingAddress
+        shipping_address: shippingAddress,
+        bank_details: bankDetails
     };
 }
 
 async function findDuplicateSupplier(payload: any, excludeId?: string) {
     const orQuery: any[] = [];
-    const phone = payload?.supplier?.phone;
-    const email = payload?.supplier?.email;
+    const phone = payload?.phone;
+    const email = payload?.email;
 
-    if (phone) orQuery.push({ 'supplier.phone': phone });
-    if (email) orQuery.push({ 'supplier.email': email });
+    if (phone) orQuery.push({ phone: phone });
+    if (email) orQuery.push({ email: email });
 
     if (orQuery.length === 0) return null;
 
@@ -95,11 +87,9 @@ router.get('/', async (req: Request, res: Response) => {
         if (search) {
             const searchRegex = { $regex: search as string, $options: 'i' };
             query.$or = [
-                { 'supplier.first_name': searchRegex },
-                { 'supplier.last_name': searchRegex },
-                { 'supplier.name': searchRegex },
-                { 'supplier.phone': searchRegex },
-                { 'supplier.email': searchRegex },
+                { supplier_name: searchRegex },
+                { phone: searchRegex },
+                { email: searchRegex },
                 { gstin: searchRegex }
             ];
         }
@@ -174,12 +164,14 @@ router.delete('/:id', async (req: Request, res: Response) => {
         if (!Types.ObjectId.isValid(supplierId)) {
             return res.status(400).json({ error: 'Invalid supplier ID' });
         }
+        const username = String(req.query.username || req.headers['x-username'] || req.body.username || 'Admin');
         const supplier = await SupplierModel.findOneAndUpdate(
             { _id: supplierId, 'deletion.is_deleted': false },
             { 
                 $set: { 
                     'deletion.is_deleted': true, 
                     'deletion.deleted_at': new Date(),
+                    'deletion.deleted_by': username,
                     is_active: false
                 } 
             },

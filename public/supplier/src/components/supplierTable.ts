@@ -36,12 +36,6 @@ class SupplierTable {
         this.updateStats(suppliers);
     }
 
-    private getSupplierDisplayName(supplier: any): string {
-        const firstName = supplier?.supplier?.first_name || '';
-        const lastName = supplier?.supplier?.last_name || '';
-        return `${firstName} ${lastName}`.trim() || supplier?.supplier?.name || '-';
-    }
-
     private createSupplierCard(supplier: any): HTMLElement {
         const card = document.createElement('div');
         card.className = 'supplier-card bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col justify-between';
@@ -49,7 +43,7 @@ class SupplierTable {
         const statusClass = supplier.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
         const statusText = supplier.is_active ? 'Active' : 'Inactive';
 
-        const fullName = this.getSupplierDisplayName(supplier);
+        const supplierName = supplier.supplier_name || '-';
 
         card.innerHTML = `
             <div>
@@ -60,17 +54,17 @@ class SupplierTable {
                     <span class="px-3 py-1 rounded-full text-xs font-bold uppercase ${statusClass}">${statusText}</span>
                 </div>
                 <p class="cust-id-label text-[10px] font-black text-blue-600 mb-1 uppercase tracking-wider cursor-pointer hover:underline" title="Click to copy ID">${supplier.supplier_id || 'ID Pending'}</p>
-                <h3 class="text-xl font-bold text-gray-800 mb-1">${fullName}</h3>
-                <p class="text-sm text-gray-500 mb-4 font-medium">${supplier.supplier_type || 'Individual'}</p>
+                <h3 class="text-xl font-bold text-gray-800 mb-1">${supplierName}</h3>
+                <p class="text-sm text-gray-500 mb-4 font-medium">${supplier.supplier_type || 'Vendor'}</p>
                 
                 <div class="space-y-2 mb-6">
                     <div class="flex items-center gap-3 text-gray-600">
                         <i class="fas fa-phone w-5 text-center text-sm"></i>
-                        <span class="text-sm">${supplier.supplier?.phone || '-'}</span>
+                        <span class="text-sm">${supplier.phone || '-'}</span>
                     </div>
                     <div class="flex items-center gap-3 text-gray-600">
                         <i class="fas fa-envelope w-5 text-center text-sm"></i>
-                        <span class="text-sm truncate">${supplier.supplier?.email || '-'}</span>
+                        <span class="text-sm truncate">${supplier.email || '-'}</span>
                     </div>
                     <div class="flex items-center gap-3 text-gray-600">
                         <i class="fas fa-map-marker-alt w-5 text-center text-sm"></i>
@@ -111,7 +105,7 @@ class SupplierTable {
 
         card.querySelector('.delete-btn')?.addEventListener('click', () => {
             if ((window as any).handleDelete) {
-                (window as any).handleDelete(supplier._id, fullName);
+                (window as any).handleDelete(supplier._id, supplierName);
             }
         });
 
@@ -129,12 +123,12 @@ class SupplierTable {
         const total = suppliers.length;
         const active = suppliers.filter(c => c.is_active).length;
         const inactive = total - active;
-        const commercial = suppliers.filter(c => c.supplier_type === 'Commercial' || c.supplier_type === 'Company').length;
+        const vendors = suppliers.filter(c => c.supplier_type === 'Vendor').length;
 
         totalCountEl.textContent = total.toString();
         activeCountEl.textContent = active.toString();
         inactiveCountEl.textContent = inactive.toString();
-        commercialCountEl.textContent = commercial.toString();
+        commercialCountEl.textContent = vendors.toString();
     }
 }
 
