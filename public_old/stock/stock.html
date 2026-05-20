@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../css/shared/globalStyle.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            /* Prevent body scroll */
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            overflow-y: auto;
+            /* Enable sidebar scroll */
+            overflow-x: hidden;
+        }
+
+        /* Main content scrolling */
+        main {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-notification {
+            animation: slideIn 0.3s ease-out, slideOut 0.3s ease-in 2.7s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Custom scrollbar styling */
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            border-radius: 0;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
+        }
+
+        *::-webkit-scrollbar-corner {
+            background: #f1f5f9;
+        }
+
+        /* Full height table container */
+        .table-container {
+            height: calc(100vh - 168px);
+            min-height: 400px;
+        }
+
+        /* Quantity input styling */
+        .quantity-input {
+            width: 100px;
+            text-align: center;
+        }
+
+        .quantity-btn {
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .quantity-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Button transitions */
+        button {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        /* Modal animation */
+        .modal-content {
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Table row hover enhancement */
+        .table-row {
+            transition: background-color 0.15s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Unified Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Stock Management</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="search-input" placeholder="Search stock items..."
+                        class="bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow">
+                </div>
+                <button id="newStockItemBtn"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                    <i class="fas fa-plus"></i>
+                    New Stock Item
+                </button>
+                <button id="keyboardShortcutsBtn"
+                    class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                    title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-keyboard"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
+        <!-- Navigation Links -->
+        <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+            <div class="flex flex-col gap-2">
+                <a href="#"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-th-large w-8 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../quotation/quotation.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-alt w-8 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="../purchaseOrder/purchaseOrder.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
+                    <span>Purchase Order</span>
+                </a>
+                <a href="../invoice/invoice.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                    <span>Invoice</span>
+                </a>
+                <a href="../ewaybill/eWayBill.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-route w-8 text-center"></i>
+                    <span>E-Way Bill</span>
+                </a>
+                <a href="../service/service.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-wrench w-8 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="../stock/stock.html"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-box w-8 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="../comms/comms.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-comments w-8 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="../reports/reports.html" id="reports"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-chart-bar w-8 text-center"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="../calculations/calculations.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-calculator w-8 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="../settings/settings.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-cog w-8 text-center"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Fixed Action Bar -->
+    <div class="fixed top-24 left-[280px] right-0 bg-white z-20 px-8 py-4 shadow-md" style="height: 72px;">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button id="refreshBtn"
+                    class="flex items-center gap-2 px-4 py-2 text-green-700 bg-green-100 border border-green-200 rounded-lg hover:bg-green-200">
+                    <i class="fas fa-sync-alt text-green-700"></i>
+                    <span>Refresh</span>
+                </button>
+                <button id="lowStockBtn"
+                    class="flex items-center gap-2 px-4 py-2 text-orange-600 bg-orange-100 border border-orange-200 rounded-lg hover:bg-orange-200">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Low Stock Items</span>
+                </button>
+                <button id="printBtn"
+                    class="flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-100 border border-blue-200 rounded-lg hover:bg-blue-200">
+                    <i class="fas fa-print text-blue-700"></i>
+                    <span>Print</span>
+                </button>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <button id="typeFilterBtn"
+                        class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-shapes text-gray-500"></i>
+                        <span>Type</span>
+                    </button>
+                    <div id="typeFilterDropdown"
+                        class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                        <a href="#"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold"
+                            data-type-filter="all">All Types</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            data-type-filter="Asset">Asset</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            data-type-filter="Material">Material</a>
+                    </div>
+                </div>
+                <div class="relative">
+                    <button id="categoryFilterBtn"
+                        class="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-tags text-gray-500"></i>
+                        <span>Category</span>
+                    </button>
+                    <div id="categoryFilterDropdown"
+                        class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                    </div>
+                </div>
+                <div class="relative">
+                    <button id="filterBtn"
+                        class="flex items-center gap-2 px-4 py-2 text-purple-700 bg-purple-100 border border-purple-200 rounded-lg hover:bg-purple-200">
+                        <i class="fas fa-filter text-purple-700"></i>
+                        <span>Filter</span>
+                    </button>
+                    <div id="filterDropdown"
+                        class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden">
+                        <a href="#"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold"
+                            data-filter="all">All Items</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-green-600 hover:bg-gray-100"
+                            data-filter="In Stock">In Stock</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-orange-600 hover:bg-gray-100"
+                            data-filter="Low Stock">Low Stock</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                            data-filter="Out of Stock">Out of Stock</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="ml-[280px]" style="padding-top: 168px;">
+        <!-- Stock Table -->
+        <div class="bg-white border border-gray-200 overflow-auto table-container">
+            <table class="w-full text-left table-fixed" id="stock-table">
+                <thead>
+                    <tr class="bg-blue-600 text-white">
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-4/12 cursor-pointer hover:bg-blue-700 text-left"
+                            data-sort="name">
+                            Items <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 cursor-pointer hover:bg-blue-700 text-center"
+                            data-sort="price">
+                            Unit Price <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12 cursor-pointer hover:bg-blue-700 text-center"
+                            data-sort="quantity">
+                            Quantity <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-1/12 cursor-pointer hover:bg-blue-700 text-center"
+                            data-sort="gst">
+                            GST <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 cursor-pointer hover:bg-blue-700 text-center"
+                            data-sort="status">
+                            Status <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="sticky top-0 p-4 font-semibold bg-blue-600 z-10 w-2/12 text-center ">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700" id="stock-table-body">
+                    <!-- Table rows will be inserted here by JavaScript -->
+                    <tr id="loading-row" class="hidden">
+                        <td colspan="6" class="p-8 text-center">
+                            <div class="flex items-center justify-center">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>
+                                Loading stock data...
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="empty-row" class="hidden">
+                        <td colspan="6" class="p-8 text-center text-gray-500">
+                            No stock items found
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Add New Stock Item Modal -->
+    <div id="newStockModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+            <div class="flex justify-between items-center pb-4 border-b mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Add New Stock Item</h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <form id="newStockForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="itemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="itemName" placeholder="e.g., Solar Panels 320W"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="hsnCode" class="block text-sm font-medium text-gray-700 mb-1">HSN/SAC Code <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="hsnCode" placeholder="e.g., 8541"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="company" class="block text-sm font-medium text-gray-700 mb-1">Company <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="company" placeholder="e.g., Tata Power Solar"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="category" placeholder="e.g., Solar Panels"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type <span
+                                class="text-red-500">*</span></label>
+                        <select id="type"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Material" selected>Material</option>
+                            <option value="Asset">Asset</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="unitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹) <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" step="0.01" id="unitPrice" placeholder="e.g., 12500"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+
+                    <div>
+                        <label for="gstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" id="gstRate" placeholder="18"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="minQuantity" class="block text-sm font-medium text-gray-700 mb-1">Minimum Quantity
+                            <span class="text-red-500">*</span></label>
+                        <input type="number" id="minQuantity" placeholder="e.g., 10"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="specifications"
+                            class="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
+                        <textarea id="specifications" placeholder="Enter item specifications..." rows="3"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
+                    <button type="button" id="cancelBtn"
+                        class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                        <i class="fas fa-plus"></i>
+                        Add Stock Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Stock Item Modal -->
+    <div id="editStockModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+            <div class="flex justify-between items-center pb-4 border-b mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Edit Stock Item</h3>
+                <button id="closeEditModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <form id="editStockForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="editItemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editItemName"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editHsnCode" class="block text-sm font-medium text-gray-700 mb-1">HSN/SAC Code <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editHsnCode"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editCompany" class="block text-sm font-medium text-gray-700 mb-1">Company <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editCompany"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editCategory" class="block text-sm font-medium text-gray-700 mb-1">Category <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" id="editCategory"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editType" class="block text-sm font-medium text-gray-700 mb-1">Type <span
+                                class="text-red-500">*</span></label>
+                        <select id="editType"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                            <option value="Material">Material</option>
+                            <option value="Asset">Asset</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="editUnitPrice" class="block text-sm font-medium text-gray-700 mb-1">Unit Price (₹)
+                            <span class="text-red-500">*</span></label>
+                        <input type="number" step="0.01" id="editUnitPrice"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editGstRate" class="block text-sm font-medium text-gray-700 mb-1">GST Rate (%) <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" id="editGstRate"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="editMinQuantity" class="block text-sm font-medium text-gray-700 mb-1">Minimum
+                            Quantity <span class="text-red-500">*</span></label>
+                        <input type="number" id="editMinQuantity"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="editSpecifications"
+                            class="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
+                        <textarea id="editSpecifications" rows="3"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
+                    <button type="button" id="cancelEditBtn"
+                        class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                        <i class="fas fa-save"></i>
+                        Update Stock Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Item Details Modal -->
+    <div id="itemDetailsModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+            <div class="flex justify-between items-center pb-4 border-b mb-6">
+                <h3 id="detailsModalTitle" class="text-xl font-semibold text-gray-800">Item Details</h3>
+                <button id="closeDetailsModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Item Name</h4>
+                    <p id="detailsItemName" class="text-gray-900 font-medium text-lg"></p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Company</h4>
+                    <p id="detailsCompany" class="text-gray-900 font-medium"></p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">HSN/SAC Code</h4>
+                    <p id="detailsHsn" class="text-gray-900 font-medium"></p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Category</h4>
+                    <p id="detailsCategory" class="text-gray-900 font-medium"></p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Type</h4>
+                    <p id="detailsType" class="text-gray-900 font-medium"></p>
+                </div>
+                <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h4 class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Unit Price</h4>
+                    <p id="detailsUnitPrice" class="text-blue-700 font-bold text-lg"></p>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <h4 class="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Current Quantity</h4>
+                    <p id="detailsQuantity" class="text-green-700 font-bold text-lg"></p>
+                </div>
+                <div class="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                    <h4 class="text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">Minimum Quantity</h4>
+                    <p id="detailsMinQuantity" class="text-orange-700 font-bold text-lg"></p>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <h4 class="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">GST Rate</h4>
+                    <p id="detailsGstRate" class="text-purple-700 font-bold text-lg"></p>
+                </div>
+                <div class="md:col-span-2 bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Specifications</h4>
+                    <p id="detailsSpecifications" class="text-gray-800 whitespace-pre-wrap"></p>
+                </div>
+            </div>
+            <div class="flex justify-end pt-6 mt-6 border-t">
+                <button id="closeDetailsBtn"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Modal -->
+    <div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-xl">
+            <div class="flex justify-between items-center pb-4 border-b mb-6">
+                <h3 class="text-xl font-semibold text-gray-800">Print Stock Report</h3>
+                <button id="closePrintModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label for="printTypeFilter" class="block text-sm font-medium text-gray-700">Filter by Type</label>
+                    <select id="printTypeFilter"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-white">
+                        <option value="all">All Types</option>
+                        <option value="Asset">Asset</option>
+                        <option value="Material">Material</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="printCategoryFilter" class="block text-sm font-medium text-gray-700">Filter by
+                        Category</label>
+                    <select id="printCategoryFilter"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-white">
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label for="printStatusFilter" class="block text-sm font-medium text-gray-700">Filter by
+                        Status</label>
+                    <select id="printStatusFilter"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-white">
+                        <option value="all">All</option>
+                        <option value="In Stock">In Stock</option>
+                        <option value="Low Stock">Low Stock</option>
+                        <option value="Out of Stock">Out of Stock</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
+                <button type="button" id="cancelPrintBtn"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                <button id="finalPrintBtn" type="button"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
+                    <i class="fas fa-print"></i>
+                    Print Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quantity Adjustment Modal -->
+    <div id="quantityModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+            <div class="flex justify-between items-center pb-4 border-b mb-6">
+                <h3 id="quantityModalTitle" class="text-xl font-semibold text-gray-800">Adjust Quantity</h3>
+                <button id="closeQuantityModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <div class="mb-6">
+                <p id="quantityModalText" class="text-gray-600 mb-6 text-center">How much quantity do you want to
+                    add/remove?</p>
+                <div class="flex items-center justify-center gap-4">
+                    <button id="decreaseQuantityBtn"
+                        class="quantity-btn bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" id="quantityModalInput"
+                        class="quantity-input border-2 border-gray-300 rounded-lg p-2 text-xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value="1" min="1">
+                    <button id="increaseQuantityBtn"
+                        class="quantity-btn bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors shadow-sm">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-end items-center gap-3 pt-4 border-t">
+                <button id="cancelQuantityBtn"
+                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                <button id="confirmQuantityBtn"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                    <span id="confirmQuantityText">Add</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="keyboardShortcutsModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center pb-4 border-b mb-4">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-keyboard text-blue-600"></i>
+                    Keyboard Shortcuts
+                </h3>
+                <button id="closeKeyboardModalBtn" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-700">Search stock items</span>
+                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl+F</kbd>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-700">Add new stock item</span>
+                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl+N</kbd>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-700">Refresh stock data</span>
+                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl+R</kbd>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-700">Print stock report</span>
+                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl+P</kbd>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-700">Close modal / Cancel</span>
+                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Esc</kbd>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span class="text-gray-700">Save form (in modals)</span>
+                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl+S</kbd>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-gray-700">Show this help</span>
+                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">?</kbd>
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t">
+                <button id="closeKeyboardHelpBtn"
+                    class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                    Got it!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Shared utilities -->
+    <script src="../js/shared/utils.js"></script>
+    <script src="../js/shared/calculations.js"></script>
+    <script src="../js/shared/ipc.js"></script>
+    <script src="../js/shared/keyboardNavigation.js"></script>
+
+    <!-- Shared scripts -->
+    <script src="../js/shared/globalScript.js"></script>
+
+    <!-- Stock module scripts (compiled from TypeScript) -->
+    <script src="dist/types.js"></script>
+    <script src="dist/utils.js"></script>
+    <script src="dist/modal.js"></script>
+    <script src="dist/stockTable.js"></script>
+    <script src="dist/stockApi.js"></script>
+    <script src="dist/stockForms.js"></script>
+    <script src="dist/stockFilters.js"></script>
+    <script src="dist/stockPrint.js"></script>
+    <script src="dist/keyboardShortcuts.js"></script>
+    <script src="dist/main.js"></script>
+
+</body>
+
+</html>

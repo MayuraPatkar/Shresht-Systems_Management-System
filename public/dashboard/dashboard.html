@@ -102,15 +102,25 @@
         <!-- Navigation Links -->
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
-                <a href="#"
+                <a href="/dashboard" id="dashboard"
                     class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
                 </a>
                 <a href="../quotation/quotation.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -131,6 +141,11 @@
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
+                </a>
+                <a href="../payment/payment.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
                 </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -216,6 +231,11 @@
                     <i class="fas fa-box text-orange-600 text-3xl"></i>
                     <span class="text-sm font-medium text-gray-700">Add Stock</span>
                 </a>
+                <a href="../customer/customer.html?new=1"
+                    class="flex flex-col items-center gap-2 p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors border border-yellow-200">
+                    <i class="fas fa-users text-yellow-600 text-3xl"></i>
+                    <span class="text-sm font-medium text-gray-700">New Customer</span>
+                </a>
             </div>
         </section>
 
@@ -292,6 +312,18 @@
                 </div>
                 <h2 id="remaining-services-count" class="text-3xl font-bold text-gray-800 mb-1">0</h2>
                 <p class="text-gray-600 text-sm font-medium">Service Remaining</p>
+            </div>
+
+            <!-- Total Customers Card -->
+            <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500 fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-yellow-100 p-3 rounded-lg">
+                        <i class="fas fa-users text-yellow-600 text-2xl"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Customers</span>
+                </div>
+                <h2 id="customer-count" class="text-3xl font-bold text-gray-800 mb-1">0</h2>
+                <p class="text-gray-600 text-sm font-medium">Total Registered Customers</p>
             </div>
 
         </div>
@@ -439,15 +471,19 @@
 
     <!-- Scripts -->
     <!-- Shared utilities -->
-    <script src="../js/shared/utils.js"></script>
-    <script src="../js/shared/calculations.js"></script>
-    <script src="../js/shared/ipc.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/ipc.js"></script>
 
     <!-- Shared scripts -->
-    <script src="../js/shared/globalScript.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
 
-    <!-- Module-specific scripts -->
-    <script src="./dashboard.js"></script>
+    <!-- Dashboard module scripts (compiled from TypeScript) -->
+    <script src="../../dist/public/dashboard/src/types/dashboard.types.js"></script>
+    <script src="../../dist/public/dashboard/src/services/dashboardApi.js"></script>
+    <script src="../../dist/public/dashboard/src/utils/dashboardUtils.js"></script>
+    <script src="../../dist/public/dashboard/src/components/dashboardUI.js"></script>
+    <script src="../../dist/public/dashboard/src/main.js"></script>
 </body>
 
 </html>
