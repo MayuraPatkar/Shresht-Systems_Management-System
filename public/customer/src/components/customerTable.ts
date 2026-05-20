@@ -209,19 +209,22 @@ class CustomerTable {
         const totalCountEl = document.getElementById('total-customers-count');
         const activeCountEl = document.getElementById('active-customers-count');
         const inactiveCountEl = document.getElementById('inactive-customers-count');
-        const commercialCountEl = document.getElementById('commercial-customers-count');
+        const b2bCountEl = document.getElementById('b2b-customers-count');
+        const b2cCountEl = document.getElementById('b2c-customers-count');
 
-        if (!totalCountEl || !activeCountEl || !inactiveCountEl || !commercialCountEl) return;
+        if (!totalCountEl || !activeCountEl || !inactiveCountEl || !b2bCountEl || !b2cCountEl) return;
 
         const total = customers.length;
         const active = customers.filter(c => c.is_active && !c.is_archived).length;
         const inactive = customers.filter(c => !c.is_active && !c.is_archived).length;
-        const commercial = customers.filter(c => c.customer_type === 'Commercial' || c.customer_type === 'Company').length;
+        const b2b = customers.filter(c => c.is_active && !c.is_archived && (c.customer_type === 'Commercial' || c.customer_type === 'Government')).length;
+        const b2c = customers.filter(c => c.is_active && !c.is_archived && c.customer_type === 'Individual').length;
 
         totalCountEl.textContent = total.toString();
         activeCountEl.textContent = active.toString();
         inactiveCountEl.textContent = inactive.toString();
-        commercialCountEl.textContent = commercial.toString();
+        b2bCountEl.textContent = b2b.toString();
+        b2cCountEl.textContent = b2c.toString();
     }
 }
 

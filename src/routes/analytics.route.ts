@@ -71,8 +71,23 @@ router.get('/overview', async (req: Request, res: Response) => {
         }).length;
 
         const totalCustomers = await CustomerModel.countDocuments({ 'deletion.is_deleted': false });
-        const activeCustomers = await CustomerModel.countDocuments({ 'deletion.is_deleted': false, is_active: true });
-        const industrialCustomers = await CustomerModel.countDocuments({ 'deletion.is_deleted': false, customer_type: 'Industrial' });
+        const activeCustomers = await CustomerModel.countDocuments({ 
+            'deletion.is_deleted': false, 
+            is_active: true,
+            is_archived: { $ne: true }
+        });
+        const b2bCustomers = await CustomerModel.countDocuments({
+            'deletion.is_deleted': false,
+            is_active: true,
+            is_archived: { $ne: true },
+            customer_type: { $in: ['Commercial', 'Government'] }
+        });
+        const b2cCustomers = await CustomerModel.countDocuments({
+            'deletion.is_deleted': false,
+            is_active: true,
+            is_archived: { $ne: true },
+            customer_type: 'Individual'
+        });
 
         /* ────────────────────────────── Response ──────────────────────────────── */
         res.json({
@@ -84,7 +99,8 @@ router.get('/overview', async (req: Request, res: Response) => {
             remainingServices,
             totalCustomers,
             activeCustomers,
-            industrialCustomers
+            b2bCustomers,
+            b2cCustomers
         });
     } catch (err: unknown) {
         logger.error('Error fetching analytics:', err);

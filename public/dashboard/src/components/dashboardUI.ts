@@ -59,10 +59,12 @@ class DashboardUI {
                 dashboardUtils.animateCounter("expenditure-count", data.totalExpenditure, true);
                 dashboardUtils.animateCounter("remaining-services-count", data.remainingServices);
                 dashboardUtils.animateCounter("customer-count", data.totalCustomers);
+                dashboardUtils.animateCounter("b2b-customer-count", data.b2bCustomers);
+                dashboardUtils.animateCounter("b2c-customer-count", data.b2cCustomers);
             })
             .catch((err: any) => {
                 console.error("Error fetching analytics:", err);
-                ['project-count', 'quotation-count', 'unpaid-count', 'expenditure-count', 'remaining-services-count', 'customer-count'].forEach(id => {
+                ['project-count', 'quotation-count', 'unpaid-count', 'expenditure-count', 'remaining-services-count', 'customer-count', 'b2b-customer-count', 'b2c-customer-count'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.textContent = '0';
                 });

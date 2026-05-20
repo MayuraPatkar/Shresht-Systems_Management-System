@@ -53,7 +53,7 @@ export interface ICustomer extends Document {
     billing_address?: IAddress;
     shipping_address?: IAddress;
 
-    customer_type: "Individual" | "Company" | "Government" | "Residential" | "Commercial" | "Industrial";
+    customer_type: "Individual" | "Commercial" | "Government";
 
     credit_score: number;
 
@@ -156,7 +156,7 @@ const customerSchema = new Schema<ICustomer>(
 
         customer_type: {
             type: String,
-            enum: ["Individual", "Company", "Government", "Residential", "Commercial", "Industrial"],
+            enum: ["Individual", "Commercial", "Government"],
             default: "Individual",
             index: true,
         },

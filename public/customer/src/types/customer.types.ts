@@ -25,7 +25,7 @@ interface Customer {
     customer: ContactInfo;
     billing_address: Address;
     gstin?: string;
-    customer_type: 'Residential' | 'Commercial' | 'Industrial' | 'Individual' | 'Company' | 'Government';
+    customer_type: 'Commercial' | 'Individual' | 'Government';
     is_active: boolean;
     remarks?: string;
     createdAt?: string;
@@ -36,7 +36,8 @@ interface CustomerStats {
     total: number;
     active: number;
     inactive: number;
-    commercial: number;
+    b2b: number;
+    b2c: number;
 }
 
 interface FullCustomerDetails {
