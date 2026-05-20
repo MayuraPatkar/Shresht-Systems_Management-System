@@ -12,10 +12,12 @@
             
             if (!purchaseOrders || purchaseOrders.length === 0) {
                 this.container.innerHTML = `
-                    <div class="col-span-full text-center py-12 bg-white rounded-lg border border-gray-200">
-                        <i class="fas fa-file-invoice text-gray-400 text-5xl mb-4"></i>
-                        <h3 class="text-lg font-medium text-gray-900 mb-1">No Purchase Orders Found</h3>
-                        <p class="text-gray-500">Create your first purchase order by clicking the "New Purchase" button.</p>
+                    <div class="col-span-full flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                        <div class="text-purple-500 text-5xl mb-4">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No Purchase Orders Found</h2>
+                        <p class="text-gray-600">Start creating purchase orders for your suppliers</p>
                     </div>
                 `;
                 return;
