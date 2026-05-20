@@ -359,9 +359,17 @@ function changeStep(step) {
 function updateNavigation() {
   const prevBtn = document.getElementById("prev-btn");
   const nextBtn = document.getElementById("next-btn");
+  const saveBtn = document.getElementById("save-btn");
 
   if (prevBtn) prevBtn.disabled = currentStep === 1;
-  if (nextBtn) nextBtn.disabled = currentStep === totalSteps;
+  
+  if (currentStep === totalSteps) {
+    if (nextBtn) nextBtn.style.display = "none";
+    if (saveBtn) saveBtn.style.display = "flex";
+  } else {
+    if (nextBtn) nextBtn.style.display = "flex";
+    if (saveBtn) saveBtn.style.display = "none";
+  }
 }
 
 // NOTE: Utility functions (numberToWords, formatIndian, formatDate) 

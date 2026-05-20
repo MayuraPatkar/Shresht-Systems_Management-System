@@ -214,6 +214,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Custom ID listener removed as all IDs are system-generated.
     
     setupCustomerAutocomplete();
+
+    // Ensure phone and pincode only accept numbers
+    const pincodeInput = document.getElementById('buyer-pincode');
+    if (pincodeInput) {
+        pincodeInput.addEventListener('input', function() {
+            (this as HTMLInputElement).value = (this as HTMLInputElement).value.replace(/[^0-9]/g, '');
+        });
+    }
+    const phoneInput = document.getElementById('buyer-phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            (this as HTMLInputElement).value = (this as HTMLInputElement).value.replace(/[^0-9]/g, '');
+        });
+    }
 });
 
 // Helper functions normalizeTermsHTML and getQuotationHeaderHTML are in quotationView.ts
@@ -1034,6 +1048,8 @@ async function generatePreview() {
     let totalQtySum = 0;
     let totalTaxableSum = 0;
     let totalPriceSum = 0;
+    let totalUnitPriceSum = 0;
+    let totalItemsTaxSum = 0;
 
     // Process regular items
     for (const row of itemsTable.rows) {
@@ -1046,18 +1062,20 @@ async function generatePreview() {
         const taxableValue = qty * unitPrice;
         totalQtySum += qty;
         totalTaxableSum += taxableValue;
+        totalUnitPriceSum += unitPrice;
         let itemHTML = "";
 
         if (hasTax) {
             const taxAmount = (taxableValue * rate) / 100;
             const rowTotal = taxableValue + taxAmount;
             totalPriceSum += rowTotal;
+            totalItemsTaxSum += taxAmount;
 
-            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac}</td><td class="text-right">${qty}</td><td class="text-right">₹ ${formatIndian(unitPrice, 2)}</td><td class="text-right">₹ ${formatIndian(taxableValue, 2)}</td><td class="text-right">${rate.toFixed(2)}%</td><td class="text-right">₹ ${formatIndian(rowTotal, 2)}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac}</td><td class="text-right">${qty}</td><td class="text-right">₹&nbsp;${formatIndian(unitPrice, 2)}</td><td class="text-right">₹&nbsp;${formatIndian(taxableValue, 2)}</td><td class="text-right">${rate.toFixed(2)}%</td><td class="text-right">₹&nbsp;${formatIndian(rowTotal, 2)}</td></tr>`;
         } else {
             const rowTotal = taxableValue;
             totalPriceSum += rowTotal;
-            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac}</td><td class="text-right">${qty}</td><td class="text-right">₹ ${formatIndian(unitPrice, 2)}</td><td class="text-right">₹ ${formatIndian(rowTotal, 2)}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac}</td><td class="text-right">${qty}</td><td class="text-right">₹&nbsp;${formatIndian(unitPrice, 2)}</td><td class="text-right">₹&nbsp;${formatIndian(rowTotal, 2)}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
@@ -1088,9 +1106,9 @@ async function generatePreview() {
         // Generate HTML with consistent columns: S.No, Description, HSN/SAC, Qty, Unit Price, [Taxable Value, Rate %], Total
         let itemHTML = "";
         if (hasTax) {
-            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">₹ ${formatIndian(price, 2)}</td><td class="text-right">${rate.toFixed(2)}%</td><td class="text-right">₹ ${formatIndian(rowTotal, 2)}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">₹&nbsp;${formatIndian(price, 2)}</td><td class="text-right">${rate > 0 ? rate.toFixed(2) + '%' : '-'}</td><td class="text-right">₹&nbsp;${formatIndian(rowTotal, 2)}</td></tr>`;
         } else {
-            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">₹ ${formatIndian(rowTotal, 2)}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">₹&nbsp;${formatIndian(rowTotal, 2)}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
@@ -1145,7 +1163,7 @@ async function generatePreview() {
     const totalsHTML = `
         <div style="display: flex; width: 100%;">
             <div class="totals-section-sub1" style="width: 55%;">
-                <p>Subtotal (Taxable Value):</p>
+                <p>Subtotal:</p>
                 ${hasTax ? (totalIGST > 0 ? `
                 <p>Total IGST:</p>` : `
                 <p>Total CGST:</p>
@@ -1173,10 +1191,10 @@ async function generatePreview() {
             <tr class="totals-row">
                 <td colspan="3" class="text-left">TOTAL</td>
                 <td class="text-right">${totalQtySum}</td>
-                <td class="text-right">-</td>
-                <td class="text-right">₹ ${formatIndian(totalTaxableSum, 2)}</td>
-                <td class="text-right">-</td>
-                <td class="text-right">₹ ${formatIndian(totalPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalTaxableSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalItemsTaxSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
             </tr>
         `;
     } else {
@@ -1184,8 +1202,8 @@ async function generatePreview() {
             <tr class="totals-row">
                 <td colspan="3" class="text-left">TOTAL</td>
                 <td class="text-right">${totalQtySum}</td>
-                <td class="text-right">-</td>
-                <td class="text-right">₹ ${formatIndian(totalPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
             </tr>
         `;
     }
@@ -1272,11 +1290,11 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company || company.company_name}</p>
                                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
-                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
-                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
+                                <p><strong>Account No: </strong>${bank.account_number || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.ifsc_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -1337,8 +1355,6 @@ async function generatePreview() {
         <div class="title">Quotation-${quotationId}</div>
         <div class="quotation-letter-date">
             <p><strong>Date:</strong> ${formattedDate}</p>
-            ${validTill ? `<p><strong>Valid Till:</strong> ${formatDateIndian(validTill)}</p>` : ''}
-            <p><strong>Status:</strong> ${quotationStatus}</p>
         </div>
         <div class="quotation-letter-content" >
             <p><strong>To:</strong></p>
@@ -1464,11 +1480,11 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company || company.company_name}</p>
                                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
-                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
-                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
+                                <p><strong>Account No: </strong>${bank.account_number || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.ifsc_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -1616,11 +1632,11 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company || company.company_name}</p>
                                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
-                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
-                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
+                                <p><strong>Account No: </strong>${bank.account_number || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.ifsc_code || ''}</p>
                             </div>
                         </div>
                     </div>

@@ -201,7 +201,106 @@ class QuotationTable {
             }
         });
     }
+
+    // Create a card for a TRASHED quotation (with Restore + Permanent Delete)
+    createTrashCard(quotation: any): HTMLElement {
+        const card = document.createElement('div');
+        card.className = 'group bg-white rounded-lg shadow-md border border-red-200 overflow-hidden fade-in opacity-80 hover:opacity-100 transition-all duration-300';
+
+        const formattedDate = quotation.quotation_date ? formatDateIndian(quotation.quotation_date) : '-';
+        const quotationId = quotation.quotation_no || quotation.quotation_id || 'N/A';
+        const customerName = quotation.customer_snapshot?.name || quotation.customer_name || '-';
+        const totalAmountTax = quotation.totals?.grand_total || quotation.total_amount_tax || 0;
+        const status = quotation.quotation_status || 'Draft';
+        const deletedAt = quotation.deletion?.deleted_at
+            ? formatDateIndian(quotation.deletion.deleted_at)
+            : (quotation.deleted_at ? formatDateIndian(quotation.deleted_at) : '-');
+
+        card.innerHTML = `
+            <div class="flex">
+                <div class="w-1.5 bg-gradient-to-b from-red-400 to-red-600 rounded-l-lg"></div>
+                <div class="relative p-5 flex-1">
+                    <!-- Top Row -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg shadow-red-200">
+                                <i class="fas fa-file-invoice text-lg text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900 truncate" title="${quotation.project_name}">${quotation.project_name}</h3>
+                                <span class="text-xs text-red-500 font-medium"><i class="fas fa-trash mr-1"></i>Deleted on ${deletedAt}</span>
+                            </div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="flex items-center gap-2">
+                            <button class="trash-action-restore px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 border border-green-200 hover:border-green-400 font-medium text-sm flex items-center gap-1.5" title="Restore">
+                                <i class="fas fa-trash-restore"></i> Restore
+                            </button>
+                            <button class="trash-action-delete-permanent px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 border border-red-200 hover:border-red-400 font-medium text-sm flex items-center gap-1.5" title="Permanently Delete">
+                                <i class="fas fa-times-circle"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Info Row -->
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-sm font-bold text-gray-600">${quotationId}</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                        <span class="text-xs text-gray-500"><i class="fas fa-calendar-alt mr-1"></i>${formattedDate}</span>
+                        ${this.getStatusBadge(status)}
+                    </div>
+                    <!-- Bottom Row -->
+                    <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                <i class="fas fa-user text-red-500 text-xs"></i>
+                            </div>
+                            <p class="text-sm font-medium text-gray-700 truncate">${customerName}</p>
+                        </div>
+                        <div class="flex-shrink-0 ml-4 text-right">
+                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Total</p>
+                            <p class="text-xl font-bold text-red-500">₹${formatIndian(totalAmountTax, 2)}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const restoreBtn = card.querySelector('.trash-action-restore') as HTMLButtonElement;
+        const deletePermanentBtn = card.querySelector('.trash-action-delete-permanent') as HTMLButtonElement;
+
+        restoreBtn?.addEventListener('click', async () => {
+            try {
+                const res = await fetch(`/quotation/${quotationId}/restore`, { method: 'POST' });
+                if (!res.ok) throw new Error('Failed to restore');
+                showToast(`Quotation ${quotationId} restored`);
+                // Refresh trash list
+                if (typeof loadTrashQuotations === 'function') loadTrashQuotations();
+            } catch (e) {
+                (window as any).electronAPI?.showAlert1('Failed to restore quotation.');
+            }
+        });
+
+        deletePermanentBtn?.addEventListener('click', () => {
+            if (!(window as any).electronAPI) return;
+            (window as any).electronAPI.showAlert2(`Permanently delete ${quotationId}? This cannot be undone.`);
+            (window as any).electronAPI.receiveAlertResponse(async (response: string) => {
+                if (response === 'Yes') {
+                    try {
+                        const res = await fetch(`/quotation/trash/${quotationId}`, { method: 'DELETE' });
+                        if (!res.ok) throw new Error('Failed to delete');
+                        showToast(`Quotation ${quotationId} permanently deleted`);
+                        if (typeof loadTrashQuotations === 'function') loadTrashQuotations();
+                    } catch (e) {
+                        (window as any).electronAPI?.showAlert1('Failed to permanently delete quotation.');
+                    }
+                }
+            });
+        });
+
+        return card;
+    }
 }
 
 // Export instance globally
 (window as any).quotationTable = new QuotationTable();
+

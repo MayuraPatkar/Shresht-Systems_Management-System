@@ -297,6 +297,22 @@ router.get('/search/:query', async (req: Request, res: Response) => {
     }
 });
 
+// Get all soft-deleted (trashed) quotations — MUST be before /:quotationId
+router.get("/trash", async (_req: Request, res: Response) => {
+    try {
+        const deleted = await QuotationModel.find({
+            $or: [
+                { 'deletion.is_deleted': true },
+                { is_deleted: true },
+            ],
+        }).sort({ 'deletion.deleted_at': -1 }).lean();
+        return res.status(200).json({ quotation: deleted.map(normalizeQuotationDocument) });
+    } catch (error: unknown) {
+        logger.error("Error fetching trashed quotations:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
 router.get("/:quotationId", async (req: Request, res: Response) => {
     try {
         const { quotationId } = req.params;
@@ -314,6 +330,48 @@ router.get("/:quotationId", async (req: Request, res: Response) => {
         });
     } catch (error: unknown) {
         logger.error("Error retrieving quotation:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+// Restore all soft-deleted quotations
+router.post("/trash/restore-all", async (_req: Request, res: Response) => {
+    try {
+        const result = await QuotationModel.updateMany(
+            { $or: [{ 'deletion.is_deleted': true }, { is_deleted: true }] },
+            {
+                $set: { is_deleted: false, 'deletion.is_deleted': false },
+                $unset: { deleted_at: 1, deleted_by: 1, 'deletion.deleted_at': 1, 'deletion.deleted_by': 1 },
+            }
+        );
+        return res.status(200).json({ message: `Restored ${result.modifiedCount} quotation(s)` });
+    } catch (error: unknown) {
+        logger.error("Error restoring all quotations:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+// Permanently delete all trashed quotations
+router.delete("/trash", async (_req: Request, res: Response) => {
+    try {
+        const result = await QuotationModel.deleteMany({
+            $or: [{ 'deletion.is_deleted': true }, { is_deleted: true }],
+        });
+        return res.status(200).json({ message: `Permanently deleted ${result.deletedCount} quotation(s)` });
+    } catch (error: unknown) {
+        logger.error("Error permanently deleting all quotations:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+// Permanently delete a single trashed quotation
+router.delete("/trash/:quotationId", async (req: Request, res: Response) => {
+    try {
+        const result = await QuotationModel.findOneAndDelete({ quotation_no: req.params.quotationId });
+        if (!result) return res.status(404).json({ message: 'Quotation not found in trash' });
+        return res.status(200).json({ message: 'Quotation permanently deleted' });
+    } catch (error: unknown) {
+        logger.error("Error permanently deleting quotation:", error);
         return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });

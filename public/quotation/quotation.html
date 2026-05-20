@@ -46,6 +46,19 @@
                     <i class="fas fa-plus"></i>
                     New Quotation
                 </button>
+                <!-- Trash icon-only button (gray, shown in normal mode) -->
+                <button id="trash-btn"
+                    class="bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="View Trash">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <!-- Close Trash button (shown only in trash mode) -->
+                <button id="close-trash-btn"
+                    class="bg-white text-red-600 border-2 border-red-500 px-4 py-2 rounded-lg hover:bg-red-50 flex items-center gap-2 font-semibold transition-all"
+                    style="display:none;" title="Exit Trash">
+                    <i class="fas fa-trash-restore"></i>
+                    Close Trash
+                </button>
                 <button id="view-preview"
                     class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium"
                     style="display: none;">
@@ -64,6 +77,21 @@
             </div>
         </div>
     </header>
+
+    <!-- Trash Sub-Toolbar (shown below header only in trash mode) -->
+    <div id="trash-toolbar" class="fixed top-24 left-[280px] right-0 bg-white border-b border-gray-200 z-20 px-6 py-3"
+        style="display:none;">
+        <div class="flex items-center gap-3">
+            <button id="trash-restore-all-btn"
+                class="bg-green-50 text-green-600 border border-green-300 px-5 py-2.5 rounded-lg hover:bg-green-100 flex items-center gap-2 font-semibold text-sm transition-all shadow-sm active:scale-95">
+                <i class="fas fa-trash-restore"></i> Restore All
+            </button>
+            <button id="trash-delete-all-btn"
+                class="bg-red-50 text-red-600 border border-red-300 px-5 py-2.5 rounded-lg hover:bg-red-100 flex items-center gap-2 font-semibold text-sm transition-all shadow-sm active:scale-95">
+                <i class="fas fa-trash"></i> Delete All
+            </button>
+        </div>
+    </div>
 
     <!-- Sidebar -->
     <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
@@ -144,7 +172,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-[280px] pt-24 mt-6 p-8">
+    <main id="main-content" class="ml-[280px] pt-24 mt-6 p-8">
 
         <!-- Home Section -->
         <div id="home">
@@ -167,55 +195,56 @@
                         <div class="space-y-4">
                             <input type="hidden" id="id">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Row 1: Project Name (Full Width) -->
-                            <div class="md:col-span-2">
-                                <label for="project-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-briefcase text-gray-500 mr-1"></i>Project Name <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="project-name" required placeholder="Enter project name"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
+                                <!-- Row 1: Project Name (Full Width) -->
+                                <div class="md:col-span-2">
+                                    <label for="project-name" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-briefcase text-gray-500 mr-1"></i>Project Name <span
+                                            class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" id="project-name" required placeholder="Enter project name"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
 
-                            <!-- Row 2: Dates (Two Columns) -->
-                            <div>
-                                <label for="quotation-date" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-calendar text-gray-500 mr-1"></i>Quotation Date <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="date" id="quotation-date"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="valid-till" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-hourglass-half text-gray-500 mr-1"></i>Valid Till
-                                </label>
-                                <input type="date" id="valid-till"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
+                                <!-- Row 2: Dates (Two Columns) -->
+                                <div>
+                                    <label for="quotation-date" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-calendar text-gray-500 mr-1"></i>Quotation Date <span
+                                            class="text-red-500">*</span>
+                                    </label>
+                                    <input type="date" id="quotation-date"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="valid-till" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-hourglass-half text-gray-500 mr-1"></i>Valid Till
+                                    </label>
+                                    <input type="date" id="valid-till"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
 
-                            <!-- Row 3: Discount & Status (Two Columns) -->
-                            <div>
-                                <label for="quotation-discount" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-percent text-gray-500 mr-1"></i>Discount
-                                </label>
-                                <input type="number" id="quotation-discount" min="0" step="0.01" value="0"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="quotation-status" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-signal text-gray-500 mr-1"></i>Status
-                                </label>
-                                <select id="quotation-status"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                                    <option value="Draft">Draft</option>
-                                    <option value="Sent">Sent</option>
-                                    <option value="Approved">Approved</option>
-                                    <option value="Rejected">Rejected</option>
-                                    <option value="Converted">Converted</option>
-                                    <option value="Expired">Expired</option>
-                                </select>
-                            </div>
+                                <!-- Row 3: Discount & Status (Two Columns) -->
+                                <div>
+                                    <label for="quotation-discount"
+                                        class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-percent text-gray-500 mr-1"></i>Discount
+                                    </label>
+                                    <input type="number" id="quotation-discount" min="0" step="0.01" value="0"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="quotation-status" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-signal text-gray-500 mr-1"></i>Status
+                                    </label>
+                                    <select id="quotation-status"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                        <option value="Draft">Draft</option>
+                                        <option value="Sent">Sent</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Rejected">Rejected</option>
+                                        <option value="Converted">Converted</option>
+                                        <option value="Expired">Expired</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -235,9 +264,12 @@
                                         class="text-red-500">*</span>
                                 </label>
                                 <input type="hidden" id="buyer-customer-id" value="">
-                                <input type="text" id="buyer-name" autocomplete="off" placeholder="Type to search customers or enter manually"
+                                <input type="text" id="buyer-name" autocomplete="off"
+                                    placeholder="Type to search customers or enter manually"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                <ul id="customer-suggestions" class="suggestions hidden absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto" style="display: none;"></ul>
+                                <ul id="customer-suggestions"
+                                    class="suggestions hidden absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto"
+                                    style="display: none;"></ul>
                             </div>
                             <!-- Row 2: Address Line 1 (Full Width) -->
                             <div class="md:col-span-2">
@@ -245,7 +277,8 @@
                                     <i class="fas fa-map-marked-alt text-gray-500 mr-1"></i>Address Line 1 <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="buyer-address-line1" required placeholder="Flat, House no., Building, Company, Apartment"
+                                <input type="text" id="buyer-address-line1" required
+                                    placeholder="Flat, House no., Building, Company, Apartment"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
 
@@ -261,14 +294,16 @@
                             <!-- Row 4: City & State (Two Columns) -->
                             <div>
                                 <label for="buyer-city" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-city text-gray-500 mr-1"></i>City <span class="text-red-500">*</span>
+                                    <i class="fas fa-city text-gray-500 mr-1"></i>City <span
+                                        class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="buyer-city" required placeholder="Enter city"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <div>
                                 <label for="buyer-state" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map text-gray-500 mr-1"></i>State <span class="text-red-500">*</span>
+                                    <i class="fas fa-map text-gray-500 mr-1"></i>State <span
+                                        class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="buyer-state" required value="Karnataka" placeholder="Enter state"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
@@ -277,9 +312,11 @@
                             <!-- Row 5: Pincode & Country (Two Columns) -->
                             <div>
                                 <label for="buyer-pincode" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-pin text-gray-500 mr-1"></i>Pincode <span class="text-red-500">*</span>
+                                    <i class="fas fa-map-pin text-gray-500 mr-1"></i>Pincode <span
+                                        class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="buyer-pincode" required placeholder="6-digit pincode" maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                                <input type="text" id="buyer-pincode" required placeholder="6-digit pincode"
+                                    maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <div>
@@ -314,7 +351,8 @@
                                 <label for="buyer-gstin" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-id-card text-gray-500 mr-1"></i>GSTIN
                                 </label>
-                                <input type="text" id="buyer-gstin" maxlength="15" pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
+                                <input type="text" id="buyer-gstin" maxlength="15"
+                                    pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
                                     placeholder="Enter GSTIN (e.g., 29ABCDE1234F1Z5)"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
@@ -467,11 +505,7 @@
                             <!-- Preview will be dynamically generated -->
                         </div>
                         <div class="flex gap-3 justify-center mt-6">
-                            <button type="button" id="save-btn"
-                                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-save"></i>
-                                Save
-                            </button>
+                            <!-- Save button moved to bottom navigation -->
                             <button type="button" id="print-btn"
                                 class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
                                 <i class="fas fa-print"></i>
@@ -497,8 +531,14 @@
                         <!-- Step indicator will be dynamically updated -->
                     </div>
                     <button type="button" id="next-btn"
-                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center">
                         Next<i class="fas fa-chevron-right ml-2"></i>
+                    </button>
+                    <button type="button" id="save-btn"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2"
+                        style="display:none;">
+                        <i class="fas fa-save"></i>
+                        Save
                     </button>
                 </div>
             </form>
@@ -542,10 +582,13 @@
                                 <span class="block text-sm font-medium text-gray-600 mb-1">Quotation ID</span>
                                 <div class="flex items-center gap-2">
                                     <span class="text-gray-900 font-semibold" id="view-project-id">-</span>
-                                    <span class="text-xs text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded font-normal" title="Generated automatically">System ID</span>
+                                    <span class="text-xs text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded font-normal"
+                                        title="Generated automatically">System ID</span>
                                 </div>
                             </div>
-                            <button type="button" id="copy-quotation-id-btn" class="text-gray-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="Copy Quotation ID">
+                            <button type="button" id="copy-quotation-id-btn"
+                                class="text-gray-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                                title="Copy Quotation ID">
                                 <i class="far fa-copy text-lg"></i>
                             </button>
                         </div>
@@ -555,7 +598,8 @@
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Status</span>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold" id="view-quotation-status">-</span>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                                id="view-quotation-status">-</span>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Valid Till</span>
@@ -577,7 +621,8 @@
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Address</span>
-                            <span class="text-gray-900 font-semibold whitespace-pre-line" id="view-buyer-address">-</span>
+                            <span class="text-gray-900 font-semibold whitespace-pre-line"
+                                id="view-buyer-address">-</span>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Phone</span>
@@ -629,7 +674,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <div id="items-totals-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Items Total Amount</span>
                             <span class="text-gray-900 font-bold" id="view-items-total-amount">-</span>
@@ -651,41 +696,47 @@
                         <i class="fas fa-plus-circle text-indigo-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Other Charges</h2>
                     </div>
-                    <div class="overflow-x-auto mb-4">
-                        <table id="view-non-items-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        S. No</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Description</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Price</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Rate</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Charges will be dynamically filled -->
-                            </tbody>
-                        </table>
+                    <div id="no-other-charges-msg"
+                        class="hidden text-center py-6 text-gray-500 font-medium bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        No extra charges
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Amount</span>
-                            <span class="text-gray-900 font-bold" id="view-non-items-total-amount">-</span>
+                    <div id="other-charges-content">
+                        <div class="overflow-x-auto mb-4">
+                            <table id="view-non-items-table" class="w-full border border-gray-300 rounded-lg">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                            S. No</th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                            Description</th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                            Price</th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                            Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Charges will be dynamically filled -->
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Tax</span>
-                            <span class="text-gray-900 font-bold" id="view-non-items-total-tax">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Overall</span>
-                            <span class="text-gray-900 font-bold" id="non-items-overall">-</span>
+                        <div id="non-items-totals-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Amount</span>
+                                <span class="text-gray-900 font-bold" id="view-non-items-total-amount">-</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Tax</span>
+                                <span class="text-gray-900 font-bold" id="view-non-items-total-tax">-</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Overall</span>
+                                <span class="text-gray-900 font-bold" id="non-items-overall">-</span>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -772,11 +823,7 @@
                             <i class="fas fa-file-pdf"></i>
                             Save as PDF
                         </button>
-                        <button type="button" id="convertToInvoice"
-                            class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                            Convert to Invoice
-                        </button>
+
                     </div>
                 </section>
             </div>
