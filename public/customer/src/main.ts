@@ -38,9 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = typeFilter?.value || '';
             const status = statusFilter?.value || '';
 
-            const customers = await customerApi.fetchCustomers(search, type, status);
+            const customers = await customerApi.fetchCustomers(search, type, status, !!(window as any).showDeletedItems);
+            (window as any).currentCustomers = customers || [];
             customerTable.render(customers);
             updateArchivedCount();
+            updateBulkButtonLabels();
         } catch (error) {
             showAlert('Failed to load customers');
         }
@@ -56,6 +58,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     (window as any).fetchCustomers();
                 } catch (error) {
                     showAlert('Failed to delete customer');
+                }
+            }
+        });
+    };
+
+    // Restore from trash handler
+    (window as any).handleRestoreFromTrash = (id: string, name: string) => {
+        showConfirm(`Are you sure you want to restore "${name}" from trash?`, async (response) => {
+            if (response === 'Yes') {
+                try {
+                    await customerApi.restoreCustomerFromTrash(id);
+                    showAlert('Customer restored successfully');
+                    (window as any).fetchCustomers();
+                } catch (error) {
+                    showAlert('Failed to restore customer');
+                }
+            }
+        });
+    };
+
+    // Permanent delete handler
+    (window as any).handleHardDelete = (id: string, name: string) => {
+        showConfirm(`Are you sure you want to PERMANENTLY delete customer "${name}"? This cannot be undone.`, async (response) => {
+            if (response === 'Yes') {
+                try {
+                    await customerApi.hardDeleteCustomer(id);
+                    showAlert('Customer permanently deleted');
+                    (window as any).fetchCustomers();
+                } catch (error) {
+                    showAlert('Failed to permanently delete customer');
                 }
             }
         });
@@ -135,6 +167,127 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (filterPopover) filterPopover.onclick = (e) => e.stopPropagation();
+
+    const showDeletedBtn = document.getElementById('showDeletedBtn');
+    const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+    const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+    if (showDeletedBtn) {
+        showDeletedBtn.onclick = () => {
+            (window as any).showDeletedItems = !(window as any).showDeletedItems;
+            
+            if ((window as any).showDeletedItems) {
+                showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
+                showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> Close Trash';
+                showDeletedBtn.title = 'Close Trash';
+
+                if (addBtn) addBtn.classList.add('hidden');
+                if (archivedBtn) archivedBtn.classList.add('hidden');
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.classList.remove('hidden');
+                    bulkRestoreBtn.classList.add('flex');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.classList.remove('hidden');
+                    bulkDeleteBtn.classList.add('flex');
+                }
+            } else {
+                showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700');
+                showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
+                showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                showDeletedBtn.title = 'View Trash';
+
+                if (addBtn) addBtn.classList.remove('hidden');
+                if (archivedBtn) archivedBtn.classList.remove('hidden');
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.classList.add('hidden');
+                    bulkRestoreBtn.classList.remove('flex');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.classList.add('hidden');
+                    bulkDeleteBtn.classList.remove('flex');
+                }
+            }
+            (window as any).fetchCustomers();
+        };
+    }
+
+    function updateBulkButtonLabels() {
+        const search = searchInput?.value || '';
+        const type = typeFilter?.value || '';
+        const status = statusFilter?.value || '';
+        const isFiltered = search !== '' || type !== '' || status !== '';
+        
+        if (bulkRestoreBtn) {
+            const span = bulkRestoreBtn.querySelector('span');
+            if (span) {
+                span.textContent = isFiltered ? 'Restore All Filtered' : 'Restore All';
+            }
+        }
+        if (bulkDeleteBtn) {
+            const span = bulkDeleteBtn.querySelector('span');
+            if (span) {
+                span.textContent = isFiltered ? 'Delete All Filtered' : 'Delete All';
+            }
+        }
+    }
+
+    if (bulkRestoreBtn) {
+        bulkRestoreBtn.onclick = () => {
+            const filteredData = (window as any).currentCustomers || [];
+            if (filteredData.length === 0) {
+                showAlert('No customers to restore.');
+                return;
+            }
+
+            const search = searchInput?.value || '';
+            const type = typeFilter?.value || '';
+            const status = statusFilter?.value || '';
+            const isFiltered = search !== '' || type !== '' || status !== '';
+            const message = `Are you sure you want to restore all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}customers?`;
+
+            showConfirm(message, async (response) => {
+                if (response === 'Yes') {
+                    try {
+                        await customerApi.bulkRestoreCustomers(filteredData.map((c: any) => c._id));
+                        showAlert('Customers restored successfully!');
+                        (window as any).fetchCustomers();
+                    } catch (err) {
+                        showAlert('Failed to bulk restore customers.');
+                    }
+                }
+            });
+        };
+    }
+
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.onclick = () => {
+            const filteredData = (window as any).currentCustomers || [];
+            if (filteredData.length === 0) {
+                showAlert('No customers to delete.');
+                return;
+            }
+
+            const search = searchInput?.value || '';
+            const type = typeFilter?.value || '';
+            const status = statusFilter?.value || '';
+            const isFiltered = search !== '' || type !== '' || status !== '';
+            const message = `Are you sure you want to PERMANENTLY delete all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}customers? This cannot be undone.`;
+
+            showConfirm(message, async (response) => {
+                if (response === 'Yes') {
+                    try {
+                        await customerApi.bulkHardDeleteCustomers(filteredData.map((c: any) => c._id));
+                        showAlert('Customers permanently deleted!');
+                        (window as any).fetchCustomers();
+                    } catch (err) {
+                        showAlert('Failed to bulk delete customers.');
+                    }
+                }
+            });
+        };
+    }
 
     let debounceTimer: any;
     if (searchInput) {

@@ -46,14 +46,21 @@ class CustomerTable {
         const card = document.createElement('div');
         let statusClass = 'bg-emerald-50 text-emerald-700 border border-emerald-100/40';
         let statusText = 'Active';
-        if (customer.is_archived) {
+        if ((window as any).showDeletedItems) {
+            statusClass = 'bg-rose-50 text-rose-700 border border-rose-100/40';
+            statusText = 'Deleted';
+        } else if (customer.is_archived) {
             statusClass = 'bg-slate-100 text-slate-600 border border-slate-200';
             statusText = 'Archived';
-            card.className = 'customer-card-premium archived p-5 flex flex-col justify-between group';
         } else if (!customer.is_active) {
             statusClass = 'bg-rose-50 text-rose-700 border border-rose-100/40';
             statusText = 'Inactive';
-            card.className = 'customer-card-premium p-5 flex flex-col justify-between group';
+        }
+
+        if ((window as any).showDeletedItems) {
+            card.className = 'customer-card-premium p-5 flex flex-col justify-between group border border-rose-100 bg-rose-50/10 cursor-default';
+        } else if (customer.is_archived) {
+            card.className = 'customer-card-premium archived p-5 flex flex-col justify-between group';
         } else {
             card.className = 'customer-card-premium p-5 flex flex-col justify-between group';
         }
@@ -91,7 +98,7 @@ class CustomerTable {
         }
 
         let restoreHtml = '';
-        if (customer.is_archived) {
+        if (customer.is_archived && !(window as any).showDeletedItems) {
             restoreHtml = `
                 <div class="mt-4 pt-3 border-t border-slate-100 flex justify-end">
                     <button class="restore-card-btn px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider rounded-lg flex items-center gap-1.5 transition-all focus:outline-none active:scale-95 cursor-pointer">
@@ -108,7 +115,7 @@ class CustomerTable {
                         ${initials}
                     </div>
                     <div class="min-w-0 flex-1">
-                        <h3 class="text-base font-extrabold text-slate-800 tracking-tight leading-snug truncate group-hover:text-blue-600 transition-colors">${fullName}</h3>
+                        <h3 class="text-base font-extrabold text-slate-800 tracking-tight leading-snug truncate ${((window as any).showDeletedItems) ? '' : 'group-hover:text-blue-600'} transition-colors">${fullName}</h3>
                         <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                             <span class="cursor-pointer hover:underline hover:text-blue-600 transition-colors cust-id-label inline-flex items-center gap-1" title="Click to copy ID">
                                 ${customer.customer_id || 'ID Pending'}
@@ -128,8 +135,22 @@ class CustomerTable {
             </div>
         `;
 
+        if ((window as any).showDeletedItems) {
+            card.innerHTML += `
+                <div class="flex items-center gap-3 mt-4 pt-3 border-t border-slate-100 z-20">
+                    <button class="flex-1 py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100/50 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer restore-btn">
+                        <i class="fas fa-trash-restore"></i> Restore
+                    </button>
+                    <button class="flex-1 py-2 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100/50 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer delete-btn">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </div>
+            `;
+        }
+
         // Click handler for entire card
         card.addEventListener('click', () => {
+            if ((window as any).showDeletedItems) return;
             window.location.href = `/customer/details?id=${customer._id}`;
         });
 
@@ -169,6 +190,17 @@ class CustomerTable {
                 }
             });
         });
+
+        if ((window as any).showDeletedItems) {
+            card.querySelector('.restore-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                (window as any).handleRestoreFromTrash(customer._id, fullName);
+            });
+            card.querySelector('.delete-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                (window as any).handleHardDelete(customer._id, fullName);
+            });
+        }
 
         return card;
     }

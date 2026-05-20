@@ -17,11 +17,12 @@ declare function fetchCustomers(): void;
 class CustomerApi {
     private baseUrl = '/api/customers';
 
-    async fetchCustomers(search: string = '', type: string = '', status: string = ''): Promise<any[]> {
+    async fetchCustomers(search: string = '', type: string = '', status: string = '', deleted: boolean = false): Promise<any[]> {
         try {
             let url = `${this.baseUrl}?search=${encodeURIComponent(search)}`;
             if (type) url += `&type=${type}`;
             if (status) url += `&status=${status}`;
+            if (deleted) url += `&deleted=true`;
 
             const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch customers');
@@ -92,6 +93,66 @@ class CustomerApi {
             if (!response.ok) throw new Error('Failed to delete customer');
         } catch (error) {
             console.error('Error in deleteCustomer:', error);
+            throw error;
+        }
+    }
+
+    async restoreCustomerFromTrash(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/restoreItem`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId: id })
+            });
+            if (!response.ok) throw new Error('Failed to restore customer from trash');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in restoreCustomerFromTrash:', error);
+            throw error;
+        }
+    }
+
+    async hardDeleteCustomer(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/hardDeleteItem`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId: id })
+            });
+            if (!response.ok) throw new Error('Failed to permanently delete customer');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in hardDeleteCustomer:', error);
+            throw error;
+        }
+    }
+
+    async bulkRestoreCustomers(ids: string[]): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/bulkRestore`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemIds: ids })
+            });
+            if (!response.ok) throw new Error('Failed bulk restore');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in bulkRestoreCustomers:', error);
+            throw error;
+        }
+    }
+
+    async bulkHardDeleteCustomers(ids: string[]): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/bulkHardDelete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemIds: ids })
+            });
+            if (!response.ok) throw new Error('Failed bulk hard delete');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in bulkHardDeleteCustomers:', error);
             throw error;
         }
     }
