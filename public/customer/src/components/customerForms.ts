@@ -94,6 +94,10 @@ class CustomerForms {
             form.reset();
             if (this.validator) this.validator.clearAllErrors();
             modal.classList.remove('hidden');
+            const firstNameInput = form.querySelector('[name="customer.first_name"]') as HTMLInputElement;
+            if (firstNameInput) {
+                setTimeout(() => firstNameInput.focus(), 50);
+            }
         }
     }
 
@@ -129,6 +133,10 @@ class CustomerForms {
 
         if (this.validator) this.validator.clearAllErrors();
         modal.classList.remove('hidden');
+        const firstNameInput = form.querySelector('[name="customer.first_name"]') as HTMLInputElement;
+        if (firstNameInput) {
+            setTimeout(() => firstNameInput.focus(), 50);
+        }
     }
 
     closeModal() {

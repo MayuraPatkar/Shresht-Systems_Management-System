@@ -13,11 +13,14 @@
         {
             title: 'Navigation',
             icon: 'fas fa-arrows-alt text-blue-600',
-            items: [
-                { label: 'Next Tab / Section', keys: ['Enter'] },
-                { label: 'Previous Tab / Section', keys: ['Backspace'] },
+            items: isDetailsPage ? [
+                { label: 'Next Field', keys: ['Tab'] },
+                { label: 'Previous Field', keys: ['Shift', 'Tab'] },
+                { label: 'Exit / Cancel', keys: ['Esc'] }
+            ] : [
+                { label: 'Next Field', keys: ['Tab'] },
+                { label: 'Previous Field', keys: ['Shift', 'Tab'] },
                 { label: 'Exit / Cancel', keys: ['Esc'] },
-                { label: 'Go Home', keys: ['Ctrl', 'H'] },
                 { label: 'Focus Search', keys: ['Ctrl', 'F'] }
             ]
         },
@@ -29,23 +32,12 @@
                 { label: 'Export Customer', keys: ['Ctrl', 'P'] },
                 { label: 'Copy Customer ID', keys: ['Ctrl', 'C'] },
                 { label: 'Delete Customer', keys: ['Ctrl', 'Delete'] },
-                { label: 'Archive Customer', keys: ['Ctrl', 'Shift', 'D'] },
-                { label: 'Restore Customer', keys: ['Ctrl', 'Shift', 'R'] }
+                { label: 'Archive / Restore Customer', keys: ['Ctrl', 'Shift', 'D'] }
             ] : [
                 { label: 'New Customer', keys: ['Ctrl', 'N'] },
                 { label: 'Save Customer', keys: ['Ctrl', 'S'] },
                 { label: 'Refresh Customers', keys: ['Ctrl', 'R'] },
-                { label: 'View Archived Customers', keys: ['Ctrl', 'Shift', 'A'] },
-                { label: 'Open Customer Profile', keys: ['Enter'] }
-            ]
-        },
-        {
-            title: 'Search & Filters',
-            icon: 'fas fa-filter text-purple-600',
-            items: [
-                { label: 'Focus Search', keys: ['Ctrl', 'F'] },
-                { label: 'Open Filters', keys: ['Ctrl', 'Shift', 'F'] },
-                { label: 'Clear Filters', keys: ['Esc'] }
+                { label: 'View Archived Customers', keys: ['Ctrl', 'Shift', 'A'] }
             ]
         }
     ];
@@ -288,6 +280,19 @@
         const isShiftPressed = event.shiftKey;
         const isAltPressed = event.altKey;
 
+        // 0. Intercept Enter key inside the customer modal to prevent focus transitions
+        if (event.key === 'Enter') {
+            if (isModalOpen('customer-modal')) {
+                const active = document.activeElement;
+                if (active && active.tagName === 'TEXTAREA') {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+        }
+
         // 1. Toggling shortcuts modal using '?' (only when not typing)
         if (event.key === '?' && !isTypingContext()) {
             event.preventDefault();
@@ -408,6 +413,7 @@
             switch (keyLower) {
                 case 'f': {
                     // Focus Search (Ctrl + F)
+                    if (isDetailsPage) break;
                     const searchInput = document.getElementById('customer-search') || document.getElementById('search-input');
                     if (searchInput) {
                         event.preventDefault();
@@ -452,21 +458,8 @@
                     break;
                 }
                 case 'r': {
-                    // Refresh (Ctrl + R / Ctrl + Shift + R)
-                    if (isShiftPressed) {
-                        // Restore customer (Ctrl + Shift + R) on details page
-                        if (isDetailsPage) {
-                            const restoreBtn = document.getElementById('restore-banner-btn') || document.getElementById('confirm-archive-btn');
-                            // Verify confirm-archive-btn is actually in restore mode
-                            const archiveBtnText = document.getElementById('archive-btn-text');
-                            if (restoreBtn && (!archiveBtnText || archiveBtnText.textContent?.includes('Restore'))) {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                restoreBtn.click();
-                            }
-                        }
-                    } else {
-                        // Refresh Customers (Ctrl + R)
+                    // Refresh (Ctrl + R)
+                    if (!isShiftPressed) {
                         const refreshBtn = document.getElementById('refresh-btn');
                         if (refreshBtn) {
                             event.preventDefault();
@@ -493,7 +486,7 @@
                     break;
                 }
                 case 'd': {
-                    // Archive Customer (Ctrl + Shift + D)
+                    // Archive / Restore Customer (Ctrl + Shift + D)
                     if (isShiftPressed && isDetailsPage) {
                         const archiveBtn = document.getElementById('dropdown-archive-btn');
                         if (archiveBtn) {
@@ -525,22 +518,6 @@
                             event.stopPropagation();
                             displayCustId.click();
                         }
-                    }
-                    break;
-                }
-                case 'h': {
-                    // Go Home (Ctrl + H)
-                    event.preventDefault();
-                    event.stopPropagation();
-                    if (isDetailsPage) {
-                        const homeBtn = document.getElementById('home-btn');
-                        if (homeBtn) {
-                            homeBtn.click();
-                        } else {
-                            window.location.href = '/customer';
-                        }
-                    } else {
-                        window.location.href = '/dashboard';
                     }
                     break;
                 }
@@ -601,35 +578,6 @@
 
         // 8. Block normal shortcuts when typing inside form elements
         if (isTypingContext()) {
-            return;
-        }
-
-        // 9. Navigation section shortcuts (Enter and Backspace)
-        if (event.key === 'Enter') {
-            if (isDetailsPage) {
-                // Next Tab
-                event.preventDefault();
-                event.stopPropagation();
-                switchTab('next');
-            } else {
-                // Open Customer Profile for the first customer in list
-                const firstCard = document.querySelector('.customer-card-premium') as HTMLElement;
-                if (firstCard) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    firstCard.click();
-                }
-            }
-            return;
-        }
-
-        if (event.key === 'Backspace') {
-            if (isDetailsPage) {
-                // Previous Tab
-                event.preventDefault();
-                event.stopPropagation();
-                switchTab('prev');
-            }
             return;
         }
     }
