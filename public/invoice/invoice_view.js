@@ -43,9 +43,47 @@ function updateInvoiceViewTypeTabs(activeViewType) {
 
 /**
  * Initialize view type tab click handlers
+ * Dynamically populates tabs based on user role:
  */
 function initInvoiceViewTypeTabs() {
-    const tabs = document.querySelectorAll('#view-type-tabs .view-type-tab');
+    const tabsContainer = document.getElementById('view-type-tabs');
+    if (!tabsContainer) return;
+
+    const userRole = sessionStorage.getItem('userRole');
+
+    // Define tabs based on role
+    let tabDefs;
+    if (userRole === 'admin') {
+        tabDefs = [
+            { viewType: 'duplicate', label: 'Duplicate' },
+            { viewType: 'duplicate-tax', label: 'Duplicate + Tax' },
+            { viewType: 'original', label: 'Original' },
+            { viewType: 'original-tax', label: 'Original + Tax' }
+        ];
+    } else {
+        // Manager and other roles
+        tabDefs = [
+            { viewType: 'original', label: 'Without Tax' },
+            { viewType: 'original-tax', label: 'With Tax' }
+        ];
+    }
+
+    // Set the default view type based on role
+    const defaultViewType = (userRole === 'admin') ? 'duplicate' : 'original';
+    currentInvoiceViewType = defaultViewType;
+
+    // Build tab buttons
+    tabsContainer.innerHTML = tabDefs.map(def => {
+        const isActive = def.viewType === defaultViewType;
+        const activeClasses = isActive ? 'active bg-blue-600 text-white shadow-sm' : 'text-gray-500';
+        return `<button type="button" data-view-type="${def.viewType}"
+            class="view-type-tab px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeClasses}">
+            ${def.label}
+        </button>`;
+    }).join('');
+
+    // Attach click handlers
+    const tabs = tabsContainer.querySelectorAll('.view-type-tab');
     tabs.forEach(tab => {
         tab.addEventListener('click', async () => {
             const viewType = tab.dataset.viewType;
@@ -818,7 +856,12 @@ async function viewInvoice(invoiceId, userRole) {
             userRole = sessionStorage.getItem('userRole') || 'user';
         }
 
-        const type = sessionStorage.getItem('view-invoice') || 'duplicate';
+        // Determine default view type based on role
+        const userRoleForView = sessionStorage.getItem('userRole');
+        const defaultType = (userRoleForView === 'admin') ? 'duplicate' : 'original';
+        const type = (userRoleForView === 'admin')
+            ? (sessionStorage.getItem('view-invoice') || defaultType)
+            : defaultType; // Manager always views original
         const response = await fetch(`/invoice/${invoiceId}`);
         if (!response.ok) {
             throw new Error("Failed to fetch invoice");
