@@ -1,0 +1,9 @@
+/* Prevent selection of UI elements */
+header, aside, nav, button, label, 
+h1, h2, h3, h4, h5, h6, img, select, 
+aside a, .fa, .fas, .far, .fab, [class*="fa-"] {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}

@@ -138,10 +138,20 @@
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
                 </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
+                </a>
                 <a href="../quotation/quotation.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -162,6 +172,11 @@
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
+                </a>
+                <a href="../payment/payment.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
                 </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -600,6 +615,26 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
 
+
+                <!-- Stock Management Card -->
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <i class="fas fa-boxes text-emerald-600 text-2xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Stock Management</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Inactivity Duration (months)</label>
+                            <input type="number" id="pref-stock-inactive-months" min="1" max="24"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                placeholder="3">
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Items with no stock movement for this many months are automatically marked as <strong>Inactive</strong>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Document Numbering Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 lg:col-span-2">
@@ -1155,18 +1190,21 @@
     </main>
 
     <!-- Scripts -->
-    <script src="../js/shared/utils.js"></script>
-    <script src="../js/shared/calculations.js"></script>
-    <script src="../js/shared/ipc.js"></script>
-    <script src="../js/shared/keyboardNavigation.js"></script>
-    <script src="../js/shared/globalScript.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/keyboardNavigation.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
 
-    <!-- Settings module scripts (load in order) -->
-    <script src="./settings_admin.js"></script>
-    <script src="./settings_backup.js"></script>
-    <script src="./settings_preferences.js"></script>
-    <script src="./settings_system.js"></script>
-    <script src="./settings.js"></script>
+    <!-- Settings module scripts (load in order, compiled from TypeScript) -->
+    <script src="../../dist/public/settings/src/types/settings.types.js"></script>
+    <script src="../../dist/public/settings/src/services/settingsApi.js"></script>
+    <script src="../../dist/public/settings/src/utils/settingsUtils.js"></script>
+    <script src="../../dist/public/settings/src/components/settingsAdmin.js"></script>
+    <script src="../../dist/public/settings/src/components/settingsBackup.js"></script>
+    <script src="../../dist/public/settings/src/components/settingsPreferences.js"></script>
+    <script src="../../dist/public/settings/src/components/settingsSystem.js"></script>
+    <script src="../../dist/public/settings/src/main.js"></script>
 </body>
 
 </html>
