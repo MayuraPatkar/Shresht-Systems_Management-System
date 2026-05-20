@@ -685,45 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const bannerContainer = document.getElementById('archived-banner-container');
         if (bannerContainer) {
-            if (customer.is_archived) {
-                bannerContainer.innerHTML = `
-                    <div class="bg-amber-50 border border-amber-200/80 text-amber-800 text-xs px-5 py-3.5 rounded-2xl flex items-center justify-between mb-6 shadow-sm">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
-                                <i class="fas fa-archive"></i>
-                            </div>
-                            <div>
-                                <span class="font-bold">This customer is archived.</span>
-                                <span class="text-amber-700/90 ml-1">Active operations are suspended, but historical records remain preserved.</span>
-                            </div>
-                        </div>
-                        <button id="restore-banner-btn" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold rounded-xl transition-all duration-150 active:scale-95 uppercase tracking-wider text-[10px] shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/20">
-                            Restore Customer
-                        </button>
-                    </div>
-                `;
-
-                // Bind banner restore button
-                const restoreBannerBtn = document.getElementById('restore-banner-btn');
-                if (restoreBannerBtn) {
-                    restoreBannerBtn.addEventListener('click', async () => {
-                        showConfirm(`Are you sure you want to restore customer "${fullName}"?\n\nThis customer will be restored to active records and all operations can be resumed.`, async (confirmed) => {
-                            if (confirmed === 'Yes') {
-                                try {
-                                    await (window as any).customerApi.restoreCustomer(customer._id);
-                                    (window as any).showToast('Customer restored successfully');
-                                    fetchFullDetails();
-                                } catch (err) {
-                                    console.error(err);
-                                    (window as any).showToast('Failed to restore customer', 'error');
-                                }
-                            }
-                        });
-                    });
-                }
-            } else {
-                bannerContainer.innerHTML = '';
-            }
+            bannerContainer.innerHTML = '';
         }
 
         const nameInitialEl = document.getElementById('name-initials');

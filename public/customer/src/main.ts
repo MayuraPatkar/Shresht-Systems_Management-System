@@ -31,6 +31,39 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     (window as any).updateArchivedCount = updateArchivedCount;
 
+    function updateArchivedButtonVisuals() {
+        if (!archivedBtn || !statusFilter) return;
+
+        const icon = archivedBtn.querySelector('i');
+        const badge = document.getElementById('archived-count-badge');
+
+        if (statusFilter.value === 'archived') {
+            // Set glowing amber active visual styles
+            archivedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+            archivedBtn.classList.add('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+            
+            if (icon) {
+                icon.className = 'fas fa-box-open text-white';
+            }
+            if (badge) {
+                badge.classList.remove('bg-slate-100', 'text-slate-600');
+                badge.classList.add('bg-white', 'text-amber-600', 'font-extrabold');
+            }
+        } else {
+            // Restore default neutral button styles
+            archivedBtn.classList.remove('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+            archivedBtn.classList.add('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+
+            if (icon) {
+                icon.className = 'fas fa-archive text-slate-400';
+            }
+            if (badge) {
+                badge.classList.remove('bg-white', 'text-amber-600', 'font-extrabold');
+                badge.classList.add('bg-slate-100', 'text-slate-600');
+            }
+        }
+    }
+
     // Fetch and render function exposed to window for forms to call
     (window as any).fetchCustomers = async () => {
         try {
@@ -42,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
             (window as any).currentCustomers = customers || [];
             customerTable.render(customers);
             updateArchivedCount();
+            updateArchivedButtonVisuals();
             updateBulkButtonLabels();
         } catch (error) {
             showAlert('Failed to load customers');
@@ -112,12 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
         archivedBtn.onclick = () => {
             if (statusFilter.value === 'archived') {
                 statusFilter.value = '';
-                archivedBtn.classList.remove('bg-amber-50', 'text-amber-700', 'border-amber-200');
-                archivedBtn.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
             } else {
                 statusFilter.value = 'archived';
-                archivedBtn.classList.add('bg-amber-50', 'text-amber-700', 'border-amber-200');
-                archivedBtn.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
             }
             (window as any).fetchCustomers();
         };
@@ -128,8 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (searchInput) searchInput.value = '';
             if (typeFilter) typeFilter.value = '';
             if (statusFilter) statusFilter.value = '';
-            archivedBtn?.classList.remove('bg-amber-50', 'text-amber-700', 'border-amber-200');
-            archivedBtn?.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
             (window as any).fetchCustomers();
             filterPopover?.classList.add('hidden');
         };
@@ -148,13 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeFilter) closeFilter.onclick = () => filterPopover?.classList.add('hidden');
     if (applyFiltersBtn) {
         applyFiltersBtn.onclick = () => {
-            if (statusFilter && statusFilter.value === 'archived') {
-                archivedBtn?.classList.add('bg-amber-50', 'text-amber-700', 'border-amber-200');
-                archivedBtn?.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
-            } else {
-                archivedBtn?.classList.remove('bg-amber-50', 'text-amber-700', 'border-amber-200');
-                archivedBtn?.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
-            }
             (window as any).fetchCustomers();
             filterPopover?.classList.add('hidden');
         };
