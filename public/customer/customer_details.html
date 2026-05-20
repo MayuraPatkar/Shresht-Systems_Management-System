@@ -36,6 +36,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -92,14 +93,18 @@
             -ms-user-select: none;
         }
 
-        input, textarea, select, [contenteditable="true"] {
+        input,
+        textarea,
+        select,
+        [contenteditable="true"] {
             user-select: text !important;
             -webkit-user-select: text !important;
             -moz-user-select: text !important;
             -ms-user-select: text !important;
         }
 
-        button, [role="button"] {
+        button,
+        [role="button"] {
             cursor: pointer !important;
         }
 
@@ -113,7 +118,7 @@
 
         .modal-card-premium {
             border-radius: 18px;
-            box-shadow: 
+            box-shadow:
                 0 20px 60px rgba(0, 0, 0, 0.18),
                 0 0 0 1px rgba(15, 23, 42, 0.08) !important;
             border: 1px solid rgba(255, 255, 255, 0.6) !important;
@@ -125,6 +130,7 @@
                 opacity: 0;
                 transform: scale(0.97);
             }
+
             to {
                 opacity: 1;
                 transform: scale(1);
@@ -171,6 +177,7 @@
                 opacity: 0;
                 transform: scale(0.95) translateY(-5px);
             }
+
             to {
                 opacity: 1;
                 transform: scale(1) translateY(0);
@@ -187,16 +194,19 @@
             overflow: hidden;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
         }
+
         .export-opt-btn:not(:disabled):hover {
             transform: translateY(-1.5px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
             border-color: rgba(226, 232, 240, 1) !important;
             background-color: #ffffff !important;
         }
+
         .export-opt-btn:disabled {
             cursor: not-allowed !important;
             opacity: 0.45;
         }
+
         .export-opt-btn.processing-pdf {
             background-color: #fafaf9 !important;
             border-color: #e4e4e7 !important;
@@ -204,6 +214,7 @@
             transform: none !important;
             box-shadow: none !important;
         }
+
         .export-opt-btn.success-pdf {
             background-color: #f0fdf4 !important;
             border-color: #bbf7d0 !important;
@@ -211,6 +222,7 @@
             transform: none !important;
             box-shadow: none !important;
         }
+
         .export-opt-btn.error-pdf {
             background-color: #fef2f2 !important;
             border-color: #fecaca !important;
@@ -218,10 +230,19 @@
             transform: none !important;
             box-shadow: none !important;
         }
+
         @keyframes fadeInSmall {
-            from { opacity: 0; transform: translateY(2px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(2px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .animate-fade-in {
             animation: fadeInSmall 0.2s ease-out forwards;
         }
@@ -236,8 +257,17 @@
                 -webkit-user-select: auto !important;
                 overflow: visible !important;
             }
+
             /* Hide entire screen-only dashboard and modals */
-            header, aside, main, #export-modal, #archive-modal, .modal-overlay, #global-toast, button, .sidebar {
+            header,
+            aside,
+            main,
+            #export-modal,
+            #archive-modal,
+            .modal-overlay,
+            #global-toast,
+            button,
+            .sidebar {
                 display: none !important;
                 visibility: hidden !important;
                 height: 0 !important;
@@ -246,6 +276,7 @@
                 margin: 0 !important;
                 padding: 0 !important;
             }
+
             /* Style report for layout perfection */
             #print-report-container {
                 display: block !important;
@@ -259,11 +290,13 @@
                 padding: 10mm 15mm !important;
                 margin: 0 !important;
             }
+
             .print-header {
                 border-bottom: 2px solid #3b82f6 !important;
                 padding-bottom: 12px !important;
                 margin-bottom: 20px !important;
             }
+
             .print-section-title {
                 font-size: 11pt !important;
                 font-weight: 800 !important;
@@ -275,12 +308,14 @@
                 text-transform: uppercase !important;
                 letter-spacing: 0.5px !important;
             }
+
             .print-grid {
                 display: grid !important;
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                 gap: 12px !important;
                 margin-bottom: 15px !important;
             }
+
             .print-meta-label {
                 font-size: 8pt !important;
                 font-weight: 700 !important;
@@ -288,18 +323,21 @@
                 text-transform: uppercase !important;
                 letter-spacing: 0.3px !important;
             }
+
             .print-meta-value {
                 font-size: 9.5pt !important;
                 font-weight: 600 !important;
                 color: #0f172a !important;
                 margin-top: 2px !important;
             }
+
             .print-table {
                 width: 100% !important;
                 border-collapse: collapse !important;
                 margin-top: 8px !important;
                 margin-bottom: 18px !important;
             }
+
             .print-table th {
                 background-color: #f8fafc !important;
                 color: #334155 !important;
@@ -309,6 +347,7 @@
                 font-size: 8.5pt !important;
                 border-bottom: 1.5px solid #cbd5e1 !important;
             }
+
             .print-table td {
                 padding: 6px 8px !important;
                 font-size: 8.5pt !important;
@@ -431,19 +470,22 @@
 
     <!-- Main -->
     <main class="ml-[280px] pt-24 mt-6 p-8">
-        
+
         <!-- Archived Banner Placeholder -->
         <div id="archived-banner-container"></div>
-        
+
         <!-- Customer Summary Header -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 mb-8 fade-in">
             <div class="flex flex-wrap items-center justify-between gap-6">
                 <div class="flex items-center gap-5">
-                    <div class="w-16 h-16 bg-blue-50 border border-blue-100/50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl font-bold shadow-sm" id="name-initials">JS</div>
+                    <div class="w-16 h-16 bg-blue-50 border border-blue-100/50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl font-bold shadow-sm"
+                        id="name-initials">JS</div>
                     <div class="space-y-1">
                         <div class="flex items-center gap-3">
-                            <h2 id="customer-name" class="text-2xl font-extrabold text-slate-800 tracking-tight">Loading...</h2>
-                            <span id="customer-type-badge" class="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider">Residential</span>
+                            <h2 id="customer-name" class="text-2xl font-extrabold text-slate-800 tracking-tight">
+                                Loading...</h2>
+                            <span id="customer-type-badge"
+                                class="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider">Residential</span>
                         </div>
                         <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-xs font-medium">
                             <div class="flex items-center gap-1.5" id="display-customer-id-container">
@@ -461,18 +503,26 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <button id="dropdown-edit-btn" class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20" title="Edit Profile (Ctrl+E)">
+                    <button id="dropdown-edit-btn"
+                        class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        title="Edit Profile (Ctrl+E)">
                         <i class="fas fa-edit"></i> Edit Profile
                     </button>
-                    <button id="dropdown-export-btn" class="px-5 py-3 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-sm font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-100" title="Export Data (Ctrl+P)">
+                    <button id="dropdown-export-btn"
+                        class="px-5 py-3 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-sm font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-100"
+                        title="Export Data (Ctrl+P)">
                         <i class="fas fa-file-export"></i> Export Data
                     </button>
-                    <button id="dropdown-archive-btn" class="px-5 py-3 bg-amber-50/60 border border-amber-200/80 text-amber-700 hover:bg-amber-100/60 rounded-xl text-sm font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/10" title="Archive Customer (Ctrl+Shift+D)">
+                    <button id="dropdown-archive-btn"
+                        class="px-5 py-3 bg-amber-50/60 border border-amber-200/80 text-amber-700 hover:bg-amber-100/60 rounded-xl text-sm font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/10"
+                        title="Archive Customer (Ctrl+Shift+D)">
                         <i class="fas fa-archive"></i> Archive Customer
                     </button>
-                    <button id="delete-customer-btn" class="px-5 py-3 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-sm font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500/10" title="Delete Customer (Ctrl+Delete)">
+                    <button id="delete-customer-btn"
+                        class="px-5 py-3 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-sm font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500/10"
+                        title="Delete Customer (Ctrl+Delete)">
                         <i class="fas fa-trash-alt"></i> Delete Customer
                     </button>
                 </div>
@@ -489,7 +539,8 @@
                 <p class="text-sm font-semibold text-gray-500 mb-1">Total Invoices</p>
                 <h4 id="stat-invoices" class="text-2xl font-bold text-gray-800">0</h4>
             </div>
-            <div class="stat-card bg-white p-6 rounded-xl border border-gray-200 shadow-sm border-l-4 border-purple-500">
+            <div
+                class="stat-card bg-white p-6 rounded-xl border border-gray-200 shadow-sm border-l-4 border-purple-500">
                 <p class="text-sm font-semibold text-gray-500 mb-1">Active Services</p>
                 <h4 id="stat-services" class="text-2xl font-bold text-gray-800">0</h4>
             </div>
@@ -502,19 +553,29 @@
         <!-- Tabs Navigation -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden fade-in">
             <div class="flex border-b border-gray-200">
-                <button class="tab-btn active px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2" data-tab="overview">
+                <button
+                    class="tab-btn active px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2"
+                    data-tab="overview">
                     <i class="fas fa-info-circle"></i> Overview
                 </button>
-                <button class="tab-btn px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2" data-tab="quotations">
+                <button
+                    class="tab-btn px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2"
+                    data-tab="quotations">
                     <i class="fas fa-file-alt"></i> Quotations
                 </button>
-                <button class="tab-btn px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2" data-tab="invoices">
+                <button
+                    class="tab-btn px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2"
+                    data-tab="invoices">
                     <i class="fas fa-file-invoice-dollar"></i> Invoices
                 </button>
-                <button class="tab-btn px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2" data-tab="services">
+                <button
+                    class="tab-btn px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2"
+                    data-tab="services">
                     <i class="fas fa-wrench"></i> Services
                 </button>
-                <button class="tab-btn px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2" data-tab="payments">
+                <button
+                    class="tab-btn px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2"
+                    data-tab="payments">
                     <i class="fas fa-money-bill-wave"></i> Payments
                 </button>
             </div>
@@ -572,13 +633,15 @@
                                 <p id="info-address-line2" class="font-medium text-gray-700"></p>
                                 <p id="info-address-city-state" class="font-bold text-gray-800"></p>
                                 <p id="info-address-pincode" class="font-medium text-gray-600"></p>
-                                <p id="info-address-country" class="text-sm text-gray-500 mt-2 uppercase tracking-wide"></p>
+                                <p id="info-address-country" class="text-sm text-gray-500 mt-2 uppercase tracking-wide">
+                                </p>
                             </div>
                         </div>
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Internal Notes</h3>
-                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 italic text-gray-600" id="info-remarks">
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 italic text-gray-600"
+                            id="info-remarks">
                             No notes available for this customer.
                         </div>
                     </div>
@@ -671,36 +734,46 @@
     <div id="customer-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 modal-overlay flex items-center justify-center p-4">
             <div class="bg-white modal-card-premium w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+                <div
+                    class="px-8 py-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
                     <h2 id="modal-title" class="text-xl font-bold text-slate-800">Edit Customer</h2>
-                    <button id="close-modal" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                    <button id="close-modal"
+                        class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200">
                         <i class="fas fa-times text-lg"></i>
                     </button>
                 </div>
                 <form id="customer-form" class="p-8 space-y-6">
                     <input type="hidden" id="customer-id">
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <!-- Basic Info -->
                         <div class="space-y-5">
                             <h3 class="form-section-header">Basic Information</h3>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">First Name <span class="text-red-500">*</span></label>
-                                    <input type="text" name="customer.first_name" required class="w-full px-4 py-2.5 form-input-premium">
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">First Name <span
+                                            class="text-red-500">*</span></label>
+                                    <input type="text" name="customer.first_name" required
+                                        class="w-full px-4 py-2.5 form-input-premium">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">Last Name</label>
-                                    <input type="text" name="customer.last_name" class="w-full px-4 py-2.5 form-input-premium">
+                                    <input type="text" name="customer.last_name"
+                                        class="w-full px-4 py-2.5 form-input-premium">
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Phone Number <span class="text-red-500">*</span></label>
-                                <input type="tel" name="customer.phone" required pattern="[0-9]{10}" maxlength="10" title="Please enter a 10-digit phone number" class="w-full px-4 py-2.5 form-input-premium" placeholder="e.g. 9876543210">
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Phone Number <span
+                                        class="text-red-500">*</span></label>
+                                <input type="tel" name="customer.phone" required pattern="[0-9]{10}" maxlength="10"
+                                    title="Please enter a 10-digit phone number"
+                                    class="w-full px-4 py-2.5 form-input-premium">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">Alternate Phone</label>
-                                <input type="tel" name="customer.alternate_phone" pattern="[0-9]{10}" maxlength="10" title="Please enter a 10-digit phone number" class="w-full px-4 py-2.5 form-input-premium">
+                                <input type="tel" name="customer.alternate_phone" pattern="[0-9]{10}" maxlength="10"
+                                    title="Please enter a 10-digit phone number"
+                                    class="w-full px-4 py-2.5 form-input-premium">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">Email Address</label>
@@ -708,7 +781,9 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">GST Number</label>
-                                <input type="text" name="gstin" id="gstin-input" pattern="^[0-9a-zA-Z]{15}$" maxlength="15" title="Please enter a valid 15-digit GSTIN (e.g. 29ABCDE1234F1Z5)" class="w-full px-4 py-2.5 form-input-premium" placeholder="15-digit GSTIN">
+                                <input type="text" name="gstin" id="gstin-input" pattern="^[0-9a-zA-Z]{15}$"
+                                    maxlength="15" title="Please enter a valid 15-digit GSTIN (e.g. 29ABCDE1234F1Z5)"
+                                    class="w-full px-4 py-2.5 form-input-premium">
                             </div>
                         </div>
 
@@ -732,7 +807,8 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">Notes / Remarks</label>
-                                <textarea name="remarks" rows="4" class="w-full px-4 py-2.5 form-input-premium resize-none"></textarea>
+                                <textarea name="remarks" rows="4"
+                                    class="w-full px-4 py-2.5 form-input-premium resize-none"></textarea>
                             </div>
                         </div>
 
@@ -741,21 +817,27 @@
                             <h3 class="form-section-header">Address Information</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Address Line 1</label>
-                                    <input type="text" name="billing_address.line1" class="w-full px-4 py-2.5 form-input-premium">
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Address Line
+                                        1</label>
+                                    <input type="text" name="billing_address.line1"
+                                        class="w-full px-4 py-2.5 form-input-premium">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Address Line 2</label>
-                                    <input type="text" name="billing_address.line2" class="w-full px-4 py-2.5 form-input-premium">
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Address Line
+                                        2</label>
+                                    <input type="text" name="billing_address.line2"
+                                        class="w-full px-4 py-2.5 form-input-premium">
                                 </div>
                                 <div class="grid grid-cols-5 gap-4 md:col-span-2">
                                     <div class="col-span-2">
                                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">City</label>
-                                        <input type="text" name="billing_address.city" class="w-full px-4 py-2.5 form-input-premium">
+                                        <input type="text" name="billing_address.city"
+                                            class="w-full px-4 py-2.5 form-input-premium">
                                     </div>
                                     <div class="col-span-2">
                                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">State</label>
-                                        <select name="billing_address.state" class="w-full px-4 py-2.5 form-input-premium bg-white">
+                                        <select name="billing_address.state"
+                                            class="w-full px-4 py-2.5 form-input-premium bg-white">
                                             <option value="Andhra Pradesh">Andhra Pradesh</option>
                                             <option value="Arunachal Pradesh">Arunachal Pradesh</option>
                                             <option value="Assam">Assam</option>
@@ -784,9 +866,11 @@
                                             <option value="Uttar Pradesh">Uttar Pradesh</option>
                                             <option value="Uttarakhand">Uttarakhand</option>
                                             <option value="West Bengal">West Bengal</option>
-                                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands
+                                            </option>
                                             <option value="Chandigarh">Chandigarh</option>
-                                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar
+                                                Haveli and Daman and Diu</option>
                                             <option value="Delhi">Delhi</option>
                                             <option value="Jammu and Kashmir">Jammu and Kashmir</option>
                                             <option value="Ladakh">Ladakh</option>
@@ -796,16 +880,22 @@
                                     </div>
                                     <div class="col-span-1">
                                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Pincode</label>
-                                        <input type="text" name="billing_address.pincode" pattern="[0-9]{6}" maxlength="6" title="Please enter a 6-digit pincode" class="w-full px-4 py-2.5 form-input-premium">
+                                        <input type="text" name="billing_address.pincode" pattern="[0-9]{6}"
+                                            maxlength="6" title="Please enter a 6-digit pincode"
+                                            class="w-full px-4 py-2.5 form-input-premium">
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="pt-6 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white/95 backdrop-blur-md z-10">
-                        <button type="button" id="cancel-btn" class="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all duration-200">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-1 shadow-sm hover:shadow transition-all duration-200">Save Changes</button>
+                    <div
+                        class="pt-6 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white/95 backdrop-blur-md z-10">
+                        <button type="button" id="cancel-btn"
+                            class="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all duration-200">Cancel</button>
+                        <button type="submit"
+                            class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-1 shadow-sm hover:shadow transition-all duration-200">Save
+                            Changes</button>
                     </div>
                 </form>
             </div>
@@ -813,22 +903,30 @@
     </div>
 
     <!-- Export Modal -->
-    <div id="export-modal" class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center hidden opacity-0 transition-opacity duration-200" role="dialog" aria-modal="true">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl p-6 w-[420px] scale-95 opacity-0 transition-all duration-200 transform" id="export-modal-card">
+    <div id="export-modal"
+        class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center hidden opacity-0 transition-opacity duration-200"
+        role="dialog" aria-modal="true">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl p-6 w-[420px] scale-95 opacity-0 transition-all duration-200 transform"
+            id="export-modal-card">
             <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
                 <h3 class="font-extrabold text-slate-800 text-lg">Export Customer Data</h3>
-                <button id="close-export-modal" class="text-slate-400 hover:text-slate-600 focus:outline-none w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors">
+                <button id="close-export-modal"
+                    class="text-slate-400 hover:text-slate-600 focus:outline-none w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
-            <p class="text-xs text-slate-500 mb-5 leading-relaxed">Choose your preferred file format to download this customer's profile, contact info, transactions, and complete service histories.</p>
-            
+
+            <p class="text-xs text-slate-500 mb-5 leading-relaxed">Choose your preferred file format to download this
+                customer's profile, contact info, transactions, and complete service histories.</p>
+
             <div class="space-y-3 mb-6">
                 <!-- PDF option -->
-                <button data-format="pdf" class="export-opt-btn w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-xl flex items-center justify-between transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left active:scale-[0.99] cursor-pointer">
+                <button data-format="pdf"
+                    class="export-opt-btn w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-xl flex items-center justify-between transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left active:scale-[0.99] cursor-pointer">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center text-sm font-bold shadow-sm">PDF</div>
+                        <div
+                            class="w-10 h-10 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center text-sm font-bold shadow-sm">
+                            PDF</div>
                         <div>
                             <p class="text-xs font-bold text-slate-800">Portable Document Format (.pdf)</p>
                             <p class="text-[10px] text-slate-400 mt-0.5">Best for official summaries and printing</p>
@@ -837,38 +935,51 @@
                     <i class="fas fa-chevron-right text-xs text-slate-400"></i>
                 </button>
                 <!-- Excel option -->
-                <button data-format="excel" class="export-opt-btn w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-xl flex items-center justify-between transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left active:scale-[0.99] cursor-pointer">
+                <button data-format="excel"
+                    class="export-opt-btn w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-xl flex items-center justify-between transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left active:scale-[0.99] cursor-pointer">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm">XLS</div>
+                        <div
+                            class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm">
+                            XLS</div>
                         <div>
                             <p class="text-xs font-bold text-slate-800">Microsoft Excel Spreadsheet (.xlsx)</p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Best for detailed ledger analysis & calculations</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Best for detailed ledger analysis &
+                                calculations</p>
                         </div>
                     </div>
                     <i class="fas fa-chevron-right text-xs text-slate-400"></i>
                 </button>
             </div>
-            
+
             <div class="flex justify-end gap-2.5 pt-4 border-t border-slate-100">
-                <button id="cancel-export-btn" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer">Close</button>
+                <button id="cancel-export-btn"
+                    class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer">Close</button>
             </div>
         </div>
     </div>
 
     <!-- Archive Modal -->
-    <div id="archive-modal" class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center hidden opacity-0 transition-opacity duration-200" role="dialog" aria-modal="true">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl p-6 w-[400px] scale-95 opacity-0 transition-all duration-200 transform" id="archive-modal-card">
+    <div id="archive-modal"
+        class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center hidden opacity-0 transition-opacity duration-200"
+        role="dialog" aria-modal="true">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl p-6 w-[400px] scale-95 opacity-0 transition-all duration-200 transform"
+            id="archive-modal-card">
             <div class="flex flex-col items-center text-center mb-5">
-                <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-100 text-amber-500 flex items-center justify-center text-lg mb-3 shadow-sm">
+                <div
+                    class="w-12 h-12 rounded-full bg-amber-50 border border-amber-100 text-amber-500 flex items-center justify-center text-lg mb-3 shadow-sm">
                     <i class="fas fa-archive"></i>
                 </div>
                 <h3 class="font-extrabold text-slate-800 text-lg">Archive Customer?</h3>
-                <p class="text-xs text-slate-500 mt-2 leading-relaxed px-2">This customer will be hidden from active records but can be restored later. All quotations, invoices, and payment histories will be fully preserved.</p>
+                <p class="text-xs text-slate-500 mt-2 leading-relaxed px-2">This customer will be hidden from active
+                    records but can be restored later. All quotations, invoices, and payment histories will be fully
+                    preserved.</p>
             </div>
-            
+
             <div class="flex gap-3 pt-3 border-t border-slate-100">
-                <button id="cancel-archive-btn" class="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer">Cancel</button>
-                <button id="confirm-archive-btn" class="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer">
+                <button id="cancel-archive-btn"
+                    class="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer">Cancel</button>
+                <button id="confirm-archive-btn"
+                    class="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer">
                     <span id="archive-btn-text">Archive Customer</span>
                     <i id="archive-btn-spinner" class="fas fa-spinner fa-spin hidden"></i>
                 </button>
@@ -890,5 +1001,5 @@
     <script src="../../dist/public/customer/src/components/details.js"></script>
     <script src="../../dist/public/customer/src/utils/keyboardShortcuts.js"></script>
 </body>
-</html>
 
+</html>
