@@ -50,13 +50,13 @@ function createAlertWindow(parentWindow, message, htmlFile) {
 // IPC handler for a simple alert (no response needed)
 ipcMain.on('show-alert1', (event, message) => {
     const parentWindow = BrowserWindow.fromWebContents(event.sender);
-    createAlertWindow(parentWindow, message, 'alert/alert1.html');
+    createAlertWindow(parentWindow, message, 'alert/notification.html');
 });
 
 // IPC handler for an alert that expects a response
 ipcMain.on('show-alert2', (event, message) => {
     const parentWindow = BrowserWindow.fromWebContents(event.sender);
-    const alertWindow = createAlertWindow(parentWindow, message, "alert/alert2.html");
+    const alertWindow = createAlertWindow(parentWindow, message, "alert/confirmation.html");
 
     // Only proceed if the window was created successfully
     if (alertWindow) {

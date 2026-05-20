@@ -58,7 +58,7 @@ function createAlertWindow(
 ipcMain.on("show-alert1", (event, message: string) => {
     const parentWindow = BrowserWindow.fromWebContents(event.sender);
     if (parentWindow) {
-        createAlertWindow(parentWindow, message, "alert/alert1.html");
+        createAlertWindow(parentWindow, message, "alert/notification.html");
     }
 });
 
@@ -67,7 +67,7 @@ ipcMain.on("show-alert2", (event, message: string) => {
     const parentWindow = BrowserWindow.fromWebContents(event.sender);
     if (!parentWindow) return;
 
-    const alertWindow = createAlertWindow(parentWindow, message, "alert/alert2.html");
+    const alertWindow = createAlertWindow(parentWindow, message, "alert/confirmation.html");
 
     if (alertWindow) {
         ipcMain.once("send-response", (_, response: unknown) => {
