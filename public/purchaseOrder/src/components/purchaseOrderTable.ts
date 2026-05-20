@@ -32,18 +32,18 @@
             div.className = "bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative doc-card";
             
             // Format ID for display
-            const poId = purchaseOrder.purchase_order_id;
+            const poId = purchaseOrder.purchase_order_no;
             
             const dateStr = (window as any).formatDateDisplay ? 
                 (window as any).formatDateDisplay(purchaseOrder.purchase_date) : 
                 new Date(purchaseOrder.purchase_date).toLocaleDateString();
                 
             const totalAmount = (window as any).formatIndian ? 
-                (window as any).formatIndian(purchaseOrder.total_amount, 2) : 
-                purchaseOrder.total_amount?.toFixed(2);
+                (window as any).formatIndian(purchaseOrder.totals?.grand_total, 2) : 
+                purchaseOrder.totals?.grand_total?.toFixed(2) || '0.00';
                 
-            const supplierName = purchaseOrder.supplier_name || 'N/A';
-            const supplierAddress = purchaseOrder.supplier_address || 'N/A';
+            const supplierName = purchaseOrder.supplier_snapshot?.name || 'N/A';
+            const supplierAddress = purchaseOrder.supplier_snapshot?.address?.line1 || 'N/A';
             
             div.innerHTML = `
                 <div class="flex justify-between items-start mb-4">
@@ -112,7 +112,7 @@
                 viewBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if ((window as any).viewPurchaseOrder) {
-                        (window as any).viewPurchaseOrder(purchaseOrder.purchase_order_id);
+                        (window as any).viewPurchaseOrder(purchaseOrder.purchase_order_no);
                     }
                 });
             }
@@ -124,7 +124,7 @@
                     e.stopPropagation();
                     sessionStorage.setItem('currentTab-status', 'update');
                     if ((window as any).openPurchaseOrder) {
-                        (window as any).openPurchaseOrder(purchaseOrder.purchase_order_id);
+                        (window as any).openPurchaseOrder(purchaseOrder.purchase_order_no);
                     }
                 });
             }
@@ -134,7 +134,7 @@
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    this.handleDelete(purchaseOrder.purchase_order_id);
+                    this.handleDelete(purchaseOrder.purchase_order_no);
                 });
             }
 

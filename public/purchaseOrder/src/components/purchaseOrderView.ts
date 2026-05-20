@@ -19,13 +19,14 @@
         const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
         const numberToWords = (window as any).numberToWords || (() => "Amount In Words");
 
-        const purchaseOrderId = purchaseOrder.purchase_order_id;
+        const purchaseOrderId = purchaseOrder.purchase_order_no;
         const purchaseDate = purchaseOrder.purchase_date;
-        const purchaseInvoiceId = purchaseOrder.purchase_invoice_id || purchaseOrderId;
-        const supplierName = purchaseOrder.supplier_name || "";
-        const supplierAddress = purchaseOrder.supplier_address || "";
-        const supplierPhone = purchaseOrder.supplier_phone || "";
-        const GSTIN = purchaseOrder.supplier_GSTIN || "";
+        const purchaseInvoiceId = purchaseOrder.purchase_invoice_no || purchaseOrderId;
+        const snapshot = purchaseOrder.supplier_snapshot || {};
+        const supplierName = snapshot.name || "";
+        const supplierAddress = snapshot.address?.line1 || "";
+        const supplierPhone = snapshot.phone || "";
+        const GSTIN = snapshot.gstin || "";
         
         let totalPrice = 0;
         let totalCGST = 0;
@@ -40,10 +41,10 @@
 
         (purchaseOrder.items || []).forEach((item: any) => {
             const description = item.description || "-";
-            const hsnSac = item.HSN_SAC || item.hsn_sac || "-";
+            const hsnSac = item.hsn_sac || item.HSN_SAC || "-";
             const qty = parseFloat(item.quantity || 0);
             const unitPrice = parseFloat(item.unit_price || 0);
-            const rate = parseFloat(item.rate || 0);
+            const rate = parseFloat(item.gst_rate || item.rate || 0);
 
             const taxableValue = qty * unitPrice;
             totalTaxableValue += taxableValue;
@@ -334,7 +335,7 @@
 
             // Fill Project Details
             const viewInvoiceId = document.getElementById('view-purchase-invoice-iD');
-            if (viewInvoiceId) viewInvoiceId.textContent = purchaseOrder.purchase_invoice_id || purchaseOrder.purchase_order_id || '-';
+            if (viewInvoiceId) viewInvoiceId.textContent = purchaseOrder.purchase_invoice_no || purchaseOrder.purchase_order_no || '-';
             
             const viewDate = document.getElementById('view-purchase-date');
             if (viewDate) {
@@ -344,20 +345,21 @@
             }
 
             // Buyer/Supplier Details
+            const snapshot = purchaseOrder.supplier_snapshot || {};
             const viewName = document.getElementById('view-supplier-name');
-            if (viewName) viewName.textContent = purchaseOrder.supplier_name || '-';
+            if (viewName) viewName.textContent = snapshot.name || '-';
             
             const viewAddress = document.getElementById('view-supplier-address');
-            if (viewAddress) viewAddress.textContent = purchaseOrder.supplier_address || '-';
+            if (viewAddress) viewAddress.textContent = snapshot.address?.line1 || '-';
             
             const viewPhone = document.getElementById('view-supplier-phone');
-            if (viewPhone) viewPhone.textContent = purchaseOrder.supplier_phone || '-';
+            if (viewPhone) viewPhone.textContent = snapshot.phone || '-';
             
             const viewEmail = document.getElementById('view-supplier-email');
-            if (viewEmail) viewEmail.textContent = purchaseOrder.supplier_email || '-';
+            if (viewEmail) viewEmail.textContent = snapshot.email || '-';
             
             const viewGstin = document.getElementById('view-buyerGSTIN');
-            if (viewGstin) viewGstin.textContent = purchaseOrder.supplier_GSTIN || '-';
+            if (viewGstin) viewGstin.textContent = snapshot.gstin || '-';
 
             // Item List - clear and populate
             const viewItemsTableBody = document.querySelector("#view-items-table tbody");
@@ -373,7 +375,7 @@
             (purchaseOrder.items || []).forEach((item: any) => {
                 const qty = parseFloat(item.quantity || 0);
                 const unitPrice = parseFloat(item.unit_price || 0);
-                const rate = parseFloat(item.rate || 0);
+                const rate = parseFloat(item.gst_rate || item.rate || 0);
                 const taxableValue = qty * unitPrice;
                 const taxAmount = (taxableValue * rate) / 100;
 
@@ -385,8 +387,8 @@
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || item.hsn_sac || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.company || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.hsn_sac || item.HSN_SAC || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.brand || item.company || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.category || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${qty}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${formatIndian(unitPrice, 2)}</td>

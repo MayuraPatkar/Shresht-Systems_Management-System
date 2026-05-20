@@ -14,8 +14,8 @@
             dateFilter: currentFilters.dateFilter,
             sortBy: currentFilters.sortBy,
             dateField: 'createdAt',
-            amountField: 'total_amount',
-            nameField: 'supplier_name',
+            amountField: 'totals.grand_total',
+            nameField: 'supplier_snapshot.name',
             customStartDate: currentFilters.customStartDate,
             customEndDate: currentFilters.customEndDate
         });

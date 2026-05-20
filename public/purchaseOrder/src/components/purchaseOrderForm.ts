@@ -441,16 +441,16 @@
             if (isClone) {
                 if ((window as any).purchaseOrderApi) {
                     const newIdData = await (window as any).purchaseOrderApi.generateId();
-                    (document.getElementById("id") as HTMLInputElement).value = newIdData.purchase_order_id;
-                    purchaseOrderId = newIdData.purchase_order_id;
+                    (document.getElementById("id") as HTMLInputElement).value = newIdData.purchase_order_no;
+                    purchaseOrderId = newIdData.purchase_order_no;
                 } else {
                     await getId();
                 }
                 const today = (window as any).getTodayForInput ? (window as any).getTodayForInput() : new Date().toISOString().split('T')[0];
                 (document.getElementById("purchase-date") as HTMLInputElement).value = today;
             } else {
-                (document.getElementById("id") as HTMLInputElement).value = purchaseOrder.purchase_order_id || "";
-                purchaseOrderId = purchaseOrder.purchase_order_id;
+                (document.getElementById("id") as HTMLInputElement).value = purchaseOrder.purchase_order_no || "";
+                purchaseOrderId = purchaseOrder.purchase_order_no;
                 
                 const purchaseDateStr = purchaseOrder.purchase_date;
                 const formattedPurchaseDate = (window as any).formatDateInput ? 
@@ -459,12 +459,13 @@
                 (document.getElementById("purchase-date") as HTMLInputElement).value = formattedPurchaseDate;
             }
 
-            (document.getElementById("purchase-invoice-id") as HTMLInputElement).value = purchaseOrder.purchase_invoice_id || purchaseOrder.purchase_order_id || "";
-            (document.getElementById("supplier-name") as HTMLInputElement).value = purchaseOrder.supplier_name || "";
-            (document.getElementById("supplier-address") as HTMLTextAreaElement).value = purchaseOrder.supplier_address || "";
-            (document.getElementById("supplier-phone") as HTMLInputElement).value = purchaseOrder.supplier_phone || "";
-            (document.getElementById("supplier-email") as HTMLInputElement).value = purchaseOrder.supplier_email || "";
-            (document.getElementById("supplier-GSTIN") as HTMLInputElement).value = purchaseOrder.supplier_GSTIN || "";
+            (document.getElementById("purchase-invoice-id") as HTMLInputElement).value = purchaseOrder.purchase_invoice_no || purchaseOrder.purchase_order_no || "";
+            const snapshot = purchaseOrder.supplier_snapshot || {};
+            (document.getElementById("supplier-name") as HTMLInputElement).value = snapshot.name || "";
+            (document.getElementById("supplier-address") as HTMLTextAreaElement).value = snapshot.address?.line1 || "";
+            (document.getElementById("supplier-phone") as HTMLInputElement).value = snapshot.phone || "";
+            (document.getElementById("supplier-email") as HTMLInputElement).value = snapshot.email || "";
+            (document.getElementById("supplier-GSTIN") as HTMLInputElement).value = snapshot.gstin || "";
 
             const itemsContainer = document.getElementById("items-container");
             const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
@@ -475,13 +476,13 @@
             let sno = 1;
             (purchaseOrder.items || []).forEach((item: any) => {
                 const description = item.description || "";
-                const hsnSac = item.HSN_SAC || item.hsn_sac || "";
-                const company = item.company || "";
-                const type = item.type || "Material";
+                const hsnSac = item.hsn_sac || item.HSN_SAC || "";
+                const company = item.brand || item.company || "";
+                const type = item.item_type || item.type || "Material";
                 const category = item.category || "";
                 const quantity = item.quantity || "";
                 const unitPrice = item.unit_price || "";
-                const rate = item.rate || "";
+                const rate = item.gst_rate || item.rate || "";
 
                 if (itemsContainer) {
                     const card = document.createElement("div");
@@ -694,8 +695,8 @@
         try {
             if ((window as any).purchaseOrderApi) {
                 const data = await (window as any).purchaseOrderApi.generateId();
-                (document.getElementById('id') as HTMLInputElement).value = data.purchase_order_id;
-                purchaseOrderId = data.purchase_order_id;
+                (document.getElementById('id') as HTMLInputElement).value = data.purchase_order_no;
+                purchaseOrderId = data.purchase_order_no;
                 if (purchaseOrderId && typeof (window as any).generatePreview === 'function') {
                     (window as any).generatePreview();
                 }
@@ -703,8 +704,8 @@
                 const response = await fetch("/purchaseOrder/generate-id");
                 if (!response.ok) throw new Error("Failed to fetch purchase order id");
                 const data = await response.json();
-                (document.getElementById('id') as HTMLInputElement).value = data.purchase_order_id;
-                purchaseOrderId = data.purchase_order_id;
+                (document.getElementById('id') as HTMLInputElement).value = data.purchase_order_no;
+                purchaseOrderId = data.purchase_order_no;
                 if (purchaseOrderId && typeof (window as any).generatePreview === 'function') {
                     (window as any).generatePreview();
                 }
@@ -756,14 +757,16 @@
             
             return {
                 description: (tr.querySelector("td:nth-child(2) input") as HTMLInputElement)?.value || "",
-                HSN_SAC: (tr.querySelector("td:nth-child(3) input") as HTMLInputElement)?.value || "",
-                company: (tr.querySelector("td:nth-child(4) input") as HTMLInputElement)?.value || "",
-                type: (tr.querySelector("td:nth-child(5) select") as HTMLSelectElement)?.value || "Material",
+                hsn_sac: (tr.querySelector("td:nth-child(3) input") as HTMLInputElement)?.value || "",
+                brand: (tr.querySelector("td:nth-child(4) input") as HTMLInputElement)?.value || "",
+                item_type: (tr.querySelector("td:nth-child(5) select") as HTMLSelectElement)?.value || "Material",
                 category: (tr.querySelector("td:nth-child(6) input") as HTMLInputElement)?.value || "",
-                quantity: (tr.querySelector("td:nth-child(7) input") as HTMLInputElement)?.value || "",
-                unit_price: (tr.querySelector("td:nth-child(8) input") as HTMLInputElement)?.value || "",
-                rate: (tr.querySelector("td:nth-child(9) input") as HTMLInputElement)?.value || "",
-                specification: specRow ? (specRow.querySelector("td:nth-child(3) input") as HTMLInputElement)?.value || "" : ""
+                quantity: parseFloat((tr.querySelector("td:nth-child(7) input") as HTMLInputElement)?.value || "0") || "",
+                unit_price: parseFloat((tr.querySelector("td:nth-child(8) input") as HTMLInputElement)?.value || "0") || "",
+                gst_rate: parseFloat((tr.querySelector("td:nth-child(9) input") as HTMLInputElement)?.value || "0") || "",
+                specification: specRow ? (specRow.querySelector("td:nth-child(3) input") as HTMLInputElement)?.value || "" : "",
+                taxable_value: taxableValue,
+                total: taxableValue + taxAmount
             };
         });
         
@@ -771,16 +774,20 @@
         const roundedTotal = totalVal + roundOff;
 
         return {
-            purchaseOrderId: (document.getElementById("id") as HTMLInputElement)?.value || "",
-            purchaseInvoiceId: (document.getElementById("purchase-invoice-id") as HTMLInputElement)?.value || "",
-            purchaseDate: (document.getElementById("purchase-date") as HTMLInputElement)?.value || "",
-            supplierName: (document.getElementById("supplier-name") as HTMLInputElement)?.value || "",
-            supplierAddress: (document.getElementById("supplier-address") as HTMLTextAreaElement)?.value || "",
-            supplierPhone: (document.getElementById("supplier-phone") as HTMLInputElement)?.value || "",
-            supplierEmail: (document.getElementById("supplier-email") as HTMLInputElement)?.value || "",
-            supplierGSTIN: (document.getElementById("supplier-GSTIN") as HTMLInputElement)?.value || "",
+            purchase_order_no: (document.getElementById("id") as HTMLInputElement)?.value || "",
+            purchase_invoice_no: (document.getElementById("purchase-invoice-id") as HTMLInputElement)?.value || "",
+            purchase_date: (document.getElementById("purchase-date") as HTMLInputElement)?.value || "",
+            supplier_snapshot: {
+                name: (document.getElementById("supplier-name") as HTMLInputElement)?.value || "",
+                address: { line1: (document.getElementById("supplier-address") as HTMLTextAreaElement)?.value || "" },
+                phone: (document.getElementById("supplier-phone") as HTMLInputElement)?.value || "",
+                email: (document.getElementById("supplier-email") as HTMLInputElement)?.value || "",
+                gstin: (document.getElementById("supplier-GSTIN") as HTMLInputElement)?.value || ""
+            },
             items: itemsList,
-            totalAmount: roundedTotal
+            totals: {
+                grand_total: roundedTotal
+            }
         };
     }
 
@@ -1216,22 +1223,8 @@
                     if (!idInput || !idInput.value) {
                         await getId(); 
                     } else if (typeof (window as any).generatePurchaseOrderViewPreview === 'function') {
-                        // We use the view generator instead of redefining generatePreview
                         const formData = collectFormData();
-                        // Transform the form data into the backend shape for preview
-                        const previewData = {
-                            ...formData,
-                            purchase_order_id: formData.purchaseOrderId,
-                            purchase_invoice_id: formData.purchaseInvoiceId,
-                            purchase_date: formData.purchaseDate,
-                            supplier_name: formData.supplierName,
-                            supplier_address: formData.supplierAddress,
-                            supplier_phone: formData.supplierPhone,
-                            supplier_email: formData.supplierEmail,
-                            supplier_GSTIN: formData.supplierGSTIN,
-                            total_amount: formData.totalAmount
-                        };
-                        await (window as any).generatePurchaseOrderViewPreview(previewData);
+                        await (window as any).generatePurchaseOrderViewPreview(formData);
                     }
                 }
             });
@@ -1274,19 +1267,7 @@
     (window as any).generatePreview = async () => {
         if (typeof (window as any).generatePurchaseOrderViewPreview === 'function') {
             const formData = collectFormData();
-            const previewData = {
-                ...formData,
-                purchase_order_id: formData.purchaseOrderId,
-                purchase_invoice_id: formData.purchaseInvoiceId,
-                purchase_date: formData.purchaseDate,
-                supplier_name: formData.supplierName,
-                supplier_address: formData.supplierAddress,
-                supplier_phone: formData.supplierPhone,
-                supplier_email: formData.supplierEmail,
-                supplier_GSTIN: formData.supplierGSTIN,
-                total_amount: formData.totalAmount
-            };
-            await (window as any).generatePurchaseOrderViewPreview(previewData);
+            await (window as any).generatePurchaseOrderViewPreview(formData);
         }
     };
 })();
