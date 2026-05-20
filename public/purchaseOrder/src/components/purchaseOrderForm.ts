@@ -152,7 +152,8 @@
         try {
             const response = await fetch("/purchaseOrder/suppliers/list");
             if (!response.ok) throw new Error("Failed to fetch suppliers");
-            supplierData = await response.json();
+            const resData = await response.json();
+            supplierData = resData.suppliers || [];
             supplierNames = supplierData.map(c => c.name);
         } catch (error) {
             console.error("Error fetching suppliers:", error);
