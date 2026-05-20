@@ -5,34 +5,26 @@
 
     const PURCHASEORDER_SHORTCUT_GROUPS = [
         {
-            title: "Global Actions",
+            title: 'Navigation',
+            icon: 'fas fa-arrows-alt text-blue-600',
             items: [
-                { keys: [modKey, "N"], description: "New Purchase Order" },
-                { keys: [modKey, "F"], description: "Search Purchase Orders" },
-                { keys: ["?"], description: "Show Keyboard Shortcuts" },
-                { keys: ["Esc"], description: "Close Modal / Cancel" }
+                { label: 'Next Step', keys: ['Enter'] },
+                { label: 'Previous Step', keys: ['Backspace'] },
+                { label: 'Exit/Cancel', keys: ['Esc'] }
             ]
         },
         {
-            title: "Navigation",
+            title: 'Actions',
+            icon: 'fas fa-bolt text-yellow-600',
             items: [
-                { keys: [modKey, "H"], description: "Go to Home / Back" },
-                { keys: ["Enter"], description: "Next Step / Confirm" },
-            ]
-        },
-        {
-            title: "Form Actions",
-            items: [
-                { keys: [modKey, "S"], description: "Save Purchase Order" },
-                { keys: [modKey, "I"], description: "Add Item (when on Items step)" },
-                { keys: ["Esc"], description: "Close Suggestions" }
-            ]
-        },
-        {
-            title: "Document Actions",
-            items: [
-                { keys: [modKey, "P"], description: "Print Current Purchase Order" },
-                { keys: [modKey, "Shift", "P"], description: "Save as PDF" }
+                { label: 'New Purchase', keys: ['Ctrl', 'N'] },
+                { label: 'Save Purchase', keys: ['Ctrl', 'S'] },
+                { label: 'View Preview', keys: ['Ctrl', 'P'] },
+                { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
+                { label: 'Add Item', keys: ['Ctrl', 'I'] },
+                { label: 'Delete Item', keys: ['Ctrl', 'Delete'] },
+                { label: 'Go Home', keys: ['Ctrl', 'H'] },
+                { label: 'Focus Search', keys: ['Ctrl', 'F'] }
             ]
         }
     ];
@@ -67,34 +59,36 @@
         }
     }
 
-    function renderShortcutSection(section) {
+    function renderShortcutSection(section: any) {
         return `
-            <div class="mb-6 last:mb-0">
-                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">${section.title}</h3>
-                <div class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+            <div class="shortcuts-section">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <i class="${section.icon}"></i>
+                    ${section.title}
+                </h3>
+                <div class="space-y-2">
                     ${section.items.map(renderShortcutRow).join('')}
                 </div>
             </div>
         `;
     }
 
-    function renderShortcutRow(item) {
+    function renderShortcutRow(item: any) {
         return `
-            <div class="flex items-center justify-between p-3 border-b border-gray-200 last:border-b-0 hover:bg-gray-100 transition-colors">
-                <span class="text-gray-700">${item.description}</span>
-                <div class="flex gap-1">
-                    ${renderShortcutKeys(item.keys)}
-                </div>
+            <div class="shortcut-row">
+                <span class="text-gray-700">${item.label}</span>
+                ${renderShortcutKeys(item.keys)}
             </div>
         `;
     }
 
-    function renderShortcutKeys(keys) {
-        return keys.map(key => `
-            <kbd class="px-2 py-1 bg-white border border-gray-300 rounded shadow-sm text-xs font-mono font-semibold text-gray-600">
-                ${key}
-            </kbd>
-        `).join('<span class="text-gray-400 mx-1">+</span>');
+    function renderShortcutKeys(keys: string[]) {
+        const keyCaps = keys.map((key, index) => {
+            const displayKey = key === 'Ctrl' && isMac ? 'Cmd' : key;
+            const separator = index > 0 ? '<span>+</span>' : '';
+            return `${separator}<kbd>${displayKey}</kbd>`;
+        }).join('');
+        return `<div class="shortcut-keys">${keyCaps}</div>`;
     }
 
     function showShortcutsModal() {
@@ -233,7 +227,7 @@
         const key = event.key.toLowerCase();
 
         // Check for '?' key to show shortcuts (only if not typing in an input)
-        if (key === '?' && !isTypingContext() && !isCtrl && !isShift) {
+        if (key === '?' && !isTypingContext() && !isCtrl) {
             event.preventDefault();
             showShortcutsModal();
             return;
@@ -242,12 +236,16 @@
         // Handle Escape
         if (key === 'escape') {
             if (shortcutsModalRef && !shortcutsModalRef.classList.contains('hidden')) {
+                event.preventDefault();
+                event.stopPropagation();
                 hideShortcutsModal();
                 return;
             }
             
             const filterPopover = document.getElementById('filter-popover');
             if (filterPopover && !filterPopover.classList.contains('hidden')) {
+                event.preventDefault();
+                event.stopPropagation();
                 filterPopover.classList.add('hidden');
                 return;
             }
@@ -256,6 +254,15 @@
                 (window as any).closeAllSuggestions();
             }
             
+            if (isHomeScreenActive()) {
+                event.preventDefault();
+                event.stopPropagation();
+                window.location.href = '/dashboard';
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
             if (document.activeElement && (document.activeElement as HTMLElement).blur) {
                 (document.activeElement as HTMLElement).blur();
             }
@@ -353,7 +360,7 @@
     }
 
     // Set up document-level keydown listener
-    document.addEventListener('keydown', handlePurchaseOrderKeyboardShortcuts);
+    document.addEventListener('keydown', handlePurchaseOrderKeyboardShortcuts, true);
 
     (window as any).initPurchaseOrderShortcutsModal = initShortcutsModal;
 })();

@@ -263,6 +263,8 @@
                 items[selectedSupplierIndex].click();
             }
         } else if (event.key === "Escape") {
+            event.preventDefault();
+            event.stopPropagation();
             suggestionsContainer.style.display = "none";
         }
     }
@@ -334,6 +336,12 @@
                 input.value = items[(window as any).selectedIndex].textContent || "";
                 suggestionsList.style.display = "none";
                 await fillPurchaseOrderItem(input.value, input);
+            }
+        } else if (event.key === "Escape") {
+            if (suggestionsList.style.display !== "none") {
+                event.preventDefault();
+                event.stopPropagation();
+                suggestionsList.style.display = "none";
             }
         }
         
