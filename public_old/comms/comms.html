@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communication</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            /* Prevent body scroll */
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            overflow-y: auto;
+            /* Enable sidebar scroll */
+            overflow-x: hidden;
+        }
+
+        /* Main content scrolling */
+        main {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Custom scrollbar styling */
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-section {
+            min-height: calc(100vh - 11rem);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Unified Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Communication</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24">
+        <!-- Navigation Links -->
+        <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+            <div class="flex flex-col gap-2">
+                <a href="#"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-th-large w-8 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../quotation/quotation.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-alt w-8 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="../purchaseOrder/purchaseOrder.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
+                    <span>Purchase Order</span>
+                </a>
+                <a href="../invoice/invoice.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                    <span>Invoice</span>
+                </a>
+                <a href="../ewaybill/eWayBill.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-route w-8 text-center"></i>
+                    <span>E-Way Bill</span>
+                </a>
+                <a href="../service/service.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-wrench w-8 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="../stock/stock.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-box w-8 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="../comms/comms.html"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-comments w-8 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="../reports/reports.html" id="reports"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-chart-bar w-8 text-center"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="../calculations/calculations.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-calculator w-8 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="../settings/settings.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-cog w-8 text-center"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-[280px] pt-24 mt-6 p-8 content-section">
+
+        <!-- Quick Info Banner -->
+        <div class="rounded-lg shadow-lg p-4 mb-6 fade-in"
+            style="background: linear-gradient(to right, #9333ea, #4f46e5);">
+            <div class="flex items-center justify-between flex-wrap gap-4" style="color: white;">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <i class="fas fa-info-circle text-2xl flex-shrink-0"></i>
+                    <div class="min-w-0">
+                        <h3 class="font-semibold text-lg">Communication Center</h3>
+                        <p class="text-sm" style="opacity: 0.9;">Send payment reminders, invoices, quotations, and
+                            custom messages via WhatsApp</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 px-4 py-2 rounded-lg flex-shrink-0"
+                    style="background: rgba(255,255,255,0.2);">
+                    <i class="fas fa-sync-alt"></i>
+                    <span class="text-sm font-medium whitespace-nowrap">Auto-refresh every 30s</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Reminder Section -->
+        <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6 fade-in">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                <i class="fas fa-bell text-red-600 text-2xl"></i>
+                <h2 class="text-xl font-semibold text-gray-800">Payment Reminder</h2>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="bg-red-50 rounded-lg p-6 mb-6 border border-red-200">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-red-100 p-4 rounded-full">
+                            <i class="fas fa-exclamation-circle text-red-600 text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-medium">Total Unpaid Projects</p>
+                            <p class="text-3xl font-bold text-red-600" id="total-unpaid">0</p>
+                        </div>
+                    </div>
+                    <button id="send-automated-reminders"
+                        class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 flex items-center gap-2 cursor-not-allowed opacity-70">
+                        <i class="fas fa-paper-plane"></i>
+                        Send Automated Reminders
+                    </button>
+                </div>
+            </div>
+
+            <!-- Manual Reminder Form -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-hand-pointer text-orange-600"></i>
+                    Send Manual Reminder
+                </h3>
+                <form id="manual-reminder-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="manual-phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number
+                        </label>
+                        <input type="tel" id="manual-phone" name="manual-phone"
+                            placeholder="e.g., 9876543210 or +919876543210" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="manual-invoice-id" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-file-invoice text-gray-500 mr-1"></i>Invoice ID
+                        </label>
+                        <input type="text" id="manual-invoice-id" name="manual-invoice-id"
+                            placeholder="Enter invoice ID" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" id="manual-reminder-submit"
+                            class="w-full bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Reminder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Send Message Section -->
+        <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6 fade-in">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                <i class="fas fa-envelope text-purple-600 text-2xl"></i>
+                <h2 class="text-xl font-semibold text-gray-800">Send Message</h2>
+            </div>
+            <form id="send-message-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="message-phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number
+                        </label>
+                        <input type="tel" id="message-phone" placeholder="e.g., 9876543210 or +919876543210" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div>
+                    <label for="message-content" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-comment-dots text-gray-500 mr-1"></i>Message
+                    </label>
+                    <textarea id="message-content" rows="4" placeholder="Enter your message here..." required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+                </div>
+                <button type="submit"
+                    class="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Message
+                </button>
+            </form>
+        </section>
+
+        <!-- Send Invoice and Quotation -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Send Invoice Section -->
+            <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                    <i class="fas fa-file-invoice-dollar text-green-600 text-2xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Send Invoice</h2>
+                </div>
+                <form id="send-invoice-form" class="space-y-4">
+                    <div>
+                        <label for="invoice-phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number
+                        </label>
+                        <input type="tel" id="invoice-phone" name="invoice-phone"
+                            placeholder="e.g., 9876543210 or +919876543210" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="invoice-id" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-hashtag text-gray-500 mr-1"></i>Invoice ID
+                        </label>
+                        <input type="text" id="invoice-id" name="invoice-id" placeholder="Enter Invoice ID" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-paper-plane"></i>
+                        Send Invoice
+                    </button>
+                </form>
+            </section>
+
+            <!-- Send Quotation Section -->
+            <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                    <i class="fas fa-file-alt text-blue-600 text-2xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Send Quotation</h2>
+                </div>
+                <form id="send-quotation-form" class="space-y-4">
+                    <div>
+                        <label for="quotation-phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number
+                        </label>
+                        <input type="tel" id="quotation-phone" name="quotation-phone"
+                            placeholder="e.g., 9876543210 or +919876543210" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="quotation-id" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-hashtag text-gray-500 mr-1"></i>Quotation ID
+                        </label>
+                        <input type="text" id="quotation-id" name="quotation-id" placeholder="Enter Quotation ID"
+                            required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-paper-plane"></i>
+                        Send Quotation
+                    </button>
+                </form>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Scripts -->
+    <!-- Shared utilities -->
+    <script src="../js/shared/utils.js"></script>
+    <script src="../js/shared/calculations.js"></script>
+    <script src="../js/shared/ipc.js"></script>
+    <script src="../js/shared/globalScript.js"></script>
+
+    <!-- Module-specific scripts -->
+    <script src="./comms.js"></script>
+</body>
+
+</html>
