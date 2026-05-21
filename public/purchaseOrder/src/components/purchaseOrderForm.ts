@@ -1,5 +1,18 @@
 // @ts-nocheck
 (function () {
+    // Define totalSteps globally for purchaseOrder
+    (window as any).totalSteps = 4;
+    
+    // Bind currentStep property on window to sync with the global declarative currentStep
+    declare let currentStep: number;
+    if (typeof (window as any).currentStep === 'undefined') {
+        Object.defineProperty(window, 'currentStep', {
+            get: () => currentStep,
+            set: (val) => { currentStep = val; },
+            configurable: true
+        });
+    }
+
     let purchaseOrderId = '';
     let totalAmount = 0;
     
@@ -1191,7 +1204,7 @@
     };
 
     // Replace default next button handler
-    document.addEventListener('DOMContentLoaded', () => {
+    const initializeForm = () => {
         // Run fetch operations
         fetchSuppliers();
         fetchCompanyAndCategorySuggestions();
@@ -1279,7 +1292,13 @@
         if ((window as any).itemReorder && typeof (window as any).itemReorder.initDragDrop === 'function') {
             (window as any).itemReorder.initDragDrop('items-container', renumberItems);
         }
-    });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeForm);
+    } else {
+        initializeForm();
+    }
 
     // Expose functionality to window
     (window as any).openPurchaseOrder = openPurchaseOrder;

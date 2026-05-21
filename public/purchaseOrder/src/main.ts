@@ -1,6 +1,6 @@
 // @ts-nocheck
 (function () {
-    document.addEventListener('DOMContentLoaded', () => {
+    const initializeMain = () => {
         // Initialize filters
         if ((window as any).initPurchaseOrderFilters) {
             (window as any).initPurchaseOrderFilters();
@@ -68,7 +68,13 @@
             // Clean up URL without reloading
             window.history.replaceState({}, document.title, window.location.pathname);
         }
-    });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeMain);
+    } else {
+        initializeMain();
+    }
 
     async function loadRecentPurchaseOrders() {
         try {

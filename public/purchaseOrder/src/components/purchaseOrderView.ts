@@ -284,7 +284,7 @@
     }
 
     // Print handlers
-    document.addEventListener('DOMContentLoaded', () => {
+    const initializeView = () => {
         const printBtn = document.getElementById('print-project');
         if (printBtn) {
             printBtn.addEventListener('click', () => {
@@ -316,7 +316,13 @@
                 }
             });
         }
-    });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeView);
+    } else {
+        initializeView();
+    }
 
     async function viewPurchaseOrder(purchaseOrderId: string) {
         try {
