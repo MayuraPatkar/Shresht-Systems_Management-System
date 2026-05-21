@@ -631,6 +631,11 @@ const openInvoice = async function (id: string) {
             idInput.value = invoice.invoice_id;
         }
 
+        const statusSelect = document.getElementById('invoice-status') as HTMLSelectElement | null;
+        if (statusSelect) {
+            statusSelect.value = getInvoiceStatus(invoice);
+        }
+
         const quotationIdInput = document.getElementById('quotation-id') as HTMLInputElement | null;
         if (quotationIdInput) quotationIdInput.value = invoice.quotation_id || '';
         const invoiceDateInput = document.getElementById('invoice-date') as HTMLInputElement;
@@ -1421,11 +1426,13 @@ const collectFormData = function () {
     const consigneeAddressInput = document.getElementById("consignee-address") as HTMLInputElement;
 
     const buyerCustomerIdInput = document.getElementById("buyer-customer-id") as HTMLInputElement | null;
+    const statusInput = document.getElementById("invoice-status") as HTMLSelectElement | null;
 
     return {
         type: sessionStorage.getItem('update-invoice'),
         projectName: document.getElementById("project-name") ? (document.getElementById("project-name") as HTMLInputElement).value : '',
         invoiceId: idInput ? idInput.value : '',
+        status: statusInput ? statusInput.value as InvoiceStatus : undefined,
         buyerCustomerId: buyerCustomerIdInput ? buyerCustomerIdInput.value : '',
         quotationId: quoteIdInput ? quoteIdInput.value : '',
         invoiceDate: invDateInput ? invDateInput.value : '',

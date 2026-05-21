@@ -87,6 +87,29 @@ export interface ITotals {
 }
 
 /**
+ * Invoice Status enum
+ */
+export enum InvoiceStatus {
+    DRAFT = 'DRAFT',
+    SENT = 'SENT',
+    OVERDUE = 'OVERDUE',
+    PARTIALLY_PAID = 'PARTIALLY_PAID',
+    PAID = 'PAID',
+    CANCELLED = 'CANCELLED',
+    REFUNDED = 'REFUNDED'
+}
+
+/**
+ * Payment record interface
+ */
+export interface IPaymentRecord {
+    payment_date?: Date;
+    payment_mode?: string;
+    paid_amount?: number;
+    extra_details?: string;
+}
+
+/**
  * Content interface
  */
 export interface IContent {
@@ -110,6 +133,7 @@ export interface IInvoice extends Document {
     invoice_date: Date;
     due_date?: Date;
 
+    status: InvoiceStatus;
     invoice_status: "Draft" | "Issued" | "Cancelled" | "Expired";
 
     delivery_challan?: IDeliveryChallan;
@@ -148,6 +172,8 @@ export interface IInvoice extends Document {
     total_paid_amount?: number;
     payment_status?: string;
 
+    payments: IPaymentRecord[];
+
     // Legacy non-items list
     non_items_original?: any[];
     non_items_duplicate?: any[];
@@ -166,6 +192,9 @@ export interface IInvoice extends Document {
 
     createdAt: Date;
     updatedAt: Date;
+
+    // Methods
+    updatePaymentStatus(): void;
 }
 
 /**
@@ -240,7 +269,7 @@ const invoiceItemSchema = new Schema<IInvoiceItem>(
         description: { type: String, trim: true },
         hsn_sac: { type: String, trim: true },
         unit: { type: String, trim: true },
-        quantity: { type: Number, min: 1 },
+        quantity: { type: Number, min: 0 },
         unit_price: { type: Number },
         taxable_value: { type: Number },
         gst_rate: { type: Number },
@@ -346,6 +375,13 @@ const invoiceSchema = new Schema<IInvoice>(
             type: Date,
         },
 
+        status: {
+            type: String,
+            enum: Object.values(InvoiceStatus),
+            default: InvoiceStatus.DRAFT,
+            index: true,
+        },
+
         invoice_status: {
             type: String,
             enum: ["Draft", "Issued", "Cancelled", "Expired"],
@@ -418,6 +454,18 @@ const invoiceSchema = new Schema<IInvoice>(
         total_paid_amount: { type: Number, default: 0 },
         payment_status: { type: String, default: "Unpaid" },
 
+        payments: {
+            type: [
+                {
+                    payment_date: { type: Date },
+                    paid_amount: { type: Number },
+                    payment_mode: { type: String },
+                    extra_details: { type: String },
+                }
+            ],
+            default: []
+        },
+
         // Legacy non-items list
         non_items_original: { type: [Schema.Types.Mixed], default: [] },
         non_items_duplicate: { type: [Schema.Types.Mixed], default: [] },
@@ -456,6 +504,52 @@ const invoiceSchema = new Schema<IInvoice>(
         toObject: { virtuals: true },
     }
 );
+
+/**
+ * Method: update payment and lifecycle status
+ */
+invoiceSchema.methods.updatePaymentStatus = function (this: IInvoice) {
+    // Prefer duplicate total (customer-facing), fallback to original
+    const totalDue = (typeof this.total_amount_duplicate !== 'undefined' && this.total_amount_duplicate !== null)
+        ? this.total_amount_duplicate
+        : (this.total_amount_original || 0);
+    const totalPaid = this.total_paid_amount || 0;
+
+    if (totalPaid === 0) {
+        this.payment_status = 'Unpaid';
+        if (this.status === InvoiceStatus.PAID || this.status === InvoiceStatus.PARTIALLY_PAID) {
+            const isOverdue = this.due_date && new Date(this.due_date) < new Date();
+            if (this.invoice_status === 'Draft') {
+                this.status = InvoiceStatus.DRAFT;
+            } else if (isOverdue) {
+                this.status = InvoiceStatus.OVERDUE;
+            } else {
+                this.status = InvoiceStatus.SENT;
+            }
+        }
+    } else if (totalPaid >= totalDue) {
+        this.payment_status = 'Paid';
+        if (this.status !== InvoiceStatus.REFUNDED && this.status !== InvoiceStatus.CANCELLED) {
+            this.status = InvoiceStatus.PAID;
+        }
+    } else {
+        this.payment_status = 'Partial';
+        if (this.status !== InvoiceStatus.CANCELLED) {
+            this.status = InvoiceStatus.PARTIALLY_PAID;
+        }
+    }
+
+    // Keep legacy invoice_status in sync
+    if (this.status === InvoiceStatus.DRAFT) {
+        this.invoice_status = 'Draft';
+    } else if (this.status === InvoiceStatus.CANCELLED) {
+        this.invoice_status = 'Cancelled';
+    } else if (this.status === InvoiceStatus.OVERDUE) {
+        this.invoice_status = 'Expired';
+    } else {
+        this.invoice_status = 'Issued';
+    }
+};
 
 /**
  * Indexes

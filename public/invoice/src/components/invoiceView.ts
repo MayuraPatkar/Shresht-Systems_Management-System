@@ -438,6 +438,14 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
     setTextContent('view-margin', (invoice.margin !== undefined && invoice.margin !== null) ? `${invoice.margin}%` : '0%');
     setTextContent('view-payment-status', invoice.payment_status);
 
+    const statusVal = getInvoiceStatus(invoice);
+    const detail = INVOICE_STATUS_DETAILS[statusVal];
+    const statusEl = document.getElementById('view-invoice-status');
+    if (statusEl) {
+        statusEl.textContent = detail.label;
+        statusEl.className = `px-2.5 py-1 rounded-full text-xs font-semibold inline-block mt-0.5 ${detail.bgClass} ${detail.textClass}`;
+    }
+
     let viewSubtotal = 0;
     let viewTax = 0;
     let viewGrandTotal = 0;

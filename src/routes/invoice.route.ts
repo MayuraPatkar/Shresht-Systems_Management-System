@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { InvoiceModel, ItemModel, StockMovementModel } from '../models';
+import { InvoiceModel, ItemModel, StockMovementModel, InvoiceStatus } from '../models';
 import logger from '../utils/logger';
 import { asyncHandler } from '../middleware/errorHandler';
 import { previewNextId, generateNextId, syncCounterIfNeeded } from '../utils/idGenerator';
@@ -131,6 +131,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             totalTaxDuplicate = 0,
             declaration = '',
             termsAndConditions = '',
+            status,
         } = req.body;
 
         if (!projectName) {
@@ -404,6 +405,14 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 termsAndConditions: termsAndConditions
             });
 
+            if (status) {
+                existingInvoice.status = status;
+            }
+
+            if (typeof existingInvoice.updatePaymentStatus === 'function') {
+                existingInvoice.updatePaymentStatus();
+            }
+
             const updatedInvoice = await existingInvoice.save();
             return res.status(200).json({ message: 'Invoice updated successfully', invoice: updatedInvoice });
 
@@ -454,6 +463,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             const invoice = new InvoiceModel({
                 invoice_no: newId,
                 invoice_id: newId,
+                status: status || InvoiceStatus.DRAFT,
                 invoice_date: invoiceDate || new Date(),
                 project_name: projectName,
                 po_number: poNumber,
@@ -490,6 +500,10 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 termsAndConditions: termsAndConditions
             });
 
+            if (typeof invoice.updatePaymentStatus === 'function') {
+                invoice.updatePaymentStatus();
+            }
+
             const savedInvoice = await invoice.save();
 
             return res.status(201).json({
@@ -510,7 +524,7 @@ router.get("/recent-invoices", async (req: Request, res: Response) => {
         const recentInvoices = await InvoiceModel.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("project_name invoice_id customer_name customer_phone customer_address payment_status total_amount_duplicate total_paid_amount invoice_date createdAt");
+            .select("project_name invoice_id status customer_name customer_phone customer_address payment_status total_amount_duplicate total_paid_amount invoice_date createdAt");
 
         res.status(200).json({
             message: "Recent invoices retrieved successfully",

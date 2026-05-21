@@ -5,6 +5,7 @@
     "project_name": "5KW Rooftop Solar Installation",
     "invoice_date": "2026-05-01T00:00:00.000Z",
     "due_date": "2026-05-10T00:00:00.000Z",
+    "status": "SENT",
     "invoice_status": "Issued",
     "customer_snapshot": {
       "name": "Rahul Enterprises",
@@ -51,6 +52,7 @@
     "invoice_no": "INV-SEC-1002",
     "project_name": "CCTV Security Setup",
     "invoice_date": "2026-05-02T00:00:00.000Z",
+    "status": "SENT",
     "invoice_status": "Issued",
     "customer_snapshot": {
       "name": "Safe Homes",
@@ -98,6 +100,7 @@
     "invoice_no": "INV-HOME-1003",
     "project_name": "Kitchen Appliance Supply",
     "invoice_date": "2026-05-03T00:00:00.000Z",
+    "status": "DRAFT",
     "invoice_status": "Draft",
     "customer_snapshot": {
       "name": "Ananya Stores",
@@ -134,6 +137,7 @@
     "invoice_no": "INV-SOL-1004",
     "project_name": "Solar Battery Backup",
     "invoice_date": "2026-05-04T00:00:00.000Z",
+    "status": "SENT",
     "invoice_status": "Issued",
     "items_original": [
       {
@@ -165,6 +169,7 @@
     "invoice_no": "INV-SEC-1005",
     "project_name": "Biometric Access Control",
     "invoice_date": "2026-05-05T00:00:00.000Z",
+    "status": "CANCELLED",
     "invoice_status": "Cancelled",
     "items_original": [
       {
@@ -196,6 +201,7 @@
     "invoice_no": "INV-HOME-1006",
     "project_name": "Smart TV Supply",
     "invoice_date": "2026-05-06T00:00:00.000Z",
+    "status": "SENT",
     "invoice_status": "Issued",
     "items_original": [
       {
@@ -227,6 +233,7 @@
     "invoice_no": "INV-SOL-1007",
     "project_name": "Commercial Solar Grid Setup",
     "invoice_date": "2026-05-07T00:00:00.000Z",
+    "status": "OVERDUE",
     "invoice_status": "Expired",
     "items_original": [
       {
@@ -258,6 +265,7 @@
     "invoice_no": "INV-SEC-1008",
     "project_name": "Office Security Alarm System",
     "invoice_date": "2026-05-08T00:00:00.000Z",
+    "status": "SENT",
     "invoice_status": "Issued",
     "items_original": [
       {
@@ -289,6 +297,7 @@
     "invoice_no": "INV-HOME-1009",
     "project_name": "Air Conditioner Supply",
     "invoice_date": "2026-05-09T00:00:00.000Z",
+    "status": "DRAFT",
     "invoice_status": "Draft",
     "items_original": [
       {
@@ -320,6 +329,7 @@
     "invoice_no": "INV-HOME-1010",
     "project_name": "Washing Machine Delivery",
     "invoice_date": "2026-05-10T00:00:00.000Z",
+    "status": "SENT",
     "invoice_status": "Issued",
     "items_original": [
       {

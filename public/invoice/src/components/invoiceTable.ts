@@ -7,6 +7,22 @@
     const deleteInvoice = (...args: any[]) => (window as any).deleteInvoice(...args);
     const deleteDocument = (...args: any[]) => (window as any).deleteDocument(...args);
 
+    interface BoxStyle {
+        background: string;
+        border: string;
+        text: string;
+    }
+
+    const BOX_STYLES: Record<InvoiceStatus, BoxStyle> = {
+        [InvoiceStatus.DRAFT]: { background: 'linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)', border: '1px solid #e5e7eb', text: '#4b5563' },
+        [InvoiceStatus.SENT]: { background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border: '1px solid #bfdbfe', text: '#2563eb' },
+        [InvoiceStatus.OVERDUE]: { background: 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)', border: '1px solid #fecaca', text: '#dc2626' },
+        [InvoiceStatus.PARTIALLY_PAID]: { background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', border: '1px solid #fcd34d', text: '#d97706' },
+        [InvoiceStatus.PAID]: { background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', border: '1px solid #a7f3d0', text: '#059669' },
+        [InvoiceStatus.CANCELLED]: { background: 'linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)', border: '1px solid #e5e7eb', text: '#4b5563' },
+        [InvoiceStatus.REFUNDED]: { background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)', border: '1px solid #e9d5ff', text: '#7c3aed' }
+    };
+
     class InvoiceTable {
         private listDiv: HTMLElement | null = null;
 
@@ -44,8 +60,9 @@
         const invoiceCard = document.createElement("div");
         invoiceCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
 
-        const status = (invoice.payment_status || 'Unpaid');
-        const _statusNorm = String(status).toLowerCase().trim();
+        const invoiceStatus = getInvoiceStatus(invoice);
+        const detail = INVOICE_STATUS_DETAILS[invoiceStatus];
+        const boxStyle = BOX_STYLES[invoiceStatus];
 
         const paidSoFar = Number(invoice.total_paid_amount || 0);
         const effectiveTotal = (() => {
@@ -53,9 +70,6 @@
             if (dup > 0) return dup;
             return null;
         })();
-
-        let isPaid = _statusNorm === 'paid';
-        let isPartial = _statusNorm === 'partial';
 
         const computeEffectiveTotal = (inv: Invoice): number => {
             const dup = Number(inv.total_amount_duplicate || 0);
@@ -87,34 +101,12 @@
         let percentPaid = total > 0 ? Math.round((paidSoFarFinal / total) * 100) : (paidSoFarFinal > 0 ? 100 : 0);
         percentPaid = Math.max(0, Math.min(percentPaid, 100));
 
-        isPaid = false;
-        isPartial = false;
-
-        if (_statusNorm === 'partial') {
-            isPartial = true;
-        } else if (_statusNorm === 'paid') {
-            isPaid = true;
-        } else {
-            const EPS = 0.01;
-            if (total > 0) {
-                if (paidSoFarFinal + EPS >= total) {
-                    isPaid = true;
-                } else if (paidSoFarFinal > 0) {
-                    isPartial = true;
-                }
-            } else {
-                if (paidSoFarFinal > 0) {
-                    isPartial = true;
-                }
-            }
-        }
-
         const dateToFormat = invoice.invoice_date || invoice.createdAt;
         const formattedDate = dateToFormat ? ((window as any).formatDateDisplay ? (window as any).formatDateDisplay(dateToFormat) : '-') : '-';
 
         invoiceCard.innerHTML = `
             <div class="flex">
-                <div class="card-left-border w-1.5 bg-gradient-to-b ${isPaid ? 'from-green-500 to-emerald-600' : isPartial ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500'} rounded-l-lg"></div>
+                <div class="card-left-border w-1.5 bg-gradient-to-b ${detail.borderClass} rounded-l-lg"></div>
                 <div class="relative p-5 flex-1">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
@@ -124,8 +116,8 @@
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="text-lg font-bold text-gray-900 truncate max-w-[180px]" title="${invoice.project_name || ''}">${invoice.project_name || ''}</h3>
-                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge flex-shrink-0 ${isPaid ? 'bg-green-100 text-green-700' : isPartial ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}">
-                                    ${status.toUpperCase()}
+                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge flex-shrink-0 ${detail.bgClass} ${detail.textClass}">
+                                    ${detail.label.toUpperCase()}
                                 </span>
                             </div>
                         </div>
@@ -183,16 +175,16 @@
                     
                     ${userRole === 'admin' ? `
                     <div class="flex-shrink-0 ml-4">
-                        <div class="card-amount-box rounded-lg p-3 min-w-[300px]" style="background: ${isPaid ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' : isPartial ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)'}; border: 1px solid ${isPaid ? '#a7f3d0' : isPartial ? '#fcd34d' : '#fecaca'};">
+                        <div class="card-amount-box rounded-lg p-3 min-w-[300px]" style="background: ${boxStyle.background}; border: ${boxStyle.border};">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</span>
-                                <span class="text-base font-bold card-total-amount" style="color: ${isPaid ? '#059669' : '#dc2626'};">₹${formatIndian(total, 2)}</span>
+                                <span class="text-base font-bold card-total-amount" style="color: ${boxStyle.text};">₹${formatIndian(total, 2)}</span>
                             </div>
                             <div class="w-full h-1.5 rounded-full mb-2 card-progress-outer" style="background-color: ${dueAmount > 0 ? '#fecaca' : '#bbf7d0'};">
                                 <div class="h-1.5 rounded-full card-progress-fill" style="width: ${percentPaid}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
                             </div>
                             <div class="flex items-center justify-between">
-                                ${isPaid ? `
+                                ${dueAmount <= 0 ? `
                                 <span class="text-xs font-medium card-payment-label" style="color: #059669;"><i class="fas fa-check-circle mr-1"></i>Fully Paid</span>
                                 <span class="text-base font-bold card-due-amount" style="color: #059669;">₹${formatIndian(paidSoFar, 2)}</span>
                                 ` : `
@@ -314,30 +306,22 @@
                     }
 
                     if (badge) {
-                        const newStatus = (effective > 0 && paid >= effective) ? 'PAID' : (paid > 0 ? 'PARTIAL' : 'UNPAID');
-                        badge.textContent = newStatus;
-                        badge.classList.remove('bg-green-100', 'text-green-700', 'bg-yellow-100', 'text-yellow-700', 'bg-orange-100', 'text-orange-700');
-                        if (newStatus === 'PAID') badge.classList.add('bg-green-100', 'text-green-700');
-                        else if (newStatus === 'PARTIAL') badge.classList.add('bg-yellow-100', 'text-yellow-700');
-                        else badge.classList.add('bg-orange-100', 'text-orange-700');
+                        const invoiceStatus = getInvoiceStatus(full);
+                        const detail = INVOICE_STATUS_DETAILS[invoiceStatus];
+                        const boxStyle = BOX_STYLES[invoiceStatus];
+
+                        badge.textContent = detail.label.toUpperCase();
+                        badge.className = `px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge flex-shrink-0 ${detail.bgClass} ${detail.textClass}`;
 
                         const borderEl = invoiceCard.querySelector('.card-left-border');
                         if (borderEl) {
-                            borderEl.className = `card-left-border w-1.5 bg-gradient-to-b ${newStatus === 'PAID' ? 'from-green-500 to-emerald-600' : newStatus === 'PARTIAL' ? 'from-yellow-500 to-amber-500' : 'from-orange-500 to-red-500'} rounded-l-lg`;
+                            borderEl.className = `card-left-border w-1.5 bg-gradient-to-b ${detail.borderClass} rounded-l-lg`;
                         }
 
                         const amountBox = invoiceCard.querySelector('.card-amount-box') as HTMLElement | null;
                         if (amountBox) {
-                            if (newStatus === 'PAID') {
-                                amountBox.style.background = 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)';
-                                amountBox.style.border = '1px solid #a7f3d0';
-                            } else if (newStatus === 'PARTIAL') {
-                                amountBox.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
-                                amountBox.style.border = '1px solid #fcd34d';
-                            } else {
-                                amountBox.style.background = 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)';
-                                amountBox.style.border = '1px solid #fecaca';
-                            }
+                            amountBox.style.background = boxStyle.background;
+                            amountBox.style.border = boxStyle.border;
                         }
                     }
                 }

@@ -20,6 +20,7 @@
     // Filter state
     let allInvoices: Invoice[] = [];
     let currentFilters = {
+        status: 'all',
         paymentStatus: 'all',
         dateFilter: 'all',
         sortBy: 'date-desc',
@@ -175,7 +176,7 @@
     }
 
     function applyInvoiceFilters() {
-        const filtered = applyFilters(allInvoices, {
+        let filtered = applyFilters(allInvoices, {
             paymentStatus: currentFilters.paymentStatus,
             dateFilter: currentFilters.dateFilter,
             sortBy: currentFilters.sortBy,
@@ -185,6 +186,9 @@
             customStartDate: currentFilters.customStartDate,
             customEndDate: currentFilters.customEndDate
         });
+        if (currentFilters.status !== 'all') {
+            filtered = filtered.filter((inv: Invoice) => getInvoiceStatus(inv) === currentFilters.status);
+        }
         renderInvoices(filtered);
     }
 
@@ -196,7 +200,7 @@
         const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement | null;
         const clearFiltersBtn = document.getElementById('clear-filters-btn');
         const applyFiltersBtn = document.getElementById('apply-filters-btn');
-
+        const statusFilterTop = document.getElementById('status-filter-top') as HTMLSelectElement | null;
         if (filterBtn && filterPopover) {
             filterBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -231,6 +235,7 @@
         if (applyFiltersBtn) {
             applyFiltersBtn.addEventListener('click', () => {
                 if (paymentFilter) currentFilters.paymentStatus = paymentFilter.value;
+                if (statusFilterTop) currentFilters.status = statusFilterTop.value;
                 if (dateFilter && dateFilter.value !== 'custom') {
                     currentFilters.dateFilter = dateFilter.value;
                     currentFilters.customStartDate = null;
@@ -245,6 +250,7 @@
         if (clearFiltersBtn) {
             clearFiltersBtn.addEventListener('click', () => {
                 currentFilters = {
+                    status: 'all',
                     paymentStatus: 'all',
                     dateFilter: 'all',
                     sortBy: 'date-desc',
@@ -254,6 +260,7 @@
                 if (paymentFilter) paymentFilter.value = 'all';
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
+                if (statusFilterTop) statusFilterTop.value = 'all';
                 applyInvoiceFilters();
                 if (filterPopover) filterPopover.classList.add('hidden');
             });
@@ -307,6 +314,11 @@
         const idInput = document.getElementById('id') as HTMLInputElement | null;
         if (idInput) {
             idInput.value = 'Auto-Generated';
+        }
+
+        const statusSelect = document.getElementById('invoice-status') as HTMLSelectElement | null;
+        if (statusSelect) {
+            statusSelect.value = 'DRAFT';
         }
 
         if (typeof (window as any).isCustomId !== 'undefined') {
