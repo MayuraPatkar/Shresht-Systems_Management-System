@@ -1206,6 +1206,17 @@
                     return false;
                 }
             }
+
+            // Validate date year limit (maximum 4-digit year)
+            const dateEl = document.getElementById('purchase-date') as HTMLInputElement;
+            if (dateEl && dateEl.value) {
+                const parts = dateEl.value.split('-');
+                if (parts[0] && parts[0].length > 4) {
+                    if ((window as any).electronAPI) (window as any).electronAPI.showAlert1("Please enter a valid 4-digit year for the Purchase Date.");
+                    dateEl.focus();
+                    return false;
+                }
+            }
             
             // Validate phone
             const supplierPhone = document.getElementById('supplier-phone') as HTMLInputElement;
@@ -1288,6 +1299,21 @@
         if (supplierPhone) {
             supplierPhone.addEventListener('input', function() {
                 this.value = this.value.replace(/\D/g, '');
+            });
+        }
+
+        // Setup purchase date validation (max 4-digit year limit)
+        const purchaseDate = document.getElementById('purchase-date') as HTMLInputElement;
+        if (purchaseDate) {
+            purchaseDate.addEventListener('input', function() {
+                const val = this.value;
+                if (val) {
+                    const parts = val.split('-');
+                    if (parts[0] && parts[0].length > 4) {
+                        parts[0] = parts[0].substring(0, 4);
+                        this.value = parts.join('-');
+                    }
+                }
             });
         }
 
