@@ -84,7 +84,13 @@
     function showNewPurchaseForm() {
         sessionStorage.removeItem('currentTab-status');
         if ((window as any).showNewDocumentForm) {
-            (window as any).showNewDocumentForm();
+            (window as any).showNewDocumentForm({
+                homeId: 'home',
+                formId: 'new',
+                newButtonId: 'new-purchase',
+                previewButtonId: 'view-preview',
+                viewId: 'view'
+            });
         } else {
             const viewPreview = document.getElementById('view-preview');
             const home = document.getElementById('home');
