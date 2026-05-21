@@ -465,7 +465,20 @@ main {
     background: #f3f4f6;
 }
 
-.supplier-suggestions li.selected {
+.supplier-suggestions li.selected,
+.supplier-suggestions li.active {
     background: #eff6ff;
     color: #3b82f6;
+}
+
+/* Premium unified hover and selection states for all autocomplete dropdowns */
+.suggestions li:hover,
+.suggestions li.selected,
+.suggestions li.active,
+.supplier-suggestions li:hover,
+.supplier-suggestions li.selected,
+.supplier-suggestions li.active {
+    background-color: #eff6ff !important;
+    color: #2563eb !important;
+    font-weight: 500;
 }

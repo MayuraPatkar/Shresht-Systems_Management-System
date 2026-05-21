@@ -150,11 +150,11 @@
 
     async function fetchSuppliers() {
         try {
-            const response = await fetch("/purchaseOrder/suppliers/list");
+            const response = await fetch("/api/suppliers");
             if (!response.ok) throw new Error("Failed to fetch suppliers");
             const resData = await response.json();
-            supplierData = resData.suppliers || [];
-            supplierNames = supplierData.map(c => c.name);
+            supplierData = resData || [];
+            supplierNames = supplierData.map(c => c.supplier_name);
         } catch (error) {
             console.error("Error fetching suppliers:", error);
             if ((window as any).electronAPI) {
@@ -171,7 +171,7 @@
         if (!suggestionsContainer) {
             suggestionsContainer = document.createElement("ul");
             suggestionsContainer.id = "supplier-suggestions";
-            suggestionsContainer.className = "suggestions";
+            suggestionsContainer.className = "suggestions supplier-suggestions";
             
             const parent = input.parentElement;
             if (parent) {
@@ -185,9 +185,11 @@
         });
         
         input.addEventListener("focus", function() {
-            if (input.value.length > 0) {
-                showSupplierSuggestions(input, suggestionsContainer);
-            }
+            showSupplierSuggestions(input, suggestionsContainer);
+        });
+
+        input.addEventListener("click", function() {
+            showSupplierSuggestions(input, suggestionsContainer);
         });
 
         input.addEventListener("keydown", function(event) {
@@ -195,7 +197,7 @@
         });
 
         document.addEventListener("click", function(event) {
-            if (event.target !== input && event.target !== suggestionsContainer) {
+            if (event.target !== input && !suggestionsContainer.contains(event.target as Node)) {
                 suggestionsContainer.style.display = "none";
             }
         });
@@ -206,14 +208,11 @@
         suggestionsContainer.innerHTML = "";
         selectedSupplierIndex = -1;
 
-        if (value.length === 0) {
-            suggestionsContainer.style.display = "none";
-            return;
-        }
-
-        const filteredSuppliers = supplierData.filter(supplier =>
-            supplier.name.toLowerCase().includes(value)
-        );
+        const filteredSuppliers = value.length === 0
+            ? supplierData
+            : supplierData.filter(supplier =>
+                (supplier.supplier_name || "").toLowerCase().includes(value)
+            );
 
         if (filteredSuppliers.length > 0) {
             filteredSuppliers.forEach((supplier, index) => {
@@ -221,14 +220,21 @@
                 
                 const nameSpan = document.createElement("span");
                 nameSpan.className = "font-semibold";
-                nameSpan.textContent = supplier.name;
+                nameSpan.textContent = supplier.supplier_name;
                 
                 const addressSpan = document.createElement("span");
                 addressSpan.className = "text-xs text-gray-500 ml-2 block truncate";
-                addressSpan.textContent = supplier.address;
+                
+                const addr = supplier.billing_address;
+                const formattedAddr = addr 
+                    ? [addr.line1, addr.line2, addr.city].filter(Boolean).join(", ")
+                    : "";
+                addressSpan.textContent = formattedAddr;
                 
                 li.appendChild(nameSpan);
-                li.appendChild(addressSpan);
+                if (formattedAddr) {
+                    li.appendChild(addressSpan);
+                }
                 
                 li.dataset.index = index.toString();
                 
@@ -281,8 +287,19 @@
     }
 
     function fillSupplierDetails(supplier: any) {
-        (document.getElementById("supplier-name") as HTMLInputElement).value = supplier.name || "";
-        (document.getElementById("supplier-address") as HTMLTextAreaElement).value = supplier.address || "";
+        (document.getElementById("supplier-name") as HTMLInputElement).value = supplier.supplier_name || "";
+        
+        // Format the billing address properly
+        const addressParts = [];
+        if (supplier.billing_address?.line1) addressParts.push(supplier.billing_address.line1);
+        if (supplier.billing_address?.line2) addressParts.push(supplier.billing_address.line2);
+        if (supplier.billing_address?.city) addressParts.push(supplier.billing_address.city);
+        if (supplier.billing_address?.state || supplier.billing_address?.pincode) {
+            const statePin = [supplier.billing_address.state, supplier.billing_address.pincode].filter(Boolean).join(" - ");
+            addressParts.push(statePin);
+        }
+        (document.getElementById("supplier-address") as HTMLTextAreaElement).value = addressParts.join("\n") || "";
+        
         (document.getElementById("supplier-phone") as HTMLInputElement).value = supplier.phone || "";
         (document.getElementById("supplier-email") as HTMLInputElement).value = supplier.email || "";
         (document.getElementById("supplier-GSTIN") as HTMLInputElement).value = supplier.gstin || "";
