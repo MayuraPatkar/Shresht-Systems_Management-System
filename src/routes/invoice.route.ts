@@ -219,11 +219,19 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
         if (buyerPhone) customer_snapshot.phone = buyerPhone;
         if (buyerEmail) customer_snapshot.email = buyerEmail;
         if (buyerGSTIN) customer_snapshot.gstin = buyerGSTIN;
+        let customerAddressStr = '';
         if (buyerAddress) {
             if (typeof buyerAddress === 'string') {
                 customer_snapshot.billing_address = { line1: buyerAddress };
+                customerAddressStr = buyerAddress;
             } else {
                 customer_snapshot.billing_address = buyerAddress;
+                customerAddressStr = [
+                    buyerAddress.line1,
+                    buyerAddress.line2,
+                    buyerAddress.city,
+                    buyerAddress.state ? buyerAddress.state + (buyerAddress.pincode ? ' - ' + buyerAddress.pincode : '') : ''
+                ].filter(val => val && String(val).trim() !== "").join(', ');
             }
         }
 
@@ -387,7 +395,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 service_status: (Number(serviceAfterMonths) > 0) ? 'Active' : existingInvoice.service_status,
                 margin: margin,
                 customer_name: buyerName,
-                customer_address: buyerAddress,
+                customer_address: customerAddressStr,
                 customer_phone: buyerPhone,
                 customer_email: buyerEmail,
                 customer_GSTIN: buyerGSTIN,
@@ -484,7 +492,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 service_status: (Number(serviceAfterMonths) > 0) ? 'Active' : 'Closed',
                 margin: margin,
                 customer_name: buyerName,
-                customer_address: buyerAddress,
+                customer_address: customerAddressStr,
                 customer_phone: buyerPhone,
                 customer_email: buyerEmail,
                 customer_GSTIN: buyerGSTIN,

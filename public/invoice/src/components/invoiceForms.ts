@@ -132,16 +132,30 @@
             
             // Populate other fields
             const idInput = document.getElementById('buyer-customer-id') as HTMLInputElement | null;
-            const addressInput = document.getElementById('buyer-address') as HTMLInputElement | null;
+            const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement | null;
+            const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement | null;
+            const cityInput = document.getElementById('buyer-address-city') as HTMLInputElement | null;
+            const stateInput = document.getElementById('buyer-address-state') as HTMLSelectElement | null;
+            const pincodeInput = document.getElementById('buyer-address-pincode') as HTMLInputElement | null;
             const phoneInput = document.getElementById('buyer-phone') as HTMLInputElement | null;
             const emailInput = document.getElementById('buyer-email') as HTMLInputElement | null;
             const gstinInput = document.getElementById('buyer-gstin') as HTMLInputElement | null;
 
             if (idInput) idInput.value = customer._id || '';
             
-            if (addressInput) {
-                const billing = customer.billing_address || {};
-                addressInput.value = billing.line1 || customer.customer_address || '';
+            if (customer.billing_address) {
+                const billing = customer.billing_address;
+                if (line1Input) line1Input.value = billing.line1 || '';
+                if (line2Input) line2Input.value = billing.line2 || '';
+                if (cityInput) cityInput.value = billing.city || '';
+                if (stateInput) stateInput.value = billing.state || 'Karnataka';
+                if (pincodeInput) pincodeInput.value = billing.pincode || '';
+            } else {
+                if (line1Input) line1Input.value = customer.customer_address || '';
+                if (line2Input) line2Input.value = '';
+                if (cityInput) cityInput.value = '';
+                if (stateInput) stateInput.value = 'Karnataka';
+                if (pincodeInput) pincodeInput.value = '';
             }
             if (phoneInput) phoneInput.value = customer.customer?.phone || customer.customer_phone || '';
             if (emailInput) emailInput.value = customer.customer?.email || customer.customer_email || '';
@@ -300,7 +314,10 @@ const validateCurrentStep = async function (): Promise<boolean> {
 
     if (currentStep === 3) {
         const buyerName = document.getElementById('buyer-name') as HTMLInputElement;
-        const buyerAddress = document.getElementById('buyer-address') as HTMLInputElement;
+        const line1 = document.getElementById('buyer-address-line1') as HTMLInputElement;
+        const city = document.getElementById('buyer-address-city') as HTMLInputElement;
+        const state = document.getElementById('buyer-address-state') as HTMLSelectElement;
+        const pincode = document.getElementById('buyer-address-pincode') as HTMLInputElement;
         const buyerPhone = document.getElementById('buyer-phone') as HTMLInputElement;
         const buyerEmail = document.getElementById('buyer-email') as HTMLInputElement;
 
@@ -311,11 +328,39 @@ const validateCurrentStep = async function (): Promise<boolean> {
             buyerName.focus();
             return false;
         }
-        if (!buyerAddress.value.trim()) {
+        if (!line1.value.trim()) {
             if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please enter the Buyer Address.");
+                (window as any).electronAPI.showAlert1("Please enter Address Line 1.");
             }
-            buyerAddress.focus();
+            line1.focus();
+            return false;
+        }
+        if (!city.value.trim()) {
+            if ((window as any).electronAPI?.showAlert1) {
+                (window as any).electronAPI.showAlert1("Please enter the City.");
+            }
+            city.focus();
+            return false;
+        }
+        if (!state.value.trim()) {
+            if ((window as any).electronAPI?.showAlert1) {
+                (window as any).electronAPI.showAlert1("Please select the State.");
+            }
+            state.focus();
+            return false;
+        }
+        if (!pincode.value.trim()) {
+            if ((window as any).electronAPI?.showAlert1) {
+                (window as any).electronAPI.showAlert1("Please enter the Pincode.");
+            }
+            pincode.focus();
+            return false;
+        }
+        if (!/^[0-9]{6}$/.test(pincode.value.trim())) {
+            if ((window as any).electronAPI?.showAlert1) {
+                (window as any).electronAPI.showAlert1("Please enter a valid 6-digit Pincode.");
+            }
+            pincode.focus();
             return false;
         }
         if (!buyerPhone.value.trim()) {
@@ -412,14 +457,31 @@ const beforeStepAdvance = async function (step: number): Promise<boolean> {
 
             const projectNameEl = document.getElementById("project-name") as HTMLInputElement | null;
             const buyerNameEl = document.getElementById("buyer-name") as HTMLInputElement | null;
-            const buyerAddressEl = document.getElementById("buyer-address") as HTMLInputElement | null;
+            const line1El = document.getElementById("buyer-address-line1") as HTMLInputElement | null;
+            const line2El = document.getElementById("buyer-address-line2") as HTMLInputElement | null;
+            const cityEl = document.getElementById("buyer-address-city") as HTMLInputElement | null;
+            const stateEl = document.getElementById("buyer-address-state") as HTMLSelectElement | null;
+            const pincodeEl = document.getElementById("buyer-address-pincode") as HTMLInputElement | null;
             const buyerPhoneEl = document.getElementById("buyer-phone") as HTMLInputElement | null;
             const buyerEmailEl = document.getElementById("buyer-email") as HTMLInputElement | null;
             const buyerGstinEl = document.getElementById("buyer-gstin") as HTMLInputElement | null;
 
             if (projectNameEl) projectNameEl.value = quotation.project_name || '';
             if (buyerNameEl) buyerNameEl.value = quotation.customer_name || '';
-            if (buyerAddressEl) buyerAddressEl.value = quotation.customer_address || '';
+            if (quotation.customer_snapshot?.billing_address) {
+                const billing = quotation.customer_snapshot.billing_address;
+                if (line1El) line1El.value = billing.line1 || '';
+                if (line2El) line2El.value = billing.line2 || '';
+                if (cityEl) cityEl.value = billing.city || '';
+                if (stateEl) stateEl.value = billing.state || 'Karnataka';
+                if (pincodeEl) pincodeEl.value = billing.pincode || '';
+            } else {
+                if (line1El) line1El.value = quotation.customer_address || '';
+                if (line2El) line2El.value = '';
+                if (cityEl) cityEl.value = '';
+                if (stateEl) stateEl.value = 'Karnataka';
+                if (pincodeEl) pincodeEl.value = '';
+            }
             if (buyerPhoneEl) buyerPhoneEl.value = quotation.customer_phone || '';
             if (buyerEmailEl) buyerEmailEl.value = quotation.customer_email || '';
             if (buyerGstinEl) buyerGstinEl.value = quotation.customer_GSTIN || '';
@@ -658,8 +720,26 @@ const openInvoice = async function (id: string) {
         if (buyerCustomerIdInput) buyerCustomerIdInput.value = invoice.customer_id || '';
         const buyerNameInput = document.getElementById('buyer-name') as HTMLInputElement;
         if (buyerNameInput) buyerNameInput.value = invoice.customer_snapshot?.name || invoice.customer_name || '';
-        const buyerAddressInput = document.getElementById('buyer-address') as HTMLInputElement;
-        if (buyerAddressInput) buyerAddressInput.value = invoice.customer_snapshot?.billing_address?.line1 || invoice.customer_address || '';
+        const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement | null;
+        const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement | null;
+        const cityInput = document.getElementById('buyer-address-city') as HTMLInputElement | null;
+        const stateInput = document.getElementById('buyer-address-state') as HTMLSelectElement | null;
+        const pincodeInput = document.getElementById('buyer-address-pincode') as HTMLInputElement | null;
+
+        if (invoice.customer_snapshot?.billing_address) {
+            const billing = invoice.customer_snapshot.billing_address;
+            if (line1Input) line1Input.value = billing.line1 || '';
+            if (line2Input) line2Input.value = billing.line2 || '';
+            if (cityInput) cityInput.value = billing.city || '';
+            if (stateInput) stateInput.value = billing.state || 'Karnataka';
+            if (pincodeInput) pincodeInput.value = billing.pincode || '';
+        } else {
+            if (line1Input) line1Input.value = invoice.customer_address || '';
+            if (line2Input) line2Input.value = '';
+            if (cityInput) cityInput.value = '';
+            if (stateInput) stateInput.value = 'Karnataka';
+            if (pincodeInput) pincodeInput.value = '';
+        }
         const buyerPhoneInput = document.getElementById('buyer-phone') as HTMLInputElement;
         if (buyerPhoneInput) buyerPhoneInput.value = invoice.customer_snapshot?.phone || invoice.customer_phone || '';
         const buyerEmailInput = document.getElementById('buyer-email') as HTMLInputElement;
@@ -1215,7 +1295,17 @@ const generatePreview = async function () {
     const dcNumber = (document.getElementById("delivery-challan-number") as HTMLInputElement).value || '';
     const buyerName = (document.getElementById("buyer-name") as HTMLInputElement).value;
     const invoiceDate = (document.getElementById('invoice-date') as HTMLInputElement | null)?.value || '';
-    const buyerAddress = (document.getElementById("buyer-address") as HTMLInputElement).value;
+    const line1 = (document.getElementById("buyer-address-line1") as HTMLInputElement).value || '';
+    const line2 = (document.getElementById("buyer-address-line2") as HTMLInputElement).value || '';
+    const city = (document.getElementById("buyer-address-city") as HTMLInputElement).value || '';
+    const state = (document.getElementById("buyer-address-state") as HTMLSelectElement).value || '';
+    const pincode = (document.getElementById("buyer-address-pincode") as HTMLInputElement).value || '';
+    const buyerAddress = [
+        line1,
+        line2,
+        city,
+        state ? state + (pincode ? ' - ' + pincode : '') : ''
+    ].filter(val => val && val.trim() !== "").join(', ');
     const buyerPhone = (document.getElementById("buyer-phone") as HTMLInputElement).value;
     const buyerGSTIN = (document.getElementById("buyer-gstin") as HTMLInputElement).value || '';
     const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0] as HTMLTableSectionElement;
@@ -1418,7 +1508,11 @@ const collectFormData = function () {
     const serviceMonthsInput = document.getElementById("service-months") as HTMLInputElement;
     const marginInput = document.getElementById("margin") as HTMLInputElement;
     const buyerNameInput = document.getElementById("buyer-name") as HTMLInputElement;
-    const buyerAddressInput = document.getElementById("buyer-address") as HTMLInputElement;
+    const line1Input = document.getElementById("buyer-address-line1") as HTMLInputElement | null;
+    const line2Input = document.getElementById("buyer-address-line2") as HTMLInputElement | null;
+    const cityInput = document.getElementById("buyer-address-city") as HTMLInputElement | null;
+    const stateInput = document.getElementById("buyer-address-state") as HTMLSelectElement | null;
+    const pincodeInput = document.getElementById("buyer-address-pincode") as HTMLInputElement | null;
     const buyerPhoneInput = document.getElementById("buyer-phone") as HTMLInputElement;
     const buyerEmailInput = document.getElementById("buyer-email") as HTMLInputElement;
     const buyerGstinInput = document.getElementById("buyer-gstin") as HTMLInputElement;
@@ -1443,7 +1537,13 @@ const collectFormData = function () {
         serviceAfterMonths: serviceMonthsInput ? Number(serviceMonthsInput.value) || 0 : 0,
         margin: marginInput ? Number(marginInput.value) || 0 : 0,
         buyerName: buyerNameInput ? buyerNameInput.value : '',
-        buyerAddress: buyerAddressInput ? buyerAddressInput.value : '',
+        buyerAddress: {
+            line1: line1Input ? line1Input.value : '',
+            line2: line2Input ? line2Input.value : '',
+            city: cityInput ? cityInput.value : '',
+            state: stateInput ? stateInput.value : '',
+            pincode: pincodeInput ? pincodeInput.value : ''
+        },
         buyerPhone: buyerPhoneInput ? buyerPhoneInput.value : '',
         buyerEmail: buyerEmailInput ? buyerEmailInput.value : '',
         buyerGSTIN: buyerGstinInput ? buyerGstinInput.value : '',

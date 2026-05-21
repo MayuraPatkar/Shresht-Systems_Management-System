@@ -50,6 +50,7 @@ interface IInvoiceAddress {
     line2?: string;
     city?: string;
     state?: string;
+    pincode?: string;
     postal_code?: string;
     country?: string;
 }

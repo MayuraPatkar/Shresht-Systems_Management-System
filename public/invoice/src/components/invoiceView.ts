@@ -10,6 +10,17 @@
     let cachedUserRole: string | null = null;
     let currentInvoiceViewType = 'duplicate';
 
+    function getFormattedAddress(addr: any, fallbackStr?: string): string {
+        if (!addr) return fallbackStr || '';
+        if (typeof addr === 'string') return addr;
+        return [
+            addr.line1,
+            addr.line2,
+            addr.city,
+            addr.state ? addr.state + (addr.pincode ? ' - ' + addr.pincode : '') : ''
+        ].filter(val => val && String(val).trim() !== "").join(', ');
+    }
+
 function parseViewType(viewType: string) {
     const showTax = viewType.endsWith('-tax');
     const docType = showTax ? viewType.replace('-tax', '') : viewType;
@@ -515,7 +526,7 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
     setTextContent('view-balance-due', `₹ ${formatIndian(balanceDueComputed, 2)}`);
 
     setTextContent('view-buyer-name', invoice.customer_snapshot?.name || invoice.customer_name);
-    setTextContent('view-buyer-address', invoice.customer_snapshot?.billing_address?.line1 || invoice.customer_address);
+    setTextContent('view-buyer-address', getFormattedAddress(invoice.customer_snapshot?.billing_address, invoice.customer_address));
     setTextContent('view-buyer-phone', invoice.customer_snapshot?.phone || invoice.customer_phone);
     setTextContent('view-buyer-email', invoice.customer_snapshot?.email || invoice.customer_email);
     setTextContent('view-buyer-gstin', invoice.customer_snapshot?.gstin || invoice.customer_GSTIN);
