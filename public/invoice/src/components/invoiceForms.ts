@@ -287,32 +287,99 @@
     }
 });
 
+// --- Inline Validation Helpers ---
+// Show an inline error message below an input field
+function showInlineError(input: HTMLElement, message: string) {
+    clearInlineError(input);
+
+    // Apply error borders
+    input.style.borderColor = '#ef4444';
+    input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+
+    // Accessibility
+    input.setAttribute('aria-invalid', 'true');
+    const errorId = `${input.id}-error`;
+    input.setAttribute('aria-describedby', errorId);
+
+    // Create error message node
+    const errorMsg = document.createElement('div');
+    errorMsg.id = errorId;
+    errorMsg.className = 'error-message-inline';
+    errorMsg.style.cssText = 'font-size: 11px; font-weight: 600; color: #dc2626; margin-top: 4px; transition: all 0.2s ease-in-out;';
+    errorMsg.textContent = message;
+
+    const parent = input.parentElement;
+    if (parent) {
+        parent.appendChild(errorMsg);
+    }
+
+    // Auto-clear on user input
+    const clearHandler = () => {
+        clearInlineError(input);
+        input.removeEventListener('input', clearHandler);
+        input.removeEventListener('change', clearHandler);
+    };
+    input.addEventListener('input', clearHandler);
+    input.addEventListener('change', clearHandler);
+}
+
+// Clear an inline error message for an input
+function clearInlineError(input: HTMLElement) {
+    input.style.borderColor = '';
+    input.style.boxShadow = '';
+    input.removeAttribute('aria-invalid');
+    input.removeAttribute('aria-describedby');
+
+    const errorId = `${input.id}-error`;
+    const errorMsg = document.getElementById(errorId);
+    if (errorMsg) {
+        errorMsg.remove();
+    }
+}
+
+// Clear all inline errors in the current step
+function clearStepErrors(stepNumber: number) {
+    const stepEl = document.getElementById(`step-${stepNumber}`);
+    if (!stepEl) return;
+    const errorMsgs = stepEl.querySelectorAll('.error-message-inline');
+    errorMsgs.forEach(el => el.remove());
+
+    const errorInputs = stepEl.querySelectorAll('[aria-invalid="true"]');
+    errorInputs.forEach(input => {
+        (input as HTMLElement).style.borderColor = '';
+        (input as HTMLElement).style.boxShadow = '';
+        input.removeAttribute('aria-invalid');
+        input.removeAttribute('aria-describedby');
+    });
+}
+
 // Validate current step before navigation
 const validateCurrentStep = async function (): Promise<boolean> {
     // Step 1 check is no longer needed since invoice ID is auto-generated and read-only.
 
     if (currentStep === 2) {
+        clearStepErrors(2);
         const projectName = document.getElementById('project-name') as HTMLInputElement;
         const serviceMonths = document.getElementById('service-months') as HTMLInputElement;
+        let isValid = true;
 
         if (!projectName.value.trim()) {
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please enter the Project Name.");
-            }
-            projectName.focus();
-            return false;
+            showInlineError(projectName, 'Please enter the Project Name.');
+            if (isValid) projectName.focus();
+            isValid = false;
         }
 
         if (!serviceMonths.value || Number(serviceMonths.value) < 0) {
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please enter valid Service Months (0 or greater).");
-            }
-            serviceMonths.focus();
-            return false;
+            showInlineError(serviceMonths, 'Please enter valid Service Months (0 or greater).');
+            if (isValid) serviceMonths.focus();
+            isValid = false;
         }
+
+        if (!isValid) return false;
     }
 
     if (currentStep === 3) {
+        clearStepErrors(3);
         const buyerName = document.getElementById('buyer-name') as HTMLInputElement;
         const line1 = document.getElementById('buyer-address-line1') as HTMLInputElement;
         const city = document.getElementById('buyer-address-city') as HTMLInputElement;
@@ -320,85 +387,68 @@ const validateCurrentStep = async function (): Promise<boolean> {
         const pincode = document.getElementById('buyer-address-pincode') as HTMLInputElement;
         const buyerPhone = document.getElementById('buyer-phone') as HTMLInputElement;
         const buyerEmail = document.getElementById('buyer-email') as HTMLInputElement;
+        let isValid = true;
 
         if (!buyerName.value.trim()) {
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please enter the Buyer Name.");
-            }
-            buyerName.focus();
-            return false;
+            showInlineError(buyerName, 'Please enter the Buyer Name.');
+            if (isValid) buyerName.focus();
+            isValid = false;
         }
         if (!line1.value.trim()) {
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please enter Address Line 1.");
-            }
-            line1.focus();
-            return false;
+            showInlineError(line1, 'Please enter Address Line 1.');
+            if (isValid) line1.focus();
+            isValid = false;
         }
         if (!city.value.trim()) {
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please enter the City.");
-            }
-            city.focus();
-            return false;
+            showInlineError(city, 'Please enter the City.');
+            if (isValid) city.focus();
+            isValid = false;
         }
         if (!state.value.trim()) {
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please select the State.");
-            }
-            state.focus();
-            return false;
+            showInlineError(state, 'Please select the State.');
+            if (isValid) state.focus();
+            isValid = false;
         }
         if (!pincode.value.trim()) {
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please enter the Pincode.");
-            }
-            pincode.focus();
-            return false;
-        }
-        if (!/^[0-9]{6}$/.test(pincode.value.trim())) {
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please enter a valid 6-digit Pincode.");
-            }
-            pincode.focus();
-            return false;
+            showInlineError(pincode, 'Please enter the Pincode.');
+            if (isValid) pincode.focus();
+            isValid = false;
+        } else if (!/^[0-9]{6}$/.test(pincode.value.trim())) {
+            showInlineError(pincode, 'Please enter a valid 6-digit Pincode.');
+            if (isValid) pincode.focus();
+            isValid = false;
         }
         if (!buyerPhone.value.trim()) {
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please enter the Buyer Phone Number.");
+            showInlineError(buyerPhone, 'Please enter the Buyer Phone Number.');
+            if (isValid) buyerPhone.focus();
+            isValid = false;
+        } else {
+            const cleanedPhone = (buyerPhone.value || '').replace(/\D/g, '');
+            if (cleanedPhone.length !== 10) {
+                showInlineError(buyerPhone, 'Please enter a valid 10-digit Buyer Phone Number.');
+                if (isValid) buyerPhone.focus();
+                isValid = false;
             }
-            buyerPhone.focus();
-            return false;
-        }
-        const cleanedPhone = (buyerPhone.value || '').replace(/\D/g, '');
-        if (cleanedPhone.length !== 10) {
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Please enter a valid 10-digit Buyer Phone Number.");
-            }
-            buyerPhone.focus();
-            return false;
         }
         if (buyerEmail && buyerEmail.value.trim()) {
             const cleanedEmail = buyerEmail.value.trim().replace(/\s+/g, '');
             const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRe.test(cleanedEmail)) {
-                if ((window as any).electronAPI?.showAlert1) {
-                    (window as any).electronAPI.showAlert1("Please enter a valid Buyer Email address.");
-                }
-                buyerEmail.focus();
-                return false;
+                showInlineError(buyerEmail, 'Please enter a valid Buyer Email address.');
+                if (isValid) buyerEmail.focus();
+                isValid = false;
             }
         }
         const buyerGstin = document.getElementById('buyer-gstin') as HTMLInputElement | null;
         if (buyerGstin && buyerGstin.value.trim()) {
             if (buyerGstin.value.trim().length !== 15) {
-                if ((window as any).electronAPI?.showAlert1) {
-                    (window as any).electronAPI.showAlert1("GSTIN must be exactly 15 characters.");
-                }
-                buyerGstin.focus();
-                return false;
+                showInlineError(buyerGstin, 'GSTIN must be exactly 15 characters.');
+                if (isValid) buyerGstin.focus();
+                isValid = false;
             }
         }
+
+        if (!isValid) return false;
     }
 
     if (currentStep === 5) {
@@ -416,23 +466,17 @@ const validateCurrentStep = async function (): Promise<boolean> {
             const price = row.querySelector('td:nth-child(5) input') as HTMLInputElement | null;
 
             if (!desc || !desc.value.trim()) {
-                if ((window as any).electronAPI?.showAlert1) {
-                    (window as any).electronAPI.showAlert1(`Item #${index + 1}: Description is required.`);
-                }
+                showInlineError(desc || row, `Item #${index + 1}: Description is required.`);
                 desc?.focus();
                 return false;
             }
             if (!qty || Number(qty.value) <= 0) {
-                if ((window as any).electronAPI?.showAlert1) {
-                    (window as any).electronAPI.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
-                }
+                showInlineError(qty || row, `Item #${index + 1}: Quantity must be greater than 0.`);
                 qty?.focus();
                 return false;
             }
             if (!price || Number(price.value) <= 0) {
-                if ((window as any).electronAPI?.showAlert1) {
-                    (window as any).electronAPI.showAlert1(`Item #${index + 1}: Unit Price must be greater than 0.`);
-                }
+                showInlineError(price || row, `Item #${index + 1}: Unit Price must be greater than 0.`);
                 price?.focus();
                 return false;
             }
@@ -441,6 +485,7 @@ const validateCurrentStep = async function (): Promise<boolean> {
 
     return true;
 };
+
 
 // Hook that runs before advancing a step
 const beforeStepAdvance = async function (step: number): Promise<boolean> {
@@ -748,8 +793,26 @@ const openInvoice = async function (id: string) {
         if (buyerGstinInput) buyerGstinInput.value = invoice.customer_snapshot?.gstin || invoice.customer_GSTIN || '';
         const consigneeNameInput = document.getElementById('consignee-name') as HTMLInputElement;
         if (consigneeNameInput) consigneeNameInput.value = invoice.consignee?.name || invoice.consignee_name || '';
-        const consigneeAddressInput = document.getElementById('consignee-address') as HTMLInputElement;
-        if (consigneeAddressInput) consigneeAddressInput.value = invoice.consignee?.address?.line1 || invoice.consignee_address || '';
+        const conLine1Input = document.getElementById('consignee-address-line1') as HTMLInputElement | null;
+        const conLine2Input = document.getElementById('consignee-address-line2') as HTMLInputElement | null;
+        const conCityInput = document.getElementById('consignee-address-city') as HTMLInputElement | null;
+        const conStateInput = document.getElementById('consignee-address-state') as HTMLSelectElement | null;
+        const conPincodeInput = document.getElementById('consignee-address-pincode') as HTMLInputElement | null;
+
+        if (invoice.consignee?.address) {
+            const addr = invoice.consignee.address;
+            if (conLine1Input) conLine1Input.value = addr.line1 || '';
+            if (conLine2Input) conLine2Input.value = addr.line2 || '';
+            if (conCityInput) conCityInput.value = addr.city || '';
+            if (conStateInput) conStateInput.value = addr.state || '';
+            if (conPincodeInput) conPincodeInput.value = addr.pincode || '';
+        } else {
+            if (conLine1Input) conLine1Input.value = invoice.consignee_address || '';
+            if (conLine2Input) conLine2Input.value = '';
+            if (conCityInput) conCityInput.value = '';
+            if (conStateInput) conStateInput.value = '';
+            if (conPincodeInput) conPincodeInput.value = '';
+        }
 
         currentDeclaration = invoice.declaration || "";
         currentTermsAndConditions = invoice.termsAndConditions || "";
@@ -777,21 +840,21 @@ const openInvoice = async function (id: string) {
                     <div class="item-number">${s}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
-                            <input type="text" value="${item.description}" placeholder="Description" required>
+                            <input type="text" value="${item.description || ''}" placeholder="Description" required>
                             <ul class="suggestions"></ul>
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" value="${item.HSN_SAC}" placeholder="HSN/SAC" required>
+                        <input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" value="${item.quantity}" placeholder="Qty" step="any" min="0.000001" required>
+                        <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
+                        <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" value="${item.rate}" placeholder="Rate" required>
+                        <input type="number" value="${item.rate || 0}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -804,11 +867,11 @@ const openInvoice = async function (id: string) {
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td><div class="item-number">${s}</div></td>
-                    <td><input type="text" value="${item.description}" required></td>
-                    <td><input type="text" value="${item.HSN_SAC}" required></td>
-                    <td><input type="number" value="${item.quantity}" step="any" min="0.000001" required></td>
-                    <td><input type="number" value="${item.unit_price}" required></td>
-                    <td><input type="number" value="${item.rate}" required></td>
+                    <td><input type="text" value="${item.description || ''}" required></td>
+                    <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
+                    <td><input type="number" value="${item.quantity || 0}" step="any" min="0.000001" required></td>
+                    <td><input type="number" value="${item.unit_price || 0}" required></td>
+                    <td><input type="number" value="${item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
                 itemsTableBody.appendChild(row);
@@ -868,13 +931,13 @@ const openInvoice = async function (id: string) {
                     </div>
                     <div class="item-number">${s}</div>
                     <div class="non-item-field description">
-                        <input type="text" value="${item.description}" placeholder="Description" required>
+                        <input type="text" value="${item.description || ''}" placeholder="Description" required>
                     </div>
                     <div class="non-item-field price">
-                        <input type="number" value="${item.price}" placeholder="Price" required>
+                        <input type="number" value="${item.price || 0}" placeholder="Price" required>
                     </div>
                     <div class="non-item-field rate">
-                        <input type="number" value="${item.rate}" placeholder="Rate" required>
+                        <input type="number" value="${item.rate || 0}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -887,9 +950,9 @@ const openInvoice = async function (id: string) {
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td><div class="item-number">${s}</div></td>
-                    <td><input type="text" value="${item.description}" required></td>
-                    <td><input type="number" value="${item.price}" required></td>
-                    <td><input type="number" value="${item.rate}" required></td>
+                    <td><input type="text" value="${item.description || ''}" required></td>
+                    <td><input type="number" value="${item.price || 0}" required></td>
+                    <td><input type="number" value="${item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
                 nonItemsTableBody.appendChild(row);
@@ -924,21 +987,21 @@ const openInvoice = async function (id: string) {
                     <div class="item-number">${s}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
-                            <input type="text" value="${item.description}" placeholder="Description" required>
+                            <input type="text" value="${item.description || ''}" placeholder="Description" required>
                             <ul class="suggestions"></ul>
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" value="${item.HSN_SAC}" placeholder="HSN/SAC" required>
+                        <input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" value="${item.quantity}" placeholder="Qty" step="any" min="0.000001" required>
+                        <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
+                        <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" value="${item.rate}" placeholder="Rate" required>
+                        <input type="number" value="${item.rate || 0}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -951,11 +1014,11 @@ const openInvoice = async function (id: string) {
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${s}</td>
-                    <td><input type="text" value="${item.description}" required></td>
-                    <td><input type="text" value="${item.HSN_SAC}" required></td>
-                    <td><input type="number" value="${item.quantity}" step="any" min="0.000001" required></td>
-                    <td><input type="number" value="${item.unit_price}" required></td>
-                    <td><input type="number" value="${item.rate}" required></td>
+                    <td><input type="text" value="${item.description || ''}" required></td>
+                    <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
+                    <td><input type="number" value="${item.quantity || 0}" step="any" min="0.000001" required></td>
+                    <td><input type="number" value="${item.unit_price || 0}" required></td>
+                    <td><input type="number" value="${item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
                 itemsTableBody.appendChild(row);
@@ -1015,13 +1078,13 @@ const openInvoice = async function (id: string) {
                     </div>
                     <div class="item-number">${s}</div>
                     <div class="non-item-field description">
-                        <input type="text" value="${item.description}" placeholder="Description" required>
+                        <input type="text" value="${item.description || ''}" placeholder="Description" required>
                     </div>
                     <div class="non-item-field price">
-                        <input type="number" value="${item.price}" placeholder="Price" required>
+                        <input type="number" value="${item.price || 0}" placeholder="Price" required>
                     </div>
                     <div class="non-item-field rate">
-                        <input type="number" value="${item.rate}" placeholder="Rate" required>
+                        <input type="number" value="${item.rate || 0}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -1034,9 +1097,9 @@ const openInvoice = async function (id: string) {
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${s}</td>
-                    <td><input type="text" value="${item.description}" required></td>
-                    <td><input type="number" value="${item.price}" required></td>
-                    <td><input type="number" value="${item.rate}" required></td>
+                    <td><input type="text" value="${item.description || ''}" required></td>
+                    <td><input type="number" value="${item.price || 0}" required></td>
+                    <td><input type="number" value="${item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
                 nonItemsTableBody.appendChild(row);
@@ -1517,7 +1580,11 @@ const collectFormData = function () {
     const buyerEmailInput = document.getElementById("buyer-email") as HTMLInputElement;
     const buyerGstinInput = document.getElementById("buyer-gstin") as HTMLInputElement;
     const consigneeNameInput = document.getElementById("consignee-name") as HTMLInputElement;
-    const consigneeAddressInput = document.getElementById("consignee-address") as HTMLInputElement;
+    const conLine1Input = document.getElementById("consignee-address-line1") as HTMLInputElement | null;
+    const conLine2Input = document.getElementById("consignee-address-line2") as HTMLInputElement | null;
+    const conCityInput = document.getElementById("consignee-address-city") as HTMLInputElement | null;
+    const conStateInput = document.getElementById("consignee-address-state") as HTMLSelectElement | null;
+    const conPincodeInput = document.getElementById("consignee-address-pincode") as HTMLInputElement | null;
 
     const buyerCustomerIdInput = document.getElementById("buyer-customer-id") as HTMLInputElement | null;
     const statusInput = document.getElementById("invoice-status") as HTMLSelectElement | null;
@@ -1548,7 +1615,13 @@ const collectFormData = function () {
         buyerEmail: buyerEmailInput ? buyerEmailInput.value : '',
         buyerGSTIN: buyerGstinInput ? buyerGstinInput.value : '',
         consigneeName: consigneeNameInput ? consigneeNameInput.value : '',
-        consigneeAddress: consigneeAddressInput ? consigneeAddressInput.value : '',
+        consigneeAddress: {
+            line1: conLine1Input ? conLine1Input.value : '',
+            line2: conLine2Input ? conLine2Input.value : '',
+            city: conCityInput ? conCityInput.value : '',
+            state: conStateInput ? conStateInput.value : '',
+            pincode: conPincodeInput ? conPincodeInput.value : ''
+        },
         declaration: currentDeclaration,
         termsAndConditions: currentTermsAndConditions,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({

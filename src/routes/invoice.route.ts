@@ -237,12 +237,20 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
 
         // Build consignee sub-document
         const consignee: any = {};
+        let consigneeAddressStr = '';
         if (consigneeName) consignee.name = consigneeName;
         if (consigneeAddress) {
             if (typeof consigneeAddress === 'string') {
                 consignee.address = { line1: consigneeAddress };
+                consigneeAddressStr = consigneeAddress;
             } else {
                 consignee.address = consigneeAddress;
+                consigneeAddressStr = [
+                    consigneeAddress.line1,
+                    consigneeAddress.line2,
+                    consigneeAddress.city,
+                    consigneeAddress.state ? consigneeAddress.state + (consigneeAddress.pincode ? ' - ' + consigneeAddress.pincode : '') : ''
+                ].filter(val => val && String(val).trim() !== "").join(', ');
             }
         }
 
@@ -400,7 +408,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 customer_email: buyerEmail,
                 customer_GSTIN: buyerGSTIN,
                 consignee_name: consigneeName,
-                consignee_address: consigneeAddress,
+                consignee_address: consigneeAddressStr,
                 items_original: items_original,
                 items_duplicate: items_duplicate,
                 non_items_original: non_items_original,
@@ -497,7 +505,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 customer_email: buyerEmail,
                 customer_GSTIN: buyerGSTIN,
                 consignee_name: consigneeName,
-                consignee_address: consigneeAddress,
+                consignee_address: consigneeAddressStr,
                 non_items_original: non_items,
                 non_items_duplicate: non_items,
                 total_amount_original: totals_original.grand_total,
