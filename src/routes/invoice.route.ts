@@ -113,6 +113,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             dcNumber = '',
             dcDate,
             quotationId = '',
+            buyerCustomerId = '',
             serviceAfterMonths = 0,
             margin = 0,
             buyerName = '',
@@ -130,16 +131,110 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             totalTaxDuplicate = 0,
             declaration = '',
             termsAndConditions = '',
-            isCustomId = false
         } = req.body;
-
-        let total_amount_original = totalAmountOriginal;
-        let total_amount_duplicate = totalAmountDuplicate;
-        let total_tax_original = totalTaxOriginal;
-        let total_tax_duplicate = totalTaxDuplicate;
 
         if (!projectName) {
             return res.status(400).json({ message: 'Missing required fields: projectName.' });
+        }
+
+        // Map items to schema structures
+        const mappedItems = items.map((item: any) => {
+            const qty = Number(item.quantity) || 0;
+            const price = Number(item.unit_price) || 0;
+            const discPercent = Number(item.discount_percent) || 0;
+            const taxableValue = qty * price * (1 - discPercent / 100);
+            const gstRate = Number(item.rate || item.gst_rate) || 0;
+            const total = taxableValue * (1 + gstRate / 100);
+
+            return {
+                item_id: item.item_id || item._id || undefined,
+                description: item.description || '',
+                hsn_sac: item.HSN_SAC || item.hsn_sac || '',
+                unit: item.unit || 'PCS',
+                quantity: qty,
+                unit_price: price,
+                taxable_value: Number(taxableValue.toFixed(2)),
+                gst_rate: gstRate,
+                discount_percent: discPercent,
+                total: Number(total.toFixed(2))
+            };
+        });
+
+        // Compute other charges structure
+        let other_charges: any = undefined;
+        if (non_items && non_items.length > 0) {
+            const firstNonItem = non_items[0];
+            other_charges = {
+                description: firstNonItem.description || '',
+                price: Number(firstNonItem.price) || 0,
+                rate: Number(firstNonItem.rate || firstNonItem.gst_rate) || 0,
+                total: Number(firstNonItem.price) * (1 + Number(firstNonItem.rate || firstNonItem.gst_rate || 0) / 100)
+            };
+        }
+
+        // Helper to compute totals
+        const computeTotals = (mappedItemsList: any[], nonItemsList: any[]) => {
+            let taxableValue = 0;
+            let totalTax = 0;
+            let cgst = 0;
+            let sgst = 0;
+            let igst = 0;
+
+            mappedItemsList.forEach((item) => {
+                taxableValue += item.taxable_value || 0;
+                const itemTax = (item.taxable_value || 0) * (item.gst_rate || 0) / 100;
+                totalTax += itemTax;
+                cgst += itemTax / 2;
+                sgst += itemTax / 2;
+            });
+
+            nonItemsList.forEach((item) => {
+                const itemPrice = Number(item.price) || 0;
+                taxableValue += itemPrice;
+                const itemTax = itemPrice * (Number(item.rate || item.gst_rate) || 0) / 100;
+                totalTax += itemTax;
+                cgst += itemTax / 2;
+                sgst += itemTax / 2;
+            });
+
+            const rawGrandTotal = taxableValue + totalTax;
+            const grandTotalRounded = Math.round(rawGrandTotal);
+            const roundOff = Number((grandTotalRounded - rawGrandTotal).toFixed(2));
+
+            return {
+                taxable_value: Number(taxableValue.toFixed(2)),
+                cgst: Number(cgst.toFixed(2)),
+                sgst: Number(sgst.toFixed(2)),
+                igst: Number(igst.toFixed(2)),
+                total_tax: Number(totalTax.toFixed(2)),
+                round_off: roundOff,
+                grand_total: grandTotalRounded
+            };
+        };
+
+        // Build customer snapshot
+        const customer_snapshot: any = {};
+        if (buyerName) customer_snapshot.name = buyerName;
+        if (buyerPhone) customer_snapshot.phone = buyerPhone;
+        if (buyerEmail) customer_snapshot.email = buyerEmail;
+        if (buyerGSTIN) customer_snapshot.gstin = buyerGSTIN;
+        if (buyerAddress) {
+            if (typeof buyerAddress === 'string') {
+                customer_snapshot.billing_address = { line1: buyerAddress };
+            } else {
+                customer_snapshot.billing_address = buyerAddress;
+            }
+        }
+
+        // Build consignee sub-document
+        const consignee: any = {};
+        if (consigneeName) consignee.name = consigneeName;
+        if (consigneeAddress) {
+            if (typeof consigneeAddress === 'string') {
+                consignee.address = { line1: consigneeAddress };
+            } else {
+                consignee.address = consigneeAddress;
+            }
         }
 
         // Attempt to find an existing invoice
@@ -155,26 +250,17 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
 
         // Handle item assignment based on type
         if (type === 'original') {
-            items_original = items;
+            items_original = mappedItems;
             non_items_original = non_items;
         } else if (type === 'duplicate') {
-            items_duplicate = items;
+            items_duplicate = mappedItems;
             non_items_duplicate = non_items;
         } else {
             return res.status(400).json({ message: 'type must be "original" or "duplicate"' });
         }
 
-        // Handle financial totals inheritance
-        if (existingInvoice) {
-            if (totalAmountOriginal == 0 && totalTaxOriginal == 0) {
-                total_amount_original = existingInvoice.total_amount_original;
-                total_tax_original = existingInvoice.total_tax_original;
-            }
-            if (totalAmountDuplicate == 0 && totalTaxDuplicate == 0) {
-                total_amount_duplicate = existingInvoice.total_amount_duplicate;
-                total_tax_duplicate = existingInvoice.total_tax_duplicate;
-            }
-        }
+        const totals_original = computeTotals(items_original, non_items_original);
+        const totals_duplicate = computeTotals(items_duplicate, non_items_duplicate);
 
         if (existingInvoice) {
             // ---------------------------------------------------------
@@ -276,13 +362,23 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 nextServiceDate = targetDate;
             }
 
+            // Update snapshot and service fields
+            if (buyerCustomerId) {
+                existingInvoice.customer_id = buyerCustomerId;
+            }
+            existingInvoice.customer_snapshot = customer_snapshot;
+            existingInvoice.consignee = consignee;
+            existingInvoice.totals_original = totals_original;
+            existingInvoice.totals_duplicate = totals_duplicate;
+            existingInvoice.other_charges = other_charges;
+
             // Update fields
             Object.assign(existingInvoice, {
                 project_name: projectName,
                 invoice_date: invoiceDate,
                 po_number: poNumber,
                 po_date: poDate,
-                quotation_id: quotationId,
+                quotation_id: quotationId || undefined,
                 dc_number: dcNumber,
                 dc_date: dcDate,
                 service_after_months: serviceAfterMonths,
@@ -300,10 +396,10 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 items_duplicate: items_duplicate,
                 non_items_original: non_items_original,
                 non_items_duplicate: non_items_duplicate,
-                total_amount_original: total_amount_original,
-                total_amount_duplicate: total_amount_duplicate,
-                total_tax_original: total_tax_original,
-                total_tax_duplicate: total_tax_duplicate,
+                total_amount_original: totals_original.grand_total,
+                total_amount_duplicate: totals_duplicate.grand_total,
+                total_tax_original: totals_original.total_tax,
+                total_tax_duplicate: totals_duplicate.total_tax,
                 declaration: declaration,
                 termsAndConditions: termsAndConditions
             });
@@ -316,16 +412,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             // SCENARIO 2: CREATE NEW INVOICE
             // ---------------------------------------------------------
 
-            let newId: string;
-            if (isCustomId && invoiceId && invoiceId.trim()) {
-                const existingCustom = await InvoiceModel.findOne({ invoice_id: invoiceId.trim() });
-                if (existingCustom) {
-                    return res.status(400).json({ message: `Invoice ID "${invoiceId}" already exists. Please use a different ID.` });
-                }
-                newId = invoiceId.trim();
-            } else {
-                newId = await generateNextId('invoice');
-            }
+            const newId = await generateNextId('invoice');
 
             // Stock Logic: Deduct stock for new invoice
             if (type === 'original') {
@@ -365,12 +452,21 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             }
 
             const invoice = new InvoiceModel({
+                invoice_no: newId,
                 invoice_id: newId,
                 invoice_date: invoiceDate || new Date(),
                 project_name: projectName,
                 po_number: poNumber,
                 po_date: poDate,
-                quotation_id: quotationId,
+                quotation_id: quotationId || undefined,
+                customer_id: buyerCustomerId || undefined,
+                customer_snapshot: customer_snapshot,
+                consignee: consignee,
+                items_original: items_original,
+                items_duplicate: items_original,
+                other_charges: other_charges,
+                totals_original: totals_original,
+                totals_duplicate: totals_original, // For new invoice, duplicate starts as original
                 dc_number: dcNumber,
                 dc_date: dcDate,
                 service_after_months: serviceAfterMonths,
@@ -384,23 +480,17 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 customer_GSTIN: buyerGSTIN,
                 consignee_name: consigneeName,
                 consignee_address: consigneeAddress,
-                items_original: items,
-                items_duplicate: items,
                 non_items_original: non_items,
                 non_items_duplicate: non_items,
-                total_amount_original: total_amount_original,
-                total_amount_duplicate: total_amount_duplicate,
-                total_tax_original: total_tax_original,
-                total_tax_duplicate: total_tax_duplicate,
+                total_amount_original: totals_original.grand_total,
+                total_amount_duplicate: totals_original.grand_total,
+                total_tax_original: totals_original.total_tax,
+                total_tax_duplicate: totals_original.total_tax,
                 declaration: declaration,
                 termsAndConditions: termsAndConditions
             });
 
             const savedInvoice = await invoice.save();
-
-            if (isCustomId && newId) {
-                await syncCounterIfNeeded('invoice', newId);
-            }
 
             return res.status(201).json({
                 message: 'Invoice saved successfully',

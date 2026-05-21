@@ -101,6 +101,7 @@ export interface IInvoice extends Document {
     schema_version: number;
 
     invoice_no: string;
+    invoice_id: string; // Legacy field for backward compatibility
     quotation_id?: Types.ObjectId;
     purchase_order_id?: Types.ObjectId;
 
@@ -116,7 +117,16 @@ export interface IInvoice extends Document {
     customer_id?: Types.ObjectId;
     customer_snapshot?: ICustomerSnapshot;
 
+    // Legacy customer details
+    customer_name?: string;
+    customer_address?: string;
+    customer_phone?: string;
+    customer_email?: string;
+    customer_GSTIN?: string;
+
     consignee?: IConsignee;
+    consignee_name?: string; // Legacy
+    consignee_address?: string; // Legacy
 
     // Original and Duplicate items
     items_original?: IInvoiceItem[];
@@ -129,6 +139,24 @@ export interface IInvoice extends Document {
     // Original and Duplicate totals
     totals_original?: ITotals;
     totals_duplicate?: ITotals;
+
+    // Legacy totals and payment info
+    total_amount_original?: number;
+    total_amount_duplicate?: number;
+    total_tax_original?: number;
+    total_tax_duplicate?: number;
+    total_paid_amount?: number;
+    payment_status?: string;
+
+    // Legacy non-items list
+    non_items_original?: any[];
+    non_items_duplicate?: any[];
+
+    // Service fields
+    service_after_months?: number;
+    next_service_date?: Date;
+    service_status?: string;
+    margin?: number;
 
     content?: IContent;
 
@@ -280,6 +308,15 @@ const invoiceSchema = new Schema<IInvoice>(
             index: true,
         },
 
+        // Legacy ID mapping
+        invoice_id: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            index: true,
+        },
+
         quotation_id: {
             type: Schema.Types.ObjectId,
             ref: "Quotation",
@@ -361,6 +398,45 @@ const invoiceSchema = new Schema<IInvoice>(
 
         content: {
             type: contentSchema,
+        },
+
+        // Legacy flat customer details
+        customer_name: { type: String, trim: true },
+        customer_address: { type: String, trim: true },
+        customer_phone: { type: String, trim: true },
+        customer_email: { type: String, trim: true, lowercase: true },
+        customer_GSTIN: { type: String, trim: true },
+
+        consignee_name: { type: String, trim: true },
+        consignee_address: { type: String, trim: true },
+
+        // Legacy totals
+        total_amount_original: { type: Number, default: 0 },
+        total_amount_duplicate: { type: Number, default: 0 },
+        total_tax_original: { type: Number, default: 0 },
+        total_tax_duplicate: { type: Number, default: 0 },
+        total_paid_amount: { type: Number, default: 0 },
+        payment_status: { type: String, default: "Unpaid" },
+
+        // Legacy non-items list
+        non_items_original: { type: [Schema.Types.Mixed], default: [] },
+        non_items_duplicate: { type: [Schema.Types.Mixed], default: [] },
+
+        // Service fields
+        service_after_months: {
+            type: Number,
+            default: 0,
+        },
+        next_service_date: {
+            type: Date,
+        },
+        service_status: {
+            type: String,
+            default: "Closed",
+        },
+        margin: {
+            type: Number,
+            default: 0,
         },
 
         // Audit

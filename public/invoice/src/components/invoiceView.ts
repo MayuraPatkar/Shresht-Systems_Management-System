@@ -1,59 +1,48 @@
-// NOTE: calculateInvoice function has been moved to public/js/shared/calculations.js
-// It is now available globally via window.calculateInvoice
+(function () {
+    const formatIndian = (window as any).formatIndian;
+    const formatDateIndian = (window as any).formatDateIndian;
+    const numberToWords = (window as any).numberToWords;
+    const editPayment = (window as any).editPayment;
+    const deletePayment = (window as any).deletePayment;
+    const payment = (window as any).payment;
 
-// ====== View Type Switching State ======
-let cachedInvoice = null;
-let cachedUserRole = null;
-let currentInvoiceViewType = 'duplicate'; // Default: Duplicate (without tax)
+    let cachedInvoice: Invoice | null = null;
+    let cachedUserRole: string | null = null;
+    let currentInvoiceViewType = 'duplicate';
 
-/**
- * Parse view type into docType and showTax
- * @param {string} viewType - 'duplicate', 'duplicate-tax', 'original', 'original-tax'
- * @returns {{ docType: string, showTax: boolean }}
- */
-function parseViewType(viewType) {
+function parseViewType(viewType: string) {
     const showTax = viewType.endsWith('-tax');
     const docType = showTax ? viewType.replace('-tax', '') : viewType;
     return { docType, showTax };
 }
 
-/**
- * Update active tab styling - segmented control style
- */
-function updateInvoiceViewTypeTabs(activeViewType) {
+function updateInvoiceViewTypeTabs(activeViewType: string) {
     const tabs = document.querySelectorAll('#view-type-tabs .view-type-tab');
     tabs.forEach(tab => {
-        const viewType = tab.dataset.viewType;
+        const viewType = (tab as HTMLElement).dataset.viewType;
         if (viewType === activeViewType) {
-            // Active state - primary blue with shadow
             tab.classList.add('active', 'bg-blue-600', 'text-white', 'shadow-sm');
             tab.classList.remove('text-gray-500');
         } else {
-            // Inactive state - transparent with gray text
             tab.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-sm');
             tab.classList.add('text-gray-500');
         }
     });
     currentInvoiceViewType = activeViewType;
-    // Store both parts in session for compatibility
     const { docType } = parseViewType(activeViewType);
     sessionStorage.setItem('view-invoice', docType);
     sessionStorage.setItem('view-invoice-full', activeViewType);
 }
 
-/**
- * Initialize view type tab click handlers
- */
 function initInvoiceViewTypeTabs() {
     const tabs = document.querySelectorAll('#view-type-tabs .view-type-tab');
     tabs.forEach(tab => {
         tab.addEventListener('click', async () => {
-            const viewType = tab.dataset.viewType;
-            if (viewType === currentInvoiceViewType) return; // Already active
+            const viewType = (tab as HTMLElement).dataset.viewType;
+            if (!viewType || viewType === currentInvoiceViewType) return;
 
             updateInvoiceViewTypeTabs(viewType);
 
-            // Re-render with cached invoice data
             if (cachedInvoice && cachedUserRole) {
                 await renderInvoiceView(cachedInvoice, cachedUserRole, viewType);
             }
@@ -61,50 +50,54 @@ function initInvoiceViewTypeTabs() {
     });
 }
 
-// Initialize tabs when DOM is ready
 document.addEventListener('DOMContentLoaded', initInvoiceViewTypeTabs);
 
-async function generateInvoicePreview(invoice = {}, userRole, type, showTax = false) {
-    // Fetch company info for dynamic header/footer/bank details
-    const company = window.companyConfig ? await window.companyConfig.getCompanyInfo() : null;
-    const companyName = company?.company?.toUpperCase() || 'COMPANY NAME';
-    const companyAddress = company?.address || 'Company Address';
-    const companyPhone = company?.phone ? `${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''}` : '';
-    const companyGSTIN = company?.GSTIN || '';
-    const companyEmail = company?.email || '';
-    const companyWebsite = company?.website || '';
-    const bankDetails = company?.bank_details || {};
+async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: string, type: string, showTax: boolean = false) {
+    const companyInfo = (window as any).companyConfig ? await (window as any).companyConfig.getCompanyInfo() : null;
+    const companyName = companyInfo?.company_name?.toUpperCase() || 'COMPANY NAME';
+    const companyAddress = typeof companyInfo?.address === 'string'
+        ? companyInfo.address
+        : [
+            companyInfo?.address?.line1,
+            companyInfo?.address?.line2,
+            companyInfo?.address?.city,
+            companyInfo?.address?.state ? companyInfo.address.state + (companyInfo.address.pincode ? ' - ' + companyInfo.address.pincode : '') : ''
+          ].filter(Boolean).join(', ') || 'Company Address';
+    const companyPhone = companyInfo?.phone ? `${companyInfo.phone.ph1}${companyInfo.phone.ph2 ? ' / ' + companyInfo.phone.ph2 : ''}` : '';
+    const companyGSTIN = companyInfo?.gstin || '';
+    const companyEmail = companyInfo?.email || '';
+    const companyWebsite = companyInfo?.website || '';
+    const bankDetails = {
+        name: companyInfo?.bank_details?.account_holder_name || companyName,
+        bank_name: companyInfo?.bank_details?.bank_name || '',
+        branch: companyInfo?.bank_details?.branch || '',
+        accountNo: companyInfo?.bank_details?.account_number || '',
+        IFSC_code: companyInfo?.bank_details?.ifsc_code || ''
+    };
 
     let itemsHTML = "";
     let totalPrice = 0;
     let totalCGST = 0;
     let totalSGST = 0;
-    // Non-items totals for preview
-    let nonItemsTaxableValue = 0;
-    let nonItemsCGST = 0;
-    let nonItemsSGST = 0;
-    let nonItemsTotalPrice = 0;
     let totalTaxableValue = 0;
     let totalTax = 0;
-    // Use showTax parameter instead of deriving from data
     let hasTax = showTax;
-    let items = []
+    let items: InvoiceItem[] = [];
 
-    if (type == 'original') {
-        items = invoice.items_original;
+    if (type === 'original') {
+        items = invoice.items_original || [];
     } else {
-        items = invoice.items_duplicate;
+        items = invoice.items_duplicate || [];
     }
 
     if (items.length > 0) {
         let sno = 1;
-        // hasTax is now controlled by showTax parameter
         items.forEach(item => {
             const description = item.description || "-";
             const hsnSac = item.HSN_SAC || "-";
-            const qty = parseFloat(item.quantity || 0);
-            const unitPrice = parseFloat(item.unit_price || 0);
-            const rate = parseFloat(item.rate || 0);
+            const qty = parseFloat(String(item.quantity || 0));
+            const unitPrice = parseFloat(String(item.unit_price || 0));
+            const rate = parseFloat(String(item.rate || 0));
 
             const taxableValue = qty * unitPrice;
             totalTaxableValue += taxableValue;
@@ -150,9 +143,8 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
             }
         });
 
-        // Process non_items based on type
-        let non_items = [];
-        if (type == 'original') {
+        let non_items: NonInvoiceItem[] = [];
+        if (type === 'original') {
             non_items = invoice.non_items_original || [];
         } else {
             non_items = invoice.non_items_duplicate || [];
@@ -160,11 +152,10 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
 
         non_items.forEach(item => {
             const description = item.description || "-";
-            const price = parseFloat(item.price || 0);
-            const rate = parseFloat(item.rate || 0);
+            const price = parseFloat(String(item.price || 0));
+            const rate = parseFloat(String(item.rate || 0));
 
             totalTaxableValue += price;
-            nonItemsTaxableValue += price;
 
             if (hasTax) {
                 const cgstPercent = rate / 2;
@@ -175,10 +166,7 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
 
                 totalCGST += cgstValue;
                 totalSGST += sgstValue;
-                nonItemsCGST += cgstValue;
-                nonItemsSGST += sgstValue;
                 totalPrice += rowTotal;
-                nonItemsTotalPrice += rowTotal;
                 totalTax += cgstValue + sgstValue;
 
                 itemsHTML += `
@@ -196,7 +184,6 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
             } else {
                 const rowTotal = price;
                 totalPrice += rowTotal;
-                nonItemsTotalPrice += rowTotal;
 
                 itemsHTML += `
                     <tr>
@@ -211,14 +198,14 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
             }
         });
     } else {
-        // Fallback to DOM table (edit mode)
         const itemsTableElement = document.getElementById("detail-items-table") || document.getElementById("items-table") || document.getElementById("view-items-table");
-        const itemsTable = itemsTableElement?.getElementsByTagName("tbody")[0];
+        const itemsTable = itemsTableElement?.getElementsByTagName("tbody")[0] as HTMLTableSectionElement | null;
         if (!itemsTable) {
-            document.getElementById("view-preview-content").innerHTML = "<p>No items to preview.</p>";
+            const previewEl = document.getElementById("view-preview-content");
+            if (previewEl) previewEl.innerHTML = "<p>No items to preview.</p>";
             return;
         }
-        const calc = calculateInvoice(itemsTable);
+        const calc = (window as any).calculateInvoice(itemsTable);
         itemsHTML = calc.itemsHTML;
         totalPrice = calc.totalPrice;
         totalCGST = calc.totalCGST;
@@ -229,38 +216,31 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
 
     const grandTotal = totalTaxableValue + totalCGST + totalSGST;
     const roundedGrandTotal = Math.round(grandTotal);
-    const roundOff = roundedGrandTotal - grandTotal;
     const finalTotal = roundedGrandTotal;
 
     const hasTaxSection = hasTax ? `
-                <p>Taxable Value:</p>
-                <p>Total CGST:</p>
-                <p>Total SGST:</p>
+        <p>Taxable Value:</p>
+        <p>Total CGST:</p>
+        <p>Total SGST:</p>
     ` : ``;
     const hasTaxValues = hasTax ? `
-                <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
-                <p>₹ ${formatIndian(totalCGST, 2)}</p>
-                <p>₹ ${formatIndian(totalSGST, 2)}</p>
+        <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+        <p>₹ ${formatIndian(totalCGST, 2)}</p>
+        <p>₹ ${formatIndian(totalSGST, 2)}</p>
     ` : ``;
-    // We do not write non-items totals in the preview totals section.
-    const nonItemsSection = '';
-    const nonItemsValues = '';
 
-    let totalsHTML = `
+    const totalsHTML = `
         <div style="display: flex; width: 100%;">
             <div class="totals-section-sub1" style="width: 50%;">
                 ${hasTaxSection}
-                ${nonItemsSection}
                 <p>Grand Total:</p>
             </div>
             <div class="totals-section-sub2" style="width: 50%;">
                 ${hasTaxValues}
-                ${nonItemsValues}
                 <p>₹ ${formatIndian(finalTotal, 2)}</p>
             </div>
         </div>`;
 
-    // Split items into rows for pagination
     const itemRows = itemsHTML.split('</tr>').filter(row => row.trim().length > 0).map(row => row + '</tr>');
 
     const ITEMS_PER_PAGE = 15;
@@ -272,7 +252,7 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
 
     itemRows.forEach((row, index) => {
         const isLastItem = index === itemRows.length - 1;
-        const itemSpace = 1; // Each row takes 1 line
+        const itemSpace = 1;
         const requiredSpaceForLastItem = itemSpace + SUMMARY_SECTION_ROW_COUNT;
 
         if (currentPageRowCount > 0 &&
@@ -291,7 +271,6 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
         itemPages.push(currentPageItemsHTML);
     }
 
-    // Generate pages
     const pagesHTML = itemPages.map((pageHTML, index) => {
         const isLastPage = index === itemPages.length - 1;
         return `
@@ -318,22 +297,22 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
             <div class="second-section">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <p>INVOICE-${invoice.invoice_id}</p>
-                    <p><strong>Date: </strong>${window.formatDate ? window.formatDate(invoice.invoice_date) : (invoice.invoice_date || '-')}</p>
+                    <p><strong>Date: </strong>${(window as any).formatDate ? (window as any).formatDate(invoice.invoice_date) : (invoice.invoice_date || '-')}</p>
                 </div>
             </div>
             ${index === 0 ? `
             <div class="third-section">
                 <div class="buyer-details">
                     <p><strong>Bill To:</strong></p>
-                    <p>${invoice.customer_name}</p>
-                    <p>${invoice.customer_address}</p>
-                    <p>Ph. ${invoice.customer_phone}</p>
+                    <p>${invoice.customer_name || ''}</p>
+                    <p>${invoice.customer_address || ''}</p>
+                    <p>Ph. ${invoice.customer_phone || ''}</p>
                     ${invoice.customer_GSTIN ? `<p>GSTIN: ${invoice.customer_GSTIN}</p>` : ''}
                 </div>
                 <div class="order-info">
-                    <p><strong>Project:</strong> ${invoice.project_name}</p>
-                    <p><strong>P.O No:</strong> ${invoice.po_number}</p>
-                    <p><strong>D.C No:</strong> ${invoice.dc_number}</p>
+                    <p><strong>Project:</strong> ${invoice.project_name || ''}</p>
+                    <p><strong>P.O No:</strong> ${invoice.po_number || ''}</p>
+                    <p><strong>D.C No:</strong> ${invoice.dc_number || ''}</p>
                 </div>
             </div>
             ` : ''}
@@ -420,37 +399,28 @@ async function generateInvoicePreview(invoice = {}, userRole, type, showTax = fa
         `;
     }).join('');
 
-    document.getElementById("view-preview-content").innerHTML = pagesHTML;
+    const previewEl = document.getElementById("view-preview-content");
+    if (previewEl) previewEl.innerHTML = pagesHTML;
 }
 
-/**
- * Render the invoice view with the given data and view type
- * Separated from fetching to allow tab switching without re-fetching
- * @param {object} invoice - Invoice data
- * @param {string} userRole - User role
- * @param {string} viewType - 'duplicate', 'duplicate-tax', 'original', 'original-tax'
- */
-async function renderInvoiceView(invoice, userRole, viewType) {
-    // Parse viewType to get docType and showTax
+async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: string) {
     const { docType, showTax } = parseViewType(viewType);
-
     const invoiceIdLocal = invoice?.invoice_id;
     let sno = 0;
-    // Prepare items and non-items based on docType (original or duplicate)
     const itemsForType = (docType === 'original') ? (invoice.items_original || []) : (invoice.items_duplicate || []);
     const nonItemsForType = (docType === 'original') ? (invoice.non_items_original || []) : (invoice.non_items_duplicate || []);
+
     let view_totalTaxable = 0;
     let view_totalCGST = 0;
     let view_totalSGST = 0;
     let view_grandTotal = 0;
-    // Non-items breakdown
+
     let view_nonItemsTaxable = 0;
     let view_nonItemsCGST = 0;
     let view_nonItemsSGST = 0;
     let view_nonItemsGrandTotal = 0;
 
-    // Fill Project Details with null checks
-    const setTextContent = (id, value) => {
+    const setTextContent = (id: string, value: any) => {
         const el = document.getElementById(id);
         if (el) el.textContent = value || '-';
     };
@@ -463,33 +433,16 @@ async function renderInvoiceView(invoice, userRole, viewType) {
     setTextContent('view-purchase-order-date', invoice.po_date ? formatDateIndian(invoice.po_date) : null);
     setTextContent('view-delivery-challan-number', (invoice.dc_number && invoice.dc_number !== 'undefined') ? invoice.dc_number : null);
     setTextContent('view-delivery-challan-date', invoice.dc_date ? formatDateIndian(invoice.dc_date) : null);
-    setTextContent('view-service-months', (invoice.service_after_months) ? invoice.service_after_months : '0');
-    setTextContent('view-service-stage', (invoice.service_stage) ? invoice.service_stage : 'No Service');
+    setTextContent('view-service-months', invoice.service_after_months ? String(invoice.service_after_months) : '0');
+    setTextContent('view-service-stage', invoice.service_stage ? invoice.service_stage : 'No Service');
     setTextContent('view-margin', (invoice.margin !== undefined && invoice.margin !== null) ? `${invoice.margin}%` : '0%');
     setTextContent('view-payment-status', invoice.payment_status);
 
-
-
-    const balanceDue = (invoice.total_amount_duplicate || 0) - (invoice.total_paid_amount || 0);
-    setTextContent('view-balance-due', `₹ ${formatIndian(balanceDue, 2)}`);
-
-    // Buyer & Consignee
-    setTextContent('view-buyer-name', invoice.customer_name);
-    setTextContent('view-buyer-address', invoice.customer_address);
-    setTextContent('view-buyer-phone', invoice.customer_phone);
-    setTextContent('view-buyer-email', invoice.customer_email);
-    setTextContent('view-buyer-gstin', invoice.customer_GSTIN);
-    setTextContent('view-consignee-name', invoice.consignee_name);
-    setTextContent('view-consignee-address', invoice.consignee_address);
-
-    // Set the totals for the view section (professional 3-box layout)
-    // We'll prefer explicit totals from the invoice if present (and > 0), otherwise compute from items/non-items
     let viewSubtotal = 0;
     let viewTax = 0;
     let viewGrandTotal = 0;
 
-    // Helper to compute totals from items and non-items
-    const computeTotalsFromItems = (itemsList, nonItemsList) => {
+    const computeTotalsFromItems = (itemsList: InvoiceItem[], nonItemsList: NonInvoiceItem[]) => {
         let subtotal = 0;
         let tax = 0;
         for (const it of itemsList || []) {
@@ -508,7 +461,6 @@ async function renderInvoiceView(invoice, userRole, viewType) {
             subtotal += price;
             tax += taxVal;
         }
-        // Grand total should include tax only if showTax is true
         const grand = showTax ? (subtotal + tax) : subtotal;
         return { subtotal, tax, grand };
     };
@@ -520,7 +472,6 @@ async function renderInvoiceView(invoice, userRole, viewType) {
             viewGrandTotal = givenTotal;
             viewTax = givenTax;
             viewSubtotal = Math.max(0, viewGrandTotal - viewTax);
-            // If showTax is false, use subtotal as grand total
             if (!showTax) {
                 viewGrandTotal = viewSubtotal;
             }
@@ -537,7 +488,6 @@ async function renderInvoiceView(invoice, userRole, viewType) {
             viewGrandTotal = givenTotal;
             viewTax = givenTax;
             viewSubtotal = Math.max(0, viewGrandTotal - viewTax);
-            // If showTax is false, use subtotal as grand total
             if (!showTax) {
                 viewGrandTotal = viewSubtotal;
             }
@@ -553,12 +503,17 @@ async function renderInvoiceView(invoice, userRole, viewType) {
     setTextContent('view-tax', showTax && viewTax > 0 ? `₹ ${formatIndian(viewTax, 2)}` : 'No Tax');
     setTextContent('view-grand-total', `₹ ${formatIndian(viewGrandTotal, 2)}`);
 
-    // Update balance due based on computed grand total (fallback if stored total is absent)
-    const effectiveTotal = viewGrandTotal;
-    const balanceDueComputed = Number(effectiveTotal || 0) - Number(invoice.total_paid_amount || 0);
+    const balanceDueComputed = Number(viewGrandTotal || 0) - Number(invoice.total_paid_amount || 0);
     setTextContent('view-balance-due', `₹ ${formatIndian(balanceDueComputed, 2)}`);
 
-    // Payment History
+    setTextContent('view-buyer-name', invoice.customer_snapshot?.name || invoice.customer_name);
+    setTextContent('view-buyer-address', invoice.customer_snapshot?.billing_address?.line1 || invoice.customer_address);
+    setTextContent('view-buyer-phone', invoice.customer_snapshot?.phone || invoice.customer_phone);
+    setTextContent('view-buyer-email', invoice.customer_snapshot?.email || invoice.customer_email);
+    setTextContent('view-buyer-gstin', invoice.customer_snapshot?.gstin || invoice.customer_GSTIN);
+    setTextContent('view-consignee-name', invoice.consignee?.name || invoice.consignee_name);
+    setTextContent('view-consignee-address', invoice.consignee?.address?.line1 || invoice.consignee_address);
+
     const detailPaymentsTableBody = document.querySelector("#view-payment-table tbody");
     if (detailPaymentsTableBody) {
         detailPaymentsTableBody.innerHTML = "";
@@ -578,66 +533,58 @@ async function renderInvoiceView(invoice, userRole, viewType) {
                 const row = document.createElement("tr");
                 row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                 row.innerHTML = `
-                        <td class="px-4 py-3 text-sm text-gray-900">${formatDateIndian(item.payment_date) || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">${item.extra_details ? item.extra_details : '-'}</td>
-                        <td class="px-4 py-3 text-sm">
-                            <div class="flex items-center gap-2">
-                                <button type="button" class="edit-payment-btn text-blue-600 hover:text-blue-800 p-1" data-invoice-id="${invoice.invoice_id}" data-payment-index="${index}" title="Edit Payment">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button type="button" class="delete-payment-btn text-red-600 hover:text-red-800 p-1" data-invoice-id="${invoice.invoice_id}" data-payment-index="${index}" title="Delete Payment">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    `;
+                    <td class="px-4 py-3 text-sm text-gray-900">${formatDateIndian(item.payment_date) || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${item.payment_mode || '-'}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.paid_amount, 2) || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.extra_details ? item.extra_details : '-'}</td>
+                    <td class="px-4 py-3 text-sm">
+                        <div class="flex items-center gap-2">
+                            <button type="button" class="edit-payment-btn text-blue-600 hover:text-blue-800 p-1" data-invoice-id="${invoice.invoice_id}" data-payment-index="${index}" title="Edit Payment">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="delete-payment-btn text-red-600 hover:text-red-800 p-1" data-invoice-id="${invoice.invoice_id}" data-payment-index="${index}" title="Delete Payment">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
                 detailPaymentsTableBody.appendChild(row);
             });
 
-            // Add event listeners for edit/delete buttons
             detailPaymentsTableBody.querySelectorAll('.edit-payment-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const invoiceId = btn.dataset.invoiceId;
-                    const paymentIndex = parseInt(btn.dataset.paymentIndex, 10);
-                    if (typeof editPayment === 'function') {
-                        editPayment(invoiceId, paymentIndex);
+                    const id = (btn as HTMLElement).dataset.invoiceId;
+                    const idxStr = (btn as HTMLElement).dataset.paymentIndex;
+                    if (id && idxStr !== undefined) {
+                        editPayment(id, parseInt(idxStr, 10));
                     }
                 });
             });
 
             detailPaymentsTableBody.querySelectorAll('.delete-payment-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const invoiceId = btn.dataset.invoiceId;
-                    const paymentIndex = parseInt(btn.dataset.paymentIndex, 10);
-                    if (typeof deletePayment === 'function') {
-                        deletePayment(invoiceId, paymentIndex);
+                    const id = (btn as HTMLElement).dataset.invoiceId;
+                    const idxStr = (btn as HTMLElement).dataset.paymentIndex;
+                    if (id && idxStr !== undefined) {
+                        deletePayment(id, parseInt(idxStr, 10));
                     }
                 });
             });
         }
     }
 
-    // Add Payment Button Handler
     const addPaymentBtn = document.getElementById('view-add-payment-btn');
     if (addPaymentBtn) {
         const newBtn = addPaymentBtn.cloneNode(true);
-        addPaymentBtn.parentNode.replaceChild(newBtn, addPaymentBtn);
+        if (addPaymentBtn.parentNode) {
+            addPaymentBtn.parentNode.replaceChild(newBtn, addPaymentBtn);
+        }
 
         newBtn.addEventListener('click', () => {
-            if (typeof payment === 'function') {
-                payment(invoice.invoice_id);
-            } else {
-                console.error('payment function not found');
-                if (window.electronAPI && window.electronAPI.showAlert1) {
-                    window.electronAPI.showAlert1('Payment function not available');
-                }
-            }
+            payment(invoice.invoice_id);
         });
     }
 
-    // Item List
     const detailItemsTableBody = document.querySelector("#view-items-table tbody");
     const detailItemsTableHead = document.querySelector("#view-items-table thead tr");
     if (detailItemsTableHead) {
@@ -663,14 +610,15 @@ async function renderInvoiceView(invoice, userRole, viewType) {
             `;
         }
     }
+
     if (detailItemsTableBody) {
         detailItemsTableBody.innerHTML = "";
         sno = 0;
         itemsForType.forEach(item => {
             sno++;
-            const qty = parseFloat(item.quantity || 0);
-            const unitPrice = parseFloat(item.unit_price || 0);
-            const rate = parseFloat(item.rate || 0);
+            const qty = parseFloat(String(item.quantity || 0));
+            const unitPrice = parseFloat(String(item.unit_price || 0));
+            const rate = parseFloat(String(item.rate || 0));
             const taxableValue = qty * unitPrice;
             const cgstPercent = rate / 2;
             const sgstPercent = rate / 2;
@@ -683,6 +631,7 @@ async function renderInvoiceView(invoice, userRole, viewType) {
                 view_totalSGST += sgstValue;
             }
             view_grandTotal += rowTotal;
+
             const row = document.createElement("tr");
             row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
             if (showTax) {
@@ -709,7 +658,6 @@ async function renderInvoiceView(invoice, userRole, viewType) {
             detailItemsTableBody.appendChild(row);
         });
 
-        // Populate Items totals card
         try {
             setTextContent('view-items-total-amount', `₹ ${formatIndian(view_totalTaxable, 2)}`);
             const itemsTax = view_totalCGST + view_totalSGST;
@@ -720,7 +668,6 @@ async function renderInvoiceView(invoice, userRole, viewType) {
         }
     }
 
-    // Non-Items List
     const detailNonItemsTableBody = document.querySelector("#view-non-items-table tbody");
     const detailNonItemsTableHead = document.querySelector("#view-non-items-table thead tr");
     if (detailNonItemsTableHead) {
@@ -744,8 +691,8 @@ async function renderInvoiceView(invoice, userRole, viewType) {
         let nonItemSno = 0;
         nonItemsForType.forEach(item => {
             nonItemSno++;
-            const price = parseFloat(item.price || 0);
-            const rate = parseFloat(item.rate || 0);
+            const price = parseFloat(String(item.price || 0));
+            const rate = parseFloat(String(item.rate || 0));
             const cgstPercent = rate / 2;
             const sgstPercent = rate / 2;
             const cgstValue = (price * cgstPercent) / 100;
@@ -757,6 +704,7 @@ async function renderInvoiceView(invoice, userRole, viewType) {
                 view_nonItemsSGST += sgstValue;
             }
             view_nonItemsGrandTotal += rowTotal;
+
             const row = document.createElement("tr");
             row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
             if (showTax) {
@@ -777,45 +725,54 @@ async function renderInvoiceView(invoice, userRole, viewType) {
         });
     }
 
-    // Non-items totals in Non-Items card
     try {
         setTextContent('view-non-items-total-amount', `₹ ${formatIndian(view_nonItemsTaxable, 2)}`);
         const nonItemsTax = view_nonItemsCGST + view_nonItemsSGST;
         setTextContent('view-non-items-total-tax', showTax && nonItemsTax > 0 ? `₹ ${formatIndian(nonItemsTax, 2)}` : 'No Tax');
         setTextContent('non-items-overall', `₹ ${formatIndian(view_nonItemsGrandTotal, 2)}`);
     } catch (e) {
-        // If elements not present, ignore silently
         console.warn('Non-items totals DOM elements not found', e);
     }
 
-    // Pass docType and showTax to generateInvoicePreview
     generateInvoicePreview(invoice, userRole, docType, showTax);
 
-    // Print and Save as PDF handlers
-    document.getElementById('printProject').onclick = () => {
-        const previewContent = document.getElementById("view-preview-content").innerHTML;
-        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-            window.electronAPI.handlePrintEvent(previewContent, "print");
-        } else {
-            window.electronAPI.showAlert1("Print functionality is not available.");
-        }
-    };
-    document.getElementById('saveProjectPDF').onclick = () => {
-        const previewContent = document.getElementById("view-preview-content").innerHTML;
-        if (window.electronAPI && window.electronAPI.handlePrintEvent) {
-            let name = `Invoice-${invoiceIdLocal}`;
-            window.electronAPI.handlePrintEvent(previewContent, "savePDF", name);
-        } else {
-            window.electronAPI.showAlert1("Print functionality is not available.");
-        }
-    };
+    const printProjBtn = document.getElementById('printProject');
+    if (printProjBtn) {
+        printProjBtn.onclick = () => {
+            const previewEl = document.getElementById("view-preview-content");
+            const previewContent = previewEl ? previewEl.innerHTML : '';
+            if ((window as any).electronAPI?.handlePrintEvent) {
+                (window as any).electronAPI.handlePrintEvent(previewContent, "print");
+            } else {
+                if ((window as any).electronAPI?.showAlert1) {
+                    (window as any).electronAPI.showAlert1("Print functionality is not available.");
+                }
+            }
+        };
+    }
+
+    const savePDFBtn = document.getElementById('saveProjectPDF');
+    if (savePDFBtn) {
+        savePDFBtn.onclick = () => {
+            const previewEl = document.getElementById("view-preview-content");
+            const previewContent = previewEl ? previewEl.innerHTML : '';
+            if ((window as any).electronAPI?.handlePrintEvent) {
+                const name = `Invoice-${invoiceIdLocal}`;
+                (window as any).electronAPI.handlePrintEvent(previewContent, "savePDF", name);
+            } else {
+                if ((window as any).electronAPI?.showAlert1) {
+                    (window as any).electronAPI.showAlert1("Print functionality is not available.");
+                }
+            }
+        };
+    }
 }
 
-async function viewInvoice(invoiceId, userRole) {
+async function viewInvoice(invoiceId: string, userRole?: string | null) {
     try {
-        // Ensure userRole is set, default to 'user' if not provided
-        if (!userRole) {
-            userRole = sessionStorage.getItem('userRole') || 'user';
+        let role = userRole;
+        if (!role) {
+            role = sessionStorage.getItem('userRole') || 'user';
         }
 
         const type = sessionStorage.getItem('view-invoice') || 'duplicate';
@@ -825,17 +782,14 @@ async function viewInvoice(invoiceId, userRole) {
         }
 
         const data = await response.json();
-        const invoice = data.invoice;
+        const invoice = data.invoice as Invoice;
 
-        // Cache invoice for tab switching
         cachedInvoice = invoice;
-        cachedUserRole = userRole;
+        cachedUserRole = role;
         currentInvoiceViewType = type;
 
-        // Update tab styling to match the requested view type
         updateInvoiceViewTypeTabs(type);
 
-        // Hide other sections, show view section
         const viewPreview = document.getElementById('view-preview');
         const home = document.getElementById('home');
         const newSection = document.getElementById('new');
@@ -846,14 +800,15 @@ async function viewInvoice(invoiceId, userRole) {
         if (newSection) newSection.style.display = 'none';
         if (view) view.style.display = 'flex';
 
-        // Render the view with fetched data
-        await renderInvoiceView(invoice, userRole, type);
+        await renderInvoiceView(invoice, role, type);
 
     } catch (error) {
         console.error("Error fetching invoice:", error);
-        window.electronAPI?.showAlert1("Failed to fetch invoice. Please try again later.");
+        if ((window as any).electronAPI?.showAlert1) {
+            (window as any).electronAPI.showAlert1("Failed to fetch invoice. Please try again later.");
+        }
     }
 }
 
-// // Expose viewInvoice globally for use in other scripts
-window.viewInvoice = viewInvoice;
+(window as any).viewInvoice = viewInvoice;
+})();
