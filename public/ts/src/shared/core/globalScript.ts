@@ -938,10 +938,6 @@ async function fill(itemName, element) {
 
         // Fill fields (indices shifted by 1 due to hidden stock_id)
         if (inputs[2]) inputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
-        
-        if (inputs[3] && (!inputs[3].value || inputs[3].value === '0')) {
-          inputs[3].value = 1;
-        }
 
         if (inputs[4]) inputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
         if (inputs[5]) inputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
@@ -965,7 +961,6 @@ async function fill(itemName, element) {
 
           if (rowInputs.length >= 6) {
             rowInputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
-            if (!rowInputs[3].value || rowInputs[3].value === '0') rowInputs[3].value = 1;
             rowInputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
             rowInputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
             rowInputs[3].dispatchEvent(new Event('input', { bubbles: true }));
@@ -984,7 +979,6 @@ async function fill(itemName, element) {
 
         if (rowInputs.length >= 6) {
           rowInputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
-          if (!rowInputs[3].value || rowInputs[3].value === '0') rowInputs[3].value = 1;
           rowInputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
           rowInputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
         }
@@ -993,11 +987,6 @@ async function fill(itemName, element) {
       // Standard card fill (Invoice, Quotation, etc.)
       const inputs = element.querySelectorAll('input');
       inputs[1].value = stockData.hsn_sac || stockData.HSN_SAC || ""; // HSN/SAC
-      
-      // Default quantity to 1 if empty or 0
-      if (!inputs[2].value || inputs[2].value === '0') {
-          inputs[2].value = 1;
-      }
 
       inputs[3].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0; // Unit Price
       inputs[4].value = stockData.gst_rate ?? stockData.GST ?? 0; // Rate
@@ -1018,10 +1007,6 @@ async function fill(itemName, element) {
         const rateInput = tableRow.querySelector("input[placeholder='Rate']");
         
         if (hsnInput) hsnInput.value = stockData.hsn_sac || stockData.HSN_SAC || "";
-        if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) {
-            qtyInput.value = 1;
-            qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
         if (unitInput) {
           unitInput.value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
           unitInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -1039,10 +1024,6 @@ async function fill(itemName, element) {
       const rateInput = element.querySelector("input[placeholder='Rate']");
       
       if (hsnInput) hsnInput.value = stockData.hsn_sac || stockData.HSN_SAC || "";
-      if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) {
-          qtyInput.value = 1;
-          qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
-      }
       if (unitInput) {
         unitInput.value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
         unitInput.dispatchEvent(new Event('input', { bubbles: true }));

@@ -22,7 +22,9 @@
     let selectedSupplierIndex = -1;
     let companySuggestionList: string[] = [];
     let categorySuggestionList: string[] = [];
+    let stockNames: string[] = [];
     let isAutofillInProgressPO = false;
+    let POItemSelectedIndex = -1;
 
     // Helper functions for autocomplete
     function closeAllSuggestions() {
@@ -30,6 +32,17 @@
         allSuggestions.forEach((ul: HTMLElement) => {
             ul.style.display = 'none';
         });
+    }
+
+    async function fetchStockNames() {
+        try {
+            const response = await fetch('/stock/get-names');
+            if (response.ok) {
+                stockNames = await response.json();
+            }
+        } catch (error) {
+            console.error("Error fetching stock names:", error);
+        }
     }
 
     async function fetchCompanyAndCategorySuggestions() {
@@ -42,14 +55,16 @@
             const companies = new Set<string>();
             const categories = new Set<string>();
             
-            data.items.forEach((item: any) => {
-                if (item.company && item.company.trim() !== '') {
-                    companies.add(item.company.trim());
-                }
-                if (item.category && item.category.trim() !== '') {
-                    categories.add(item.category.trim());
-                }
-            });
+            if (Array.isArray(data)) {
+                data.forEach((item: any) => {
+                    if (item.company && item.company.trim() !== '') {
+                        companies.add(item.company.trim());
+                    }
+                    if (item.category && item.category.trim() !== '') {
+                        categories.add(item.category.trim());
+                    }
+                });
+            }
             
             companySuggestionList = Array.from(companies).sort();
             categorySuggestionList = Array.from(categories).sort();
@@ -69,6 +84,7 @@
         }
 
         input.addEventListener('input', function() {
+            if (isAutofillInProgressPO) return;
             const val = this.value;
             closeAllSuggestions();
             if (!val) return false;
@@ -103,14 +119,19 @@
         input.addEventListener('keydown', function(e) {
             let x = suggestionsContainer.getElementsByTagName("li");
             if (e.key === "ArrowDown") {
+                e.preventDefault();
+                e.stopPropagation();
                 currentFocus++;
                 addActive(x);
             } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                e.stopPropagation();
                 currentFocus--;
                 addActive(x);
             } else if (e.key === "Enter") {
-                e.preventDefault();
                 if (currentFocus > -1) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     if (x) (x[currentFocus] as HTMLElement).click();
                 }
             }
@@ -270,15 +291,18 @@
 
         if (event.key === "ArrowDown") {
             event.preventDefault();
+            event.stopPropagation();
             selectedSupplierIndex = (selectedSupplierIndex + 1) % items.length;
             updateSupplierSelection(items);
         } else if (event.key === "ArrowUp") {
             event.preventDefault();
+            event.stopPropagation();
             selectedSupplierIndex = (selectedSupplierIndex - 1 + items.length) % items.length;
             updateSupplierSelection(items);
         } else if (event.key === "Enter") {
-            event.preventDefault();
             if (selectedSupplierIndex > -1 && selectedSupplierIndex < items.length) {
+                event.preventDefault();
+                event.stopPropagation();
                 items[selectedSupplierIndex].click();
             }
         } else if (event.key === "Escape") {
@@ -320,7 +344,9 @@
 
     function showSuggestionsPO(input: HTMLInputElement, suggestionsList: HTMLUListElement) {
         if (isAutofillInProgressPO) return;
-        const value = input.value.toLowerCase();
+        closeAllSuggestions();
+        
+        const value = input.value.toLowerCase().trim();
         suggestionsList.innerHTML = "";
         
         if (!value) {
@@ -328,16 +354,19 @@
             return;
         }
         
-        const data = (window as any).data || [];
-        const filteredData = data.filter((item: any) => item.description.toLowerCase().includes(value));
+        POItemSelectedIndex = -1; // Reset index when showing new suggestions
+        const filteredData = stockNames.filter((name: string) => name && name.toLowerCase().includes(value));
         
-        filteredData.forEach((item: any) => {
+        filteredData.forEach((name: string) => {
             const li = document.createElement("li");
-            li.textContent = item.description;
-            li.addEventListener("click", () => {
-                input.value = item.description;
+            li.textContent = name;
+            li.addEventListener("click", async () => {
+                input.value = name;
                 suggestionsList.style.display = "none";
-                fillPurchaseOrderItem(item.description, input);
+                isAutofillInProgressPO = true;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                isAutofillInProgressPO = false;
+                await fillPurchaseOrderItem(name, input);
             });
             suggestionsList.appendChild(li);
         });
@@ -350,39 +379,55 @@
     }
 
     async function handleKeyboardNavigationPO(event: KeyboardEvent, input: HTMLInputElement, suggestionsList: HTMLUListElement) {
-        const items = suggestionsList.getElementsByTagName("li");
+        const items = Array.from(suggestionsList.querySelectorAll("li"));
+        if (items.length === 0 || suggestionsList.style.display === "none") return;
         
         if (event.key === "ArrowDown") {
-            (window as any).selectedIndex++;
-            if ((window as any).selectedIndex >= items.length) (window as any).selectedIndex = 0;
+            event.preventDefault();
+            event.stopPropagation();
+            POItemSelectedIndex = (POItemSelectedIndex + 1) % items.length;
+            input.value = items[POItemSelectedIndex].textContent || "";
             updateSelection();
         } else if (event.key === "ArrowUp") {
-            (window as any).selectedIndex--;
-            if ((window as any).selectedIndex < 0) (window as any).selectedIndex = items.length - 1;
+            event.preventDefault();
+            event.stopPropagation();
+            POItemSelectedIndex = (POItemSelectedIndex - 1 + items.length) % items.length;
+            input.value = items[POItemSelectedIndex].textContent || "";
             updateSelection();
         } else if (event.key === "Enter") {
-            if ((window as any).selectedIndex > -1 && items.length > 0) {
-                event.preventDefault();
-                input.value = items[(window as any).selectedIndex].textContent || "";
-                suggestionsList.style.display = "none";
-                await fillPurchaseOrderItem(input.value, input);
-            }
-        } else if (event.key === "Escape") {
-            if (suggestionsList.style.display !== "none") {
+            if (POItemSelectedIndex >= 0 && items[POItemSelectedIndex]) {
                 event.preventDefault();
                 event.stopPropagation();
+                
+                const selectedItem = items[POItemSelectedIndex].textContent || "";
+                input.value = selectedItem;
                 suggestionsList.style.display = "none";
+                
+                isAutofillInProgressPO = true;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                isAutofillInProgressPO = false;
+                
+                const parent = input.closest('.item-card') || input.closest('tr');
+                if (parent) {
+                    await fillPurchaseOrderItem(selectedItem, parent);
+                }
+                
+                POItemSelectedIndex = -1;
             }
+        } else if (event.key === "Escape") {
+            event.preventDefault();
+            event.stopPropagation();
+            suggestionsList.style.display = "none";
         }
         
         function updateSelection() {
-            for (let i = 0; i < items.length; i++) {
-                items[i].classList.remove("selected");
-            }
-            if ((window as any).selectedIndex > -1 && items[(window as any).selectedIndex]) {
-                items[(window as any).selectedIndex].classList.add("selected");
-                items[(window as any).selectedIndex].scrollIntoView({ block: 'nearest' });
-            }
+            items.forEach((item, index) => {
+                const isSelected = index === POItemSelectedIndex;
+                item.classList.toggle("selected", isSelected);
+                if (isSelected) {
+                    item.scrollIntoView({ block: 'nearest' });
+                }
+            });
         }
     }
 
@@ -393,9 +438,37 @@
             const stockData = await (window as any).fetchStockData(itemName);
             
             if (stockData) {
-                const card = element.closest('.item-card');
-                const tr = element.closest('tr');
+                let card = element.closest('.item-card') as HTMLDivElement | null;
+                let tr = element.closest('tr') as HTMLTableRowElement | null;
                 
+                if (card && !tr) {
+                    const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(card);
+                    tr = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`) as HTMLTableRowElement;
+                } else if (tr && !card) {
+                    const trIndex = Array.from(document.querySelectorAll('#items-table tbody tr')).indexOf(tr);
+                    card = document.querySelector(`#items-container .item-card:nth-child(${trIndex + 1})`) as HTMLDivElement;
+                }
+                
+                const hsnVal = stockData.hsn_sac ?? stockData.HSN_SAC ?? stockData.hsn_code ?? '';
+                const brandVal = stockData.brand ?? stockData.company ?? '';
+                const typeVal = stockData.item_type ?? stockData.type ?? 'Material';
+                const categoryVal = stockData.category ?? '';
+                
+                let unitPriceVal = '';
+                const rawPrice = stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? stockData.mrp;
+                if (rawPrice !== undefined && rawPrice !== null && rawPrice !== '') {
+                    const parsed = parseFloat(rawPrice);
+                    if (!isNaN(parsed)) {
+                        unitPriceVal = parsed.toFixed(2);
+                    }
+                }
+                
+                let gstVal = '';
+                const rawGst = stockData.gst_rate ?? stockData.GST ?? stockData.gst;
+                if (rawGst !== undefined && rawGst !== null && rawGst !== '') {
+                    gstVal = rawGst.toString();
+                }
+
                 if (card) {
                     const hsnInput = card.querySelector('.item-field.hsn input') as HTMLInputElement;
                     const unitPriceInput = card.querySelector('.item-field.rate input[placeholder="Unit Price"]') as HTMLInputElement;
@@ -404,21 +477,20 @@
                     const typeSelect = card.querySelector('.item-row-2 select') as HTMLSelectElement;
                     const categoryInput = card.querySelector('.item-category') as HTMLInputElement;
                     
-                    if (hsnInput) hsnInput.value = stockData.hsn_code || stockData.HSN_SAC || '';
-                    if (unitPriceInput) unitPriceInput.value = stockData.mrp ? (parseFloat(stockData.mrp)).toFixed(2) : '';
-                    if (gstInput) gstInput.value = stockData.gst_rate || '';
-                    
-                    if (companyInput) companyInput.value = stockData.company || '';
-                    if (typeSelect && stockData.type) {
-                        const typeVal = stockData.type === 'Product' ? 'Material' : (stockData.type || 'Material');
+                    if (hsnInput) hsnInput.value = hsnVal;
+                    if (unitPriceInput) unitPriceInput.value = unitPriceVal;
+                    if (gstInput) gstInput.value = gstVal;
+                    if (companyInput) companyInput.value = brandVal;
+                    if (typeSelect) {
+                        const optionVal = typeVal === 'Product' ? 'Material' : (typeVal || 'Material');
                         for(let i = 0; i < typeSelect.options.length; i++) {
-                            if(typeSelect.options[i].value === typeVal) {
+                            if(typeSelect.options[i].value === optionVal) {
                                 typeSelect.selectedIndex = i;
                                 break;
                             }
                         }
                     }
-                    if (categoryInput) categoryInput.value = stockData.category || '';
+                    if (categoryInput) categoryInput.value = categoryVal;
                     
                     const inputs = [hsnInput, unitPriceInput, gstInput, companyInput, typeSelect, categoryInput];
                     inputs.forEach(input => {
@@ -434,20 +506,20 @@
                     const unitPriceInput = tr.querySelector('td:nth-child(8) input') as HTMLInputElement;
                     const rateInput = tr.querySelector('td:nth-child(9) input') as HTMLInputElement;
                     
-                    if (hsnInput) hsnInput.value = stockData.hsn_code || stockData.HSN_SAC || '';
-                    if (companyInput) companyInput.value = stockData.company || '';
-                    if (typeSelect && stockData.type) {
-                        const typeVal = stockData.type === 'Product' ? 'Material' : (stockData.type || 'Material');
+                    if (hsnInput) hsnInput.value = hsnVal;
+                    if (companyInput) companyInput.value = brandVal;
+                    if (typeSelect) {
+                        const optionVal = typeVal === 'Product' ? 'Material' : (typeVal || 'Material');
                         for(let i = 0; i < typeSelect.options.length; i++) {
-                            if(typeSelect.options[i].value === typeVal) {
+                            if(typeSelect.options[i].value === optionVal) {
                                 typeSelect.selectedIndex = i;
                                 break;
                             }
                         }
                     }
-                    if (categoryInput) categoryInput.value = stockData.category || '';
-                    if (unitPriceInput) unitPriceInput.value = stockData.mrp ? (parseFloat(stockData.mrp)).toFixed(2) : '';
-                    if (rateInput) rateInput.value = stockData.gst_rate || '';
+                    if (categoryInput) categoryInput.value = categoryVal;
+                    if (unitPriceInput) unitPriceInput.value = unitPriceVal;
+                    if (rateInput) rateInput.value = gstVal;
                     
                     const inputs = [hsnInput, companyInput, typeSelect, categoryInput, unitPriceInput, rateInput];
                     inputs.forEach(input => {
@@ -562,7 +634,7 @@
                             <div class="row-spacer"></div>
                             <div class="item-field">
                                 <div style="position: relative;">
-                                    <input type="text" placeholder="Company" class="item-company" value="${company}">
+                                    <input type="text" placeholder="Brand" class="item-company" value="${company}">
                                     <ul class="suggestions"></ul>
                                 </div>
                             </div>
@@ -614,7 +686,7 @@
                                 </div>
                             </td>
                             <td><input type="text" placeholder="HSN/SAC" value="${hsnSac}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-                            <td><input type="text" placeholder="Company" value="${company}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                            <td><input type="text" placeholder="Brand" value="${company}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                             <td>
                                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
                                     <option value="Material" ${type === 'Material' ? 'selected' : ''}>Material</option>
@@ -948,7 +1020,7 @@
                 <div class="row-spacer"></div>
                 <div class="item-field">
                     <div style="position: relative;">
-                        <input type="text" placeholder="Company" class="item-company">
+                        <input type="text" placeholder="Brand" class="item-company">
                         <ul class="suggestions"></ul>
                     </div>
                 </div>
@@ -1002,7 +1074,7 @@
                 </div>
             </td>
             <td><input type="text" placeholder="HSN/SAC" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-            <td><input type="text" placeholder="Company" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+            <td><input type="text" placeholder="Brand" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
             <td>
                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
                     <option value="Material" selected>Material</option>
@@ -1208,6 +1280,7 @@
         // Run fetch operations
         fetchSuppliers();
         fetchCompanyAndCategorySuggestions();
+        fetchStockNames();
         initSupplierAutocomplete();
         
         // Setup phone integer validation

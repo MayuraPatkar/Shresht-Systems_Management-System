@@ -278,7 +278,8 @@
                 return;
             }
             
-            const hasVisibleSuggestions = document.querySelector('.suggestions[style*="display: block"]');
+            const suggestions = Array.from(document.querySelectorAll('.suggestions')) as HTMLElement[];
+            const hasVisibleSuggestions = suggestions.some(s => s.style.display === 'block');
             if (hasVisibleSuggestions) return;
             
             event.preventDefault();
