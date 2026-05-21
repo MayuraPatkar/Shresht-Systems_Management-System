@@ -182,7 +182,6 @@ export interface IInvoice extends Document {
     service_after_months?: number;
     next_service_date?: Date;
     service_status?: string;
-    margin?: number;
 
     content?: IContent;
 
@@ -481,10 +480,6 @@ const invoiceSchema = new Schema<IInvoice>(
         service_status: {
             type: String,
             default: "Closed",
-        },
-        margin: {
-            type: Number,
-            default: 0,
         },
 
         // Audit

@@ -87,6 +87,19 @@
     document.addEventListener("DOMContentLoaded", () => {
         loadRecentInvoices();
 
+        // Dynamically toggle Home button visibility based on whether we are on the Home section
+        const homeSection = document.getElementById('home');
+        const homeBtn = document.getElementById('home-btn');
+        if (homeSection && homeBtn) {
+            const updateHomeBtn = () => {
+                const isHomeVisible = window.getComputedStyle(homeSection).display !== 'none';
+                homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
+            };
+            const observer = new MutationObserver(updateHomeBtn);
+            observer.observe(homeSection, { attributes: true, attributeFilter: ['style'] });
+            updateHomeBtn();
+        }
+
         const refreshBtn = document.getElementById('refresh-btn');
         if (refreshBtn) {
             refreshBtn.addEventListener('click', () => {
