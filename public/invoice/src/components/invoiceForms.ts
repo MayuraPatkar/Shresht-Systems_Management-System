@@ -210,7 +210,7 @@
     document.body.addEventListener('keypress', function (e) {
         const target = e.target as HTMLElement | null;
         if (target && (target.matches('.item-field.qty input') || target.closest('td:nth-child(4)')?.querySelector('input') === target)) {
-            if (e.key === '.' || e.key === 'e' || e.key === '-' || e.key === '+') {
+            if (e.key === 'e' || e.key === '-' || e.key === '+') {
                 e.preventDefault();
             }
         }
@@ -219,7 +219,12 @@
     document.body.addEventListener('input', function (e) {
         const target = e.target as HTMLInputElement | null;
         if (target && (target.matches('.item-field.qty input') || target.closest('td:nth-child(4)')?.querySelector('input') === target)) {
-            target.value = target.value.replace(/[^0-9]/g, '');
+            let val = target.value.replace(/[^0-9.]/g, '');
+            const parts = val.split('.');
+            if (parts.length > 2) {
+                val = parts[0] + '.' + parts.slice(1).join('');
+            }
+            target.value = val;
         }
     });
 
@@ -449,7 +454,7 @@ const beforeStepAdvance = async function (step: number): Promise<boolean> {
                         <input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" value="${item.quantity || 0}" placeholder="Qty" min="1" required>
+                        <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
                     </div>
                     <div class="item-field rate">
                         <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
@@ -470,7 +475,7 @@ const beforeStepAdvance = async function (step: number): Promise<boolean> {
                     <td><div class="item-number">${sno}</div></td>
                     <td><input type="text" value="${item.description || ''}" required></td>
                     <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
-                    <td><input type="number" value="${item.quantity || 0}" min="1" required></td>
+                    <td><input type="number" value="${item.quantity || 0}" step="any" min="0.000001" required></td>
                     <td><input type="number" value="${item.unit_price || 0}" required></td>
                     <td><input type="number" value="${item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -495,12 +500,17 @@ const beforeStepAdvance = async function (step: number): Promise<boolean> {
                 const qtyInputs = [card.querySelector('.item-field.qty input') as HTMLInputElement | null, row.querySelector('td:nth-child(4) input') as HTMLInputElement | null];
                 qtyInputs.forEach(input => {
                     if (input) {
-                        input.setAttribute('step', '1');
+                        input.setAttribute('step', 'any');
                         input.addEventListener('keypress', (event) => {
-                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                            if (event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
                         });
                         input.addEventListener('input', () => {
-                            input.value = input.value.replace(/[^0-9]/g, '');
+                            let val = input.value.replace(/[^0-9.]/g, '');
+                            const parts = val.split('.');
+                            if (parts.length > 2) {
+                                val = parts[0] + '.' + parts.slice(1).join('');
+                            }
+                            input.value = val;
                         });
                     }
                 });
@@ -690,7 +700,7 @@ const openInvoice = async function (id: string) {
                         <input type="text" value="${item.HSN_SAC}" placeholder="HSN/SAC" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" value="${item.quantity}" placeholder="Qty" min="1" required>
+                        <input type="number" value="${item.quantity}" placeholder="Qty" step="any" min="0.000001" required>
                     </div>
                     <div class="item-field rate">
                         <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
@@ -711,7 +721,7 @@ const openInvoice = async function (id: string) {
                     <td><div class="item-number">${s}</div></td>
                     <td><input type="text" value="${item.description}" required></td>
                     <td><input type="text" value="${item.HSN_SAC}" required></td>
-                    <td><input type="number" value="${item.quantity}" min="1" required></td>
+                    <td><input type="number" value="${item.quantity}" step="any" min="0.000001" required></td>
                     <td><input type="number" value="${item.unit_price}" required></td>
                     <td><input type="number" value="${item.rate}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -736,12 +746,17 @@ const openInvoice = async function (id: string) {
                 const qtyInputs = [card.querySelector('.item-field.qty input') as HTMLInputElement | null, row.querySelector('td:nth-child(4) input') as HTMLInputElement | null];
                 qtyInputs.forEach(input => {
                     if (input) {
-                        input.setAttribute('step', '1');
+                        input.setAttribute('step', 'any');
                         input.addEventListener('keypress', (event) => {
-                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                            if (event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
                         });
                         input.addEventListener('input', () => {
-                            input.value = input.value.replace(/[^0-9]/g, '');
+                            let val = input.value.replace(/[^0-9.]/g, '');
+                            const parts = val.split('.');
+                            if (parts.length > 2) {
+                                val = parts[0] + '.' + parts.slice(1).join('');
+                            }
+                            input.value = val;
                         });
                     }
                 });
@@ -832,7 +847,7 @@ const openInvoice = async function (id: string) {
                         <input type="text" value="${item.HSN_SAC}" placeholder="HSN/SAC" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" value="${item.quantity}" placeholder="Qty" min="1" required>
+                        <input type="number" value="${item.quantity}" placeholder="Qty" step="any" min="0.000001" required>
                     </div>
                     <div class="item-field rate">
                         <input type="number" value="${item.unit_price}" placeholder="Unit Price" required>
@@ -853,7 +868,7 @@ const openInvoice = async function (id: string) {
                     <td>${s}</td>
                     <td><input type="text" value="${item.description}" required></td>
                     <td><input type="text" value="${item.HSN_SAC}" required></td>
-                    <td><input type="number" value="${item.quantity}" min="1" required></td>
+                    <td><input type="number" value="${item.quantity}" step="any" min="0.000001" required></td>
                     <td><input type="number" value="${item.unit_price}" required></td>
                     <td><input type="number" value="${item.rate}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -878,12 +893,17 @@ const openInvoice = async function (id: string) {
                 const qtyInputs = [card.querySelector('.item-field.qty input') as HTMLInputElement | null, row.querySelector('td:nth-child(4) input') as HTMLInputElement | null];
                 qtyInputs.forEach(input => {
                     if (input) {
-                        input.setAttribute('step', '1');
+                        input.setAttribute('step', 'any');
                         input.addEventListener('keypress', (event) => {
-                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                            if (event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
                         });
                         input.addEventListener('input', () => {
-                            input.value = input.value.replace(/[^0-9]/g, '');
+                            let val = input.value.replace(/[^0-9.]/g, '');
+                            const parts = val.split('.');
+                            if (parts.length > 2) {
+                                val = parts[0] + '.' + parts.slice(1).join('');
+                            }
+                            input.value = val;
                         });
                     }
                 });

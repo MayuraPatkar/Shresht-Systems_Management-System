@@ -728,55 +728,7 @@
                     </div>
                 </section>
 
-                <!-- Payment Details Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
-                            <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
-                        </div>
-                        <button id="view-add-payment-btn"
-                            class="text-sm bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 border border-green-700 transition-colors flex items-center gap-2">
-                            <i class="fas fa-plus"></i> Add Payment
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Payment Status</span>
-                            <span class="text-gray-900 font-semibold" id="view-payment-status">-</span>
-                        </div>
-                        <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
-                            <span class="block text-sm font-medium text-red-600 mb-1">Balance Due</span>
-                            <span class="text-red-900 font-bold text-xl" id="view-balance-due">-</span>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-payment-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Payment Date</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Mode</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Paid Amount</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Details</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Items will be dynamically filled -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+
 
                 <!-- Preview & Actions Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
@@ -804,94 +756,14 @@
             </div>
         </div>
 
-        <!-- Payment Modal -->
-        <div class="payment-container fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50"
-            id="payment-container" style="display: none;">
-            <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-money-bill-wave text-green-600"></i>
-                        Payment Details
-                    </h1>
-                    <button type="button" id="close-payment-modal" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times text-2xl"></i>
-                    </button>
-                </div>
 
-                <div class="space-y-6">
-                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="block text-sm font-medium text-red-600 mb-1">Due Amount</span>
-                                <span class="text-2xl font-bold text-red-900" id="payment-due-amount">₹ 0.00</span>
-                            </div>
-                            <i class="fas fa-rupee-sign text-red-400 text-3xl"></i>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="paid-amount" class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>Paid Amount
-                            </label>
-                            <div class="flex gap-2">
-                                <input type="number" id="paid-amount" placeholder="Enter amount" min="0" step="0.01"
-                                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <button type="button" id="autofill-full-amount" title="Fill Full Amount"
-                                    class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">
-                                    <i class="fas fa-coins"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="payment-date" class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-calendar text-gray-500 mr-1"></i>Payment Date
-                            </label>
-                            <input type="date" id="payment-date"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="payment-mode" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-credit-card text-gray-500 mr-1"></i>Payment Method
-                        </label>
-                        <select id="payment-mode" required
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="Cash">Cash</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="UPI">UPI</option>
-                        </select>
-                    </div>
-                    <div id="extra-payment-details">
-                        <label for="cash-location" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Cash Location
-                        </label>
-                        <input type="text" id="cash-location" placeholder="Enter cash location"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <button id="payment-btn"
-                        class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i>
-                        Save Payment
-                    </button>
-                </div>
-            </div>
-        </div>
     </main>
 
     <!-- Filter Popover -->
     <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden"
         style="width: 280px;">
         <h3 class="font-semibold text-gray-800 mb-3">Filter & Sort</h3>
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
-            <select id="payment-status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="all">All Status</option>
-                <option value="paid">Paid</option>
-                <option value="unpaid">Unpaid</option>
-                <option value="partial">Partial</option>
-            </select>
-        </div>
+
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
             <select id="date-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
