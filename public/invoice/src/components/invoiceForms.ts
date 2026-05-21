@@ -558,7 +558,7 @@ const beforeStepAdvance = async function (step: number): Promise<boolean> {
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
+                        <input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
                     </div>
                     <div class="item-field qty">
                         <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
@@ -567,7 +567,7 @@ const beforeStepAdvance = async function (step: number): Promise<boolean> {
                         <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" value="${item.rate || 0}" placeholder="Rate" required>
+                        <input type="number" value="${item.gst_rate || item.rate || 0}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -581,10 +581,10 @@ const beforeStepAdvance = async function (step: number): Promise<boolean> {
                 row.innerHTML = `
                     <td><div class="item-number">${sno}</div></td>
                     <td><input type="text" value="${item.description || ''}" required></td>
-                    <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
+                    <td><input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" required></td>
                     <td><input type="number" value="${item.quantity || 0}" step="any" min="0.000001" required></td>
                     <td><input type="number" value="${item.unit_price || 0}" required></td>
-                    <td><input type="number" value="${item.rate || 0}" required></td>
+                    <td><input type="number" value="${item.gst_rate || item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
                 itemsTableBody.appendChild(row);
@@ -845,7 +845,7 @@ const openInvoice = async function (id: string) {
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
+                        <input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
                     </div>
                     <div class="item-field qty">
                         <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
@@ -854,7 +854,7 @@ const openInvoice = async function (id: string) {
                         <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" value="${item.rate || 0}" placeholder="Rate" required>
+                        <input type="number" value="${item.gst_rate || item.rate || 0}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -868,10 +868,10 @@ const openInvoice = async function (id: string) {
                 row.innerHTML = `
                     <td><div class="item-number">${s}</div></td>
                     <td><input type="text" value="${item.description || ''}" required></td>
-                    <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
+                    <td><input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" required></td>
                     <td><input type="number" value="${item.quantity || 0}" step="any" min="0.000001" required></td>
                     <td><input type="number" value="${item.unit_price || 0}" required></td>
-                    <td><input type="number" value="${item.rate || 0}" required></td>
+                    <td><input type="number" value="${item.gst_rate || item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
                 itemsTableBody.appendChild(row);
@@ -992,7 +992,7 @@ const openInvoice = async function (id: string) {
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" value="${item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
+                        <input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
                     </div>
                     <div class="item-field qty">
                         <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
@@ -1001,7 +1001,7 @@ const openInvoice = async function (id: string) {
                         <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" value="${item.rate || 0}" placeholder="Rate" required>
+                        <input type="number" value="${item.gst_rate || item.rate || 0}" placeholder="Rate" required>
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -1015,10 +1015,10 @@ const openInvoice = async function (id: string) {
                 row.innerHTML = `
                     <td>${s}</td>
                     <td><input type="text" value="${item.description || ''}" required></td>
-                    <td><input type="text" value="${item.HSN_SAC || ''}" required></td>
+                    <td><input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" required></td>
                     <td><input type="number" value="${item.quantity || 0}" step="any" min="0.000001" required></td>
                     <td><input type="number" value="${item.unit_price || 0}" required></td>
-                    <td><input type="number" value="${item.rate || 0}" required></td>
+                    <td><input type="number" value="${item.gst_rate || item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
                 itemsTableBody.appendChild(row);
