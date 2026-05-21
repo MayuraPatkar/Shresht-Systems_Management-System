@@ -271,10 +271,14 @@
 
         // Handle Enter for 'next' button on form (if not in a textarea/button)
         if (key === 'enter' && !isCtrl && !isShift && isFormActive()) {
-            const activeEl = document.activeElement;
+            const activeEl = document.activeElement as HTMLInputElement;
             const tagName = activeEl ? activeEl.tagName.toLowerCase() : '';
+            const type = activeEl ? activeEl.type : '';
             
-            if (tagName === 'textarea' || tagName === 'button' || (activeEl as HTMLElement).isContentEditable) {
+            if (tagName === 'textarea' || tagName === 'button' || (activeEl as HTMLElement).isContentEditable || type === 'date') {
+                if (type === 'date') {
+                    event.stopPropagation();
+                }
                 return;
             }
             

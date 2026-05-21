@@ -2,7 +2,7 @@
 (function () {
     // Define totalSteps globally for purchaseOrder
     (window as any).totalSteps = 4;
-    
+
     // Bind currentStep property on window to sync with the global declarative currentStep
     declare let currentStep: number;
     if (typeof (window as any).currentStep === 'undefined') {
@@ -15,7 +15,7 @@
 
     let purchaseOrderId = '';
     let totalAmount = 0;
-    
+
     // Autocomplete data
     let supplierData: any[] = [];
     let supplierNames: string[] = [];
@@ -50,11 +50,11 @@
             const response = await fetch("/stock/all");
             if (!response.ok) throw new Error("Failed to fetch stock items");
             const data = await response.json();
-            
+
             // Extract unique companies and categories
             const companies = new Set<string>();
             const categories = new Set<string>();
-            
+
             if (Array.isArray(data)) {
                 data.forEach((item: any) => {
                     if (item.company && item.company.trim() !== '') {
@@ -65,7 +65,7 @@
                     }
                 });
             }
-            
+
             companySuggestionList = Array.from(companies).sort();
             categorySuggestionList = Array.from(categories).sort();
         } catch (error) {
@@ -75,7 +75,7 @@
 
     function setupGenericAutocomplete(input: HTMLInputElement, dataList: string[]) {
         let currentFocus = -1;
-        
+
         let suggestionsContainer = input.nextElementSibling as HTMLElement;
         if (!suggestionsContainer || !suggestionsContainer.classList.contains('suggestions')) {
             suggestionsContainer = document.createElement('ul');
@@ -83,16 +83,16 @@
             input.parentNode?.insertBefore(suggestionsContainer, input.nextSibling);
         }
 
-        input.addEventListener('input', function() {
+        input.addEventListener('input', function () {
             if (isAutofillInProgressPO) return;
             const val = this.value;
             closeAllSuggestions();
             if (!val) return false;
             currentFocus = -1;
             suggestionsContainer.innerHTML = '';
-            
+
             let hasMatches = false;
-            
+
             for (let i = 0; i < dataList.length; i++) {
                 if (dataList[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
                     hasMatches = true;
@@ -100,23 +100,23 @@
                     li.innerHTML = "<strong>" + dataList[i].substr(0, val.length) + "</strong>";
                     li.innerHTML += dataList[i].substr(val.length);
                     li.innerHTML += "<input type='hidden' value='" + dataList[i] + "'>";
-                    li.addEventListener('click', function(e) {
+                    li.addEventListener('click', function (e) {
                         input.value = this.getElementsByTagName("input")[0].value;
                         closeAllSuggestions();
-                        
+
                         // Trigger input event to sync card/table inputs if needed
                         input.dispatchEvent(new Event('input', { bubbles: true }));
                     });
                     suggestionsContainer.appendChild(li);
                 }
             }
-            
+
             if (hasMatches) {
                 suggestionsContainer.style.display = 'block';
             }
         });
 
-        input.addEventListener('keydown', function(e) {
+        input.addEventListener('keydown', function (e) {
             let x = suggestionsContainer.getElementsByTagName("li");
             if (e.key === "ArrowDown") {
                 e.preventDefault();
@@ -143,7 +143,7 @@
             if (currentFocus >= x.length) currentFocus = 0;
             if (currentFocus < 0) currentFocus = (x.length - 1);
             x[currentFocus].classList.add("active");
-            
+
             x[currentFocus].scrollIntoView({ block: 'nearest' });
         }
 
@@ -152,12 +152,12 @@
                 x[i].classList.remove("active");
             }
         }
-        
-        input.addEventListener('blur', function() {
+
+        input.addEventListener('blur', function () {
             setTimeout(closeAllSuggestions, 200);
         });
 
-        input.addEventListener('focus', function() {
+        input.addEventListener('focus', function () {
             if (this.value) {
                 this.dispatchEvent(new Event('input'));
             } else if (dataList.length > 0) {
@@ -165,12 +165,12 @@
                 closeAllSuggestions();
                 currentFocus = -1;
                 suggestionsContainer.innerHTML = '';
-                
+
                 for (let i = 0; i < Math.min(dataList.length, 10); i++) {
                     const li = document.createElement('li');
                     li.innerHTML = dataList[i];
                     li.innerHTML += "<input type='hidden' value='" + dataList[i] + "'>";
-                    li.addEventListener('click', function(e) {
+                    li.addEventListener('click', function (e) {
                         input.value = this.getElementsByTagName("input")[0].value;
                         closeAllSuggestions();
                         input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -206,7 +206,7 @@
             suggestionsContainer = document.createElement("ul");
             suggestionsContainer.id = "supplier-suggestions";
             suggestionsContainer.className = "suggestions supplier-suggestions";
-            
+
             const parent = input.parentElement;
             if (parent) {
                 parent.style.position = 'relative';
@@ -214,23 +214,23 @@
             }
         }
 
-        input.addEventListener("input", function() {
-            showSupplierSuggestions(input, suggestionsContainer);
-        });
-        
-        input.addEventListener("focus", function() {
+        input.addEventListener("input", function () {
             showSupplierSuggestions(input, suggestionsContainer);
         });
 
-        input.addEventListener("click", function() {
+        input.addEventListener("focus", function () {
             showSupplierSuggestions(input, suggestionsContainer);
         });
 
-        input.addEventListener("keydown", function(event) {
+        input.addEventListener("click", function () {
+            showSupplierSuggestions(input, suggestionsContainer);
+        });
+
+        input.addEventListener("keydown", function (event) {
             handleSupplierKeyboardNavigation(event, input, suggestionsContainer);
         });
 
-        document.addEventListener("click", function(event) {
+        document.addEventListener("click", function (event) {
             if (event.target !== input && !suggestionsContainer.contains(event.target as Node)) {
                 suggestionsContainer.style.display = "none";
             }
@@ -251,32 +251,32 @@
         if (filteredSuppliers.length > 0) {
             filteredSuppliers.forEach((supplier, index) => {
                 const li = document.createElement("li");
-                
+
                 const nameSpan = document.createElement("span");
                 nameSpan.className = "font-semibold";
                 nameSpan.textContent = supplier.supplier_name;
-                
+
                 const addressSpan = document.createElement("span");
                 addressSpan.className = "text-xs text-gray-500 ml-2 block truncate";
-                
+
                 const addr = supplier.billing_address;
-                const formattedAddr = addr 
+                const formattedAddr = addr
                     ? [addr.line1, addr.line2, addr.city].filter(Boolean).join(", ")
                     : "";
                 addressSpan.textContent = formattedAddr;
-                
+
                 li.appendChild(nameSpan);
                 if (formattedAddr) {
                     li.appendChild(addressSpan);
                 }
-                
+
                 li.dataset.index = index.toString();
-                
+
                 li.addEventListener("click", () => {
                     fillSupplierDetails(supplier);
                     suggestionsContainer.style.display = "none";
                 });
-                
+
                 suggestionsContainer.appendChild(li);
             });
             suggestionsContainer.style.display = "block";
@@ -325,7 +325,7 @@
 
     function fillSupplierDetails(supplier: any) {
         (document.getElementById("supplier-name") as HTMLInputElement).value = supplier.supplier_name || "";
-        
+
         // Format the billing address properly
         const addressParts = [];
         if (supplier.billing_address?.line1) addressParts.push(supplier.billing_address.line1);
@@ -336,7 +336,7 @@
             addressParts.push(statePin);
         }
         (document.getElementById("supplier-address") as HTMLTextAreaElement).value = addressParts.join("\n") || "";
-        
+
         (document.getElementById("supplier-phone") as HTMLInputElement).value = supplier.phone || "";
         (document.getElementById("supplier-email") as HTMLInputElement).value = supplier.email || "";
         (document.getElementById("supplier-GSTIN") as HTMLInputElement).value = supplier.gstin || "";
@@ -345,18 +345,18 @@
     function showSuggestionsPO(input: HTMLInputElement, suggestionsList: HTMLUListElement) {
         if (isAutofillInProgressPO) return;
         closeAllSuggestions();
-        
+
         const value = input.value.toLowerCase().trim();
         suggestionsList.innerHTML = "";
-        
+
         if (!value) {
             suggestionsList.style.display = "none";
             return;
         }
-        
+
         POItemSelectedIndex = -1; // Reset index when showing new suggestions
         const filteredData = stockNames.filter((name: string) => name && name.toLowerCase().includes(value));
-        
+
         filteredData.forEach((name: string) => {
             const li = document.createElement("li");
             li.textContent = name;
@@ -381,7 +381,7 @@
     async function handleKeyboardNavigationPO(event: KeyboardEvent, input: HTMLInputElement, suggestionsList: HTMLUListElement) {
         const items = Array.from(suggestionsList.querySelectorAll("li"));
         if (items.length === 0 || suggestionsList.style.display === "none") return;
-        
+
         if (event.key === "ArrowDown") {
             event.preventDefault();
             event.stopPropagation();
@@ -398,20 +398,20 @@
             if (POItemSelectedIndex >= 0 && items[POItemSelectedIndex]) {
                 event.preventDefault();
                 event.stopPropagation();
-                
+
                 const selectedItem = items[POItemSelectedIndex].textContent || "";
                 input.value = selectedItem;
                 suggestionsList.style.display = "none";
-                
+
                 isAutofillInProgressPO = true;
                 input.dispatchEvent(new Event('input', { bubbles: true }));
                 isAutofillInProgressPO = false;
-                
+
                 const parent = input.closest('.item-card') || input.closest('tr');
                 if (parent) {
                     await fillPurchaseOrderItem(selectedItem, parent);
                 }
-                
+
                 POItemSelectedIndex = -1;
             }
         } else if (event.key === "Escape") {
@@ -419,7 +419,7 @@
             event.stopPropagation();
             suggestionsList.style.display = "none";
         }
-        
+
         function updateSelection() {
             items.forEach((item, index) => {
                 const isSelected = index === POItemSelectedIndex;
@@ -434,13 +434,13 @@
     async function fillPurchaseOrderItem(itemName: string, element: HTMLElement) {
         try {
             isAutofillInProgressPO = true;
-            
+
             const stockData = await (window as any).fetchStockData(itemName);
-            
+
             if (stockData) {
                 let card = element.closest('.item-card') as HTMLDivElement | null;
                 let tr = element.closest('tr') as HTMLTableRowElement | null;
-                
+
                 if (card && !tr) {
                     const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(card);
                     tr = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`) as HTMLTableRowElement;
@@ -448,12 +448,12 @@
                     const trIndex = Array.from(document.querySelectorAll('#items-table tbody tr')).indexOf(tr);
                     card = document.querySelector(`#items-container .item-card:nth-child(${trIndex + 1})`) as HTMLDivElement;
                 }
-                
+
                 const hsnVal = stockData.hsn_sac ?? stockData.HSN_SAC ?? stockData.hsn_code ?? '';
                 const brandVal = stockData.brand ?? stockData.company ?? '';
                 const typeVal = stockData.item_type ?? stockData.type ?? 'Material';
                 const categoryVal = stockData.category ?? '';
-                
+
                 let unitPriceVal = '';
                 const rawPrice = stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? stockData.mrp;
                 if (rawPrice !== undefined && rawPrice !== null && rawPrice !== '') {
@@ -462,7 +462,7 @@
                         unitPriceVal = parsed.toFixed(2);
                     }
                 }
-                
+
                 let gstVal = '';
                 const rawGst = stockData.gst_rate ?? stockData.GST ?? stockData.gst;
                 if (rawGst !== undefined && rawGst !== null && rawGst !== '') {
@@ -476,28 +476,28 @@
                     const companyInput = card.querySelector('.item-company') as HTMLInputElement;
                     const typeSelect = card.querySelector('.item-row-2 select') as HTMLSelectElement;
                     const categoryInput = card.querySelector('.item-category') as HTMLInputElement;
-                    
+
                     if (hsnInput) hsnInput.value = hsnVal;
                     if (unitPriceInput) unitPriceInput.value = unitPriceVal;
                     if (gstInput) gstInput.value = gstVal;
                     if (companyInput) companyInput.value = brandVal;
                     if (typeSelect) {
                         const optionVal = typeVal === 'Product' ? 'Material' : (typeVal || 'Material');
-                        for(let i = 0; i < typeSelect.options.length; i++) {
-                            if(typeSelect.options[i].value === optionVal) {
+                        for (let i = 0; i < typeSelect.options.length; i++) {
+                            if (typeSelect.options[i].value === optionVal) {
                                 typeSelect.selectedIndex = i;
                                 break;
                             }
                         }
                     }
                     if (categoryInput) categoryInput.value = categoryVal;
-                    
+
                     const inputs = [hsnInput, unitPriceInput, gstInput, companyInput, typeSelect, categoryInput];
                     inputs.forEach(input => {
                         if (input) input.dispatchEvent(new Event('input', { bubbles: true }));
                     });
                 }
-                
+
                 if (tr) {
                     const hsnInput = tr.querySelector('td:nth-child(3) input') as HTMLInputElement;
                     const companyInput = tr.querySelector('td:nth-child(4) input') as HTMLInputElement;
@@ -505,13 +505,13 @@
                     const categoryInput = tr.querySelector('td:nth-child(6) input') as HTMLInputElement;
                     const unitPriceInput = tr.querySelector('td:nth-child(8) input') as HTMLInputElement;
                     const rateInput = tr.querySelector('td:nth-child(9) input') as HTMLInputElement;
-                    
+
                     if (hsnInput) hsnInput.value = hsnVal;
                     if (companyInput) companyInput.value = brandVal;
                     if (typeSelect) {
                         const optionVal = typeVal === 'Product' ? 'Material' : (typeVal || 'Material');
-                        for(let i = 0; i < typeSelect.options.length; i++) {
-                            if(typeSelect.options[i].value === optionVal) {
+                        for (let i = 0; i < typeSelect.options.length; i++) {
+                            if (typeSelect.options[i].value === optionVal) {
                                 typeSelect.selectedIndex = i;
                                 break;
                             }
@@ -520,7 +520,7 @@
                     if (categoryInput) categoryInput.value = categoryVal;
                     if (unitPriceInput) unitPriceInput.value = unitPriceVal;
                     if (rateInput) rateInput.value = gstVal;
-                    
+
                     const inputs = [hsnInput, companyInput, typeSelect, categoryInput, unitPriceInput, rateInput];
                     inputs.forEach(input => {
                         if (input) input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -544,9 +544,9 @@
                 if (!response.ok) throw new Error("Failed to fetch purchase order");
                 data = await response.json();
             }
-            
+
             const purchaseOrder = data.purchaseOrder;
-            
+
             const isClone = sessionStorage.getItem('currentTab-status') === 'clone';
 
             if (isClone) {
@@ -562,10 +562,10 @@
             } else {
                 (document.getElementById("id") as HTMLInputElement).value = purchaseOrder.purchase_order_no || "";
                 purchaseOrderId = purchaseOrder.purchase_order_no;
-                
+
                 const purchaseDateStr = purchaseOrder.purchase_date;
-                const formattedPurchaseDate = (window as any).formatDateInput ? 
-                    (window as any).formatDateInput(purchaseDateStr) : 
+                const formattedPurchaseDate = (window as any).formatDateInput ?
+                    (window as any).formatDateInput(purchaseDateStr) :
                     new Date(purchaseDateStr).toISOString().split('T')[0];
                 (document.getElementById("purchase-date") as HTMLInputElement).value = formattedPurchaseDate;
             }
@@ -580,7 +580,7 @@
 
             const itemsContainer = document.getElementById("items-container");
             const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
-            
+
             if (itemsContainer) itemsContainer.innerHTML = "";
             if (itemsTable) itemsTable.innerHTML = "";
 
@@ -599,7 +599,7 @@
                     const card = document.createElement("div");
                     card.className = "item-card";
                     card.setAttribute("draggable", "true");
-                    
+
                     card.innerHTML = `
                         <div class="drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
@@ -654,10 +654,10 @@
                         </div>
                     `;
                     itemsContainer.appendChild(card);
-                    
+
                     const cardInput = card.querySelector(".item_name") as HTMLInputElement;
                     const cardSuggestions = card.querySelector(".suggestions") as HTMLUListElement;
-                    
+
                     if (cardInput && cardSuggestions) {
                         cardInput.addEventListener("input", function () {
                             showSuggestionsPO(cardInput, cardSuggestions);
@@ -671,12 +671,12 @@
                     const cardCategory = card.querySelector(".item-category") as HTMLInputElement;
                     if (cardCompany) setupGenericAutocomplete(cardCompany, companySuggestionList);
                     if (cardCategory) setupGenericAutocomplete(cardCategory, categorySuggestionList);
-                    
+
                     // Create hidden table row
                     if (itemsTable) {
                         const row = document.createElement("tr");
                         row.dataset.specification = item.specification || "";
-                        
+
                         row.innerHTML = `
                             <td class="text-center"><div class="item-number">${sno}</div></td>
                             <td>
@@ -700,10 +700,10 @@
                             <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                         `;
                         itemsTable.appendChild(row);
-                        
+
                         const tableInput = row.querySelector(".item_name") as HTMLInputElement;
                         const tableSuggestions = row.querySelector(".suggestions") as HTMLUListElement;
-                        
+
                         if (tableInput && tableSuggestions) {
                             tableInput.addEventListener("input", function () {
                                 showSuggestionsPO(tableInput, tableSuggestions);
@@ -713,7 +713,7 @@
                                 handleKeyboardNavigationPO(event, tableInput, tableSuggestions);
                             });
                         }
-                        
+
                         // Sync card inputs with table inputs
                         const row1Inputs = card.querySelectorAll('.item-row-1 input');
                         const row2Inputs = card.querySelectorAll('.item-row-2 input');
@@ -738,7 +738,7 @@
                                 tInput.addEventListener("input", () => { (cInput as HTMLInputElement).value = (tInput as HTMLInputElement).value; });
                             }
                         });
-                        
+
                         // Add Integer validation for quantity inputs
                         const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(7) input')];
                         qtyInputs.forEach(inp => {
@@ -780,7 +780,7 @@
             if (typeof (window as any).changeStep === 'function') {
                 (window as any).changeStep(1);
             }
-            
+
             // Show new section
             const viewSection = document.getElementById("view");
             if (viewSection) viewSection.style.display = "none";
@@ -793,7 +793,7 @@
             if ((window as any).itemReorder && typeof (window as any).itemReorder.initDragDrop === 'function') {
                 (window as any).itemReorder.initDragDrop('items-container', renumberItems);
             }
-            
+
         } catch (error) {
             console.error("Error fetching purchase order:", error);
             if ((window as any).electronAPI) {
@@ -833,7 +833,7 @@
         if ((window as any).sendDocumentToServer) {
             return await (window as any).sendDocumentToServer("/purchaseOrder/save-purchase-order", data);
         }
-        
+
         // Fallback if documentManager isn't loaded
         try {
             const response = await fetch("/purchaseOrder/save-purchase-order", {
@@ -857,15 +857,15 @@
         const itemsList = Array.from(document.querySelectorAll("#items-table tbody tr")).map((row, index) => {
             const specRow = document.querySelector(`#items-specifications-table tbody tr:nth-child(${index + 1})`);
             const tr = row as HTMLElement;
-            
+
             const qty = parseFloat((tr.querySelector("td:nth-child(7) input") as HTMLInputElement)?.value || "0");
             const unitPrice = parseFloat((tr.querySelector("td:nth-child(8) input") as HTMLInputElement)?.value || "0");
             const rate = parseFloat((tr.querySelector("td:nth-child(9) input") as HTMLInputElement)?.value || "0");
-            
+
             const taxableValue = qty * unitPrice;
             const taxAmount = (taxableValue * rate) / 100;
             totalVal += (taxableValue + taxAmount);
-            
+
             return {
                 description: (tr.querySelector("td:nth-child(2) input") as HTMLInputElement)?.value || "",
                 hsn_sac: (tr.querySelector("td:nth-child(3) input") as HTMLInputElement)?.value || "",
@@ -880,7 +880,7 @@
                 total: taxableValue + taxAmount
             };
         });
-        
+
         const roundOff = Math.round(totalVal) - totalVal;
         const roundedTotal = totalVal + roundOff;
 
@@ -906,9 +906,9 @@
         const itemsTableBody = document.querySelector("#items-table tbody");
         const specificationsContainer = document.getElementById("specifications-container");
         const specificationsTableBody = document.querySelector("#items-specifications-table tbody");
-        
+
         if (!itemsTableBody || !specificationsContainer || !specificationsTableBody) return;
-        
+
         specificationsContainer.innerHTML = "";
         specificationsTableBody.innerHTML = "";
 
@@ -984,7 +984,7 @@
             clearFieldError(addItemBtn);
         }
 
-        
+
         const itemNumber = tableBody.children.length + 1;
 
         // Create card element
@@ -1093,7 +1093,7 @@
             <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
             <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
         `;
-        
+
         if (typeof insertIndex === 'number' && insertIndex >= 0 && insertIndex < tableBody.children.length) {
             tableBody.insertBefore(row, tableBody.children[insertIndex]);
         } else {
@@ -1137,7 +1137,7 @@
                 tInput.addEventListener("input", () => { (cInput as HTMLInputElement).value = (tInput as HTMLInputElement).value; });
             }
         });
-        
+
         // Integer validation for quantity
         const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(7) input')];
         qtyInputs.forEach(inp => {
@@ -1242,7 +1242,7 @@
         errorInputs.forEach(el => {
             clearFieldError(el as HTMLElement);
         });
-        
+
         const looseErrors = document.querySelectorAll('#purchase-order .error-message-inline');
         looseErrors.forEach(el => el.remove());
     }
@@ -1250,7 +1250,7 @@
     // Step Validation Overrides
     window.validateCurrentStep = async function () {
         const currentStep = (window as any).currentStep;
-        
+
         // Step 1: Supplier details
         if (currentStep === 1) {
             clearAllErrors();
@@ -1266,7 +1266,7 @@
             for (const f of fields) {
                 const el = document.getElementById(f.id) as HTMLInputElement;
                 if (!el || !el.value.trim()) {
-                    if (el) showFieldError(el, `${f.name} is required.`);
+                    if (el) showFieldError(el, `${f.name} is required`);
                     isValid = false;
                     if (!firstInvalidEl) firstInvalidEl = el;
                 }
@@ -1282,7 +1282,7 @@
                     if (!firstInvalidEl) firstInvalidEl = dateEl;
                 }
             }
-            
+
             // Validate phone
             const supplierPhone = document.getElementById('supplier-phone') as HTMLInputElement;
             if (supplierPhone && supplierPhone.value.trim()) {
@@ -1293,7 +1293,7 @@
                     if (!firstInvalidEl) firstInvalidEl = supplierPhone;
                 }
             }
-            
+
             // Validate email
             const supplierEmail = document.getElementById('supplier-email') as HTMLInputElement;
             if (supplierEmail && supplierEmail.value.trim()) {
@@ -1305,7 +1305,7 @@
                     if (!firstInvalidEl) firstInvalidEl = supplierEmail;
                 }
             }
-            
+
             // Validate GSTIN
             const supplierGstin = document.getElementById('supplier-GSTIN') as HTMLInputElement;
             if (supplierGstin && supplierGstin.value.trim()) {
@@ -1344,7 +1344,7 @@
                 const desc = row.querySelector('td:nth-child(2) input') as HTMLInputElement;
                 const qty = row.querySelector('td:nth-child(7) input') as HTMLInputElement;
                 const price = row.querySelector('td:nth-child(8) input') as HTMLInputElement;
-                
+
                 const card = cards[i] as HTMLElement | undefined;
                 const cardDesc = card?.querySelector('.item_name') as HTMLInputElement | undefined;
                 const cardQty = card?.querySelector('.item-field.qty input') as HTMLInputElement | undefined;
@@ -1389,11 +1389,11 @@
         initSupplierAutocomplete();
         clearAllErrors();
 
-        
+
         // Setup phone integer validation
         const supplierPhone = document.getElementById('supplier-phone') as HTMLInputElement;
         if (supplierPhone) {
-            supplierPhone.addEventListener('input', function() {
+            supplierPhone.addEventListener('input', function () {
                 this.value = this.value.replace(/\D/g, '');
             });
         }
@@ -1401,7 +1401,7 @@
         // Setup purchase date validation (max 4-digit year limit)
         const purchaseDate = document.getElementById('purchase-date') as HTMLInputElement;
         if (purchaseDate) {
-            purchaseDate.addEventListener('input', function() {
+            purchaseDate.addEventListener('input', function () {
                 const val = this.value;
                 if (val) {
                     const parts = val.split('-');
@@ -1418,14 +1418,14 @@
         if (addItemBtn) {
             const newAddItemBtn = addItemBtn.cloneNode(true);
             if (addItemBtn.parentNode) addItemBtn.parentNode.replaceChild(newAddItemBtn, addItemBtn);
-            
+
             newAddItemBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 addPurchaseOrderItem();
             });
         }
-        
+
         // Next button override
         const nextBtn = document.getElementById('next-btn');
         if (nextBtn) {
@@ -1437,10 +1437,10 @@
                     const ok = await (window as any).validateCurrentStep();
                     if (!ok) return;
                 }
-                
+
                 const currentStep = (window as any).currentStep;
                 const totalSteps = (window as any).totalSteps;
-                
+
                 if (currentStep < totalSteps) {
                     // Populate specifications when moving from step 2 to 3
                     if (currentStep === 2) {
@@ -1450,12 +1450,12 @@
                         (window as any).changeStep(currentStep + 1);
                     }
                 }
-                
+
                 // Generate preview on last step
                 if ((window as any).currentStep === totalSteps) {
                     const idInput = document.getElementById('id') as HTMLInputElement;
                     if (!idInput || !idInput.value) {
-                        await getId(); 
+                        await getId();
                     } else if (typeof (window as any).generatePurchaseOrderViewPreview === 'function') {
                         const formData = collectFormData();
                         await (window as any).generatePurchaseOrderViewPreview(formData);
@@ -1463,7 +1463,7 @@
                 }
             });
         }
-        
+
         // Save button
         const saveBtn = document.getElementById("save-btn");
         if (saveBtn) {
@@ -1482,7 +1482,7 @@
                 }
             });
         }
-        
+
         // Drag-drop initialization
         if ((window as any).itemReorder && typeof (window as any).itemReorder.initDragDrop === 'function') {
             (window as any).itemReorder.initDragDrop('items-container', renumberItems);
@@ -1502,7 +1502,7 @@
     (window as any).addPurchaseOrderItem = addPurchaseOrderItem;
     (window as any).renumberItems = renumberItems;
     (window as any).closeAllSuggestions = closeAllSuggestions;
-    
+
     // Create shim for generatePreview to map to the new view function
     (window as any).generatePreview = async () => {
         if (typeof (window as any).generatePurchaseOrderViewPreview === 'function') {

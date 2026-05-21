@@ -205,6 +205,12 @@ document.addEventListener("keydown", function (event) {
     // If another script (like autocomplete) has already handled this and prevented default, respect it
     if (event.defaultPrevented) return;
 
+    // Guard: Prevent wizard next step trigger when focused on Date picker
+    const activeEl = document.activeElement as HTMLInputElement;
+    if (activeEl && activeEl.tagName === 'INPUT' && activeEl.type === 'date') {
+      return;
+    }
+
     // Check if we are in view mode (view section is visible)
     const viewSection = document.getElementById('view');
     if (viewSection && window.getComputedStyle(viewSection).display !== 'none') {
