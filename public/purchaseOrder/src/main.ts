@@ -127,6 +127,14 @@
         if (tableBody && tableBody.children.length === 0 && (window as any).addPurchaseOrderItem) {
             (window as any).addPurchaseOrderItem();
         }
+
+        // Focus on the first field after the form is visible
+        setTimeout(() => {
+            const firstInput = document.getElementById('purchase-invoice-id') as HTMLInputElement;
+            if (firstInput) {
+                firstInput.focus();
+            }
+        }, 100);
     }
 
     async function handleSearch(query: string) {
