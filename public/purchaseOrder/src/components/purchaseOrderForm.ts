@@ -978,6 +978,12 @@
         const container = document.getElementById("items-container");
         const tableBody = document.querySelector("#items-table tbody");
         if (!container || !tableBody) return;
+
+        const addItemBtn = document.getElementById("add-item-btn");
+        if (addItemBtn) {
+            clearFieldError(addItemBtn);
+        }
+
         
         const itemNumber = tableBody.children.length + 1;
 
@@ -1186,12 +1192,71 @@
         });
     }
 
+    // Inline validation error helpers
+    function showFieldError(input: HTMLElement, message: string) {
+        clearFieldError(input);
+
+        // Apply error borders and focus ring classes
+        input.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/20');
+        input.style.borderColor = '#ef4444';
+        input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+
+        // Accessibility attributes
+        input.setAttribute('aria-invalid', 'true');
+
+        // Create error message node
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'text-[11px] font-semibold text-red-600 mt-1 transition-all duration-200 ease-in-out error-message-inline';
+        errorMsg.textContent = message;
+
+        const parent = input.parentElement;
+        if (parent) {
+            parent.appendChild(errorMsg);
+        }
+
+        // Attach listeners to clear error when edited
+        const clearListener = () => {
+            clearFieldError(input);
+            input.removeEventListener('input', clearListener);
+            input.removeEventListener('change', clearListener);
+        };
+        input.addEventListener('input', clearListener);
+        input.addEventListener('change', clearListener);
+    }
+
+    function clearFieldError(input: HTMLElement) {
+        input.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/20');
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+        input.removeAttribute('aria-invalid');
+
+        const parent = input.parentElement;
+        if (parent) {
+            const inlineErrors = parent.querySelectorAll('.error-message-inline');
+            inlineErrors.forEach(err => err.remove());
+        }
+    }
+
+    function clearAllErrors() {
+        const errorInputs = document.querySelectorAll('#purchase-order [aria-invalid="true"]');
+        errorInputs.forEach(el => {
+            clearFieldError(el as HTMLElement);
+        });
+        
+        const looseErrors = document.querySelectorAll('#purchase-order .error-message-inline');
+        looseErrors.forEach(el => el.remove());
+    }
+
     // Step Validation Overrides
     window.validateCurrentStep = async function () {
         const currentStep = (window as any).currentStep;
         
         // Step 1: Supplier details
         if (currentStep === 1) {
+            clearAllErrors();
+            let isValid = true;
+            let firstInvalidEl: HTMLElement | null = null;
+
             const fields = [
                 { id: 'purchase-invoice-id', name: 'Purchase Invoice ID' },
                 { id: 'purchase-date', name: 'Purchase Date' },
@@ -1201,9 +1266,9 @@
             for (const f of fields) {
                 const el = document.getElementById(f.id) as HTMLInputElement;
                 if (!el || !el.value.trim()) {
-                    if ((window as any).electronAPI) (window as any).electronAPI.showAlert1(`Please enter ${f.name}.`);
-                    if (el) el.focus();
-                    return false;
+                    if (el) showFieldError(el, `${f.name} is required.`);
+                    isValid = false;
+                    if (!firstInvalidEl) firstInvalidEl = el;
                 }
             }
 
@@ -1212,9 +1277,9 @@
             if (dateEl && dateEl.value) {
                 const parts = dateEl.value.split('-');
                 if (parts[0] && parts[0].length > 4) {
-                    if ((window as any).electronAPI) (window as any).electronAPI.showAlert1("Please enter a valid 4-digit year for the Purchase Date.");
-                    dateEl.focus();
-                    return false;
+                    showFieldError(dateEl, "Please enter a valid 4-digit year for the Purchase Date.");
+                    isValid = false;
+                    if (!firstInvalidEl) firstInvalidEl = dateEl;
                 }
             }
             
@@ -1223,9 +1288,9 @@
             if (supplierPhone && supplierPhone.value.trim()) {
                 const cleanedPhone = supplierPhone.value.replace(/\D/g, '');
                 if (cleanedPhone.length !== 10) {
-                    if ((window as any).electronAPI) (window as any).electronAPI.showAlert1('Please enter a valid 10-digit Supplier Phone Number.');
-                    supplierPhone.focus();
-                    return false;
+                    showFieldError(supplierPhone, 'Please enter a valid 10-digit Supplier Phone Number.');
+                    isValid = false;
+                    if (!firstInvalidEl) firstInvalidEl = supplierPhone;
                 }
             }
             
@@ -1235,9 +1300,9 @@
                 const cleanedEmail = supplierEmail.value.trim().replace(/\s+/g, '');
                 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRe.test(cleanedEmail)) {
-                    if ((window as any).electronAPI) (window as any).electronAPI.showAlert1('Please enter a valid Supplier Email address.');
-                    supplierEmail.focus();
-                    return false;
+                    showFieldError(supplierEmail, 'Please enter a valid Supplier Email address.');
+                    isValid = false;
+                    if (!firstInvalidEl) firstInvalidEl = supplierEmail;
                 }
             }
             
@@ -1245,46 +1310,75 @@
             const supplierGstin = document.getElementById('supplier-GSTIN') as HTMLInputElement;
             if (supplierGstin && supplierGstin.value.trim()) {
                 if (supplierGstin.value.trim().length !== 15) {
-                    if ((window as any).electronAPI) (window as any).electronAPI.showAlert1('GSTIN must be exactly 15 characters.');
-                    supplierGstin.focus();
-                    return false;
+                    showFieldError(supplierGstin, 'GSTIN must be exactly 15 characters.');
+                    isValid = false;
+                    if (!firstInvalidEl) firstInvalidEl = supplierGstin;
                 }
+            }
+
+            if (!isValid) {
+                if (firstInvalidEl) firstInvalidEl.focus();
+                return false;
             }
         }
 
         // Step 2: Items
         if (currentStep === 2) {
+            clearAllErrors();
             const itemsTable = document.querySelector('#items-table tbody') as HTMLTableSectionElement;
             if (!itemsTable || itemsTable.rows.length === 0) {
-                if ((window as any).electronAPI) (window as any).electronAPI.showAlert1('Please add at least one item.');
+                const addItemBtn = document.getElementById('add-item-btn');
+                if (addItemBtn) {
+                    showFieldError(addItemBtn, 'Please add at least one item.');
+                    addItemBtn.focus();
+                }
                 return false;
             }
+
+            let isValid = true;
+            let firstInvalidEl: HTMLElement | null = null;
+            const cards = document.querySelectorAll('#items-container .item-card');
+
             for (let i = 0; i < itemsTable.rows.length; i++) {
                 const row = itemsTable.rows[i];
                 const desc = row.querySelector('td:nth-child(2) input') as HTMLInputElement;
                 const qty = row.querySelector('td:nth-child(7) input') as HTMLInputElement;
                 const price = row.querySelector('td:nth-child(8) input') as HTMLInputElement;
                 
+                const card = cards[i] as HTMLElement | undefined;
+                const cardDesc = card?.querySelector('.item_name') as HTMLInputElement | undefined;
+                const cardQty = card?.querySelector('.item-field.qty input') as HTMLInputElement | undefined;
+                const cardPrice = card?.querySelector('input[placeholder="Unit Price"]') as HTMLInputElement | undefined;
+
                 if (!desc || !desc.value.trim()) {
-                    if ((window as any).electronAPI) (window as any).electronAPI.showAlert1(`Item #${i + 1}: Description is required.`);
-                    if (desc) desc.focus();
-                    return false;
+                    if (desc) showFieldError(desc, `Description is required.`);
+                    if (cardDesc) showFieldError(cardDesc, `Description is required.`);
+                    isValid = false;
+                    if (!firstInvalidEl) firstInvalidEl = desc || cardDesc || null;
                 }
                 if (!qty || Number(qty.value) <= 0) {
-                    if ((window as any).electronAPI) (window as any).electronAPI.showAlert1(`Item #${i + 1}: Quantity must be greater than 0.`);
-                    if (qty) qty.focus();
-                    return false;
+                    if (qty) showFieldError(qty, `Quantity must be greater than 0.`);
+                    if (cardQty) showFieldError(cardQty, `Quantity must be greater than 0.`);
+                    isValid = false;
+                    if (!firstInvalidEl) firstInvalidEl = qty || cardQty || null;
                 }
                 if (!price || Number(price.value) <= 0) {
-                    if ((window as any).electronAPI) (window as any).electronAPI.showAlert1(`Item #${i + 1}: Unit Price must be greater than 0.`);
-                    if (price) price.focus();
-                    return false;
+                    if (price) showFieldError(price, `Unit Price must be greater than 0.`);
+                    if (cardPrice) showFieldError(cardPrice, `Unit Price must be greater than 0.`);
+                    isValid = false;
+                    if (!firstInvalidEl) firstInvalidEl = price || cardPrice || null;
                 }
+            }
+
+            if (!isValid) {
+                if (firstInvalidEl) firstInvalidEl.focus();
+                return false;
             }
         }
 
         return true;
     };
+
 
     // Replace default next button handler
     const initializeForm = () => {
@@ -1293,6 +1387,8 @@
         fetchCompanyAndCategorySuggestions();
         fetchStockNames();
         initSupplierAutocomplete();
+        clearAllErrors();
+
         
         // Setup phone integer validation
         const supplierPhone = document.getElementById('supplier-phone') as HTMLInputElement;
