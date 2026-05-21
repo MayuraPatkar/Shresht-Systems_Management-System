@@ -39,11 +39,22 @@
                 const home = document.getElementById('home');
                 const newSection = document.getElementById('new');
                 const viewSection = document.getElementById('view');
+                const newPurchaseBtn = document.getElementById('new-purchase');
                 
                 if (viewPreview) viewPreview.style.display = 'none';
-                if (home) home.style.display = 'block';
-                if (newSection) newSection.style.display = 'none';
-                if (viewSection) viewSection.style.display = 'none';
+                if (home) {
+                    home.style.display = 'block';
+                    home.style.visibility = 'visible';
+                }
+                if (newSection) {
+                    newSection.style.display = 'none';
+                    newSection.style.visibility = 'hidden';
+                }
+                if (viewSection) {
+                    viewSection.style.display = 'none';
+                    viewSection.style.visibility = 'hidden';
+                }
+                if (newPurchaseBtn) newPurchaseBtn.style.display = '';
                 
                 loadRecentPurchaseOrders();
             });
