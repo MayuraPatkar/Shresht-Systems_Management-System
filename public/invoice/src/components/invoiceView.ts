@@ -446,7 +446,6 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
     setTextContent('view-delivery-challan-date', invoice.dc_date ? formatDateIndian(invoice.dc_date) : null);
     setTextContent('view-service-months', invoice.service_after_months ? String(invoice.service_after_months) : '0');
     setTextContent('view-service-stage', invoice.service_stage ? invoice.service_stage : 'No Service');
-    setTextContent('view-margin', (invoice.margin !== undefined && invoice.margin !== null) ? `${invoice.margin}%` : '0%');
     setTextContent('view-payment-status', invoice.payment_status);
 
     const statusVal = getInvoiceStatus(invoice);

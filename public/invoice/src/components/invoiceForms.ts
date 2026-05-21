@@ -766,8 +766,6 @@ const openInvoice = async function (id: string) {
         if (dcDateInput) dcDateInput.value = formatDateForInput(invoice.dc_date);
         const serviceMonthsInput = document.getElementById('service-months') as HTMLInputElement;
         if (serviceMonthsInput) serviceMonthsInput.value = String(invoice.service_after_months || 0);
-        const marginInput = document.getElementById('margin') as HTMLInputElement;
-        if (marginInput) marginInput.value = String(invoice.margin || 0);
         const buyerCustomerIdInput = document.getElementById('buyer-customer-id') as HTMLInputElement | null;
         if (buyerCustomerIdInput) buyerCustomerIdInput.value = invoice.customer_id || '';
         const buyerNameInput = document.getElementById('buyer-name') as HTMLInputElement;
@@ -1576,7 +1574,6 @@ const collectFormData = function () {
     const dcNumInput = document.getElementById("delivery-challan-number") as HTMLInputElement;
     const dcDateInput = document.getElementById("delivery-challan-date") as HTMLInputElement;
     const serviceMonthsInput = document.getElementById("service-months") as HTMLInputElement;
-    const marginInput = document.getElementById("margin") as HTMLInputElement;
     const buyerNameInput = document.getElementById("buyer-name") as HTMLInputElement;
     const line1Input = document.getElementById("buyer-address-line1") as HTMLInputElement | null;
     const line2Input = document.getElementById("buyer-address-line2") as HTMLInputElement | null;
@@ -1609,7 +1606,6 @@ const collectFormData = function () {
         dcNumber: dcNumInput ? dcNumInput.value : '',
         dcDate: dcDateInput ? dcDateInput.value : '',
         serviceAfterMonths: serviceMonthsInput ? Number(serviceMonthsInput.value) || 0 : 0,
-        margin: marginInput ? Number(marginInput.value) || 0 : 0,
         buyerName: buyerNameInput ? buyerNameInput.value : '',
         buyerAddress: {
             line1: line1Input ? line1Input.value : '',

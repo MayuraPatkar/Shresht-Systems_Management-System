@@ -122,7 +122,6 @@ interface Invoice {
     dc_date?: string;
     service_after_months?: number;
     service_stage?: string;
-    margin?: number;
     
     // Sub-documents
     customer_id?: string;
