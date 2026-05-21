@@ -360,12 +360,19 @@ const validateCurrentStep = async function (): Promise<boolean> {
     if (currentStep === 2) {
         clearStepErrors(2);
         const projectName = document.getElementById('project-name') as HTMLInputElement;
+        const invoiceDate = document.getElementById('invoice-date') as HTMLInputElement;
         const serviceMonths = document.getElementById('service-months') as HTMLInputElement;
         let isValid = true;
 
         if (!projectName.value.trim()) {
             showInlineError(projectName, 'Please enter the Project Name.');
             if (isValid) projectName.focus();
+            isValid = false;
+        }
+
+        if (!invoiceDate.value) {
+            showInlineError(invoiceDate, 'Please enter the Invoice Date.');
+            if (isValid) invoiceDate.focus();
             isValid = false;
         }
 
