@@ -54,6 +54,7 @@
             icon: 'fas fa-bolt text-yellow-600',
             items: [
                 { label: 'New Invoice', keys: ['Ctrl', 'N'] },
+                { label: 'Refresh List', keys: ['Ctrl', 'R'] },
                 { label: 'Save Invoice', keys: ['Ctrl', 'S'] },
                 { label: 'View Preview', keys: ['Ctrl', 'P'] },
                 { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
@@ -85,6 +86,19 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         loadRecentInvoices();
+
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                const icon = refreshBtn.querySelector('i');
+                if (icon) icon.classList.add('animate-spin');
+                loadRecentInvoices().finally(() => {
+                    setTimeout(() => {
+                        if (icon) icon.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+        }
 
         document.getElementById('new-invoice')?.addEventListener('click', showNewInvoiceForm);
         document.getElementById('home-btn')?.addEventListener('click', () => {
@@ -1067,6 +1081,15 @@
                         event.preventDefault();
                         event.stopPropagation();
                         newBtn.click();
+                    }
+                    break;
+                }
+                case 'r': {
+                    const refreshBtn = document.getElementById('refresh-btn');
+                    if (refreshBtn && window.getComputedStyle(refreshBtn).display !== 'none') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        refreshBtn.click();
                     }
                     break;
                 }
