@@ -191,13 +191,13 @@ function showCustomDateModal(callback) {
                             <label class="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
                                 <i class="fas fa-calendar-alt text-slate-400 text-sm"></i>Start Date
                             </label>
-                            <input type="date" id="custom-start-date" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 font-medium bg-slate-50/50 hover:bg-slate-50 focus:bg-white transition-all duration-200">
+                            <input type="date" id="custom-start-date" max="2099-12-31" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 font-medium bg-slate-50/50 hover:bg-slate-50 focus:bg-white transition-all duration-200">
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
                                 <i class="fas fa-calendar-alt text-slate-400 text-sm"></i>End Date
                             </label>
-                            <input type="date" id="custom-end-date" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 font-medium bg-slate-50/50 hover:bg-slate-50 focus:bg-white transition-all duration-200">
+                            <input type="date" id="custom-end-date" max="2099-12-31" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 font-medium bg-slate-50/50 hover:bg-slate-50 focus:bg-white transition-all duration-200">
                         </div>
                     </div>
                     <div class="flex gap-3 justify-end pt-2">
@@ -240,16 +240,61 @@ function showCustomDateModal(callback) {
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
 
+    const restrictYearInput = (input) => {
+        const handler = () => {
+            const val = input.value;
+            if (val) {
+                const parts = val.split('-');
+                if (parts[0] && parts[0].length > 4) {
+                    parts[0] = parts[0].slice(0, 4);
+                    input.value = parts.join('-');
+                }
+            }
+        };
+        input.addEventListener('input', handler);
+        input.addEventListener('change', handler);
+    };
+
+    restrictYearInput(startInput);
+    restrictYearInput(endInput);
+
     applyBtn.addEventListener('click', () => {
         const startDate = startInput.value;
         const endDate = endInput.value;
 
-        if (startDate && endDate && new Date(startDate) <= new Date(endDate)) {
-            callback(startDate, endDate);
-            closeModal();
-        } else {
-            alert('Please select a valid date range');
+        if (!startDate || !endDate) {
+            if (window.showAlert) {
+                window.showAlert('Please select a valid date range');
+            } else {
+                alert('Please select a valid date range');
+            }
+            return;
         }
+
+        const startYear = startDate.split('-')[0];
+        const endYear = endDate.split('-')[0];
+        const yearRegex = /^\d{4}$/;
+
+        if (!yearRegex.test(startYear) || !yearRegex.test(endYear)) {
+            if (window.showAlert) {
+                window.showAlert('Please enter a valid 4-digit year.');
+            } else {
+                alert('Please enter a valid 4-digit year.');
+            }
+            return;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            if (window.showAlert) {
+                window.showAlert('Please select a valid date range');
+            } else {
+                alert('Please select a valid date range');
+            }
+            return;
+        }
+
+        callback(startDate, endDate);
+        closeModal();
     });
 
     // Close on outside click
