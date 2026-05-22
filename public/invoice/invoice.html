@@ -28,36 +28,36 @@
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     <input type="text" id="search-input" placeholder="Search invoices..."
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full pl-10 pr-4 h-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
+                <button id="filter-btn" class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer">
                     <i class="fas fa-filter"></i>
                 </button>
             </div>
             <div class="flex items-center gap-3">
                 <button id="refresh-btn"
-                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10.5 h-10.5 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="Refresh List (Ctrl+R)">
                     <i class="fas fa-sync-alt"></i>
                 </button>
                 <button id="new-invoice"
-                    class="bg-blue-600 text-white w-36 h-10 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap">
+                    class="bg-blue-600 text-white w-36 h-10 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer">
                     <i class="fas fa-plus"></i>
                     New Invoice
                 </button>
                 <button id="view-preview"
-                    class="bg-purple-600 text-white w-36 h-10 rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap"
+                    class="bg-purple-600 text-white w-36 h-10 rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer"
                     style="display: none;">
                     <i class="fas fa-eye"></i>
                     View Preview
                 </button>
                 <button id="home-btn"
-                    class="bg-gray-600 text-white w-36 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap"
+                    class="bg-gray-600 text-white w-36 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer"
                     style="display: none;">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
-                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
