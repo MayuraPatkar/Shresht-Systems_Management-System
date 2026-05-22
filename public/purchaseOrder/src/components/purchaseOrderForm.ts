@@ -645,6 +645,8 @@
                     `;
                     itemsContainer.appendChild(card);
 
+                    setupCardTabNavigation(card);
+
                     const cardInput = card.querySelector(".item_name") as HTMLInputElement;
                     const cardSuggestions = card.querySelector(".suggestions") as HTMLUListElement;
 
@@ -1079,6 +1081,8 @@
             container.appendChild(card);
         }
 
+        setupCardTabNavigation(card);
+
         const cardInput = card.querySelector(".item_name") as HTMLInputElement;
         const cardSuggestions = card.querySelector(".suggestions") as HTMLUListElement;
 
@@ -1231,6 +1235,85 @@
             const numberBadge = row.querySelector(".item-number");
             if (numberBadge) numberBadge.textContent = (index + 1).toString();
         });
+    }
+
+    function setupCardTabNavigation(card: HTMLDivElement) {
+        const rateInputs = card.querySelectorAll('.item-row-1 .item-field.rate input');
+        const gstInput = rateInputs[1] as HTMLInputElement | null;
+        const brandInput = card.querySelector('.item-company') as HTMLInputElement | null;
+        const unitSelect = card.querySelector('.item-unit') as HTMLSelectElement | null;
+        const removeBtn = card.querySelector('.remove-item-btn') as HTMLButtonElement | null;
+        const descInput = card.querySelector('.item_name') as HTMLInputElement | null;
+
+        if (gstInput && brandInput) {
+            gstInput.addEventListener('keydown', (event: KeyboardEvent) => {
+                if (event.key === 'Tab' && !event.shiftKey) {
+                    event.preventDefault();
+                    brandInput.focus();
+                }
+            });
+            brandInput.addEventListener('keydown', (event: KeyboardEvent) => {
+                if (event.key === 'Tab' && event.shiftKey) {
+                    event.preventDefault();
+                    gstInput.focus();
+                }
+            });
+        }
+
+        if (unitSelect && removeBtn) {
+            unitSelect.addEventListener('keydown', (event: KeyboardEvent) => {
+                if (event.key === 'Tab' && !event.shiftKey) {
+                    event.preventDefault();
+                    removeBtn.focus();
+                }
+            });
+            removeBtn.addEventListener('keydown', (event: KeyboardEvent) => {
+                if (event.key === 'Tab' && event.shiftKey) {
+                    event.preventDefault();
+                    unitSelect.focus();
+                }
+            });
+        }
+
+        if (removeBtn) {
+            removeBtn.addEventListener('keydown', (event: KeyboardEvent) => {
+                if (event.key === 'Tab' && !event.shiftKey) {
+                    const cards = Array.from(document.querySelectorAll("#items-container .item-card"));
+                    const cardIndex = cards.indexOf(card);
+                    if (cardIndex !== -1 && cardIndex < cards.length - 1) {
+                        const nextCard = cards[cardIndex + 1] as HTMLDivElement;
+                        const nextDesc = nextCard.querySelector(".item_name") as HTMLInputElement | null;
+                        if (nextDesc) {
+                            event.preventDefault();
+                            nextDesc.focus();
+                        }
+                    } else {
+                        const addItemBtn = document.getElementById("add-item-btn");
+                        if (addItemBtn) {
+                            event.preventDefault();
+                            addItemBtn.focus();
+                        }
+                    }
+                }
+            });
+        }
+
+        if (descInput) {
+            descInput.addEventListener('keydown', (event: KeyboardEvent) => {
+                if (event.key === 'Tab' && event.shiftKey) {
+                    const cards = Array.from(document.querySelectorAll("#items-container .item-card"));
+                    const cardIndex = cards.indexOf(card);
+                    if (cardIndex > 0) {
+                        const prevCard = cards[cardIndex - 1] as HTMLDivElement;
+                        const prevRemoveBtn = prevCard.querySelector(".remove-item-btn") as HTMLButtonElement | null;
+                        if (prevRemoveBtn) {
+                            event.preventDefault();
+                            prevRemoveBtn.focus();
+                        }
+                    }
+                }
+            });
+        }
     }
 
     // Inline validation error helpers
@@ -1475,6 +1558,21 @@
                 e.preventDefault();
                 e.stopPropagation();
                 addPurchaseOrderItem();
+            });
+
+            newAddItemBtn.addEventListener('keydown', (event: Event) => {
+                const keyEvent = event as KeyboardEvent;
+                if (keyEvent.key === 'Tab' && keyEvent.shiftKey) {
+                    const cards = document.querySelectorAll("#items-container .item-card");
+                    if (cards.length > 0) {
+                        const lastCard = cards[cards.length - 1] as HTMLDivElement;
+                        const lastRemoveBtn = lastCard.querySelector(".remove-item-btn") as HTMLButtonElement | null;
+                        if (lastRemoveBtn) {
+                            keyEvent.preventDefault();
+                            lastRemoveBtn.focus();
+                        }
+                    }
+                }
             });
         }
 
