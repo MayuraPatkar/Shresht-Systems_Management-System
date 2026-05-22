@@ -172,28 +172,39 @@ function applyFilters(documents, filters) {
  */
 function showCustomDateModal(callback) {
     const modalHTML = `
-        <div id="custom-date-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">Select Date Range</h3>
-                    <button id="close-date-modal" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
+        <div id="custom-date-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[4px] z-[999] flex items-center justify-center transition-all duration-200">
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-calendar-alt text-lg"></i>
+                        </div>
+                        <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Select Date Range</h2>
+                    </div>
+                    <button id="close-date-modal" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200" aria-label="Close date range modal">
+                        <i class="fas fa-times text-sm"></i>
                     </button>
                 </div>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                        <input type="date" id="custom-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="p-6 space-y-5">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                <i class="fas fa-calendar-alt text-slate-400 text-sm"></i>Start Date
+                            </label>
+                            <input type="date" id="custom-start-date" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 font-medium bg-slate-50/50 hover:bg-slate-50 focus:bg-white transition-all duration-200">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                <i class="fas fa-calendar-alt text-slate-400 text-sm"></i>End Date
+                            </label>
+                            <input type="date" id="custom-end-date" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 font-medium bg-slate-50/50 hover:bg-slate-50 focus:bg-white transition-all duration-200">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                        <input type="date" id="custom-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="flex gap-2 justify-end">
-                        <button id="cancel-date-modal" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                    <div class="flex gap-3 justify-end pt-2">
+                        <button id="cancel-date-modal" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-semibold text-sm transition-all cursor-pointer">
                             Cancel
                         </button>
-                        <button id="apply-date-range" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <button id="apply-date-range" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm transition-all shadow-sm hover:shadow-md cursor-pointer">
                             Apply
                         </button>
                     </div>
