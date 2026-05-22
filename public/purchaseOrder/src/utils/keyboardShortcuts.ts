@@ -311,12 +311,16 @@
         switch (key) {
             case 'n':
                 event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
                 const newBtn = document.getElementById('new-purchase');
                 if (newBtn) newBtn.click();
                 break;
                 
             case 's':
                 event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
                 if (isFormActive()) {
                     runOnPreviewStep(() => {
                         const saveBtn = document.getElementById('save-btn');
@@ -327,6 +331,8 @@
                 
             case 'p':
                 event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
                 if (isShift) {
                     if (isSectionVisible('view')) {
                         const savePdfBtn = document.getElementById('save-project-pdf');
@@ -349,6 +355,8 @@
                 
             case 'i':
                 event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
                 if (isFormActive()) {
                     if (!isItemsStepActive() && typeof (window as any).changeStep === 'function') {
                         (window as any).changeStep(2);
@@ -361,12 +369,16 @@
                 
             case 'h':
                 event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
                 const homeBtn = document.getElementById('home-btn');
                 if (homeBtn) homeBtn.click();
                 break;
                 
             case 'f':
                 event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
                 if (isHomeScreenActive()) {
                     const searchInput = document.getElementById('search-input');
                     if (searchInput) searchInput.focus();
