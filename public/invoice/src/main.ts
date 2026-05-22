@@ -1245,4 +1245,5 @@
     (window as any).deletePayment = deletePayment;
     (window as any).deleteInvoice = deleteInvoice;
     (window as any).loadRecentInvoices = loadRecentInvoices;
+    (window as any).showToast = showToast;
 })();
