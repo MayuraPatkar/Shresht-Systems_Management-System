@@ -762,7 +762,7 @@ const openInvoice = async function (id: string) {
         if (homeEl) homeEl.style.display = 'none';
         if (newEl) newEl.style.display = 'block';
         if (newInvoiceEl) newInvoiceEl.style.display = 'none';
-        if (viewPreviewEl) viewPreviewEl.style.display = 'block';
+        if (viewPreviewEl) viewPreviewEl.style.display = 'flex';
 
         changeStep(2);
 

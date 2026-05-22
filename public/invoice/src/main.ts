@@ -136,7 +136,7 @@
 
             const newInvoiceBtn = document.getElementById('new-invoice');
             const viewPreviewBtn = document.getElementById('view-preview');
-            if (newInvoiceBtn) newInvoiceBtn.style.display = 'block';
+            if (newInvoiceBtn) newInvoiceBtn.style.display = 'flex';
             if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
 
             const form = document.getElementById('invoice-form') as HTMLFormElement | null;

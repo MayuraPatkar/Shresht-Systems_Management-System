@@ -133,7 +133,7 @@ function showNewDocumentForm(options) {
     
     if (previewButtonId) {
         const previewButton = document.getElementById(previewButtonId);
-        if (previewButton) previewButton.style.display = 'block';
+        if (previewButton) previewButton.style.display = 'flex';
     }
 
     // Update step indicator
