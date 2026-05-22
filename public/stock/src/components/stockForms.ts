@@ -153,10 +153,14 @@ function setDecimalSupport(input: HTMLInputElement | null, isPc: boolean): void 
     if (!input) return;
     if (isPc) {
         input.setAttribute('step', '1');
+        input.setAttribute('min', '1');
         input.setAttribute('data-integer-only', 'true');
+        input.classList.add('hide-spinners');
     } else {
-        input.setAttribute('step', 'any');
+        input.setAttribute('step', '0.01');
+        input.setAttribute('min', '0.01');
         input.removeAttribute('data-integer-only');
+        input.classList.remove('hide-spinners');
     }
 }
 

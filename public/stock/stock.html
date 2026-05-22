@@ -117,6 +117,19 @@
             text-align: center;
         }
 
+        /* Class to dynamically hide native browser spinner controls */
+        .hide-spinners::-webkit-outer-spin-button,
+        .hide-spinners::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            appearance: none;
+            margin: 0;
+        }
+
+        .hide-spinners[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
         .quantity-btn {
             min-width: 40px;
             height: 40px;
