@@ -155,6 +155,7 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
                 stockItem.brand = item.brand || item.company || stockItem.brand;
                 stockItem.category = item.category || stockItem.category;
                 stockItem.item_type = item.item_type || item.type || stockItem.item_type;
+                stockItem.unit = item.unit || stockItem.unit || 'pc';
                 stockItem.updatedAt = new Date();
                 await stockItem.save();
             } else {
@@ -169,6 +170,7 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
                     margin: 0,
                     stock_quantity: addQty,
                     item_type: item.item_type || item.type || 'Material',
+                    unit: item.unit || 'pc',
                 } as any);
             }
         }

@@ -712,7 +712,7 @@ export async function generatePDF(html: string, filename: string): Promise<PDFRe
         });
 
         const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: "networkidle0" });
+        await page.setContent(html, { waitUntil: "networkidle0" as any });
 
         await page.pdf({
             path: outputPath,

@@ -449,6 +449,7 @@
                 const brandVal = stockData.brand ?? stockData.company ?? '';
                 const typeVal = stockData.item_type ?? stockData.type ?? 'Material';
                 const categoryVal = stockData.category ?? '';
+                const unitVal = stockData.unit || '';
 
                 let unitPriceVal = '';
                 const rawPrice = stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? stockData.mrp;
@@ -467,60 +468,38 @@
 
                 if (card) {
                     const hsnInput = card.querySelector('.item-field.hsn input') as HTMLInputElement;
-                    const unitPriceInput = card.querySelector('.item-field.rate input[placeholder="Unit Price"]') as HTMLInputElement;
-                    const gstInput = card.querySelector('.item-field.rate input[placeholder="GST %"]') as HTMLInputElement;
-                    const companyInput = card.querySelector('.item-company') as HTMLInputElement;
+                    const brandInput = card.querySelector('.item-company') as HTMLInputElement;
                     const typeSelect = card.querySelector('.item-row-2 select') as HTMLSelectElement;
                     const categoryInput = card.querySelector('.item-category') as HTMLInputElement;
+                    const priceInput = card.querySelector('input[placeholder="Unit Price"]') as HTMLInputElement;
+                    const gstInput = card.querySelector('input[placeholder="GST %"]') as HTMLInputElement;
+                    const unitSelect = card.querySelector('.item-unit') as HTMLSelectElement;
 
                     if (hsnInput) hsnInput.value = hsnVal;
-                    if (unitPriceInput) unitPriceInput.value = unitPriceVal;
-                    if (gstInput) gstInput.value = gstVal;
-                    if (companyInput) companyInput.value = brandVal;
-                    if (typeSelect) {
-                        const optionVal = typeVal === 'Product' ? 'Material' : (typeVal || 'Material');
-                        for (let i = 0; i < typeSelect.options.length; i++) {
-                            if (typeSelect.options[i].value === optionVal) {
-                                typeSelect.selectedIndex = i;
-                                break;
-                            }
-                        }
-                    }
+                    if (brandInput) brandInput.value = brandVal;
+                    if (typeSelect) typeSelect.value = typeVal;
                     if (categoryInput) categoryInput.value = categoryVal;
-
-                    const inputs = [hsnInput, unitPriceInput, gstInput, companyInput, typeSelect, categoryInput];
-                    inputs.forEach(input => {
-                        if (input) input.dispatchEvent(new Event('input', { bubbles: true }));
-                    });
+                    if (priceInput) priceInput.value = unitPriceVal;
+                    if (gstInput) gstInput.value = gstVal;
+                    if (unitSelect) unitSelect.value = unitVal;
                 }
 
                 if (tr) {
                     const hsnInput = tr.querySelector('td:nth-child(3) input') as HTMLInputElement;
-                    const companyInput = tr.querySelector('td:nth-child(4) input') as HTMLInputElement;
+                    const brandInput = tr.querySelector('td:nth-child(4) input') as HTMLInputElement;
                     const typeSelect = tr.querySelector('td:nth-child(5) select') as HTMLSelectElement;
                     const categoryInput = tr.querySelector('td:nth-child(6) input') as HTMLInputElement;
-                    const unitPriceInput = tr.querySelector('td:nth-child(8) input') as HTMLInputElement;
-                    const rateInput = tr.querySelector('td:nth-child(9) input') as HTMLInputElement;
+                    const unitSelect = tr.querySelector('td:nth-child(8) select') as HTMLSelectElement;
+                    const priceInput = tr.querySelector('td:nth-child(9) input') as HTMLInputElement;
+                    const gstInput = tr.querySelector('td:nth-child(10) input') as HTMLInputElement;
 
                     if (hsnInput) hsnInput.value = hsnVal;
-                    if (companyInput) companyInput.value = brandVal;
-                    if (typeSelect) {
-                        const optionVal = typeVal === 'Product' ? 'Material' : (typeVal || 'Material');
-                        for (let i = 0; i < typeSelect.options.length; i++) {
-                            if (typeSelect.options[i].value === optionVal) {
-                                typeSelect.selectedIndex = i;
-                                break;
-                            }
-                        }
-                    }
+                    if (brandInput) brandInput.value = brandVal;
+                    if (typeSelect) typeSelect.value = typeVal;
                     if (categoryInput) categoryInput.value = categoryVal;
-                    if (unitPriceInput) unitPriceInput.value = unitPriceVal;
-                    if (rateInput) rateInput.value = gstVal;
-
-                    const inputs = [hsnInput, companyInput, typeSelect, categoryInput, unitPriceInput, rateInput];
-                    inputs.forEach(input => {
-                        if (input) input.dispatchEvent(new Event('input', { bubbles: true }));
-                    });
+                    if (unitSelect) unitSelect.value = unitVal;
+                    if (priceInput) priceInput.value = unitPriceVal;
+                    if (gstInput) gstInput.value = gstVal;
                 }
             }
         } catch (error) {
@@ -593,6 +572,7 @@
                 const type = item.item_type || item.type || "Material";
                 const category = item.category || "";
                 const quantity = item.quantity || "";
+                const unit = item.unit || "";
                 const unitPrice = item.unit_price || "";
                 const rate = item.gst_rate || item.rate || "";
 
@@ -651,6 +631,15 @@
                                     <ul class="suggestions"></ul>
                                 </div>
                             </div>
+                            <div class="item-field">
+                                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
+                                    <option value="" disabled ${!unit ? 'selected' : ''}>Select Unit</option>
+                                    <option value="pc" ${unit === 'pc' ? 'selected' : ''}>Piece (pc)</option>
+                                    <option value="kg" ${unit === 'kg' ? 'selected' : ''}>Kilogram (kg)</option>
+                                    <option value="L" ${unit === 'L' ? 'selected' : ''}>Litre (L)</option>
+                                    <option value="m" ${unit === 'm' ? 'selected' : ''}>Metre (m)</option>
+                                </select>
+                            </div>
                             <div class="row-spacer"></div>
                         </div>
                     `;
@@ -696,6 +685,15 @@
                             </td>
                             <td><input type="text" placeholder="Category" value="${category}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                             <td><input type="number" placeholder="Qty" min="1" value="${quantity}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                            <td>
+                                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
+                                    <option value="" disabled ${!unit ? 'selected' : ''}>Select Unit</option>
+                                    <option value="pc" ${unit === 'pc' ? 'selected' : ''}>Piece (pc)</option>
+                                    <option value="kg" ${unit === 'kg' ? 'selected' : ''}>Kilogram (kg)</option>
+                                    <option value="L" ${unit === 'L' ? 'selected' : ''}>Litre (L)</option>
+                                    <option value="m" ${unit === 'm' ? 'selected' : ''}>Metre (m)</option>
+                                </select>
+                            </td>
                             <td><input type="number" placeholder="Unit Price" value="${unitPrice}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                             <td><input type="number" placeholder="Rate" min="0.01" step="0.01" value="${rate}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                             <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -728,6 +726,7 @@
                             { card: row2Inputs[0], table: tableInputs[2] }, // company
                             { card: row2Selects[0], table: tableSelects[0] }, // type
                             { card: row2Inputs[1], table: tableInputs[3] }, // category
+                            { card: row2Selects[1], table: tableSelects[1] }, // unit
                             { card: row1Inputs[2], table: tableInputs[4] }, // qty
                             { card: row1Inputs[3], table: tableInputs[5] }, // unit_price
                             { card: row1Inputs[4], table: tableInputs[6] }, // rate
@@ -737,6 +736,10 @@
                             if (cInput && tInput) {
                                 cInput.addEventListener("input", () => { (tInput as HTMLInputElement).value = (cInput as HTMLInputElement).value; });
                                 tInput.addEventListener("input", () => { (cInput as HTMLInputElement).value = (tInput as HTMLInputElement).value; });
+                                if (cInput.tagName === 'SELECT' || tInput.tagName === 'SELECT') {
+                                    cInput.addEventListener("change", () => { (tInput as HTMLInputElement).value = (cInput as HTMLInputElement).value; });
+                                    tInput.addEventListener("change", () => { (cInput as HTMLInputElement).value = (tInput as HTMLInputElement).value; });
+                                }
                             }
                         });
 
@@ -866,8 +869,9 @@
             const tr = row as HTMLElement;
 
             const qty = parseFloat((tr.querySelector("td:nth-child(7) input") as HTMLInputElement)?.value || "0");
-            const unitPrice = parseFloat((tr.querySelector("td:nth-child(8) input") as HTMLInputElement)?.value || "0");
-            const rate = parseFloat((tr.querySelector("td:nth-child(9) input") as HTMLInputElement)?.value || "0");
+            const unit = (tr.querySelector("td:nth-child(8) select") as HTMLSelectElement)?.value || "";
+            const unitPrice = parseFloat((tr.querySelector("td:nth-child(9) input") as HTMLInputElement)?.value || "0");
+            const rate = parseFloat((tr.querySelector("td:nth-child(10) input") as HTMLInputElement)?.value || "0");
 
             const taxableValue = qty * unitPrice;
             const taxAmount = (taxableValue * rate) / 100;
@@ -880,8 +884,9 @@
                 item_type: (tr.querySelector("td:nth-child(5) select") as HTMLSelectElement)?.value || "Material",
                 category: (tr.querySelector("td:nth-child(6) input") as HTMLInputElement)?.value || "",
                 quantity: parseFloat((tr.querySelector("td:nth-child(7) input") as HTMLInputElement)?.value || "0") || "",
-                unit_price: parseFloat((tr.querySelector("td:nth-child(8) input") as HTMLInputElement)?.value || "0") || "",
-                gst_rate: parseFloat((tr.querySelector("td:nth-child(9) input") as HTMLInputElement)?.value || "0") || "",
+                unit: unit,
+                unit_price: parseFloat((tr.querySelector("td:nth-child(9) input") as HTMLInputElement)?.value || "0") || "",
+                gst_rate: parseFloat((tr.querySelector("td:nth-child(10) input") as HTMLInputElement)?.value || "0") || "",
                 specification: specRow ? (specRow.querySelector("td:nth-child(3) input") as HTMLInputElement)?.value || "" : "",
                 taxable_value: taxableValue,
                 total: taxableValue + taxAmount
@@ -1055,6 +1060,15 @@
                         <ul class="suggestions"></ul>
                     </div>
                 </div>
+                <div class="item-field">
+                    <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
+                        <option value="" disabled selected>Select Unit</option>
+                        <option value="pc">Piece (pc)</option>
+                        <option value="kg">Kilogram (kg)</option>
+                        <option value="L">Litre (L)</option>
+                        <option value="m">Metre (m)</option>
+                    </select>
+                </div>
                 <div class="row-spacer"></div>
             </div>
         `;
@@ -1102,6 +1116,15 @@
             </td>
             <td><input type="text" placeholder="Category" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
             <td><input type="number" placeholder="Qty" min="1" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+            <td>
+                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
+                    <option value="" disabled selected>Select Unit</option>
+                    <option value="pc">Piece (pc)</option>
+                    <option value="kg">Kilogram (kg)</option>
+                    <option value="L">Litre (L)</option>
+                    <option value="m">Metre (m)</option>
+                </select>
+            </td>
             <td><input type="number" placeholder="Unit Price" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
             <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
             <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -1139,6 +1162,7 @@
             { card: row2Inputs[0], table: tableInputs[2] }, // company
             { card: row2Selects[0], table: tableSelects[0] }, // type
             { card: row2Inputs[1], table: tableInputs[3] }, // category
+            { card: row2Selects[1], table: tableSelects[1] }, // unit
             { card: row1Inputs[2], table: tableInputs[4] }, // qty
             { card: row1Inputs[3], table: tableInputs[5] }, // unit_price
             { card: row1Inputs[4], table: tableInputs[6] }, // rate
@@ -1148,6 +1172,10 @@
             if (cInput && tInput) {
                 cInput.addEventListener("input", () => { (tInput as HTMLInputElement).value = (cInput as HTMLInputElement).value; });
                 tInput.addEventListener("input", () => { (cInput as HTMLInputElement).value = (tInput as HTMLInputElement).value; });
+                if (cInput.tagName === 'SELECT' || tInput.tagName === 'SELECT') {
+                    cInput.addEventListener("change", () => { (tInput as HTMLInputElement).value = (cInput as HTMLInputElement).value; });
+                    tInput.addEventListener("change", () => { (cInput as HTMLInputElement).value = (tInput as HTMLInputElement).value; });
+                }
             }
         });
 
@@ -1359,11 +1387,13 @@
                 const row = itemsTable.rows[i];
                 const desc = row.querySelector('td:nth-child(2) input') as HTMLInputElement;
                 const qty = row.querySelector('td:nth-child(7) input') as HTMLInputElement;
-                const price = row.querySelector('td:nth-child(8) input') as HTMLInputElement;
+                const unit = row.querySelector('td:nth-child(8) select') as HTMLSelectElement;
+                const price = row.querySelector('td:nth-child(9) input') as HTMLInputElement;
 
                 const card = cards[i] as HTMLElement | undefined;
                 const cardDesc = card?.querySelector('.item_name') as HTMLInputElement | undefined;
                 const cardQty = card?.querySelector('.item-field.qty input') as HTMLInputElement | undefined;
+                const cardUnit = card?.querySelector('.item-unit') as HTMLSelectElement | undefined;
                 const cardPrice = card?.querySelector('input[placeholder="Unit Price"]') as HTMLInputElement | undefined;
 
                 if (!desc || !desc.value.trim()) {
@@ -1377,6 +1407,12 @@
                     if (cardQty) showFieldError(cardQty, `Quantity must be greater than 0.`);
                     isValid = false;
                     if (!firstInvalidEl) firstInvalidEl = qty || cardQty || null;
+                }
+                if (!unit || !unit.value) {
+                    if (unit) showFieldError(unit, `Unit is required.`);
+                    if (cardUnit) showFieldError(cardUnit, `Unit is required.`);
+                    isValid = false;
+                    if (!firstInvalidEl) firstInvalidEl = unit || cardUnit || null;
                 }
                 if (!price || Number(price.value) <= 0) {
                     if (price) showFieldError(price, `Unit Price must be greater than 0.`);

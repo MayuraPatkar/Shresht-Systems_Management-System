@@ -52,6 +52,7 @@
             const description = item.description || "-";
             const hsnSac = item.hsn_sac || item.HSN_SAC || "-";
             const qty = parseFloat(item.quantity || 0);
+            const unit = item.unit || "pc";
             const unitPrice = parseFloat(item.unit_price || 0);
             const rate = parseFloat(item.gst_rate || item.rate || 0);
 
@@ -76,6 +77,7 @@
                         <td>${description}</td>
                         <td>${hsnSac}</td>
                         <td>${qty}</td>
+                        <td>${unit}</td>
                         <td>${formatIndian(unitPrice, 2)}</td>
                         <td>${formatIndian(taxableValue, 2)}</td>
                         <td>${rate.toFixed(2)}</td>
@@ -92,6 +94,7 @@
                         <td>${description}</td>
                         <td>${hsnSac}</td>
                         <td>${qty}</td>
+                        <td>${unit}</td>
                         <td>${formatIndian(unitPrice, 2)}</td>
                         <td>${formatIndian(rowTotal, 2)}</td>
                     </tr>
@@ -213,6 +216,7 @@
                     <th>Description</th>
                     <th>HSN/SAC</th>
                     <th>Qty</th>
+                    <th>Unit</th>
                     <th>Unit Price</th>
                     ${hasTax ? `
                         <th>Taxable Value (₹)</th>
@@ -417,6 +421,7 @@
                         <td class="px-4 py-3 text-sm text-gray-900">${item.brand || item.company || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.category || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${qty}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.unit || 'pc'}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${formatIndian(unitPrice, 2)}</td>
                         <td class="px-4 py-3 text-sm font-semibold text-gray-900">${rate}%</td>
                     `;
