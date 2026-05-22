@@ -299,9 +299,11 @@
     }
 });
 
-// --- Inline Validation Helpers ---
 // Show an inline error message below an input field
 function showInlineError(input: HTMLElement, message: string) {
+    if (!input.id) {
+        input.id = 'input-val-' + Math.random().toString(36).substring(2, 11);
+    }
     clearInlineError(input);
 
     // Apply error borders
@@ -471,34 +473,56 @@ const validateCurrentStep = async function (): Promise<boolean> {
     }
 
     if (currentStep === 5) {
-        const itemsTable = document.querySelector('#items-table tbody') as HTMLTableSectionElement | null;
-        if (!itemsTable || itemsTable.rows.length === 0) {
+        clearStepErrors(5);
+        const itemCards = document.querySelectorAll('#items-container .item-card');
+        if (itemCards.length === 0) {
             if ((window as any).electronAPI?.showAlert1) {
                 (window as any).electronAPI.showAlert1("Please add at least one item.");
             }
             return false;
         }
-        for (let index = 0; index < itemsTable.rows.length; index++) {
-            const row = itemsTable.rows[index];
-            const desc = row.querySelector('td:nth-child(2) input') as HTMLInputElement | null;
-            const qty = row.querySelector('td:nth-child(4) input') as HTMLInputElement | null;
-            const price = row.querySelector('td:nth-child(5) input') as HTMLInputElement | null;
 
-            if (!desc || !desc.value.trim()) {
-                showInlineError(desc || row, `Item #${index + 1}: Description is required.`);
-                desc?.focus();
-                return false;
+        let isValid = true;
+        let firstInvalidInput: HTMLInputElement | null = null;
+
+        itemCards.forEach((card) => {
+            const inputs = card.querySelectorAll('input');
+            const desc = inputs[0] as HTMLInputElement | null;
+            const qty = inputs[2] as HTMLInputElement | null;
+            const price = inputs[3] as HTMLInputElement | null;
+
+            if (desc) {
+                if (!desc.value.trim()) {
+                    showInlineError(desc, 'Required');
+                    if (isValid) firstInvalidInput = desc;
+                    isValid = false;
+                }
             }
-            if (!qty || Number(qty.value) <= 0) {
-                showInlineError(qty || row, `Item #${index + 1}: Quantity must be greater than 0.`);
-                qty?.focus();
-                return false;
+
+            if (qty) {
+                const qtyVal = Number(qty.value);
+                if (!qty.value.trim() || isNaN(qtyVal) || qtyVal <= 0) {
+                    showInlineError(qty, 'Required');
+                    if (isValid) firstInvalidInput = qty;
+                    isValid = false;
+                }
             }
-            if (!price || Number(price.value) <= 0) {
-                showInlineError(price || row, `Item #${index + 1}: Unit Price must be greater than 0.`);
-                price?.focus();
-                return false;
+
+            if (price) {
+                const priceVal = Number(price.value);
+                if (!price.value.trim() || isNaN(priceVal) || priceVal <= 0) {
+                    showInlineError(price, 'Required');
+                    if (isValid) firstInvalidInput = price;
+                    isValid = false;
+                }
             }
+        });
+
+        if (!isValid) {
+            if (firstInvalidInput) {
+                (firstInvalidInput as HTMLInputElement).focus();
+            }
+            return false;
         }
     }
 

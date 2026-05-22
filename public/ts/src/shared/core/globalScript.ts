@@ -973,7 +973,7 @@ async function fill(itemName, element) {
         if (inputs[2]) inputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
         
         if (inputs[3] && (!inputs[3].value || inputs[3].value === '0')) {
-          inputs[3].value = 1;
+          inputs[3].value = 0;
         }
 
         if (inputs[4]) inputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
@@ -998,7 +998,7 @@ async function fill(itemName, element) {
 
           if (rowInputs.length >= 6) {
             rowInputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
-            if (!rowInputs[3].value || rowInputs[3].value === '0') rowInputs[3].value = 1;
+            if (!rowInputs[3].value || rowInputs[3].value === '0') rowInputs[3].value = 0;
             rowInputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
             rowInputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
             rowInputs[3].dispatchEvent(new Event('input', { bubbles: true }));
@@ -1017,7 +1017,7 @@ async function fill(itemName, element) {
 
         if (rowInputs.length >= 6) {
           rowInputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
-          if (!rowInputs[3].value || rowInputs[3].value === '0') rowInputs[3].value = 1;
+          if (!rowInputs[3].value || rowInputs[3].value === '0') rowInputs[3].value = 0;
           rowInputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
           rowInputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
         }
@@ -1027,9 +1027,9 @@ async function fill(itemName, element) {
       const inputs = element.querySelectorAll('input');
       inputs[1].value = stockData.hsn_sac || stockData.HSN_SAC || ""; // HSN/SAC
       
-      // Default quantity to 1 if empty or 0
+      // Default quantity to 0 if empty or 0
       if (!inputs[2].value || inputs[2].value === '0') {
-          inputs[2].value = 1;
+          inputs[2].value = 0;
       }
 
       inputs[3].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0; // Unit Price
@@ -1052,7 +1052,7 @@ async function fill(itemName, element) {
         
         if (hsnInput) hsnInput.value = stockData.hsn_sac || stockData.HSN_SAC || "";
         if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) {
-            qtyInput.value = 1;
+            qtyInput.value = 0;
             qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         if (unitInput) {
@@ -1073,7 +1073,7 @@ async function fill(itemName, element) {
       
       if (hsnInput) hsnInput.value = stockData.hsn_sac || stockData.HSN_SAC || "";
       if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) {
-          qtyInput.value = 1;
+          qtyInput.value = 0;
           qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
       if (unitInput) {
