@@ -80,49 +80,149 @@ function showQuantityModal(action: string, itemId: string, itemName: string): vo
     input.focus();
 }
 
+// ─── Inline Validation Helpers ──────────────────────────────────────────────
+
+function showFieldError(input: HTMLElement, message: string): void {
+    clearFieldError(input);
+
+    input.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/20');
+    input.style.borderColor = '#ef4444';
+    input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+
+    input.setAttribute('aria-invalid', 'true');
+
+    const errorMsg = document.createElement('div');
+    errorMsg.className = 'text-[11px] font-semibold text-red-600 mt-1 transition-all duration-200 ease-in-out error-message-inline';
+    errorMsg.textContent = message;
+
+    const parent = input.parentElement;
+    if (parent) {
+        parent.appendChild(errorMsg);
+    }
+
+    const clearListener = () => {
+        clearFieldError(input);
+        input.removeEventListener('input', clearListener);
+        input.removeEventListener('change', clearListener);
+    };
+    input.addEventListener('input', clearListener);
+    input.addEventListener('change', clearListener);
+}
+
+function clearFieldError(input: HTMLElement): void {
+    input.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/20');
+    input.style.borderColor = '';
+    input.style.boxShadow = '';
+    input.removeAttribute('aria-invalid');
+
+    const parent = input.parentElement;
+    if (parent) {
+        const inlineErrors = parent.querySelectorAll('.error-message-inline');
+        inlineErrors.forEach(err => err.remove());
+    }
+}
+
+function clearAllErrors(): void {
+    const errorInputs = document.querySelectorAll('.form-input-premium[aria-invalid="true"]');
+    errorInputs.forEach(el => {
+        clearFieldError(el as HTMLElement);
+    });
+
+    const looseErrors = document.querySelectorAll('.error-message-inline');
+    looseErrors.forEach(el => el.remove());
+}
+
+(window as any).clearAllErrors = clearAllErrors;
+
 // ─── New Stock Form Submit ───────────────────────────────────────────────────
 
 const newStockForm = document.getElementById('newStockForm') as HTMLFormElement | null;
 if (newStockForm) {
     newStockForm.addEventListener('submit', async (e: Event) => {
         e.preventDefault();
-        const item_name = (document.getElementById('itemName') as HTMLInputElement).value.trim();
-        const hsn_sac = (document.getElementById('hsnCode') as HTMLInputElement).value.trim();
-        const brand = (document.getElementById('brand') as HTMLInputElement).value.trim();
-        const category = (document.getElementById('category') as HTMLInputElement).value.trim();
+        clearAllErrors();
+        let isValid = true;
+        let firstInvalidElement: HTMLElement | null = null;
+
+        const itemNameEl = document.getElementById('itemName') as HTMLInputElement;
+        const hsnCodeEl = document.getElementById('hsnCode') as HTMLInputElement;
+        const brandEl = document.getElementById('brand') as HTMLInputElement;
+        const categoryEl = document.getElementById('category') as HTMLInputElement;
+        const unitEl = document.getElementById('unit') as HTMLSelectElement;
+        const purchasePriceEl = document.getElementById('purchasePrice') as HTMLInputElement;
+        const gstRateEl = document.getElementById('gstRate') as HTMLInputElement;
+        const minStockQuantityEl = document.getElementById('minStockQuantity') as HTMLInputElement;
+
+        const item_name = itemNameEl.value.trim();
+        const hsn_sac = hsnCodeEl.value.trim();
+        const brand = brandEl.value.trim();
+        const category = categoryEl.value.trim();
         const item_type = (document.getElementById('type') as HTMLSelectElement).value.trim();
-        const purchase_price = parseFloat((document.getElementById('purchasePrice') as HTMLInputElement).value);
+        const purchase_price = parseFloat(purchasePriceEl.value);
         const stock_quantity = parseFloat((document.getElementById('stockQuantity') as HTMLInputElement).value) || 0;
         const margin = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
-        const gst_rate = parseFloat((document.getElementById('gstRate') as HTMLInputElement).value);
-        const min_stock_quantity = parseInt((document.getElementById('minStockQuantity') as HTMLInputElement).value, 10);
+        const gst_rate = parseFloat(gstRateEl.value);
+        const min_stock_quantity = parseInt(minStockQuantityEl.value, 10);
         const specifications = (document.getElementById('specifications') as HTMLTextAreaElement).value.trim();
-        const unit = (document.getElementById('unit') as HTMLSelectElement).value.trim();
+        const unit = unitEl.value.trim();
         const selling_price = parseFloat((document.getElementById('sellingPrice') as HTMLInputElement).value) || 0;
         const remarks = (document.getElementById('remarks') as HTMLTextAreaElement).value.trim();
 
-        if (!item_name || !hsn_sac || !brand || !category || !item_type) {
-            showErrorMessage('Please fill all required text fields.');
-            return;
+        if (!item_name) {
+            showFieldError(itemNameEl, 'Item Name is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = itemNameEl;
         }
-
+        if (!hsn_sac) {
+            showFieldError(hsnCodeEl, 'HSN/SAC Code is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = hsnCodeEl;
+        }
+        if (!brand) {
+            showFieldError(brandEl, 'Brand is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = brandEl;
+        }
+        if (!category) {
+            showFieldError(categoryEl, 'Category is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = categoryEl;
+        }
         if (!unit) {
-            showErrorMessage('Please select a unit.');
-            return;
+            showFieldError(unitEl, 'Unit is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = unitEl;
+        }
+        if (purchasePriceEl.value.trim() === '') {
+            showFieldError(purchasePriceEl, 'Purchase Price is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = purchasePriceEl;
+        } else if (isNaN(purchase_price) || purchase_price <= 0) {
+            showFieldError(purchasePriceEl, 'Please enter a valid purchase price');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = purchasePriceEl;
+        }
+        if (gstRateEl.value.trim() === '') {
+            showFieldError(gstRateEl, 'GST Rate is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = gstRateEl;
+        } else if (isNaN(gst_rate) || gst_rate < 0) {
+            showFieldError(gstRateEl, 'Please enter a valid GST rate');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = gstRateEl;
+        }
+        if (minStockQuantityEl.value.trim() === '') {
+            showFieldError(minStockQuantityEl, 'Min Stock Qty is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = minStockQuantityEl;
+        } else if (isNaN(min_stock_quantity) || min_stock_quantity < 0) {
+            showFieldError(minStockQuantityEl, 'Please enter a valid minimum stock quantity');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = minStockQuantityEl;
         }
 
-        if (isNaN(purchase_price) || purchase_price <= 0) {
-            showErrorMessage('Please enter a valid purchase price.');
-            return;
-        }
-
-        if (isNaN(gst_rate) || gst_rate < 0) {
-            showErrorMessage('Please enter a valid GST rate.');
-            return;
-        }
-
-        if (isNaN(min_stock_quantity) || min_stock_quantity < 0) {
-            showErrorMessage('Please enter a valid minimum stock quantity.');
+        if (!isValid) {
+            if (firstInvalidElement) firstInvalidElement.focus();
             return;
         }
 
@@ -159,45 +259,92 @@ if (editForm) {
         e.preventDefault();
         const modal = document.getElementById('editStockModal')!;
         const itemId = modal.getAttribute('data-item-id');
-        const item_name = (document.getElementById('editItemName') as HTMLInputElement).value.trim();
-        const hsn_sac = (document.getElementById('editHsnCode') as HTMLInputElement).value.trim();
-        const brand = (document.getElementById('editBrand') as HTMLInputElement).value.trim();
-        const category = (document.getElementById('editCategory') as HTMLInputElement).value.trim();
+        
+        const editItemNameEl = document.getElementById('editItemName') as HTMLInputElement;
+        const editHsnCodeEl = document.getElementById('editHsnCode') as HTMLInputElement;
+        const editBrandEl = document.getElementById('editBrand') as HTMLInputElement;
+        const editCategoryEl = document.getElementById('editCategory') as HTMLInputElement;
+        const editUnitEl = document.getElementById('editUnit') as HTMLSelectElement;
+        const editPurchasePriceEl = document.getElementById('editPurchasePrice') as HTMLInputElement;
+        const editGstRateEl = document.getElementById('editGstRate') as HTMLInputElement;
+        const editMinStockQuantityEl = document.getElementById('editMinStockQuantity') as HTMLInputElement;
+
+        const item_name = editItemNameEl.value.trim();
+        const hsn_sac = editHsnCodeEl.value.trim();
+        const brand = editBrandEl.value.trim();
+        const category = editCategoryEl.value.trim();
         const item_type = (document.getElementById('editType') as HTMLSelectElement).value.trim();
-        const purchase_price = parseFloat((document.getElementById('editPurchasePrice') as HTMLInputElement).value);
+        const purchase_price = parseFloat(editPurchasePriceEl.value);
         const stock_quantity = parseFloat((document.getElementById('editStockQuantity') as HTMLInputElement).value) || 0;
         const margin = parseFloat((document.getElementById('editMargin') as HTMLInputElement).value) || 0;
-        const gst_rate = parseFloat((document.getElementById('editGstRate') as HTMLInputElement).value);
-        const min_stock_quantity = parseInt((document.getElementById('editMinStockQuantity') as HTMLInputElement).value, 10);
+        const gst_rate = parseFloat(editGstRateEl.value);
+        const min_stock_quantity = parseInt(editMinStockQuantityEl.value, 10);
         const specifications = (document.getElementById('editSpecifications') as HTMLTextAreaElement).value.trim();
-        const unit = (document.getElementById('editUnit') as HTMLSelectElement).value.trim();
+        const unit = editUnitEl.value.trim();
         const selling_price = parseFloat((document.getElementById('editSellingPrice') as HTMLInputElement).value) || 0;
         const remarks = (document.getElementById('editRemarks') as HTMLTextAreaElement).value.trim();
 
         if (!itemId) return;
 
-        if (!item_name || !hsn_sac || !brand || !category || !item_type) {
-            showErrorMessage('Please fill all required text fields.');
-            return;
-        }
+        clearAllErrors();
+        let isValid = true;
+        let firstInvalidElement: HTMLElement | null = null;
 
+        if (!item_name) {
+            showFieldError(editItemNameEl, 'Item Name is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editItemNameEl;
+        }
+        if (!hsn_sac) {
+            showFieldError(editHsnCodeEl, 'HSN/SAC Code is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editHsnCodeEl;
+        }
+        if (!brand) {
+            showFieldError(editBrandEl, 'Brand is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editBrandEl;
+        }
+        if (!category) {
+            showFieldError(editCategoryEl, 'Category is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editCategoryEl;
+        }
         if (!unit) {
-            showErrorMessage('Please select a unit.');
-            return;
+            showFieldError(editUnitEl, 'Unit is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editUnitEl;
+        }
+        if (editPurchasePriceEl.value.trim() === '') {
+            showFieldError(editPurchasePriceEl, 'Purchase Price is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editPurchasePriceEl;
+        } else if (isNaN(purchase_price) || purchase_price <= 0) {
+            showFieldError(editPurchasePriceEl, 'Please enter a valid purchase price');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editPurchasePriceEl;
+        }
+        if (editGstRateEl.value.trim() === '') {
+            showFieldError(editGstRateEl, 'GST Rate is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editGstRateEl;
+        } else if (isNaN(gst_rate) || gst_rate < 0) {
+            showFieldError(editGstRateEl, 'Please enter a valid GST rate');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editGstRateEl;
+        }
+        if (editMinStockQuantityEl.value.trim() === '') {
+            showFieldError(editMinStockQuantityEl, 'Min Stock Qty is required');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editMinStockQuantityEl;
+        } else if (isNaN(min_stock_quantity) || min_stock_quantity < 0) {
+            showFieldError(editMinStockQuantityEl, 'Please enter a valid minimum stock quantity');
+            isValid = false;
+            if (!firstInvalidElement) firstInvalidElement = editMinStockQuantityEl;
         }
 
-        if (isNaN(purchase_price) || purchase_price <= 0) {
-            showErrorMessage('Please enter a valid purchase price.');
-            return;
-        }
-
-        if (isNaN(gst_rate) || gst_rate < 0) {
-            showErrorMessage('Please enter a valid GST rate.');
-            return;
-        }
-
-        if (isNaN(min_stock_quantity) || min_stock_quantity < 0) {
-            showErrorMessage('Please enter a valid minimum stock quantity.');
+        if (!isValid) {
+            if (firstInvalidElement) firstInvalidElement.focus();
             return;
         }
 
