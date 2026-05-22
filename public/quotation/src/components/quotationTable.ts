@@ -87,9 +87,6 @@ class QuotationTable {
                     <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn convert-btn px-4 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Convert to Invoice" ${status === 'Converted' ? 'disabled style="opacity:.5;cursor:not-allowed;"' : ''}>
-                        <i class="fas fa-file-invoice-dollar"></i>
-                    </button>
                     <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
                         <i class="fas fa-trash-alt"></i>
                     </button>
@@ -137,7 +134,6 @@ class QuotationTable {
     const viewBtn = quotationCard.querySelector('.view-btn') as HTMLElement;
     const duplicateBtn = quotationCard.querySelector('.duplicate-btn') as HTMLElement;
     const editBtn = quotationCard.querySelector('.edit-btn') as HTMLElement;
-    const convertBtn = quotationCard.querySelector('.convert-btn') as HTMLButtonElement;
     const deleteBtn = quotationCard.querySelector('.delete-btn') as HTMLElement;
 
     // Copy ID functionality
@@ -163,20 +159,6 @@ class QuotationTable {
         editBtn?.addEventListener('click', () => {
             sessionStorage.setItem('currentTab-status', 'update');
             openQuotation(quotationId);
-        });
-
-        convertBtn?.addEventListener('click', async () => {
-            if (convertBtn.disabled) return;
-            try {
-                const response = await fetch(`/quotation/${quotationId}/convert-to-invoice`, { method: 'POST' });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message || 'Failed to convert quotation');
-                showToast(`Converted to invoice ${data.invoice_no || data.invoice_id || ''}`);
-                if (typeof loadRecentQuotations === 'function') loadRecentQuotations();
-            } catch (error) {
-                console.error('Quotation conversion failed', error);
-                (window as any).electronAPI?.showAlert1(error.message || 'Failed to convert quotation.');
-            }
         });
 
         deleteBtn?.addEventListener('click', () => {

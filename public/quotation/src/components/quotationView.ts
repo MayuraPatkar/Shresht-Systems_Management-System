@@ -146,8 +146,11 @@ async function generateViewPreviewHTML(quotation, viewType) {
             totalPriceSum += taxableValue;
             itemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac || '-'}</td><td class="text-right">${qty || '-'}</td><td class="text-right">${unitPrice ? '₹&nbsp;' + formatIndian(unitPrice, 2) : '-'}</td><td class="text-right">${taxableValue ? '₹&nbsp;' + formatIndian(taxableValue, 2) : '-'}</td></tr>`;
         } else {
-            totalPrice += taxableValue + taxAmount;
-            itemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-left">${item.specification || ''}</td><td class="text-center">${qty || '-'}</td></tr>`;
+            // Compact view: S.No, Description, Specifications, Qty, Total (With Tax)
+            const totalWithTax = taxableValue + taxAmount;
+            totalPrice += totalWithTax;
+            totalPriceSum += totalWithTax;
+            itemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-left">${item.specification || ''}</td><td class="text-center">${qty || '-'}</td><td class="text-right">${totalWithTax ? '₹&nbsp;' + formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
@@ -178,8 +181,11 @@ async function generateViewPreviewHTML(quotation, viewType) {
             totalPriceSum += taxableValue;
             nonItemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">${price ? '₹&nbsp;' + formatIndian(price, 2) : '-'}</td></tr>`;
         } else {
-            totalNonItemsPrice += taxableValue;
-            nonItemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-left">${item.specification || ''}</td><td class="text-center">-</td></tr>`;
+            // Compact view: include total with tax
+            const totalWithTax = taxableValue + taxAmount;
+            totalNonItemsPrice += totalWithTax;
+            totalPriceSum += totalWithTax;
+            nonItemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-left">${item.specification || ''}</td><td class="text-center">-</td><td class="text-right">${totalWithTax ? '₹&nbsp;' + formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: nonItemHTML, rowCount: rowCount });
@@ -194,8 +200,8 @@ async function generateViewPreviewHTML(quotation, viewType) {
     const totalCGST = totals.cgst ?? (totalTax / 2);
     const totalSGST = totals.sgst ?? (totalTax - totalCGST);
     const totalIGST = totals.igst ?? 0;
-    const roundOff = totals.round_off ?? (Math.round(totalPrice + totalNonItemsPrice) - (totalPrice + totalNonItemsPrice));
-    const grandTotal = totals.grand_total ?? Math.round(totalPrice + totalNonItemsPrice);
+    const roundOff = (viewType === 1) ? (Math.round(totalPrice + totalNonItemsPrice) - (totalPrice + totalNonItemsPrice)) : (totals.round_off ?? (Math.round(totalPrice + totalNonItemsPrice) - (totalPrice + totalNonItemsPrice)));
+    const grandTotal = (viewType === 1) ? Math.round(totalPrice + totalNonItemsPrice) : (totals.grand_total ?? Math.round(totalPrice + totalNonItemsPrice));
 
     // Format the date for display (DD/MM/YYYY format)
     const formattedDate = formatDateIndian(quotation.quotation_date);
@@ -207,7 +213,8 @@ async function generateViewPreviewHTML(quotation, viewType) {
     } else if (viewType === 1) {
         tableHead = `<th class="text-center">Sr. No</th><th class="text-left">Description</th><th class="text-center">HSN/SAC</th><th class="text-right">Qty</th><th class="text-right">Unit Price</th><th class="text-right">Total</th>`;
     } else {
-        tableHead = `<th class="text-center">Sr. No</th><th class="text-left">Description</th><th class="text-left">Specifications</th><th class="text-center">Qty</th>`;
+        // Compact: S.No, Description, Specifications, Qty, Total (With Tax)
+        tableHead = `<th class="text-center">Sr. No</th><th class="text-left">Description</th><th class="text-left">Specifications</th><th class="text-center">Qty</th><th class="text-right">Total (With Tax)</th>`;
     }
 
     // Totals HTML
@@ -237,19 +244,14 @@ async function generateViewPreviewHTML(quotation, viewType) {
             </div>
         </div>`;
     } else {
+        // Compact view: only Grand Total
         totalsHTML = `
         <div style="display: flex; width: 100%;">
             <div class="totals-section-sub1" style="width: 55%;">
-                <p>Subtotal:</p>
-                ${discountAmount > 0 ? `<p>Discount:</p>` : ""}
-                <p>Round Off:</p>
-                <p>Grand Total:</p>
+                <p><strong>Grand Total:</strong></p>
             </div>
             <div class="totals-section-sub2" style="width: 45%;">
-                <p>₹ ${formatIndian(taxableValue, 2)}</p>
-                ${discountAmount > 0 ? `<p>-₹ ${formatIndian(discountAmount, 2)}</p>` : ""}
-                <p>₹ ${roundOff >= 0 ? "+" : ""}${formatIndian(roundOff, 2)}</p>
-                <p>₹ ${formatIndian(grandTotal, 2)}</p>
+                <p><strong>₹ ${formatIndian(grandTotal, 2)}</strong></p>
             </div>
         </div>`;
     }
@@ -272,6 +274,15 @@ async function generateViewPreviewHTML(quotation, viewType) {
                 <td colspan="3" class="text-left">TOTAL</td>
                 <td class="text-right">${totalQtySum}</td>
                 <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
+    } else {
+        // Compact view: TOTAL row with qty and total with tax
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-center">${totalQtySum}</td>
                 <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
             </tr>
         `;
@@ -641,9 +652,9 @@ async function renderQuotationView(quotation, viewType) {
     const cgstEl = document.getElementById('view-cgst');
     const sgstEl = document.getElementById('view-sgst');
     const roundOffEl = document.getElementById('view-round-off');
-    if (cgstEl) cgstEl.textContent = `₹ ${formatIndian(totals.cgst ?? (tax / 2), 2)}`;
-    if (sgstEl) sgstEl.textContent = `₹ ${formatIndian(totals.sgst ?? (tax / 2), 2)}`;
-    if (roundOffEl) roundOffEl.textContent = `₹ ${formatIndian(totals.round_off ?? (total - grandTotal), 2)}`;
+    if (cgstEl) cgstEl.textContent = `₹ ${formatIndian(viewType === 1 ? 0 : (totals.cgst ?? (tax / 2)), 2)}`;
+    if (sgstEl) sgstEl.textContent = `₹ ${formatIndian(viewType === 1 ? 0 : (totals.sgst ?? (tax / 2)), 2)}`;
+    if (roundOffEl) roundOffEl.textContent = `₹ ${formatIndian(viewType === 1 ? (total - grandTotal) : (totals.round_off ?? (total - grandTotal)), 2)}`;
 
     // Update table header based on view type
     const tableHead = document.querySelector("#view-items-table thead tr");
@@ -670,15 +681,38 @@ async function renderQuotationView(quotation, viewType) {
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
             `;
         } else {
+            // Compact view: S.No, Description, Specifications, Qty, Total (With Tax)
             tableHead.innerHTML = `
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Specifications</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
             `;
         }
+    }
+
+    // Task 3: Show/hide subtotal and round-off cards based on view type
+    const subtotalCard = document.getElementById('view-subtotal')?.closest('.bg-gray-50');
+    const roundOffCard = document.getElementById('view-round-off')?.closest('.bg-gray-50');
+    const taxCard = document.getElementById('view-tax')?.closest('.bg-gray-50');
+    const cgstCard = document.getElementById('view-cgst')?.closest('.bg-gray-50');
+    const sgstCard = document.getElementById('view-sgst')?.closest('.bg-gray-50');
+
+    if (viewType === 3) {
+        // Compact: hide subtotal, tax(GST), CGST, SGST, round off — only show grand total
+        if (subtotalCard) (subtotalCard as HTMLElement).style.display = 'none';
+        if (roundOffCard) (roundOffCard as HTMLElement).style.display = 'none';
+        if (taxCard) (taxCard as HTMLElement).style.display = 'none';
+        if (cgstCard) (cgstCard as HTMLElement).style.display = 'none';
+        if (sgstCard) (sgstCard as HTMLElement).style.display = 'none';
+    } else {
+        // Restore all cards for other views
+        if (subtotalCard) (subtotalCard as HTMLElement).style.display = '';
+        if (roundOffCard) (roundOffCard as HTMLElement).style.display = '';
+        if (taxCard) (taxCard as HTMLElement).style.display = '';
+        if (cgstCard) (cgstCard as HTMLElement).style.display = '';
+        if (sgstCard) (sgstCard as HTMLElement).style.display = '';
     }
 
     // Show the preview in view-preview-content
@@ -750,6 +784,10 @@ async function viewQuotation(quotationId, viewType) {
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'none';
         document.getElementById('view').style.display = 'block';
+
+        // Hide trash button while in view mode
+        const trashBtnEl = document.getElementById('trash-btn');
+        if (trashBtnEl) trashBtnEl.style.display = 'none';
 
         // Render the view with fetched data
         await renderQuotationView(quotation, viewType);

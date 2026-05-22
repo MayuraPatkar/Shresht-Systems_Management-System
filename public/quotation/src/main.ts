@@ -273,6 +273,8 @@ async function loadRecentQuotations() {
 
 document.getElementById('home-btn')!.addEventListener('click', () => {
     sessionStorage.removeItem('currentTab-status');
+    const trashBtn = document.getElementById('trash-btn');
+    if (trashBtn) trashBtn.style.display = '';
     (window as any).location = '/quotation';
 });
 
@@ -323,14 +325,16 @@ function showNewQuotationForm() {
         if (projectNameInput) {
             projectNameInput.focus();
         }
-        // Hide Print and Save as PDF buttons for new quotations
+        // Hide Print, Save as PDF, and Trash buttons for new/edit mode
         const printBtn = document.getElementById('print-btn') as HTMLButtonElement;
         const savePdfBtn = document.getElementById('save-pdf-btn') as HTMLButtonElement;
         const viewPreviewBtn = document.getElementById('view-preview') as HTMLButtonElement;
+        const trashBtnEl = document.getElementById('trash-btn') as HTMLButtonElement;
 
         if (printBtn) printBtn.style.display = 'none';
         if (savePdfBtn) savePdfBtn.style.display = 'none';
         if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+        if (trashBtnEl) trashBtnEl.style.display = 'none';
     }, 100);
 }
 

@@ -136,6 +136,12 @@ function showNewDocumentForm(options) {
         if (previewButton) previewButton.style.display = 'block';
     }
 
+    // Hide trash button when in form/view mode
+    const trashBtn = document.getElementById('trash-btn');
+    if (trashBtn) {
+        trashBtn.style.display = 'none';
+    }
+
     // Update step indicator
     if (stepIndicatorId && currentStep && totalSteps) {
         const stepIndicator = document.getElementById(stepIndicatorId);
@@ -173,6 +179,10 @@ function showDocumentList(options) {
     if (homeElement) homeElement.style.display = 'block';
     if (formElement) formElement.style.display = 'none';
     if (viewElement) viewElement.style.display = 'none';
+
+    // Restore trash-btn visibility (hidden while in form/view/edit modes)
+    const trashBtn = document.getElementById('trash-btn');
+    if (trashBtn) trashBtn.style.display = '';
 
     if (reloadCallback && typeof reloadCallback === 'function') {
         reloadCallback();

@@ -64,9 +64,18 @@ async function autofillStockItem(input) {
     }
 }
 
+// Helper: sync hidden #buyer-name from first+last name inputs
+function syncBuyerName() {
+    const first = (document.getElementById('buyer-first-name') as HTMLInputElement)?.value.trim() || '';
+    const last = (document.getElementById('buyer-last-name') as HTMLInputElement)?.value.trim() || '';
+    const combined = [first, last].filter(Boolean).join(' ');
+    const hidden = document.getElementById('buyer-name') as HTMLInputElement;
+    if (hidden) hidden.value = combined;
+}
+
 // Setup Customer Autocomplete
 function setupCustomerAutocomplete() {
-    const input = document.getElementById('buyer-name');
+    const input = document.getElementById('buyer-first-name');
     const suggestionsList = document.getElementById('customer-suggestions');
     if (!input || !suggestionsList) return;
 
@@ -87,6 +96,7 @@ function setupCustomerAutocomplete() {
     input.addEventListener('input', () => {
         clearTimeout(debounceTimer);
         const query = input.value.trim();
+        syncBuyerName();
         
         // Clear hidden ID when input changes manually
         const idInput = document.getElementById('buyer-customer-id');
@@ -173,7 +183,14 @@ function setupCustomerAutocomplete() {
     }
 
     function selectCustomer(customer) {
-        input.value = customer.customer?.name || customer.customer_name || '';
+        const fullName = customer.customer?.name || customer.customer_name || '';
+        // Split into first/last on first space
+        const spaceIdx = fullName.indexOf(' ');
+        const firstNameEl = document.getElementById('buyer-first-name') as HTMLInputElement;
+        const lastNameEl = document.getElementById('buyer-last-name') as HTMLInputElement;
+        if (firstNameEl) firstNameEl.value = spaceIdx > -1 ? fullName.slice(0, spaceIdx) : fullName;
+        if (lastNameEl) lastNameEl.value = spaceIdx > -1 ? fullName.slice(spaceIdx + 1) : '';
+        syncBuyerName();
         
         // Populate other fields
         const idInput = document.getElementById('buyer-customer-id') as HTMLInputElement;
@@ -214,6 +231,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Custom ID listener removed as all IDs are system-generated.
     
     setupCustomerAutocomplete();
+
+    // Sync buyer-name hidden field when last name changes
+    const lastNameInput = document.getElementById('buyer-last-name');
+    if (lastNameInput) {
+        lastNameInput.addEventListener('input', syncBuyerName);
+    }
+
+    // GSTIN uppercase enforcement
+    const gstinInput = document.getElementById('buyer-gstin');
+    if (gstinInput) {
+        gstinInput.addEventListener('input', function() {
+            const pos = (this as HTMLInputElement).selectionStart;
+            (this as HTMLInputElement).value = (this as HTMLInputElement).value.toUpperCase();
+            (this as HTMLInputElement).setSelectionRange(pos, pos);
+        });
+    }
 
     // Ensure phone and pincode only accept numbers
     const pincodeInput = document.getElementById('buyer-pincode');
@@ -317,11 +350,13 @@ async function openQuotation(quotationId) {
     idInput.readOnly = true;
     idInput.style.backgroundColor = '#f3f4f6'; // Light gray to indicate disabled
 
-    // Hide Print and Save as PDF buttons in form - only available in View mode
+    // Hide Print, Save as PDF, and Trash buttons in form - only available in View/List mode
     const printBtn = document.getElementById('print-btn');
     const savePdfBtn = document.getElementById('save-pdf-btn');
+    const trashBtnEdit = document.getElementById('trash-btn');
     if (printBtn) printBtn.style.display = 'none';
     if (savePdfBtn) savePdfBtn.style.display = 'none';
+    if (trashBtnEdit) trashBtnEdit.style.display = 'none';
 
     document.getElementById('project-name').value = quotation.project_name;
     // Use input-safe ISO date for the date field
@@ -333,7 +368,15 @@ async function openQuotation(quotationId) {
     const idInputCustomer = document.getElementById('buyer-customer-id');
     if (idInputCustomer) idInputCustomer.value = quotation.customer_id || '';
     
-    document.getElementById('buyer-name').value = quotation.customer_name || '';
+    // Split full name into first + last name fields
+    const fullNameStr = quotation.customer_name || '';
+    const spaceIdx = fullNameStr.indexOf(' ');
+    const firstEl = document.getElementById('buyer-first-name') as HTMLInputElement;
+    const lastEl = document.getElementById('buyer-last-name') as HTMLInputElement;
+    const hiddenNameEl = document.getElementById('buyer-name') as HTMLInputElement;
+    if (firstEl) firstEl.value = spaceIdx > -1 ? fullNameStr.slice(0, spaceIdx) : fullNameStr;
+    if (lastEl) lastEl.value = spaceIdx > -1 ? fullNameStr.slice(spaceIdx + 1) : '';
+    if (hiddenNameEl) hiddenNameEl.value = fullNameStr;
     const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
     const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement;
     if (line1Input) line1Input.value = quotation.billing_address?.line1 || quotation.customer_address || '';
@@ -372,7 +415,7 @@ async function openQuotation(quotationId) {
                 <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
                 <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
-                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
         itemsTableBody.appendChild(row);
@@ -403,7 +446,7 @@ async function openQuotation(quotationId) {
                         <input type="number" placeholder="0.00" step="0.01" value="${item.unit_price || ''}" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || item.Rate || item.gst_rate || ''}">
                     </div>
                     <div class="item-actions">
 
@@ -481,7 +524,7 @@ async function openQuotation(quotationId) {
             <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
                 <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
-                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
         nonItemsTableBody.appendChild(row);
@@ -676,7 +719,13 @@ async function cloneQuotation(sourceQuotationId) {
         const idInputCustomer = document.getElementById('buyer-customer-id');
         if (idInputCustomer) idInputCustomer.value = '';
 
-        document.getElementById('buyer-name').value = '';
+        // Clear first/last name fields and hidden combined field
+        const firstEl = document.getElementById('buyer-first-name') as HTMLInputElement;
+        const lastEl = document.getElementById('buyer-last-name') as HTMLInputElement;
+        const hiddenNameEl = document.getElementById('buyer-name') as HTMLInputElement;
+        if (firstEl) firstEl.value = '';
+        if (lastEl) lastEl.value = '';
+        if (hiddenNameEl) hiddenNameEl.value = '';
         const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
         const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement;
         if (line1Input) line1Input.value = '';
@@ -837,7 +886,7 @@ async function cloneQuotation(sourceQuotationId) {
                         <input type="number" placeholder="0.00" step="0.01" value="${item.price || ''}" required>
                     </div>
                     <div class="non-item-field rate">
-                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || item.Rate || item.gst_rate || ''}">
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -1042,8 +1091,9 @@ async function generatePreview() {
     const allRenderableItems = [];
     const CHARS_PER_LINE = 60;
 
-    // Check if rate column is populated
-    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[5].querySelector("input").value) > 0);
+    // Check if rate column is populated in items or non-items
+    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat((row.cells[5].querySelector("input") as HTMLInputElement)?.value || "0") > 0) ||
+                 Array.from(nonItemsTable.querySelectorAll('tr')).some(row => parseFloat((row.querySelector('input[placeholder="Rate"]') as HTMLInputElement)?.value || "0") > 0);
 
     let totalQtySum = 0;
     let totalTaxableSum = 0;
@@ -1256,15 +1306,16 @@ async function generatePreview() {
                 <table class="items-table">
                     <thead>
                         <tr>
-                            <th class="text-center">S. No</th>
+                            <th class="text-center">Sr. No</th>
                             <th class="text-left">Description</th>
                             <th class="text-center">HSN/SAC</th>
                             <th class="text-right">Qty</th>
                             <th class="text-right">Unit Price</th>
                             ${hasTax ? `
-                            <th class="text-right">Taxable Value (₹)</th>
-                            <th class="text-right">Rate (%)</th>` : ""}
-                            <th class="text-right">Total Price (₹)</th>
+                            <th class="text-right">Taxable Value</th>
+                            <th class="text-right">Tax</th>
+                            <th class="text-right">Total (With Tax)</th>` : `
+                            <th class="text-right">Total Price (₹)</th>`}
                         </tr>
                     </thead>
                     <tbody>
@@ -1950,7 +2001,11 @@ window.validateCurrentStep = async function () {
     }
 
     if (currentStep === 2) {
-        const buyerName = document.getElementById('buyer-name') as HTMLInputElement;
+        // Sync hidden buyer-name before validation
+        syncBuyerName();
+
+        const buyerNameHidden = document.getElementById('buyer-name') as HTMLInputElement;
+        const firstNameInput = document.getElementById('buyer-first-name') as HTMLInputElement;
         const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
         const cityInput = document.getElementById('buyer-city') as HTMLInputElement;
         const stateInput = document.getElementById('buyer-state') as HTMLInputElement;
@@ -1958,9 +2013,9 @@ window.validateCurrentStep = async function () {
         const buyerPhone = document.getElementById('buyer-phone') as HTMLInputElement;
         const buyerEmail = document.getElementById('buyer-email') as HTMLInputElement;
 
-        if (!buyerName.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the Buyer Name.");
-            buyerName.focus();
+        if (!firstNameInput.value.trim()) {
+            window.electronAPI.showAlert1("Please enter the Buyer First Name.");
+            firstNameInput.focus();
             return false;
         }
         if (!line1Input.value.trim()) {
@@ -2033,10 +2088,13 @@ window.validateCurrentStep = async function () {
 
         // Validate individual fields inside the cards
         let isValid = true;
+        const hsnMap: Record<string, number> = {}; // track HSN → first item index
+
         itemCards.forEach((card, index) => {
             if (!isValid) return; // Stop checking if already failed
 
             const desc = card.querySelector('.item_name');
+            const hsn = card.querySelector('.item-field.hsn input') as HTMLInputElement;
             const qty = card.querySelector('.item-field.qty input'); // Quantity
             const price = card.querySelector('.item-field.price input'); // Price
 
@@ -2052,6 +2110,23 @@ window.validateCurrentStep = async function () {
                 window.electronAPI.showAlert1(`Item #${index + 1}: Unit Price must be greater than 0.`);
                 price.focus();
                 isValid = false;
+            } else if (hsn && hsn.value.trim()) {
+                // HSN uniqueness check: same HSN code cannot appear under different item names
+                const hsnVal = hsn.value.trim().toUpperCase();
+                const descVal = desc.value.trim().toLowerCase();
+                if (hsnMap[hsnVal] !== undefined) {
+                    const firstIdx = hsnMap[hsnVal];
+                    // Get first item's description
+                    const firstCard = itemCards[firstIdx] as Element;
+                    const firstDesc = (firstCard.querySelector('.item_name') as HTMLInputElement)?.value.trim().toLowerCase() || '';
+                    if (firstDesc !== descVal) {
+                        window.electronAPI.showAlert1(`HSN/SAC "${hsnVal}" is already used by Item #${firstIdx + 1}. Each unique item description must have a unique HSN code.`);
+                        hsn.focus();
+                        isValid = false;
+                    }
+                } else {
+                    hsnMap[hsnVal] = index;
+                }
             }
         });
 
