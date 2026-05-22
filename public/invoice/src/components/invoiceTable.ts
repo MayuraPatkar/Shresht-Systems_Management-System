@@ -134,18 +134,12 @@
                             <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit Duplicate">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
                         ` : userRole === 'manager' ? `
                             <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
                                 <i class="fas fa-eye"></i>
                             </button>
                             <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
                                 <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
-                                <i class="fas fa-trash-alt"></i>
                             </button>
                         ` : ''}
                     </div>
@@ -210,7 +204,6 @@
         const editBtn = invoiceCard.querySelector('.edit-btn');
         const editOriginalBtn = invoiceCard.querySelector('.edit-original-btn');
         const paymentBtn = invoiceCard.querySelector('.payment-btn');
-        const deleteBtn = invoiceCard.querySelector('.delete-btn');
 
         if (copyElement) {
             copyElement.addEventListener('click', async () => {
@@ -252,18 +245,7 @@
             });
         }
 
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', () => {
-                if ((window as any).electronAPI && (window as any).electronAPI.showAlert2) {
-                    (window as any).electronAPI.showAlert2('Are you sure you want to delete this invoice?');
-                    (window as any).electronAPI.receiveAlertResponse((response: string) => {
-                        if (response === "Yes") {
-                            deleteInvoice(invoice.invoice_id);
-                        }
-                    });
-                }
-            });
-        }
+        // Delete action moved to Danger Zone in Detail View
 
         // Enrich empty/0-value cards on list fetch
         (async () => {

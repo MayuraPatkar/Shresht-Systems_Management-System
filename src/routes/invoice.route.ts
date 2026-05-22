@@ -807,6 +807,53 @@ router.delete("/:invoiceId", async (req: Request, res: Response) => {
     }
 });
 
+// Route to cancel/void an invoice
+router.post("/cancel/:invoiceId", async (req: Request, res: Response) => {
+    try {
+        const { invoiceId } = req.params;
+        const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+        if (!invoice) {
+            return res.status(404).json({ message: 'Invoice not found' });
+        }
+
+        // If the invoice is already CANCELLED, do nothing
+        if (invoice.status === InvoiceStatus.CANCELLED) {
+            return res.status(400).json({ message: 'Invoice is already cancelled' });
+        }
+
+        // Reverse stock changes (add back quantity deducted)
+        if (invoice.items_original && invoice.items_original.length > 0) {
+            for (const item of invoice.items_original) {
+                if (!item.description) continue;
+                const itemName = item.description.trim();
+                let stockItem = await ItemModel.findOne({ item_name: itemName });
+                if (!stockItem) {
+                    stockItem = await ItemModel.findOne({ item_name: { $regex: new RegExp(`^${itemName}$`, 'i') } });
+                }
+                if (stockItem) {
+                    (stockItem as any).quantity = ((stockItem as any).quantity || 0) + Number(item.quantity || 0);
+                    await stockItem.save();
+                }
+            }
+        }
+
+        // Delete associated stock movements
+        await StockMovementModel.deleteMany({
+            reference_type: 'invoice',
+            reference_id: invoiceId
+        });
+
+        // Set status to CANCELLED
+        invoice.status = InvoiceStatus.CANCELLED;
+
+        const updatedInvoice = await invoice.save();
+        res.status(200).json({ message: 'Invoice cancelled successfully', invoice: updatedInvoice });
+    } catch (error: unknown) {
+        logger.error("Error cancelling invoice:", error);
+        res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
 // Close service - set service_status to Closed
 router.post("/close-service/:invoiceId", async (req: Request, res: Response) => {
     try {

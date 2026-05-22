@@ -784,6 +784,105 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
             }
         };
     }
+
+    // Danger Zone Section Logic
+    const dangerZoneSection = document.getElementById('danger-zone-section');
+    if (dangerZoneSection) {
+        if (userRole === 'admin' || userRole === 'manager') {
+            dangerZoneSection.classList.remove('hidden');
+        } else {
+            dangerZoneSection.classList.add('hidden');
+        }
+    }
+
+    const cancelBtn = document.getElementById('cancelInvoiceBtn');
+    const deleteBtn = document.getElementById('deleteInvoiceBtn');
+
+    if (cancelBtn) {
+        const newCancelBtn = cancelBtn.cloneNode(true) as HTMLButtonElement;
+        cancelBtn.parentNode?.replaceChild(newCancelBtn, cancelBtn);
+
+        const currentStatus = getInvoiceStatus(invoice);
+        if (currentStatus === InvoiceStatus.CANCELLED) {
+            newCancelBtn.disabled = true;
+            newCancelBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            newCancelBtn.title = 'Invoice is already cancelled';
+        } else {
+            newCancelBtn.disabled = false;
+            newCancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            newCancelBtn.removeAttribute('title');
+            newCancelBtn.addEventListener('click', () => {
+                const showConfirm = (window as any).showConfirm;
+                if (showConfirm) {
+                    showConfirm(`Are you sure you want to CANCEL Invoice "${invoice.invoice_id}"? This will revert items to inventory stock.`, async (response: string) => {
+                        if (response === 'Yes') {
+                            try {
+                                const res = await fetch(`/invoice/cancel/${invoice.invoice_id}`, {
+                                    method: 'POST'
+                                });
+                                const data = await res.json();
+                                if (res.ok) {
+                                    if ((window as any).electronAPI?.showAlert1) {
+                                        (window as any).electronAPI.showAlert1('Invoice cancelled successfully.');
+                                    }
+                                    await viewInvoice(invoice.invoice_id, userRole);
+                                } else {
+                                    if ((window as any).electronAPI?.showAlert1) {
+                                        (window as any).electronAPI.showAlert1(`Error: ${data.message || 'Failed to cancel invoice.'}`);
+                                    }
+                                }
+                            } catch (err) {
+                                console.error('Error cancelling invoice:', err);
+                                if ((window as any).electronAPI?.showAlert1) {
+                                    (window as any).electronAPI.showAlert1('Failed to connect to server.');
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    if (deleteBtn) {
+        const newDeleteBtn = deleteBtn.cloneNode(true) as HTMLButtonElement;
+        deleteBtn.parentNode?.replaceChild(newDeleteBtn, deleteBtn);
+        newDeleteBtn.addEventListener('click', () => {
+            const showConfirm = (window as any).showConfirm;
+            if (showConfirm) {
+                showConfirm(`Are you sure you want to PERMANENTLY delete Invoice "${invoice.invoice_id}"? This action cannot be undone.`, async (response: string) => {
+                    if (response === 'Yes') {
+                        try {
+                            const res = await fetch(`/invoice/${invoice.invoice_id}`, {
+                                method: 'DELETE'
+                            });
+                            const data = await res.json();
+                            if (res.ok) {
+                                if ((window as any).electronAPI?.showAlert1) {
+                                    (window as any).electronAPI.showAlert1('Invoice deleted successfully.');
+                                }
+                                const homeBtnEl = document.getElementById('home-btn');
+                                if (homeBtnEl) {
+                                    homeBtnEl.click();
+                                } else {
+                                    window.location.href = '/invoice';
+                                }
+                            } else {
+                                if ((window as any).electronAPI?.showAlert1) {
+                                    (window as any).electronAPI.showAlert1(`Error: ${data.message || 'Failed to delete invoice.'}`);
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Error deleting invoice:', err);
+                            if ((window as any).electronAPI?.showAlert1) {
+                                (window as any).electronAPI.showAlert1('Failed to connect to server.');
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }
 }
 
 async function viewInvoice(invoiceId: string, userRole?: string | null) {
