@@ -52,6 +52,7 @@ function generateStockPrintContent(type: string, category: string, status: strin
         const qty = Number(item.stock_quantity) || 0;
         const gst = item.gst_rate || 0;
         const minQuantity = Number(item.min_stock_quantity) || 0;
+        const isPc = (item.unit || 'pc') === 'pc';
 
         const value = qty * purchasePrice;
         totalQuantity += qty;
@@ -83,7 +84,7 @@ function generateStockPrintContent(type: string, category: string, status: strin
                 <td>${escapeHtml(brand)}</td>
                 <td>${escapeHtml(itemCategory)}</td>
                 <td class="text-right">₹${formatIndian(purchasePrice, 2)}</td>
-                <td class="text-center">${qty}</td>
+                <td class="text-center">${formatIndian(qty, isPc ? 0 : 2)}</td>
                 <td class="text-center">${gst}%</td>
                 <td class="text-right">₹${formatIndian(value, 2)}</td>
                 <td class="text-center"><span class="${statusClass}">${escapeHtml(statusText)}</span></td>
@@ -341,7 +342,7 @@ function generateStockPrintContent(type: string, category: string, status: strin
                     </div>
                     <div class="stock-summary-item">
                         <div class="label">Total Quantity</div>
-                        <div class="value">${totalQuantity}</div>
+                        <div class="value">${formatIndian(totalQuantity, totalQuantity % 1 !== 0 ? 2 : 0)}</div>
                     </div>
                     <div class="stock-summary-item">
                         <div class="label">Total Stock Value</div>

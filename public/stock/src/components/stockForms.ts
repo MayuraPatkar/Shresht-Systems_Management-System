@@ -21,6 +21,13 @@ function openEditModal(item: StockItem): void {
     (document.getElementById('editStockQuantity') as HTMLInputElement).value = String(item.stock_quantity ?? '');
     (document.getElementById('editRemarks') as HTMLTextAreaElement).value = item.remarks || '';
 
+    // Set dynamic decimal constraints based on loaded item unit
+    const isPc = (item.unit || 'pc') === 'pc';
+    const editStockQty = document.getElementById('editStockQuantity') as HTMLInputElement;
+    const editMinStockQty = document.getElementById('editMinStockQuantity') as HTMLInputElement;
+    setDecimalSupport(editStockQty, isPc);
+    setDecimalSupport(editMinStockQty, isPc);
+
     // store id on modal element for submit
     document.getElementById('editStockModal')!.setAttribute('data-item-id', item._id);
 }
@@ -29,10 +36,11 @@ function openEditModal(item: StockItem): void {
 
 function openDetailsModal(item: StockItem): void {
     showModal('itemDetailsModal');
+    const isPc = (item.unit || 'pc') === 'pc';
     document.getElementById('detailsItemName')!.textContent = item.item_name || '';
-    document.getElementById('detailsMinStockQuantity')!.textContent = String(item.min_stock_quantity || '0');
-    document.getElementById('detailsPurchasePrice')!.textContent = item.purchase_price ? `₹ ${formatIndian(item.purchase_price)}` : '';
-    document.getElementById('detailsQuantity')!.textContent = String(item.stock_quantity || '0');
+    document.getElementById('detailsMinStockQuantity')!.textContent = formatIndian(item.min_stock_quantity || 0, isPc ? 0 : 2);
+    document.getElementById('detailsPurchasePrice')!.textContent = item.purchase_price ? `₹ ${formatIndian(item.purchase_price, 2)}` : '';
+    document.getElementById('detailsQuantity')!.textContent = formatIndian(item.stock_quantity || 0, isPc ? 0 : 2);
     document.getElementById('detailsGstRate')!.textContent = item.gst_rate ? `${item.gst_rate}%` : '0%';
     document.getElementById('detailsMargin')!.textContent = item.margin ? `${item.margin}%` : '0%';
     document.getElementById('detailsHsn')!.textContent = item.hsn_sac || '';
@@ -41,7 +49,7 @@ function openDetailsModal(item: StockItem): void {
     document.getElementById('detailsType')!.textContent = item.item_type || '';
     document.getElementById('detailsSpecifications')!.textContent = item.specifications || '';
     document.getElementById('detailsUnit')!.textContent = item.unit || 'pc';
-    document.getElementById('detailsSellingPrice')!.textContent = item.selling_price ? `₹ ${formatIndian(item.selling_price)}` : '';
+    document.getElementById('detailsSellingPrice')!.textContent = item.selling_price ? `₹ ${formatIndian(item.selling_price, 2)}` : '';
     document.getElementById('detailsRemarks')!.textContent = item.remarks || '';
 }
 
@@ -64,6 +72,11 @@ function showQuantityModal(action: string, itemId: string, itemName: string): vo
     text.textContent = `How much quantity do you want to ${action} ${action === 'add' ? 'to' : 'from'} "${itemName}"?`;
     confirmText.textContent = action === 'add' ? 'Add' : 'Remove';
     input.value = '1';
+
+    // Apply dynamic decimal constraints based on current item unit
+    const item = currentStockData.find(i => i._id === itemId);
+    const isPc = item ? (item.unit || 'pc') === 'pc' : false;
+    setDecimalSupport(input, isPc);
 
     // Apply premium active styling and themes dynamically
     if (action === 'add') {
@@ -134,6 +147,105 @@ function clearAllErrors(): void {
 
 (window as any).clearAllErrors = clearAllErrors;
 
+// ─── Dynamic Decimal Constraints Helpers ────────────────────────────────────
+
+function setDecimalSupport(input: HTMLInputElement | null, isPc: boolean): void {
+    if (!input) return;
+    if (isPc) {
+        input.setAttribute('step', '1');
+        input.setAttribute('data-integer-only', 'true');
+    } else {
+        input.setAttribute('step', 'any');
+        input.removeAttribute('data-integer-only');
+    }
+}
+
+function setupDynamicDecimalInputs(): void {
+    const ids = ['stockQuantity', 'minStockQuantity', 'editStockQuantity', 'editMinStockQuantity', 'quantityModalInput'];
+    ids.forEach(id => {
+        const input = document.getElementById(id) as HTMLInputElement | null;
+        if (!input) return;
+
+        input.addEventListener('keypress', (event: KeyboardEvent) => {
+            const isIntegerOnly = input.getAttribute('data-integer-only') === 'true';
+            if (isIntegerOnly) {
+                if (event.key.length === 1 && (event.key < '0' || event.key > '9')) {
+                    event.preventDefault();
+                }
+            } else {
+                if (event.key === '-' || event.key === '+' || event.key === 'e' || event.key === 'E') {
+                    event.preventDefault();
+                }
+            }
+        });
+
+        input.addEventListener('input', () => {
+            const isIntegerOnly = input.getAttribute('data-integer-only') === 'true';
+            if (isIntegerOnly) {
+                input.value = input.value.replace(/[^0-9]/g, '');
+            } else {
+                let sanitized = input.value.replace(/[^0-9.]/g, '');
+                const parts = sanitized.split('.');
+                if (parts.length > 2) {
+                    sanitized = parts[0] + '.' + parts.slice(1).join('');
+                }
+                if (input.value !== sanitized) {
+                    input.value = sanitized;
+                }
+            }
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupDynamicDecimalInputs();
+    
+    // Wire up dynamic unit changes for Add Stock
+    const unitSelect = document.getElementById('unit') as HTMLSelectElement | null;
+    const stockQty = document.getElementById('stockQuantity') as HTMLInputElement | null;
+    const minStockQty = document.getElementById('minStockQuantity') as HTMLInputElement | null;
+    if (unitSelect && stockQty && minStockQty) {
+        unitSelect.addEventListener('change', () => {
+            const isPc = unitSelect.value === 'pc';
+            setDecimalSupport(stockQty, isPc);
+            setDecimalSupport(minStockQty, isPc);
+            if (isPc) {
+                if (stockQty && stockQty.value !== '') {
+                    stockQty.value = String(Math.round(parseFloat(stockQty.value)) || 0);
+                }
+                if (minStockQty && minStockQty.value !== '') {
+                    minStockQty.value = String(Math.round(parseFloat(minStockQty.value)) || 0);
+                }
+            }
+        });
+        
+        // Initial setup for Add Stock on page load (defaults to allowing decimals until 'pc' is selected)
+        const isPc = unitSelect.value === 'pc';
+        setDecimalSupport(stockQty, isPc);
+        setDecimalSupport(minStockQty, isPc);
+    }
+
+    // Wire up dynamic unit changes for Edit Stock
+    const editUnitSelect = document.getElementById('editUnit') as HTMLSelectElement | null;
+    const editStockQty = document.getElementById('editStockQuantity') as HTMLInputElement | null;
+    const editMinStockQty = document.getElementById('editMinStockQuantity') as HTMLInputElement | null;
+    if (editUnitSelect && editStockQty && editMinStockQty) {
+        editUnitSelect.addEventListener('change', () => {
+            const isPc = editUnitSelect.value === 'pc';
+            setDecimalSupport(editStockQty, isPc);
+            setDecimalSupport(editMinStockQty, isPc);
+            if (isPc) {
+                if (editStockQty && editStockQty.value !== '') {
+                    editStockQty.value = String(Math.round(parseFloat(editStockQty.value)) || 0);
+                }
+                if (editMinStockQty && editMinStockQty.value !== '') {
+                    editMinStockQty.value = String(Math.round(parseFloat(editMinStockQty.value)) || 0);
+                }
+            }
+        });
+    }
+});
+
 // ─── New Stock Form Submit ───────────────────────────────────────────────────
 
 const newStockForm = document.getElementById('newStockForm') as HTMLFormElement | null;
@@ -159,14 +271,19 @@ if (newStockForm) {
         const category = categoryEl.value.trim();
         const item_type = (document.getElementById('type') as HTMLSelectElement).value.trim();
         const purchase_price = parseFloat(purchasePriceEl.value);
-        const stock_quantity = parseFloat((document.getElementById('stockQuantity') as HTMLInputElement).value) || 0;
+        const unit = unitEl.value.trim();
+        let stock_quantity = parseFloat((document.getElementById('stockQuantity') as HTMLInputElement).value) || 0;
         const margin = parseFloat((document.getElementById('margin') as HTMLInputElement).value) || 0;
         const gst_rate = parseFloat(gstRateEl.value);
-        const min_stock_quantity = parseInt(minStockQuantityEl.value, 10);
+        let min_stock_quantity = parseFloat(minStockQuantityEl.value);
         const specifications = (document.getElementById('specifications') as HTMLTextAreaElement).value.trim();
-        const unit = unitEl.value.trim();
         const selling_price = parseFloat((document.getElementById('sellingPrice') as HTMLInputElement).value) || 0;
         const remarks = (document.getElementById('remarks') as HTMLTextAreaElement).value.trim();
+
+        if (unit === 'pc') {
+            stock_quantity = Math.round(stock_quantity);
+            min_stock_quantity = Math.round(min_stock_quantity);
+        }
 
         if (!item_name) {
             showFieldError(itemNameEl, 'Item Name is required');
@@ -275,14 +392,19 @@ if (editForm) {
         const category = editCategoryEl.value.trim();
         const item_type = (document.getElementById('editType') as HTMLSelectElement).value.trim();
         const purchase_price = parseFloat(editPurchasePriceEl.value);
-        const stock_quantity = parseFloat((document.getElementById('editStockQuantity') as HTMLInputElement).value) || 0;
+        const unit = editUnitEl.value.trim();
+        let stock_quantity = parseFloat((document.getElementById('editStockQuantity') as HTMLInputElement).value) || 0;
         const margin = parseFloat((document.getElementById('editMargin') as HTMLInputElement).value) || 0;
         const gst_rate = parseFloat(editGstRateEl.value);
-        const min_stock_quantity = parseInt(editMinStockQuantityEl.value, 10);
+        let min_stock_quantity = parseFloat(editMinStockQuantityEl.value);
         const specifications = (document.getElementById('editSpecifications') as HTMLTextAreaElement).value.trim();
-        const unit = editUnitEl.value.trim();
         const selling_price = parseFloat((document.getElementById('editSellingPrice') as HTMLInputElement).value) || 0;
         const remarks = (document.getElementById('editRemarks') as HTMLTextAreaElement).value.trim();
+
+        if (unit === 'pc') {
+            stock_quantity = Math.round(stock_quantity);
+            min_stock_quantity = Math.round(min_stock_quantity);
+        }
 
         if (!itemId) return;
 
@@ -373,7 +495,7 @@ document.getElementById('cancelQuantityBtn')?.addEventListener('click', () => hi
 
 document.getElementById('decreaseQuantityBtn')?.addEventListener('click', () => {
     const input = document.getElementById('quantityModalInput') as HTMLInputElement;
-    const currentValue = parseInt(input.value) || 1;
+    const currentValue = parseFloat(input.value) || 1;
     if (currentValue > 1) {
         input.value = String(currentValue - 1);
     }
@@ -381,12 +503,12 @@ document.getElementById('decreaseQuantityBtn')?.addEventListener('click', () => 
 
 document.getElementById('increaseQuantityBtn')?.addEventListener('click', () => {
     const input = document.getElementById('quantityModalInput') as HTMLInputElement;
-    const currentValue = parseInt(input.value) || 1;
+    const currentValue = parseFloat(input.value) || 1;
     input.value = String(currentValue + 1);
 });
 
 document.getElementById('confirmQuantityBtn')?.addEventListener('click', async () => {
-    const quantity = parseInt((document.getElementById('quantityModalInput') as HTMLInputElement).value);
+    const quantity = parseFloat((document.getElementById('quantityModalInput') as HTMLInputElement).value);
     if (isNaN(quantity) || quantity <= 0) {
         if (window.electronAPI && window.electronAPI.showAlert1) {
             window.electronAPI.showAlert1('Please enter a valid quantity.');
@@ -433,7 +555,7 @@ function updateMinStockDefault(unitSelectId: string, minStockInputId: string): v
     if (!unitSelect || !minStockInput) return;
 
     unitSelect.addEventListener('change', () => {
-        const currentVal = parseInt(minStockInput.value, 10);
+        const currentVal = parseFloat(minStockInput.value);
         // Only auto-set if the field is empty or still at a known default (1, 5, 10, or 100)
         if (isNaN(currentVal) || [1, 5, 10, 100].includes(currentVal) || minStockInput.value === '') {
             let defaultVal = '10';
