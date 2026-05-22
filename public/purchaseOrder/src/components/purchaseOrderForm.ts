@@ -790,6 +790,12 @@
             const newSection = document.getElementById("new");
             if (newSection) newSection.style.display = "block";
 
+            // Hide Search bar, Filter button, and View Preview button
+            const searchFilterContainer = document.getElementById('search-filter-container');
+            if (searchFilterContainer) searchFilterContainer.style.display = 'none';
+            const viewPreview = document.getElementById('view-preview');
+            if (viewPreview) viewPreview.style.display = 'none';
+
             // If drag drop available, initialize it
             if ((window as any).itemReorder && typeof (window as any).itemReorder.initDragDrop === 'function') {
                 (window as any).itemReorder.initDragDrop('items-container', renumberItems);

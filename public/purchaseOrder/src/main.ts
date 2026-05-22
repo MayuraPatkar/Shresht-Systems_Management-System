@@ -80,21 +80,27 @@
 
     function showNewPurchaseForm() {
         sessionStorage.removeItem('currentTab-status');
+
+        // Hide Search bar and Filter button
+        const searchFilterContainer = document.getElementById('search-filter-container');
+        if (searchFilterContainer) searchFilterContainer.style.display = 'none';
+
+        // Hide View Preview button
+        const viewPreview = document.getElementById('view-preview');
+        if (viewPreview) viewPreview.style.display = 'none';
+
         if ((window as any).showNewDocumentForm) {
             (window as any).showNewDocumentForm({
                 homeId: 'home',
                 formId: 'new',
                 newButtonId: 'new-purchase',
-                previewButtonId: 'view-preview',
                 viewId: 'view'
             });
         } else {
-            const viewPreview = document.getElementById('view-preview');
             const home = document.getElementById('home');
             const newSection = document.getElementById('new');
             const viewSection = document.getElementById('view');
             
-            if (viewPreview) viewPreview.style.display = 'inline-flex';
             if (home) home.style.display = 'none';
             if (newSection) newSection.style.display = 'block';
             if (viewSection) viewSection.style.display = 'none';
