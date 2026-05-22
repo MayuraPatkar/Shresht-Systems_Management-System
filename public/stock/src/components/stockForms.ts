@@ -11,14 +11,14 @@ function openEditModal(item: StockItem): void {
     (document.getElementById('editBrand') as HTMLInputElement).value = item.brand || '';
     (document.getElementById('editCategory') as HTMLInputElement).value = item.category || '';
     (document.getElementById('editType') as HTMLSelectElement).value = item.item_type || 'Material';
-    (document.getElementById('editPurchasePrice') as HTMLInputElement).value = String(item.purchase_price || '');
-    (document.getElementById('editGstRate') as HTMLInputElement).value = String(item.gst_rate || '');
-    (document.getElementById('editMinStockQuantity') as HTMLInputElement).value = String(item.min_stock_quantity || '5');
+    (document.getElementById('editPurchasePrice') as HTMLInputElement).value = String(item.purchase_price ?? '');
+    (document.getElementById('editGstRate') as HTMLInputElement).value = String(item.gst_rate ?? '');
+    (document.getElementById('editMinStockQuantity') as HTMLInputElement).value = String(item.min_stock_quantity ?? '5');
     (document.getElementById('editSpecifications') as HTMLTextAreaElement).value = item.specifications || '';
     (document.getElementById('editUnit') as HTMLSelectElement).value = item.unit || 'pc';
-    (document.getElementById('editSellingPrice') as HTMLInputElement).value = String(item.selling_price || '');
-    (document.getElementById('editMargin') as HTMLInputElement).value = String(item.margin || '');
-    (document.getElementById('editStockQuantity') as HTMLInputElement).value = String(item.stock_quantity || '');
+    (document.getElementById('editSellingPrice') as HTMLInputElement).value = String(item.selling_price ?? '');
+    (document.getElementById('editMargin') as HTMLInputElement).value = String(item.margin ?? '');
+    (document.getElementById('editStockQuantity') as HTMLInputElement).value = String(item.stock_quantity ?? '');
     (document.getElementById('editRemarks') as HTMLTextAreaElement).value = item.remarks || '';
 
     // store id on modal element for submit
