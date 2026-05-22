@@ -326,16 +326,12 @@
     function fillSupplierDetails(supplier: any) {
         (document.getElementById("supplier-name") as HTMLInputElement).value = supplier.supplier_name || "";
 
-        // Format the billing address properly
-        const addressParts = [];
-        if (supplier.billing_address?.line1) addressParts.push(supplier.billing_address.line1);
-        if (supplier.billing_address?.line2) addressParts.push(supplier.billing_address.line2);
-        if (supplier.billing_address?.city) addressParts.push(supplier.billing_address.city);
-        if (supplier.billing_address?.state || supplier.billing_address?.pincode) {
-            const statePin = [supplier.billing_address.state, supplier.billing_address.pincode].filter(Boolean).join(" - ");
-            addressParts.push(statePin);
-        }
-        (document.getElementById("supplier-address") as HTMLTextAreaElement).value = addressParts.join("\n") || "";
+        const addr = supplier.billing_address || {};
+        (document.getElementById("supplier-address-line1") as HTMLInputElement).value = addr.line1 || "";
+        (document.getElementById("supplier-address-line2") as HTMLInputElement).value = addr.line2 || "";
+        (document.getElementById("supplier-address-city") as HTMLInputElement).value = addr.city || "";
+        (document.getElementById("supplier-address-state") as HTMLSelectElement).value = addr.state || "Karnataka";
+        (document.getElementById("supplier-address-pincode") as HTMLInputElement).value = addr.pincode || "";
 
         (document.getElementById("supplier-phone") as HTMLInputElement).value = supplier.phone || "";
         (document.getElementById("supplier-email") as HTMLInputElement).value = supplier.email || "";
@@ -573,7 +569,12 @@
             (document.getElementById("purchase-invoice-id") as HTMLInputElement).value = purchaseOrder.purchase_invoice_no || purchaseOrder.purchase_order_no || "";
             const snapshot = purchaseOrder.supplier_snapshot || {};
             (document.getElementById("supplier-name") as HTMLInputElement).value = snapshot.name || "";
-            (document.getElementById("supplier-address") as HTMLTextAreaElement).value = snapshot.address?.line1 || "";
+            const addr = snapshot.address || {};
+            (document.getElementById("supplier-address-line1") as HTMLInputElement).value = addr.line1 || "";
+            (document.getElementById("supplier-address-line2") as HTMLInputElement).value = addr.line2 || "";
+            (document.getElementById("supplier-address-city") as HTMLInputElement).value = addr.city || "";
+            (document.getElementById("supplier-address-state") as HTMLSelectElement).value = addr.state || "Karnataka";
+            (document.getElementById("supplier-address-pincode") as HTMLInputElement).value = addr.pincode || "";
             (document.getElementById("supplier-phone") as HTMLInputElement).value = snapshot.phone || "";
             (document.getElementById("supplier-email") as HTMLInputElement).value = snapshot.email || "";
             (document.getElementById("supplier-GSTIN") as HTMLInputElement).value = snapshot.gstin || "";
@@ -890,7 +891,13 @@
             purchase_date: (document.getElementById("purchase-date") as HTMLInputElement)?.value || "",
             supplier_snapshot: {
                 name: (document.getElementById("supplier-name") as HTMLInputElement)?.value || "",
-                address: { line1: (document.getElementById("supplier-address") as HTMLTextAreaElement)?.value || "" },
+                address: {
+                    line1: (document.getElementById("supplier-address-line1") as HTMLInputElement)?.value || "",
+                    line2: (document.getElementById("supplier-address-line2") as HTMLInputElement)?.value || "",
+                    city: (document.getElementById("supplier-address-city") as HTMLInputElement)?.value || "",
+                    state: (document.getElementById("supplier-address-state") as HTMLSelectElement)?.value || "Karnataka",
+                    pincode: (document.getElementById("supplier-address-pincode") as HTMLInputElement)?.value || ""
+                },
                 phone: (document.getElementById("supplier-phone") as HTMLInputElement)?.value || "",
                 email: (document.getElementById("supplier-email") as HTMLInputElement)?.value || "",
                 gstin: (document.getElementById("supplier-GSTIN") as HTMLInputElement)?.value || ""
@@ -1261,7 +1268,10 @@
                 { id: 'purchase-invoice-id', name: 'Purchase Invoice ID' },
                 { id: 'purchase-date', name: 'Purchase Date' },
                 { id: 'supplier-name', name: 'Supplier Name' },
-                { id: 'supplier-address', name: 'Supplier Address' },
+                { id: 'supplier-address-line1', name: 'Address Line 1' },
+                { id: 'supplier-address-city', name: 'City' },
+                { id: 'supplier-address-state', name: 'State' },
+                { id: 'supplier-address-pincode', name: 'Pincode' },
             ];
             for (const f of fields) {
                 const el = document.getElementById(f.id) as HTMLInputElement;

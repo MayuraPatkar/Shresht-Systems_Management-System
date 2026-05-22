@@ -24,7 +24,16 @@
         const purchaseInvoiceId = purchaseOrder.purchase_invoice_no || purchaseOrderId;
         const snapshot = purchaseOrder.supplier_snapshot || {};
         const supplierName = snapshot.name || "";
-        const supplierAddress = snapshot.address?.line1 || "";
+        const addr = snapshot.address || {};
+        const addressParts = [];
+        if (addr.line1) addressParts.push(addr.line1);
+        if (addr.line2) addressParts.push(addr.line2);
+        if (addr.city) addressParts.push(addr.city);
+        if (addr.state || addr.pincode) {
+            const statePin = [addr.state, addr.pincode].filter(Boolean).join(" - ");
+            addressParts.push(statePin);
+        }
+        const supplierAddress = addressParts.join(", ") || "";
         const supplierPhone = snapshot.phone || "";
         const GSTIN = snapshot.gstin || "";
         
@@ -356,7 +365,18 @@
             if (viewName) viewName.textContent = snapshot.name || '-';
             
             const viewAddress = document.getElementById('view-supplier-address');
-            if (viewAddress) viewAddress.textContent = snapshot.address?.line1 || '-';
+            if (viewAddress) {
+                const addr = snapshot.address || {};
+                const addressParts = [];
+                if (addr.line1) addressParts.push(addr.line1);
+                if (addr.line2) addressParts.push(addr.line2);
+                if (addr.city) addressParts.push(addr.city);
+                if (addr.state || addr.pincode) {
+                    const statePin = [addr.state, addr.pincode].filter(Boolean).join(" - ");
+                    addressParts.push(statePin);
+                }
+                viewAddress.textContent = addressParts.join(", ") || '-';
+            }
             
             const viewPhone = document.getElementById('view-supplier-phone');
             if (viewPhone) viewPhone.textContent = snapshot.phone || '-';

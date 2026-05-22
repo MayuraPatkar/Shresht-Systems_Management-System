@@ -5,7 +5,6 @@ interface IAddress {
     city?: string;
     state?: string;
     pincode?: string;
-    country?: string;
 }
 
 interface ISupplierSnapshot {
