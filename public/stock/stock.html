@@ -821,38 +821,51 @@
     </div>
 
     <!-- Quantity Adjustment Modal -->
-    <div id="quantityModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-            <div class="flex justify-between items-center pb-4 border-b mb-6">
-                <h3 id="quantityModalTitle" class="text-xl font-semibold text-gray-800">Adjust Quantity</h3>
-                <button id="closeQuantityModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <i class="fas fa-times fa-lg"></i>
-                </button>
-            </div>
-            <div class="mb-6">
-                <p id="quantityModalText" class="text-gray-600 mb-6 text-center">How much quantity do you want to
-                    add/remove?</p>
-                <div class="flex items-center justify-center gap-4">
-                    <button id="decreaseQuantityBtn"
-                        class="quantity-btn bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <input type="number" id="quantityModalInput"
-                        class="quantity-input border-2 border-gray-300 rounded-lg p-2 text-xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        value="1" min="1">
-                    <button id="increaseQuantityBtn"
-                        class="quantity-btn bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors shadow-sm">
-                        <i class="fas fa-plus"></i>
+    <div id="quantityModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 modal-overlay flex items-center justify-center p-4">
+            <div class="bg-white modal-card-premium w-full max-w-md overflow-y-auto">
+                <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+                    <div class="flex items-center gap-3">
+                        <div id="quantityModalIconContainer" class="w-10 h-10 rounded-xl flex items-center justify-center">
+                            <i id="quantityModalIcon" class="text-base"></i>
+                        </div>
+                        <div>
+                            <h3 id="quantityModalTitle" class="text-lg font-bold text-slate-800">Adjust Quantity</h3>
+                        </div>
+                    </div>
+                    <button id="closeQuantityModalBtn"
+                        class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                        <i class="fas fa-times text-lg"></i>
                     </button>
                 </div>
-            </div>
-            <div class="flex justify-end items-center gap-3 pt-4 border-t">
-                <button id="cancelQuantityBtn"
-                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
-                <button id="confirmQuantityBtn"
-                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm">
-                    <span id="confirmQuantityText">Add</span>
-                </button>
+                <div class="p-6 space-y-6">
+                    <p id="quantityModalText" class="text-sm text-slate-600 text-center leading-relaxed">
+                        How much quantity do you want to add/remove?
+                    </p>
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="decreaseQuantityBtn"
+                            class="quantity-btn w-12 h-12 flex items-center justify-center bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-600 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-200">
+                            <i class="fas fa-minus text-base"></i>
+                        </button>
+                        <input type="number" id="quantityModalInput"
+                            class="quantity-input w-28 h-12 border-2 border-slate-200 rounded-xl text-2xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800"
+                            value="1" min="1">
+                        <button id="increaseQuantityBtn"
+                            class="quantity-btn w-12 h-12 flex items-center justify-center bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-600 rounded-xl border border-slate-200 transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-200">
+                            <i class="fas fa-plus text-base"></i>
+                        </button>
+                    </div>
+                    <div class="flex justify-end items-center gap-3 pt-5 border-t border-slate-100">
+                        <button id="cancelQuantityBtn"
+                            class="px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors duration-200">
+                            Cancel
+                        </button>
+                        <button id="confirmQuantityBtn"
+                            class="px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2">
+                            <span id="confirmQuantityText">Confirm</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -56,11 +56,25 @@ function showQuantityModal(action: string, itemId: string, itemName: string): vo
     const text = document.getElementById('quantityModalText')!;
     const confirmText = document.getElementById('confirmQuantityText')!;
     const input = document.getElementById('quantityModalInput') as HTMLInputElement;
+    const iconContainer = document.getElementById('quantityModalIconContainer')!;
+    const icon = document.getElementById('quantityModalIcon')!;
+    const confirmBtn = document.getElementById('confirmQuantityBtn')!;
 
     title.textContent = action === 'add' ? 'Add Quantity' : 'Remove Quantity';
     text.textContent = `How much quantity do you want to ${action} ${action === 'add' ? 'to' : 'from'} "${itemName}"?`;
     confirmText.textContent = action === 'add' ? 'Add' : 'Remove';
     input.value = '1';
+
+    // Apply premium active styling and themes dynamically
+    if (action === 'add') {
+        iconContainer.className = 'w-10 h-10 rounded-xl flex items-center justify-center text-green-600 bg-green-50';
+        icon.className = 'fas fa-plus text-base';
+        confirmBtn.className = 'px-5 py-2.5 text-sm font-bold text-white rounded-xl bg-green-600 hover:bg-green-700 focus:ring-green-500 transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2';
+    } else {
+        iconContainer.className = 'w-10 h-10 rounded-xl flex items-center justify-center text-red-600 bg-red-50';
+        icon.className = 'fas fa-minus text-base';
+        confirmBtn.className = 'px-5 py-2.5 text-sm font-bold text-white rounded-xl bg-red-600 hover:bg-red-700 focus:ring-red-500 transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2';
+    }
 
     showModal('quantityModal');
     input.focus();
