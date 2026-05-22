@@ -115,6 +115,12 @@
 
         document.getElementById('new-invoice')?.addEventListener('click', showNewInvoiceForm);
         document.getElementById('home-btn')?.addEventListener('click', () => {
+            // Guard navigation if form has unsaved changes
+            const guardNavigation = (window as any).guardInvoiceNavigation;
+            if (typeof guardNavigation === 'function' && guardNavigation('/invoice')) {
+                return; // Modal shown, navigation deferred
+            }
+
             sessionStorage.removeItem('currentTab-status');
             const homeSection = document.getElementById('home');
             const newSection = document.getElementById('new');
@@ -363,6 +369,11 @@
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const dd = String(today.getDate()).padStart(2, '0');
             invoiceDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Clear dirty state — freshly opened form is not dirty
+        if (typeof (window as any).markInvoiceFormClean === 'function') {
+            (window as any).markInvoiceFormClean();
         }
     }
 
@@ -1187,6 +1198,21 @@
                 event.stopPropagation();
                 hideShortcutsModal();
                 return;
+            }
+
+            // If unsaved changes modal is open, let it handle Escape
+            if (typeof (window as any).isUnsavedChangesModalOpen === 'function' && (window as any).isUnsavedChangesModalOpen()) {
+                return; // Handled by unsavedChanges.ts capture-phase listener
+            }
+
+            // If form is active and dirty, show unsaved changes modal instead of navigating
+            if (isFormActive()) {
+                const guardNavigation = (window as any).guardInvoiceNavigation;
+                if (typeof guardNavigation === 'function' && guardNavigation('/invoice')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                }
             }
 
             if (isHomeScreenActive()) {

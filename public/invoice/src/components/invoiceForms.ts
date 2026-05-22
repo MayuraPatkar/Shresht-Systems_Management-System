@@ -264,6 +264,11 @@
                 const response = await (window as any).sendDocumentToServer("/invoice/save-invoice", invoiceData);
 
                 if (response) {
+                    // Clear dirty state before any navigation
+                    if (typeof (window as any).markInvoiceFormClean === 'function') {
+                        (window as any).markInvoiceFormClean();
+                    }
+
                     if ((window as any).electronAPI?.showAlert1) {
                         (window as any).electronAPI.showAlert1("Invoice saved successfully!");
                     }
@@ -1177,6 +1182,11 @@ const openInvoice = async function (id: string) {
                 s++;
             });
         }
+
+        // Clear dirty state — loaded invoice data is not "unsaved changes"
+        if (typeof (window as any).markInvoiceFormClean === 'function') {
+            (window as any).markInvoiceFormClean();
+        }
     } catch (error) {
         console.error("Error fetching invoice:", error);
         if ((window as any).electronAPI?.showAlert1) {
@@ -1702,4 +1712,5 @@ const collectFormData = function () {
 (window as any).calculateInvoice = calculateInvoice;
 (window as any).generatePreview = generatePreview;
 (window as any).getId = getId;
+(window as any).collectFormData = collectFormData;
 })();
