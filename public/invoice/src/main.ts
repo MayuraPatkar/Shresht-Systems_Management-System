@@ -345,6 +345,10 @@
 
         const statusSelect = document.getElementById('invoice-status') as HTMLSelectElement | null;
         if (statusSelect) {
+            statusSelect.innerHTML = `
+                <option value="DRAFT">Draft</option>
+                <option value="SENT">Sent</option>
+            `;
             statusSelect.value = 'DRAFT';
         }
 

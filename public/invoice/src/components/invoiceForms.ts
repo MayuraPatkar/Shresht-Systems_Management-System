@@ -759,7 +759,20 @@ const openInvoice = async function (id: string) {
 
         const statusSelect = document.getElementById('invoice-status') as HTMLSelectElement | null;
         if (statusSelect) {
-            statusSelect.value = getInvoiceStatus(invoice);
+            statusSelect.innerHTML = `
+                <option value="DRAFT">Draft</option>
+                <option value="SENT">Sent</option>
+            `;
+            const currentStatus = getInvoiceStatus(invoice);
+            if (currentStatus !== 'DRAFT' && currentStatus !== 'SENT') {
+                const opt = document.createElement('option');
+                opt.value = currentStatus;
+                let label = currentStatus.toLowerCase().replace(/_/g, ' ');
+                label = label.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                opt.textContent = label;
+                statusSelect.appendChild(opt);
+            }
+            statusSelect.value = currentStatus;
         }
 
         const quotationIdInput = document.getElementById('quotation-id') as HTMLInputElement | null;
