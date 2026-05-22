@@ -9,7 +9,7 @@
             icon: 'fas fa-arrows-alt text-blue-600',
             items: [
                 { label: 'Next Step', keys: ['Enter'] },
-                { label: 'Previous Step', keys: ['Backspace'] },
+                { label: 'Previous Step', keys: ['Alt', 'Backspace'] },
                 { label: 'Exit/Cancel', keys: ['Esc'] }
             ]
         },
@@ -292,6 +292,17 @@
                 nextBtn.click();
             }
             return;
+        }
+
+        // Handle Alt + Backspace previous step shortcut (works even inside typing context)
+        if (event.altKey && key === 'backspace' && isFormActive()) {
+            const prevBtn = document.getElementById('prev-btn');
+            if (prevBtn && !(prevBtn as HTMLButtonElement).disabled) {
+                event.preventDefault();
+                event.stopPropagation();
+                prevBtn.click();
+                return;
+            }
         }
 
         // If no modifier key is pressed, don't process further

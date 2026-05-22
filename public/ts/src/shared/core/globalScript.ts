@@ -234,7 +234,16 @@ document.addEventListener("keydown", function (event) {
 });
 
 document.addEventListener("keydown", function (event) {
-  // Prevent step change if focus is in an input, textarea, or contenteditable element
+  // Support Alt + Backspace globally (even inside inputs/textareas) to move to the previous step
+  if (event.altKey && event.key === "Backspace") {
+    if (currentStep > 1) {
+      event.preventDefault();
+      changeStep(currentStep - 1);
+    }
+    return;
+  }
+
+  // Prevent generic step change if focus is in an input, textarea, or contenteditable element
   const active = document.activeElement;
   if (
     active &&
