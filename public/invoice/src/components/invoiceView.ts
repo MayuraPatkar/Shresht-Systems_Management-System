@@ -530,7 +530,7 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
     setTextContent('view-buyer-email', invoice.customer_snapshot?.email || invoice.customer_email);
     setTextContent('view-buyer-gstin', invoice.customer_snapshot?.gstin || invoice.customer_GSTIN);
     setTextContent('view-consignee-name', invoice.consignee?.name || invoice.consignee_name);
-    setTextContent('view-consignee-address', invoice.consignee?.address?.line1 || invoice.consignee_address);
+    setTextContent('view-consignee-address', getFormattedAddress(invoice.consignee?.address, invoice.consignee_address));
 
     const detailPaymentsTableBody = document.querySelector("#view-payment-table tbody");
     if (detailPaymentsTableBody) {
