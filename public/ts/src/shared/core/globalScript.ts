@@ -314,6 +314,16 @@ if (nextBtn) {
       if (!isValid) return;
     }
 
+    const isInvoice = window.location.pathname.toLowerCase().includes('/invoice');
+    if (isInvoice && currentStep === totalSteps) {
+      const saveBtn = document.getElementById("save-btn");
+      if (saveBtn) {
+        saveBtn.click();
+      }
+      return;
+    }
+
+
     // Module hook: allow forms to perform async actions before the step advances
     if (currentStep < totalSteps && typeof window.beforeStepAdvance === 'function') {
       try {
@@ -373,9 +383,32 @@ function changeStep(step) {
 function updateNavigation() {
   const prevBtn = document.getElementById("prev-btn");
   const nextBtn = document.getElementById("next-btn");
+  const saveBtn = document.getElementById("save-btn");
+  const isInvoice = window.location.pathname.toLowerCase().includes('/invoice');
 
   if (prevBtn) prevBtn.disabled = currentStep === 1;
-  if (nextBtn) nextBtn.disabled = currentStep === totalSteps;
+
+  if (nextBtn) {
+    if (isInvoice && currentStep === totalSteps) {
+      nextBtn.disabled = false;
+      if (!nextBtn.dataset.originalHtml) {
+        nextBtn.dataset.originalHtml = nextBtn.innerHTML;
+      }
+      nextBtn.innerHTML = 'Save<i class="fas fa-save ml-2"></i>';
+      if (saveBtn) {
+        saveBtn.style.display = 'none';
+      }
+    } else {
+      nextBtn.disabled = currentStep === totalSteps;
+      if (nextBtn.dataset.originalHtml) {
+        nextBtn.innerHTML = nextBtn.dataset.originalHtml;
+        delete nextBtn.dataset.originalHtml;
+      }
+      if (saveBtn) {
+        saveBtn.style.display = '';
+      }
+    }
+  }
 }
 
 // NOTE: Utility functions (numberToWords, formatIndian, formatDate) 

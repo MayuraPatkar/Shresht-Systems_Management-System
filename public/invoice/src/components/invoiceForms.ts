@@ -243,15 +243,21 @@
     });
 
     const saveBtn = document.getElementById("save-btn");
+    const nextBtn = document.getElementById("next-btn") as HTMLButtonElement | null;
     if (saveBtn) {
         saveBtn.addEventListener("click", async () => {
             if (isSaving) return;
             const originalText = saveBtn.innerHTML;
+            const isInvoiceLastStep = nextBtn && currentStep === totalSteps;
 
             try {
                 isSaving = true;
                 saveBtn.setAttribute('disabled', 'true');
                 saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                if (isInvoiceLastStep && nextBtn) {
+                    nextBtn.setAttribute('disabled', 'true');
+                    nextBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+                }
 
                 const wasNewInvoice = sessionStorage.getItem('currentTab-status') !== 'update';
                 const invoiceData = collectFormData();
@@ -282,6 +288,12 @@
                 isSaving = false;
                 saveBtn.removeAttribute('disabled');
                 saveBtn.innerHTML = originalText;
+                if (nextBtn) {
+                    nextBtn.removeAttribute('disabled');
+                    if (isInvoiceLastStep) {
+                        nextBtn.innerHTML = 'Save<i class="fas fa-save ml-2"></i>';
+                    }
+                }
             }
         });
     }
