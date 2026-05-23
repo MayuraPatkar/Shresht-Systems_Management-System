@@ -534,13 +534,31 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
     }
 });
 
-// Route to get the 10 most recent invoices
+// Route to get recent invoices (supports filtering by archived/deleted status)
 router.get("/recent-invoices", async (req: Request, res: Response) => {
     try {
-        const recentInvoices = await InvoiceModel.find()
-            .sort({ createdAt: -1 })
-            .limit(10)
-            .select("project_name invoice_id status customer_name customer_phone customer_address payment_status total_amount_duplicate total_paid_amount invoice_date createdAt");
+        const { status, deleted } = req.query;
+        let query: any = {};
+
+        if (deleted === 'true') {
+            query['deletion.is_deleted'] = true;
+        } else {
+            query['deletion.is_deleted'] = false;
+        }
+
+        if (status === 'archived') {
+            query.is_archived = true;
+        } else {
+            query.is_archived = { $ne: true };
+        }
+
+        let queryBuilder = InvoiceModel.find(query).sort({ createdAt: -1 });
+        if (status !== 'archived' && deleted !== 'true') {
+            queryBuilder = queryBuilder.limit(10);
+        }
+
+        const recentInvoices = await queryBuilder
+            .select("project_name invoice_id status customer_name customer_phone customer_address payment_status total_amount_duplicate total_paid_amount invoice_date createdAt is_archived deletion");
 
         res.status(200).json({
             message: "Recent invoices retrieved successfully",
@@ -740,25 +758,37 @@ router.delete("/delete-payment/:invoiceId/:paymentIndex", async (req: Request, r
 // Search invoice
 router.get('/search/:query', async (req: Request, res: Response) => {
     const { query } = req.params;
+    const { status, deleted } = req.query;
     const searchQuery = Array.isArray(query) ? query[0] : query;
     if (!searchQuery) return res.status(400).send('Query parameter is required.');
+
+    let queryObj: any = {};
+    if (deleted === 'true') {
+        queryObj['deletion.is_deleted'] = true;
+    } else {
+        queryObj['deletion.is_deleted'] = false;
+    }
+
+    if (status === 'archived') {
+        queryObj.is_archived = true;
+    } else {
+        queryObj.is_archived = { $ne: true };
+    }
 
     let invoices: any[] = [];
     try {
         if (searchQuery.toLowerCase() === 'unpaid') {
-            invoices = await InvoiceModel.find({
-                payment_status: { $regex: 'unpaid', $options: 'i' }
-            });
+            queryObj.payment_status = { $regex: 'unpaid', $options: 'i' };
+            invoices = await InvoiceModel.find(queryObj);
         } else {
-            invoices = await InvoiceModel.find({
-                $or: [
-                    { invoice_id: { $regex: searchQuery, $options: 'i' } },
-                    { project_name: { $regex: searchQuery, $options: 'i' } },
-                    { customer_name: { $regex: searchQuery, $options: 'i' } },
-                    { customer_phone: { $regex: searchQuery, $options: 'i' } },
-                    { customer_email: { $regex: searchQuery, $options: 'i' } },
-                ]
-            } as any);
+            queryObj.$or = [
+                { invoice_id: { $regex: searchQuery, $options: 'i' } },
+                { project_name: { $regex: searchQuery, $options: 'i' } },
+                { customer_name: { $regex: searchQuery, $options: 'i' } },
+                { customer_phone: { $regex: searchQuery, $options: 'i' } },
+                { customer_email: { $regex: searchQuery, $options: 'i' } },
+            ];
+            invoices = await InvoiceModel.find(queryObj);
         }
 
         if (invoices.length === 0) {
@@ -772,38 +802,165 @@ router.get('/search/:query', async (req: Request, res: Response) => {
     }
 });
 
-// Route to delete an invoice
+// Helper function to handle permanent invoice deletion (stock reversal and stock movement deletion)
+async function performHardDeleteInvoice(invoiceId: string): Promise<boolean> {
+    const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+    if (!invoice) return false;
+
+    // Reverse stock changes (add back the quantity deducted)
+    if (invoice.items_original && invoice.items_original.length > 0) {
+        for (const item of invoice.items_original) {
+            if (!item.description) continue;
+            const stockItem = await ItemModel.findOne({ item_name: item.description });
+            if (stockItem) {
+                (stockItem as any).quantity = ((stockItem as any).quantity || 0) + Number(item.quantity || 0);
+                await stockItem.save();
+            }
+        }
+    }
+
+    // Delete associated stock movements
+    await StockMovementModel.deleteMany({
+        reference_type: 'invoice',
+        reference_id: invoiceId
+    });
+
+    await InvoiceModel.deleteOne({ invoice_id: invoiceId });
+    return true;
+}
+
+// Route to soft delete an invoice
 router.delete("/:invoiceId", async (req: Request, res: Response) => {
     try {
         const { invoiceId } = req.params;
-        const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+        const username = String(req.query.username || req.headers['x-username'] || req.body.username || 'Admin');
+        const invoice = await InvoiceModel.findOneAndUpdate(
+            { invoice_id: invoiceId, 'deletion.is_deleted': false },
+            {
+                $set: {
+                    'deletion.is_deleted': true,
+                    'deletion.deleted_at': new Date(),
+                    'deletion.deleted_by': username
+                }
+            },
+            { new: true }
+        );
         if (!invoice) {
             return res.status(404).json({ message: 'invoice not found' });
         }
-
-        // Reverse stock changes (add back the quantity deducted)
-        if (invoice.items_original && invoice.items_original.length > 0) {
-            for (const item of invoice.items_original) {
-                if (!item.description) continue;
-                const stockItem = await ItemModel.findOne({ item_name: item.description });
-                if (stockItem) {
-                    (stockItem as any).quantity = ((stockItem as any).quantity || 0) + Number(item.quantity || 0);
-                    await stockItem.save();
-                }
-            }
-        }
-
-        // Delete associated stock movements
-        await StockMovementModel.deleteMany({
-            reference_type: 'invoice',
-            reference_id: invoiceId
-        });
-
-        await InvoiceModel.deleteOne({ invoice_id: invoiceId });
         res.status(200).json({ message: 'invoice deleted successfully' });
     } catch (error: unknown) {
-        logger.error("Error deleting invoice:", error);
+        logger.error("Error soft deleting invoice:", error);
         res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+// Route to archive invoice
+router.put("/:invoiceId/archive", async (req: Request, res: Response) => {
+    try {
+        const { invoiceId } = req.params;
+        const invoice = await InvoiceModel.findOneAndUpdate(
+            { invoice_id: invoiceId, 'deletion.is_deleted': false },
+            { $set: { is_archived: true } },
+            { new: true }
+        );
+        if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+        res.json({ message: 'Invoice archived successfully', invoice });
+    } catch (error: unknown) {
+        logger.error('Error archiving invoice:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Route to restore invoice from archive
+router.put("/:invoiceId/restore", async (req: Request, res: Response) => {
+    try {
+        const { invoiceId } = req.params;
+        const invoice = await InvoiceModel.findOneAndUpdate(
+            { invoice_id: invoiceId, 'deletion.is_deleted': false },
+            { $set: { is_archived: false } },
+            { new: true }
+        );
+        if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+        res.json({ message: 'Invoice restored successfully', invoice });
+    } catch (error: unknown) {
+        logger.error('Error restoring invoice:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Route to restore soft-deleted invoice from trash
+router.post("/restoreItem", async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const invoice = await InvoiceModel.findOne({ invoice_id: itemId });
+        if (!invoice) {
+            return res.status(404).json({ error: 'Invoice not found' });
+        }
+
+        if (invoice.deletion) {
+            invoice.deletion.is_deleted = false;
+            invoice.deletion.deleted_at = undefined;
+            invoice.deletion.deleted_by = undefined;
+            await invoice.save();
+        }
+
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Invoice restore failed', { itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to restore invoice' });
+    }
+});
+
+// Route to permanently delete a single invoice
+router.post("/hardDeleteItem", async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const deleted = await performHardDeleteInvoice(itemId);
+        if (!deleted) {
+            return res.status(404).json({ error: 'Invoice not found' });
+        }
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Invoice permanent deletion failed', { itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to permanently delete invoice' });
+    }
+});
+
+// Route to bulk restore soft-deleted invoices
+router.post("/bulkRestore", async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        await InvoiceModel.updateMany(
+            { invoice_id: { $in: itemIds } },
+            {
+                $set: {
+                    "deletion.is_deleted": false,
+                    "deletion.deleted_at": undefined,
+                    "deletion.deleted_by": undefined
+                }
+            }
+        );
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk invoice restore failed', { count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk restore invoices' });
+    }
+});
+
+// Route to bulk permanently delete invoices
+router.post("/bulkHardDelete", async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        if (Array.isArray(itemIds)) {
+            for (const itemId of itemIds) {
+                await performHardDeleteInvoice(itemId);
+            }
+        }
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk invoice permanent deletion failed', { count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk permanently delete invoices' });
     }
 });
 

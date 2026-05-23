@@ -30,6 +30,26 @@
             this.listDiv = document.querySelector(".records");
         }
 
+    private updateStats(invoices: Invoice[]) {
+        const totalCountEl = document.getElementById('total-invoices-count');
+        const b2bCountEl = document.getElementById('b2b-invoices-count');
+        const b2cCountEl = document.getElementById('b2c-invoices-count');
+
+        if (!totalCountEl || !b2bCountEl || !b2cCountEl) return;
+
+        const total = invoices.length;
+        const b2b = invoices.filter(i => {
+            const snapGst = i.customer_snapshot?.gstin;
+            const flatGst = (i as any).customer_GSTIN;
+            return !!((snapGst && snapGst.trim()) || (flatGst && flatGst.trim()));
+        }).length;
+        const b2c = total - b2b;
+
+        totalCountEl.textContent = total.toString();
+        b2bCountEl.textContent = b2b.toString();
+        b2cCountEl.textContent = b2c.toString();
+    }
+
     render(invoices: Invoice[]) {
         if (!this.listDiv) {
             this.listDiv = document.querySelector(".records");
@@ -37,32 +57,102 @@
         if (!this.listDiv) return;
 
         this.listDiv.innerHTML = "";
+        const isTrash = !!(window as any).showDeletedItems;
+        const isArchivedView = !isTrash && (window as any).statusFilter === 'archived';
+
         if (!invoices || invoices.length === 0) {
-            this.listDiv.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-                    <div class="text-blue-500 text-5xl mb-4">
-                        <i class="fas fa-file-invoice-dollar"></i>
+            const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+            const hasSearch = searchInput && searchInput.value.trim() !== '';
+
+            if (isTrash) {
+                this.listDiv.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                        <div class="text-rose-500 text-5xl mb-4">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Trash is Empty</h2>
+                        <p class="text-gray-600">No soft-deleted invoices found</p>
                     </div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">No Invoices Found</h2>
-                    <p class="text-gray-600">Start creating invoices for your clients</p>
-                </div>
-            `;
+                `;
+            } else if (isArchivedView) {
+                this.listDiv.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                        <div class="text-amber-500 text-5xl mb-4">
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No Archived Invoices</h2>
+                        <p class="text-gray-600">Invoices you archive will show up here</p>
+                    </div>
+                `;
+            } else if (hasSearch) {
+                this.listDiv.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                        <div class="text-yellow-500 text-5xl mb-4">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No Results Found</h2>
+                        <p class="text-gray-600">No invoices match your search</p>
+                    </div>
+                `;
+            } else {
+                this.listDiv.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                        <div class="text-blue-500 text-5xl mb-4">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No Invoices Found</h2>
+                        <p class="text-gray-600">Start creating invoices for your clients</p>
+                    </div>
+                `;
+            }
+            this.updateStats([]);
             return;
         }
         invoices.forEach(invoice => {
             const invoiceDiv = this.createInvoiceCard(invoice);
             this.listDiv!.appendChild(invoiceDiv);
         });
+        this.updateStats(invoices);
     }
 
     createInvoiceCard(invoice: Invoice): HTMLDivElement {
         const userRole = sessionStorage.getItem('userRole');
         const invoiceCard = document.createElement("div");
-        invoiceCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
+        
+        const isTrash = !!(window as any).showDeletedItems;
+        const isArchived = !isTrash && invoice.is_archived;
+
+        if (isTrash) {
+            invoiceCard.className = "group bg-rose-50/10 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-rose-200 overflow-hidden fade-in cursor-default";
+        } else if (isArchived) {
+            invoiceCard.className = "group bg-slate-50/90 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-slate-300 overflow-hidden fade-in opacity-80 hover:opacity-100";
+        } else {
+            invoiceCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
+        }
 
         const invoiceStatus = getInvoiceStatus(invoice);
-        const detail = INVOICE_STATUS_DETAILS[invoiceStatus];
-        const boxStyle = BOX_STYLES[invoiceStatus];
+        const detail = { ...INVOICE_STATUS_DETAILS[invoiceStatus] };
+        const boxStyle = { ...BOX_STYLES[invoiceStatus] };
+
+        let statusClass = `${detail.bgClass} ${detail.textClass}`;
+        let statusLabel = detail.label.toUpperCase();
+        let borderClass = detail.borderClass;
+
+        if (isTrash) {
+            statusClass = 'bg-rose-100 text-rose-700';
+            statusLabel = 'DELETED';
+            borderClass = 'from-rose-500 to-rose-600';
+            boxStyle.background = 'linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%)';
+            boxStyle.border = '1px solid #fecaca';
+            boxStyle.text = '#dc2626';
+        } else if (isArchived) {
+            statusClass = 'bg-slate-100 text-slate-600 border border-slate-200';
+            statusLabel = 'ARCHIVED';
+            borderClass = 'from-slate-400 to-slate-600';
+            boxStyle.background = 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)';
+            boxStyle.border = '1px solid #cbd5e1';
+            boxStyle.text = '#475569';
+        }
 
         const paidSoFar = Number(invoice.total_paid_amount || 0);
         const effectiveTotal = (() => {
@@ -106,7 +196,7 @@
 
         invoiceCard.innerHTML = `
             <div class="flex">
-                <div class="card-left-border w-1.5 bg-gradient-to-b ${detail.borderClass} rounded-l-lg"></div>
+                <div class="card-left-border w-1.5 bg-gradient-to-b ${borderClass} rounded-l-lg"></div>
                 <div class="relative p-5 flex-1">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
@@ -116,32 +206,41 @@
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="text-lg font-bold text-gray-900 truncate max-w-[180px]" title="${invoice.project_name || ''}">${invoice.project_name || ''}</h3>
-                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge flex-shrink-0 ${detail.bgClass} ${detail.textClass}">
-                                    ${detail.label.toUpperCase()}
+                                <span class="px-2 py-0.5 rounded-md text-xs font-semibold card-status-badge flex-shrink-0 ${statusClass}">
+                                    ${statusLabel}
                                 </span>
                             </div>
                         </div>
                     </div>
                     
                     <div class="flex items-center gap-2">
-                        ${userRole === 'admin' ? `
-                            <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
-                                <i class="fas fa-eye"></i>
+                        ${isTrash || isArchived ? `
+                            <button class="action-btn restore-card-btn px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-emerald-300 active:scale-95 cursor-pointer" title="Restore">
+                                <i class="fas ${isTrash ? 'fa-trash-restore' : 'fa-box-open'}"></i> Restore
                             </button>
-                            <button class="action-btn edit-original-btn px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all border border-teal-200 hover:border-teal-400" title="Edit Original">
-                                <i class="fas fa-file-signature"></i>
+                            <button class="action-btn hard-delete-card-btn px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-rose-300 active:scale-95 cursor-pointer" title="Delete Forever">
+                                <i class="fas fa-trash-alt"></i> Delete Forever
                             </button>
-                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit Duplicate">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        ` : userRole === 'manager' ? `
-                            <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        ` : ''}
+                        ` : `
+                            ${userRole === 'admin' ? `
+                                <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn edit-original-btn px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all border border-teal-200 hover:border-teal-400" title="Edit Original">
+                                    <i class="fas fa-file-signature"></i>
+                                </button>
+                                <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit Duplicate">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            ` : userRole === 'manager' ? `
+                                <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            ` : ''}
+                        `}
                     </div>
                 </div>
                 
@@ -204,6 +303,26 @@
         const editBtn = invoiceCard.querySelector('.edit-btn');
         const editOriginalBtn = invoiceCard.querySelector('.edit-original-btn');
         const paymentBtn = invoiceCard.querySelector('.payment-btn');
+        const restoreCardBtn = invoiceCard.querySelector('.restore-card-btn');
+        const hardDeleteCardBtn = invoiceCard.querySelector('.hard-delete-card-btn');
+
+        if (restoreCardBtn) {
+            restoreCardBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isTrash) {
+                    (window as any).handleRestoreFromTrash(invoice.invoice_id, invoice.project_name);
+                } else if (isArchived) {
+                    (window as any).handleRestoreFromArchive(invoice.invoice_id, invoice.project_name);
+                }
+            });
+        }
+
+        if (hardDeleteCardBtn) {
+            hardDeleteCardBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                (window as any).handleHardDelete(invoice.invoice_id, invoice.project_name);
+            });
+        }
 
         if (copyElement) {
             copyElement.addEventListener('click', async () => {

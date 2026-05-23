@@ -5,9 +5,12 @@
 class InvoiceApi {
     private baseUrl = '/invoice';
 
-    async fetchRecentInvoices(): Promise<Invoice[]> {
+    async fetchRecentInvoices(status: string = '', deleted: boolean = false): Promise<Invoice[]> {
         try {
-            const response = await fetch(`${this.baseUrl}/recent-invoices`);
+            let url = `${this.baseUrl}/recent-invoices?`;
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+            if (deleted) url += `deleted=true&`;
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch recent invoices');
             const data = await response.json();
             return data.invoices || [];
@@ -100,6 +103,88 @@ class InvoiceApi {
             return result;
         } catch (error) {
             console.error('Error in deletePayment:', error);
+            throw error;
+        }
+    }
+
+    async archiveInvoice(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/${id}/archive`, { method: 'PUT' });
+            if (!response.ok) throw new Error('Failed to archive invoice');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in archiveInvoice:', error);
+            throw error;
+        }
+    }
+
+    async restoreInvoice(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/${id}/restore`, { method: 'PUT' });
+            if (!response.ok) throw new Error('Failed to restore invoice');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in restoreInvoice:', error);
+            throw error;
+        }
+    }
+
+    async restoreInvoiceFromTrash(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/restoreItem`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId: id })
+            });
+            if (!response.ok) throw new Error('Failed to restore invoice from trash');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in restoreInvoiceFromTrash:', error);
+            throw error;
+        }
+    }
+
+    async hardDeleteInvoice(id: string): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/hardDeleteItem`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId: id })
+            });
+            if (!response.ok) throw new Error('Failed to permanently delete invoice');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in hardDeleteInvoice:', error);
+            throw error;
+        }
+    }
+
+    async bulkRestoreInvoices(ids: string[]): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/bulkRestore`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemIds: ids })
+            });
+            if (!response.ok) throw new Error('Failed bulk restore');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in bulkRestoreInvoices:', error);
+            throw error;
+        }
+    }
+
+    async bulkHardDeleteInvoices(ids: string[]): Promise<any> {
+        try {
+            const response = await fetch(`${this.baseUrl}/bulkHardDelete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemIds: ids })
+            });
+            if (!response.ok) throw new Error('Failed bulk hard delete');
+            return await response.json();
+        } catch (error) {
+            console.error('Error in bulkHardDeleteInvoices:', error);
             throw error;
         }
     }

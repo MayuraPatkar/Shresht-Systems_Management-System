@@ -187,6 +187,8 @@ export interface IInvoice extends Document {
 
     remarks?: string;
 
+    is_archived: boolean;
+
     deletion: ISoftDelete;
 
     createdAt: Date;
@@ -488,6 +490,12 @@ const invoiceSchema = new Schema<IInvoice>(
             trim: true,
         },
 
+        is_archived: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+
         deletion: {
             type: softDeleteSchema,
             default: () => ({ is_deleted: false }),
@@ -552,6 +560,7 @@ invoiceSchema.methods.updatePaymentStatus = function (this: IInvoice) {
 invoiceSchema.index({ invoice_date: -1 });
 invoiceSchema.index({ customer_id: 1, invoice_date: -1 });
 invoiceSchema.index({ "deletion.is_deleted": 1 });
+invoiceSchema.index({ is_archived: 1 });
 
 /**
  * Model

@@ -152,6 +152,13 @@ interface Invoice {
     non_items_original: NonInvoiceItem[];
     non_items_duplicate: NonInvoiceItem[];
     payments: PaymentRecord[];
+    is_archived?: boolean;
+    deletion?: {
+        is_deleted?: boolean;
+        deleted_at?: string;
+        deleted_by?: string;
+    };
     createdAt?: string;
     updatedAt?: string;
 }
+

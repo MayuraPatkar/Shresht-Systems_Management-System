@@ -17,8 +17,12 @@
 
     const invoicesListDiv = document.querySelector(".records") as HTMLElement;
 
+    (window as any).showDeletedItems = false;
+    (window as any).statusFilter = '';
+
     // Filter state
     let allInvoices: Invoice[] = [];
+    let currentFilteredInvoices: Invoice[] = [];
     let currentFilters = {
         status: 'all',
         paymentStatus: 'all',
@@ -170,22 +174,273 @@
 
         initShortcutsModal();
         initInvoiceFilters();
+
+        const showDeletedBtn = document.getElementById('showDeletedBtn');
+        const archivedBtn = document.getElementById('archived-invoices-btn');
+        const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+        const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+        const newInvoiceBtn = document.getElementById('new-invoice');
+        const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+
+        if (archivedBtn) {
+            archivedBtn.onclick = () => {
+                if ((window as any).statusFilter === 'archived') {
+                    (window as any).statusFilter = '';
+                } else {
+                    (window as any).statusFilter = 'archived';
+                }
+                loadRecentInvoices();
+            };
+        }
+
+        if (showDeletedBtn) {
+            showDeletedBtn.onclick = () => {
+                (window as any).showDeletedItems = !(window as any).showDeletedItems;
+                
+                if ((window as any).showDeletedItems) {
+                    showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+                    showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
+                    showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> Close Trash';
+                    showDeletedBtn.title = 'Close Trash';
+
+                    if (newInvoiceBtn) newInvoiceBtn.classList.add('hidden');
+                    if (archivedBtn) archivedBtn.classList.add('hidden');
+                    if (bulkRestoreBtn) {
+                        bulkRestoreBtn.classList.remove('hidden');
+                        bulkRestoreBtn.classList.add('flex');
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.classList.remove('hidden');
+                        bulkDeleteBtn.classList.add('flex');
+                    }
+                } else {
+                    showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+                    showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
+                    showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    showDeletedBtn.title = 'View Trash';
+
+                    if (newInvoiceBtn) newInvoiceBtn.classList.remove('hidden');
+                    if (archivedBtn) archivedBtn.classList.remove('hidden');
+                    if (bulkRestoreBtn) {
+                        bulkRestoreBtn.classList.add('hidden');
+                        bulkRestoreBtn.classList.remove('flex');
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.classList.add('hidden');
+                        bulkDeleteBtn.classList.remove('flex');
+                    }
+                }
+                loadRecentInvoices();
+            };
+        }
+
+        function updateBulkButtonLabels() {
+            const query = searchInput ? searchInput.value.trim() : '';
+            const isFiltered = query !== '' ||
+                               currentFilters.status !== 'all' ||
+                               currentFilters.paymentStatus !== 'all' ||
+                               currentFilters.dateFilter !== 'all' ||
+                               currentFilters.sortBy !== 'date-desc';
+            
+            if (bulkRestoreBtn) {
+                const span = bulkRestoreBtn.querySelector('span');
+                if (span) {
+                    span.textContent = isFiltered ? 'Restore All Filtered' : 'Restore All';
+                }
+            }
+            if (bulkDeleteBtn) {
+                const span = bulkDeleteBtn.querySelector('span');
+                if (span) {
+                    span.textContent = isFiltered ? 'Delete All Filtered' : 'Delete All';
+                }
+            }
+        }
+        (window as any).updateBulkButtonLabels = updateBulkButtonLabels;
+
+        if (bulkRestoreBtn) {
+            bulkRestoreBtn.onclick = () => {
+                const filteredData = currentFilteredInvoices || [];
+                if (filteredData.length === 0) {
+                    electronAPI.showAlert1('No invoices to restore.');
+                    return;
+                }
+
+                const query = searchInput ? searchInput.value.trim() : '';
+                const isFiltered = query !== '' ||
+                                   currentFilters.status !== 'all' ||
+                                   currentFilters.paymentStatus !== 'all' ||
+                                   currentFilters.dateFilter !== 'all' ||
+                                   currentFilters.sortBy !== 'date-desc';
+                const message = `Are you sure you want to restore all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}invoices?`;
+
+                const showConfirm = (window as any).showConfirm;
+                if (showConfirm) {
+                    showConfirm(message, async (response: string) => {
+                        if (response === 'Yes') {
+                            try {
+                                await (window as any).invoiceApi.bulkRestoreInvoices(filteredData.map((inv: any) => inv.invoice_id));
+                                showToast('Invoices restored successfully!');
+                                loadRecentInvoices();
+                            } catch (err) {
+                                electronAPI.showAlert1('Failed to bulk restore invoices.');
+                            }
+                        }
+                    });
+                }
+            };
+        }
+
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.onclick = () => {
+                const filteredData = currentFilteredInvoices || [];
+                if (filteredData.length === 0) {
+                    electronAPI.showAlert1('No invoices to delete.');
+                    return;
+                }
+
+                const query = searchInput ? searchInput.value.trim() : '';
+                const isFiltered = query !== '' ||
+                                   currentFilters.status !== 'all' ||
+                                   currentFilters.paymentStatus !== 'all' ||
+                                   currentFilters.dateFilter !== 'all' ||
+                                   currentFilters.sortBy !== 'date-desc';
+                const message = `Are you sure you want to PERMANENTLY delete all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}invoices? This cannot be undone.`;
+
+                const showConfirm = (window as any).showConfirm;
+                if (showConfirm) {
+                    showConfirm(message, async (response: string) => {
+                        if (response === 'Yes') {
+                            try {
+                                await (window as any).invoiceApi.bulkHardDeleteInvoices(filteredData.map((inv: any) => inv.invoice_id));
+                                showToast('Invoices permanently deleted!');
+                                loadRecentInvoices();
+                            } catch (err) {
+                                electronAPI.showAlert1('Failed to bulk delete invoices.');
+                            }
+                        }
+                    });
+                }
+            };
+        }
+
+        // Expose action handlers to window
+        (window as any).handleRestoreFromArchive = (id: string, name: string) => {
+            const showConfirm = (window as any).showConfirm;
+            const msg = `Are you sure you want to restore invoice "${name || id}"?`;
+            if (showConfirm) {
+                showConfirm(msg, async (response: string) => {
+                    if (response === 'Yes') {
+                        try {
+                            await (window as any).invoiceApi.restoreInvoice(id);
+                            showToast('Invoice restored successfully');
+                            loadRecentInvoices();
+                        } catch (error) {
+                            electronAPI.showAlert1('Failed to restore invoice.');
+                        }
+                    }
+                });
+            }
+        };
+
+        (window as any).handleRestoreFromTrash = (id: string, name: string) => {
+            const showConfirm = (window as any).showConfirm;
+            const msg = `Are you sure you want to restore invoice "${name || id}" from trash?`;
+            if (showConfirm) {
+                showConfirm(msg, async (response: string) => {
+                    if (response === 'Yes') {
+                        try {
+                            await (window as any).invoiceApi.restoreInvoiceFromTrash(id);
+                            showToast('Invoice restored successfully');
+                            loadRecentInvoices();
+                        } catch (error) {
+                            electronAPI.showAlert1('Failed to restore invoice.');
+                        }
+                    }
+                });
+            }
+        };
+
+        (window as any).handleHardDelete = (id: string, name: string) => {
+            const showConfirm = (window as any).showConfirm;
+            const msg = `Are you sure you want to PERMANENTLY delete Invoice "${name || id}"? This action cannot be undone.`;
+            if (showConfirm) {
+                showConfirm(msg, async (response: string) => {
+                    if (response === 'Yes') {
+                        try {
+                            await (window as any).invoiceApi.hardDeleteInvoice(id);
+                            showToast('Invoice permanently deleted');
+                            loadRecentInvoices();
+                        } catch (error) {
+                            electronAPI.showAlert1('Failed to permanently delete invoice.');
+                        }
+                    }
+                });
+            }
+        };
+
         document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
     });
 
+    const updateArchivedCount = async () => {
+        try {
+            const archived = await (window as any).invoiceApi.fetchRecentInvoices('archived', false);
+            const countBadge = document.getElementById('archived-count-badge');
+            if (countBadge) {
+                countBadge.textContent = archived.length.toString();
+            }
+        } catch (err) {
+            console.error('Failed to update archived count:', err);
+        }
+    };
+    (window as any).updateArchivedCount = updateArchivedCount;
+
+    function updateArchivedButtonVisuals() {
+        const archivedBtn = document.getElementById('archived-invoices-btn') as HTMLButtonElement | null;
+        if (!archivedBtn) return;
+
+        const icon = archivedBtn.querySelector('i');
+        const badge = document.getElementById('archived-count-badge');
+
+        if ((window as any).statusFilter === 'archived') {
+            // Set glowing amber active visual styles
+            archivedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+            archivedBtn.classList.add('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+            
+            if (icon) {
+                icon.className = 'fas fa-box-open text-white';
+            }
+            if (badge) {
+                badge.classList.remove('bg-slate-100', 'text-slate-600');
+                badge.classList.add('bg-white', 'text-amber-600', 'font-extrabold');
+            }
+        } else {
+            // Restore default neutral button styles
+            archivedBtn.classList.remove('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+            archivedBtn.classList.add('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+
+            if (icon) {
+                icon.className = 'fas fa-archive text-slate-400';
+            }
+            if (badge) {
+                badge.classList.remove('bg-white', 'text-amber-600', 'font-extrabold');
+                badge.classList.add('bg-slate-100', 'text-slate-600');
+            }
+        }
+    }
+
     async function loadRecentInvoices() {
         try {
-            const response = await fetch(`/invoice/recent-invoices`);
-            if (!response.ok) {
-                if (invoicesListDiv) {
-                    invoicesListDiv.innerHTML = "<div class='text-center py-12 fade-in'><h2 class='text-2xl font-bold text-gray-800 mb-2'>No Invoices Found</h2><p class='text-gray-600'>Start creating invoices for your clients</p></div>";
-                }
-                return;
-            }
-
-            const data = await response.json();
-            allInvoices = data.invoices || [];
+            const status = (window as any).statusFilter || '';
+            const deleted = !!(window as any).showDeletedItems;
+            const invoices = await (window as any).invoiceApi.fetchRecentInvoices(status, deleted);
+            allInvoices = invoices || [];
             applyInvoiceFilters();
+            updateArchivedCount();
+            updateArchivedButtonVisuals();
+            const updateBulkLabels = (window as any).updateBulkButtonLabels;
+            if (typeof updateBulkLabels === 'function') {
+                updateBulkLabels();
+            }
         } catch (error) {
             console.error("Error loading invoices:", error);
             if (invoicesListDiv) {
@@ -222,6 +477,7 @@
         if (currentFilters.status !== 'all') {
             filtered = filtered.filter((inv: Invoice) => getInvoiceStatus(inv) === currentFilters.status);
         }
+        currentFilteredInvoices = filtered;
         renderInvoices(filtered);
     }
 
@@ -385,20 +641,30 @@
             return;
         }
 
-        // We wrap createInvoiceCard helper to support searchDocuments
-        const cardCreator = (invoice: Invoice) => {
-            if ((window as any).invoiceTable && typeof (window as any).invoiceTable.createInvoiceCard === 'function') {
-                return (window as any).invoiceTable.createInvoiceCard(invoice);
-            }
-            return document.createElement("div");
-        };
+        try {
+            const status = (window as any).statusFilter || '';
+            const deleted = !!(window as any).showDeletedItems;
+            let url = `/invoice/search/${encodeURIComponent(query)}?`;
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+            if (deleted) url += `deleted=true&`;
 
-        await searchDocuments('invoice', query, invoicesListDiv, cardCreator,
-            `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-                <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
-                <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-                <p class="text-gray-500">No invoices match your search</p>
-            </div>`);
+            const response = await fetch(url);
+            if (!response.ok) {
+                invoicesListDiv.innerHTML = `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                    <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
+                    <p class="text-gray-500">No invoices match your search</p>
+                </div>`;
+                return;
+            }
+
+            const data = await response.json();
+            allInvoices = data.invoices || [];
+            applyInvoiceFilters();
+        } catch (error) {
+            console.error('Error searching invoices:', error);
+            electronAPI.showAlert1('Failed to search invoices. Please try again later.');
+        }
     }
 
     async function payment(id: string, editIndex: number | null = null, editData: PaymentRecord | null = null) {
@@ -1050,6 +1316,16 @@
         const keyLower = event.key.toLowerCase();
         const isModifierPressed = event.ctrlKey || event.metaKey;
         const homeButton = document.getElementById('home-btn');
+
+        if (isModifierPressed && event.shiftKey && keyLower === 'a') {
+            const archivedBtn = document.getElementById('archived-invoices-btn');
+            if (archivedBtn && window.getComputedStyle(archivedBtn).display !== 'none') {
+                event.preventDefault();
+                event.stopPropagation();
+                archivedBtn.click();
+            }
+            return;
+        }
 
         const paymentContainer = document.getElementById('payment-container');
         const isPaymentOpen = paymentContainer && paymentContainer.style.display !== 'none';

@@ -12,11 +12,16 @@ router.get('/overview', async (req: Request, res: Response) => {
         const startNextMon = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
         /* ────────────────────────── Simple document counts ────────────────────── */
-        const totalProjects = await InvoiceModel.countDocuments();
+        const totalProjects = await InvoiceModel.countDocuments({
+            'deletion.is_deleted': false,
+            is_archived: { $ne: true }
+        });
         const totalQuotations = await QuotationModel.countDocuments();
 
         // Count total unpaid invoices (not distinct projects)
         const totalUnpaid = await InvoiceModel.countDocuments({
+            'deletion.is_deleted': false,
+            is_archived: { $ne: true },
             payment_status: { $in: ['Unpaid', 'Partial'] }
         });
 
@@ -24,6 +29,12 @@ router.get('/overview', async (req: Request, res: Response) => {
         // Calculate total earned: Sum of payments received in current month only
         // This shows revenue collected this month
         const totalEarnedThisMonthResult = await InvoiceModel.aggregate([
+            {
+                $match: {
+                    'deletion.is_deleted': false,
+                    is_archived: { $ne: true }
+                }
+            },
             { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
             {
                 $match: {
@@ -54,6 +65,8 @@ router.get('/overview', async (req: Request, res: Response) => {
         // Count invoices where service is due now (same logic as /service/get-service)
         // Service is due when: current date >= invoice_date + service_month months
         const invoicesWithService = await InvoiceModel.find({
+            'deletion.is_deleted': false,
+            is_archived: { $ne: true },
             $or: [
                 { service_status: 'Active' },
                 { service_status: { $exists: false }, service_after_months: { $gt: 0 } }
@@ -123,6 +136,12 @@ router.get('/comparison', async (req: Request, res: Response) => {
 
         // Current month revenue (Payments received this month)
         const currentRevenueResult = await InvoiceModel.aggregate([
+            {
+                $match: {
+                    'deletion.is_deleted': false,
+                    is_archived: { $ne: true }
+                }
+            },
             { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
             {
                 $match: {
@@ -135,6 +154,12 @@ router.get('/comparison', async (req: Request, res: Response) => {
 
         // Previous month revenue
         const previousRevenueResult = await InvoiceModel.aggregate([
+            {
+                $match: {
+                    'deletion.is_deleted': false,
+                    is_archived: { $ne: true }
+                }
+            },
             { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
             {
                 $match: {
@@ -147,11 +172,15 @@ router.get('/comparison', async (req: Request, res: Response) => {
 
         // Current month projects
         const currentProjects = await InvoiceModel.countDocuments({
+            'deletion.is_deleted': false,
+            is_archived: { $ne: true },
             createdAt: { $gte: currentMonthStart, $lt: currentMonthEnd },
         });
 
         // Previous month projects
         const previousProjects = await InvoiceModel.countDocuments({
+            'deletion.is_deleted': false,
+            is_archived: { $ne: true },
             createdAt: { $gte: previousMonthStart, $lt: previousMonthEnd },
         });
 

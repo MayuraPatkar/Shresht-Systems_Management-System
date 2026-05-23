@@ -137,7 +137,11 @@ router.get('/gst', async (req: Request, res: Response) => {
         const startDate = new Date(reportYear, reportMonth - 1, 1);
         const endDate = new Date(reportYear, reportMonth, 0, 23, 59, 59, 999);
 
-        const invoices = await InvoiceModel.find({ invoice_date: { $gte: startDate, $lte: endDate } }).sort({ invoice_date: 1 }) as any[];
+        const invoices = await InvoiceModel.find({
+            invoice_date: { $gte: startDate, $lte: endDate },
+            'deletion.is_deleted': false,
+            is_archived: { $ne: true }
+        }).sort({ invoice_date: 1 }) as any[];
 
         const rateBreakdown: Record<string, any> = {};
         let totalTaxableValue = 0, totalCGST = 0, totalSGST = 0, totalIGST = 0, totalInvoiceValue = 0;
@@ -210,7 +214,13 @@ router.get('/gst/summary', async (req: Request, res: Response) => {
             const startDate = new Date(reportYear, month - 1, 1);
             const endDate = new Date(reportYear, month, 0, 23, 59, 59, 999);
             const result = await InvoiceModel.aggregate([
-                { $match: { invoice_date: { $gte: startDate, $lte: endDate } } },
+                { 
+                    $match: { 
+                        invoice_date: { $gte: startDate, $lte: endDate },
+                        'deletion.is_deleted': false,
+                        is_archived: { $ne: true }
+                    } 
+                },
                 { $group: { _id: null, total_invoices: { $sum: 1 }, total_amount: { $sum: '$total_amount_original' }, total_tax: { $sum: '$total_tax_original' } } }
             ]);
             monthlySummary.push({
