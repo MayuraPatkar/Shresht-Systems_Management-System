@@ -94,11 +94,13 @@
         // Dynamically toggle Header elements visibility based on active section
         const homeSection = document.getElementById('home');
         const newSection = document.getElementById('new');
+        const viewSection = document.getElementById('view');
         const homeBtn = document.getElementById('home-btn');
 
         const updateHeaderVisibility = () => {
             const isHomeVisible = homeSection ? window.getComputedStyle(homeSection).display !== 'none' : true;
             const isFormActive = newSection ? window.getComputedStyle(newSection).display !== 'none' : false;
+            const isViewActive = viewSection ? window.getComputedStyle(viewSection).display !== 'none' : false;
 
             const searchWrapper = document.getElementById('search-wrapper');
             const refreshBtn = document.getElementById('refresh-btn');
@@ -117,6 +119,23 @@
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
                 if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
                 if (newInvoiceBtn) newInvoiceBtn.style.display = 'none';
+                if (homeBtn) homeBtn.style.display = 'flex';
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.style.display = 'none';
+                    bulkRestoreBtn.classList.add('hidden');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.style.display = 'none';
+                    bulkDeleteBtn.classList.add('hidden');
+                }
+            } else if (isViewActive) {
+                // View mode: hide search, filter, archived, trash, view-preview. Show home, new-invoice, refresh.
+                if (searchWrapper) searchWrapper.style.display = 'none';
+                if (refreshBtn) refreshBtn.style.display = 'flex';
+                if (archivedBtn) archivedBtn.style.display = 'none';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+                if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+                if (newInvoiceBtn) newInvoiceBtn.style.display = 'flex';
                 if (homeBtn) homeBtn.style.display = 'flex';
                 if (bulkRestoreBtn) {
                     bulkRestoreBtn.style.display = 'none';
@@ -167,6 +186,9 @@
             observer.observe(homeSection, { attributes: true, attributeFilter: ['style'] });
             if (newSection) {
                 observer.observe(newSection, { attributes: true, attributeFilter: ['style'] });
+            }
+            if (viewSection) {
+                observer.observe(viewSection, { attributes: true, attributeFilter: ['style'] });
             }
             (window as any).updateHeaderVisibility = updateHeaderVisibility;
             updateHeaderVisibility();
