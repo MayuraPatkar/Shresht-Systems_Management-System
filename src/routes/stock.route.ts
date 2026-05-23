@@ -319,7 +319,7 @@ router.post('/editItem', async (req: Request, res: Response) => {
 
 router.get("/get-stock-item", async (req: Request, res: Response) => {
     try {
-        const itemName = req.query.item as string;
+        const itemName = req.query && (req.query.item as string);
         if (!itemName) return res.status(400).json({ message: "Item name required" });
 
         const stockItem = await ItemModel.findOne({
