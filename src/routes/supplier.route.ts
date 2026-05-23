@@ -175,7 +175,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
         if (!Types.ObjectId.isValid(supplierId)) {
             return res.status(400).json({ error: 'Invalid supplier ID' });
         }
-        const username = String(req.query.username || req.headers['x-username'] || req.body.username || 'Admin');
+        const username = String((req.query && req.query.username) || (req.headers && req.headers['x-username']) || (req.body && req.body.username) || 'Admin');
         const supplier = await SupplierModel.findOneAndUpdate(
             { _id: supplierId, 'deletion.is_deleted': false },
             { 

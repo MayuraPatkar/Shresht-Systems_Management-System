@@ -833,7 +833,7 @@ async function performHardDeleteInvoice(invoiceId: string): Promise<boolean> {
 router.delete("/:invoiceId", async (req: Request, res: Response) => {
     try {
         const { invoiceId } = req.params;
-        const username = String(req.query.username || req.headers['x-username'] || req.body.username || 'Admin');
+        const username = String((req.query && req.query.username) || (req.headers && req.headers['x-username']) || (req.body && req.body.username) || 'Admin');
         const invoice = await InvoiceModel.findOneAndUpdate(
             { invoice_id: invoiceId, 'deletion.is_deleted': false },
             {

@@ -451,7 +451,7 @@ router.get("/system-info", asyncHandler(async (req: Request, res: Response) => {
 
 router.get('/download-logs', async (req: Request, res: Response) => {
     try {
-        const logType = (req.query.type as string) || 'app';
+        const logType = (req.query && (req.query.type as string)) || 'app';
         const logFileName = logType === 'error' ? 'error.log' : 'app.log';
         const logPath = path.join(process.cwd(), 'logs', logFileName);
         try { await fsp.access(logPath); } catch { return res.status(404).json({ success: false, message: 'Log file not found' }); }
