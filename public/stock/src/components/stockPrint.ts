@@ -323,7 +323,7 @@ function generateStockPrintContent(type: string, category: string, status: strin
                             <th style="width: 26%;">Item Name</th>
                             <th style="width: 13%;">Brand</th>
                             <th style="width: 11%;">Category</th>
-                            <th style="width: 11%; text-align: right;">Price</th>
+                            <th style="width: 11%; text-align: right;">Purchase Price</th>
                             <th style="width: 6%; text-align: center;">Qty</th>
                             <th style="width: 6%; text-align: center;">GST</th>
                             <th style="width: 13%; text-align: right;">Value</th>
