@@ -412,11 +412,7 @@ function updateNavigation() {
 
   const viewPreviewBtn = document.getElementById("view-preview");
   if (viewPreviewBtn && isInvoice) {
-    if (currentStep === totalSteps) {
-      viewPreviewBtn.style.display = 'none';
-    } else {
-      viewPreviewBtn.style.display = 'flex';
-    }
+    viewPreviewBtn.style.display = 'none';
   }
 }
 

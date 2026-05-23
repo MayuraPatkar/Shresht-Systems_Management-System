@@ -91,17 +91,85 @@
     document.addEventListener("DOMContentLoaded", () => {
         loadRecentInvoices();
 
-        // Dynamically toggle Home button visibility based on whether we are on the Home section
+        // Dynamically toggle Header elements visibility based on active section
         const homeSection = document.getElementById('home');
+        const newSection = document.getElementById('new');
         const homeBtn = document.getElementById('home-btn');
+
+        const updateHeaderVisibility = () => {
+            const isHomeVisible = homeSection ? window.getComputedStyle(homeSection).display !== 'none' : true;
+            const isFormActive = newSection ? window.getComputedStyle(newSection).display !== 'none' : false;
+
+            const searchWrapper = document.getElementById('search-wrapper');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const archivedBtn = document.getElementById('archived-invoices-btn');
+            const showDeletedBtn = document.getElementById('showDeletedBtn');
+            const viewPreviewBtn = document.getElementById('view-preview');
+            const newInvoiceBtn = document.getElementById('new-invoice');
+            const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+            const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+            if (isFormActive) {
+                // Creation mode: hide search, filter, archived, trash, view-preview, refresh, new-invoice. Show home.
+                if (searchWrapper) searchWrapper.style.display = 'none';
+                if (refreshBtn) refreshBtn.style.display = 'none';
+                if (archivedBtn) archivedBtn.style.display = 'none';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+                if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+                if (newInvoiceBtn) newInvoiceBtn.style.display = 'none';
+                if (homeBtn) homeBtn.style.display = 'flex';
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.style.display = 'none';
+                    bulkRestoreBtn.classList.add('hidden');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.style.display = 'none';
+                    bulkDeleteBtn.classList.add('hidden');
+                }
+            } else {
+                // Dashboard management mode
+                if (searchWrapper) searchWrapper.style.display = 'flex';
+                if (refreshBtn) refreshBtn.style.display = 'flex';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'flex';
+                if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
+                if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+
+                // Contextual elements based on Trash mode
+                const isTrashOpen = !!(window as any).showDeletedItems;
+                if (isTrashOpen) {
+                    if (archivedBtn) archivedBtn.style.display = 'none';
+                    if (newInvoiceBtn) newInvoiceBtn.style.display = 'none';
+                    if (bulkRestoreBtn) {
+                        bulkRestoreBtn.style.display = 'flex';
+                        bulkRestoreBtn.classList.remove('hidden');
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.style.display = 'flex';
+                        bulkDeleteBtn.classList.remove('hidden');
+                    }
+                } else {
+                    if (archivedBtn) archivedBtn.style.display = 'flex';
+                    if (newInvoiceBtn) newInvoiceBtn.style.display = 'flex';
+                    if (bulkRestoreBtn) {
+                        bulkRestoreBtn.style.display = 'none';
+                        bulkRestoreBtn.classList.add('hidden');
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.style.display = 'none';
+                        bulkDeleteBtn.classList.add('hidden');
+                    }
+                }
+            }
+        };
+
         if (homeSection && homeBtn) {
-            const updateHomeBtn = () => {
-                const isHomeVisible = window.getComputedStyle(homeSection).display !== 'none';
-                homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
-            };
-            const observer = new MutationObserver(updateHomeBtn);
+            const observer = new MutationObserver(updateHeaderVisibility);
             observer.observe(homeSection, { attributes: true, attributeFilter: ['style'] });
-            updateHomeBtn();
+            if (newSection) {
+                observer.observe(newSection, { attributes: true, attributeFilter: ['style'] });
+            }
+            (window as any).updateHeaderVisibility = updateHeaderVisibility;
+            updateHeaderVisibility();
         }
 
         const refreshBtn = document.getElementById('refresh-btn');
@@ -202,33 +270,14 @@
                     showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
                     showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> Close Trash';
                     showDeletedBtn.title = 'Close Trash';
-
-                    if (newInvoiceBtn) newInvoiceBtn.classList.add('hidden');
-                    if (archivedBtn) archivedBtn.classList.add('hidden');
-                    if (bulkRestoreBtn) {
-                        bulkRestoreBtn.classList.remove('hidden');
-                        bulkRestoreBtn.classList.add('flex');
-                    }
-                    if (bulkDeleteBtn) {
-                        bulkDeleteBtn.classList.remove('hidden');
-                        bulkDeleteBtn.classList.add('flex');
-                    }
                 } else {
                     showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
                     showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
                     showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
                     showDeletedBtn.title = 'View Trash';
-
-                    if (newInvoiceBtn) newInvoiceBtn.classList.remove('hidden');
-                    if (archivedBtn) archivedBtn.classList.remove('hidden');
-                    if (bulkRestoreBtn) {
-                        bulkRestoreBtn.classList.add('hidden');
-                        bulkRestoreBtn.classList.remove('flex');
-                    }
-                    if (bulkDeleteBtn) {
-                        bulkDeleteBtn.classList.add('hidden');
-                        bulkDeleteBtn.classList.remove('flex');
-                    }
+                }
+                if (typeof (window as any).updateHeaderVisibility === 'function') {
+                    (window as any).updateHeaderVisibility();
                 }
                 loadRecentInvoices();
             };
