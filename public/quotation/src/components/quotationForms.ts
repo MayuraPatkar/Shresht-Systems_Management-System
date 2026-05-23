@@ -667,6 +667,9 @@ async function cloneQuotation(sourceQuotationId) {
         document.getElementById('new').style.display = 'block';
         document.getElementById('new-quotation').style.display = 'none';
         document.getElementById('view-preview').style.display = 'block';
+        const trashBtnEl = document.getElementById('trash-btn');
+        if (trashBtnEl) trashBtnEl.style.display = 'none';
+        
         if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
             document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
         }
@@ -1091,9 +1094,8 @@ async function generatePreview() {
     const allRenderableItems = [];
     const CHARS_PER_LINE = 60;
 
-    // Check if rate column is populated in items or non-items
-    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat((row.cells[5].querySelector("input") as HTMLInputElement)?.value || "0") > 0) ||
-                 Array.from(nonItemsTable.querySelectorAll('tr')).some(row => parseFloat((row.querySelector('input[placeholder="Rate"]') as HTMLInputElement)?.value || "0") > 0);
+    // Always show tax columns in the preview, even if rate is 0, so the structure is visible.
+    let hasTax = true;
 
     let totalQtySum = 0;
     let totalTaxableSum = 0;
@@ -1981,30 +1983,53 @@ function collectFormData() {
  * This is called by globalScript.js via the hook.
  */
 window.validateCurrentStep = async function () {
-    // currentStep is a global variable from globalScript.js
+    let stepValid = true;
+    let firstInvalidElement: HTMLElement | null = null;
+
+    const setFieldValidation = (input: HTMLElement | null, isValid: boolean, message: string = "") => {
+        if (!input) return;
+        
+        // Remove default purple ring and any existing validation classes
+        input.classList.remove('border-gray-300', 'border-red-500', 'border-green-500', 'focus:ring-purple-500', 'focus:ring-red-500', 'focus:ring-green-500');
+        
+        let errorP = input.parentElement?.querySelector('.inline-error') as HTMLElement;
+        
+        if (isValid) {
+            input.classList.add('border-green-500', 'focus:ring-green-500');
+            if (errorP) errorP.remove();
+        } else {
+            input.classList.add('border-red-500', 'focus:ring-red-500');
+            if (!errorP && input.parentElement) {
+                errorP = document.createElement('p');
+                errorP.className = 'text-red-500 text-xs mt-1 font-medium inline-error';
+                input.parentElement.appendChild(errorP);
+            }
+            if (errorP) errorP.textContent = message;
+            if (!firstInvalidElement) firstInvalidElement = input;
+            stepValid = false;
+        }
+    };
 
     if (currentStep === 1) {
-        const projectName = document.getElementById('project-name');
-        const quoteDate = document.getElementById('quotation-date');
-        // Duplicate ID checks removed.
+        const projectName = document.getElementById('project-name') as HTMLInputElement;
+        const quoteDate = document.getElementById('quotation-date') as HTMLInputElement;
 
         if (!projectName.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the Project Name.");
-            projectName.focus();
-            return false;
+            setFieldValidation(projectName, false, "Please enter the Project Name.");
+        } else {
+            setFieldValidation(projectName, true);
         }
+
         if (!quoteDate.value) {
-            window.electronAPI.showAlert1("Please select a Quotation Date.");
-            quoteDate.focus();
-            return false;
+            setFieldValidation(quoteDate, false, "Please select a Quotation Date.");
+        } else {
+            setFieldValidation(quoteDate, true);
         }
     }
 
     if (currentStep === 2) {
-        // Sync hidden buyer-name before validation
         syncBuyerName();
 
-        const buyerNameHidden = document.getElementById('buyer-name') as HTMLInputElement;
         const firstNameInput = document.getElementById('buyer-first-name') as HTMLInputElement;
         const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
         const cityInput = document.getElementById('buyer-city') as HTMLInputElement;
@@ -2012,73 +2037,77 @@ window.validateCurrentStep = async function () {
         const pincodeInput = document.getElementById('buyer-pincode') as HTMLInputElement;
         const buyerPhone = document.getElementById('buyer-phone') as HTMLInputElement;
         const buyerEmail = document.getElementById('buyer-email') as HTMLInputElement;
+        const buyerGstin = document.getElementById('buyer-gstin') as HTMLInputElement;
 
         if (!firstNameInput.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the Buyer First Name.");
-            firstNameInput.focus();
-            return false;
+            setFieldValidation(firstNameInput, false, "Please enter the Buyer First Name.");
+        } else {
+            setFieldValidation(firstNameInput, true);
         }
+
         if (!line1Input.value.trim()) {
-            window.electronAPI.showAlert1("Please enter Address Line 1.");
-            line1Input.focus();
-            return false;
+            setFieldValidation(line1Input, false, "Please enter Address Line 1.");
+        } else {
+            setFieldValidation(line1Input, true);
         }
+
         if (!cityInput.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the City.");
-            cityInput.focus();
-            return false;
+            setFieldValidation(cityInput, false, "Please enter the City.");
+        } else {
+            setFieldValidation(cityInput, true);
         }
+
         if (!stateInput.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the State.");
-            stateInput.focus();
-            return false;
+            setFieldValidation(stateInput, false, "Please enter the State.");
+        } else {
+            setFieldValidation(stateInput, true);
         }
+
         const pinValue = pincodeInput.value.trim();
         if (!pinValue) {
-            window.electronAPI.showAlert1("Please enter the Pincode.");
-            pincodeInput.focus();
-            return false;
+            setFieldValidation(pincodeInput, false, "Please enter the Pincode.");
+        } else if (!/^\d{6}$/.test(pinValue)) {
+            setFieldValidation(pincodeInput, false, "Please enter a valid 6-digit Pincode.");
+        } else {
+            setFieldValidation(pincodeInput, true);
         }
-        if (!/^\d{6}$/.test(pinValue)) {
-            window.electronAPI.showAlert1("Please enter a valid 6-digit Pincode.");
-            pincodeInput.focus();
-            return false;
-        }
-        if (!buyerPhone.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the Phone Number.");
-            buyerPhone.focus();
-            return false;
-        }
-        // Ensure phone is 10 digits
+
         const phoneClean = buyerPhone.value.replace(/\D/g, '');
-        if (!/^\d{10}$/.test(phoneClean)) {
-            window.electronAPI.showAlert1("Please enter a valid 10-digit phone number.");
-            buyerPhone.focus();
-            return false;
+        if (!buyerPhone.value.trim()) {
+            setFieldValidation(buyerPhone, false, "Please enter the Phone Number.");
+        } else if (!/^\d{10}$/.test(phoneClean)) {
+            setFieldValidation(buyerPhone, false, "Please enter a valid 10-digit phone number.");
+        } else {
+            setFieldValidation(buyerPhone, true);
         }
-        // If email provided, ensure it's valid
+
         if (buyerEmail && buyerEmail.value.trim()) {
             const emailVal = buyerEmail.value.trim();
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(emailVal)) {
-                window.electronAPI.showAlert1("Please enter a valid email address.");
-                buyerEmail.focus();
-                return false;
+                setFieldValidation(buyerEmail, false, "Please enter a valid email address.");
+            } else {
+                setFieldValidation(buyerEmail, true);
             }
+        } else if (buyerEmail) {
+            setFieldValidation(buyerEmail, true); // Optional field
         }
-        // If GSTIN provided, ensure it's exactly 15 characters
-        const buyerGstin = document.getElementById('buyer-gstin');
+
         if (buyerGstin && buyerGstin.value.trim()) {
             if (buyerGstin.value.trim().length !== 15) {
-                window.electronAPI.showAlert1("GSTIN must be exactly 15 characters.");
-                buyerGstin.focus();
-                return false;
+                setFieldValidation(buyerGstin, false, "GSTIN must be exactly 15 characters.");
+            } else {
+                setFieldValidation(buyerGstin, true);
             }
+        } else if (buyerGstin) {
+            setFieldValidation(buyerGstin, true); // Optional field
         }
     }
 
     if (currentStep === 3) {
         const itemsContainer = document.getElementById('items-container');
+        if (!itemsContainer) return false;
+        
         const itemCards = itemsContainer.querySelectorAll('.item-card');
 
         if (itemCards.length === 0) {
@@ -2086,51 +2115,65 @@ window.validateCurrentStep = async function () {
             return false;
         }
 
-        // Validate individual fields inside the cards
-        let isValid = true;
-        const hsnMap: Record<string, number> = {}; // track HSN → first item index
+        const hsnMap: Record<string, number> = {};
 
         itemCards.forEach((card, index) => {
-            if (!isValid) return; // Stop checking if already failed
-
-            const desc = card.querySelector('.item_name');
+            const desc = card.querySelector('.item_name') as HTMLInputElement;
             const hsn = card.querySelector('.item-field.hsn input') as HTMLInputElement;
-            const qty = card.querySelector('.item-field.qty input'); // Quantity
-            const price = card.querySelector('.item-field.price input'); // Price
+            const qty = card.querySelector('.item-field.qty input') as HTMLInputElement;
+            const price = card.querySelector('.item-field.price input') as HTMLInputElement;
 
-            if (!desc.value.trim()) {
-                window.electronAPI.showAlert1(`Item #${index + 1}: Description is required.`);
-                desc.focus();
-                isValid = false;
-            } else if (!qty.value || parseFloat(qty.value) <= 0) {
-                window.electronAPI.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
-                qty.focus();
-                isValid = false;
-            } else if (!price.value || parseFloat(price.value) <= 0) {
-                window.electronAPI.showAlert1(`Item #${index + 1}: Unit Price must be greater than 0.`);
-                price.focus();
-                isValid = false;
-            } else if (hsn && hsn.value.trim()) {
-                // HSN uniqueness check: same HSN code cannot appear under different item names
-                const hsnVal = hsn.value.trim().toUpperCase();
-                const descVal = desc.value.trim().toLowerCase();
-                if (hsnMap[hsnVal] !== undefined) {
-                    const firstIdx = hsnMap[hsnVal];
-                    // Get first item's description
-                    const firstCard = itemCards[firstIdx] as Element;
-                    const firstDesc = (firstCard.querySelector('.item_name') as HTMLInputElement)?.value.trim().toLowerCase() || '';
-                    if (firstDesc !== descVal) {
-                        window.electronAPI.showAlert1(`HSN/SAC "${hsnVal}" is already used by Item #${firstIdx + 1}. Each unique item description must have a unique HSN code.`);
-                        hsn.focus();
-                        isValid = false;
+            if (desc) {
+                if (!desc.value.trim()) {
+                    setFieldValidation(desc, false, `Description is required.`);
+                } else {
+                    setFieldValidation(desc, true);
+                }
+            }
+
+            if (qty) {
+                if (!qty.value || parseFloat(qty.value) <= 0) {
+                    setFieldValidation(qty, false, `Quantity > 0.`);
+                } else {
+                    setFieldValidation(qty, true);
+                }
+            }
+
+            if (price) {
+                if (!price.value || parseFloat(price.value) <= 0) {
+                    setFieldValidation(price, false, `Price > 0.`);
+                } else {
+                    setFieldValidation(price, true);
+                }
+            }
+
+            if (hsn) {
+                if (hsn.value.trim()) {
+                    const hsnVal = hsn.value.trim().toUpperCase();
+                    const descVal = desc?.value.trim().toLowerCase() || '';
+                    if (hsnMap[hsnVal] !== undefined) {
+                        const firstIdx = hsnMap[hsnVal];
+                        const firstCard = itemCards[firstIdx] as Element;
+                        const firstDesc = (firstCard.querySelector('.item_name') as HTMLInputElement)?.value.trim().toLowerCase() || '';
+                        if (firstDesc !== descVal) {
+                            setFieldValidation(hsn, false, `HSN "${hsnVal}" is used by Item #${firstIdx + 1}.`);
+                        } else {
+                            setFieldValidation(hsn, true);
+                        }
+                    } else {
+                        hsnMap[hsnVal] = index;
+                        setFieldValidation(hsn, true);
                     }
                 } else {
-                    hsnMap[hsnVal] = index;
+                    setFieldValidation(hsn, true); // Optional or not checking empty here
                 }
             }
         });
+    }
 
-        if (!isValid) return false;
+    if (!stepValid && firstInvalidElement) {
+        firstInvalidElement.focus();
+        return false;
     }
 
     return true;
@@ -2182,6 +2225,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('change', function (e) {
         if (e.target && e.target.matches('.item_name')) {
             autofillStockItem(e.target);
+        }
+    });
+
+    // --- Dynamic Validation Feedback ---
+    document.body.addEventListener('input', function (e) {
+        const target = e.target as HTMLElement;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA')) {
+            if (target.classList.contains('border-red-500')) {
+                target.classList.remove('border-red-500', 'focus:ring-red-500');
+                target.classList.add('border-gray-300', 'focus:ring-purple-500');
+                const errorP = target.parentElement?.querySelector('.inline-error');
+                if (errorP) errorP.remove();
+            }
         }
     });
 });
