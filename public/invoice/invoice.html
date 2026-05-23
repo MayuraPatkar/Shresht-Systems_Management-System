@@ -667,27 +667,7 @@
         <div id="view">
             <div id="project-details-view" class="w-full max-w-6xl mx-auto px-4 space-y-6">
 
-                <!-- View Type Switcher - Segmented Control -->
-                <div class="flex justify-center fade-in">
-                    <div id="view-type-tabs" class="inline-flex bg-gray-100 rounded-lg p-1 gap-1">
-                        <button type="button" data-view-type="duplicate"
-                            class="view-type-tab active px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-blue-600 text-white shadow-sm">
-                            Duplicate
-                        </button>
-                        <button type="button" data-view-type="duplicate-tax"
-                            class="view-type-tab px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Duplicate + Tax
-                        </button>
-                        <button type="button" data-view-type="original"
-                            class="view-type-tab px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Original
-                        </button>
-                        <button type="button" data-view-type="original-tax"
-                            class="view-type-tab px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Original + Tax
-                        </button>
-                    </div>
-                </div>
+
 
                 <!-- Project Details Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
@@ -917,9 +897,20 @@
 
                 <!-- Preview & Actions Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-eye text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-eye text-purple-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                        </div>
+                        <!-- Animated Slide Toggle Button -->
+                        <div class="slide-toggle-container">
+                            <span class="slide-toggle-text slide-toggle-text-without">Without Tax</span>
+                            <label class="slide-toggle-label">
+                                <input type="checkbox" id="preview-tax-toggle" class="slide-toggle-input" checked>
+                                <span class="slide-toggle-slider"></span>
+                            </label>
+                            <span class="slide-toggle-text slide-toggle-text-with slide-toggle-active">With Tax</span>
+                        </div>
                     </div>
                     <div id="view-preview-content" class="mb-6">
                         <!-- Preview will be dynamically generated -->

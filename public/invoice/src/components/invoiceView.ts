@@ -28,40 +28,38 @@ function parseViewType(viewType: string) {
 }
 
 function updateInvoiceViewTypeTabs(activeViewType: string) {
-    const tabs = document.querySelectorAll('#view-type-tabs .view-type-tab');
-    tabs.forEach(tab => {
-        const viewType = (tab as HTMLElement).dataset.viewType;
-        if (viewType === activeViewType) {
-            tab.classList.add('active', 'bg-blue-600', 'text-white', 'shadow-sm');
-            tab.classList.remove('text-gray-500');
-        } else {
-            tab.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-sm');
-            tab.classList.add('text-gray-500');
-        }
-    });
     currentInvoiceViewType = activeViewType;
     const { docType } = parseViewType(activeViewType);
     sessionStorage.setItem('view-invoice', docType);
     sessionStorage.setItem('view-invoice-full', activeViewType);
 }
 
-function initInvoiceViewTypeTabs() {
-    const tabs = document.querySelectorAll('#view-type-tabs .view-type-tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', async () => {
-            const viewType = (tab as HTMLElement).dataset.viewType;
-            if (!viewType || viewType === currentInvoiceViewType) return;
+function initPreviewTaxToggle() {
+    const taxToggle = document.getElementById('preview-tax-toggle') as HTMLInputElement | null;
+    if (taxToggle) {
+        taxToggle.addEventListener('change', async () => {
+            const showTaxVal = taxToggle.checked;
+            sessionStorage.setItem('view-invoice-showTax', showTaxVal ? 'true' : 'false');
 
-            updateInvoiceViewTypeTabs(viewType);
+            const textWith = document.querySelector('.slide-toggle-text-with');
+            const textWithout = document.querySelector('.slide-toggle-text-without');
+            if (showTaxVal) {
+                textWith?.classList.add('slide-toggle-active');
+                textWithout?.classList.remove('slide-toggle-active');
+            } else {
+                textWith?.classList.remove('slide-toggle-active');
+                textWithout?.classList.add('slide-toggle-active');
+            }
 
             if (cachedInvoice && cachedUserRole) {
-                await renderInvoiceView(cachedInvoice, cachedUserRole, viewType);
+                const { docType } = parseViewType(currentInvoiceViewType);
+                await generateInvoicePreview(cachedInvoice, cachedUserRole, docType, showTaxVal);
             }
         });
-    });
+    }
 }
 
-document.addEventListener('DOMContentLoaded', initInvoiceViewTypeTabs);
+document.addEventListener('DOMContentLoaded', initPreviewTaxToggle);
 
 async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: string, type: string, showTax: boolean = false) {
     const companyInfo = (window as any).companyConfig ? await (window as any).companyConfig.getCompanyInfo() : null;
@@ -105,10 +103,10 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
         let sno = 1;
         items.forEach(item => {
             const description = item.description || "-";
-            const hsnSac = item.HSN_SAC || "-";
+            const hsnSac = item.hsn_sac || item.HSN_SAC || "-";
             const qty = parseFloat(String(item.quantity || 0));
             const unitPrice = parseFloat(String(item.unit_price || 0));
-            const rate = parseFloat(String(item.rate || 0));
+            const rate = parseFloat(String(item.gst_rate || item.rate || 0));
 
             const taxableValue = qty * unitPrice;
             totalTaxableValue += taxableValue;
@@ -415,7 +413,24 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
 }
 
 async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: string) {
-    const { docType, showTax } = parseViewType(viewType);
+    const { docType } = parseViewType(viewType);
+    const showTax = true; // Always calculate details card sections with tax details
+    
+    const showTaxPreview = sessionStorage.getItem('view-invoice-showTax') !== 'false';
+    const taxToggle = document.getElementById('preview-tax-toggle') as HTMLInputElement | null;
+    if (taxToggle) {
+        taxToggle.checked = showTaxPreview;
+        const textWith = document.querySelector('.slide-toggle-text-with');
+        const textWithout = document.querySelector('.slide-toggle-text-without');
+        if (showTaxPreview) {
+            textWith?.classList.add('slide-toggle-active');
+            textWithout?.classList.remove('slide-toggle-active');
+        } else {
+            textWith?.classList.remove('slide-toggle-active');
+            textWithout?.classList.add('slide-toggle-active');
+        }
+    }
+
     const invoiceIdLocal = invoice?.invoice_id;
     let sno = 0;
     const itemsForType = (docType === 'original') ? (invoice.items_original || []) : (invoice.items_duplicate || []);
@@ -636,7 +651,7 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
             sno++;
             const qty = parseFloat(String(item.quantity || 0));
             const unitPrice = parseFloat(String(item.unit_price || 0));
-            const rate = parseFloat(String(item.rate || 0));
+            const rate = parseFloat(String(item.gst_rate || item.rate || 0));
             const taxableValue = qty * unitPrice;
             const cgstPercent = rate / 2;
             const sgstPercent = rate / 2;
@@ -656,18 +671,18 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
                 row.innerHTML = `
                     <td class="px-4 py-3 text-sm text-gray-900">${sno}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.hsn_sac || item.HSN_SAC || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(taxableValue, 2) || '-'}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${(item.gst_rate !== undefined && item.gst_rate !== null) ? item.gst_rate + '%' : (item.rate ? item.rate + '%' : '-')}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(rowTotal, 2) || '-'}</td>
                 `;
             } else {
                 row.innerHTML = `
                     <td class="px-4 py-3 text-sm text-gray-900">${sno}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.HSN_SAC || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${item.hsn_sac || item.HSN_SAC || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
                     <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(taxableValue, 2) || '-'}</td>
@@ -752,7 +767,7 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
         console.warn('Non-items totals DOM elements not found', e);
     }
 
-    generateInvoicePreview(invoice, userRole, docType, showTax);
+    generateInvoicePreview(invoice, userRole, docType, showTaxPreview);
 
     const printProjBtn = document.getElementById('printProject');
     if (printProjBtn) {
@@ -892,7 +907,19 @@ async function viewInvoice(invoiceId: string, userRole?: string | null) {
             role = sessionStorage.getItem('userRole') || 'user';
         }
 
-        const type = sessionStorage.getItem('view-invoice') || 'duplicate';
+        let type = sessionStorage.getItem('view-invoice-full') || sessionStorage.getItem('view-invoice') || 'duplicate';
+        if (role === 'manager') {
+            if (!type.startsWith('original')) {
+                type = type.endsWith('-tax') ? 'original-tax' : 'original';
+            }
+        } else {
+            if (!type.startsWith('duplicate')) {
+                type = type.endsWith('-tax') ? 'duplicate-tax' : 'duplicate';
+            }
+        }
+
+
+
         const response = await fetch(`/invoice/${invoiceId}`);
         if (!response.ok) {
             throw new Error("Failed to fetch invoice");

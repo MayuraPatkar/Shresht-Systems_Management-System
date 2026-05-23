@@ -752,7 +752,16 @@ const beforeStepAdvance = async function (step: number): Promise<boolean> {
 // Open invoice for editing
 const openInvoice = async function (id: string) {
     try {
-        const type = sessionStorage.getItem('update-invoice');
+        const role = sessionStorage.getItem('userRole') || 'user';
+        let type = sessionStorage.getItem('update-invoice') || 'duplicate';
+
+        if (role === 'manager') {
+            type = 'original';
+            sessionStorage.setItem('update-invoice', 'original');
+        } else {
+            type = 'duplicate';
+            sessionStorage.setItem('update-invoice', 'duplicate');
+        }
         const response = await fetch(`/invoice/${id}`);
         if (!response.ok) throw new Error("Failed to fetch invoice");
 

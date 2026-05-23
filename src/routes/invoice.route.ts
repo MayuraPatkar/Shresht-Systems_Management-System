@@ -132,7 +132,10 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             declaration = '',
             termsAndConditions = '',
             status,
-        } = req.body;
+            } = req.body;
+
+        const cleanQuotationId = (quotationId && String(quotationId).trim() !== '') ? String(quotationId).trim() : null;
+        const cleanBuyerCustomerId = (buyerCustomerId && String(buyerCustomerId).trim() !== '') ? String(buyerCustomerId).trim() : null;
 
         if (!projectName) {
             return res.status(400).json({ message: 'Missing required fields: projectName.' });
@@ -380,14 +383,17 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             }
 
             // Update snapshot and service fields
-            if (buyerCustomerId) {
-                existingInvoice.customer_id = buyerCustomerId;
-            }
+            existingInvoice.customer_id = cleanBuyerCustomerId;
             existingInvoice.customer_snapshot = customer_snapshot;
             existingInvoice.consignee = consignee;
             existingInvoice.totals_original = totals_original;
             existingInvoice.totals_duplicate = totals_duplicate;
             existingInvoice.other_charges = other_charges;
+
+            // Migrate invoice_no if missing on legacy document
+            if (!existingInvoice.invoice_no) {
+                existingInvoice.invoice_no = existingInvoice.invoice_id;
+            }
 
             // Update fields
             Object.assign(existingInvoice, {
@@ -395,7 +401,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 invoice_date: invoiceDate,
                 po_number: poNumber,
                 po_date: poDate,
-                quotation_id: quotationId || undefined,
+                quotation_id: cleanQuotationId,
                 dc_number: dcNumber,
                 dc_date: dcDate,
                 service_after_months: serviceAfterMonths,
@@ -484,8 +490,8 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 project_name: projectName,
                 po_number: poNumber,
                 po_date: poDate,
-                quotation_id: quotationId || undefined,
-                customer_id: buyerCustomerId || undefined,
+                quotation_id: cleanQuotationId,
+                customer_id: cleanBuyerCustomerId,
                 customer_snapshot: customer_snapshot,
                 consignee: consignee,
                 items_original: items_original,
