@@ -222,7 +222,7 @@ function renderStockTable(data: StockItem[]): void {
                 </div>
             </td>
             <td class="p-4 text-center font-medium">₹ ${escapeHtml(formatIndian(purchasePrice, 2))}</td>
-            <td class="p-4 text-center font-medium">${escapeHtml(formatIndian(quantity, isPc ? 0 : 2))}</td>
+            <td class="p-4 text-center font-medium">${escapeHtml(formatIndian(quantity, isPc ? 0 : 2))} ${escapeHtml(unit)}</td>
             <td class="p-4 text-center">${escapeHtml(gstRate)}%</td>
             <td class="p-4 text-center" style="width:140px;">
                 <span class="inline-flex text-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusClass}">
