@@ -154,6 +154,9 @@ function enterTrashMode() {
     // Show Close Trash button in header
     if (closeTrashBtn) closeTrashBtn.style.display = '';
 
+    const homeBtnEl = document.getElementById('home-btn');
+    if (homeBtnEl) homeBtnEl.style.display = '';
+
     loadTrashQuotations();
 }
 
@@ -193,7 +196,7 @@ async function loadTrashQuotations() {
 
         if (trashed.length === 0) {
             quotationListDiv.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                <div class="flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
                     <div class="text-green-500 text-5xl mb-4">
                         <i class="fas fa-check-circle"></i>
                     </div>
@@ -212,7 +215,7 @@ async function loadTrashQuotations() {
         console.error('Error loading trash:', error);
         if (quotationListDiv) {
             quotationListDiv.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-16 fade-in">
+                <div class="flex flex-col items-center justify-center py-16 fade-in select-none">
                     <div class="bg-red-100 rounded-full p-8 mb-4">
                         <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
                     </div>
@@ -249,7 +252,7 @@ async function loadRecentQuotations() {
     } catch (error) {
         console.error("Error loading quotations:", error);
         quotationListDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 fade-in">
+            <div class="flex flex-col items-center justify-center py-16 fade-in select-none">
                 <div class="bg-red-100 rounded-full p-8 mb-4">
                     <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
                 </div>
@@ -352,7 +355,7 @@ async function handleSearch() {
     
     if (cardRenderer) {
         await searchDocuments('quotation', query, quotationListDiv, cardRenderer,
-            `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+            `<div class="flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
                 <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
                 <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
                 <p class="text-gray-500">No quotations match your search</p>

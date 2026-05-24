@@ -136,6 +136,10 @@ function showNewDocumentForm(options) {
         if (previewButton) previewButton.style.display = 'block';
     }
 
+    // Show home button
+    const homeBtn = document.getElementById('home-btn');
+    if (homeBtn) homeBtn.style.display = '';
+
     // Hide trash button when in form/view mode
     const trashBtn = document.getElementById('trash-btn');
     if (trashBtn) {

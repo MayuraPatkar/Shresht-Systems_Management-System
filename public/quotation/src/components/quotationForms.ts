@@ -341,6 +341,9 @@ async function openQuotation(quotationId) {
     document.getElementById('new').style.display = 'block';
     document.getElementById('new-quotation').style.display = 'none';
     document.getElementById('view-preview').style.display = 'block';
+    
+    const homeBtnEl = document.getElementById('home-btn');
+    if (homeBtnEl) homeBtnEl.style.display = '';
     if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
         document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
     }
@@ -669,6 +672,9 @@ async function cloneQuotation(sourceQuotationId) {
         document.getElementById('view-preview').style.display = 'block';
         const trashBtnEl = document.getElementById('trash-btn');
         if (trashBtnEl) trashBtnEl.style.display = 'none';
+        
+        const homeBtnEl = document.getElementById('home-btn');
+        if (homeBtnEl) homeBtnEl.style.display = '';
         
         if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
             document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;

@@ -28,7 +28,7 @@ class QuotationTable {
         quotationListDiv.innerHTML = "";
         if (!quotations || quotations.length === 0) {
             quotationListDiv.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                <div class="flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
                     <div class="text-purple-500 text-5xl mb-4">
                         <i class="fas fa-file-invoice"></i>
                     </div>

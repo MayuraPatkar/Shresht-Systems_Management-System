@@ -789,6 +789,9 @@ async function viewQuotation(quotationId, viewType) {
         const trashBtnEl = document.getElementById('trash-btn');
         if (trashBtnEl) trashBtnEl.style.display = 'none';
 
+        const homeBtnEl = document.getElementById('home-btn');
+        if (homeBtnEl) homeBtnEl.style.display = '';
+
         // Render the view with fetched data
         await renderQuotationView(quotation, viewType);
 
