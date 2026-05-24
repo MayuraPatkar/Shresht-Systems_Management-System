@@ -5,7 +5,7 @@
  * Handles CRUD, filtering, search, and summary display.
  *
  * Compile:  npx tsc -p tsconfig.public.json
- * Output:   public/payment/payment.js
+ * Output:   public/payment/main.js
  */
 
 // ── Interfaces ─────────────────────────────────────────

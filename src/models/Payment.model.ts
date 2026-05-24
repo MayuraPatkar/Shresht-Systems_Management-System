@@ -25,7 +25,7 @@ export interface IPayment extends Document {
     party_id?: Types.ObjectId;
 
     reference_type?: "Invoice" | "Purchase" | "Service" | "Adjustment";
-    reference_id?: Types.ObjectId;
+    reference_id?: string;
 
     mode: "Cash" | "UPI" | "Bank Transfer" | "Cheque";
 
@@ -104,7 +104,7 @@ const paymentSchema = new Schema<IPayment>(
 
         // Links to Invoice/Purchase/Service doc, or Item for Adjustment
         reference_id: {
-            type: Schema.Types.ObjectId,
+            type: String,
             index: true,
         },
 
