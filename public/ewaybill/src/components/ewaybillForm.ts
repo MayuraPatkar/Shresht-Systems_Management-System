@@ -176,14 +176,30 @@
                 try {
                     const company = await companyConfig.getCompanyInfo();
                     if (company) {
-                        let fromAddress = company.company || '';
-                        if (company.address) fromAddress += '\n' + company.address;
+                        let fromAddress = company.company_name || '';
+                        
+                        // Format address if it's an object
+                        if (company.address && typeof company.address === 'object') {
+                            const addressParts = [
+                                company.address.line1,
+                                company.address.line2,
+                                company.address.city,
+                                company.address.state && company.address.pincode ? `${company.address.state} - ${company.address.pincode}` : company.address.state || company.address.pincode
+                            ].filter(Boolean);
+                            
+                            if (addressParts.length > 0) {
+                                fromAddress += '\n' + addressParts.join(', ');
+                            }
+                        } else if (company.address) {
+                            fromAddress += '\n' + company.address;
+                        }
+
                         if (company.phone) {
                             const phone = company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '');
                             fromAddress += '\nPhone: ' + phone;
                         }
-                        if (company.GSTIN) fromAddress += '\nGSTIN: ' + company.GSTIN;
-                        fromAddressEl.value = fromAddress;
+                        if (company.gstin || company.GSTIN) fromAddress += '\nGSTIN: ' + (company.gstin || company.GSTIN);
+                        fromAddressEl.value = fromAddress.trim();
                     }
                 } catch (companyErr) {
                     console.warn('Could not fetch company info for from_address:', companyErr);

@@ -1024,8 +1024,10 @@
         const statusBadgeClass = statusClassMap[wayBill.ewaybill_status as StatusType] || 'bg-gray-100 text-gray-800';
 
         // Truncate addresses for display
-        const fromAddressShort = (wayBill.from_address || '-').split('\n')[0].substring(0, 50);
-        const toAddressShort = (wayBill.to_address || '-').split('\n')[0].substring(0, 50);
+        const fromAddressStr = typeof wayBill.from_address === 'object' ? JSON.stringify(wayBill.from_address) : String(wayBill.from_address || '-');
+        const toAddressStr = typeof wayBill.to_address === 'object' ? JSON.stringify(wayBill.to_address) : String(wayBill.to_address || '-');
+        const fromAddressShort = fromAddressStr.split('\n')[0].substring(0, 50);
+        const toAddressShort = toAddressStr.split('\n')[0].substring(0, 50);
 
         wayBillDiv.innerHTML = `
             <!-- Left Border Accent -->

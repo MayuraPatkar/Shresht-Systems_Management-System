@@ -96,10 +96,23 @@
 
         // Company and header info
         const company = companyConfig ? await companyConfig.getCompanyInfo() : {};
-        const companyName = company?.company || 'Company Name';
-        const companyAddress = company?.address || '';
+        const companyName = company?.company_name || 'Company Name';
+        let companyAddress = '';
+        if (company?.address) {
+            if (typeof company.address === 'object') {
+                const addressParts = [
+                    company.address.line1,
+                    company.address.line2,
+                    company.address.city,
+                    company.address.state && company.address.pincode ? `${company.address.state} - ${company.address.pincode}` : company.address.state || company.address.pincode
+                ].filter(Boolean);
+                companyAddress = addressParts.join(', ');
+            } else {
+                companyAddress = company.address;
+            }
+        }
         const companyPhone = company?.phone ? (company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '')) : '';
-        const companyGSTIN = company?.GSTIN || '';
+        const companyGSTIN = company?.gstin || company?.GSTIN || '';
         const companyEmail = company?.email || '';
         const companyWebsite = company?.website || '';
 
