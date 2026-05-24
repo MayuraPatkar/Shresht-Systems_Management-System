@@ -102,6 +102,7 @@ interface Window {
     const $searchInput = document.getElementById('search-input') as HTMLInputElement;
     const $filterPopover = document.getElementById('filter-popover') as HTMLDivElement;
     const $filterBtn = document.getElementById('filter-btn') as HTMLButtonElement;
+    const $refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
     const $directionFilter = document.getElementById('direction-filter') as HTMLSelectElement;
     const $modeFilter = document.getElementById('mode-filter') as HTMLSelectElement;
     const $referenceFilter = document.getElementById('reference-filter') as HTMLSelectElement;
@@ -191,6 +192,67 @@ interface Window {
             case 'Cheque': return 'badge-cheque';
             default: return 'badge-cash';
         }
+    }
+
+    function showInlineError(input: HTMLElement, message: string) {
+        if (!input.id) {
+            input.id = 'input-val-' + Math.random().toString(36).substring(2, 11);
+        }
+        clearInlineError(input);
+
+        input.style.borderColor = '#ef4444';
+        input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+
+        input.setAttribute('aria-invalid', 'true');
+        const errorId = `${input.id}-error`;
+        input.setAttribute('aria-describedby', errorId);
+
+        const errorMsg = document.createElement('div');
+        errorMsg.id = errorId;
+        errorMsg.className = 'error-message-inline';
+        errorMsg.style.cssText = 'font-size: 11px; font-weight: 600; color: #dc2626; margin-top: 4px; transition: all 0.2s ease-in-out;';
+        errorMsg.textContent = message;
+
+        const parent = input.parentElement;
+        if (parent) {
+            parent.appendChild(errorMsg);
+        }
+
+        const clearHandler = () => {
+            clearInlineError(input);
+            input.removeEventListener('input', clearHandler);
+            input.removeEventListener('change', clearHandler);
+        };
+        input.addEventListener('input', clearHandler);
+        input.addEventListener('change', clearHandler);
+    }
+
+    function clearInlineError(input: HTMLElement) {
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+        input.removeAttribute('aria-invalid');
+        input.removeAttribute('aria-describedby');
+
+        const errorId = `${input.id}-error`;
+        const errorMsg = document.getElementById(errorId);
+        if (errorMsg) {
+            errorMsg.remove();
+        }
+    }
+
+    function clearFormErrors() {
+        const form = document.getElementById('payment-form');
+        if (!form) return;
+        const errorMsgs = form.querySelectorAll('.error-message-inline');
+        errorMsgs.forEach(el => el.remove());
+
+        const errorInputs = form.querySelectorAll('[aria-invalid="true"]');
+        errorInputs.forEach(input => {
+            (input as HTMLElement).style.borderColor = '';
+            (input as HTMLElement).style.boxShadow = '';
+            input.removeAttribute('aria-invalid');
+            input.removeAttribute('aria-describedby');
+        });
     }
 
     // ── API ────────────────────────────────────────────────
@@ -368,13 +430,13 @@ interface Window {
         $tbody.querySelectorAll<HTMLElement>('.payment-row').forEach(row => {
             row.addEventListener('click', () => {
                 const id = row.dataset.paymentId;
-                if (id) openDetailsModalById(id);
+                if (id) window.location.href = `/payment/details?id=${id}`;
             });
             row.addEventListener('keydown', (event: KeyboardEvent) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
                     const id = row.dataset.paymentId;
-                    if (id) openDetailsModalById(id);
+                    if (id) window.location.href = `/payment/details?id=${id}`;
                 }
             });
         });
@@ -484,7 +546,118 @@ interface Window {
         $detailsReference.textContent = referenceLabel(payment);
         $detailsTransaction.textContent = valOrDash(payment.transaction_details);
         $detailsRemarks.textContent = valOrDash(payment.remarks);
+
+        const $detailsPartyExpanded = document.getElementById('details-party-expanded') as HTMLDivElement | null;
+        const $detailsRefExpanded = document.getElementById('details-ref-expanded') as HTMLDivElement | null;
+        if ($detailsPartyExpanded) $detailsPartyExpanded.classList.add('hidden');
+        if ($detailsRefExpanded) $detailsRefExpanded.classList.add('hidden');
+
+        if (payment.party_id) {
+            const partyType = paymentPartyType(payment);
+            fetchDetailsModalParty(partyType, payment.party_id);
+        }
+
+        if (payment.reference_ref && payment.reference_type && payment.reference_type !== 'Adjustment') {
+            fetchDetailsModalReference(payment.reference_type as any, payment.reference_ref);
+        }
+
         $detailsModal.classList.remove('hidden');
+    }
+
+    async function fetchDetailsModalParty(type: 'Customer' | 'Supplier', id: string): Promise<void> {
+        try {
+            const res = await fetch(`/payment/get-party-details-by-id/${type}/${id}`);
+            const data = await res.json();
+            if (data.success && data.party) {
+                const party = data.party;
+                const contact = type === 'Customer' ? party.customer : party.supplier;
+                const address = type === 'Customer' ? party.billing_address : party.address;
+
+                const phone = contact?.phone || '-';
+                const gstin = party.gstin || '-';
+                const email = contact?.email || '-';
+
+                let addrStr = '-';
+                if (address) {
+                    addrStr = [address.line1, address.line2, address.city, address.state, address.pincode]
+                        .filter(Boolean).join(', ');
+                }
+
+                const $phoneEl = document.getElementById('details-party-phone');
+                const $gstinEl = document.getElementById('details-party-gstin');
+                const $emailEl = document.getElementById('details-party-email');
+                const $addressEl = document.getElementById('details-party-address');
+
+                if ($phoneEl) $phoneEl.textContent = phone;
+                if ($gstinEl) $gstinEl.textContent = gstin;
+                if ($emailEl) $emailEl.textContent = email;
+                if ($addressEl) $addressEl.textContent = addrStr;
+
+                const $detailsPartyExpanded = document.getElementById('details-party-expanded');
+                if ($detailsPartyExpanded) $detailsPartyExpanded.classList.remove('hidden');
+            }
+        } catch (e) {
+            console.error('Failed to fetch details modal party info:', e);
+        }
+    }
+
+    async function fetchDetailsModalReference(type: 'Invoice' | 'Purchase' | 'Service', refId: string): Promise<void> {
+        try {
+            const res = await fetch(`/payment/get-reference-details/${type}/${refId}`);
+            const data = await res.json();
+            if (data.success && data.details) {
+                const details = data.details;
+
+                let idStr = '-';
+                let dateStr = '-';
+                let amountStr = '-';
+                let statusStr = '-';
+
+                if (type === 'Invoice') {
+                    idStr = details.invoice_no || details.invoice_id || '-';
+                    dateStr = details.invoice_date ? formatDate(details.invoice_date) : '-';
+                    amountStr = details.totals?.grand_total !== undefined ? formatCurrency(details.totals.grand_total) : '-';
+                    statusStr = details.status || '-';
+                } else if (type === 'Purchase') {
+                    idStr = details.purchase_invoice_no || details.purchase_order_no || '-';
+                    dateStr = details.purchase_date ? formatDate(details.purchase_date) : '-';
+                    amountStr = details.totals?.grand_total !== undefined ? formatCurrency(details.totals.grand_total) : '-';
+                    statusStr = details.status || '-';
+                } else if (type === 'Service') {
+                    idStr = details.service_no || '-';
+                    dateStr = details.service_date ? formatDate(details.service_date) : '-';
+                    amountStr = details.totals?.grand_total !== undefined ? formatCurrency(details.totals.grand_total) : '-';
+                    statusStr = details.status || '-';
+                }
+
+                const $refIdEl = document.getElementById('details-ref-id');
+                const $refDateEl = document.getElementById('details-ref-date');
+                const $refAmountEl = document.getElementById('details-ref-amount');
+                const $refStatusEl = document.getElementById('details-ref-status');
+
+                if ($refIdEl) $refIdEl.textContent = idStr;
+                if ($refDateEl) $refDateEl.textContent = dateStr;
+                if ($refAmountEl) $refAmountEl.textContent = amountStr;
+                if ($refStatusEl) {
+                    $refStatusEl.textContent = statusStr;
+                    $refStatusEl.className = 'font-bold';
+                    if (statusStr.toLowerCase() === 'paid') {
+                        $refStatusEl.classList.add('text-green-600');
+                    } else if (statusStr.toLowerCase() === 'unpaid' || statusStr.toLowerCase() === 'overdue') {
+                        $refStatusEl.classList.add('text-red-600');
+                    } else if (statusStr.toLowerCase() === 'partially paid' || statusStr.toLowerCase() === 'partial') {
+                        $refStatusEl.classList.add('text-amber-600');
+                    } else {
+                        $refStatusEl.classList.add('text-gray-600');
+                    }
+                }
+
+                const $detailsRefExpanded = document.getElementById('details-ref-expanded');
+                if ($detailsRefExpanded) $detailsRefExpanded.classList.remove('hidden');
+            }
+        } catch (e) {
+            console.error('Failed to fetch details modal reference info:', e);
+        }
     }
 
     function closeDetailsModal(): void {
@@ -672,6 +845,7 @@ interface Window {
         $form.reset();
         $partyDetailsContainer.classList.add('hidden');
         $partyIdHidden.value = '';
+        clearFormErrors();
     }
 
     let suggestionSelectedIndex = -1;
@@ -768,8 +942,17 @@ interface Window {
     (document.getElementById('new-payment-btn') as HTMLButtonElement)
         .addEventListener('click', () => openModal(null));
 
-    (document.getElementById('refresh-btn') as HTMLButtonElement)
-        .addEventListener('click', () => fetchPayments());
+    if ($refreshBtn) {
+        $refreshBtn.addEventListener('click', () => {
+            const icon = $refreshBtn.querySelector('i');
+            if (icon) icon.classList.add('fa-spin');
+            fetchPayments().finally(() => {
+                setTimeout(() => {
+                    if (icon) icon.classList.remove('fa-spin');
+                }, 500);
+            });
+        });
+    }
     $filterBtn?.addEventListener('click', toggleFilterPopover);
     (document.getElementById('close-filter') as HTMLButtonElement)
         .addEventListener('click', () => $filterPopover?.classList.add('hidden'));
@@ -862,8 +1045,41 @@ interface Window {
         const date: string = (document.getElementById('form-date') as HTMLInputElement).value;
         const mode: string = (document.getElementById('form-mode') as HTMLSelectElement).value;
 
-        if (!amount || Number(amount) <= 0) {
-            showToast('Please enter a valid amount', true);
+        let isValid = true;
+        clearFormErrors();
+
+        const amountInput = document.getElementById('form-amount') as HTMLInputElement;
+        const amountVal = Number(amountInput.value);
+        if (!amountInput.value || isNaN(amountVal) || amountVal <= 0) {
+            showInlineError(amountInput, 'Please enter a valid amount greater than 0.');
+            isValid = false;
+        }
+
+        const modeSelect = document.getElementById('form-mode') as HTMLSelectElement;
+        if (!modeSelect.value) {
+            showInlineError(modeSelect, 'Please select a payment mode.');
+            isValid = false;
+        }
+
+        const refTypeSelect = document.getElementById('form-reference-type') as HTMLSelectElement;
+        const refIdInput = document.getElementById('form-reference-id') as HTMLInputElement;
+        const refType = refTypeSelect.value;
+        const refId = refIdInput.value.trim();
+
+        if (refType && refType !== 'Adjustment' && !refId) {
+            showInlineError(refIdInput, 'Please enter a Reference ID for the selected Reference Type.');
+            isValid = false;
+        }
+        if (!refType && refId) {
+            showInlineError(refTypeSelect, 'Please select a Reference Type for the entered Reference ID.');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            const firstInvalid = $form.querySelector('[aria-invalid="true"]') as HTMLElement | null;
+            if (firstInvalid) {
+                firstInvalid.focus();
+            }
             return;
         }
 
@@ -873,9 +1089,9 @@ interface Window {
             payment_date: date || todayISO(),
             mode,
             party_type: submitPartyTypeOverride || (direction === 'IN' ? 'Customer' : 'Supplier'),
-            party_id: $partyIdHidden.value || undefined,
-            reference_type: (document.getElementById('form-reference-type') as HTMLSelectElement).value || "",
-            reference_id: (document.getElementById('form-reference-id') as HTMLInputElement).value || "",
+            party_id: $partyIdHidden.value || $partyNameInput.value || undefined,
+            reference_type: refType || "",
+            reference_id: refId || "",
             transaction_details: (document.getElementById('form-transaction-details') as HTMLInputElement).value || "",
             is_advance: (document.getElementById('form-advance') as HTMLInputElement).checked,
             remarks: (document.getElementById('form-remarks') as HTMLTextAreaElement).value || ""
@@ -953,7 +1169,7 @@ interface Window {
         }
         if (isCtrlPressed && keyLower === 'r' && !isShiftPressed) {
             e.preventDefault();
-            fetchPayments();
+            $refreshBtn?.click();
             return;
         }
         if (isCtrlPressed && keyLower === 'f') {
@@ -966,7 +1182,7 @@ interface Window {
     // ── Exposed for inline onclick handlers ────────────────
     window._paymentUI = {
         viewPayment: function (id: string): void {
-            openDetailsModalById(id);
+            window.location.href = `/payment/details?id=${id}`;
         },
         editPayment: function (id: string): void {
             const payment = allPayments.find((p: IPaymentRecord) => p._id === id);

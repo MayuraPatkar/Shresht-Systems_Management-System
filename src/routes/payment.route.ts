@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { PaymentModel, CustomerModel, SupplierModel, InvoiceModel, PurchaseModel, ServiceModel } from '../models';
 import { Types } from 'mongoose';
 import logger from '../utils/logger';
@@ -107,30 +107,206 @@ async function resolveReferenceLink(reference_type: string | undefined, referenc
     return { type: reference_type as ReferenceType, id: str };
 }
 
-function normalizePaymentResponse(payment: any) {
+function normalizePaymentResponse(
+    payment: any, 
+    customerMap?: Map<string, any>, 
+    supplierMap?: Map<string, any>,
+    invoiceMap?: Map<string, any>,
+    purchaseMap?: Map<string, any>,
+    serviceMap?: Map<string, any>
+) {
     if (!payment) return payment;
     const obj = typeof payment.toObject === 'function' ? payment.toObject() : { ...payment };
-    const partyType = obj.party?.type || obj.party_type;
-    const partyRef = obj.party?.ref || obj.party_id;
-    const partyId = obj.party?.id;
+    let partyType = obj.party?.type || obj.party_type;
+    let partyRef = obj.party?.ref || obj.party_id;
+    let partyId = obj.party?.id || obj.party_display_id;
     const referenceType = obj.reference?.type || obj.reference_type;
     const referenceRef = obj.reference?.ref || obj.reference_id;
     const referenceId = obj.reference?.id;
+
+    // Dynamically resolve party from reference if it is missing
+    if (!partyRef && referenceRef) {
+        if (referenceType === 'Invoice' && invoiceMap) {
+            const inv = invoiceMap.get(referenceRef.toString());
+            if (inv && inv.customer_id) {
+                partyType = 'Customer';
+                partyRef = inv.customer_id;
+            }
+        } else if (referenceType === 'Purchase' && purchaseMap) {
+            const pu = purchaseMap.get(referenceRef.toString());
+            if (pu && pu.supplier_id) {
+                partyType = 'Supplier';
+                partyRef = pu.supplier_id;
+            }
+        } else if (referenceType === 'Service' && serviceMap && invoiceMap) {
+            const sv = serviceMap.get(referenceRef.toString());
+            if (sv && sv.invoice_id) {
+                const inv = invoiceMap.get(sv.invoice_id.toString());
+                if (inv && inv.customer_id) {
+                    partyType = 'Customer';
+                    partyRef = inv.customer_id;
+                }
+            }
+        }
+    }
+
+    let partyName = undefined;
+    if (partyType === 'Customer' && partyRef && customerMap) {
+        const c = customerMap.get(partyRef.toString());
+        if (c) {
+            partyName = c.customer?.name;
+            if (!partyId) partyId = c.customer_id;
+        }
+    } else if (partyType === 'Supplier' && partyRef && supplierMap) {
+        const s = supplierMap.get(partyRef.toString());
+        if (s) {
+            partyName = s.supplier_name;
+            if (!partyId) partyId = s.supplier_id;
+        }
+    }
 
     return {
         ...obj,
         party_type: partyType,
         party_id: partyRef ? String(partyRef) : undefined,
         party_display_id: partyId,
+        party_name: partyName,
         reference_type: referenceType,
         reference_id: referenceId || (referenceRef ? String(referenceRef) : undefined),
         reference_ref: referenceRef ? String(referenceRef) : undefined,
     };
 }
 
-function normalizePaymentResponses(payments: any[]) {
-    return payments.map(normalizePaymentResponse);
+async function enrichSinglePayment(payment: any) {
+    if (!payment) return payment;
+    const obj = typeof payment.toObject === 'function' ? payment.toObject() : { ...payment };
+    let partyType = obj.party?.type || obj.party_type;
+    let partyRef = obj.party?.ref || obj.party_id;
+    let partyId = obj.party?.id || obj.party_display_id;
+    const referenceType = obj.reference?.type || obj.reference_type;
+    const referenceRef = obj.reference?.ref || obj.reference_id;
+
+    // Dynamically resolve party from reference if it is missing
+    if (!partyRef && referenceRef) {
+        if (referenceType === 'Invoice') {
+            const inv = await InvoiceModel.findById(referenceRef, { customer_id: 1 }).lean();
+            if (inv && inv.customer_id) {
+                partyType = 'Customer';
+                partyRef = inv.customer_id;
+            }
+        } else if (referenceType === 'Purchase') {
+            const pu = await PurchaseModel.findById(referenceRef, { supplier_id: 1 }).lean();
+            if (pu && pu.supplier_id) {
+                partyType = 'Supplier';
+                partyRef = pu.supplier_id;
+            }
+        } else if (referenceType === 'Service') {
+            const sv = await ServiceModel.findById(referenceRef, { invoice_id: 1 }).lean();
+            if (sv && sv.invoice_id) {
+                const inv = await InvoiceModel.findById(sv.invoice_id, { customer_id: 1 }).lean();
+                if (inv && inv.customer_id) {
+                    partyType = 'Customer';
+                    partyRef = inv.customer_id;
+                }
+            }
+        }
+    }
+
+    let partyName = undefined;
+    if (partyType === 'Customer' && partyRef) {
+        const c = await CustomerModel.findById(partyRef, { 'customer.name': 1, customer_id: 1 }).lean();
+        if (c) {
+            partyName = c.customer?.name;
+            if (!partyId) partyId = c.customer_id;
+        }
+    } else if (partyType === 'Supplier' && partyRef) {
+        const s = await SupplierModel.findById(partyRef, { supplier_name: 1, supplier_id: 1 }).lean();
+        if (s) {
+            partyName = s.supplier_name;
+            if (!partyId) partyId = s.supplier_id;
+        }
+    }
+
+    const norm = normalizePaymentResponse(obj);
+    norm.party_type = partyType;
+    norm.party_id = partyRef ? String(partyRef) : undefined;
+    norm.party_display_id = partyId;
+    norm.party_name = partyName;
+    return norm;
 }
+
+async function normalizePaymentResponses(payments: any[]) {
+    const customers = await CustomerModel.find({}, { 'customer.name': 1, customer_id: 1 }).lean();
+    const suppliers = await SupplierModel.find({}, { supplier_name: 1, supplier_id: 1 }).lean();
+    const customerMap = new Map(customers.map(c => [c._id.toString(), c]));
+    const supplierMap = new Map(suppliers.map(s => [s._id.toString(), s]));
+
+    const invoices = await InvoiceModel.find({}, { customer_id: 1 }).lean();
+    const purchases = await PurchaseModel.find({}, { supplier_id: 1 }).lean();
+    const services = await ServiceModel.find({}, { invoice_id: 1 }).lean();
+
+    const invoiceMap = new Map(invoices.map(i => [i._id.toString(), i]));
+    const purchaseMap = new Map(purchases.map(p => [p._id.toString(), p]));
+    const serviceMap = new Map(services.map(s => [s._id.toString(), s]));
+
+    return payments.map(p => normalizePaymentResponse(p, customerMap, supplierMap, invoiceMap, purchaseMap, serviceMap));
+}
+
+/**
+ * GET /payment/get-parties/:type
+ * Fetch party names for suggestions
+ */
+router.get('/get-parties/:type', async (req: Request, res: Response) => {
+    try {
+        const type = req.params.type; // 'Customer' or 'Supplier'
+        let parties: any[] = [];
+
+        if (type === 'Customer') {
+            parties = await CustomerModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'customer.name': 1, _id: 1 }).lean();
+            res.json(parties.map(p => ({ id: p._id, name: p.customer.name })));
+        } else if (type === 'Supplier') {
+            parties = await SupplierModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'supplier_name': 1, _id: 1 }).lean();
+            res.json(parties.map(p => ({ id: p._id, name: p.supplier_name })));
+        } else {
+            res.status(400).json({ success: false, message: 'Invalid party type' });
+        }
+    } catch (error: unknown) {
+        logger.error('Error fetching parties:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+/**
+ * GET /payment/get-party-details/:type/:partyName
+ * Fetch details for a specific party
+ */
+router.get('/get-party-details/:type/:partyName', async (req: Request, res: Response) => {
+    try {
+        const { type, partyName } = req.params;
+        let party: any = null;
+
+        if (type === 'Customer') {
+            party = await CustomerModel.findOne({
+                'customer.name': partyName,
+                'deletion.is_deleted': { $ne: true }
+            }).lean();
+        } else if (type === 'Supplier') {
+            party = await SupplierModel.findOne({
+                'supplier_name': partyName,
+                'deletion.is_deleted': { $ne: true }
+            }).lean();
+        }
+
+        if (!party) {
+            return res.status(404).json({ success: false, message: 'Party not found' });
+        }
+
+        res.json({ success: true, party });
+    } catch (error: unknown) {
+        logger.error('Error fetching party details:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
 
 /**
  * GET /payment/get-parties/:type
@@ -197,7 +373,7 @@ router.get('/all', async (req: Request, res: Response) => {
         const payments = await PaymentModel.find({
             'deletion.is_deleted': { $ne: true }
         }).sort({ payment_date: -1 }).lean();
-        res.status(200).json({ success: true, payments: normalizePaymentResponses(payments) });
+        res.status(200).json({ success: true, payments: await normalizePaymentResponses(payments) });
     } catch (error: unknown) {
         logger.error('Error fetching payments:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
@@ -269,7 +445,7 @@ router.get('/search/:query', async (req: Request, res: Response) => {
                 { direction: { $regex: query, $options: 'i' } }
             ]
         } as any).sort({ payment_date: -1 }).lean();
-        res.status(200).json({ success: true, payments: normalizePaymentResponses(payments) });
+        res.status(200).json({ success: true, payments: await normalizePaymentResponses(payments) });
     } catch (error: unknown) {
         logger.error('Error searching payments:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
@@ -280,13 +456,17 @@ router.get('/search/:query', async (req: Request, res: Response) => {
  * GET /payment/:id
  * Get single payment by MongoDB _id
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+    const paramId = String(req.params.id || '');
+    if (!Types.ObjectId.isValid(paramId)) {
+        return next();
+    }
     try {
-        const payment = await PaymentModel.findById(req.params.id).lean();
+        const payment = await PaymentModel.findById(paramId).lean();
         if (!payment) {
             return res.status(404).json({ success: false, message: 'Payment not found' });
         }
-        res.status(200).json({ success: true, payment: normalizePaymentResponse(payment) });
+        res.status(200).json({ success: true, payment: await enrichSinglePayment(payment) });
     } catch (error: unknown) {
         logger.error('Error fetching payment:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
@@ -337,7 +517,7 @@ router.post('/create', async (req: Request, res: Response) => {
         await payment.save();
 
         logger.info('Payment created', { paymentId: payment._id, direction, amount, mode });
-        res.status(201).json({ success: true, message: 'Payment created successfully', payment: normalizePaymentResponse(payment) });
+        res.status(201).json({ success: true, message: 'Payment created successfully', payment: await enrichSinglePayment(payment) });
     } catch (error: unknown) {
         logger.error('Error creating payment:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
@@ -398,7 +578,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         await payment.save();
 
         logger.info('Payment updated', { paymentId: payment._id });
-        res.status(200).json({ success: true, message: 'Payment updated successfully', payment: normalizePaymentResponse(payment) });
+        res.status(200).json({ success: true, message: 'Payment updated successfully', payment: await enrichSinglePayment(payment) });
     } catch (error: unknown) {
         logger.error('Error updating payment:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
@@ -449,6 +629,30 @@ router.get('/get-party-details-by-id/:type/:id', async (req: Request, res: Respo
         }
     } catch (error: unknown) {
         logger.error('Error fetching party details by ID:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+router.get('/get-reference-details/:type/:id', async (req: Request, res: Response) => {
+    try {
+        const { type, id } = req.params;
+        let details: any = null;
+
+        if (type === 'Invoice') {
+            details = await InvoiceModel.findById(id).lean();
+        } else if (type === 'Purchase') {
+            details = await PurchaseModel.findById(id).lean();
+        } else if (type === 'Service') {
+            details = await ServiceModel.findById(id).lean();
+        }
+
+        if (details) {
+            res.json({ success: true, details });
+        } else {
+            res.status(404).json({ success: false, message: 'Reference not found' });
+        }
+    } catch (error: unknown) {
+        logger.error('Error fetching reference details:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });

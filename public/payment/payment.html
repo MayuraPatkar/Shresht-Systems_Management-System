@@ -14,6 +14,20 @@
         body {
             font-family: 'Inter', sans-serif;
             overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        input,
+        textarea,
+        select,
+        [contenteditable="true"] {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
         }
 
         .fade-in {
@@ -174,11 +188,11 @@
                     <i class="fas fa-truck w-8 text-center"></i>
                     <span>Suppliers</span>
                 </a>
-                <!-- <a href="../purchaseOrder/purchaseOrder.html"
+                <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-shopping-cart w-8 text-center"></i>
                     <span>Purchase Order</span>
-                </a> -->
+                </a>
                 <a href="../invoice/invoice.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
@@ -621,6 +635,32 @@
                         <div class="bg-gray-50 rounded-xl p-4">
                             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Reference</p>
                             <p id="details-reference" class="font-bold text-gray-800 mt-1 break-all">-</p>
+                        </div>
+                    </div>
+
+                    <!-- Expanded Party Details -->
+                    <div id="details-party-expanded" class="hidden bg-blue-50/50 border border-blue-100 rounded-xl p-4 text-sm">
+                        <p class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fas fa-id-card"></i> Expanded Party Info
+                        </p>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
+                            <div><span class="text-gray-500">Phone:</span> <span id="details-party-phone" class="font-semibold text-gray-800">-</span></div>
+                            <div><span class="text-gray-500">GSTIN:</span> <span id="details-party-gstin" class="font-semibold text-gray-800">-</span></div>
+                            <div class="col-span-2"><span class="text-gray-500">Email:</span> <span id="details-party-email" class="font-semibold text-gray-800 break-all">-</span></div>
+                            <div class="col-span-2"><span class="text-gray-500">Address:</span> <span id="details-party-address" class="font-semibold text-gray-800">-</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Expanded Reference Details -->
+                    <div id="details-ref-expanded" class="hidden bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 text-sm">
+                        <p class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fas fa-file-invoice"></i> Expanded Reference Info
+                        </p>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
+                            <div><span class="text-gray-500">Reference ID:</span> <span id="details-ref-id" class="font-semibold text-gray-800">-</span></div>
+                            <div><span class="text-gray-500">Date:</span> <span id="details-ref-date" class="font-semibold text-gray-800">-</span></div>
+                            <div><span class="text-gray-500">Amount:</span> <span id="details-ref-amount" class="font-semibold text-gray-800">-</span></div>
+                            <div><span class="text-gray-500">Status:</span> <span id="details-ref-status" class="font-semibold text-gray-800 uppercase">-</span></div>
                         </div>
                     </div>
 

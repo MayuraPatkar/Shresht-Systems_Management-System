@@ -16,6 +16,7 @@ interface IPaymentRecord {
     party_type?: 'Customer' | 'Supplier';
     party_id?: string;
     party_display_id?: string;
+    party_name?: string;
     reference?: {
         type?: 'Invoice' | 'Purchase' | 'Service' | 'Adjustment';
         id?: string;
