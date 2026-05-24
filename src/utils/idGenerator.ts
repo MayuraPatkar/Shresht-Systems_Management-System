@@ -9,6 +9,7 @@ const moduleToSettingKey: Record<string, { prefix: string }> = {
     invoice: { prefix: "invoice_prefix" },
     quotation: { prefix: "quotation_prefix" },
     purchaseOrder: { prefix: "purchase_prefix" },
+    purchase: { prefix: "purchase_prefix" },
     eWayBill: { prefix: "ewaybill_prefix" },
     service: { prefix: "service_prefix" },
 };

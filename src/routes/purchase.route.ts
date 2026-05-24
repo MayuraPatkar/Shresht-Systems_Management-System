@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { PurchaseOrderModel, ItemModel, StockMovementModel } from '../models';
+import { PurchaseModel, ItemModel, StockMovementModel } from '../models';
 import logger from '../utils/logger';
 import { previewNextId, generateNextId } from '../utils/idGenerator';
 
@@ -12,11 +12,11 @@ const router: Router = Router();
  */
 router.get("/generate-id", async (req: Request, res: Response) => {
     try {
-        const purchase_order_no = await previewNextId('purchaseOrder');
-        return res.status(200).json({ purchase_order_no });
+        const purchase_no = await previewNextId('purchase');
+        return res.status(200).json({ purchase_no });
     } catch (err: unknown) {
-        logger.error('Error generating purchase order preview', { error: (err as Error).message || err });
-        return res.status(500).json({ error: 'Failed to generate purchase order id' });
+        logger.error('Error generating purchase preview', { error: (err as Error).message || err });
+        return res.status(500).json({ error: 'Failed to generate purchase id' });
     }
 });
 
@@ -24,7 +24,7 @@ router.get("/generate-id", async (req: Request, res: Response) => {
 router.get("/suppliers/list", async (req: Request, res: Response) => {
     try {
         // Get all unique supplier names from supplier_snapshot
-        const suppliers = await PurchaseOrderModel.aggregate([
+        const suppliers = await PurchaseModel.aggregate([
             {
                 $group: {
                     _id: "$supplier_snapshot.name",
@@ -64,10 +64,10 @@ router.get("/suppliers/list", async (req: Request, res: Response) => {
     }
 });
 
-router.post("/save-purchase-order", async (req: Request, res: Response) => {
+router.post("/save-purchase", async (req: Request, res: Response) => {
     try {
         const {
-            purchase_order_no,
+            purchase_no,
             purchase_invoice_no,
             purchase_date,
             supplier_snapshot,
@@ -76,38 +76,38 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
         } = req.body;
 
         // Attempt to find an existing document using the provided ID
-        let purchaseOrder: any = null;
-        if (purchase_order_no) {
-            purchaseOrder = await PurchaseOrderModel.findOne({ purchase_order_no });
+        let purchase: any = null;
+        if (purchase_no) {
+            purchase = await PurchaseModel.findOne({ purchase_no });
         }
 
         let previousItems: any[] = [];
 
-        if (purchaseOrder) {
+        if (purchase) {
             // ---------------------------------------------------------
-            // SCENARIO 1: UPDATE EXISTING PURCHASE ORDER
+            // SCENARIO 1: UPDATE EXISTING PURCHASE
             // ---------------------------------------------------------
 
             // Capture previous items for stock reversal logic
-            previousItems = Array.isArray(purchaseOrder.items) ? purchaseOrder.items : [];
+            previousItems = Array.isArray(purchase.items) ? purchase.items : [];
 
             // Update fields
-            purchaseOrder.purchase_invoice_no = purchase_invoice_no;
-            purchaseOrder.purchase_date = purchase_date || new Date();
-            purchaseOrder.supplier_snapshot = supplier_snapshot;
-            purchaseOrder.items = items;
-            purchaseOrder.totals = totals;
+            purchase.purchase_invoice_no = purchase_invoice_no;
+            purchase.purchase_date = purchase_date || new Date();
+            purchase.supplier_snapshot = supplier_snapshot;
+            purchase.items = items;
+            purchase.totals = totals;
 
         } else {
             // ---------------------------------------------------------
-            // SCENARIO 2: CREATE NEW PURCHASE ORDER
+            // SCENARIO 2: CREATE NEW PURCHASE
             // ---------------------------------------------------------
 
             // Generate the permanent ID now (increments the counter)
-            const newId = await generateNextId('purchaseOrder');
+            const newId = await generateNextId('purchase');
 
-            purchaseOrder = new PurchaseOrderModel({
-                purchase_order_no: newId,
+            purchase = new PurchaseModel({
+                purchase_no: newId,
                 purchase_invoice_no: purchase_invoice_no,
                 purchase_date: purchase_date || new Date(),
                 supplier_snapshot,
@@ -119,9 +119,6 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
         // ---------------------------------------------------------
         // STOCK MANAGEMENT LOGIC
         // ---------------------------------------------------------
-
-        // 1. Adjust Stock Quantities (Revert Old + Add New)
-        // We do this to ensure Stock collection is always accurate based on the PO content.
 
         // A. Revert previous items
         if (previousItems.length > 0) {
@@ -176,12 +173,12 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
         }
 
         // 2. Sync Stock Movements (Update Existing, Create New, Delete Removed)
-        const currentPOId = purchase_order_no || (purchaseOrder ? purchaseOrder.purchase_order_no : 'NEW');
+        const currentPurchaseId = purchase_no || (purchase ? purchase.purchase_no : 'NEW');
 
-        // Fetch existing movements for this PO (using new schema: reference.type + reference.id)
+        // Fetch existing movements for this Purchase (reference.type === 'Purchase')
         const existingMovements = await StockMovementModel.find({
-            'reference.type': 'PurchaseOrder',
-            'reference.number': currentPOId
+            'reference.type': 'Purchase',
+            'reference.number': currentPurchaseId
         });
 
         // Create a pool of available movements to match against
@@ -213,7 +210,7 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
                 // Remove from pool so we don't use it again
                 movementPool.splice(matchIndex, 1);
             } else {
-                // CREATE new movement - look up stock item to get ID
+                // CREATE new movement
                 const stockItem = await ItemModel.findOne({ item_name: itemName });
                 const stockQty = stockItem ? (stockItem as any).stock_quantity || 0 : 0;
                 await StockMovementModel.create({
@@ -224,80 +221,80 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
                     stock_before: stockQty - qty,
                     stock_after: stockQty,
                     reference: {
-                        type: 'PurchaseOrder',
-                        id: purchaseOrder._id || undefined,
-                        number: currentPOId
+                        type: 'Purchase',
+                        id: purchase._id || undefined,
+                        number: currentPurchaseId
                     },
-                    remarks: 'Purchase Order Received',
+                    remarks: 'Purchase Received',
                     total_value: totalVal
                 } as any);
             }
         }
 
-        // Delete any remaining movements in the pool (items removed from PO)
+        // Delete any remaining movements in the pool
         for (const unusedMovement of movementPool) {
             await StockMovementModel.deleteOne({ _id: unusedMovement._id });
         }
 
         // Save the document
-        const savedPurchaseOrder = await purchaseOrder.save();
+        const savedPurchase = await purchase.save();
 
         res.status(201).json({
-            message: 'Purchase order saved successfully',
-            purchaseOrder: savedPurchaseOrder,
-            purchase_order_no: savedPurchaseOrder.purchase_order_no // Return the final ID
+            message: 'Purchase saved successfully',
+            purchase: savedPurchase,
+            purchase_no: savedPurchase.purchase_no // Return the final ID
         });
     } catch (error: unknown) {
-        logger.error('Error saving purchase order:', error);
+        logger.error('Error saving purchase:', error);
         res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
     }
 });
 
-// Route to get the 10 most recent purchase orders
-router.get("/recent-purchase-orders", async (req: Request, res: Response) => {
+// Route to get the 10 most recent purchases
+router.get("/recent-purchases", async (req: Request, res: Response) => {
     try {
-        const recentPurchaseOrders = await PurchaseOrderModel.find()
+        const recentPurchases = await PurchaseModel.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("purchase_order_no supplier_snapshot totals purchase_date createdAt");
+            .select("purchase_no supplier_snapshot totals purchase_date createdAt");
 
         res.status(200).json({
-            message: "Recent purchase orders retrieved successfully",
-            purchaseOrder: recentPurchaseOrders,
+            message: "Recent purchases retrieved successfully",
+            purchase: recentPurchases,
         });
     } catch (error: unknown) {
-        logger.error("Error retrieving recent purchase orders:", error);
+        logger.error("Error retrieving recent purchases:", error);
         res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
-// Route to get a purchase order by ID
-router.get("/:purchaseOrderId", async (req: Request, res: Response) => {
+// Route to get a purchase by ID
+router.get("/:purchaseId", async (req: Request, res: Response) => {
     try {
-        const { purchaseOrderId } = req.params;
-        const purchaseOrder = await PurchaseOrderModel.findOne({ purchase_order_no: purchaseOrderId });
-        if (!purchaseOrder) {
-            return res.status(404).json({ message: 'Purchase order not found' });
+        const { purchaseId } = req.params;
+        const purchase = await PurchaseModel.findOne({ purchase_no: purchaseId });
+        if (!purchase) {
+            return res.status(404).json({ message: 'Purchase not found' });
         }
-        res.status(200).json({ message: "Purchase order retrieved successfully", purchaseOrder });
+        res.status(200).json({ message: "Purchase retrieved successfully", purchase });
     } catch (error: unknown) {
-        logger.error("Error retrieving purchase order:", error);
+        logger.error("Error retrieving purchase:", error);
         res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
-// Route to delete a purchase order
-router.delete("/:purchaseOrderId", async (req: Request, res: Response) => {
+// Route to delete a purchase
+router.delete("/:purchaseId", async (req: Request, res: Response) => {
     try {
-        const { purchaseOrderId } = req.params;
-        const purchaseOrder = await PurchaseOrderModel.findOne({ purchase_order_no: purchaseOrderId });
-        if (!purchaseOrder) {
-            return res.status(404).json({ message: 'Purchase order not found' });
+        const { purchaseId } = req.params;
+        const purchase = await PurchaseModel.findOne({ purchase_no: purchaseId });
+        if (!purchase) {
+            return res.status(404).json({ message: 'Purchase not found' });
         }
 
-        // Reverse stock changes (remove the quantity added)
-        if (purchaseOrder.items && purchaseOrder.items.length > 0) {
-            for (const item of purchaseOrder.items) {
+        // Reverse stock changes
+        if (purchase.items && purchase.items.length > 0) {
+            for (const item of purchase.items) {
                 if (!item.description) continue;
                 const stockItem = await ItemModel.findOne({ item_name: item.description }) as any;
                 if (stockItem) {
@@ -309,40 +306,40 @@ router.delete("/:purchaseOrderId", async (req: Request, res: Response) => {
 
         // Delete associated stock movements
         await StockMovementModel.deleteMany({
-            'reference.type': 'PurchaseOrder',
-            'reference.number': purchaseOrderId
+            'reference.type': 'Purchase',
+            'reference.number': purchaseId
         });
 
-        await PurchaseOrderModel.deleteOne({ purchase_order_no: purchaseOrderId });
-        res.status(200).json({ message: 'Purchase order deleted successfully' });
+        await PurchaseModel.deleteOne({ purchase_no: purchaseId });
+        res.status(200).json({ message: 'Purchase deleted successfully' });
     } catch (error: unknown) {
-        logger.error("Error deleting purchase order:", error);
+        logger.error("Error deleting purchase:", error);
         res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
-// Search purchase orders
+// Search purchases
 router.get('/search/:query', async (req: Request, res: Response) => {
     const { query } = req.params;
     if (!query) return res.status(400).send('Query parameter is required.');
 
     try {
-        const purchaseOrders = await PurchaseOrderModel.find({
+        const purchases = await PurchaseModel.find({
             $or: [
-                { purchase_order_no: { $regex: query, $options: 'i' } },
+                { purchase_no: { $regex: query, $options: 'i' } },
                 { 'supplier_snapshot.name': { $regex: query, $options: 'i' } },
                 { 'supplier_snapshot.phone': { $regex: query, $options: 'i' } }
             ]
         } as any);
 
-        if (purchaseOrders.length === 0) {
-            return res.status(404).send('No purchase orders found.');
+        if (purchases.length === 0) {
+            return res.status(404).send('No purchases found.');
         } else {
-            return res.status(200).json({ purchaseOrder: purchaseOrders });
+            return res.status(200).json({ purchase: purchases });
         }
     } catch (err: unknown) {
         logger.error(err);
-        return res.status(500).send('Failed to fetch purchase orders.');
+        return res.status(500).send('Failed to fetch purchases.');
     }
 });
 

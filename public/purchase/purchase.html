@@ -12,22 +12,22 @@
     <link rel="stylesheet" href="../css/shared/documentStyles.css">
     <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
     <link rel="stylesheet" href="../css/purchaseOrder.css">
-    <title>Purchase Bill</title>
+    <title>Purchases</title>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 no-select">
 
     <!-- Fixed Header -->
     <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
         <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
-                <h1 class="text-xl font-bold text-gray-800">Purchase Bill</h1>
+                <h1 class="text-xl font-bold text-gray-800">Purchases</h1>
             </div>
             <div id="search-filter-container" class="flex items-center gap-4 flex-1 max-w-xl mx-8">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search purchase bills..."
+                    <input type="text" id="search-input" placeholder="Search purchases..."
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                 </div>
                 <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
@@ -40,14 +40,27 @@
                     <i class="fas fa-plus"></i>
                     New Purchase
                 </button>
-                <button id="view-preview"
-                    class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium"
-                    style="display: none;">
-                    <i class="fas fa-eye"></i>
-                    View Preview
+                <button id="archived-purchases-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="View Archived Purchases">
+                    <i class="fas fa-archive text-slate-400"></i>
+                    <span>Archived</span>
+                    <span id="archived-count-badge"
+                        class="ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold">0</span>
+                </button>
+                <button id="showDeletedBtn"
+                    class="bg-gray-200 text-gray-700 w-10 h-10 rounded-lg font-semibold flex items-center justify-center hover:bg-gray-300 transition-all cursor-pointer shadow-sm"
+                    title="View Trash">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
                 </button>
                 <button id="home-btn"
-                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium"
+                    style="display: none;">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
@@ -84,12 +97,12 @@
                     <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
-                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-shopping-cart w-8 text-center"></i>
                     <span>Purchase Order</span>
                 </a>
-                <a href="../purchase/purchase.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 hover:bg-gray-100 rounded-lg font-semibold" id="purchaseOnly">
+                <a href="/purchase" id="purchaseOnly"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
                     <i class="fas fa-shopping-bag w-8 text-center"></i>
                     <span>Purchases</span>
                 </a>
@@ -152,9 +165,9 @@
             </div>
         </div>
 
-        <!-- New/Edit Purchase Order Form -->
+        <!-- New/Edit Purchase Form -->
         <div id="new">
-            <form id="purchase-order" class="max-w-6xl mx-auto">
+            <form id="purchase" class="max-w-6xl mx-auto">
                 <input type="hidden" id="id">
 
                 <!-- Step 1: Supplier Details -->
@@ -304,8 +317,6 @@
                             <h2 class="text-2xl font-semibold text-gray-800">Item List</h2>
                         </div>
 
-
-
                         <!-- Items Container for Cards -->
                         <div id="items-container"></div>
 
@@ -395,26 +406,9 @@
                                 <!-- Specifications will be synced here for data collection -->
                             </tbody>
                         </table>
-                    </div>
-                </div>
 
-                <!-- Step 4: Preview -->
-                <div class="steps" id="step-4">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-eye text-purple-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
-                        </div>
-                        <div id="preview-content" class="mb-6">
-                            <!-- Preview will be dynamically generated -->
-                        </div>
-                        <div class="flex gap-3 justify-center mt-6">
-                            <button type="button" id="save-btn"
-                                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-save"></i>
-                                Save
-                            </button>
-                        </div>
+                        <!-- Programmatic/Hidden Save Button mapped to Step 3 -->
+                        <button type="button" id="save-btn" style="display: none;"></button>
                     </div>
                 </div>
 
@@ -436,7 +430,7 @@
             </form>
         </div>
 
-        <!-- View Purchase Order -->
+        <!-- View Purchase Details -->
         <div id="view">
             <div id="project-details-view" class="w-full max-w-6xl mx-auto px-4 space-y-6">
 
@@ -574,29 +568,6 @@
                         </div>
                     </div>
                 </section>
-
-                <!-- Preview & Actions Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-eye text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
-                    </div>
-                    <div id="view-preview-content" class="mb-6">
-                        <!-- Preview content will be loaded here -->
-                    </div>
-                    <div class="flex gap-3 justify-center">
-                        <button type="button" id="print-project"
-                            class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-print"></i>
-                            Print
-                        </button>
-                        <button type="button" id="save-project-pdf"
-                            class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-file-pdf"></i>
-                            Save as PDF
-                        </button>
-                    </div>
-                </section>
             </div>
         </div>
     </main>
@@ -637,8 +608,6 @@
         </div>
     </div>
 
-
-
     <!-- Scripts -->
     <!-- Shared utilities -->
     <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
@@ -655,13 +624,13 @@
     <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
 
     <!-- Module-specific scripts -->
-    <script src="../../dist/public/purchaseOrder/src/services/purchaseOrderApi.js"></script>
-    <script src="../../dist/public/purchaseOrder/src/utils/purchaseOrderFilters.js"></script>
-    <script src="../../dist/public/purchaseOrder/src/utils/keyboardShortcuts.js"></script>
-    <script src="../../dist/public/purchaseOrder/src/components/purchaseOrderView.js"></script>
-    <script src="../../dist/public/purchaseOrder/src/components/purchaseOrderForm.js"></script>
-    <script src="../../dist/public/purchaseOrder/src/components/purchaseOrderTable.js"></script>
-    <script src="../../dist/public/purchaseOrder/src/main.js"></script>
+    <script src="../../dist/public/purchase/src/services/purchaseApi.js"></script>
+    <script src="../../dist/public/purchase/src/utils/purchaseFilters.js"></script>
+    <script src="../../dist/public/purchase/src/utils/keyboardShortcuts.js"></script>
+    <script src="../../dist/public/purchase/src/components/purchaseView.js"></script>
+    <script src="../../dist/public/purchase/src/components/purchaseForm.js"></script>
+    <script src="../../dist/public/purchase/src/components/purchaseTable.js"></script>
+    <script src="../../dist/public/purchase/src/main.js"></script>
 </body>
 
 </html>

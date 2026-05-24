@@ -32,9 +32,9 @@ export interface ISupplierSnapshot {
 }
 
 /**
- * Purchase item interface
+ * Purchase order item interface
  */
-export interface IPurchaseItem {
+export interface IPurchaseOrderItem {
     item_id?: Types.ObjectId;
     description?: string;
     specification?: string;
@@ -64,12 +64,12 @@ export interface ITotals {
 }
 
 /**
- * Purchase document interface
+ * Purchase order document interface
  */
-export interface IPurchase extends Document {
+export interface IPurchaseOrder extends Document {
     schema_version: number;
 
-    purchase_no?: string;
+    purchase_order_no?: string;
     purchase_invoice_no?: string;
     purchase_date: Date;
     due_date?: Date;
@@ -80,7 +80,7 @@ export interface IPurchase extends Document {
     supplier_id?: Types.ObjectId;
     supplier_snapshot?: ISupplierSnapshot;
 
-    items?: IPurchaseItem[];
+    items?: IPurchaseOrderItem[];
 
     totals?: ITotals;
 
@@ -133,9 +133,9 @@ const supplierSnapshotSchema = new Schema<ISupplierSnapshot>(
 );
 
 /**
- * Purchase item sub-schema
+ * Purchase order item sub-schema
  */
-const purchaseItemSchema = new Schema<IPurchaseItem>(
+const purchaseOrderItemSchema = new Schema<IPurchaseOrderItem>(
     {
         item_id: { type: Schema.Types.ObjectId, ref: "Item" },
         description: { type: String, trim: true },
@@ -175,9 +175,9 @@ const totalsSchema = new Schema<ITotals>(
 );
 
 /**
- * Purchase schema
+ * Purchase order schema
  */
-const purchaseSchema = new Schema<IPurchase>(
+const purchaseOrderSchema = new Schema<IPurchaseOrder>(
     {
         schema_version: {
             type: Number,
@@ -185,7 +185,7 @@ const purchaseSchema = new Schema<IPurchase>(
             index: true,
         },
 
-        purchase_no: {
+        purchase_order_no: {
             type: String,
             unique: true,
             sparse: true,
@@ -232,7 +232,7 @@ const purchaseSchema = new Schema<IPurchase>(
             type: supplierSnapshotSchema,
         },
 
-        items: [purchaseItemSchema],
+        items: [purchaseOrderItemSchema],
 
         totals: {
             type: totalsSchema,
@@ -259,12 +259,12 @@ const purchaseSchema = new Schema<IPurchase>(
 /**
  * Indexes
  */
-purchaseSchema.index({ purchase_invoice_no: 1, purchase_date: -1 });
-purchaseSchema.index({ supplier_id: 1, purchase_date: -1 });
-purchaseSchema.index({ "deletion.is_deleted": 1 });
+purchaseOrderSchema.index({ purchase_invoice_no: 1, purchase_date: -1 });
+purchaseOrderSchema.index({ supplier_id: 1, purchase_date: -1 });
+purchaseOrderSchema.index({ "deletion.is_deleted": 1 });
 
 /**
  * Model
  */
-export const PurchaseModel: Model<IPurchase> =
-    mongoose.models.Purchase || mongoose.model<IPurchase>("Purchase", purchaseSchema);
+export const PurchaseOrderModel: Model<IPurchaseOrder> =
+    mongoose.models.PurchaseOrder || mongoose.model<IPurchaseOrder>("PurchaseOrder", purchaseOrderSchema);

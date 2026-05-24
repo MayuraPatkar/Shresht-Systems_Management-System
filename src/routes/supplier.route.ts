@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { SupplierModel, PurchaseModel, PaymentModel } from '../models';
+import { SupplierModel, PurchaseModel, PurchaseOrderModel, PaymentModel } from '../models';
 import logger from '../utils/logger';
 import { Types } from 'mongoose';
 import { generateNextId } from '../utils/idGenerator';
@@ -281,10 +281,21 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
         if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
 
         const relationQuery = buildSupplierRelationQuery(supplierObjectId, supplier);
-        const purchases = await PurchaseModel.find({
+        const directPurchases = await PurchaseModel.find({
             $or: relationQuery,
             'deletion.is_deleted': false
         }).sort({ purchase_date: -1 });
+
+        const purchaseOrders = await PurchaseOrderModel.find({
+            $or: relationQuery,
+            'deletion.is_deleted': false
+        }).sort({ purchase_date: -1 });
+
+        const purchases = [...directPurchases, ...purchaseOrders].sort((a: any, b: any) => {
+            const dateA = new Date(a.purchase_date || a.createdAt).getTime();
+            const dateB = new Date(b.purchase_date || b.createdAt).getTime();
+            return dateB - dateA;
+        });
 
         const purchaseObjectIds = purchases.map((purchase: any) => purchase._id);
         const paymentMatchers: any[] = [
@@ -294,7 +305,9 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
         if (purchaseObjectIds.length > 0) {
             paymentMatchers.push(
                 { 'reference.type': 'Purchase', 'reference.ref': { $in: purchaseObjectIds } },
-                { reference_type: 'Purchase', reference_id: { $in: purchaseObjectIds } }
+                { reference_type: 'Purchase', reference_id: { $in: purchaseObjectIds } },
+                { 'reference.type': 'PurchaseOrder', 'reference.ref': { $in: purchaseObjectIds } },
+                { reference_type: 'PurchaseOrder', reference_id: { $in: purchaseObjectIds } }
             );
         }
 

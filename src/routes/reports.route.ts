@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { InvoiceModel, PurchaseModel, ItemModel, StockMovementModel, ReportModel, ServiceModel } from '../models';
+import { InvoiceModel, PurchaseModel, PurchaseOrderModel, ItemModel, StockMovementModel, ReportModel, ServiceModel } from '../models';
 import logger from '../utils/logger';
 
 const router: Router = Router();
@@ -249,7 +249,7 @@ router.get('/purchase-gst', async (req: Request, res: Response) => {
         const startDate = new Date(reportYear, reportMonth - 1, 1);
         const endDate = new Date(reportYear, reportMonth, 0, 23, 59, 59, 999);
 
-        const purchaseOrders = await PurchaseModel.find({ purchase_date: { $gte: startDate, $lte: endDate } }).sort({ purchase_date: 1 }) as any[];
+        const purchaseOrders = await PurchaseOrderModel.find({ purchase_date: { $gte: startDate, $lte: endDate } }).sort({ purchase_date: 1 }) as any[];
 
         const rateBreakdown: Record<string, any> = {};
         let totalTaxableValue = 0, totalCGST = 0, totalSGST = 0, totalIGST = 0, totalPurchaseValue = 0;

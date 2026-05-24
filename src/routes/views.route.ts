@@ -15,6 +15,7 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/quotation', file: 'quotation/quotation.html' },
     { route: '/ewaybill', file: 'ewaybill/eWayBill.html' },
     { route: '/purchaseorder', file: 'purchaseOrder/purchaseOrder.html' },
+    { route: '/purchase', file: 'purchase/purchase.html' },
     { route: '/service', file: 'service/service.html' },
     { route: '/payment', file: 'payment/payment.html' },
     { route: '/payment/details', file: 'payment/payment_details.html' },

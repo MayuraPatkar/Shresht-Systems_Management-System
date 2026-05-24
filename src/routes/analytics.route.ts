@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { InvoiceModel, QuotationModel, PurchaseModel, CustomerModel } from '../models';
+import { InvoiceModel, QuotationModel, PurchaseModel, PurchaseOrderModel, CustomerModel } from '../models';
 import logger from '../utils/logger';
 
 const router: Router = Router();
@@ -49,7 +49,7 @@ router.get('/overview', async (req: Request, res: Response) => {
 
         /* ─────────────────────── Monthly purchase expenditure ─────────────────── */
         // Use $or to match either purchase_date or createdAt within current month
-        const [{ total: totalExpenditure = 0 } = {}] = await PurchaseModel.aggregate([
+        const [{ total: directExpenditure = 0 } = {}] = await PurchaseModel.aggregate([
             {
                 $match: {
                     $or: [
@@ -58,8 +58,22 @@ router.get('/overview', async (req: Request, res: Response) => {
                     ],
                 },
             },
-            { $group: { _id: null, total: { $sum: '$total_amount' } } },
+            { $group: { _id: null, total: { $sum: '$totals.grand_total' } } },
         ]);
+
+        const [{ total: orderExpenditure = 0 } = {}] = await PurchaseOrderModel.aggregate([
+            {
+                $match: {
+                    $or: [
+                        { purchase_date: { $gte: startOfMonth, $lt: startNextMon } },
+                        { createdAt: { $gte: startOfMonth, $lt: startNextMon } },
+                    ],
+                },
+            },
+            { $group: { _id: null, total: { $sum: '$totals.grand_total' } } },
+        ]);
+
+        const totalExpenditure = directExpenditure + orderExpenditure;
 
         /* ────────────────────── Pending services (invoices due for service) ───────────── */
         // Count invoices where service is due now (same logic as /service/get-service)

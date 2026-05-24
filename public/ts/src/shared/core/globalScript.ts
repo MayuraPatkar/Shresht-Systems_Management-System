@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     '/quotation': 'quotation',
     '/supplier': 'supplier',
     '/purchaseorder': 'postOrder',
+    '/purchase': 'purchaseOnly',
     '/invoice': 'invoice',
     '/ewaybill': 'wayBill',
     '/service': 'service',
@@ -70,6 +71,7 @@ if (!window._ctrlTabNavRegistered) {
         '/quotation',
         '/supplier',
         '/purchaseorder',
+        '/purchase',
         '/invoice',
         '/ewaybill',
         '/service',
@@ -136,6 +138,11 @@ document.getElementById('supplier')?.addEventListener('click', () => {
 document.getElementById('postOrder')?.addEventListener('click', () => {
   window.location = '/purchaseorder';
   sessionStorage.setItem('currentTab', 'purchaseorder');
+})
+
+document.getElementById('purchaseOnly')?.addEventListener('click', () => {
+  window.location = '/purchase';
+  sessionStorage.setItem('currentTab', 'purchase');
 })
 
 document.getElementById('wayBill')?.addEventListener('click', () => {
@@ -329,7 +336,7 @@ if (nextBtn) {
       if (!isValid) return;
     }
 
-    const isInvoice = window.location.pathname.toLowerCase().includes('/invoice');
+    const isInvoice = window.location.pathname.toLowerCase().includes('/invoice') || window.location.pathname.toLowerCase().includes('/purchase');
     if (isInvoice && currentStep === totalSteps) {
       const saveBtn = document.getElementById("save-btn");
       if (saveBtn) {
@@ -399,7 +406,7 @@ function updateNavigation() {
   const prevBtn = document.getElementById("prev-btn");
   const nextBtn = document.getElementById("next-btn");
   const saveBtn = document.getElementById("save-btn");
-  const isInvoice = window.location.pathname.toLowerCase().includes('/invoice');
+  const isInvoice = window.location.pathname.toLowerCase().includes('/invoice') || window.location.pathname.toLowerCase().includes('/purchase');
 
   if (prevBtn) prevBtn.disabled = currentStep === 1;
 
@@ -1335,6 +1342,9 @@ document.addEventListener('DOMContentLoaded', () => {
         newButtonId = 'new-invoice';
       } else if (path.includes('/purchaseorder')) {
         sessionStorage.setItem('currentTab', 'purchaseorder');
+        newButtonId = 'new-purchase';
+      } else if (path.includes('/purchase')) {
+        sessionStorage.setItem('currentTab', 'purchase');
         newButtonId = 'new-purchase';
       } else if (path.includes('/stock')) {
         sessionStorage.setItem('currentTab', 'stock');

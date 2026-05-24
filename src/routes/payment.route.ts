@@ -1,12 +1,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { PaymentModel, CustomerModel, SupplierModel, InvoiceModel, PurchaseModel, ServiceModel } from '../models';
+import { PaymentModel, CustomerModel, SupplierModel, InvoiceModel, PurchaseModel, PurchaseOrderModel, ServiceModel } from '../models';
 import { Types } from 'mongoose';
 import logger from '../utils/logger';
 
 const router: Router = Router();
 
 type PartyType = 'Customer' | 'Supplier';
-type ReferenceType = 'Invoice' | 'Purchase' | 'Service' | 'Adjustment';
+type ReferenceType = 'Invoice' | 'Purchase' | 'PurchaseOrder' | 'Service' | 'Adjustment';
 
 async function resolvePartyLink(party_type: string | undefined, partyIdRaw: any) {
     if (!party_type || !partyIdRaw) return undefined;
@@ -78,7 +78,18 @@ async function resolveReferenceLink(reference_type: string | undefined, referenc
         } else if (reference_type === 'Purchase') {
             const pu = Types.ObjectId.isValid(str)
                 ? await PurchaseModel.findById(str).lean()
-                : await PurchaseModel.findOne({ $or: [{ purchase_invoice_no: str }, { purchase_order_no: str }] }).lean();
+                : await PurchaseModel.findOne({ $or: [{ purchase_invoice_no: str }, { purchase_no: str }] }).lean();
+            if (pu) {
+                return {
+                    type: reference_type as ReferenceType,
+                    id: pu.purchase_no || pu.purchase_invoice_no || str,
+                    ref: new Types.ObjectId(pu._id)
+                };
+            }
+        } else if (reference_type === 'PurchaseOrder') {
+            const pu = Types.ObjectId.isValid(str)
+                ? await PurchaseOrderModel.findById(str).lean()
+                : await PurchaseOrderModel.findOne({ $or: [{ purchase_invoice_no: str }, { purchase_order_no: str }] }).lean();
             if (pu) {
                 return {
                     type: reference_type as ReferenceType,
@@ -132,7 +143,7 @@ function normalizePaymentResponse(
                 partyType = 'Customer';
                 partyRef = inv.customer_id;
             }
-        } else if (referenceType === 'Purchase' && purchaseMap) {
+        } else if ((referenceType === 'Purchase' || referenceType === 'PurchaseOrder') && purchaseMap) {
             const pu = purchaseMap.get(referenceRef.toString());
             if (pu && pu.supplier_id) {
                 partyType = 'Supplier';
@@ -200,6 +211,12 @@ async function enrichSinglePayment(payment: any) {
                 partyType = 'Supplier';
                 partyRef = pu.supplier_id;
             }
+        } else if (referenceType === 'PurchaseOrder') {
+            const pu = await PurchaseOrderModel.findById(referenceRef, { supplier_id: 1 }).lean();
+            if (pu && pu.supplier_id) {
+                partyType = 'Supplier';
+                partyRef = pu.supplier_id;
+            }
         } else if (referenceType === 'Service') {
             const sv = await ServiceModel.findById(referenceRef, { invoice_id: 1 }).lean();
             if (sv && sv.invoice_id) {
@@ -243,11 +260,15 @@ async function normalizePaymentResponses(payments: any[]) {
 
     const invoices = await InvoiceModel.find({}, { customer_id: 1 }).lean();
     const purchases = await PurchaseModel.find({}, { supplier_id: 1 }).lean();
+    const purchaseOrders = await PurchaseOrderModel.find({}, { supplier_id: 1 }).lean();
     const services = await ServiceModel.find({}, { invoice_id: 1 }).lean();
 
-    const invoiceMap = new Map(invoices.map(i => [i._id.toString(), i]));
-    const purchaseMap = new Map(purchases.map(p => [p._id.toString(), p]));
-    const serviceMap = new Map(services.map(s => [s._id.toString(), s]));
+    const invoiceMap = new Map(invoices.map(i => [i._id.toString(), i] as [string, any]));
+    const purchaseMap = new Map<string, any>([
+        ...purchases.map(p => [p._id.toString(), p] as [string, any]),
+        ...purchaseOrders.map(po => [po._id.toString(), po] as [string, any])
+    ]);
+    const serviceMap = new Map(services.map(s => [s._id.toString(), s] as [string, any]));
 
     return payments.map(p => normalizePaymentResponse(p, customerMap, supplierMap, invoiceMap, purchaseMap, serviceMap));
 }
@@ -642,6 +663,8 @@ router.get('/get-reference-details/:type/:id', async (req: Request, res: Respons
             details = await InvoiceModel.findById(id).lean();
         } else if (type === 'Purchase') {
             details = await PurchaseModel.findById(id).lean();
+        } else if (type === 'PurchaseOrder') {
+            details = await PurchaseOrderModel.findById(id).lean();
         } else if (type === 'Service') {
             details = await ServiceModel.findById(id).lean();
         }
