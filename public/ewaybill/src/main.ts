@@ -25,6 +25,9 @@
 
     // Filter state
     let allWayBills: EWayBill[] = [];
+    (window as any).statusFilter = '';
+    (window as any).showDeletedItems = false;
+    let currentFilteredEWayBills: EWayBill[] = [];
     let currentFilters = {
         dateFilter: 'all',
         sortBy: 'date-desc',
@@ -91,6 +94,172 @@
             }, 300));
         }
 
+        const archivedBtn = document.getElementById('archived-ewaybills-btn');
+        if (archivedBtn) {
+            archivedBtn.onclick = () => {
+                if ((window as any).statusFilter === 'archived') {
+                    (window as any).statusFilter = '';
+                } else {
+                    (window as any).statusFilter = 'archived';
+                }
+                loadRecentWayBills();
+            };
+        }
+
+        const showDeletedBtn = document.getElementById('showDeletedBtn');
+        if (showDeletedBtn) {
+            showDeletedBtn.onclick = () => {
+                (window as any).showDeletedItems = !(window as any).showDeletedItems;
+                
+                if ((window as any).showDeletedItems) {
+                    showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+                    showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
+                    showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> Close Trash';
+                    showDeletedBtn.title = 'Close Trash';
+                } else {
+                    showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+                    showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
+                    showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    showDeletedBtn.title = 'View Trash';
+                }
+                if (typeof (window as any).updateHeaderVisibility === 'function') {
+                    (window as any).updateHeaderVisibility();
+                }
+                loadRecentWayBills();
+            };
+        }
+
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                const icon = refreshBtn.querySelector('i');
+                if (icon) icon.classList.add('animate-spin');
+                loadRecentWayBills().finally(() => {
+                    setTimeout(() => {
+                        if (icon) icon.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+        }
+
+        const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+        const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+        function updateBulkButtonLabels() {
+            const query = wbSearchInput ? wbSearchInput.value.trim() : '';
+            const isFiltered = query !== '' ||
+                               currentFilters.dateFilter !== 'all' ||
+                               currentFilters.sortBy !== 'date-desc';
+            
+            if (bulkRestoreBtn) {
+                const span = bulkRestoreBtn.querySelector('span');
+                if (span) {
+                    span.textContent = isFiltered ? 'Restore All Filtered' : 'Restore All';
+                }
+            }
+            if (bulkDeleteBtn) {
+                const span = bulkDeleteBtn.querySelector('span');
+                if (span) {
+                    span.textContent = isFiltered ? 'Delete All Filtered' : 'Delete All';
+                }
+            }
+        }
+        (window as any).updateBulkButtonLabels = updateBulkButtonLabels;
+
+        if (bulkRestoreBtn) {
+            bulkRestoreBtn.onclick = () => {
+                const filteredData = currentFilteredEWayBills || [];
+                if (filteredData.length === 0) {
+                    if (electronAPI?.showAlert1) {
+                        electronAPI.showAlert1('No e-way bills to restore.');
+                    } else {
+                        alert('No e-way bills to restore.');
+                    }
+                    return;
+                }
+
+                const query = wbSearchInput ? wbSearchInput.value.trim() : '';
+                const isFiltered = query !== '' ||
+                                   currentFilters.dateFilter !== 'all' ||
+                                   currentFilters.sortBy !== 'date-desc';
+                const message = `Are you sure you want to restore all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}e-way bills?`;
+
+                if (electronAPI?.showAlert2) {
+                    electronAPI.showAlert2(message);
+                    electronAPI.receiveAlertResponse(async (response: string) => {
+                        if (response === 'Yes') {
+                            try {
+                                const ids = filteredData.map(w => w._id).filter(Boolean) as string[];
+                                await (window as any).ewaybillApi.bulkRestoreEWayBills(ids);
+                                loadRecentWayBills();
+                            } catch (err) {
+                                console.error('Bulk restore failed:', err);
+                            }
+                        }
+                    });
+                } else {
+                    if (confirm(message)) {
+                        (async () => {
+                            try {
+                                const ids = filteredData.map(w => w._id).filter(Boolean) as string[];
+                                await (window as any).ewaybillApi.bulkRestoreEWayBills(ids);
+                                loadRecentWayBills();
+                            } catch (err) {
+                                console.error('Bulk restore failed:', err);
+                            }
+                        })();
+                    }
+                }
+            };
+        }
+
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.onclick = () => {
+                const filteredData = currentFilteredEWayBills || [];
+                if (filteredData.length === 0) {
+                    if (electronAPI?.showAlert1) {
+                        electronAPI.showAlert1('No e-way bills to delete.');
+                    } else {
+                        alert('No e-way bills to delete.');
+                    }
+                    return;
+                }
+
+                const query = wbSearchInput ? wbSearchInput.value.trim() : '';
+                const isFiltered = query !== '' ||
+                                   currentFilters.dateFilter !== 'all' ||
+                                   currentFilters.sortBy !== 'date-desc';
+                const message = `Are you sure you want to permanently delete all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}e-way bills? This action cannot be undone.`;
+
+                if (electronAPI?.showAlert2) {
+                    electronAPI.showAlert2(message);
+                    electronAPI.receiveAlertResponse(async (response: string) => {
+                        if (response === 'Yes') {
+                            try {
+                                const ids = filteredData.map(w => w._id).filter(Boolean) as string[];
+                                await (window as any).ewaybillApi.bulkHardDeleteEWayBills(ids);
+                                loadRecentWayBills();
+                            } catch (err) {
+                                console.error('Bulk delete failed:', err);
+                            }
+                        }
+                    });
+                } else {
+                    if (confirm(message)) {
+                        (async () => {
+                            try {
+                                const ids = filteredData.map(w => w._id).filter(Boolean) as string[];
+                                await (window as any).ewaybillApi.bulkHardDeleteEWayBills(ids);
+                                loadRecentWayBills();
+                            } catch (err) {
+                                console.error('Bulk delete failed:', err);
+                            }
+                        })();
+                    }
+                }
+            };
+        }
+
         document.getElementById('view-preview')?.addEventListener('click', async () => {
             // Navigate step-by-step to trigger validation at each step
             const navigateToPreview = async () => {
@@ -152,6 +321,105 @@
                     shortcutsModal.classList.add('hidden');
                 }
             });
+        }
+
+        // Header Visibility Observer Setup
+        const homeSection = document.getElementById('home');
+        const newSection = document.getElementById('new');
+        const viewSection = document.getElementById('view');
+        const homeBtn = document.getElementById('home-btn');
+
+        const updateHeaderVisibility = () => {
+            const isHomeVisible = homeSection ? window.getComputedStyle(homeSection).display !== 'none' : true;
+            const isFormActive = newSection ? window.getComputedStyle(newSection).display !== 'none' : false;
+            const isViewActive = viewSection ? window.getComputedStyle(viewSection).display !== 'none' : false;
+
+            const searchWrapper = document.getElementById('search-wrapper');
+            const rBtn = document.getElementById('refresh-btn');
+            const aBtn = document.getElementById('archived-ewaybills-btn');
+            const sDelBtn = document.getElementById('showDeletedBtn');
+            const vPrevBtn = document.getElementById('view-preview');
+            const newWbBtn = document.getElementById('new-waybill-btn');
+            const bRestoreBtn = document.getElementById('bulk-restore-btn');
+            const bDeleteBtn = document.getElementById('bulk-delete-btn');
+
+            if (isFormActive) {
+                if (searchWrapper) searchWrapper.style.display = 'none';
+                if (rBtn) rBtn.style.display = 'none';
+                if (aBtn) aBtn.style.display = 'none';
+                if (sDelBtn) sDelBtn.style.display = 'none';
+                if (vPrevBtn) vPrevBtn.style.display = 'none';
+                if (newWbBtn) newWbBtn.style.display = 'none';
+                if (homeBtn) homeBtn.style.display = 'flex';
+                if (bRestoreBtn) {
+                    bRestoreBtn.style.display = 'none';
+                    bRestoreBtn.classList.add('hidden');
+                }
+                if (bDeleteBtn) {
+                    bDeleteBtn.style.display = 'none';
+                    bDeleteBtn.classList.add('hidden');
+                }
+            } else if (isViewActive) {
+                if (searchWrapper) searchWrapper.style.display = 'none';
+                if (rBtn) rBtn.style.display = 'none';
+                if (aBtn) aBtn.style.display = 'none';
+                if (sDelBtn) sDelBtn.style.display = 'none';
+                if (vPrevBtn) vPrevBtn.style.display = 'none';
+                if (newWbBtn) newWbBtn.style.display = 'flex';
+                if (homeBtn) homeBtn.style.display = 'flex';
+                if (bRestoreBtn) {
+                    bRestoreBtn.style.display = 'none';
+                    bRestoreBtn.classList.add('hidden');
+                }
+                if (bDeleteBtn) {
+                    bDeleteBtn.style.display = 'none';
+                    bDeleteBtn.classList.add('hidden');
+                }
+            } else {
+                if (searchWrapper) searchWrapper.style.display = 'flex';
+                if (rBtn) rBtn.style.display = 'flex';
+                if (sDelBtn) sDelBtn.style.display = 'flex';
+                if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
+                if (vPrevBtn) vPrevBtn.style.display = 'none';
+
+                const isTrashOpen = !!(window as any).showDeletedItems;
+                if (isTrashOpen) {
+                    if (aBtn) aBtn.style.display = 'none';
+                    if (newWbBtn) newWbBtn.style.display = 'none';
+                    if (bRestoreBtn) {
+                        bRestoreBtn.style.display = 'flex';
+                        bRestoreBtn.classList.remove('hidden');
+                    }
+                    if (bDeleteBtn) {
+                        bDeleteBtn.style.display = 'flex';
+                        bDeleteBtn.classList.remove('hidden');
+                    }
+                } else {
+                    if (aBtn) aBtn.style.display = 'flex';
+                    if (newWbBtn) newWbBtn.style.display = 'flex';
+                    if (bRestoreBtn) {
+                        bRestoreBtn.style.display = 'none';
+                        bRestoreBtn.classList.add('hidden');
+                    }
+                    if (bDeleteBtn) {
+                        bDeleteBtn.style.display = 'none';
+                        bDeleteBtn.classList.add('hidden');
+                    }
+                }
+            }
+        };
+
+        if (homeSection && homeBtn) {
+            const observer = new MutationObserver(updateHeaderVisibility);
+            observer.observe(homeSection, { attributes: true, attributeFilter: ['style'] });
+            if (newSection) {
+                observer.observe(newSection, { attributes: true, attributeFilter: ['style'] });
+            }
+            if (viewSection) {
+                observer.observe(viewSection, { attributes: true, attributeFilter: ['style'] });
+            }
+            (window as any).updateHeaderVisibility = updateHeaderVisibility;
+            updateHeaderVisibility();
         }
 
         initShortcutsModal();
@@ -504,12 +772,65 @@
         }
     }
 
+    const updateArchivedCount = async () => {
+        try {
+            const archived = await (window as any).ewaybillApi.fetchRecentEWayBills('archived', false);
+            const countBadge = document.getElementById('archived-count-badge');
+            if (countBadge) {
+                countBadge.textContent = archived.length.toString();
+            }
+        } catch (err) {
+            console.error('Failed to update archived count:', err);
+        }
+    };
+    (window as any).updateArchivedCount = updateArchivedCount;
+
+    function updateArchivedButtonVisuals() {
+        const archivedBtn = document.getElementById('archived-ewaybills-btn') as HTMLButtonElement | null;
+        if (!archivedBtn) return;
+
+        const icon = archivedBtn.querySelector('i');
+        const badge = document.getElementById('archived-count-badge');
+
+        if ((window as any).statusFilter === 'archived') {
+            archivedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+            archivedBtn.classList.add('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+            
+            if (icon) {
+                icon.className = 'fas fa-box-open text-white';
+            }
+            if (badge) {
+                badge.classList.remove('bg-slate-100', 'text-slate-600');
+                badge.classList.add('bg-white', 'text-amber-600', 'font-extrabold');
+            }
+        } else {
+            archivedBtn.classList.remove('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+            archivedBtn.classList.add('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+
+            if (icon) {
+                icon.className = 'fas fa-archive text-slate-400';
+            }
+            if (badge) {
+                badge.classList.remove('bg-white', 'text-amber-600', 'font-extrabold');
+                badge.classList.add('bg-slate-100', 'text-slate-600');
+            }
+        }
+    }
+
     // Load recent way bills from the server
     async function loadRecentWayBills() {
         const ewaybillApi = (window as any).ewaybillApi;
         try {
-            allWayBills = await ewaybillApi.fetchRecentEWayBills();
+            const status = (window as any).statusFilter || '';
+            const deleted = !!(window as any).showDeletedItems;
+            allWayBills = await ewaybillApi.fetchRecentEWayBills(status, deleted);
             applyWayBillFilters();
+            updateArchivedCount();
+            updateArchivedButtonVisuals();
+            const updateBulkLabels = (window as any).updateBulkButtonLabels;
+            if (typeof updateBulkLabels === 'function') {
+                updateBulkLabels();
+            }
         } catch (error) {
             console.error("Error loading e-way bills:", error);
             wayBillsListDiv.innerHTML = `
@@ -531,6 +852,7 @@
             });
         }
     }
+    (window as any).loadRecentWayBills = loadRecentWayBills;
 
     // Apply filters to waybills
     function applyWayBillFilters() {
@@ -538,10 +860,11 @@
             dateFilter: currentFilters.dateFilter,
             sortBy: currentFilters.sortBy,
             dateField: 'createdAt',
-            nameField: 'project_name',
+            nameField: 'ewaybill_no',
             customStartDate: currentFilters.customStartDate,
             customEndDate: currentFilters.customEndDate
         });
+        currentFilteredEWayBills = filtered;
         renderWayBills(filtered);
     }
 
@@ -624,16 +947,55 @@
     function renderWayBills(wayBills: EWayBill[]) {
         if (!wayBillsListDiv) return;
         wayBillsListDiv.innerHTML = "";
+
+        const isTrash = !!(window as any).showDeletedItems;
+        const isArchivedView = !isTrash && (window as any).statusFilter === 'archived';
+
         if (!wayBills || wayBills.length === 0) {
-            wayBillsListDiv.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-                    <div class="text-blue-500 text-5xl mb-4">
-                        <i class="fas fa-route"></i>
+            const wbSearchInput = document.getElementById('search-input') as HTMLInputElement | null;
+            const hasSearch = wbSearchInput && wbSearchInput.value.trim() !== '';
+
+            if (isTrash) {
+                wayBillsListDiv.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                        <div class="text-rose-500 text-5xl mb-4">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Trash is Empty</h2>
+                        <p class="text-gray-600">No soft-deleted e-way bills found</p>
                     </div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">No E-Way Bills Found</h2>
-                    <p class="text-gray-600">Start creating e-way bills for your deliveries</p>
-                </div>
-            `;
+                `;
+            } else if (isArchivedView) {
+                wayBillsListDiv.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                        <div class="text-amber-500 text-5xl mb-4">
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No Archived E-Way Bills</h2>
+                        <p class="text-gray-600">E-way bills you archive will show up here</p>
+                    </div>
+                `;
+            } else if (hasSearch) {
+                wayBillsListDiv.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                        <div class="text-yellow-500 text-5xl mb-4">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
+                        <p class="text-gray-500">No e-way bills match your search</p>
+                    </div>
+                `;
+            } else {
+                wayBillsListDiv.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                        <div class="text-blue-500 text-5xl mb-4">
+                            <i class="fas fa-route"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No E-Way Bills Found</h2>
+                        <p class="text-gray-600">Start creating e-way bills for your deliveries</p>
+                    </div>
+                `;
+            }
             return;
         }
         wayBills.forEach(wayBill => {
@@ -645,7 +1007,21 @@
     // Create a way bill card element
     function createWayBillCard(wayBill: EWayBill): HTMLElement {
         const wayBillDiv = document.createElement("div");
-        wayBillDiv.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400 overflow-hidden fade-in";
+        
+        const isTrash = !!(window as any).showDeletedItems;
+        const isArchived = !isTrash && wayBill.is_archived;
+        
+        let cardBgClass = "bg-white border-gray-200 hover:border-blue-400";
+        let borderAccentClass = "bg-gradient-to-b from-blue-500 to-cyan-600";
+        if (isTrash) {
+            cardBgClass = "bg-rose-50/50 border-rose-200 hover:border-rose-300";
+            borderAccentClass = "bg-rose-500";
+        } else if (isArchived) {
+            cardBgClass = "bg-amber-50/30 border-amber-200 hover:border-amber-300";
+            borderAccentClass = "bg-amber-500";
+        }
+        
+        wayBillDiv.className = `group rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border overflow-hidden fade-in ${cardBgClass}`;
 
         // Format the date for display using unified function (DD/MM/YYYY)
         const dateToFormat = wayBill.ewaybill_generated_at || wayBill.createdAt;
@@ -671,7 +1047,7 @@
         wayBillDiv.innerHTML = `
             <!-- Left Border Accent -->
             <div class="flex">
-                <div class="w-1.5 bg-gradient-to-b from-blue-500 to-cyan-600 rounded-l-lg"></div>
+                <div class="w-1.5 ${borderAccentClass} rounded-l-lg"></div>
                 <div class="relative p-5 flex-1">
                 <!-- Top Row: Header with Title & Actions -->
                 <div class="flex items-center justify-between mb-4">
@@ -687,15 +1063,27 @@
                     
                     <!-- Actions -->
                     <div class="flex items-center gap-2">
-                        <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        ${isTrash || isArchived ? `
+                            <button class="action-btn restore-card-btn px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-emerald-300 active:scale-95 cursor-pointer" title="Restore">
+                                <i class="fas ${isTrash ? 'fa-trash-restore' : 'fa-box-open'}"></i> Restore
+                            </button>
+                            <button class="action-btn hard-delete-card-btn px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-rose-300 active:scale-95 cursor-pointer" title="Delete Forever">
+                                <i class="fas fa-trash-alt"></i> Delete Forever
+                            </button>
+                        ` : `
+                            <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn archive-btn px-4 py-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 transition-all border border-amber-200 hover:border-amber-400" title="Archive">
+                                <i class="fas fa-archive"></i>
+                            </button>
+                            <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        `}
                     </div>
                 </div>
                 
@@ -746,41 +1134,109 @@
             </div>
         `;
 
-        const viewBtn = wayBillDiv.querySelector('.view-btn') as HTMLButtonElement;
-        const editBtn = wayBillDiv.querySelector('.edit-btn') as HTMLButtonElement;
-        const deleteBtn = wayBillDiv.querySelector('.delete-btn') as HTMLButtonElement;
-
         // Use MongoDB _id for all operations
         const wayBillMongoId = wayBill._id || '';
 
-        // Action button handlers
-        viewBtn.addEventListener('click', () => {
-            if (typeof (window as any).viewWayBill === 'function') {
-                (window as any).viewWayBill(wayBillMongoId);
-            }
-        });
+        if (isTrash || isArchived) {
+            const restoreBtn = wayBillDiv.querySelector('.restore-card-btn') as HTMLButtonElement;
+            const hardDeleteBtn = wayBillDiv.querySelector('.hard-delete-card-btn') as HTMLButtonElement;
 
-        editBtn.addEventListener('click', () => {
-            sessionStorage.setItem('currentTab-status', 'update');
-            if (typeof (window as any).openWayBill === 'function') {
-                (window as any).openWayBill(wayBillMongoId);
-            }
-        });
-
-        deleteBtn.addEventListener('click', () => {
-            if (typeof electronAPI !== 'undefined' && electronAPI.showAlert2) {
-                electronAPI.showAlert2('Are you sure you want to delete this e-way bill?');
-                electronAPI.receiveAlertResponse((response: string) => {
-                    if (response === "Yes") {
-                        deleteWayBillHandler(wayBillMongoId);
+            restoreBtn.addEventListener('click', async () => {
+                try {
+                    if (isTrash) {
+                        await (window as any).ewaybillApi.restoreEWayBillFromTrash(wayBillMongoId);
+                    } else {
+                        await (window as any).ewaybillApi.restoreEWayBill(wayBillMongoId);
                     }
-                });
-            } else {
-                if (confirm('Are you sure you want to delete this e-way bill?')) {
-                    deleteWayBillHandler(wayBillMongoId);
+                    loadRecentWayBills();
+                } catch (err) {
+                    console.error('Restore failed:', err);
                 }
-            }
-        });
+            });
+
+            hardDeleteBtn.addEventListener('click', () => {
+                const message = 'Are you sure you want to permanently delete this e-way bill? This action cannot be undone.';
+                if (electronAPI?.showAlert2) {
+                    electronAPI.showAlert2(message);
+                    electronAPI.receiveAlertResponse(async (response: string) => {
+                        if (response === "Yes") {
+                            try {
+                                await (window as any).ewaybillApi.hardDeleteEWayBill(wayBillMongoId);
+                                loadRecentWayBills();
+                            } catch (err) {
+                                console.error('Hard delete failed:', err);
+                            }
+                        }
+                    });
+                } else {
+                    if (confirm(message)) {
+                        (async () => {
+                            try {
+                                await (window as any).ewaybillApi.hardDeleteEWayBill(wayBillMongoId);
+                                loadRecentWayBills();
+                            } catch (err) {
+                                console.error('Hard delete failed:', err);
+                            }
+                        })();
+                    }
+                }
+            });
+        } else {
+            const viewBtn = wayBillDiv.querySelector('.view-btn') as HTMLButtonElement;
+            const editBtn = wayBillDiv.querySelector('.edit-btn') as HTMLButtonElement;
+            const archiveBtn = wayBillDiv.querySelector('.archive-btn') as HTMLButtonElement;
+            const deleteBtn = wayBillDiv.querySelector('.delete-btn') as HTMLButtonElement;
+
+            viewBtn.addEventListener('click', () => {
+                if (typeof (window as any).viewWayBill === 'function') {
+                    (window as any).viewWayBill(wayBillMongoId);
+                }
+            });
+
+            editBtn.addEventListener('click', () => {
+                sessionStorage.setItem('currentTab-status', 'update');
+                if (typeof (window as any).openWayBill === 'function') {
+                    (window as any).openWayBill(wayBillMongoId);
+                }
+            });
+
+            archiveBtn.addEventListener('click', async () => {
+                try {
+                    await (window as any).ewaybillApi.archiveEWayBill(wayBillMongoId);
+                    loadRecentWayBills();
+                } catch (err) {
+                    console.error('Archive failed:', err);
+                }
+            });
+
+            deleteBtn.addEventListener('click', () => {
+                const message = 'Are you sure you want to delete this e-way bill?';
+                if (electronAPI?.showAlert2) {
+                    electronAPI.showAlert2(message);
+                    electronAPI.receiveAlertResponse(async (response: string) => {
+                        if (response === "Yes") {
+                            try {
+                                await (window as any).ewaybillApi.deleteEWayBill(wayBillMongoId);
+                                loadRecentWayBills();
+                            } catch (err) {
+                                console.error('Delete failed:', err);
+                            }
+                        }
+                    });
+                } else {
+                    if (confirm(message)) {
+                        (async () => {
+                            try {
+                                await (window as any).ewaybillApi.deleteEWayBill(wayBillMongoId);
+                                loadRecentWayBills();
+                            } catch (err) {
+                                console.error('Delete failed:', err);
+                            }
+                        })();
+                    }
+                }
+            });
+        }
 
         return wayBillDiv;
     }

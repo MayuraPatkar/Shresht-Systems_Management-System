@@ -35,6 +35,12 @@ interface EWayBill {
     cgst?: number;
     sgst?: number;
     total_invoice_value?: number;
+    is_archived?: boolean;
+    deletion?: {
+        is_deleted: boolean;
+        deleted_at?: string;
+        deleted_by?: string;
+    };
     createdAt?: string;
     updatedAt?: string;
 }

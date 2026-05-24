@@ -6,9 +6,17 @@
     class EWayBillApi {
         private baseUrl = '/eWayBill';
 
-        async fetchRecentEWayBills(): Promise<EWayBill[]> {
+        async fetchRecentEWayBills(status?: string, deleted?: boolean): Promise<EWayBill[]> {
             try {
-                const response = await fetch(`${this.baseUrl}/recent-ewaybills`);
+                let url = `${this.baseUrl}/recent-ewaybills`;
+                const params = new URLSearchParams();
+                if (status) params.append('status', status);
+                if (deleted !== undefined) params.append('deleted', deleted.toString());
+                const queryString = params.toString();
+                if (queryString) {
+                    url += `?${queryString}`;
+                }
+                const response = await fetch(url);
                 if (!response.ok) throw new Error('Failed to fetch recent e-way bills');
                 const data = await response.json();
                 return data.eWayBill || [];
@@ -93,6 +101,88 @@
                 return data.invoice;
             } catch (error) {
                 console.error('Error fetching invoice:', error);
+                throw error;
+            }
+        }
+
+        async archiveEWayBill(id: string): Promise<any> {
+            try {
+                const response = await fetch(`${this.baseUrl}/${id}/archive`, { method: 'PUT' });
+                if (!response.ok) throw new Error('Failed to archive e-way bill');
+                return await response.json();
+            } catch (error) {
+                console.error('Error in archiveEWayBill:', error);
+                throw error;
+            }
+        }
+
+        async restoreEWayBill(id: string): Promise<any> {
+            try {
+                const response = await fetch(`${this.baseUrl}/${id}/restore`, { method: 'PUT' });
+                if (!response.ok) throw new Error('Failed to restore e-way bill');
+                return await response.json();
+            } catch (error) {
+                console.error('Error in restoreEWayBill:', error);
+                throw error;
+            }
+        }
+
+        async restoreEWayBillFromTrash(id: string): Promise<any> {
+            try {
+                const response = await fetch(`${this.baseUrl}/restoreItem`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemId: id })
+                });
+                if (!response.ok) throw new Error('Failed to restore e-way bill from trash');
+                return await response.json();
+            } catch (error) {
+                console.error('Error in restoreEWayBillFromTrash:', error);
+                throw error;
+            }
+        }
+
+        async hardDeleteEWayBill(id: string): Promise<any> {
+            try {
+                const response = await fetch(`${this.baseUrl}/hardDeleteItem`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemId: id })
+                });
+                if (!response.ok) throw new Error('Failed to permanently delete e-way bill');
+                return await response.json();
+            } catch (error) {
+                console.error('Error in hardDeleteEWayBill:', error);
+                throw error;
+            }
+        }
+
+        async bulkRestoreEWayBills(ids: string[]): Promise<any> {
+            try {
+                const response = await fetch(`${this.baseUrl}/bulkRestore`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemIds: ids })
+                });
+                if (!response.ok) throw new Error('Failed to bulk restore e-way bills');
+                return await response.json();
+            } catch (error) {
+                console.error('Error in bulkRestoreEWayBills:', error);
+                throw error;
+            }
+        }
+
+        async bulkHardDeleteEWayBills(ids: string[]): Promise<any> {
+            try {
+                const response = await fetch(`${this.baseUrl}/bulkHardDelete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemIds: ids })
+                });
+                if (!response.ok) throw new Error('Failed to bulk permanently delete e-way bills');
+                return await response.json();
+            } catch (error) {
+                console.error('Error in bulkHardDeleteEWayBills:', error);
                 throw error;
             }
         }

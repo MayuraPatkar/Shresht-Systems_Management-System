@@ -24,34 +24,65 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">E-Way Bill</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
+            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8" id="search-wrapper">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     <input type="text" id="search-input" placeholder="Search e-way bills..."
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        class="w-full pl-10 pr-4 h-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
+                <button id="filter-btn" class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer">
                     <i class="fas fa-filter"></i>
                 </button>
             </div>
             <div class="flex items-center gap-3">
                 <button id="new-waybill-btn"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                    class="bg-blue-600 text-white w-40 h-10 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer">
                     <i class="fas fa-plus"></i>
                     New E-Way Bill
                 </button>
+                <button id="archived-ewaybills-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="View Archived E-Way Bills">
+                    <i class="fas fa-archive text-slate-400"></i>
+                    <span>Archived</span>
+                    <span id="archived-count-badge"
+                        class="ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold">0</span>
+                </button>
+                <button id="bulk-restore-btn"
+                    class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="Restore All Filtered">
+                    <i class="fas fa-trash-restore"></i>
+                    <span>Restore All Filtered</span>
+                </button>
+                <button id="bulk-delete-btn"
+                    class="hidden bg-rose-600 hover:bg-rose-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="Delete All Filtered">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Delete All Filtered</span>
+                </button>
+                <button id="showDeletedBtn"
+                    class="bg-gray-200 text-gray-700 w-10 h-10 rounded-lg font-semibold flex items-center justify-center hover:bg-gray-300 transition-all cursor-pointer shadow-sm animate-fade-in"
+                    title="View Trash">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
                 <button id="view-preview"
-                    class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium"
+                    class="bg-purple-600 text-white w-36 h-10 rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer"
                     style="display: none;">
                     <i class="fas fa-eye"></i>
                     View Preview
                 </button>
                 <button id="home-btn"
-                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
+                    class="bg-gray-600 text-white w-36 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer"
+                    style="display: none;">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
-                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
