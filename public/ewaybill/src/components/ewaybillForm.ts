@@ -208,13 +208,84 @@
             return true;
         } catch (error) {
             console.error('Error importing invoice:', error);
-            if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
+            const invoiceIdInput = document.getElementById('invoice-id') as HTMLInputElement | null;
+            if (invoiceIdInput) {
+                showInlineError(invoiceIdInput, 'Failed to import invoice. Please check the Invoice ID.');
+            } else if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
                 electronAPI.showAlert1('Failed to import invoice. Please check the Invoice ID.');
             } else {
                 alert('Failed to import invoice. Please check the Invoice ID.');
             }
             return false;
         }
+    }
+
+    // Show an inline error message below an input field
+    function showInlineError(input: HTMLElement, message: string) {
+        if (!input.id) {
+            input.id = 'input-val-' + Math.random().toString(36).substring(2, 11);
+        }
+        clearInlineError(input);
+
+        // Apply error borders
+        input.style.borderColor = '#ef4444';
+        input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+
+        // Accessibility
+        input.setAttribute('aria-invalid', 'true');
+        const errorId = `${input.id}-error`;
+        input.setAttribute('aria-describedby', errorId);
+
+        // Create error message node
+        const errorMsg = document.createElement('div');
+        errorMsg.id = errorId;
+        errorMsg.className = 'error-message-inline';
+        errorMsg.style.cssText = 'font-size: 11px; font-weight: 600; color: #dc2626; margin-top: 4px; transition: all 0.2s ease-in-out;';
+        errorMsg.textContent = message;
+
+        const parent = input.parentElement;
+        if (parent) {
+            parent.appendChild(errorMsg);
+        }
+
+        // Auto-clear on user input
+        const clearHandler = () => {
+            clearInlineError(input);
+            input.removeEventListener('input', clearHandler);
+            input.removeEventListener('change', clearHandler);
+        };
+        input.addEventListener('input', clearHandler);
+        input.addEventListener('change', clearHandler);
+    }
+
+    // Clear an inline error message for an input
+    function clearInlineError(input: HTMLElement) {
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+        input.removeAttribute('aria-invalid');
+        input.removeAttribute('aria-describedby');
+
+        const errorId = `${input.id}-error`;
+        const errorMsg = document.getElementById(errorId);
+        if (errorMsg) {
+            errorMsg.remove();
+        }
+    }
+
+    // Clear all inline errors in the current step
+    function clearStepErrors(stepNumber: number) {
+        const stepEl = document.getElementById(`step-${stepNumber}`);
+        if (!stepEl) return;
+        const errorMsgs = stepEl.querySelectorAll('.error-message-inline');
+        errorMsgs.forEach(el => el.remove());
+
+        const errorInputs = stepEl.querySelectorAll('[aria-invalid="true"]');
+        errorInputs.forEach(input => {
+            (input as HTMLElement).style.borderColor = '';
+            (input as HTMLElement).style.boxShadow = '';
+            input.removeAttribute('aria-invalid');
+            input.removeAttribute('aria-describedby');
+        });
     }
 
     // Validate current step
@@ -224,14 +295,13 @@
 
         // Step 1: Invoice ID is required - fetch and populate data
         if ((window as any).currentStep === 1) {
+            clearStepErrors(1);
             const invoiceId = document.getElementById('invoice-id') as HTMLInputElement | null;
             if (!invoiceId || !invoiceId.value.trim()) {
-                if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
-                    electronAPI.showAlert1('Please enter an Invoice ID.');
-                } else {
-                    alert('Please enter an Invoice ID.');
+                if (invoiceId) {
+                    showInlineError(invoiceId, 'Please enter an Invoice ID.');
+                    invoiceId.focus();
                 }
-                invoiceId?.focus();
                 return false;
             }
 
@@ -241,11 +311,8 @@
             if (!isEditing) {
                 const exists = await ewaybillApi.checkInvoiceExists(invoiceId.value.trim());
                 if (exists) {
-                    if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
-                        electronAPI.showAlert1('An E-Way Bill already exists for this Invoice. Each invoice can only have one E-Way Bill.');
-                    } else {
-                        alert('An E-Way Bill already exists for this Invoice. Each invoice can only have one E-Way Bill.');
-                    }
+                    showInlineError(invoiceId, 'An E-Way Bill already exists for this Invoice. Each invoice can only have one E-Way Bill.');
+                    invoiceId.focus();
                     return false;
                 }
             }
@@ -259,14 +326,13 @@
 
         // Step 2: E-Way Bill Number is required
         if ((window as any).currentStep === 2) {
+            clearStepErrors(2);
             const ewaybillNo = document.getElementById('ewaybill-no') as HTMLInputElement | null;
             if (!ewaybillNo || !ewaybillNo.value.trim()) {
-                if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
-                    electronAPI.showAlert1('Please enter an E-Way Bill Number.');
-                } else {
-                    alert('Please enter an E-Way Bill Number.');
+                if (ewaybillNo) {
+                    showInlineError(ewaybillNo, 'Please enter an E-Way Bill Number.');
+                    ewaybillNo.focus();
                 }
-                ewaybillNo?.focus();
                 return false;
             }
 
@@ -279,58 +345,59 @@
                 currentEWayBillId || null
             );
             if (exists) {
-                if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
-                    electronAPI.showAlert1('An E-Way Bill with this number already exists. Please enter a unique E-Way Bill Number.');
-                } else {
-                    alert('An E-Way Bill with this number already exists. Please enter a unique E-Way Bill Number.');
-                }
-                ewaybillNo?.focus();
+                showInlineError(ewaybillNo, 'An E-Way Bill with this number already exists. Please enter a unique E-Way Bill Number.');
+                ewaybillNo.focus();
                 return false;
             }
         }
 
         // Step 3: Address details must be filled
         if ((window as any).currentStep === 3) {
+            clearStepErrors(3);
             const fromAddress = document.getElementById('from-address') as HTMLTextAreaElement | null;
             const toAddress = document.getElementById('to-address') as HTMLTextAreaElement | null;
+            let isValid = true;
+            let firstInvalidInput: HTMLElement | null = null;
+
             if (!fromAddress || !fromAddress.value.trim()) {
-                if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
-                    electronAPI.showAlert1('Please enter the From Address.');
-                } else {
-                    alert('Please enter the From Address.');
+                if (fromAddress) {
+                    showInlineError(fromAddress, 'Please enter the From Address.');
+                    if (!firstInvalidInput) firstInvalidInput = fromAddress;
                 }
-                fromAddress?.focus();
-                return false;
+                isValid = false;
             }
             if (!toAddress || !toAddress.value.trim()) {
-                if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
-                    electronAPI.showAlert1('Please enter the To Address.');
-                } else {
-                    alert('Please enter the To Address.');
+                if (toAddress) {
+                    showInlineError(toAddress, 'Please enter the To Address.');
+                    if (!firstInvalidInput) firstInvalidInput = toAddress;
                 }
-                toAddress?.focus();
+                isValid = false;
+            }
+
+            if (!isValid) {
+                firstInvalidInput?.focus();
                 return false;
             }
         }
 
         // Step 4: Transportation mode is required
         if ((window as any).currentStep === 4) {
+            clearStepErrors(4);
             const transportMode = document.getElementById('transport-mode') as HTMLSelectElement | null;
             if (!transportMode || !transportMode.value.trim()) {
-                if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
-                    electronAPI.showAlert1('Please select a Transportation Mode.');
-                } else {
-                    alert('Please select a Transportation Mode.');
+                if (transportMode) {
+                    showInlineError(transportMode, 'Please select a Transportation Mode.');
+                    transportMode.focus();
                 }
-                transportMode?.focus();
                 return false;
             }
         }
 
         // Step 5: Items check
         if ((window as any).currentStep === 5) {
-            const itemsTable = document.querySelector('#items-table tbody') as HTMLTableSectionElement | null;
-            if (!itemsTable || itemsTable.rows.length === 0) {
+            clearStepErrors(5);
+            const itemCards = document.querySelectorAll('#items-container .item-card');
+            if (itemCards.length === 0) {
                 if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
                     electronAPI.showAlert1('Please add at least one item.');
                 } else {
@@ -338,38 +405,46 @@
                 }
                 return false;
             }
-            for (let index = 0; index < itemsTable.rows.length; index++) {
-                const row = itemsTable.rows[index];
-                const desc = row.querySelector('td:nth-child(2) input[type="text"]') as HTMLInputElement | null;
-                const qty = row.querySelector('td:nth-child(4) input') as HTMLInputElement | null;
-                const price = row.querySelector('td:nth-child(5) input') as HTMLInputElement | null;
-                if (!desc || !desc.value.trim()) {
-                    if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
-                        electronAPI.showAlert1(`Item #${index + 1}: Description is required.`);
-                    } else {
-                        alert(`Item #${index + 1}: Description is required.`);
+
+            let isValid = true;
+            let firstInvalidInput: HTMLElement | null = null;
+
+            for (let i = 0; i < itemCards.length; i++) {
+                const card = itemCards[i] as HTMLElement;
+                const desc = card.querySelector('.item-field.description input[type="text"]') as HTMLInputElement | null;
+                const qty = card.querySelector('.item-field.qty input') as HTMLInputElement | null;
+                const price = card.querySelector('.item-field.price input') as HTMLInputElement | null;
+
+                if (desc) {
+                    if (!desc.value.trim()) {
+                        showInlineError(desc, 'Description is required.');
+                        if (!firstInvalidInput) firstInvalidInput = desc;
+                        isValid = false;
                     }
-                    desc?.focus();
-                    return false;
                 }
-                if (!qty || Number(qty.value) <= 0) {
-                    if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
-                        electronAPI.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
-                    } else {
-                        alert(`Item #${index + 1}: Quantity must be greater than 0.`);
+
+                if (qty) {
+                    const qtyVal = Number(qty.value);
+                    if (!qty.value.trim() || isNaN(qtyVal) || qtyVal <= 0) {
+                        showInlineError(qty, 'Quantity must be greater than 0.');
+                        if (!firstInvalidInput) firstInvalidInput = qty;
+                        isValid = false;
                     }
-                    qty?.focus();
-                    return false;
                 }
-                if (!price || !price.value.trim() || Number(price.value) <= 0) {
-                    if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
-                        electronAPI.showAlert1(`Item #${index + 1}: Unit Price must be greater than 0.`);
-                    } else {
-                        alert(`Item #${index + 1}: Unit Price must be greater than 0.`);
+
+                if (price) {
+                    const priceVal = Number(price.value);
+                    if (!price.value.trim() || isNaN(priceVal) || priceVal <= 0) {
+                        showInlineError(price, 'Unit Price must be greater than 0.');
+                        if (!firstInvalidInput) firstInvalidInput = price;
+                        isValid = false;
                     }
-                    price?.focus();
-                    return false;
                 }
+            }
+
+            if (!isValid) {
+                firstInvalidInput?.focus();
+                return false;
             }
         }
 
