@@ -521,10 +521,26 @@
             }
 
             const fromAddressEl = document.getElementById('from-address') as HTMLTextAreaElement | null;
-            if (fromAddressEl) fromAddressEl.value = wayBill.from_address || '';
+            if (fromAddressEl) {
+                if (typeof wayBill.from_address === 'string') {
+                    fromAddressEl.value = wayBill.from_address;
+                } else if (wayBill.from_address) {
+                    fromAddressEl.value = [wayBill.from_address.line1, wayBill.from_address.line2, wayBill.from_address.city, wayBill.from_address.state && wayBill.from_address.pincode ? `${wayBill.from_address.state} - ${wayBill.from_address.pincode}` : wayBill.from_address.state || wayBill.from_address.pincode].filter(Boolean).join(', ');
+                } else {
+                    fromAddressEl.value = '';
+                }
+            }
 
             const toAddressEl = document.getElementById('to-address') as HTMLTextAreaElement | null;
-            if (toAddressEl) toAddressEl.value = wayBill.to_address || '';
+            if (toAddressEl) {
+                if (typeof wayBill.to_address === 'string') {
+                    toAddressEl.value = wayBill.to_address;
+                } else if (wayBill.to_address) {
+                    toAddressEl.value = [wayBill.to_address.line1, wayBill.to_address.line2, wayBill.to_address.city, wayBill.to_address.state && wayBill.to_address.pincode ? `${wayBill.to_address.state} - ${wayBill.to_address.pincode}` : wayBill.to_address.state || wayBill.to_address.pincode].filter(Boolean).join(', ');
+                } else {
+                    toAddressEl.value = '';
+                }
+            }
 
             // Transport details
             const transport = wayBill.transport || {};

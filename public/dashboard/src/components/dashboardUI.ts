@@ -116,8 +116,16 @@ class DashboardUI {
 
                 const waybills = waybillsData?.eWayBill || waybillsData || [];
                 (Array.isArray(waybills) ? waybills : []).slice(0, 5).forEach((w: any) => {
+                    let toAddressStr = '';
+                    if (w.to_address) {
+                        if (typeof w.to_address === 'string') {
+                            toAddressStr = w.to_address;
+                        } else {
+                            toAddressStr = [w.to_address.line1, w.to_address.line2, w.to_address.city].filter(Boolean).join(', ');
+                        }
+                    }
                     const displayId = w.ewaybill_no || w._id || 'N/A';
-                    const description = w.to_address ? `To: ${w.to_address.split('\n')[0].substring(0, 50)}` : 'E-Way Bill';
+                    const description = toAddressStr ? `To: ${toAddressStr.split('\n')[0].substring(0, 50)}` : 'E-Way Bill';
                     activities.push({
                         type: 'waybill',
                         icon: 'fa-truck',
