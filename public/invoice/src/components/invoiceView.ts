@@ -440,6 +440,7 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
     let view_totalCGST = 0;
     let view_totalSGST = 0;
     let view_grandTotal = 0;
+    let totalQty = 0;
 
     let view_nonItemsTaxable = 0;
     let view_nonItemsCGST = 0;
@@ -619,40 +620,38 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
     }
 
     const itemsTableContainer = document.getElementById("view-items-table-container");
-    const itemsSummaryGrid = document.getElementById("view-items-summary-grid");
     const itemsEmptyState = document.getElementById("view-items-empty-state");
 
     if (itemsForType.length === 0) {
         if (itemsTableContainer) itemsTableContainer.classList.add("hidden");
-        if (itemsSummaryGrid) itemsSummaryGrid.classList.add("hidden");
         if (itemsEmptyState) itemsEmptyState.classList.remove("hidden");
     } else {
         if (itemsTableContainer) itemsTableContainer.classList.remove("hidden");
-        if (itemsSummaryGrid) itemsSummaryGrid.classList.remove("hidden");
         if (itemsEmptyState) itemsEmptyState.classList.add("hidden");
 
         const detailItemsTableBody = document.querySelector("#view-items-table tbody");
         const detailItemsTableHead = document.querySelector("#view-items-table thead tr");
+        const detailItemsTableFoot = document.querySelector("#view-items-table tfoot");
         if (detailItemsTableHead) {
             if (showTax) {
                 detailItemsTableHead.innerHTML = `
-                    <th class="w-[8%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S.No</th>
-                    <th class="w-[27%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
-                    <th class="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
-                    <th class="w-[8%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
-                    <th class="w-[12%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
-                    <th class="w-[12%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Taxable Value</th>
-                    <th class="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax %</th>
-                    <th class="w-[13%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
+                    <th class="w-[8%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">S.No</th>
+                    <th class="w-[27%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Description</th>
+                    <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">HSN/SAC</th>
+                    <th class="w-[8%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Qty</th>
+                    <th class="w-[12%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Unit Price</th>
+                    <th class="w-[12%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Taxable Value</th>
+                    <th class="w-[10%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Tax %</th>
+                    <th class="w-[13%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Total</th>
                 `;
             } else {
                 detailItemsTableHead.innerHTML = `
-                    <th class="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S.No</th>
-                    <th class="w-[45%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
-                    <th class="w-[15%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
-                    <th class="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
-                    <th class="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
-                    <th class="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
+                    <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">S.No</th>
+                    <th class="w-[45%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Description</th>
+                    <th class="w-[15%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">HSN/SAC</th>
+                    <th class="w-[10%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Qty</th>
+                    <th class="w-[10%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Unit Price</th>
+                    <th class="w-[10%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Total</th>
                 `;
             }
         }
@@ -660,6 +659,7 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
         if (detailItemsTableBody) {
             detailItemsTableBody.innerHTML = "";
             sno = 0;
+            totalQty = 0;
             itemsForType.forEach(item => {
                 sno++;
                 const qty = parseFloat(String(item.quantity || 0));
@@ -671,6 +671,8 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
                 const cgstValue = (taxableValue * cgstPercent) / 100;
                 const sgstValue = (taxableValue * sgstPercent) / 100;
                 const rowTotal = showTax ? (taxableValue + cgstValue + sgstValue) : taxableValue;
+                
+                totalQty += qty;
                 view_totalTaxable += taxableValue;
                 if (showTax) {
                     view_totalCGST += cgstValue;
@@ -685,63 +687,81 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
                         <td class="px-4 py-3 text-sm text-gray-900">${sno}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.hsn_sac || item.HSN_SAC || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(taxableValue, 2) || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">${(item.gst_rate !== undefined && item.gst_rate !== null) ? item.gst_rate + '%' : (item.rate ? item.rate + '%' : '-')}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(rowTotal, 2) || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-900 tabular-nums">${item.quantity || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-700 tabular-nums">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-700 tabular-nums">₹ ${formatIndian(taxableValue, 2) || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-700 tabular-nums">${(item.gst_rate !== undefined && item.gst_rate !== null) ? item.gst_rate + '%' : (item.rate ? item.rate + '%' : '-')}</td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold text-blue-600 tabular-nums">₹ ${formatIndian(rowTotal, 2) || '-'}</td>
                     `;
                 } else {
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-900">${sno}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.hsn_sac || item.HSN_SAC || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(taxableValue, 2) || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-900 tabular-nums">${item.quantity || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-700 tabular-nums">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold text-blue-600 tabular-nums">₹ ${formatIndian(taxableValue, 2) || '-'}</td>
                     `;
                 }
                 detailItemsTableBody.appendChild(row);
             });
 
-            try {
-                setTextContent('view-items-total-amount', `₹ ${formatIndian(view_totalTaxable, 2)}`);
-                const itemsTax = view_totalCGST + view_totalSGST;
-                setTextContent('view-items-total-tax', showTax && itemsTax > 0 ? `₹ ${formatIndian(itemsTax, 2)}` : 'No Tax');
-            } catch (e) {
-                console.warn('Items totals DOM elements not found', e);
+            if (detailItemsTableFoot) {
+                if (showTax) {
+                    detailItemsTableFoot.innerHTML = `
+                        <tr>
+                            <td class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
+                            <td class="px-4 py-3"></td>
+                            <td class="px-4 py-3"></td>
+                            <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
+                            <td class="px-4 py-3"></td>
+                            <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(view_totalTaxable, 2)}</td>
+                            <td class="px-4 py-3"></td>
+                            <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(view_grandTotal, 2)}</td>
+                        </tr>
+                    `;
+                } else {
+                    detailItemsTableFoot.innerHTML = `
+                        <tr>
+                            <td class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
+                            <td class="px-4 py-3"></td>
+                            <td class="px-4 py-3"></td>
+                            <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
+                            <td class="px-4 py-3"></td>
+                            <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(view_grandTotal, 2)}</td>
+                        </tr>
+                    `;
+                }
             }
         }
     }
 
     const nonItemsTableContainer = document.getElementById("view-non-items-table-container");
-    const nonItemsSummaryGrid = document.getElementById("view-non-items-summary-grid");
     const nonItemsEmptyState = document.getElementById("view-non-items-empty-state");
 
     if (nonItemsForType.length === 0) {
         if (nonItemsTableContainer) nonItemsTableContainer.classList.add("hidden");
-        if (nonItemsSummaryGrid) nonItemsSummaryGrid.classList.add("hidden");
         if (nonItemsEmptyState) nonItemsEmptyState.classList.remove("hidden");
     } else {
         if (nonItemsTableContainer) nonItemsTableContainer.classList.remove("hidden");
-        if (nonItemsSummaryGrid) nonItemsSummaryGrid.classList.remove("hidden");
         if (nonItemsEmptyState) nonItemsEmptyState.classList.add("hidden");
 
         const detailNonItemsTableBody = document.querySelector("#view-non-items-table tbody");
         const detailNonItemsTableHead = document.querySelector("#view-non-items-table thead tr");
+        const detailNonItemsTableFoot = document.querySelector("#view-non-items-table tfoot");
         if (detailNonItemsTableHead) {
             if (showTax) {
                 detailNonItemsTableHead.innerHTML = `
-                    <th class="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S.No</th>
-                    <th class="w-[50%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
-                    <th class="w-[20%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
-                    <th class="w-[20%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax %</th>
+                    <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">S.No</th>
+                    <th class="w-[50%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Description</th>
+                    <th class="w-[20%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Total</th>
+                    <th class="w-[20%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Tax %</th>
                 `;
             } else {
                 detailNonItemsTableHead.innerHTML = `
-                    <th class="w-[10%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S.No</th>
-                    <th class="w-[65%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
-                    <th class="w-[25%] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
+                    <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">S.No</th>
+                    <th class="w-[65%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Description</th>
+                    <th class="w-[25%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Total</th>
                 `;
             }
         }
@@ -770,26 +790,39 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-900">${nonItemSno}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(price, 2) || ''}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">${item.rate ? item.rate + '%' : ''}</td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold text-blue-600 tabular-nums">₹ ${formatIndian(price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-700 tabular-nums">${item.rate ? item.rate + '%' : ''}</td>
                     `;
                 } else {
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-900">${nonItemSno}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(price, 2) || ''}</td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold text-blue-600 tabular-nums">₹ ${formatIndian(price, 2) || ''}</td>
                     `;
                 }
                 detailNonItemsTableBody.appendChild(row);
             });
         }
 
-        try {
-            setTextContent('view-non-items-total-amount', `₹ ${formatIndian(view_nonItemsTaxable, 2)}`);
-            const nonItemsTax = view_nonItemsCGST + view_nonItemsSGST;
-            setTextContent('view-non-items-total-tax', showTax && nonItemsTax > 0 ? `₹ ${formatIndian(nonItemsTax, 2)}` : 'No Tax');
-        } catch (e) {
-            console.warn('Non-items totals DOM elements not found', e);
+        if (detailNonItemsTableFoot) {
+            if (showTax) {
+                detailNonItemsTableFoot.innerHTML = `
+                    <tr>
+                        <td class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(view_nonItemsTaxable, 2)}</td>
+                        <td class="px-4 py-3"></td>
+                    </tr>
+                `;
+            } else {
+                detailNonItemsTableFoot.innerHTML = `
+                    <tr>
+                        <td class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(view_nonItemsTaxable, 2)}</td>
+                    </tr>
+                `;
+            }
         }
     }
 
