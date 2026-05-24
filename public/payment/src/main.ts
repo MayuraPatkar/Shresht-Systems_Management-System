@@ -84,6 +84,13 @@ interface Window {
     let editingId: string | null = null;
     let selectedDetailsPayment: IPaymentRecord | null = null;
     let submitPartyTypeOverride: 'Customer' | 'Supplier' | null = null;
+    let shortcutsModalRef: HTMLElement | null = null;
+    const advancedFilters = {
+        direction: '',
+        mode: '',
+        referenceType: '',
+        advance: ''
+    };
 
     // ── DOM Refs ──────────────────────────────────────────
     const $tbody = document.getElementById('payment-tbody') as HTMLTableSectionElement;
@@ -93,6 +100,12 @@ interface Window {
     const $totalCount = document.getElementById('total-count') as HTMLElement;
     const $filterCount = document.getElementById('filter-count') as HTMLElement;
     const $searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const $filterPopover = document.getElementById('filter-popover') as HTMLDivElement;
+    const $filterBtn = document.getElementById('filter-btn') as HTMLButtonElement;
+    const $directionFilter = document.getElementById('direction-filter') as HTMLSelectElement;
+    const $modeFilter = document.getElementById('mode-filter') as HTMLSelectElement;
+    const $referenceFilter = document.getElementById('reference-filter') as HTMLSelectElement;
+    const $advanceFilter = document.getElementById('advance-filter') as HTMLSelectElement;
     const $modal = document.getElementById('payment-modal') as HTMLDivElement;
     const $form = document.getElementById('payment-form') as HTMLFormElement;
     const $formPaymentId = document.getElementById('form-payment-id') as HTMLInputElement;
@@ -284,6 +297,11 @@ interface Window {
             if (currentFilter === 'IN' && p.direction !== 'IN') return false;
             if (currentFilter === 'OUT' && p.direction !== 'OUT') return false;
             if (currentFilter === 'advance' && !p.is_advance) return false;
+            if (advancedFilters.direction && p.direction !== advancedFilters.direction) return false;
+            if (advancedFilters.mode && p.mode !== advancedFilters.mode) return false;
+            if (advancedFilters.referenceType && p.reference_type !== advancedFilters.referenceType) return false;
+            if (advancedFilters.advance === 'yes' && !p.is_advance) return false;
+            if (advancedFilters.advance === 'no' && p.is_advance) return false;
 
             // Search filter
             if (query) {
@@ -510,6 +528,143 @@ interface Window {
         refreshSuggestions();
     }
 
+    function toggleFilterPopover(): void {
+        if (!$filterPopover || !$filterBtn) return;
+        const isHidden = $filterPopover.classList.contains('hidden');
+        if (isHidden) {
+            const rect = $filterBtn.getBoundingClientRect();
+            $filterPopover.style.top = `${rect.bottom + 8}px`;
+            $filterPopover.style.left = `${Math.max(16, rect.right - $filterPopover.offsetWidth)}px`;
+            $filterPopover.classList.remove('hidden');
+        } else {
+            $filterPopover.classList.add('hidden');
+        }
+    }
+
+    function applyAdvancedFilters(): void {
+        advancedFilters.direction = $directionFilter?.value || '';
+        advancedFilters.mode = $modeFilter?.value || '';
+        advancedFilters.referenceType = $referenceFilter?.value || '';
+        advancedFilters.advance = $advanceFilter?.value || '';
+        $filterPopover?.classList.add('hidden');
+        applyFilter();
+    }
+
+    function resetAdvancedFilters(): void {
+        advancedFilters.direction = '';
+        advancedFilters.mode = '';
+        advancedFilters.referenceType = '';
+        advancedFilters.advance = '';
+        if ($directionFilter) $directionFilter.value = '';
+        if ($modeFilter) $modeFilter.value = '';
+        if ($referenceFilter) $referenceFilter.value = '';
+        if ($advanceFilter) $advanceFilter.value = '';
+        applyFilter();
+    }
+
+    function injectShortcutsStyles(): void {
+        if (document.getElementById('shortcuts-custom-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'shortcuts-custom-styles';
+        style.textContent = `
+            #shortcuts-modal.hidden { opacity: 0; pointer-events: none; display: none !important; }
+            .shortcuts-panel { width: 100%; animation: fadeIn 0.25s ease-out forwards; }
+            .shortcut-row { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0.5rem; border-bottom: 1px solid #f1f5f9; border-radius: 6px; }
+            .shortcut-row:hover { background-color: #f8fafc; }
+            .shortcut-keys { display: flex; align-items: center; gap: 0.25rem; color: #94a3b8; font-size: 0.85rem; }
+            .shortcut-keys kbd { background-color: #ffffff; border: 1px solid #e2e8f0; border-bottom-width: 2px; border-radius: 0.375rem; padding: 0.2rem 0.5rem; font-family: 'Inter', system-ui, sans-serif; font-size: 0.8rem; font-weight: 600; color: #334155; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function renderShortcutKeys(keys: string[]): string {
+        const isMac = navigator.userAgent.toLowerCase().includes('mac');
+        return `<div class="shortcut-keys">${keys.map((key, index) => {
+            const displayKey = key === 'Ctrl' && isMac ? 'Cmd' : key;
+            const separator = index > 0 ? '<span class="text-slate-300 font-medium">+</span>' : '';
+            return `${separator}<kbd>${displayKey}</kbd>`;
+        }).join('')}</div>`;
+    }
+
+    function injectShortcutsModalHTML(): void {
+        if (document.getElementById('shortcuts-modal')) return;
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'shortcuts-modal';
+        modalDiv.className = 'fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[999] flex items-center justify-center hidden opacity-0 transition-opacity duration-200';
+        modalDiv.setAttribute('role', 'dialog');
+        modalDiv.setAttribute('aria-modal', 'true');
+        modalDiv.setAttribute('aria-label', 'Keyboard Shortcuts');
+        const rows = [
+            ['Focus Search', ['Ctrl', 'F']],
+            ['Open Filters', ['Ctrl', 'Shift', 'F']],
+            ['New Payment', ['Ctrl', 'N']],
+            ['Save Payment', ['Ctrl', 'S']],
+            ['Refresh Payments', ['Ctrl', 'R']],
+            ['Close / Clear', ['Esc']],
+            ['Keyboard Shortcuts', ['?']]
+        ].map(([label, keys]) => `
+            <div class="shortcut-row">
+                <span class="text-xs font-semibold text-slate-600">${label as string}</span>
+                ${renderShortcutKeys(keys as string[])}
+            </div>
+        `).join('');
+        modalDiv.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto shortcuts-panel">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-keyboard text-lg"></i>
+                        </div>
+                        <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Keyboard Shortcuts</h2>
+                    </div>
+                    <button id="close-shortcuts" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200" aria-label="Close shortcuts help modal">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-bolt text-yellow-600"></i>
+                        Payment Actions
+                    </h3>
+                    <div class="space-y-1">${rows}</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalDiv);
+    }
+
+    function showShortcutsModal(): void {
+        if (!shortcutsModalRef) return;
+        shortcutsModalRef.classList.remove('hidden');
+        shortcutsModalRef.offsetHeight;
+        shortcutsModalRef.classList.remove('opacity-0');
+        document.getElementById('close-shortcuts')?.focus();
+    }
+
+    function hideShortcutsModal(): void {
+        if (!shortcutsModalRef) return;
+        shortcutsModalRef.classList.add('opacity-0');
+        setTimeout(() => shortcutsModalRef?.classList.add('hidden'), 200);
+    }
+
+    function initShortcutsModal(): void {
+        injectShortcutsStyles();
+        injectShortcutsModalHTML();
+        shortcutsModalRef = document.getElementById('shortcuts-modal');
+        document.getElementById('shortcuts-btn')?.addEventListener('click', showShortcutsModal);
+        document.getElementById('close-shortcuts')?.addEventListener('click', hideShortcutsModal);
+        shortcutsModalRef?.addEventListener('click', (event) => {
+            if (event.target === shortcutsModalRef) hideShortcutsModal();
+        });
+    }
+
+    function isTypingContext(): boolean {
+        const active = document.activeElement;
+        if (!active) return false;
+        const tagName = active.tagName;
+        return tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT' || (active as HTMLElement).isContentEditable;
+    }
+
     function closeModal(): void {
         $modal.classList.add('hidden');
         editingId = null;
@@ -612,6 +767,16 @@ interface Window {
     // New payment button
     (document.getElementById('new-payment-btn') as HTMLButtonElement)
         .addEventListener('click', () => openModal(null));
+
+    (document.getElementById('refresh-btn') as HTMLButtonElement)
+        .addEventListener('click', () => fetchPayments());
+    $filterBtn?.addEventListener('click', toggleFilterPopover);
+    (document.getElementById('close-filter') as HTMLButtonElement)
+        .addEventListener('click', () => $filterPopover?.classList.add('hidden'));
+    (document.getElementById('apply-filters-btn') as HTMLButtonElement)
+        .addEventListener('click', applyAdvancedFilters);
+    (document.getElementById('reset-filters') as HTMLButtonElement)
+        .addEventListener('click', resetAdvancedFilters);
 
     // Close modal
     (document.getElementById('close-modal-btn') as HTMLButtonElement)
@@ -733,19 +898,68 @@ interface Window {
 
     // Keyboard: Escape to close modal, Ctrl+N for new
     document.addEventListener('keydown', (e: KeyboardEvent) => {
+        const keyLower = e.key.toLowerCase();
+        const isCtrlPressed = e.ctrlKey || e.metaKey;
+        const isShiftPressed = e.shiftKey;
+
+        if (e.key === '?' && !isTypingContext()) {
+            e.preventDefault();
+            if (shortcutsModalRef && !shortcutsModalRef.classList.contains('hidden')) {
+                hideShortcutsModal();
+            } else {
+                showShortcutsModal();
+            }
+            return;
+        }
+        if (isCtrlPressed && e.key === '/') {
+            e.preventDefault();
+            if (shortcutsModalRef && !shortcutsModalRef.classList.contains('hidden')) {
+                hideShortcutsModal();
+            } else {
+                showShortcutsModal();
+            }
+            return;
+        }
         if (e.key === 'Escape' && !$detailsModal.classList.contains('hidden')) {
             closeDetailsModal();
+            return;
+        }
+        if (e.key === 'Escape' && shortcutsModalRef && !shortcutsModalRef.classList.contains('hidden')) {
+            hideShortcutsModal();
+            return;
+        }
+        if (e.key === 'Escape' && $filterPopover && !$filterPopover.classList.contains('hidden')) {
+            $filterPopover.classList.add('hidden');
+            return;
         }
         if (e.key === 'Escape' && !$modal.classList.contains('hidden')) {
             closeModal();
+            return;
         }
-        if (e.ctrlKey && e.key === 'n') {
+        if (isCtrlPressed && keyLower === 's' && !$modal.classList.contains('hidden')) {
+            e.preventDefault();
+            $form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            return;
+        }
+        if (isCtrlPressed && keyLower === 'n') {
             e.preventDefault();
             openModal(null);
+            return;
         }
-        if (e.ctrlKey && e.key === 'f') {
+        if (isCtrlPressed && isShiftPressed && keyLower === 'f') {
+            e.preventDefault();
+            toggleFilterPopover();
+            return;
+        }
+        if (isCtrlPressed && keyLower === 'r' && !isShiftPressed) {
+            e.preventDefault();
+            fetchPayments();
+            return;
+        }
+        if (isCtrlPressed && keyLower === 'f') {
             e.preventDefault();
             $searchInput.focus();
+            $searchInput.select();
         }
     });
 
@@ -778,6 +992,7 @@ interface Window {
 
     // ── Init ───────────────────────────────────────────────
     initPartySuggestions();
+    initShortcutsModal();
     fetchPayments();
 
 })();
