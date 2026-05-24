@@ -8,10 +8,22 @@ interface IPaymentRecord {
     payment_date: string;
     amount: number;
     direction: 'IN' | 'OUT';
+    party?: {
+        type?: 'Customer' | 'Supplier';
+        id?: string;
+        ref?: string;
+    };
     party_type?: 'Customer' | 'Supplier';
     party_id?: string;
+    party_display_id?: string;
+    reference?: {
+        type?: 'Invoice' | 'Purchase' | 'Service' | 'Adjustment';
+        id?: string;
+        ref?: string;
+    };
     reference_type?: 'Invoice' | 'Purchase' | 'Service' | 'Adjustment';
     reference_id?: string;
+    reference_ref?: string;
     mode: 'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque';
     transaction_details?: string;
     is_advance: boolean;
@@ -50,5 +62,6 @@ interface Window {
     _paymentUI: {
         editPayment: (id: string) => void;
         confirmDelete: (id: string) => Promise<void>;
+        viewPayment: (id: string) => void;
     };
 }

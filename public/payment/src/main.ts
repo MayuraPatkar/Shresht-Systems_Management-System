@@ -15,10 +15,22 @@ interface IPaymentRecord {
     payment_date: string;
     amount: number;
     direction: 'IN' | 'OUT';
+    party?: {
+        type?: 'Customer' | 'Supplier';
+        id?: string;
+        ref?: string;
+    };
     party_type?: 'Customer' | 'Supplier';
     party_id?: string;
+    party_display_id?: string;
+    reference?: {
+        type?: 'Invoice' | 'Purchase' | 'Service' | 'Adjustment';
+        id?: string;
+        ref?: string;
+    };
     reference_type?: 'Invoice' | 'Purchase' | 'Service' | 'Adjustment';
     reference_id?: string;
+    reference_ref?: string;
     mode: 'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque';
     transaction_details?: string;
     is_advance: boolean;
@@ -58,6 +70,7 @@ interface Window {
     _paymentUI: {
         editPayment: (id: string) => void;
         confirmDelete: (id: string) => Promise<void>;
+        viewPayment: (id: string) => void;
     };
 }
 
@@ -69,6 +82,8 @@ interface Window {
     let filteredPayments: IPaymentRecord[] = [];
     let currentFilter: string = 'all';
     let editingId: string | null = null;
+    let selectedDetailsPayment: IPaymentRecord | null = null;
+    let submitPartyTypeOverride: 'Customer' | 'Supplier' | null = null;
 
     // ── DOM Refs ──────────────────────────────────────────
     const $tbody = document.getElementById('payment-tbody') as HTMLTableSectionElement;
@@ -96,6 +111,18 @@ interface Window {
     const $previewPartyEmail = document.getElementById('preview-party-email') as HTMLElement;
     const $previewPartyAddress = document.getElementById('preview-party-address') as HTMLElement;
 
+    const $detailsModal = document.getElementById('payment-details-modal') as HTMLDivElement;
+    const $detailsSubtitle = document.getElementById('details-subtitle') as HTMLElement;
+    const $detailsIcon = document.getElementById('details-icon') as HTMLElement;
+    const $detailsAmount = document.getElementById('details-amount') as HTMLElement;
+    const $detailsDirection = document.getElementById('details-direction') as HTMLElement;
+    const $detailsDate = document.getElementById('details-date') as HTMLElement;
+    const $detailsMode = document.getElementById('details-mode') as HTMLElement;
+    const $detailsParty = document.getElementById('details-party') as HTMLElement;
+    const $detailsReference = document.getElementById('details-reference') as HTMLElement;
+    const $detailsTransaction = document.getElementById('details-transaction') as HTMLElement;
+    const $detailsRemarks = document.getElementById('details-remarks') as HTMLElement;
+
     // ── Helpers ───────────────────────────────────────────
     function formatCurrency(n: number): string {
         return '₹ ' + Number(n || 0).toLocaleString('en-IN', {
@@ -108,6 +135,20 @@ interface Window {
         if (!d) return '-';
         const dt = new Date(d);
         return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function escapeHtml(value: string | undefined): string {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function valOrDash(value: string | undefined): string {
+        const trimmed = String(value || '').trim();
+        return trimmed || '-';
     }
 
     function todayISO(): string {
@@ -151,7 +192,7 @@ interface Window {
             }
         } catch (e) {
             console.error('Failed to fetch payments', e);
-            $tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-8 text-center text-red-500">Failed to load payments</td></tr>`;
+            $tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-red-500">Failed to load payments</td></tr>`;
         }
     }
 
@@ -265,7 +306,7 @@ interface Window {
         if (filteredPayments.length === 0) {
             $tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="px-6 py-12 text-center text-gray-400">
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-400">
                         <i class="fas fa-inbox text-4xl mb-3"></i>
                         <p class="text-lg font-medium">No payments found</p>
                         <p class="text-sm">Click "New Payment" to record one.</p>
@@ -284,7 +325,7 @@ interface Window {
                 : '';
 
             return `
-            <tr class="payment-row border-b border-gray-100">
+            <tr class="payment-row border-b border-gray-100" data-payment-id="${escapeHtml(p._id)}" tabindex="0" title="View payment details">
                 <td class="px-6 py-4 text-gray-800 font-medium whitespace-nowrap">${formatDate(p.payment_date)}</td>
                 <td class="px-6 py-4">
                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${dirClass}">
@@ -297,31 +338,34 @@ interface Window {
                 </td>
                 <td class="px-6 py-4">
                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${modeClass}">
-                        ${p.mode}
+                        ${escapeHtml(p.mode)}
                     </span>
                 </td>
-                <td class="px-6 py-4 text-gray-600 text-sm">${p.party_id || '-'}</td>
-                <td class="px-6 py-4 text-gray-600 text-sm">${p.reference_type || '-'}</td>
-                <td class="px-6 py-4 text-gray-500 text-sm max-w-[200px] truncate" title="${p.transaction_details || p.remarks || ''}">${p.transaction_details || p.remarks || '-'}</td>
-                <td class="px-6 py-4 text-center">
-                    <div class="flex items-center justify-center gap-1">
-                        <button onclick="window._paymentUI.editPayment('${p._id}')"
-                            class="p-1.5 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Edit">
-                            <i class="fas fa-edit text-sm"></i>
-                        </button>
-                        <button onclick="window._paymentUI.confirmDelete('${p._id}')"
-                            class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                            <i class="fas fa-trash text-sm"></i>
-                        </button>
-                    </div>
-                </td>
+                <td class="px-6 py-4 text-gray-600 text-sm">${escapeHtml(p.party_display_id || p.party_id || '-')}</td>
+                <td class="px-6 py-4 text-gray-600 text-sm">${escapeHtml(p.reference_type || '-')}</td>
+                <td class="px-6 py-4 text-gray-500 text-sm max-w-[260px] truncate" title="${escapeHtml(p.transaction_details || p.remarks || '')}">${escapeHtml(p.transaction_details || p.remarks || '-')}</td>
             </tr>`;
         }).join('');
+
+        $tbody.querySelectorAll<HTMLElement>('.payment-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const id = row.dataset.paymentId;
+                if (id) openDetailsModalById(id);
+            });
+            row.addEventListener('keydown', (event: KeyboardEvent) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    const id = row.dataset.paymentId;
+                    if (id) openDetailsModalById(id);
+                }
+            });
+        });
     }
 
     // ── Modal ──────────────────────────────────────────────
     async function openModal(payment: IPaymentRecord | null): Promise<void> {
         editingId = payment ? payment._id : null;
+        submitPartyTypeOverride = payment?.party_type || null;
         $formPaymentId.value = editingId || '';
         $partyDetailsContainer.classList.add('hidden');
         $partyIdHidden.value = '';
@@ -355,7 +399,7 @@ interface Window {
 
             // Fetch details if party ID exists
             if (payment.party_id) {
-                const partyType = payment.direction === 'IN' ? 'Customer' : 'Supplier';
+                const partyType = paymentPartyType(payment);
                 // Need a way to fetch details by ID... 
                 // For now let's use a temporary fetch to get the name
                 fetchPartyDetailsById(partyType, payment.party_id);
@@ -392,9 +436,84 @@ interface Window {
         }
     }
 
+    function paymentPartyType(payment: IPaymentRecord): 'Customer' | 'Supplier' {
+        return payment.party_type || (payment.direction === 'IN' ? 'Customer' : 'Supplier');
+    }
+
+    function referenceLabel(payment: IPaymentRecord): string {
+        const refType = valOrDash(payment.reference_type);
+        const refId = valOrDash(payment.reference_id);
+        return refId === '-' ? refType : `${refType}: ${refId}`;
+    }
+
+    function openDetailsModalById(id: string): void {
+        const payment = allPayments.find((p: IPaymentRecord) => p._id === id);
+        if (!payment) return;
+
+        selectedDetailsPayment = payment;
+        const isIn = payment.direction === 'IN';
+
+        $detailsIcon.className = `w-10 h-10 rounded-xl ${isIn ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} flex items-center justify-center`;
+        $detailsIcon.innerHTML = `<i class="fas ${isIn ? 'fa-arrow-down' : 'fa-arrow-up'} text-lg"></i>`;
+        $detailsSubtitle.textContent = payment.is_advance ? 'Advance transaction' : 'Transaction summary';
+        $detailsAmount.textContent = formatCurrency(payment.amount);
+        $detailsAmount.className = `text-3xl font-extrabold mt-1 ${isIn ? 'text-green-700' : 'text-red-700'}`;
+        $detailsDirection.textContent = isIn ? 'Money In' : 'Money Out';
+        $detailsDirection.className = `px-3 py-1.5 rounded-full text-xs font-bold uppercase ${isIn ? 'badge-in' : 'badge-out'}`;
+        $detailsDate.textContent = formatDate(payment.payment_date);
+        $detailsMode.textContent = payment.mode || '-';
+        $detailsParty.textContent = `${paymentPartyType(payment)}${payment.party_display_id || payment.party_id ? `: ${payment.party_display_id || payment.party_id}` : ''}`;
+        $detailsReference.textContent = referenceLabel(payment);
+        $detailsTransaction.textContent = valOrDash(payment.transaction_details);
+        $detailsRemarks.textContent = valOrDash(payment.remarks);
+        $detailsModal.classList.remove('hidden');
+    }
+
+    function closeDetailsModal(): void {
+        $detailsModal.classList.add('hidden');
+        selectedDetailsPayment = null;
+    }
+
+    function openRefundModal(payment: IPaymentRecord): void {
+        closeDetailsModal();
+        editingId = null;
+        submitPartyTypeOverride = paymentPartyType(payment);
+        $formPaymentId.value = '';
+        $form.reset();
+        $modalTitle.textContent = 'Refund Payment';
+        $modalSubtitle.textContent = 'Create a reverse adjustment for this transaction';
+        $submitBtnText.textContent = 'Save Refund';
+
+        const refundDirection = payment.direction === 'IN' ? 'OUT' : 'IN';
+        const dirRadio = document.querySelector(
+            `input[name="direction"][value="${refundDirection}"]`
+        ) as HTMLInputElement | null;
+        if (dirRadio) dirRadio.checked = true;
+
+        (document.getElementById('form-amount') as HTMLInputElement).value = String(payment.amount || '');
+        (document.getElementById('form-date') as HTMLInputElement).value = todayISO();
+        (document.getElementById('form-mode') as HTMLSelectElement).value = payment.mode || 'Cash';
+        (document.getElementById('form-reference-type') as HTMLSelectElement).value = 'Adjustment';
+        (document.getElementById('form-reference-id') as HTMLInputElement).value = '';
+        (document.getElementById('form-transaction-details') as HTMLInputElement).value = payment.transaction_details || '';
+        (document.getElementById('form-advance') as HTMLInputElement).checked = false;
+        (document.getElementById('form-remarks') as HTMLTextAreaElement).value = `Refund for payment ${payment._id}`;
+
+        $partyNameInput.value = '';
+        $partyIdHidden.value = payment.party_id || '';
+        $partyDetailsContainer.classList.add('hidden');
+        if (payment.party_id) {
+            fetchPartyDetailsById(paymentPartyType(payment), payment.party_id);
+        }
+
+        $modal.classList.remove('hidden');
+        refreshSuggestions();
+    }
+
     function closeModal(): void {
         $modal.classList.add('hidden');
         editingId = null;
+        submitPartyTypeOverride = null;
         $form.reset();
         $partyDetailsContainer.classList.add('hidden');
         $partyIdHidden.value = '';
@@ -502,9 +621,46 @@ interface Window {
     (document.getElementById('modal-overlay') as HTMLDivElement)
         .addEventListener('click', closeModal);
 
+    (document.getElementById('close-details-modal-btn') as HTMLButtonElement)
+        .addEventListener('click', closeDetailsModal);
+    (document.getElementById('details-modal-overlay') as HTMLDivElement)
+        .addEventListener('click', closeDetailsModal);
+    (document.getElementById('details-edit-btn') as HTMLButtonElement)
+        .addEventListener('click', () => {
+            if (!selectedDetailsPayment) return;
+            const payment = selectedDetailsPayment;
+            closeDetailsModal();
+            openModal(payment);
+        });
+    (document.getElementById('details-refund-btn') as HTMLButtonElement)
+        .addEventListener('click', () => {
+            if (selectedDetailsPayment) openRefundModal(selectedDetailsPayment);
+        });
+    (document.getElementById('details-delete-btn') as HTMLButtonElement)
+        .addEventListener('click', async () => {
+            if (!selectedDetailsPayment) return;
+            const paymentId = selectedDetailsPayment._id;
+            const confirmed: boolean = confirm('Are you sure you want to delete this payment?');
+            if (!confirmed) return;
+            try {
+                const result: IApiResponse = await deletePaymentById(paymentId);
+                if (result.success) {
+                    closeDetailsModal();
+                    showToast('Payment deleted');
+                    fetchPayments();
+                } else {
+                    showToast(result.message || 'Delete failed', true);
+                }
+            } catch (err) {
+                console.error('Delete error:', err);
+                showToast('Error deleting payment', true);
+            }
+        });
+
     // Direction changes refresh suggestions
     document.querySelectorAll('input[name="direction"]').forEach(radio => {
         radio.addEventListener('change', () => {
+            submitPartyTypeOverride = null;
             $partyNameInput.value = '';
             $partyIdHidden.value = '';
             $partyDetailsContainer.classList.add('hidden');
@@ -551,7 +707,7 @@ interface Window {
             amount: Number(amount),
             payment_date: date || todayISO(),
             mode,
-            party_type: direction === 'IN' ? 'Customer' : 'Supplier',
+            party_type: submitPartyTypeOverride || (direction === 'IN' ? 'Customer' : 'Supplier'),
             party_id: $partyIdHidden.value || undefined,
             reference_type: (document.getElementById('form-reference-type') as HTMLSelectElement).value || "",
             reference_id: (document.getElementById('form-reference-id') as HTMLInputElement).value || "",
@@ -577,6 +733,9 @@ interface Window {
 
     // Keyboard: Escape to close modal, Ctrl+N for new
     document.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && !$detailsModal.classList.contains('hidden')) {
+            closeDetailsModal();
+        }
         if (e.key === 'Escape' && !$modal.classList.contains('hidden')) {
             closeModal();
         }
@@ -592,6 +751,9 @@ interface Window {
 
     // ── Exposed for inline onclick handlers ────────────────
     window._paymentUI = {
+        viewPayment: function (id: string): void {
+            openDetailsModalById(id);
+        },
         editPayment: function (id: string): void {
             const payment = allPayments.find((p: IPaymentRecord) => p._id === id);
             if (payment) openModal(payment);

@@ -6,6 +6,10 @@ import { generateNextId } from '../utils/idGenerator';
 
 const router: Router = Router();
 
+function escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function normalizeSupplierPayload(payload: any) {
     const billingAddress = { ...(payload?.billing_address || {}) };
     const shippingAddress = { ...(payload?.shipping_address || {}) };
@@ -43,6 +47,30 @@ async function findDuplicateSupplier(payload: any, excludeId?: string) {
     }
 
     return SupplierModel.findOne(query);
+}
+
+function buildSupplierRelationQuery(supplierObjectId: Types.ObjectId, supplier: any) {
+    const name = String(supplier?.supplier_name ?? '').trim();
+    const phone = String(supplier?.phone ?? '').trim();
+    const email = String(supplier?.email ?? '').trim().toLowerCase();
+    const identityMatchers: any[] = [
+        { supplier_id: supplierObjectId }
+    ];
+
+    if (phone) {
+        identityMatchers.push({ 'supplier_snapshot.phone': phone });
+    }
+
+    if (email) {
+        identityMatchers.push({ 'supplier_snapshot.email': email });
+    }
+
+    if (name) {
+        const nameRegex = new RegExp(`^${escapeRegex(name)}$`, 'i');
+        identityMatchers.push({ 'supplier_snapshot.name': nameRegex });
+    }
+
+    return identityMatchers;
 }
 
 
@@ -252,18 +280,28 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
         const supplier = await SupplierModel.findOne({ _id: supplierObjectId, 'deletion.is_deleted': false });
         if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
 
-        // Fetch related data in parallel
-        const [purchases, payments] = await Promise.all([
-            PurchaseModel.find({ 
-                supplier_id: supplierObjectId,
-                'deletion.is_deleted': false 
-            }).sort({ purchase_date: -1 }),
-            PaymentModel.find({ 
-                party_id: supplierObjectId, 
-                party_type: 'Supplier', 
-                'deletion.is_deleted': false 
-            }).sort({ payment_date: -1 })
-        ]);
+        const relationQuery = buildSupplierRelationQuery(supplierObjectId, supplier);
+        const purchases = await PurchaseModel.find({
+            $or: relationQuery,
+            'deletion.is_deleted': false
+        }).sort({ purchase_date: -1 });
+
+        const purchaseObjectIds = purchases.map((purchase: any) => purchase._id);
+        const paymentMatchers: any[] = [
+            { 'party.ref': supplierObjectId, 'party.type': 'Supplier' },
+            { party_id: supplierObjectId, party_type: 'Supplier' }
+        ];
+        if (purchaseObjectIds.length > 0) {
+            paymentMatchers.push(
+                { 'reference.type': 'Purchase', 'reference.ref': { $in: purchaseObjectIds } },
+                { reference_type: 'Purchase', reference_id: { $in: purchaseObjectIds } }
+            );
+        }
+
+        const payments = await PaymentModel.find({
+            $or: paymentMatchers,
+            'deletion.is_deleted': { $ne: true }
+        }).sort({ payment_date: -1 });
 
         // Calculate statistics
         const stats = {

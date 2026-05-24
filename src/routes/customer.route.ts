@@ -86,6 +86,25 @@ function buildCustomerRelationQuery(customerObjectId: Types.ObjectId, customer: 
     return identityMatchers;
 }
 
+function normalizeInvoicePayments(invoices: any[]) {
+    return invoices.flatMap((invoice: any) => {
+        const invoicePayments = Array.isArray(invoice?.payments) ? invoice.payments : [];
+        return invoicePayments.map((payment: any, index: number) => ({
+            _id: `${invoice._id}-invoice-payment-${index}`,
+            payment_date: payment.payment_date,
+            amount: Number(payment.paid_amount || 0),
+            mode: payment.payment_mode || '-',
+            transaction_details: payment.extra_details || '',
+            party_type: 'Customer',
+            party_id: invoice.customer_id,
+            reference_type: 'Invoice',
+            reference_id: invoice._id,
+            reference_no: invoice.invoice_id || invoice.invoice_no,
+            source: 'invoice'
+        }));
+    });
+}
+
 /**
  * @route   POST /customer
  * @desc    Create a new customer
@@ -297,8 +316,8 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
 
         const relationQuery = buildCustomerRelationQuery(customerObjectId, customer);
 
-        // Fetch related data in parallel
-        const [quotations, invoices, payments] = await Promise.all([
+        // Fetch related documents first so payments can also be matched by invoice reference.
+        const [quotations, invoices] = await Promise.all([
             QuotationModel.find({ 
                 $or: relationQuery,
                 'deletion.is_deleted': false 
@@ -306,19 +325,37 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
             InvoiceModel.find({ 
                 $or: relationQuery,
                 'deletion.is_deleted': false 
-            }).sort({ invoice_date: -1 }),
-            PaymentModel.find({ party_id: customerObjectId, party_type: 'Customer', 'deletion.is_deleted': false }).sort({ payment_date: -1 })
+            }).sort({ invoice_date: -1 })
         ]);
 
-        // Fetch services via invoices. Support both ObjectId-linked and legacy invoice-number-linked records.
+        const invoiceObjectIds = invoices.map((inv: any) => inv._id);
+        const paymentMatchers: any[] = [
+            { 'party.ref': customerObjectId, 'party.type': 'Customer' },
+            { party_id: customerObjectId, party_type: 'Customer' }
+        ];
+        if (invoiceObjectIds.length > 0) {
+            paymentMatchers.push(
+                { 'reference.type': 'Invoice', 'reference.ref': { $in: invoiceObjectIds } },
+                { reference_type: 'Invoice', reference_id: { $in: invoiceObjectIds } }
+            );
+        }
+
+        const directPayments = await PaymentModel.find({
+            $or: paymentMatchers,
+            'deletion.is_deleted': { $ne: true }
+        }).sort({ payment_date: -1 });
+
+        const embeddedInvoicePayments = normalizeInvoicePayments(invoices);
+        const payments = [...directPayments, ...embeddedInvoicePayments]
+            .sort((a: any, b: any) => new Date(b.payment_date || b.createdAt || 0).getTime() - new Date(a.payment_date || a.createdAt || 0).getTime());
+
+        // Fetch services via invoice ObjectIds. Service.invoice_id is an ObjectId field.
         const invoiceIds = invoices.map(inv => inv._id);
-        const invoiceNumbers = invoices
-            .map((inv: any) => inv.invoice_no || inv.invoice_id)
-            .filter(Boolean);
+        
         const serviceQuery: any = { 'deletion.is_deleted': false };
         const serviceLinks: any[] = [];
         if (invoiceIds.length > 0) serviceLinks.push({ invoice_id: { $in: invoiceIds } });
-        if (invoiceNumbers.length > 0) serviceLinks.push({ invoice_id: { $in: invoiceNumbers } });
+        
         const services = serviceLinks.length > 0
             ? await ServiceModel.find({ ...serviceQuery, $or: serviceLinks }).sort({ service_date: -1 })
             : [];
