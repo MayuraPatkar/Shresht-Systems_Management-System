@@ -146,11 +146,11 @@ async function generateViewPreviewHTML(quotation, viewType) {
             totalPriceSum += taxableValue;
             itemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac || '-'}</td><td class="text-right">${qty || '-'}</td><td class="text-right">${unitPrice ? '₹&nbsp;' + formatIndian(unitPrice, 2) : '-'}</td><td class="text-right">${taxableValue ? '₹&nbsp;' + formatIndian(taxableValue, 2) : '-'}</td></tr>`;
         } else {
-            // Compact view: S.No, Description, Specifications, Qty, Total (With Tax)
+            // Compact view: S.No, Description, Specifications, Qty, Tax %, Total (With Tax)
             const totalWithTax = taxableValue + taxAmount;
             totalPrice += totalWithTax;
             totalPriceSum += totalWithTax;
-            itemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-left">${item.specification || ''}</td><td class="text-center">${qty || '-'}</td><td class="text-right">${totalWithTax ? '₹&nbsp;' + formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-left">${item.specification || ''}</td><td class="text-center">${qty || '-'}</td><td class="text-right">${taxRate}%</td><td class="text-right">${totalWithTax ? '₹&nbsp;' + formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
@@ -181,11 +181,11 @@ async function generateViewPreviewHTML(quotation, viewType) {
             totalPriceSum += taxableValue;
             nonItemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">${price ? '₹&nbsp;' + formatIndian(price, 2) : '-'}</td></tr>`;
         } else {
-            // Compact view: include total with tax
+            // Compact view: include total with tax and tax rate
             const totalWithTax = taxableValue + taxAmount;
             totalNonItemsPrice += totalWithTax;
             totalPriceSum += totalWithTax;
-            nonItemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-left">${item.specification || ''}</td><td class="text-center">-</td><td class="text-right">${totalWithTax ? '₹&nbsp;' + formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
+            nonItemHTML = `<tr><td class="text-center">${sno}</td><td class="text-left">${description}</td><td class="text-left">${item.specification || ''}</td><td class="text-center">-</td><td class="text-right">${taxRate}%</td><td class="text-right">${totalWithTax ? '₹&nbsp;' + formatIndian(totalWithTax, 2) : '-'}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: nonItemHTML, rowCount: rowCount });
@@ -213,8 +213,8 @@ async function generateViewPreviewHTML(quotation, viewType) {
     } else if (viewType === 1) {
         tableHead = `<th class="text-center">Sr. No</th><th class="text-left">Description</th><th class="text-center">HSN/SAC</th><th class="text-right">Qty</th><th class="text-right">Unit Price</th><th class="text-right">Total</th>`;
     } else {
-        // Compact: S.No, Description, Specifications, Qty, Total (With Tax)
-        tableHead = `<th class="text-center">Sr. No</th><th class="text-left">Description</th><th class="text-left">Specifications</th><th class="text-center">Qty</th><th class="text-right">Total (With Tax)</th>`;
+        // Compact: S.No, Description, Specifications, Qty, Tax %, Total (With Tax)
+        tableHead = `<th class="text-center">Sr. No</th><th class="text-left">Description</th><th class="text-left">Specifications</th><th class="text-center">Qty</th><th class="text-right">Tax %</th><th class="text-right">Total (With Tax)</th>`;
     }
 
     // Totals HTML
@@ -283,6 +283,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
             <tr class="totals-row">
                 <td colspan="3" class="text-left">TOTAL</td>
                 <td class="text-center">${totalQtySum}</td>
+                <td class="text-right"></td>
                 <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
             </tr>
         `;
@@ -473,7 +474,7 @@ async function renderQuotationView(quotation, viewType) {
         totalTaxable += taxableValue;
         totalTax += taxAmount;
         // Note: grandTotal is accumulated here but will be rounded at the end
-        grandTotal += (viewType === 2) ? totalWithTax : taxableValue;
+        grandTotal += (viewType === 2 || viewType === 3) ? totalWithTax : taxableValue;
 
         const row = document.createElement("tr");
         if (viewType === 2) {
@@ -499,10 +500,10 @@ async function renderQuotationView(quotation, viewType) {
             row.innerHTML = `
                 <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.HSN_SAC || item.hsn_sac || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${item.specification || '-'}</td>
                 <td class="px-4 py-3 text-sm text-gray-900">${item.quantity || '-'}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${item.unit_price ? formatIndian(item.unit_price, 2) : '-'}</td>
-                <td class="px-4 py-3 text-sm font-semibold text-gray-900">${taxRate}%</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${taxRate}%</td>
+                <td class="px-4 py-3 text-sm font-semibold text-gray-900">${totalWithTax ? formatIndian(totalWithTax, 2) : '-'}</td>
             `;
         }
         viewItemsTableBody.appendChild(row);
@@ -523,7 +524,7 @@ async function renderQuotationView(quotation, viewType) {
         const elItemsAmount = document.getElementById('view-items-total-amount');
         if (elItemsAmount) elItemsAmount.textContent = `₹ ${formatIndian(totalTaxable, 2)}`;
         const elItemsTax = document.getElementById('view-items-total-tax');
-        if (elItemsTax) elItemsTax.textContent = viewType === 2 ? `₹ ${formatIndian(totalTax, 2)}` : 'No Tax';
+        if (elItemsTax) elItemsTax.textContent = (viewType === 2 || viewType === 3) ? `₹ ${formatIndian(totalTax, 2)}` : 'No Tax';
         const elItemsOverall = document.getElementById('items-overall');
         if (elItemsOverall) elItemsOverall.textContent = `₹ ${formatIndian(grandTotal, 2)}`;
     } catch (e) {
@@ -554,7 +555,8 @@ async function renderQuotationView(quotation, viewType) {
             viewNonItemsTableHead.innerHTML = `
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Price</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax %</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
             `;
         }
     }
@@ -579,10 +581,10 @@ async function renderQuotationView(quotation, viewType) {
             const rate = parseFloat(item.rate || item.Rate || item.gst_rate || 0);
             const cgst = (price * (rate / 2)) / 100;
             const sgst = (price * (rate / 2)) / 100;
-            const rowTotal = viewType === 2 ? (price + cgst + sgst) : price;
+            const rowTotal = (viewType === 2 || viewType === 3) ? (price + cgst + sgst) : price;
 
             view_nonItemsTaxable += price;
-            if (viewType === 2) {
+            if (viewType === 2 || viewType === 3) {
                 view_nonItemsCGST += cgst;
                 view_nonItemsSGST += sgst;
             }
@@ -601,7 +603,8 @@ async function renderQuotationView(quotation, viewType) {
                 row.innerHTML = `
                     <td class="px-4 py-3 text-sm text-gray-900">${nonItemNumber}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-gray-900">${price ? formatIndian(price, 2) : '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${rate}%</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-gray-900">${rowTotal ? formatIndian(rowTotal, 2) : '-'}</td>
                 `;
             }
             viewNonItemsTableBody.appendChild(row);
@@ -625,7 +628,7 @@ async function renderQuotationView(quotation, viewType) {
             if (elNonItemsAmount) elNonItemsAmount.textContent = `₹ ${formatIndian(view_nonItemsTaxable, 2)}`;
             const nonItemsTax = view_nonItemsCGST + view_nonItemsSGST;
             const elNonItemsTax = document.getElementById('view-non-items-total-tax');
-            if (elNonItemsTax) elNonItemsTax.textContent = viewType === 2 ? `₹ ${formatIndian(nonItemsTax, 2)}` : 'No Tax';
+            if (elNonItemsTax) elNonItemsTax.textContent = (viewType === 2 || viewType === 3) ? `₹ ${formatIndian(nonItemsTax, 2)}` : 'No Tax';
             const elNonItemsOverall = document.getElementById('non-items-overall');
             if (elNonItemsOverall) elNonItemsOverall.textContent = `₹ ${formatIndian(view_nonItemsGrandTotal, 2)}`;
         } catch (e) {
@@ -681,12 +684,13 @@ async function renderQuotationView(quotation, viewType) {
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
             `;
         } else {
-            // Compact view: S.No, Description, Specifications, Qty, Total (With Tax)
+            // Compact view: S.No, Description, Specifications, Qty, Tax %, Total (With Tax)
             tableHead.innerHTML = `
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Specifications</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax %</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
             `;
         }
