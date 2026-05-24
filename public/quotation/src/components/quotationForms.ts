@@ -443,7 +443,7 @@ async function openQuotation(quotationId) {
                         <input type="text" placeholder="Code" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" placeholder="0" min="1" value="${item.quantity || ''}" required>
+                        <input type="number" placeholder="0" min="0.01" step="0.01" value="${item.quantity || ''}" required>
                     </div>
                     <div class="item-field price">
                         <input type="number" placeholder="0.00" step="0.01" value="${item.unit_price || ''}" required>
@@ -460,19 +460,7 @@ async function openQuotation(quotationId) {
                 `;
             itemsContainer.appendChild(card);
 
-            // Integer validation for quantity inputs
-            const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
-            qtyInputs.forEach(input => {
-                if (input) {
-                    input.setAttribute('step', '1');
-                    input.addEventListener('keypress', function (event) {
-                        if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
-                    });
-                    input.addEventListener('input', function () {
-                        this.value = this.value.replace(/[^0-9]/g, '');
-                    });
-                }
-            });
+            // Decimal values are now allowed for quantity inputs.
 
             // Setup autocomplete for loaded items
             const cardInput = card.querySelector(".item_name");
@@ -771,7 +759,7 @@ async function cloneQuotation(sourceQuotationId) {
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
                 <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
-                <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
+                <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="0.01" step="0.01" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
                 <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -797,7 +785,7 @@ async function cloneQuotation(sourceQuotationId) {
                         <input type="text" placeholder="Code" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" placeholder="0" min="1" value="${item.quantity || ''}" required>
+                        <input type="number" placeholder="0" min="0.01" step="0.01" value="${item.quantity || ''}" required>
                     </div>
                     <div class="item-field price">
                         <input type="number" placeholder="0.00" step="0.01" value="${item.unit_price || ''}" required>
@@ -813,19 +801,7 @@ async function cloneQuotation(sourceQuotationId) {
                 `;
                 itemsContainer.appendChild(card);
 
-                // Integer validation for quantity inputs
-                const qtyInputsClone = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
-                qtyInputsClone.forEach(input => {
-                    if (input) {
-                        input.setAttribute('step', '1');
-                        input.addEventListener('keypress', function (event) {
-                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
-                        });
-                        input.addEventListener('input', function () {
-                            this.value = this.value.replace(/[^0-9]/g, '');
-                        });
-                    }
-                });
+                // Decimal values are now allowed for quantity inputs.
 
                 // Setup autocomplete
                 const cardInput = card.querySelector(".item_name");
@@ -2131,7 +2107,7 @@ window.validateCurrentStep = async function () {
 
             if (desc) {
                 if (!desc.value.trim()) {
-                    setFieldValidation(desc, false, `Description is required.`);
+                    setFieldValidation(desc, false, `Required.`);
                 } else {
                     setFieldValidation(desc, true);
                 }
@@ -2139,7 +2115,7 @@ window.validateCurrentStep = async function () {
 
             if (qty) {
                 if (!qty.value || parseFloat(qty.value) <= 0) {
-                    setFieldValidation(qty, false, `Quantity > 0.`);
+                    setFieldValidation(qty, false, `Required.`);
                 } else {
                     setFieldValidation(qty, true);
                 }
@@ -2147,14 +2123,25 @@ window.validateCurrentStep = async function () {
 
             if (price) {
                 if (!price.value || parseFloat(price.value) <= 0) {
-                    setFieldValidation(price, false, `Price > 0.`);
+                    setFieldValidation(price, false, `Required.`);
                 } else {
                     setFieldValidation(price, true);
                 }
             }
 
+            const rate = card.querySelector('.item-field.rate input') as HTMLInputElement;
+            if (rate) {
+                if (!rate.value.trim()) {
+                    setFieldValidation(rate, false, `Required.`);
+                } else {
+                    setFieldValidation(rate, true);
+                }
+            }
+
             if (hsn) {
-                if (hsn.value.trim()) {
+                if (!hsn.value.trim()) {
+                    setFieldValidation(hsn, false, `Required.`);
+                } else {
                     const hsnVal = hsn.value.trim().toUpperCase();
                     const descVal = desc?.value.trim().toLowerCase() || '';
                     if (hsnMap[hsnVal] !== undefined) {
@@ -2170,11 +2157,45 @@ window.validateCurrentStep = async function () {
                         hsnMap[hsnVal] = index;
                         setFieldValidation(hsn, true);
                     }
-                } else {
-                    setFieldValidation(hsn, true); // Optional or not checking empty here
                 }
             }
         });
+    }
+
+    if (currentStep === 4) {
+        const nonItemsContainer = document.getElementById('non-items-container');
+        if (nonItemsContainer) {
+            const nonItemCards = nonItemsContainer.querySelectorAll('.non-item-card');
+            nonItemCards.forEach((card, index) => {
+                const desc = card.querySelector('.non-item-field.description input') as HTMLInputElement;
+                const price = card.querySelector('.non-item-field.price input') as HTMLInputElement;
+                const rate = card.querySelector('.non-item-field.rate input') as HTMLInputElement;
+
+                if (desc) {
+                    if (!desc.value.trim()) {
+                        setFieldValidation(desc, false, `Required.`);
+                    } else {
+                        setFieldValidation(desc, true);
+                    }
+                }
+
+                if (price) {
+                    if (!price.value || parseFloat(price.value) <= 0) {
+                        setFieldValidation(price, false, `Required.`);
+                    } else {
+                        setFieldValidation(price, true);
+                    }
+                }
+
+                if (rate) {
+                    if (!rate.value.trim()) {
+                        setFieldValidation(rate, false, `Required.`);
+                    } else {
+                        setFieldValidation(rate, true);
+                    }
+                }
+            });
+        }
     }
 
     if (!stepValid && firstInvalidElement) {
@@ -2215,19 +2236,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Expose the function to be called from other scripts
 document.addEventListener('DOMContentLoaded', () => {
-    // Global delegation for quantity inputs to ensure no decimals
-    document.body.addEventListener('keypress', function (e) {
-        if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(4)')?.querySelector('input') === e.target)) {
-            if (e.key === '.' || e.key === 'e' || e.key === '-' || e.key === '+') {
-                e.preventDefault();
-            }
-        }
-    });
-    document.body.addEventListener('input', function (e) {
-        if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(4)')?.querySelector('input') === e.target)) {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-        }
-    });
+    // Decimals are now allowed for quantity inputs, so global blocking is removed
     document.body.addEventListener('change', function (e) {
         if (e.target && e.target.matches('.item_name')) {
             autofillStockItem(e.target);

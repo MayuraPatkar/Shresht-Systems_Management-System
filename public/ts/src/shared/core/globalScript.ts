@@ -438,7 +438,7 @@ function addItem(insertAtIndex) {
     </div>
     
     <div class="item-field qty">
-      <input type="number" placeholder="0" min="1" required class="qty-input">
+      <input type="number" placeholder="0" min="0.01" step="0.01" required class="qty-input">
     </div>
     
     <div class="item-field price">
@@ -474,7 +474,7 @@ function addItem(insertAtIndex) {
       <ul class="suggestions"></ul>
     </td>
     <td><input type="text" placeholder="HSN/SAC" required></td>
-    <td><input type="number" placeholder="Qty" min="1" required class="qty-input"></td>
+    <td><input type="number" placeholder="Qty" min="0.01" step="0.01" required class="qty-input"></td>
     <td><input type="number" placeholder="Unit Price" required></td>
     <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -545,18 +545,7 @@ function addItem(insertAtIndex) {
     });
   });
 
-  // Integer validation for quantity inputs
-  const qtyInputs = card.querySelectorAll("input.qty-input");
-  const tableQtyInputs = row.querySelectorAll("input.qty-input");
-
-  [...qtyInputs, ...tableQtyInputs].forEach(input => {
-    input.addEventListener('keypress', function (event) {
-      // Allow 0-9 only
-      if (event.charCode < 48 || event.charCode > 57) {
-        event.preventDefault();
-      }
-    });
-  });
+  // Decimal values are now allowed for quantity inputs
 
   // Handle remove button
   const removeBtn = card.querySelector(".remove-item-btn");
