@@ -301,28 +301,6 @@
         const viewPreviewBtn = document.getElementById('view-preview');
         if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
 
-        // Keyboard shortcuts modal handlers
-        const shortcutsModal = document.getElementById('shortcuts-modal');
-        const shortcutsBtn = document.getElementById('shortcuts-btn');
-        const closeShortcutsBtn = document.getElementById('close-shortcuts');
-
-        if (shortcutsModal && shortcutsBtn && closeShortcutsBtn) {
-            shortcutsBtn.addEventListener('click', () => {
-                shortcutsModal.classList.remove('hidden');
-            });
-
-            closeShortcutsBtn.addEventListener('click', () => {
-                shortcutsModal.classList.add('hidden');
-            });
-
-            // Close modal when clicking outside
-            shortcutsModal.addEventListener('click', (e) => {
-                if (e.target === shortcutsModal) {
-                    shortcutsModal.classList.add('hidden');
-                }
-            });
-        }
-
         // Header Visibility Observer Setup
         const homeSection = document.getElementById('home');
         const newSection = document.getElementById('new');
@@ -457,11 +435,11 @@
     function renderShortcutSection(section: ShortcutGroup): string {
         const sectionHeader = `
             <div class="shortcuts-section">
-                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
                     <i class="${section.icon}"></i>
                     ${section.title}
                 </h3>
-                <div class="space-y-2">
+                <div class="space-y-1">
                     ${section.items.map(renderShortcutRow).join('')}
                 </div>
             </div>
@@ -472,7 +450,7 @@
     function renderShortcutRow(item: ShortcutItem): string {
         return `
             <div class="shortcut-row">
-                <span class="text-gray-700">${item.label}</span>
+                <span class="text-xs font-semibold text-slate-600">${item.label}</span>
                 ${renderShortcutKeys(item.keys)}
             </div>
         `;
@@ -481,7 +459,7 @@
     function renderShortcutKeys(keys: string[]): string {
         const keyCaps = keys.map((key, index) => {
             const displayKey = key === 'Ctrl' && isMac ? 'Cmd' : key;
-            const separator = index > 0 ? '<span>+</span>' : '';
+            const separator = index > 0 ? '<span class="text-slate-300 font-medium">+</span>' : '';
             return `${separator}<kbd>${displayKey}</kbd>`;
         }).join('');
         return `<div class="shortcut-keys">${keyCaps}</div>`;
@@ -490,11 +468,16 @@
     function showShortcutsModal() {
         if (!shortcutsModalRef) return;
         shortcutsModalRef.classList.remove('hidden');
+        shortcutsModalRef.offsetHeight;
+        shortcutsModalRef.classList.remove('opacity-0');
     }
 
     function hideShortcutsModal() {
         if (!shortcutsModalRef) return;
-        shortcutsModalRef.classList.add('hidden');
+        shortcutsModalRef.classList.add('opacity-0');
+        setTimeout(() => {
+            shortcutsModalRef?.classList.add('hidden');
+        }, 200);
     }
 
     function isSectionVisible(sectionId: string): boolean {
