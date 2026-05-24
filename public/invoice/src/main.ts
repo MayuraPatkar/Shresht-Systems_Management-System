@@ -131,7 +131,7 @@
             } else if (isViewActive) {
                 // View mode: hide search, filter, archived, trash, view-preview. Show home, new-invoice, refresh.
                 if (searchWrapper) searchWrapper.style.display = 'none';
-                if (refreshBtn) refreshBtn.style.display = 'flex';
+                if (refreshBtn) refreshBtn.style.display = 'none';
                 if (archivedBtn) archivedBtn.style.display = 'none';
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
                 if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
