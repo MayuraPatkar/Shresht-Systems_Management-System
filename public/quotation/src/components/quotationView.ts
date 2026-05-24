@@ -761,7 +761,13 @@ async function viewQuotation(quotationId, viewType) {
             quotation_status: rawQuotation.quotation_status || 'Draft',
             valid_till: rawQuotation.valid_till,
             customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
-            customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+            customer_address: (() => {
+                const b = rawQuotation.customer_snapshot?.billing_address;
+                if (!b) return rawQuotation.customer_address;
+                if (typeof b === 'string') return b;
+                const parts = [b.line1, b.line2, b.city, b.state, b.pincode, b.country].filter(p => p && typeof p === 'string' && p.trim() !== '');
+                return parts.length > 0 ? parts.join(', ') : rawQuotation.customer_address;
+            })(),
             customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
             customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,
             customer_GSTIN: rawQuotation.customer_snapshot?.gstin || rawQuotation.customer_GSTIN,

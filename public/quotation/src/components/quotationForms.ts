@@ -321,7 +321,13 @@ async function openQuotation(quotationId) {
         quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
         customer_id: rawQuotation.customer_id || rawQuotation.customer_snapshot?.customer_id || '',
         customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
-        customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+        customer_address: (() => {
+            const b = rawQuotation.customer_snapshot?.billing_address;
+            if (!b) return rawQuotation.customer_address;
+            if (typeof b === 'string') return b;
+            const parts = [b.line1, b.line2, b.city, b.state, b.pincode, b.country].filter(p => p && typeof p === 'string' && p.trim() !== '');
+            return parts.length > 0 ? parts.join(', ') : rawQuotation.customer_address;
+        })(),
         billing_address: rawQuotation.customer_snapshot?.billing_address || {},
         customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
         customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,
@@ -637,7 +643,13 @@ async function cloneQuotation(sourceQuotationId) {
             quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
             customer_id: rawQuotation.customer_id || rawQuotation.customer_snapshot?.customer_id || '',
             customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
-            customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+            customer_address: (() => {
+                const b = rawQuotation.customer_snapshot?.billing_address;
+                if (!b) return rawQuotation.customer_address;
+                if (typeof b === 'string') return b;
+                const parts = [b.line1, b.line2, b.city, b.state, b.pincode, b.country].filter(p => p && typeof p === 'string' && p.trim() !== '');
+                return parts.length > 0 ? parts.join(', ') : rawQuotation.customer_address;
+            })(),
             billing_address: rawQuotation.customer_snapshot?.billing_address || {},
             customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
             customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,

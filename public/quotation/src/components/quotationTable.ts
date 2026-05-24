@@ -55,7 +55,13 @@ class QuotationTable {
     // Map fields from backend structure
     const quotationId = quotation.quotation_no || quotation.quotation_id || 'N/A';
     const customerName = quotation.customer_snapshot?.name || quotation.customer_name || '-';
-    const customerAddress = quotation.customer_snapshot?.billing_address?.line1 || quotation.customer_address || '-';
+    const customerAddress = (() => {
+        const b = quotation.customer_snapshot?.billing_address;
+        if (!b) return quotation.customer_address || '-';
+        if (typeof b === 'string') return b;
+        const parts = [b.line1, b.line2, b.city, b.state, b.pincode, b.country].filter(p => p && typeof p === 'string' && p.trim() !== '');
+        return parts.length > 0 ? parts.join(', ') : (quotation.customer_address || '-');
+    })();
     const totalAmountTax = quotation.totals?.grand_total || quotation.total_amount_tax || 0;
     const status = quotation.quotation_status || 'Draft';
     const validTill = quotation.valid_till ? formatDateIndian(quotation.valid_till) : '-';
