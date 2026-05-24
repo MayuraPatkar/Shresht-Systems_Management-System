@@ -180,10 +180,10 @@ main {
     align-items: center;
 }
 
-/* Second row: Company + Type + Category (with spacers to align) */
+/* Second row: Company + Type + Category + Unit (with spacers to align) */
 #new .item-card .item-row-2 {
     display: grid;
-    grid-template-columns: 40px 1fr 1fr 1fr 80px;
+    grid-template-columns: 40px 1fr 1fr 1fr 1fr 80px;
     gap: 0.75rem;
     align-items: center;
     padding-top: 0.25rem;
@@ -275,7 +275,7 @@ main {
     }
 
     #new .item-card .item-row-2 {
-        grid-template-columns: 36px 1fr 1fr 1fr 72px;
+        grid-template-columns: 36px 1fr 1fr 1fr 1fr 72px;
         gap: 0.5rem;
     }
     
@@ -465,7 +465,20 @@ main {
     background: #f3f4f6;
 }
 
-.supplier-suggestions li.selected {
+.supplier-suggestions li.selected,
+.supplier-suggestions li.active {
     background: #eff6ff;
     color: #3b82f6;
+}
+
+/* Premium unified hover and selection states for all autocomplete dropdowns */
+.suggestions li:hover,
+.suggestions li.selected,
+.suggestions li.active,
+.supplier-suggestions li:hover,
+.supplier-suggestions li.selected,
+.supplier-suggestions li.active {
+    background-color: #eff6ff !important;
+    color: #2563eb !important;
+    font-weight: 500;
 }

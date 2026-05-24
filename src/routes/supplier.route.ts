@@ -11,10 +11,6 @@ function normalizeSupplierPayload(payload: any) {
     const shippingAddress = { ...(payload?.shipping_address || {}) };
     const bankDetails = { ...(payload?.bank_details || {}) };
 
-    // Remove country from address
-    delete billingAddress.country;
-    delete shippingAddress.country;
-
     return {
         ...payload,
         supplier_name: String(payload?.supplier_name ?? '').trim(),

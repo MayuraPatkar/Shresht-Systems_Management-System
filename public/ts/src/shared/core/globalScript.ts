@@ -205,6 +205,12 @@ document.addEventListener("keydown", function (event) {
     // If another script (like autocomplete) has already handled this and prevented default, respect it
     if (event.defaultPrevented) return;
 
+    // Guard: Prevent wizard next step trigger when focused on Date picker
+    const activeEl = document.activeElement as HTMLInputElement;
+    if (activeEl && activeEl.tagName === 'INPUT' && activeEl.type === 'date') {
+      return;
+    }
+
     // Check if we are in view mode (view section is visible)
     const viewSection = document.getElementById('view');
     if (viewSection && window.getComputedStyle(viewSection).display !== 'none') {
@@ -228,7 +234,16 @@ document.addEventListener("keydown", function (event) {
 });
 
 document.addEventListener("keydown", function (event) {
-  // Prevent step change if focus is in an input, textarea, or contenteditable element
+  // Support Alt + Backspace globally (even inside inputs/textareas) to move to the previous step
+  if (event.altKey && event.key === "Backspace") {
+    if (currentStep > 1) {
+      event.preventDefault();
+      changeStep(currentStep - 1);
+    }
+    return;
+  }
+
+  // Prevent generic step change if focus is in an input, textarea, or contenteditable element
   const active = document.activeElement;
   if (
     active &&

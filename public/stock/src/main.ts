@@ -20,11 +20,11 @@ const showDeletedBtn = document.getElementById('showDeletedBtn');
 if (showDeletedBtn) {
     showDeletedBtn.addEventListener('click', () => {
         window.showDeletedItems = !window.showDeletedItems;
-        
+
         const printBtn = document.getElementById('printBtn');
         const bulkRestoreBtn = document.getElementById('bulkRestoreBtn');
         const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-        
+
         // Update button visual state
         if (window.showDeletedItems) {
             showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700');
@@ -110,14 +110,6 @@ document.getElementById('bulkDeleteBtn')?.addEventListener('click', async () => 
     });
 });
 
-// ─── Initialize Validation ───────────────────────────────────────────────────
-
-document.addEventListener('DOMContentLoaded', () => {
-    preventDecimals(document.getElementById('quantityModalInput') as HTMLInputElement | null);
-    preventDecimals(document.getElementById('minStockQuantity') as HTMLInputElement | null);
-    preventDecimals(document.getElementById('editMinStockQuantity') as HTMLInputElement | null);
-});
-
 // ─── Home Button ─────────────────────────────────────────────────────────────
 
 const homeBtn = document.getElementById('home-btn');
@@ -184,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         row.classList.add('bg-yellow-200');
                         setTimeout(() => {
                             row.classList.remove('bg-yellow-200');
-                            const qty = parseInt(row.querySelector('td:nth-child(3)')?.textContent?.replace(/[^0-9]/g, '') || '0') || 0;
+                            const qty = parseFloat(row.querySelector('td:nth-child(3)')?.textContent?.replace(/[^0-9.]/g, '') || '0') || 0;
                             const minQty = Number(stockItem.min_stock_quantity) || 0;
 
                             if (qty < 0) {
@@ -211,16 +203,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ─── Integer Validation for Quantity Inputs ──────────────────────────────────
-
-document.addEventListener('DOMContentLoaded', () => {
-    const ids = ['quantity', 'minStockQuantity', 'editMinStockQuantity', 'quantityModalInput'];
-    ids.forEach(id => {
-        const el = document.getElementById(id) as HTMLInputElement | null;
-        if (el) {
-            el.addEventListener('keypress', function (event: KeyboardEvent): void {
-                if (event.charCode < 48 || event.charCode > 57) event.preventDefault();
-            });
-        }
-    });
-});

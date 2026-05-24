@@ -3,7 +3,7 @@
         "schema_version": 1,
         "supplier_id": "SUP-2026-001",
         "supplier_name": "Ace Manufacturing Ltd",
-        "phone": "+919876543210",
+        "phone": "9876543210",
         "email": "info@acemanufacturing.com",
         "gstin": "29AAAAA1111A1Z1",
         "billing_address": {
@@ -40,7 +40,7 @@
         "schema_version": 1,
         "supplier_id": "SUP-2026-002",
         "supplier_name": "Bharath Distributors",
-        "phone": "+919123456789",
+        "phone": "9123456789",
         "email": "sales@bharathdist.in",
         "gstin": "29BBBBB2222B2Z2",
         "billing_address": {
@@ -77,7 +77,7 @@
         "schema_version": 1,
         "supplier_id": "SUP-2026-003",
         "supplier_name": "Silicon Logistics & Services",
-        "phone": "+918041234567",
+        "phone": "8041234567",
         "email": "support@siliconlogistics.com",
         "gstin": "29CCCCC3333C3Z3",
         "billing_address": {
@@ -114,7 +114,7 @@
         "schema_version": 1,
         "supplier_id": "SUP-2026-004",
         "supplier_name": "Chamundi Enterprises",
-        "phone": "+918212543210",
+        "phone": "8212543210",
         "email": "contact@chamundienterprises.com",
         "gstin": "29DDDDD4444D4Z4",
         "billing_address": {
@@ -151,7 +151,7 @@
         "schema_version": 1,
         "supplier_id": "SUP-2026-005",
         "supplier_name": "Deccan Plastics Corp",
-        "phone": "+918362334455",
+        "phone": "8362334455",
         "email": "orders@deccanplastics.co.in",
         "gstin": "29EEEEE5555E5Z5",
         "billing_address": {
@@ -188,7 +188,7 @@
         "schema_version": 1,
         "supplier_id": "SUP-2026-006",
         "supplier_name": "Coastal Electricals",
-        "phone": "+918242441122",
+        "phone": "8242441122",
         "email": "coastal.elec@gmail.com",
         "gstin": "29FFFFF6666F6Z6",
         "billing_address": {
@@ -225,7 +225,7 @@
         "schema_version": 1,
         "supplier_id": "SUP-2026-007",
         "supplier_name": "Alpha Tech Solutions",
-        "phone": "+919900112233",
+        "phone": "9900112233",
         "email": "admin@alphatech.io",
         "gstin": "29GGGGG7777G7Z7",
         "billing_address": {
@@ -264,7 +264,7 @@
         "schema_version": 1,
         "supplier_id": "SUP-2026-008",
         "supplier_name": "Kalyani Iron & Steel",
-        "phone": "+918392223344",
+        "phone": "8392223344",
         "email": "sales@kalyanisteel.com",
         "gstin": "29HHHHH8888H8Z8",
         "billing_address": {
@@ -301,7 +301,7 @@
         "schema_version": 1,
         "supplier_id": "SUP-2026-009",
         "supplier_name": "Saraswathi Printing Press",
-        "phone": "+918182223322",
+        "phone": "8182223322",
         "email": "saraswathiprint@outlook.com",
         "gstin": "29IIIII9999I9Z9",
         "billing_address": {
@@ -338,7 +338,7 @@
         "schema_version": 1,
         "supplier_id": "SUP-2026-010",
         "supplier_name": "Zenith Office Supplies",
-        "phone": "+919845012345",
+        "phone": "9845012345",
         "email": "orders@zenithsupplies.com",
         "gstin": "29JJJJJ0000J0Z0",
         "billing_address": {

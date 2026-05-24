@@ -12,8 +12,8 @@ const router: Router = Router();
  */
 router.get("/generate-id", async (req: Request, res: Response) => {
     try {
-        const purchase_order_id = await previewNextId('purchaseOrder');
-        return res.status(200).json({ purchase_order_id });
+        const purchase_order_no = await previewNextId('purchaseOrder');
+        return res.status(200).json({ purchase_order_no });
     } catch (err: unknown) {
         logger.error('Error generating purchase order preview', { error: (err as Error).message || err });
         return res.status(500).json({ error: 'Failed to generate purchase order id' });
@@ -66,42 +66,19 @@ router.get("/suppliers/list", async (req: Request, res: Response) => {
 
 router.post("/save-purchase-order", async (req: Request, res: Response) => {
     try {
-        let {
-            purchaseOrderId = '', // Could be a preview ID (new) or existing ID (update)
-            purchaseInvoiceId = '',
-            purchaseDate = new Date(),
-            supplierName = '',
-            supplierAddress = '',
-            supplierPhone = '',
-            supplierEmail = '',
-            supplierGSTIN = '',
+        const {
+            purchase_order_no,
+            purchase_invoice_no,
+            purchase_date,
+            supplier_snapshot,
             items = [] as any[],
-            totalAmount = 0
+            totals
         } = req.body;
-
-        // Build supplier_snapshot sub-document
-        const supplier_snapshot: any = {};
-        if (supplierName) supplier_snapshot.name = supplierName;
-        if (supplierGSTIN) supplier_snapshot.gstin = supplierGSTIN;
-        if (supplierPhone) supplier_snapshot.phone = supplierPhone;
-        if (supplierEmail) supplier_snapshot.email = supplierEmail;
-        if (supplierAddress) {
-            if (typeof supplierAddress === 'string') {
-                supplier_snapshot.address = { line1: supplierAddress };
-            } else {
-                supplier_snapshot.address = supplierAddress;
-            }
-        }
-
-        // Build totals sub-document
-        const totals = {
-            grand_total: totalAmount
-        };
 
         // Attempt to find an existing document using the provided ID
         let purchaseOrder: any = null;
-        if (purchaseOrderId) {
-            purchaseOrder = await PurchaseModel.findOne({ purchase_order_no: purchaseOrderId });
+        if (purchase_order_no) {
+            purchaseOrder = await PurchaseModel.findOne({ purchase_order_no });
         }
 
         let previousItems: any[] = [];
@@ -115,8 +92,8 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
             previousItems = Array.isArray(purchaseOrder.items) ? purchaseOrder.items : [];
 
             // Update fields
-            purchaseOrder.purchase_invoice_no = purchaseInvoiceId;
-            purchaseOrder.purchase_date = purchaseDate || new Date();
+            purchaseOrder.purchase_invoice_no = purchase_invoice_no;
+            purchaseOrder.purchase_date = purchase_date || new Date();
             purchaseOrder.supplier_snapshot = supplier_snapshot;
             purchaseOrder.items = items;
             purchaseOrder.totals = totals;
@@ -131,8 +108,8 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
 
             purchaseOrder = new PurchaseModel({
                 purchase_order_no: newId,
-                purchase_invoice_no: purchaseInvoiceId,
-                purchase_date: purchaseDate || new Date(),
+                purchase_invoice_no: purchase_invoice_no,
+                purchase_date: purchase_date || new Date(),
                 supplier_snapshot,
                 items,
                 totals,
@@ -178,6 +155,7 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
                 stockItem.brand = item.brand || item.company || stockItem.brand;
                 stockItem.category = item.category || stockItem.category;
                 stockItem.item_type = item.item_type || item.type || stockItem.item_type;
+                stockItem.unit = item.unit || stockItem.unit || 'pc';
                 stockItem.updatedAt = new Date();
                 await stockItem.save();
             } else {
@@ -192,12 +170,13 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
                     margin: 0,
                     stock_quantity: addQty,
                     item_type: item.item_type || item.type || 'Material',
+                    unit: item.unit || 'pc',
                 } as any);
             }
         }
 
         // 2. Sync Stock Movements (Update Existing, Create New, Delete Removed)
-        const currentPOId = purchaseOrderId || (purchaseOrder ? purchaseOrder.purchase_order_no : 'NEW');
+        const currentPOId = purchase_order_no || (purchaseOrder ? purchaseOrder.purchase_order_no : 'NEW');
 
         // Fetch existing movements for this PO (using new schema: reference.type + reference.id)
         const existingMovements = await StockMovementModel.find({
@@ -266,7 +245,7 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
         res.status(201).json({
             message: 'Purchase order saved successfully',
             purchaseOrder: savedPurchaseOrder,
-            purchase_order_id: savedPurchaseOrder.purchase_order_no // Return the final ID
+            purchase_order_no: savedPurchaseOrder.purchase_order_no // Return the final ID
         });
     } catch (error: unknown) {
         logger.error('Error saving purchase order:', error);

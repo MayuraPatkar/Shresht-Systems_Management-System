@@ -18,7 +18,6 @@ export interface IAddress {
     city?: string;
     state?: string;
     pincode?: string;
-    country?: string;
 }
 
 /**
@@ -115,7 +114,6 @@ const addressSchema = new Schema<IAddress>(
         city: { type: String, trim: true },
         state: { type: String, trim: true },
         pincode: { type: String, trim: true },
-        country: { type: String, trim: true },
     },
     { _id: false }
 );

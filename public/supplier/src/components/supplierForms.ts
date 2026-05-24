@@ -22,9 +22,9 @@ class SupplierForms {
                 this.validator = new (window as any).FormValidator(form);
 
                 // Register rules
-                this.validator.registerField('supplier_name', [V.required('Supplier name is required')]);
+                this.validator.registerField('supplier_name', [V.required('Supplier Name is required')]);
                 this.validator.registerField('phone', [
-                    V.required('Phone number is required'),
+                    V.required('Phone Number is required'),
                     V.phone(true, 'Please enter a valid 10-digit phone number')
                 ]);
                 this.validator.registerField('email', [
@@ -101,7 +101,7 @@ class SupplierForms {
 
         title.textContent = 'Edit Supplier';
         idInput.value = supplier._id;
-        
+
         // Populate form fields
         const elements = form.elements as any;
         elements['supplier_name'].value = supplier.supplier_name || '';

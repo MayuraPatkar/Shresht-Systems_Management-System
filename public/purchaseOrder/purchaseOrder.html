@@ -24,7 +24,7 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Purchase Bill</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
+            <div id="search-filter-container" class="flex items-center gap-4 flex-1 max-w-xl mx-8">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     <input type="text" id="search-input" placeholder="Search purchase bills..."
@@ -165,7 +165,7 @@
                                     <i class="fas fa-hashtag text-gray-500 mr-1"></i>Purchase Invoice ID <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="purchase-invoice-id" required placeholder="Enter invoice ID"
+                                <input type="text" id="purchase-invoice-id" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                             <div>
@@ -173,7 +173,7 @@
                                     <i class="fas fa-calendar text-gray-500 mr-1"></i>Purchase Date <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <input type="date" id="purchase-date" required
+                                <input type="date" id="purchase-date" required max="9999-12-31"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                             <div class="md:col-span-2">
@@ -181,22 +181,94 @@
                                     <i class="fas fa-user-tie text-gray-500 mr-1"></i>Supplier Name <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="supplier-name" required placeholder="Enter supplier name"
+                                <input type="text" id="supplier-name" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="supplier-address-line1" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address Line 1 <span
+                                        class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="supplier-address-line1" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="supplier-address-line2" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address Line 2
+                                </label>
+                                <input type="text" id="supplier-address-line2"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                             <div class="md:col-span-2">
-                                <label for="supplier-address" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <textarea id="supplier-address" required rows="3" placeholder="Enter complete address"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label for="supplier-address-city" class="block text-sm font-medium text-gray-700 mb-2">
+                                            <i class="fas fa-city text-gray-500 mr-1"></i>City <span
+                                                class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" id="supplier-address-city" required
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                    <div>
+                                        <label for="supplier-address-state" class="block text-sm font-medium text-gray-700 mb-2">
+                                            <i class="fas fa-map text-gray-500 mr-1"></i>State <span
+                                                class="text-red-500">*</span>
+                                        </label>
+                                        <select id="supplier-address-state" required
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                            <option value="Assam">Assam</option>
+                                            <option value="Bihar">Bihar</option>
+                                            <option value="Chhattisgarh">Chhattisgarh</option>
+                                            <option value="Goa">Goa</option>
+                                            <option value="Gujarat">Gujarat</option>
+                                            <option value="Haryana">Haryana</option>
+                                            <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                            <option value="Jharkhand">Jharkhand</option>
+                                            <option value="Karnataka" selected>Karnataka</option>
+                                            <option value="Kerala">Kerala</option>
+                                            <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                            <option value="Maharashtra">Maharashtra</option>
+                                            <option value="Manipur">Manipur</option>
+                                            <option value="Meghalaya">Meghalaya</option>
+                                            <option value="Mizoram">Mizoram</option>
+                                            <option value="Nagaland">Nagaland</option>
+                                            <option value="Odisha">Odisha</option>
+                                            <option value="Punjab">Punjab</option>
+                                            <option value="Rajasthan">Rajasthan</option>
+                                            <option value="Sikkim">Sikkim</option>
+                                            <option value="Tamil Nadu">Tamil Nadu</option>
+                                            <option value="Telangana">Telangana</option>
+                                            <option value="Tripura">Tripura</option>
+                                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                            <option value="Uttarakhand">Uttarakhand</option>
+                                            <option value="West Bengal">West Bengal</option>
+                                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                            <option value="Chandigarh">Chandigarh</option>
+                                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                                            <option value="Delhi">Delhi</option>
+                                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                            <option value="Ladakh">Ladakh</option>
+                                            <option value="Lakshadweep">Lakshadweep</option>
+                                            <option value="Puducherry">Puducherry</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="supplier-address-pincode" class="block text-sm font-medium text-gray-700 mb-2">
+                                            <i class="fas fa-thumbtack text-gray-500 mr-1"></i>Pincode <span
+                                                class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" id="supplier-address-pincode" required
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label for="supplier-phone" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number
                                 </label>
-                                <input type="tel" id="supplier-phone" required placeholder="Enter phone number"
+                                <input type="tel" id="supplier-phone" required
                                     inputmode="numeric" maxlength="10" pattern="[0-9]{10}"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
@@ -204,7 +276,7 @@
                                 <label for="supplier-email" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-envelope text-gray-500 mr-1"></i>Email
                                 </label>
-                                <input type="email" id="supplier-email" required placeholder="Enter email address"
+                                <input type="email" id="supplier-email" required
                                     maxlength="254" pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
@@ -213,7 +285,6 @@
                                     <i class="fas fa-id-card text-gray-500 mr-1"></i>GSTIN
                                 </label>
                                 <input type="text" id="supplier-GSTIN" required maxlength="15" pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
-                                    placeholder="Enter GSTIN (e.g., 29ABCDE1234F1Z5)"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                         </div>
@@ -248,7 +319,7 @@
                                             HSN/SAC</th>
                                         <th
                                             class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                            Company</th>
+                                            Brand</th>
                                         <th
                                             class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
                                             Type</th>
@@ -258,6 +329,9 @@
                                         <th
                                             class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
                                             Qty</th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                            Unit</th>
                                         <th
                                             class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
                                             Unit Price</th>
@@ -421,13 +495,16 @@
                                         HSN/SAC</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Company</th>
+                                        Brand</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
                                         Category</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
                                         Qty</th>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Unit</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
                                         Unit Price</th>
@@ -555,21 +632,7 @@
         </div>
     </div>
 
-    <!-- Keyboard Shortcuts Modal -->
-    <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shortcuts-panel">
-            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-keyboard text-2xl"></i>
-                    <h2 class="text-xl font-semibold">Keyboard Shortcuts</h2>
-                </div>
-                <button id="close-shortcuts" class="text-white hover:text-gray-200" aria-label="Close shortcuts modal">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            <div id="shortcuts-content" class="p-6 space-y-6"></div>
-        </div>
-    </div>
+
 
     <!-- Scripts -->
     <!-- Shared utilities -->
@@ -587,9 +650,13 @@
     <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
 
     <!-- Module-specific scripts -->
-    <script src="../purchaseOrder/purchaseOrder_home.js"></script>
-    <script src="../purchaseOrder/purchaseOrder_view.js"></script>
-    <script src="../purchaseOrder/purchaseOrder_form.js"></script>
+    <script src="../../dist/public/purchaseOrder/src/services/purchaseOrderApi.js"></script>
+    <script src="../../dist/public/purchaseOrder/src/utils/purchaseOrderFilters.js"></script>
+    <script src="../../dist/public/purchaseOrder/src/utils/keyboardShortcuts.js"></script>
+    <script src="../../dist/public/purchaseOrder/src/components/purchaseOrderView.js"></script>
+    <script src="../../dist/public/purchaseOrder/src/components/purchaseOrderForm.js"></script>
+    <script src="../../dist/public/purchaseOrder/src/components/purchaseOrderTable.js"></script>
+    <script src="../../dist/public/purchaseOrder/src/main.js"></script>
 </body>
 
 </html>

@@ -51,6 +51,8 @@ function renderStockTable(data: StockItem[]): void {
         const minQuantity = Number(item.min_stock_quantity) || 0;
         const category = item.category;
         const itemType = item.item_type;
+        const unit = item.unit || 'pc';
+        const isPc = unit === 'pc';
 
         const row = document.createElement('tr');
         row.classList.add('table-row', 'fade-in', 'hover:bg-slate-50', 'transition-colors');
@@ -219,8 +221,8 @@ function renderStockTable(data: StockItem[]): void {
                     <div class="text-sm text-gray-500">${escapeHtml(brand)} • ${escapeHtml(category)}</div>
                 </div>
             </td>
-            <td class="p-4 text-center font-medium">₹ ${escapeHtml(formatIndian(purchasePrice))}</td>
-            <td class="p-4 text-center font-medium">${escapeHtml(formatIndian(quantity))}</td>
+            <td class="p-4 text-center font-medium">₹ ${escapeHtml(formatIndian(purchasePrice, 2))}</td>
+            <td class="p-4 text-center font-medium">${escapeHtml(formatIndian(quantity, isPc ? 0 : 2))} ${escapeHtml(unit)}</td>
             <td class="p-4 text-center">${escapeHtml(gstRate)}%</td>
             <td class="p-4 text-center" style="width:140px;">
                 <span class="inline-flex text-center px-4 py-1.5 rounded-full text-sm font-semibold ${statusClass}">
