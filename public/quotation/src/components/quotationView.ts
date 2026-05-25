@@ -742,6 +742,50 @@ async function renderQuotationView(quotation, viewType) {
         }
     };
 
+    const dangerZoneSection = document.getElementById('danger-zone-section');
+    if (dangerZoneSection) {
+        dangerZoneSection.classList.remove('hidden');
+    }
+
+    const deleteBtn = document.getElementById('deleteQuotationBtn');
+    if (deleteBtn) {
+        const newDeleteBtn = deleteBtn.cloneNode(true) as HTMLButtonElement;
+        deleteBtn.parentNode?.replaceChild(newDeleteBtn, deleteBtn);
+        newDeleteBtn.addEventListener('click', () => {
+            const electronAPI = (window as any).electronAPI;
+            if (electronAPI?.showAlert2 && electronAPI?.receiveAlertResponse) {
+                electronAPI.showAlert2(`Are you sure you want to delete Quotation "${quotation.quotation_id}"?`);
+                
+                electronAPI.receiveAlertResponse((response: string) => {
+                    if (response === 'Yes') {
+                        if (typeof (window as any).deleteDocument === 'function') {
+                            (window as any).deleteDocument('quotation', quotation.quotation_id, 'Quotation', () => {
+                                const homeBtnEl = document.getElementById('home-btn');
+                                if (homeBtnEl) {
+                                    homeBtnEl.click();
+                                    
+                                    // Refresh the list view automatically
+                                    const refreshBtnEl = document.getElementById('refresh-btn');
+                                    if (refreshBtnEl) refreshBtnEl.click();
+                                } else {
+                                    window.location.reload();
+                                }
+                            });
+                        }
+                    }
+                });
+            } else {
+                if (confirm(`Are you sure you want to delete Quotation "${quotation.quotation_id}"?`)) {
+                    if (typeof (window as any).deleteDocument === 'function') {
+                        (window as any).deleteDocument('quotation', quotation.quotation_id, 'Quotation', () => {
+                            window.location.href = '/quotation/quotation.html';
+                        });
+                    }
+                }
+            }
+        });
+    }
+
 }
 
 async function viewQuotation(quotationId, viewType) {
