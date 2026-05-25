@@ -70,6 +70,7 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
             purchase_no,
             purchase_invoice_no,
             purchase_date,
+            supplier_id,
             supplier_snapshot,
             items = [] as any[],
             totals
@@ -94,6 +95,7 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
             // Update fields
             purchase.purchase_invoice_no = purchase_invoice_no;
             purchase.purchase_date = purchase_date || new Date();
+            purchase.supplier_id = supplier_id || undefined;
             purchase.supplier_snapshot = supplier_snapshot;
             purchase.items = items;
             purchase.totals = totals;
@@ -110,6 +112,7 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
                 purchase_no: newId,
                 purchase_invoice_no: purchase_invoice_no,
                 purchase_date: purchase_date || new Date(),
+                supplier_id: supplier_id || undefined,
                 supplier_snapshot,
                 items,
                 totals,
