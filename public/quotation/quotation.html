@@ -843,25 +843,26 @@
 
                 <!-- Preview & Actions Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-eye text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-eye text-purple-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button type="button" id="printProject"
+                                class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium cursor-pointer">
+                                <i class="fas fa-print"></i>
+                                Print
+                            </button>
+                            <button type="button" id="saveProjectPDF"
+                                class="bg-red-600 text-white px-4 h-10 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium cursor-pointer">
+                                <i class="fas fa-file-pdf"></i>
+                                Save as PDF
+                            </button>
+                        </div>
                     </div>
                     <div id="view-preview-content" class="mb-6">
                         <!-- Preview will be dynamically generated -->
-                    </div>
-                    <div class="flex gap-3 justify-center">
-                        <button type="button" id="printProject"
-                            class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-print"></i>
-                            Print
-                        </button>
-                        <button type="button" id="saveProjectPDF"
-                            class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-file-pdf"></i>
-                            Save as PDF
-                        </button>
-
                     </div>
                 </section>
 
