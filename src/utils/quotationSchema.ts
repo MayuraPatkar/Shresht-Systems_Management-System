@@ -232,5 +232,6 @@ export function normalizeQuotationDocument(doc: any) {
         letter_3: normalized.content.letter_3,
         notes: normalized.content.notes,
         termsAndConditions: normalized.content.terms_and_conditions,
+        customer_type: q.customer_id?.customer_type || '',
     };
 }

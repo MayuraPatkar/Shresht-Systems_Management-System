@@ -25,6 +25,55 @@ class QuotationTable {
         const quotationListDiv = document.querySelector(".records") as HTMLElement;
         if (!quotationListDiv) return;
 
+        // Update stats summary
+        const totalCountEl = document.getElementById('total-quotations-count');
+        const draftCountEl = document.getElementById('draft-quotations-count');
+        const approvedCountEl = document.getElementById('approved-quotations-count');
+        const b2bCountEl = document.getElementById('b2b-quotations-count');
+        const b2cCountEl = document.getElementById('b2c-quotations-count');
+        
+        if (totalCountEl && b2bCountEl && b2cCountEl) {
+            const total = quotations ? quotations.length : 0;
+            let draft = 0;
+            let approved = 0;
+            let b2b = 0;
+            let b2c = 0;
+            
+            if (quotations) {
+                quotations.forEach((q: any) => {
+                    // Check status
+                    const status = q.quotation_status || 'Draft';
+                    if (status === 'Draft') draft++;
+                    if (status === 'Approved') approved++;
+
+                    // Check B2B / B2C
+                    const type = (q.customer_type || '').toLowerCase();
+                    const isResidential = type === 'residential' || type === 'individual';
+                    const isCompany = type === 'commercial' || type === 'company' || type === 'industrial' || type === 'government';
+                    
+                    if (isCompany) {
+                        b2b++;
+                    } else if (isResidential) {
+                        b2c++;
+                    } else {
+                        // Fallback to gstin check if customer_type is unknown
+                        const gstin = q.customer_snapshot?.gstin || q.customer_GSTIN;
+                        if (gstin && gstin.trim() !== '') {
+                            b2b++;
+                        } else {
+                            b2c++;
+                        }
+                    }
+                });
+            }
+            
+            totalCountEl.textContent = total.toString();
+            if (draftCountEl) draftCountEl.textContent = draft.toString();
+            if (approvedCountEl) approvedCountEl.textContent = approved.toString();
+            b2bCountEl.textContent = b2b.toString();
+            b2cCountEl.textContent = b2c.toString();
+        }
+
         quotationListDiv.innerHTML = "";
         if (!quotations || quotations.length === 0) {
             quotationListDiv.innerHTML = `

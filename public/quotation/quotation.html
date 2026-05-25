@@ -28,7 +28,7 @@
             <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search quotations..."
+                    <input type="text" id="search-input"
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                 </div>
                 <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
@@ -177,6 +177,30 @@
 
         <!-- Home Section -->
         <div id="home">
+            <!-- Stats Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8" id="quotation-stats-summary">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">Total Quotations</p>
+                    <h3 class="text-2xl font-bold text-gray-800" id="total-quotations-count">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">Draft</p>
+                    <h3 class="text-2xl font-bold text-gray-600" id="draft-quotations-count">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">Approved</p>
+                    <h3 class="text-2xl font-bold text-green-600" id="approved-quotations-count">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">B2B Quotations</p>
+                    <h3 class="text-2xl font-bold text-blue-600" id="b2b-quotations-count">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">B2C Quotations</p>
+                    <h3 class="text-2xl font-bold text-purple-600" id="b2c-quotations-count">0</h3>
+                </div>
+            </div>
+
             <div class="records grid grid-cols-1 gap-4">
                 <!-- content will be loaded dynamically -->
             </div>
@@ -202,7 +226,7 @@
                                         <i class="fas fa-briefcase text-gray-500 mr-1"></i>Project Name <span
                                             class="text-red-500">*</span>
                                     </label>
-                                    <input type="text" id="project-name" required placeholder="Enter project name"
+                                    <input type="text" id="project-name" required
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 </div>
 
@@ -269,7 +293,6 @@
                                     <i class="fas fa-user text-gray-500 mr-1"></i>First Name <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="buyer-first-name" autocomplete="off"
-                                    placeholder="Type to search or enter first name"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                                 <ul id="customer-suggestions"
                                     class="suggestions hidden absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto"
@@ -282,7 +305,6 @@
                                     <i class="fas fa-user text-gray-500 mr-1"></i>Last Name / Company
                                 </label>
                                 <input type="text" id="buyer-last-name" autocomplete="off"
-                                    placeholder="Last name or company name"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <!-- Row 2: Address Line 1 (Full Width) -->
@@ -292,7 +314,6 @@
                                         class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="buyer-address-line1" required
-                                    placeholder="Flat, House no., Building, Company, Apartment"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
 
@@ -301,7 +322,7 @@
                                 <label for="buyer-address-line2" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-road text-gray-500 mr-1"></i>Address Line 2
                                 </label>
-                                <input type="text" id="buyer-address-line2" placeholder="Area, Street, Sector, Village"
+                                <input type="text" id="buyer-address-line2"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
 
@@ -311,7 +332,7 @@
                                     <i class="fas fa-city text-gray-500 mr-1"></i>City <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="buyer-city" required placeholder="Enter city"
+                                <input type="text" id="buyer-city" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <div>
@@ -319,7 +340,7 @@
                                     <i class="fas fa-map text-gray-500 mr-1"></i>State <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="buyer-state" required value="Karnataka" placeholder="Enter state"
+                                <input type="text" id="buyer-state" required value="Karnataka"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
 
@@ -329,7 +350,7 @@
                                     <i class="fas fa-map-pin text-gray-500 mr-1"></i>Pincode <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="buyer-pincode" required placeholder="6-digit pincode"
+                                <input type="text" id="buyer-pincode" required
                                     maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
@@ -337,7 +358,7 @@
                                 <label for="buyer-country" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-globe text-gray-500 mr-1"></i>Country
                                 </label>
-                                <input type="text" id="buyer-country" value="India" placeholder="Enter country"
+                                <input type="text" id="buyer-country" value="India"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
 
@@ -348,7 +369,7 @@
                                         class="text-red-500">*</span>
                                 </label>
                                 <input type="tel" id="buyer-phone" maxlength="10" pattern="[0-9]{10}"
-                                    inputmode="numeric" placeholder="Enter phone number"
+                                    inputmode="numeric"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <div>
@@ -356,7 +377,6 @@
                                     <i class="fas fa-envelope text-gray-500 mr-1"></i>Email
                                 </label>
                                 <input type="email" id="buyer-email" maxlength="254" pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                                    placeholder="Enter email address"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
 
@@ -367,7 +387,6 @@
                                 </label>
                                 <input type="text" id="buyer-gstin" maxlength="15"
                                     pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
-                                    placeholder="Enter GSTIN (e.g., 29ABCDE1234F1Z5)"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                         </div>

@@ -346,6 +346,8 @@ async function openQuotation(quotationId) {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
     document.getElementById('new-quotation').style.display = 'none';
+    const refreshBtnEdit = document.getElementById('refresh-btn');
+    if (refreshBtnEdit) refreshBtnEdit.style.display = 'none';
     document.getElementById('view-preview').style.display = 'block';
     
     const homeBtnEl = document.getElementById('home-btn');
@@ -420,11 +422,11 @@ async function openQuotation(quotationId) {
         row.dataset.itemId = item.item_id || '';
         row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
-                <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
-                <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
-                <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
+                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" required></td>
+                <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
         itemsTableBody.appendChild(row);
@@ -441,21 +443,21 @@ async function openQuotation(quotationId) {
                     <div class="item-number">${index + 1}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
-                            <input type="text" placeholder="Enter item description" class="item_name" value="${item.description || ''}" required>
+                            <input type="text" class="item_name" value="${item.description || ''}" required>
                             <ul class="suggestions"></ul>
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" placeholder="Code" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
+                        <input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" placeholder="0" min="0.01" step="0.01" value="${item.quantity || ''}" required>
+                        <input type="number" min="0.01" step="0.01" value="${item.quantity || ''}" required>
                     </div>
                     <div class="item-field price">
-                        <input type="number" placeholder="0.00" step="0.01" value="${item.unit_price || ''}" required>
+                        <input type="number" step="0.01" value="${item.unit_price || ''}" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || item.Rate || item.gst_rate || ''}">
+                        <input type="number" min="0" step="0.01" value="${item.rate || item.Rate || item.gst_rate || ''}">
                     </div>
                     <div class="item-actions">
 
@@ -519,9 +521,9 @@ async function openQuotation(quotationId) {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
-                <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="number" value="${item.price || ''}" required></td>
+                <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
         nonItemsTableBody.appendChild(row);
@@ -537,13 +539,13 @@ async function openQuotation(quotationId) {
                     </div>
                     <div class="item-number">${index + 1}</div>
                     <div class="non-item-field description">
-                        <input type="text" placeholder="e.g., Installation Charges" value="${item.description || ''}" required>
+                        <input type="text" value="${item.description || ''}" required>
                     </div>
                     <div class="non-item-field price">
-                        <input type="number" placeholder="0.00" step="0.01" value="${item.price || ''}" required>
+                        <input type="number" step="0.01" value="${item.price || ''}" required>
                     </div>
                     <div class="non-item-field rate">
-                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                        <input type="number" min="0" step="0.01" value="${item.rate || ''}">
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -609,7 +611,7 @@ async function openQuotation(quotationId) {
                         <input type="text" value="${item.description || ''}" readonly style="background: #f9fafb; cursor: not-allowed;">
                     </div>
                     <div class="spec-field specification">
-                        <input type="text" placeholder="Enter specifications" value="${item.specification || ''}" required>
+                        <input type="text" value="${item.specification || ''}" required>
                     </div>
                 `;
             specificationsContainer.appendChild(card);
@@ -669,6 +671,8 @@ async function cloneQuotation(sourceQuotationId) {
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
         document.getElementById('new-quotation').style.display = 'none';
+        const refreshBtnClone = document.getElementById('refresh-btn');
+        if (refreshBtnClone) refreshBtnClone.style.display = 'none';
         document.getElementById('view-preview').style.display = 'block';
         const trashBtnEl = document.getElementById('trash-btn');
         if (trashBtnEl) trashBtnEl.style.display = 'none';
@@ -769,11 +773,11 @@ async function cloneQuotation(sourceQuotationId) {
             row.dataset.itemId = item.item_id || '';
             row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
-                <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="0.01" step="0.01" required></td>
-                <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
-                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
+                <td><input type="number" value="${item.quantity || ''}" min="0.01" step="0.01" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" required></td>
+                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
             itemsTableBody.appendChild(row);
@@ -789,21 +793,21 @@ async function cloneQuotation(sourceQuotationId) {
                     <div class="item-number">${index + 1}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
-                            <input type="text" placeholder="Enter item description" class="item_name" value="${item.description || ''}" required>
+                            <input type="text" class="item_name" value="${item.description || ''}" required>
                             <ul class="suggestions"></ul>
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" placeholder="Code" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
+                        <input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" placeholder="0" min="0.01" step="0.01" value="${item.quantity || ''}" required>
+                        <input type="number" min="0.01" step="0.01" value="${item.quantity || ''}" required>
                     </div>
                     <div class="item-field price">
-                        <input type="number" placeholder="0.00" step="0.01" value="${item.unit_price || ''}" required>
+                        <input type="number" step="0.01" value="${item.unit_price || ''}" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                        <input type="number" min="0" step="0.01" value="${item.rate || ''}">
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -860,9 +864,9 @@ async function cloneQuotation(sourceQuotationId) {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
-                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="number" value="${item.price || ''}" required></td>
+                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
             nonItemsTableBody.appendChild(row);
@@ -877,13 +881,13 @@ async function cloneQuotation(sourceQuotationId) {
                     </div>
                     <div class="item-number">${index + 1}</div>
                     <div class="non-item-field description">
-                        <input type="text" placeholder="e.g., Installation Charges" value="${item.description || ''}" required>
+                        <input type="text" value="${item.description || ''}" required>
                     </div>
                     <div class="non-item-field price">
-                        <input type="number" placeholder="0.00" step="0.01" value="${item.price || ''}" required>
+                        <input type="number" step="0.01" value="${item.price || ''}" required>
                     </div>
                     <div class="non-item-field rate">
-                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || item.Rate || item.gst_rate || ''}">
+                        <input type="number" min="0" step="0.01" value="${item.rate || item.Rate || item.gst_rate || ''}">
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -948,7 +952,7 @@ async function cloneQuotation(sourceQuotationId) {
                         <input type="text" value="${item.description || ''}" readonly style="background: #f9fafb; cursor: not-allowed;">
                     </div>
                     <div class="spec-field specification">
-                        <input type="text" placeholder="Enter specifications" value="${item.specification || ''}" required>
+                        <input type="text" value="${item.specification || ''}" required>
                     </div>
                 `;
                 specificationsContainer.appendChild(card);

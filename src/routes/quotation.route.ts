@@ -96,7 +96,7 @@ router.get("/generate-id", async (_req: Request, res: Response) => {
 router.get("/all", async (req: Request, res: Response) => {
     try {
         await expireStaleQuotations();
-        const quotations = await QuotationModel.find(buildListQuery(req)).sort({ createdAt: -1 }).lean();
+        const quotations = await QuotationModel.find(buildListQuery(req)).populate('customer_id', 'customer_type').sort({ createdAt: -1 }).lean();
         return res.status(200).json(quotations.map(normalizeQuotationDocument));
     } catch (error: unknown) {
         logger.error("Error fetching quotations:", error);
