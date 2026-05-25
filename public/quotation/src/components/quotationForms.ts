@@ -64,19 +64,75 @@ async function autofillStockItem(input) {
     }
 }
 
-// Helper: sync hidden #buyer-name from first+last name inputs
-function syncBuyerName() {
-    const first = (document.getElementById('buyer-first-name') as HTMLInputElement)?.value.trim() || '';
-    const last = (document.getElementById('buyer-last-name') as HTMLInputElement)?.value.trim() || '';
-    const combined = [first, last].filter(Boolean).join(' ');
-    const hidden = document.getElementById('buyer-name') as HTMLInputElement;
-    if (hidden) hidden.value = combined;
+function renderBuyerProfileCard() {
+    const container = document.getElementById('buyer-profile-card-container');
+    if (!container) return;
+
+    const buyerNameInput = document.getElementById('buyer-name') as HTMLInputElement | null;
+    const buyerCustomerIdInput = document.getElementById('buyer-customer-id') as HTMLInputElement | null;
+    const line1 = (document.getElementById('buyer-address-line1') as HTMLInputElement | null)?.value || '';
+    const line2 = (document.getElementById('buyer-address-line2') as HTMLInputElement | null)?.value || '';
+    const city = (document.getElementById('buyer-city') as HTMLInputElement | null)?.value || '';
+    const state = (document.getElementById('buyer-state') as HTMLInputElement | null)?.value || '';
+    const pincode = (document.getElementById('buyer-pincode') as HTMLInputElement | null)?.value || '';
+    const phone = (document.getElementById('buyer-phone') as HTMLInputElement | null)?.value || '';
+    const email = (document.getElementById('buyer-email') as HTMLInputElement | null)?.value || '';
+    const gstin = (document.getElementById('buyer-gstin') as HTMLInputElement | null)?.value || '';
+
+    const hasCustomerSelected = buyerCustomerIdInput && buyerCustomerIdInput.value.trim() !== '';
+
+    if (!hasCustomerSelected || !buyerNameInput || !buyerNameInput.value.trim()) {
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-500 text-center fade-in w-full md:col-span-2">
+                <div class="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-500 mb-3">
+                    <i class="fas fa-user-shield text-xl"></i>
+                </div>
+                <p class="text-sm font-semibold text-gray-700">No Customer Selected</p>
+                <p class="text-xs text-gray-400 mt-1 max-w-sm">Please search and select a customer profile in the search input above to view details.</p>
+            </div>
+        `;
+        container.classList.remove('hidden');
+        return;
+    }
+
+    const fullAddress = [line1, line2, city, state, pincode].filter(val => val.trim() !== '').join(', ');
+
+    container.innerHTML = `
+        <div class="bg-purple-50/40 rounded-xl p-5 border border-purple-100 flex flex-col md:flex-row gap-6 md:justify-between items-start fade-in w-full md:col-span-2">
+            <div class="space-y-3 flex-1 w-full">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="text-base font-bold text-gray-900">${buyerNameInput.value}</h3>
+                </div>
+                <div class="text-sm text-gray-600 space-y-2">
+                    <p class="flex items-start gap-2">
+                        <i class="fas fa-map-marker-alt text-purple-500 mt-1 flex-shrink-0 w-4 text-center"></i>
+                        <span class="leading-relaxed">${fullAddress || 'No Address Provided'}</span>
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pt-3 border-t border-purple-100/50 w-full">
+                        <p class="flex items-center gap-2">
+                            <i class="fas fa-phone text-purple-500 flex-shrink-0 w-4 text-center"></i>
+                            <span>${phone || 'No Phone Number'}</span>
+                        </p>
+                        <p class="flex items-center gap-2">
+                            <i class="fas fa-envelope text-purple-500 flex-shrink-0 w-4 text-center"></i>
+                            <span class="break-all">${email || 'No Email Address'}</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-3 border border-purple-100 flex flex-col justify-center items-start min-w-[180px] w-full md:w-auto shadow-sm">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">GSTIN</span>
+                <span class="text-sm font-bold text-gray-800 mt-1">${gstin || 'N/A (Consumer)'}</span>
+            </div>
+        </div>
+    `;
+    container.classList.remove('hidden');
 }
 
 // Setup Customer Autocomplete
 function setupCustomerAutocomplete() {
-    const input = document.getElementById('buyer-first-name');
-    const suggestionsList = document.getElementById('customer-suggestions');
+    const input = document.getElementById('buyer-name') as HTMLInputElement | null;
+    const suggestionsList = document.getElementById('customer-suggestions') as HTMLElement | null;
     if (!input || !suggestionsList) return;
 
     let debounceTimer;
@@ -96,11 +152,13 @@ function setupCustomerAutocomplete() {
     input.addEventListener('input', () => {
         clearTimeout(debounceTimer);
         const query = input.value.trim();
-        syncBuyerName();
         
         // Clear hidden ID when input changes manually
-        const idInput = document.getElementById('buyer-customer-id');
+        const idInput = document.getElementById('buyer-customer-id') as HTMLInputElement | null;
         if (idInput) idInput.value = '';
+        
+        // Instantly re-render profile card to show empty placeholder
+        renderBuyerProfileCard();
         
         if (query.length < 2) {
             suggestionsList.style.display = 'none';
@@ -121,14 +179,21 @@ function setupCustomerAutocomplete() {
             
             currentCustomers.forEach((customer, index) => {
                 const li = document.createElement('li');
-                li.className = 'px-4 py-2 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-0';
+                li.className = 'px-4 py-2.5 hover:bg-purple-50/70 cursor-pointer border-b border-gray-100 last:border-0 transition-colors duration-150';
                 
                 const name = customer.customer?.name || customer.customer_name || 'Unknown';
                 const phone = customer.customer?.phone || '';
+                const email = customer.customer?.email || '';
+                const gstin = customer.gstin || '';
+                
+                let metaParts = [];
+                if (phone) metaParts.push(`<span class="inline-flex items-center"><i class="fas fa-phone text-gray-400 mr-1 text-[10px]"></i>${phone}</span>`);
+                if (email) metaParts.push(`<span class="inline-flex items-center"><i class="fas fa-envelope text-gray-400 mr-1 text-[10px]"></i>${email}</span>`);
+                if (gstin) metaParts.push(`<span class="inline-flex items-center bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-purple-100">GSTIN: ${gstin}</span>`);
                 
                 li.innerHTML = `
-                    <div class="font-medium text-gray-800">${name}</div>
-                    ${phone ? `<div class="text-sm text-gray-500">${phone}</div>` : ''}
+                    <div class="font-medium text-gray-800 text-sm">${name}</div>
+                    ${metaParts.length > 0 ? `<div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1 text-xs text-gray-500">${metaParts.join('<span class="text-gray-300">•</span>')}</div>` : ''}
                 `;
                 
                 li.onclick = () => selectCustomer(customer);
@@ -166,7 +231,7 @@ function setupCustomerAutocomplete() {
 
     // Hide suggestions on outside click
     document.addEventListener('click', (e) => {
-        if (!input.contains(e.target) && !suggestionsList.contains(e.target)) {
+        if (!input.contains(e.target as Node) && !suggestionsList.contains(e.target as Node)) {
             suggestionsList.style.display = 'none';
         }
     });
@@ -184,25 +249,26 @@ function setupCustomerAutocomplete() {
 
     function selectCustomer(customer) {
         const fullName = customer.customer?.name || customer.customer_name || '';
+        input.value = fullName;
+        
         // Split into first/last on first space
         const spaceIdx = fullName.indexOf(' ');
-        const firstNameEl = document.getElementById('buyer-first-name') as HTMLInputElement;
-        const lastNameEl = document.getElementById('buyer-last-name') as HTMLInputElement;
+        const firstNameEl = document.getElementById('buyer-first-name') as HTMLInputElement | null;
+        const lastNameEl = document.getElementById('buyer-last-name') as HTMLInputElement | null;
         if (firstNameEl) firstNameEl.value = spaceIdx > -1 ? fullName.slice(0, spaceIdx) : fullName;
         if (lastNameEl) lastNameEl.value = spaceIdx > -1 ? fullName.slice(spaceIdx + 1) : '';
-        syncBuyerName();
         
         // Populate other fields
-        const idInput = document.getElementById('buyer-customer-id') as HTMLInputElement;
-        const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
-        const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement;
-        const cityInput = document.getElementById('buyer-city') as HTMLInputElement;
-        const stateInput = document.getElementById('buyer-state') as HTMLInputElement;
-        const pincodeInput = document.getElementById('buyer-pincode') as HTMLInputElement;
-        const countryInput = document.getElementById('buyer-country') as HTMLInputElement;
-        const phoneInput = document.getElementById('buyer-phone') as HTMLInputElement;
-        const emailInput = document.getElementById('buyer-email') as HTMLInputElement;
-        const gstinInput = document.getElementById('buyer-gstin') as HTMLInputElement;
+        const idInput = document.getElementById('buyer-customer-id') as HTMLInputElement | null;
+        const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement | null;
+        const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement | null;
+        const cityInput = document.getElementById('buyer-city') as HTMLInputElement | null;
+        const stateInput = document.getElementById('buyer-state') as HTMLInputElement | null;
+        const pincodeInput = document.getElementById('buyer-pincode') as HTMLInputElement | null;
+        const countryInput = document.getElementById('buyer-country') as HTMLInputElement | null;
+        const phoneInput = document.getElementById('buyer-phone') as HTMLInputElement | null;
+        const emailInput = document.getElementById('buyer-email') as HTMLInputElement | null;
+        const gstinInput = document.getElementById('buyer-gstin') as HTMLInputElement | null;
 
         if (idInput) idInput.value = customer._id || '';
         
@@ -218,6 +284,9 @@ function setupCustomerAutocomplete() {
         if (gstinInput) gstinInput.value = customer.gstin || customer.customer_GSTIN || '';
 
         suggestionsList.style.display = 'none';
+
+        // Render profile card
+        renderBuyerProfileCard();
     }
 }
 
@@ -231,12 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Custom ID listener removed as all IDs are system-generated.
     
     setupCustomerAutocomplete();
-
-    // Sync buyer-name hidden field when last name changes
-    const lastNameInput = document.getElementById('buyer-last-name');
-    if (lastNameInput) {
-        lastNameInput.addEventListener('input', syncBuyerName);
-    }
+    renderBuyerProfileCard();
 
     // GSTIN uppercase enforcement
     const gstinInput = document.getElementById('buyer-gstin');
@@ -399,6 +463,9 @@ async function openQuotation(quotationId) {
     document.getElementById('buyer-phone').value = quotation.customer_phone || '';
     document.getElementById('buyer-email').value = quotation.customer_email || '';
     document.getElementById('buyer-gstin').value = quotation.customer_GSTIN || '';
+
+    // Render profile card
+    renderBuyerProfileCard();
 
     const itemsContainer = document.getElementById("items-container");
     const nonItemsContainer = document.getElementById("non-items-container");
@@ -750,6 +817,9 @@ async function cloneQuotation(sourceQuotationId) {
         document.getElementById('buyer-phone').value = '';
         document.getElementById('buyer-email').value = '';
         document.getElementById('buyer-gstin').value = '';
+
+        // Render profile card
+        renderBuyerProfileCard();
 
         // Get containers
         const itemsContainer = document.getElementById("items-container");
@@ -2026,79 +2096,15 @@ window.validateCurrentStep = async function () {
     }
 
     if (currentStep === 2) {
-        syncBuyerName();
+        const buyerName = document.getElementById('buyer-name') as HTMLInputElement;
+        const buyerCustomerIdInput = document.getElementById('buyer-customer-id') as HTMLInputElement | null;
 
-        const firstNameInput = document.getElementById('buyer-first-name') as HTMLInputElement;
-        const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
-        const cityInput = document.getElementById('buyer-city') as HTMLInputElement;
-        const stateInput = document.getElementById('buyer-state') as HTMLInputElement;
-        const pincodeInput = document.getElementById('buyer-pincode') as HTMLInputElement;
-        const buyerPhone = document.getElementById('buyer-phone') as HTMLInputElement;
-        const buyerEmail = document.getElementById('buyer-email') as HTMLInputElement;
-        const buyerGstin = document.getElementById('buyer-gstin') as HTMLInputElement;
-
-        if (!firstNameInput.value.trim()) {
-            setFieldValidation(firstNameInput, false, "Please enter the Buyer First Name.");
+        if (!buyerName.value.trim()) {
+            setFieldValidation(buyerName, false, "Please search and select a Recipient.");
+        } else if (!buyerCustomerIdInput || !buyerCustomerIdInput.value.trim()) {
+            setFieldValidation(buyerName, false, "Please select a valid, existing customer profile from the suggestions list.");
         } else {
-            setFieldValidation(firstNameInput, true);
-        }
-
-        if (!line1Input.value.trim()) {
-            setFieldValidation(line1Input, false, "Please enter Address Line 1.");
-        } else {
-            setFieldValidation(line1Input, true);
-        }
-
-        if (!cityInput.value.trim()) {
-            setFieldValidation(cityInput, false, "Please enter the City.");
-        } else {
-            setFieldValidation(cityInput, true);
-        }
-
-        if (!stateInput.value.trim()) {
-            setFieldValidation(stateInput, false, "Please enter the State.");
-        } else {
-            setFieldValidation(stateInput, true);
-        }
-
-        const pinValue = pincodeInput.value.trim();
-        if (!pinValue) {
-            setFieldValidation(pincodeInput, false, "Please enter the Pincode.");
-        } else if (!/^\d{6}$/.test(pinValue)) {
-            setFieldValidation(pincodeInput, false, "Please enter a valid 6-digit Pincode.");
-        } else {
-            setFieldValidation(pincodeInput, true);
-        }
-
-        const phoneClean = buyerPhone.value.replace(/\D/g, '');
-        if (!buyerPhone.value.trim()) {
-            setFieldValidation(buyerPhone, false, "Please enter the Phone Number.");
-        } else if (!/^\d{10}$/.test(phoneClean)) {
-            setFieldValidation(buyerPhone, false, "Please enter a valid 10-digit phone number.");
-        } else {
-            setFieldValidation(buyerPhone, true);
-        }
-
-        if (buyerEmail && buyerEmail.value.trim()) {
-            const emailVal = buyerEmail.value.trim();
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(emailVal)) {
-                setFieldValidation(buyerEmail, false, "Please enter a valid email address.");
-            } else {
-                setFieldValidation(buyerEmail, true);
-            }
-        } else if (buyerEmail) {
-            setFieldValidation(buyerEmail, true); // Optional field
-        }
-
-        if (buyerGstin && buyerGstin.value.trim()) {
-            if (buyerGstin.value.trim().length !== 15) {
-                setFieldValidation(buyerGstin, false, "GSTIN must be exactly 15 characters.");
-            } else {
-                setFieldValidation(buyerGstin, true);
-            }
-        } else if (buyerGstin) {
-            setFieldValidation(buyerGstin, true); // Optional field
+            setFieldValidation(buyerName, true);
         }
     }
 
