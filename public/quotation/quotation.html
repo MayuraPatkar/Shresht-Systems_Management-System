@@ -586,24 +586,6 @@
         <div id="view">
             <div id="project-details-view" class="max-w-6xl mx-auto space-y-6">
 
-                <!-- View Type Switcher - Segmented Control -->
-                <div class="flex justify-center fade-in">
-                    <div id="view-type-tabs" class="inline-flex bg-gray-100 rounded-lg p-1 gap-1">
-                        <button type="button" data-view-type="1"
-                            class="view-type-tab active px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-blue-600 text-white shadow-sm">
-                            Without Tax
-                        </button>
-                        <button type="button" data-view-type="2"
-                            class="view-type-tab px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            With Tax
-                        </button>
-                        <button type="button" data-view-type="3"
-                            class="view-type-tab px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Compact
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Project Details Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
@@ -848,14 +830,35 @@
                             <i class="fas fa-eye text-purple-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-4">
+                            <!-- Animated View Type Switcher - Segmented Control -->
+                            <div class="bg-slate-100 rounded-lg p-1 shadow-inner border border-slate-200/60">
+                                <div id="view-type-tabs" class="relative flex items-center h-8 w-[320px]">
+                                    <div id="segmented-pill" class="absolute h-full bg-white rounded-md shadow transition-transform duration-300 ease-out z-0" style="width: 33.333%; left: 0; transform: translateX(0%);"></div>
+                                    <button type="button" data-view-type="1"
+                                        class="view-type-tab relative z-10 flex-1 text-[13px] font-semibold transition-colors duration-300 text-slate-800 h-full flex items-center justify-center active">
+                                        Without Tax
+                                    </button>
+                                    <button type="button" data-view-type="2"
+                                        class="view-type-tab relative z-10 flex-1 text-[13px] font-semibold transition-colors duration-300 text-slate-500 hover:text-slate-700 h-full flex items-center justify-center">
+                                        With Tax
+                                    </button>
+                                    <button type="button" data-view-type="3"
+                                        class="view-type-tab relative z-10 flex-1 text-[13px] font-semibold transition-colors duration-300 text-slate-500 hover:text-slate-700 h-full flex items-center justify-center">
+                                        Compact
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="h-6 w-[1px] bg-gray-200 mx-1"></div>
+
                             <button type="button" id="printProject"
-                                class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium cursor-pointer">
+                                class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium cursor-pointer transition-colors">
                                 <i class="fas fa-print"></i>
                                 Print
                             </button>
                             <button type="button" id="saveProjectPDF"
-                                class="bg-red-600 text-white px-4 h-10 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium cursor-pointer">
+                                class="bg-red-600 text-white px-4 h-10 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium cursor-pointer transition-colors">
                                 <i class="fas fa-file-pdf"></i>
                                 Save as PDF
                             </button>

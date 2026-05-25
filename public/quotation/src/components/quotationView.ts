@@ -31,18 +31,31 @@ let currentViewType = 1; // Default: Without Tax
 /**
  * Update active tab styling - segmented control style
  */
-function updateViewTypeTabs(activeViewType) {
+function updateViewTypeTabs(activeViewType: number) {
     const tabs = document.querySelectorAll('.view-type-tab');
+    const pill = document.getElementById('segmented-pill');
+    
+    if (pill) {
+        // Since pill is 33.333% width and each container third is 100% of pill width,
+        // we scale the translation:
+        // viewType 1 -> 0%
+        // viewType 2 -> 100%
+        // viewType 3 -> 200%
+        const translatePercent = (activeViewType - 1) * 100;
+        pill.style.transform = `translateX(${translatePercent}%)`;
+    }
+
     tabs.forEach(tab => {
-        const viewType = parseInt(tab.dataset.viewType);
+        const hasDataset = tab as HTMLElement;
+        const viewType = parseInt(hasDataset.dataset.viewType || '1');
         if (viewType === activeViewType) {
-            // Active state - primary blue with shadow
-            tab.classList.add('active', 'bg-blue-600', 'text-white', 'shadow-sm');
-            tab.classList.remove('text-gray-500');
+            // Active state
+            tab.classList.add('active', 'text-slate-800');
+            tab.classList.remove('text-slate-500', 'hover:text-slate-700');
         } else {
-            // Inactive state - transparent with gray text
-            tab.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-sm');
-            tab.classList.add('text-gray-500');
+            // Inactive state
+            tab.classList.remove('active', 'text-slate-800');
+            tab.classList.add('text-slate-500', 'hover:text-slate-700');
         }
     });
     currentViewType = activeViewType;
