@@ -20,9 +20,6 @@ interface IPurchaseItem {
     description?: string;
     specification?: string;
     hsn_sac?: string;
-    brand?: string;
-    category?: string;
-    item_type?: "Material" | "Asset";
     unit?: string;
     quantity?: number;
     unit_price?: number;

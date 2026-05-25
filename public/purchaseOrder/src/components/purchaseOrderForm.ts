@@ -1,7 +1,7 @@
 // @ts-nocheck
 (function () {
     // Define totalSteps globally for purchaseOrder
-    (window as any).totalSteps = 4;
+    (window as any).totalSteps = 3;
 
     // Bind currentStep property on window to sync with the global declarative currentStep
     declare let currentStep: number;
@@ -555,17 +555,11 @@
 
                 if (tr) {
                     const hsnInput = tr.querySelector('td:nth-child(3) input') as HTMLInputElement;
-                    const brandInput = tr.querySelector('td:nth-child(4) input') as HTMLInputElement;
-                    const typeSelect = tr.querySelector('td:nth-child(5) select') as HTMLSelectElement;
-                    const categoryInput = tr.querySelector('td:nth-child(6) input') as HTMLInputElement;
-                    const unitSelect = tr.querySelector('td:nth-child(8) select') as HTMLSelectElement;
-                    const priceInput = tr.querySelector('td:nth-child(9) input') as HTMLInputElement;
-                    const gstInput = tr.querySelector('td:nth-child(10) input') as HTMLInputElement;
+                    const unitSelect = tr.querySelector('td:nth-child(5) select') as HTMLSelectElement;
+                    const priceInput = tr.querySelector('td:nth-child(6) input') as HTMLInputElement;
+                    const gstInput = tr.querySelector('td:nth-child(7) input') as HTMLInputElement;
 
                     if (hsnInput) hsnInput.value = hsnVal;
-                    if (brandInput) brandInput.value = brandVal;
-                    if (typeSelect) typeSelect.value = typeVal;
-                    if (categoryInput) categoryInput.value = categoryVal;
                     if (unitSelect) {
                         unitSelect.value = unitVal;
                         unitSelect.dispatchEvent(new Event('change'));
@@ -585,7 +579,7 @@
         const cardUnitSelect = card.querySelector('.item-unit') as HTMLSelectElement | null;
         const tableUnitSelect = row.querySelector('.item-unit') as HTMLSelectElement | null;
         const cardQtyInput = card.querySelector('.item-field.qty input') as HTMLInputElement | null;
-        const tableQtyInput = row.querySelector('td:nth-child(7) input') as HTMLInputElement | null;
+        const tableQtyInput = row.querySelector('td:nth-child(4) input') as HTMLInputElement | null;
 
         if (!cardQtyInput || !tableQtyInput) return;
 
@@ -773,24 +767,6 @@
                         <div class="item-row-2">
                             <div class="row-spacer"></div>
                             <div class="item-field">
-                                <div style="position: relative;">
-                                    <input type="text" placeholder="Brand" class="item-company" value="${company}">
-                                    <ul class="suggestions"></ul>
-                                </div>
-                            </div>
-                            <div class="item-field">
-                                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                    <option value="Material" ${type === 'Material' ? 'selected' : ''}>Material</option>
-                                    <option value="Asset" ${type === 'Asset' ? 'selected' : ''}>Asset</option>
-                                </select>
-                            </div>
-                            <div class="item-field">
-                                <div style="position: relative;">
-                                    <input type="text" placeholder="Category" class="item-category" value="${category}">
-                                    <ul class="suggestions"></ul>
-                                </div>
-                            </div>
-                            <div class="item-field">
                                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
                                     <option value="" disabled ${!unit ? 'selected' : ''}>Select Unit</option>
                                     <option value="pc" ${unit === 'pc' ? 'selected' : ''}>Piece (pc)</option>
@@ -837,14 +813,6 @@
                                 </div>
                             </td>
                             <td><input type="text" placeholder="HSN/SAC" value="${hsnSac}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-                            <td><input type="text" placeholder="Brand" value="${company}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-                            <td>
-                                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                    <option value="Material" ${type === 'Material' ? 'selected' : ''}>Material</option>
-                                    <option value="Asset" ${type === 'Asset' ? 'selected' : ''}>Asset</option>
-                                </select>
-                            </td>
-                            <td><input type="text" placeholder="Category" value="${category}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                             <td><input type="number" placeholder="Qty" value="${quantity}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                             <td>
                                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
@@ -876,7 +844,6 @@
 
                         // Sync card inputs with table inputs
                         const row1Inputs = card.querySelectorAll('.item-row-1 input');
-                        const row2Inputs = card.querySelectorAll('.item-row-2 input');
                         const row2Selects = card.querySelectorAll('.item-row-2 select');
                         const tableInputs = row.querySelectorAll('input');
                         const tableSelects = row.querySelectorAll('select');
@@ -884,13 +851,10 @@
                         const inputMapping = [
                             { card: row1Inputs[0], table: tableInputs[0] }, // description
                             { card: row1Inputs[1], table: tableInputs[1] }, // hsn
-                            { card: row2Inputs[0], table: tableInputs[2] }, // company
-                            { card: row2Selects[0], table: tableSelects[0] }, // type
-                            { card: row2Inputs[1], table: tableInputs[3] }, // category
-                            { card: row2Selects[1], table: tableSelects[1] }, // unit
-                            { card: row1Inputs[2], table: tableInputs[4] }, // qty
-                            { card: row1Inputs[3], table: tableInputs[5] }, // unit_price
-                            { card: row1Inputs[4], table: tableInputs[6] }, // rate
+                            { card: row2Selects[0], table: tableSelects[0] }, // unit
+                            { card: row1Inputs[2], table: tableInputs[2] }, // qty
+                            { card: row1Inputs[3], table: tableInputs[3] }, // unit_price
+                            { card: row1Inputs[4], table: tableInputs[4] }, // rate
                         ];
 
                         inputMapping.forEach(({ card: cInput, table: tInput }) => {
@@ -1017,10 +981,10 @@
             const specRow = document.querySelector(`#items-specifications-table tbody tr:nth-child(${index + 1})`);
             const tr = row as HTMLElement;
 
-            const qty = parseFloat((tr.querySelector("td:nth-child(7) input") as HTMLInputElement)?.value || "0");
-            const unit = (tr.querySelector("td:nth-child(8) select") as HTMLSelectElement)?.value || "";
-            const unitPrice = parseFloat((tr.querySelector("td:nth-child(9) input") as HTMLInputElement)?.value || "0");
-            const rate = parseFloat((tr.querySelector("td:nth-child(10) input") as HTMLInputElement)?.value || "0");
+            const qty = parseFloat((tr.querySelector("td:nth-child(4) input") as HTMLInputElement)?.value || "0");
+            const unit = (tr.querySelector("td:nth-child(5) select") as HTMLSelectElement)?.value || "";
+            const unitPrice = parseFloat((tr.querySelector("td:nth-child(6) input") as HTMLInputElement)?.value || "0");
+            const rate = parseFloat((tr.querySelector("td:nth-child(7) input") as HTMLInputElement)?.value || "0");
 
             const taxableValue = qty * unitPrice;
             const taxAmount = (taxableValue * rate) / 100;
@@ -1029,13 +993,10 @@
             return {
                 description: (tr.querySelector("td:nth-child(2) input") as HTMLInputElement)?.value || "",
                 hsn_sac: (tr.querySelector("td:nth-child(3) input") as HTMLInputElement)?.value || "",
-                brand: (tr.querySelector("td:nth-child(4) input") as HTMLInputElement)?.value || "",
-                item_type: (tr.querySelector("td:nth-child(5) select") as HTMLSelectElement)?.value || "Material",
-                category: (tr.querySelector("td:nth-child(6) input") as HTMLInputElement)?.value || "",
-                quantity: parseFloat((tr.querySelector("td:nth-child(7) input") as HTMLInputElement)?.value || "0") || "",
+                quantity: parseFloat((tr.querySelector("td:nth-child(4) input") as HTMLInputElement)?.value || "0") || "",
                 unit: unit,
-                unit_price: parseFloat((tr.querySelector("td:nth-child(9) input") as HTMLInputElement)?.value || "0") || "",
-                gst_rate: parseFloat((tr.querySelector("td:nth-child(10) input") as HTMLInputElement)?.value || "0") || "",
+                unit_price: parseFloat((tr.querySelector("td:nth-child(6) input") as HTMLInputElement)?.value || "0") || "",
+                gst_rate: parseFloat((tr.querySelector("td:nth-child(7) input") as HTMLInputElement)?.value || "0") || "",
                 specification: specRow ? (specRow.querySelector("td:nth-child(3) input") as HTMLInputElement)?.value || "" : "",
                 taxable_value: taxableValue,
                 total: taxableValue + taxAmount
@@ -1193,24 +1154,6 @@
             <div class="item-row-2">
                 <div class="row-spacer"></div>
                 <div class="item-field">
-                    <div style="position: relative;">
-                        <input type="text" placeholder="Brand" class="item-company">
-                        <ul class="suggestions"></ul>
-                    </div>
-                </div>
-                <div class="item-field">
-                    <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        <option value="Material" selected>Material</option>
-                        <option value="Asset">Asset</option>
-                    </select>
-                </div>
-                <div class="item-field">
-                    <div style="position: relative;">
-                        <input type="text" placeholder="Category" class="item-category">
-                        <ul class="suggestions"></ul>
-                    </div>
-                </div>
-                <div class="item-field">
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
                         <option value="" disabled selected>Select Unit</option>
                         <option value="pc">Piece (pc)</option>
@@ -1259,14 +1202,6 @@
                 </div>
             </td>
             <td><input type="text" placeholder="HSN/SAC" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-            <td><input type="text" placeholder="Brand" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-            <td>
-                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
-                    <option value="Material" selected>Material</option>
-                    <option value="Asset">Asset</option>
-                </select>
-            </td>
-            <td><input type="text" placeholder="Category" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
             <td><input type="number" placeholder="Qty" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
             <td>
                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
@@ -1303,7 +1238,6 @@
 
         // Sync card inputs with table inputs
         const row1Inputs = card.querySelectorAll('.item-row-1 input');
-        const row2Inputs = card.querySelectorAll('.item-row-2 input');
         const row2Selects = card.querySelectorAll('.item-row-2 select');
         const tableInputs = row.querySelectorAll('input');
         const tableSelects = row.querySelectorAll('select');
@@ -1311,13 +1245,10 @@
         const inputMapping = [
             { card: row1Inputs[0], table: tableInputs[0] }, // description
             { card: row1Inputs[1], table: tableInputs[1] }, // hsn
-            { card: row2Inputs[0], table: tableInputs[2] }, // company
-            { card: row2Selects[0], table: tableSelects[0] }, // type
-            { card: row2Inputs[1], table: tableInputs[3] }, // category
-            { card: row2Selects[1], table: tableSelects[1] }, // unit
-            { card: row1Inputs[2], table: tableInputs[4] }, // qty
-            { card: row1Inputs[3], table: tableInputs[5] }, // unit_price
-            { card: row1Inputs[4], table: tableInputs[6] }, // rate
+            { card: row2Selects[0], table: tableSelects[0] }, // unit
+            { card: row1Inputs[2], table: tableInputs[2] }, // qty
+            { card: row1Inputs[3], table: tableInputs[3] }, // unit_price
+            { card: row1Inputs[4], table: tableInputs[4] }, // rate
         ];
 
         inputMapping.forEach(({ card: cInput, table: tInput }) => {
@@ -1376,19 +1307,18 @@
     function setupCardTabNavigation(card: HTMLDivElement) {
         const rateInputs = card.querySelectorAll('.item-row-1 .item-field.rate input');
         const gstInput = rateInputs[1] as HTMLInputElement | null;
-        const brandInput = card.querySelector('.item-company') as HTMLInputElement | null;
         const unitSelect = card.querySelector('.item-unit') as HTMLSelectElement | null;
         const removeBtn = card.querySelector('.remove-item-btn') as HTMLButtonElement | null;
         const descInput = card.querySelector('.item_name') as HTMLInputElement | null;
 
-        if (gstInput && brandInput) {
+        if (gstInput && unitSelect) {
             gstInput.addEventListener('keydown', (event: KeyboardEvent) => {
                 if (event.key === 'Tab' && !event.shiftKey) {
                     event.preventDefault();
-                    brandInput.focus();
+                    unitSelect.focus();
                 }
             });
-            brandInput.addEventListener('keydown', (event: KeyboardEvent) => {
+            unitSelect.addEventListener('keydown', (event: KeyboardEvent) => {
                 if (event.key === 'Tab' && event.shiftKey) {
                     event.preventDefault();
                     gstInput.focus();
@@ -1612,9 +1542,9 @@
             for (let i = 0; i < itemsTable.rows.length; i++) {
                 const row = itemsTable.rows[i];
                 const desc = row.querySelector('td:nth-child(2) input') as HTMLInputElement;
-                const qty = row.querySelector('td:nth-child(7) input') as HTMLInputElement;
-                const unit = row.querySelector('td:nth-child(8) select') as HTMLSelectElement;
-                const price = row.querySelector('td:nth-child(9) input') as HTMLInputElement;
+                const qty = row.querySelector('td:nth-child(4) input') as HTMLInputElement;
+                const unit = row.querySelector('td:nth-child(5) select') as HTMLSelectElement;
+                const price = row.querySelector('td:nth-child(6) input') as HTMLInputElement;
 
                 const card = cards[i] as HTMLElement | undefined;
                 const cardDesc = card?.querySelector('.item_name') as HTMLInputElement | undefined;
@@ -1735,10 +1665,6 @@
                 const totalSteps = (window as any).totalSteps;
 
                 if (currentStep < totalSteps) {
-                    // Populate specifications when moving from step 2 to 3
-                    if (currentStep === 2) {
-                        await populateSpecifications();
-                    }
                     if (typeof (window as any).changeStep === 'function') {
                         (window as any).changeStep(currentStep + 1);
                     }

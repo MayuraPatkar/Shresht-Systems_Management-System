@@ -39,9 +39,6 @@ export interface IPurchaseOrderItem {
     description?: string;
     specification?: string;
     hsn_sac?: string;
-    brand?: string;
-    category?: string;
-    item_type?: "Material" | "Asset";
     unit?: string;
     quantity?: number;
     unit_price?: number;
@@ -141,13 +138,6 @@ const purchaseOrderItemSchema = new Schema<IPurchaseOrderItem>(
         description: { type: String, trim: true },
         specification: { type: String, trim: true },
         hsn_sac: { type: String, trim: true },
-        brand: { type: String, trim: true },
-        category: { type: String, trim: true },
-        item_type: {
-            type: String,
-            enum: ["Material", "Asset"],
-            default: "Material",
-        },
         unit: { type: String, trim: true },
         quantity: { type: Number, min: 1 },
         unit_price: { type: Number },

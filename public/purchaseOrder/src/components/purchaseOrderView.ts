@@ -2,20 +2,36 @@
 (function () {
     async function generatePurchaseOrderViewPreview(purchaseOrder: any) {
         // Fetch company data from database
-        let companyData = null;
+        let companyData: any = {};
         if ((window as any).companyConfig && (window as any).companyConfig.getCompanyInfo) {
-            companyData = await (window as any).companyConfig.getCompanyInfo();
-        } else {
-            companyData = {
-                company: "SHRESHT SYSTEMS",
-                address: "3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113",
-                phone: { ph1: "7204657707", ph2: "9901730305" },
-                GSTIN: "29AGCPN4093N1ZS",
-                email: "shreshtsystems@gmail.com",
-                website: "www.shreshtsystems.com"
-            };
+            companyData = await (window as any).companyConfig.getCompanyInfo() || {};
         }
+
+        const companyName = (companyData.company_name || companyData.company || "COMPANY NAME").toUpperCase();
+        
+        let cAddress = "";
+        if (typeof companyData.address === 'string') {
+            cAddress = companyData.address;
+        } else if (companyData.address) {
+            cAddress = [
+                companyData.address.line1,
+                companyData.address.line2,
+                companyData.address.city,
+                companyData.address.state ? companyData.address.state + (companyData.address.pincode ? ' - ' + companyData.address.pincode : '') : ''
+            ].filter(Boolean).join(', ');
+        } else {
+            cAddress = "3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113";
+        }
+
+        const cPhone1 = companyData.phone?.ph1 || "7204657707";
+        const cPhone2 = companyData.phone?.ph2;
+        const cPhone = cPhone2 ? `${cPhone1} / ${cPhone2}` : cPhone1;
+        const cGSTIN = companyData.gstin || companyData.GSTIN || "29AGCPN4093N1ZS";
+        const cEmail = companyData.email || "shreshtsystems@gmail.com";
+        const cWebsite = companyData.website || "www.shreshtsystems.com";
+
         const bank = companyData.bank_details || {};
+
         const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
         const numberToWords = (window as any).numberToWords || (() => "Amount In Words");
 
@@ -168,18 +184,20 @@
             <div class="header">
             <div class="quotation-brand">
                 <div class="logo">
-                    <img src="../assets/icon.png" alt="${companyData.company} Logo">
+                    <img src="../assets/icon.png" alt="${companyName} Logo">
                 </div>
                 <div class="quotation-brand-text">
-                    <h1>${companyData.company.toUpperCase()}</h1>
+                    <h1>${companyName}</h1>
                     <p class="quotation-tagline">CCTV & Energy Solutions</p>
                 </div>
             </div>
             <div class="company-details">
-                <p>${companyData.address}</p>
-                <p>Ph: ${companyData.phone.ph1}${companyData.phone.ph2 ? ' / ' + companyData.phone.ph2 : ''}</p>
-                <p>GSTIN: ${companyData.GSTIN}</p>
-                <p>Email: ${companyData.email}</p>
+                <p>${cAddress}</p>
+                <p>Ph: ${cPhone}</p>
+                <p>GSTIN: ${cGSTIN}</p>
+                <p>Email: ${cEmail}</p>
+                <p>Website: ${cWebsite}</p>
+            </div>
                 <p>Website: ${companyData.website}</p>
             </div>
         </div>
@@ -247,7 +265,7 @@
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.name || companyData.company}</p>
+                                <p><strong>Account Holder Name: </strong>${bank.name || companyData.company_name || companyData.company || ''}</p>
                                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
                                 <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
@@ -277,7 +295,7 @@
             </div>
 
             <div class="eighth-section">
-                <p>For ${companyData.company.toUpperCase()}</p>
+                <p>For ${companyName}</p>
                 <div class="eighth-section-space"></div>
                 <p><strong>Authorized Signatory</strong></p>
             </div>
@@ -418,8 +436,6 @@
                         <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.hsn_sac || item.HSN_SAC || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.brand || item.company || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.category || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${qty}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.unit || 'pc'}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${formatIndian(unitPrice, 2)}</td>
