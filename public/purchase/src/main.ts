@@ -170,6 +170,29 @@
             (window as any).changeStep(1);
         }
 
+        // Reset the form
+        const form = document.getElementById('purchase') as HTMLFormElement | null;
+        if (form) {
+            form.reset();
+        }
+        
+        // Reset hidden supplier ID and search input
+        const supplierIdInput = document.getElementById('supplier-id') as HTMLInputElement | null;
+        if (supplierIdInput) supplierIdInput.value = '';
+        const supplierSearchInput = document.getElementById('supplier-search-input') as HTMLInputElement | null;
+        if (supplierSearchInput) supplierSearchInput.value = '';
+
+        // Clear items containers
+        const itemsContainer = document.getElementById("items-container");
+        const itemsTableBody = document.querySelector("#items-table tbody");
+        if (itemsContainer) itemsContainer.innerHTML = "";
+        if (itemsTableBody) itemsTableBody.innerHTML = "";
+
+        // Re-render Supplier profile card to show "No Supplier Selected"
+        if (typeof (window as any).renderSupplierProfileCard === 'function') {
+            (window as any).renderSupplierProfileCard();
+        }
+
         // Set default date to today
         const dateInput = document.getElementById('purchase-date') as HTMLInputElement;
         if (dateInput) {

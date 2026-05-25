@@ -182,144 +182,226 @@
         });
     }
 
-    async function fetchSuppliers() {
-        try {
-            const response = await fetch("/api/suppliers");
-            if (!response.ok) throw new Error("Failed to fetch suppliers");
-            const resData = await response.json();
-            supplierData = resData || [];
-            supplierNames = supplierData.map(c => c.supplier_name);
-        } catch (error) {
-            console.error("Error fetching suppliers:", error);
-            if ((window as any).electronAPI) {
-                (window as any).electronAPI.showAlert1("Failed to fetch suppliers list.");
-            }
+    function renderSupplierProfileCard() {
+        const container = document.getElementById('supplier-profile-card-container');
+        if (!container) return;
+
+        const supplierSearchInput = document.getElementById('supplier-search-input') as HTMLInputElement | null;
+        const supplierIdInput = document.getElementById('supplier-id') as HTMLInputElement | null;
+        const line1 = (document.getElementById('supplier-address-line1') as HTMLInputElement | null)?.value || '';
+        const line2 = (document.getElementById('supplier-address-line2') as HTMLInputElement | null)?.value || '';
+        const city = (document.getElementById('supplier-address-city') as HTMLInputElement | null)?.value || '';
+        const state = (document.getElementById('supplier-address-state') as HTMLSelectElement | null)?.value || '';
+        const pincode = (document.getElementById('supplier-address-pincode') as HTMLInputElement | null)?.value || '';
+        const phone = (document.getElementById('supplier-phone') as HTMLInputElement | null)?.value || '';
+        const email = (document.getElementById('supplier-email') as HTMLInputElement | null)?.value || '';
+        const gstin = (document.getElementById('supplier-GSTIN') as HTMLInputElement | null)?.value || '';
+
+        const hasSupplierSelected = supplierIdInput && supplierIdInput.value.trim() !== '';
+
+        if (!hasSupplierSelected || !supplierSearchInput || !supplierSearchInput.value.trim()) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-500 text-center fade-in">
+                    <div class="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-500 mb-3">
+                        <i class="fas fa-truck text-xl"></i>
+                    </div>
+                    <p class="text-sm font-semibold text-gray-700">No Supplier Selected</p>
+                    <p class="text-xs text-gray-400 mt-1 max-w-sm">Please search and select a supplier profile in the search input above to view details.</p>
+                </div>
+            `;
+            container.classList.remove('hidden');
+            return;
         }
+
+        const fullAddress = [line1, line2, city, state, pincode].filter(val => val.trim() !== '').join(', ');
+
+        container.innerHTML = `
+            <div class="bg-purple-50/40 rounded-xl p-5 border border-purple-100 flex flex-col md:flex-row gap-6 md:justify-between items-start fade-in">
+                <div class="space-y-3 flex-1 w-full">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h3 class="text-base font-bold text-gray-900">${supplierSearchInput.value}</h3>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-2">
+                        <p class="flex items-start gap-2">
+                            <i class="fas fa-map-marker-alt text-purple-500 mt-1 flex-shrink-0 w-4 text-center"></i>
+                            <span class="leading-relaxed">${fullAddress || 'No Address Provided'}</span>
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pt-3 border-t border-purple-100/50 w-full">
+                            <p class="flex items-center gap-2">
+                                <i class="fas fa-phone text-purple-500 flex-shrink-0 w-4 text-center"></i>
+                                <span>${phone || 'No Phone Number'}</span>
+                            </p>
+                            <p class="flex items-center gap-2">
+                                <i class="fas fa-envelope text-purple-500 flex-shrink-0 w-4 text-center"></i>
+                                <span class="break-all">${email || 'No Email Address'}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg p-3 border border-purple-100 flex flex-col justify-center items-start min-w-[180px] w-full md:w-auto shadow-sm">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">GSTIN</span>
+                    <span class="text-sm font-bold text-gray-800 mt-1">${gstin || 'N/A'}</span>
+                </div>
+            </div>
+        `;
+        container.classList.remove('hidden');
     }
 
-    function initSupplierAutocomplete() {
-        const input = document.getElementById("supplier-name") as HTMLInputElement;
-        if (!input) return;
+    function setupSupplierAutocomplete() {
+        const input = document.getElementById('supplier-search-input') as HTMLInputElement;
+        const suggestionsList = document.getElementById('supplier-suggestions') as HTMLElement;
+        if (!input || !suggestionsList) return;
 
-        let suggestionsContainer = document.getElementById("supplier-suggestions");
-        if (!suggestionsContainer) {
-            suggestionsContainer = document.createElement("ul");
-            suggestionsContainer.id = "supplier-suggestions";
-            suggestionsContainer.className = "suggestions supplier-suggestions";
+        let debounceTimer: any;
+        let selectedIndex = -1;
+        let currentSuppliers: any[] = [];
 
-            const parent = input.parentElement;
-            if (parent) {
-                parent.style.position = 'relative';
-                parent.appendChild(suggestionsContainer);
+        async function fetchSuppliers(query: string) {
+            try {
+                const response = await fetch(`/api/suppliers?search=${encodeURIComponent(query)}`);
+                return await response.json();
+            } catch (err) {
+                console.error('Failed to fetch suppliers:', err);
+                return [];
             }
         }
 
-        input.addEventListener("input", function () {
-            showSupplierSuggestions(input, suggestionsContainer);
+        input.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            const query = input.value.trim();
+            
+            // Clear hidden ID when input changes manually
+            const idInput = document.getElementById('supplier-id') as HTMLInputElement | null;
+            if (idInput) idInput.value = '';
+            
+            // Instantly re-render profile card to show empty placeholder
+            renderSupplierProfileCard();
+            
+            if (query.length < 2) {
+                suggestionsList.style.display = 'none';
+                return;
+            }
+
+            debounceTimer = setTimeout(async () => {
+                currentSuppliers = await fetchSuppliers(query);
+                suggestionsList.innerHTML = '';
+                selectedIndex = -1;
+
+                if (currentSuppliers.length === 0) {
+                    suggestionsList.style.display = 'none';
+                    return;
+                }
+
+                suggestionsList.style.display = 'block';
+                
+                currentSuppliers.forEach((supplier, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'px-4 py-2.5 hover:bg-purple-50/70 cursor-pointer border-b border-gray-100 last:border-0 transition-colors duration-150';
+                    
+                    const name = supplier.supplier_name || 'Unknown';
+                    const phone = supplier.phone || '';
+                    const email = supplier.email || '';
+                    const gstin = supplier.gstin || '';
+                    
+                    let metaParts: string[] = [];
+                    if (phone) metaParts.push(`<span class="inline-flex items-center"><i class="fas fa-phone text-gray-400 mr-1 text-[10px]"></i>${phone}</span>`);
+                    if (email) metaParts.push(`<span class="inline-flex items-center"><i class="fas fa-envelope text-gray-400 mr-1 text-[10px]"></i>${email}</span>`);
+                    if (gstin) metaParts.push(`<span class="inline-flex items-center bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-purple-100">GSTIN: ${gstin}</span>`);
+                    
+                    li.innerHTML = `
+                        <div class="font-medium text-gray-800 text-sm">${name}</div>
+                        ${metaParts.length > 0 ? `<div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1 text-xs text-gray-500">${metaParts.join('<span class="text-gray-300">•</span>')}</div>` : ''}
+                    `;
+                    
+                    li.onclick = () => selectSupplier(supplier);
+                    suggestionsList.appendChild(li);
+                });
+            }, 300);
         });
 
-        input.addEventListener("focus", function () {
-            showSupplierSuggestions(input, suggestionsContainer);
-        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
 
-        input.addEventListener("click", function () {
-            showSupplierSuggestions(input, suggestionsContainer);
-        });
+            const items = suggestionsList.querySelectorAll('li');
+            if (items.length === 0 || suggestionsList.style.display === 'none') return;
 
-        input.addEventListener("keydown", function (event) {
-            handleSupplierKeyboardNavigation(event, input, suggestionsContainer);
-        });
-
-        document.addEventListener("click", function (event) {
-            if (event.target !== input && !suggestionsContainer.contains(event.target as Node)) {
-                suggestionsContainer.style.display = "none";
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % items.length;
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                updateSelection(items);
+            } else if (e.key === 'Enter') {
+                if (selectedIndex >= 0) {
+                    selectSupplier(currentSuppliers[selectedIndex]);
+                } else if (currentSuppliers.length > 0) {
+                    selectSupplier(currentSuppliers[0]);
+                }
             }
         });
-    }
 
-    function showSupplierSuggestions(input: HTMLInputElement, suggestionsContainer: HTMLElement) {
-        const value = input.value.trim().toLowerCase();
-        suggestionsContainer.innerHTML = "";
-        selectedSupplierIndex = -1;
+        document.addEventListener('click', (e: MouseEvent) => {
+            if (!input.contains(e.target as Node) && !suggestionsList.contains(e.target as Node)) {
+                suggestionsList.style.display = 'none';
+            }
+        });
 
-        const filteredSuppliers = value.length === 0
-            ? supplierData
-            : supplierData.filter(supplier =>
-                (supplier.supplier_name || "").toLowerCase().includes(value)
-            );
-
-        filteredSuppliers.forEach((supplier, index) => {
-            const li = document.createElement("li");
-            li.textContent = supplier.supplier_name;
-            li.className = "px-4 py-2 hover:bg-purple-50 cursor-pointer text-sm text-gray-700 font-semibold";
-            li.addEventListener("click", () => {
-                selectSupplier(supplier);
-                suggestionsContainer.style.display = "none";
+        function updateSelection(items: NodeListOf<HTMLLIElement>) {
+            items.forEach((item, idx) => {
+                if (idx === selectedIndex) {
+                    item.classList.add('bg-purple-100');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('bg-purple-100');
+                }
             });
-            suggestionsContainer.appendChild(li);
-        });
-
-        if (filteredSuppliers.length > 0) {
-            suggestionsContainer.style.display = "block";
-        } else {
-            suggestionsContainer.style.display = "none";
         }
-    }
 
-    function handleSupplierKeyboardNavigation(event: KeyboardEvent, input: HTMLInputElement, suggestionsContainer: HTMLElement) {
-        const items = Array.from(suggestionsContainer.querySelectorAll("li"));
-        if (items.length === 0 || suggestionsContainer.style.display === "none") return;
+        function selectSupplier(supplier: any) {
+            input.value = supplier.supplier_name || '';
+            
+            // Populate other fields
+            const idInput = document.getElementById('supplier-id') as HTMLInputElement | null;
+            const nameInput = document.getElementById('supplier-name') as HTMLInputElement | null;
+            const line1Input = document.getElementById('supplier-address-line1') as HTMLInputElement | null;
+            const line2Input = document.getElementById('supplier-address-line2') as HTMLInputElement | null;
+            const cityInput = document.getElementById('supplier-address-city') as HTMLInputElement | null;
+            const stateInput = document.getElementById('supplier-address-state') as HTMLSelectElement | null;
+            const pincodeInput = document.getElementById('supplier-address-pincode') as HTMLInputElement | null;
+            const phoneInput = document.getElementById('supplier-phone') as HTMLInputElement | null;
+            const emailInput = document.getElementById('supplier-email') as HTMLInputElement | null;
+            const gstinInput = document.getElementById('supplier-GSTIN') as HTMLInputElement | null;
 
-        if (event.key === "ArrowDown") {
-            event.preventDefault();
-            selectedSupplierIndex = (selectedSupplierIndex + 1) % items.length;
-            updateSupplierSelection(items);
-        } else if (event.key === "ArrowUp") {
-            event.preventDefault();
-            selectedSupplierIndex = (selectedSupplierIndex - 1 + items.length) % items.length;
-            updateSupplierSelection(items);
-        } else if (event.key === "Enter") {
-            if (selectedSupplierIndex >= 0 && items[selectedSupplierIndex]) {
-                event.preventDefault();
-                items[selectedSupplierIndex].click();
-            }
-        } else if (event.key === "Escape") {
-            suggestionsContainer.style.display = "none";
-        }
-    }
-
-    function updateSupplierSelection(items: HTMLElement[]) {
-        items.forEach((item, index) => {
-            if (index === selectedSupplierIndex) {
-                item.classList.add("bg-purple-50", "text-purple-700");
-                item.scrollIntoView({ block: "nearest" });
+            if (idInput) idInput.value = supplier._id || '';
+            if (nameInput) nameInput.value = supplier.supplier_name || '';
+            
+            if (supplier.billing_address) {
+                const billing = supplier.billing_address;
+                if (line1Input) line1Input.value = billing.line1 || '';
+                if (line2Input) line2Input.value = billing.line2 || '';
+                if (cityInput) cityInput.value = billing.city || '';
+                if (stateInput) stateInput.value = billing.state || 'Karnataka';
+                if (pincodeInput) pincodeInput.value = billing.pincode || '';
             } else {
-                item.classList.remove("bg-purple-50", "text-purple-700");
+                if (line1Input) line1Input.value = supplier.address?.line1 || '';
+                if (line2Input) line2Input.value = supplier.address?.line2 || '';
+                if (cityInput) cityInput.value = supplier.address?.city || '';
+                if (stateInput) stateInput.value = supplier.address?.state || 'Karnataka';
+                if (pincodeInput) pincodeInput.value = supplier.address?.pincode || '';
             }
-        });
-    }
+            if (phoneInput) phoneInput.value = supplier.phone || '';
+            if (emailInput) emailInput.value = supplier.email || '';
+            if (gstinInput) gstinInput.value = supplier.gstin || '';
 
-    function selectSupplier(supplier: any) {
-        (document.getElementById("supplier-name") as HTMLInputElement).value = supplier.supplier_name || "";
-        (document.getElementById("supplier-address-line1") as HTMLInputElement).value = supplier.address?.line1 || "";
-        (document.getElementById("supplier-address-line2") as HTMLInputElement).value = supplier.address?.line2 || "";
-        (document.getElementById("supplier-address-city") as HTMLInputElement).value = supplier.address?.city || "";
-        (document.getElementById("supplier-address-state") as HTMLSelectElement).value = supplier.address?.state || "Karnataka";
-        (document.getElementById("supplier-address-pincode") as HTMLInputElement).value = supplier.address?.pincode || "";
-        (document.getElementById("supplier-phone") as HTMLInputElement).value = supplier.phone || "";
-        (document.getElementById("supplier-email") as HTMLInputElement).value = supplier.email || "";
-        (document.getElementById("supplier-GSTIN") as HTMLInputElement).value = supplier.gstin || "";
+            suggestionsList.style.display = 'none';
 
-        // Trigger input validation/clearing events
-        const fields = [
-            'supplier-name', 'supplier-address-line1', 'supplier-address-city',
-            'supplier-address-state', 'supplier-address-pincode', 'supplier-phone',
-            'supplier-email', 'supplier-GSTIN'
-        ];
-        fields.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.dispatchEvent(new Event('input', { bubbles: true }));
-        });
+            // Render profile card
+            renderSupplierProfileCard();
+        }
     }
 
     function showSuggestionsP(input: HTMLInputElement, suggestionsList: HTMLUListElement) {
@@ -617,6 +699,8 @@
 
             (document.getElementById("purchase-invoice-id") as HTMLInputElement).value = purchase.purchase_invoice_no || purchase.purchase_no || "";
             const snapshot = purchase.supplier_snapshot || {};
+            (document.getElementById("supplier-id") as HTMLInputElement).value = purchase.supplier_id || "";
+            (document.getElementById("supplier-search-input") as HTMLInputElement).value = snapshot.name || "";
             (document.getElementById("supplier-name") as HTMLInputElement).value = snapshot.name || "";
             const addr = snapshot.address || {};
             (document.getElementById("supplier-address-line1") as HTMLInputElement).value = addr.line1 || "";
@@ -627,6 +711,9 @@
             (document.getElementById("supplier-phone") as HTMLInputElement).value = snapshot.phone || "";
             (document.getElementById("supplier-email") as HTMLInputElement).value = snapshot.email || "";
             (document.getElementById("supplier-GSTIN") as HTMLInputElement).value = snapshot.gstin || "";
+
+            // Render supplier profile card
+            renderSupplierProfileCard();
 
             const itemsContainer = document.getElementById("items-container");
             const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
@@ -947,6 +1034,7 @@
             purchase_no: (document.getElementById("id") as HTMLInputElement)?.value || "",
             purchase_invoice_no: (document.getElementById("purchase-invoice-id") as HTMLInputElement)?.value || "",
             purchase_date: (document.getElementById("purchase-date") as HTMLInputElement)?.value || "",
+            supplier_id: (document.getElementById("supplier-id") as HTMLInputElement)?.value || "",
             supplier_snapshot: {
                 name: (document.getElementById("supplier-name") as HTMLInputElement)?.value || "",
                 address: {
@@ -1410,11 +1498,6 @@
             const fields = [
                 { id: 'purchase-invoice-id', name: 'Purchase Invoice ID' },
                 { id: 'purchase-date', name: 'Purchase Date' },
-                { id: 'supplier-name', name: 'Supplier Name' },
-                { id: 'supplier-address-line1', name: 'Address Line 1' },
-                { id: 'supplier-address-city', name: 'City' },
-                { id: 'supplier-address-state', name: 'State' },
-                { id: 'supplier-address-pincode', name: 'Pincode' },
             ];
             for (const f of fields) {
                 const el = document.getElementById(f.id) as HTMLInputElement;
@@ -1435,34 +1518,16 @@
                 }
             }
 
-            const supplierPhone = document.getElementById('supplier-phone') as HTMLInputElement;
-            if (supplierPhone && supplierPhone.value.trim()) {
-                const cleanedPhone = supplierPhone.value.replace(/\D/g, '');
-                if (cleanedPhone.length !== 10) {
-                    showFieldError(supplierPhone, 'Please enter a valid 10-digit Supplier Phone Number.');
-                    isValid = false;
-                    if (!firstInvalidEl) firstInvalidEl = supplierPhone;
-                }
-            }
-
-            const supplierEmail = document.getElementById('supplier-email') as HTMLInputElement;
-            if (supplierEmail && supplierEmail.value.trim()) {
-                const cleanedEmail = supplierEmail.value.trim().replace(/\s+/g, '');
-                const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRe.test(cleanedEmail)) {
-                    showFieldError(supplierEmail, 'Please enter a valid Supplier Email address.');
-                    isValid = false;
-                    if (!firstInvalidEl) firstInvalidEl = supplierEmail;
-                }
-            }
-
-            const supplierGstin = document.getElementById('supplier-GSTIN') as HTMLInputElement;
-            if (supplierGstin && supplierGstin.value.trim()) {
-                if (supplierGstin.value.trim().length !== 15) {
-                    showFieldError(supplierGstin, 'GSTIN must be exactly 15 characters.');
-                    isValid = false;
-                    if (!firstInvalidEl) firstInvalidEl = supplierGstin;
-                }
+            const supplierSearch = document.getElementById('supplier-search-input') as HTMLInputElement;
+            const supplierId = document.getElementById('supplier-id') as HTMLInputElement;
+            if (!supplierSearch.value.trim()) {
+                showFieldError(supplierSearch, 'Please search and select a Supplier.');
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = supplierSearch;
+            } else if (!supplierId || !supplierId.value.trim()) {
+                showFieldError(supplierSearch, 'Please select a valid, existing supplier profile from the suggestions list.');
+                isValid = false;
+                if (!firstInvalidEl) firstInvalidEl = supplierSearch;
             }
 
             if (!isValid) {
@@ -1725,10 +1790,10 @@
     };
 
     const initializeForm = () => {
-        fetchSuppliers();
         fetchCompanyAndCategorySuggestions();
         fetchStockNames();
-        initSupplierAutocomplete();
+        setupSupplierAutocomplete();
+        renderSupplierProfileCard();
         clearAllErrors();
 
         // Setup phone integer validation
@@ -1826,4 +1891,5 @@
     (window as any).closeAllSuggestions = closeAllSuggestions;
     (window as any).generatePreview = generateSimplePreview;
     (window as any).generateSimplePreview = generateSimplePreview;
+    (window as any).renderSupplierProfileCard = renderSupplierProfileCard;
 })();
