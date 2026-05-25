@@ -10,16 +10,30 @@
 
             this.container.innerHTML = '';
             
+            const isTrash = !!(window as any).showDeletedItems;
+
             if (!purchaseOrders || purchaseOrders.length === 0) {
-                this.container.innerHTML = `
-                    <div class="col-span-full flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-                        <div class="text-purple-500 text-5xl mb-4">
-                            <i class="fas fa-shopping-cart"></i>
+                if (isTrash) {
+                    this.container.innerHTML = `
+                        <div class="col-span-full flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
+                            <div class="text-rose-500 text-5xl mb-4 animate-bounce">
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">Trash is Empty</h2>
+                            <p class="text-gray-600 font-medium text-sm">Deleted purchase orders will appear here.</p>
                         </div>
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No Purchase Orders Found</h2>
-                        <p class="text-gray-600">Start creating purchase orders for your suppliers</p>
-                    </div>
-                `;
+                    `;
+                } else {
+                    this.container.innerHTML = `
+                        <div class="col-span-full flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                            <div class="text-purple-500 text-5xl mb-4">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">No Purchase Orders Found</h2>
+                            <p class="text-gray-600">Start creating purchase orders for your suppliers</p>
+                        </div>
+                    `;
+                }
                 return;
             }
 
@@ -31,7 +45,14 @@
 
         createPurchaseOrderCard(purchaseOrder: any): HTMLElement {
             const div = document.createElement('div');
-            div.className = "bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative doc-card";
+            
+            const isTrash = !!(window as any).showDeletedItems;
+
+            if (isTrash) {
+                div.className = "bg-rose-50/10 p-6 rounded-lg shadow-sm border border-rose-200 hover:shadow-md transition-shadow relative doc-card cursor-default";
+            } else {
+                div.className = "bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative doc-card cursor-pointer";
+            }
             
             // Format ID for display
             const poId = purchaseOrder.purchase_order_no;
@@ -74,6 +95,16 @@
                     </div>
                 </div>
                 
+                ${isTrash ? `
+                <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 mt-2">
+                    <button class="restore-card-btn px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-emerald-300 active:scale-95 cursor-pointer" title="Restore">
+                        <i class="fas fa-trash-restore"></i> Restore
+                    </button>
+                    <button class="hard-delete-card-btn px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-rose-300 active:scale-95 cursor-pointer" title="Delete Forever">
+                        <i class="fas fa-trash-alt"></i> Delete Forever
+                    </button>
+                </div>
+                ` : `
                 <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 mt-2">
                     <button class="view-btn text-purple-600 hover:bg-purple-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-purple-200" title="View Preview">
                         <i class="fas fa-eye"></i>
@@ -85,6 +116,7 @@
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
+                `}
             `;
 
             // ID Copy Functionality
@@ -104,6 +136,28 @@
                                 icon.className = 'far fa-copy ml-1 text-xs opacity-70';
                             }, 2000);
                         }
+                    }
+                });
+            }
+
+            // Restore Button
+            const restoreBtn = div.querySelector('.restore-card-btn');
+            if (restoreBtn) {
+                restoreBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if ((window as any).handlePurchaseOrderRestoreFromTrash) {
+                        (window as any).handlePurchaseOrderRestoreFromTrash(poId);
+                    }
+                });
+            }
+
+            // Hard Delete Button
+            const hardDeleteBtn = div.querySelector('.hard-delete-card-btn');
+            if (hardDeleteBtn) {
+                hardDeleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if ((window as any).handlePurchaseOrderHardDelete) {
+                        (window as any).handlePurchaseOrderHardDelete(poId);
                     }
                 });
             }

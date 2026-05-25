@@ -1,5 +1,7 @@
 // @ts-nocheck
 (function () {
+    (window as any).showDeletedItems = false;
+
     const initializeMain = () => {
         // Initialize filters
         if ((window as any).initPurchaseOrderFilters) {
@@ -40,6 +42,198 @@
             });
         }
 
+        // Refresh button
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                const icon = refreshBtn.querySelector('i');
+                if (icon) icon.classList.add('animate-spin');
+                loadRecentPurchaseOrders().finally(() => {
+                    setTimeout(() => {
+                        if (icon) icon.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+        }
+
+        // Trash button toggle
+        const showDeletedBtn = document.getElementById('showDeletedBtn');
+        if (showDeletedBtn) {
+            showDeletedBtn.addEventListener('click', () => {
+                (window as any).showDeletedItems = !(window as any).showDeletedItems;
+                updateTrashButton();
+                if (typeof (window as any).updateHeaderVisibility === 'function') {
+                    (window as any).updateHeaderVisibility();
+                }
+                loadRecentPurchaseOrders();
+            });
+        }
+
+        // Bulk Restore and Delete buttons
+        const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+        const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+        function updateBulkButtonLabels() {
+            const query = searchInput ? searchInput.value.trim() : '';
+            const isFiltered = query !== '';
+            
+            if (bulkRestoreBtn) {
+                const span = bulkRestoreBtn.querySelector('span');
+                if (span) {
+                    span.textContent = isFiltered ? 'Restore All Filtered' : 'Restore All';
+                }
+            }
+            if (bulkDeleteBtn) {
+                const span = bulkDeleteBtn.querySelector('span');
+                if (span) {
+                    span.textContent = isFiltered ? 'Delete All Filtered' : 'Delete All';
+                }
+            }
+        }
+        (window as any).updateBulkButtonLabels = updateBulkButtonLabels;
+
+        if (bulkRestoreBtn) {
+            bulkRestoreBtn.onclick = () => {
+                const filteredData = (window as any).currentFilteredPurchaseOrders || (window as any).allPurchaseOrders || [];
+                if (filteredData.length === 0) {
+                    showToast('No purchase orders to restore.', 'error');
+                    return;
+                }
+
+                const query = searchInput ? searchInput.value.trim() : '';
+                const isFiltered = query !== '';
+                const message = `Are you sure you want to restore all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}purchase orders?`;
+
+                confirmAction(message, async () => {
+                    try {
+                        await (window as any).purchaseOrderApi.bulkRestorePurchaseOrders(filteredData.map((po: any) => po.purchase_order_no));
+                        showToast('Purchase orders restored successfully!');
+                        loadRecentPurchaseOrders();
+                    } catch (err) {
+                        showToast('Failed to bulk restore purchase orders.', 'error');
+                    }
+                });
+            };
+        }
+
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.onclick = () => {
+                const filteredData = (window as any).currentFilteredPurchaseOrders || (window as any).allPurchaseOrders || [];
+                if (filteredData.length === 0) {
+                    showToast('No purchase orders to delete.', 'error');
+                    return;
+                }
+
+                const query = searchInput ? searchInput.value.trim() : '';
+                const isFiltered = query !== '';
+                const message = `Are you sure you want to PERMANENTLY delete all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}purchase orders? This cannot be undone.`;
+
+                confirmAction(message, async () => {
+                    try {
+                        await (window as any).purchaseOrderApi.bulkHardDeletePurchaseOrders(filteredData.map((po: any) => po.purchase_order_no));
+                        showToast('Purchase orders permanently deleted!');
+                        loadRecentPurchaseOrders();
+                    } catch (err) {
+                        showToast('Failed to bulk delete purchase orders.', 'error');
+                    }
+                });
+            };
+        }
+
+        // Dynamically toggle Header elements visibility based on active section
+        const homeSection = document.getElementById('home');
+        const newSection = document.getElementById('new');
+        const viewSection = document.getElementById('view');
+
+        const updateHeaderVisibility = () => {
+            const isHomeVisible = homeSection ? window.getComputedStyle(homeSection).display !== 'none' : true;
+            const isFormActive = newSection ? window.getComputedStyle(newSection).display !== 'none' : false;
+            const isViewActive = viewSection ? window.getComputedStyle(viewSection).display !== 'none' : false;
+
+            const searchFilterContainer = document.getElementById('search-filter-container');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const showDeletedBtn = document.getElementById('showDeletedBtn');
+            const newPurchaseBtn = document.getElementById('new-purchase');
+            const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+            const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+            if (isFormActive) {
+                // Creation mode
+                if (searchFilterContainer) searchFilterContainer.style.display = 'none';
+                if (refreshBtn) refreshBtn.style.display = 'none';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+                if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
+                if (homeBtn) homeBtn.style.display = 'flex';
+                
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.style.display = 'none';
+                    bulkRestoreBtn.classList.add('hidden');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.style.display = 'none';
+                    bulkDeleteBtn.classList.add('hidden');
+                }
+            } else if (isViewActive) {
+                // View mode
+                if (searchFilterContainer) searchFilterContainer.style.display = 'none';
+                if (refreshBtn) refreshBtn.style.display = 'none';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+                if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
+                if (homeBtn) homeBtn.style.display = 'flex';
+
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.style.display = 'none';
+                    bulkRestoreBtn.classList.add('hidden');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.style.display = 'none';
+                    bulkDeleteBtn.classList.add('hidden');
+                }
+            } else {
+                // Dashboard management mode
+                if (searchFilterContainer) searchFilterContainer.style.display = 'flex';
+                if (refreshBtn) refreshBtn.style.display = 'flex';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'flex';
+                if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
+
+                const isTrashOpen = !!(window as any).showDeletedItems;
+                if (isTrashOpen) {
+                    if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
+                    if (bulkRestoreBtn) {
+                        bulkRestoreBtn.style.display = 'flex';
+                        bulkRestoreBtn.classList.remove('hidden');
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.style.display = 'flex';
+                        bulkDeleteBtn.classList.remove('hidden');
+                    }
+                } else {
+                    if (newPurchaseBtn) newPurchaseBtn.style.display = 'flex';
+                    if (bulkRestoreBtn) {
+                        bulkRestoreBtn.style.display = 'none';
+                        bulkRestoreBtn.classList.add('hidden');
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.style.display = 'none';
+                        bulkDeleteBtn.classList.add('hidden');
+                    }
+                }
+            }
+        };
+
+        if (homeSection && homeBtn) {
+            const observer = new MutationObserver(updateHeaderVisibility);
+            observer.observe(homeSection, { attributes: true, attributeFilter: ['style'] });
+            if (newSection) {
+                observer.observe(newSection, { attributes: true, attributeFilter: ['style'] });
+            }
+            if (viewSection) {
+                observer.observe(viewSection, { attributes: true, attributeFilter: ['style'] });
+            }
+            (window as any).updateHeaderVisibility = updateHeaderVisibility;
+            updateHeaderVisibility();
+        }
+
         // Handle URL parameters for cross-module navigation
         const urlParams = new URLSearchParams(window.location.search);
         const viewId = urlParams.get('view');
@@ -59,7 +253,8 @@
     async function loadRecentPurchaseOrders() {
         try {
             if ((window as any).purchaseOrderApi) {
-                const data = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders();
+                const deleted = !!(window as any).showDeletedItems;
+                const data = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders(deleted);
                 if ((window as any).allPurchaseOrders) {
                     (window as any).allPurchaseOrders = data.purchaseOrders;
                 }
@@ -68,6 +263,10 @@
                     (window as any).applyPurchaseOrderFilters();
                 } else if ((window as any).purchaseOrderTable) {
                     (window as any).purchaseOrderTable.renderPurchaseOrders(data.purchaseOrders);
+                }
+
+                if (typeof (window as any).updateBulkButtonLabels === 'function') {
+                    (window as any).updateBulkButtonLabels();
                 }
             } else {
                 console.error("PurchaseOrder API not loaded");
@@ -78,8 +277,32 @@
         }
     }
 
+    function updateTrashButton() {
+        const showDeletedBtn = document.getElementById('showDeletedBtn');
+        if (!showDeletedBtn) return;
+
+        if ((window as any).showDeletedItems) {
+            showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+            showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
+            showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> Close Trash';
+            showDeletedBtn.title = 'Close Trash';
+        } else {
+            showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+            showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
+            showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            showDeletedBtn.title = 'View Trash';
+        }
+    }
+
     function showNewPurchaseForm() {
         sessionStorage.removeItem('currentTab-status');
+
+        // Reset showDeletedItems when opening new form
+        (window as any).showDeletedItems = false;
+        updateTrashButton();
+        if (typeof (window as any).updateHeaderVisibility === 'function') {
+            (window as any).updateHeaderVisibility();
+        }
 
         // Hide Search bar and Filter button
         const searchFilterContainer = document.getElementById('search-filter-container');
@@ -159,6 +382,41 @@
             alert(message);
         }
     }
+
+    function confirmAction(message: string, action: () => Promise<void>) {
+        const showConfirm = (window as any).showConfirm;
+        if (showConfirm) {
+            showConfirm(message, async (response: string) => {
+                if (response === 'Yes') await action();
+            });
+        } else if (window.confirm(message)) {
+            action();
+        }
+    }
+
+    (window as any).handlePurchaseOrderRestoreFromTrash = (id: string) => {
+        confirmAction(`Are you sure you want to restore purchase order "${id}" from trash?`, async () => {
+            try {
+                await (window as any).purchaseOrderApi.restorePurchaseOrderFromTrash(id);
+                showToast('Purchase order restored successfully');
+                await loadRecentPurchaseOrders();
+            } catch (error) {
+                showToast('Failed to restore purchase order', 'error');
+            }
+        });
+    };
+
+    (window as any).handlePurchaseOrderHardDelete = (id: string) => {
+        confirmAction(`Are you sure you want to permanently delete purchase order "${id}"? This cannot be undone.`, async () => {
+            try {
+                await (window as any).purchaseOrderApi.hardDeletePurchaseOrder(id);
+                showToast('Purchase order permanently deleted');
+                await loadRecentPurchaseOrders();
+            } catch (error) {
+                showToast('Failed to permanently delete purchase order', 'error');
+            }
+        });
+    };
 
     // Assign to window for global access if needed
     (window as any).loadRecentPurchaseOrders = loadRecentPurchaseOrders;

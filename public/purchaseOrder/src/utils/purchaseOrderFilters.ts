@@ -20,6 +20,9 @@
             customEndDate: currentFilters.customEndDate
         });
         
+        // Save current filtered items globally so bulk actions can target them
+        (window as any).currentFilteredPurchaseOrders = filtered;
+        
         if ((window as any).purchaseOrderTable) {
             (window as any).purchaseOrderTable.renderPurchaseOrders(filtered);
         }

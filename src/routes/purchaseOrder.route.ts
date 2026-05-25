@@ -131,13 +131,25 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
     }
 });
 
-// Route to get the 10 most recent purchase orders
+// Route to get recent purchase orders (supports filtering by deleted status)
 router.get("/recent-purchase-orders", async (req: Request, res: Response) => {
     try {
-        const recentPurchaseOrders = await PurchaseOrderModel.find()
-            .sort({ createdAt: -1 })
-            .limit(10)
-            .select("purchase_order_no supplier_snapshot totals purchase_date createdAt");
+        const { deleted } = req.query;
+        let query: any = {};
+
+        if (deleted === 'true') {
+            query['deletion.is_deleted'] = true;
+        } else {
+            query['deletion.is_deleted'] = false;
+        }
+
+        let queryBuilder = PurchaseOrderModel.find(query).sort({ createdAt: -1 });
+        if (deleted !== 'true') {
+            queryBuilder = queryBuilder.limit(10);
+        }
+
+        const recentPurchaseOrders = await queryBuilder
+            .select("purchase_order_no supplier_snapshot totals purchase_date createdAt deletion");
 
         res.status(200).json({
             message: "Recent purchase orders retrieved successfully",
@@ -164,20 +176,113 @@ router.get("/:purchaseOrderId", async (req: Request, res: Response) => {
     }
 });
 
-// Route to delete a purchase order
+// Helper function to handle permanent purchase order deletion
+async function performHardDeletePurchaseOrder(purchaseOrderId: string): Promise<boolean> {
+    const result = await PurchaseOrderModel.deleteOne({ purchase_order_no: purchaseOrderId });
+    return result.deletedCount > 0;
+}
+
+// Route to soft delete a purchase order
 router.delete("/:purchaseOrderId", async (req: Request, res: Response) => {
     try {
         const { purchaseOrderId } = req.params;
-        const purchaseOrder = await PurchaseOrderModel.findOne({ purchase_order_no: purchaseOrderId });
+        const username = String((req.query && req.query.username) || (req.headers && req.headers['x-username']) || (req.body && req.body.username) || 'Admin');
+        
+        const purchaseOrder = await PurchaseOrderModel.findOneAndUpdate(
+            { purchase_order_no: purchaseOrderId, 'deletion.is_deleted': false },
+            {
+                $set: {
+                    'deletion.is_deleted': true,
+                    'deletion.deleted_at': new Date(),
+                    'deletion.deleted_by': username
+                }
+            },
+            { new: true }
+        );
+        
         if (!purchaseOrder) {
             return res.status(404).json({ message: 'Purchase order not found' });
         }
-
-        await PurchaseOrderModel.deleteOne({ purchase_order_no: purchaseOrderId });
+        
         res.status(200).json({ message: 'Purchase order deleted successfully' });
     } catch (error: unknown) {
-        logger.error("Error deleting purchase order:", error);
+        logger.error("Error soft deleting purchase order:", error);
         res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+// Route to restore soft-deleted purchase order from trash
+router.post("/restoreItem", async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const purchaseOrder = await PurchaseOrderModel.findOne({ purchase_order_no: itemId });
+        if (!purchaseOrder) {
+            return res.status(404).json({ error: 'Purchase order not found' });
+        }
+
+        if (purchaseOrder.deletion) {
+            purchaseOrder.deletion.is_deleted = false;
+            purchaseOrder.deletion.deleted_at = undefined;
+            purchaseOrder.deletion.deleted_by = undefined;
+            await purchaseOrder.save();
+        }
+
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Purchase order restore failed', { itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to restore purchase order' });
+    }
+});
+
+// Route to permanently delete a single purchase order
+router.post("/hardDeleteItem", async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const deleted = await performHardDeletePurchaseOrder(itemId);
+        if (!deleted) {
+            return res.status(404).json({ error: 'Purchase order not found' });
+        }
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Purchase order permanent deletion failed', { itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to permanently delete purchase order' });
+    }
+});
+
+// Route to bulk restore soft-deleted purchase orders
+router.post("/bulkRestore", async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        await PurchaseOrderModel.updateMany(
+            { purchase_order_no: { $in: itemIds } },
+            {
+                $set: {
+                    "deletion.is_deleted": false,
+                    "deletion.deleted_at": undefined,
+                    "deletion.deleted_by": undefined
+                }
+            }
+        );
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk purchase order restore failed', { count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk restore purchase orders' });
+    }
+});
+
+// Route to bulk permanently delete purchase orders
+router.post("/bulkHardDelete", async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        if (Array.isArray(itemIds)) {
+            for (const itemId of itemIds) {
+                await performHardDeletePurchaseOrder(itemId);
+            }
+        }
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk purchase order hard delete failed', { count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk permanently delete purchase orders' });
     }
 });
 
@@ -188,6 +293,7 @@ router.get('/search/:query', async (req: Request, res: Response) => {
 
     try {
         const purchaseOrders = await PurchaseOrderModel.find({
+            'deletion.is_deleted': false,
             $or: [
                 { purchase_order_no: { $regex: query, $options: 'i' } },
                 { 'supplier_snapshot.name': { $regex: query, $options: 'i' } },
