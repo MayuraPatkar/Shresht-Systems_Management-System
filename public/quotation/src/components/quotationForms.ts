@@ -364,7 +364,7 @@ async function openQuotation(quotationId) {
     // Hide Print, Save as PDF, and Trash buttons in form - only available in View/List mode
     const printBtn = document.getElementById('print-btn');
     const savePdfBtn = document.getElementById('save-pdf-btn');
-    const trashBtnEdit = document.getElementById('trash-btn');
+    const trashBtnEdit = document.getElementById('showDeletedBtn');
     if (printBtn) printBtn.style.display = 'none';
     if (savePdfBtn) savePdfBtn.style.display = 'none';
     if (trashBtnEdit) trashBtnEdit.style.display = 'none';
@@ -674,7 +674,7 @@ async function cloneQuotation(sourceQuotationId) {
         const refreshBtnClone = document.getElementById('refresh-btn');
         if (refreshBtnClone) refreshBtnClone.style.display = 'none';
         document.getElementById('view-preview').style.display = 'block';
-        const trashBtnEl = document.getElementById('trash-btn');
+        const trashBtnEl = document.getElementById('showDeletedBtn');
         if (trashBtnEl) trashBtnEl.style.display = 'none';
         
         const homeBtnEl = document.getElementById('home-btn');

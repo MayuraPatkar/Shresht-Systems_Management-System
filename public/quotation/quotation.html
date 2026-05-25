@@ -41,6 +41,18 @@
                     <i class="fas fa-plus"></i>
                     New Quotation
                 </button>
+                <button id="trash-restore-all-btn"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    style="display: none;" title="Restore All">
+                    <i class="fas fa-trash-restore"></i>
+                    <span>Restore All</span>
+                </button>
+                <button id="trash-delete-all-btn"
+                    class="bg-rose-600 hover:bg-rose-700 text-white px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    style="display: none;" title="Delete All">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Delete All</span>
+                </button>
                 <!-- Trash icon-only button (gray, shown in normal mode) -->
                 <button id="showDeletedBtn"
                     class="bg-gray-200 text-gray-700 h-10 px-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-gray-300"
@@ -78,21 +90,6 @@
             </div>
         </div>
     </header>
-
-    <!-- Trash Sub-Toolbar (shown below header only in trash mode) -->
-    <div id="trash-toolbar" class="fixed top-24 left-[280px] right-0 bg-white border-b border-gray-200 z-20 px-6 py-3"
-        style="display:none;">
-        <div class="flex items-center gap-3">
-            <button id="trash-restore-all-btn"
-                class="bg-green-50 text-green-600 border border-green-300 px-5 py-2.5 rounded-lg hover:bg-green-100 flex items-center gap-2 font-semibold text-sm transition-all shadow-sm active:scale-95">
-                <i class="fas fa-trash-restore"></i> Restore All
-            </button>
-            <button id="trash-delete-all-btn"
-                class="bg-red-50 text-red-600 border border-red-300 px-5 py-2.5 rounded-lg hover:bg-red-100 flex items-center gap-2 font-semibold text-sm transition-all shadow-sm active:scale-95">
-                <i class="fas fa-trash"></i> Delete All
-            </button>
-        </div>
-    </div>
 
     <!-- Sidebar -->
     <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">

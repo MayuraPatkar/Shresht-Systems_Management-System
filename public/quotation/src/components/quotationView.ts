@@ -854,7 +854,7 @@ async function viewQuotation(quotationId, viewType) {
         document.getElementById('view').style.display = 'block';
 
         // Hide trash button while in view mode
-        const trashBtnEl = document.getElementById('trash-btn');
+        const trashBtnEl = document.getElementById('showDeletedBtn');
         if (trashBtnEl) trashBtnEl.style.display = 'none';
 
         const homeBtnEl = document.getElementById('home-btn');

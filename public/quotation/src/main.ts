@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ====== Trash Button ======
-    const trashBtn = document.getElementById('trash-btn') as HTMLButtonElement;
+    const trashBtn = document.getElementById('showDeletedBtn') as HTMLButtonElement;
     if (trashBtn) {
         trashBtn.addEventListener('click', () => {
             enterTrashMode();
@@ -138,24 +138,23 @@ document.addEventListener("DOMContentLoaded", () => {
 function enterTrashMode() {
     isTrashMode = true;
 
-    const trashToolbar = document.getElementById('trash-toolbar');
     const newQuotationBtn = document.getElementById('new-quotation');
-    const trashBtn = document.getElementById('trash-btn');
+    const trashBtn = document.getElementById('showDeletedBtn');
     const closeTrashBtn = document.getElementById('close-trash-btn');
-    const mainContent = document.getElementById('main-content');
+    const restoreAllBtn = document.getElementById('trash-restore-all-btn');
+    const deleteAllBtn = document.getElementById('trash-delete-all-btn');
 
-    // Show sub-toolbar band
-    if (trashToolbar) trashToolbar.style.display = 'block';
-    // Push main content down to make room for sub-toolbar
-    if (mainContent) mainContent.style.paddingTop = 'calc(6rem + 2.75rem)';
     // Hide normal header buttons (refresh stays visible — it works universally)
     if (newQuotationBtn) newQuotationBtn.style.display = 'none';
     if (trashBtn) trashBtn.style.display = 'none';
-    // Show Close Trash button in header
+    
+    // Show Close Trash and Restore/Delete All buttons in header
     if (closeTrashBtn) closeTrashBtn.style.display = '';
+    if (restoreAllBtn) restoreAllBtn.style.display = 'flex';
+    if (deleteAllBtn) deleteAllBtn.style.display = 'flex';
 
     const homeBtnEl = document.getElementById('home-btn');
-    if (homeBtnEl) homeBtnEl.style.display = '';
+    if (homeBtnEl) homeBtnEl.style.display = 'none';
 
     loadTrashQuotations();
 }
@@ -163,21 +162,23 @@ function enterTrashMode() {
 function exitTrashMode() {
     isTrashMode = false;
 
-    const trashToolbar = document.getElementById('trash-toolbar');
     const newQuotationBtn = document.getElementById('new-quotation');
-    const trashBtn = document.getElementById('trash-btn');
+    const trashBtn = document.getElementById('showDeletedBtn');
     const closeTrashBtn = document.getElementById('close-trash-btn');
-    const mainContent = document.getElementById('main-content');
+    const restoreAllBtn = document.getElementById('trash-restore-all-btn');
+    const deleteAllBtn = document.getElementById('trash-delete-all-btn');
 
-    // Hide sub-toolbar band
-    if (trashToolbar) trashToolbar.style.display = 'none';
-    // Reset main content padding
-    if (mainContent) mainContent.style.paddingTop = '';
     // Restore normal header buttons
     if (newQuotationBtn) newQuotationBtn.style.display = '';
     if (trashBtn) trashBtn.style.display = '';
-    // Hide Close Trash button
+    
+    // Hide Close Trash and Restore/Delete All buttons
     if (closeTrashBtn) closeTrashBtn.style.display = 'none';
+    if (restoreAllBtn) restoreAllBtn.style.display = 'none';
+    if (deleteAllBtn) deleteAllBtn.style.display = 'none';
+
+    const homeBtnEl = document.getElementById('home-btn');
+    if (homeBtnEl) homeBtnEl.style.display = 'none';
 
     loadRecentQuotations();
 }
@@ -276,7 +277,7 @@ async function loadRecentQuotations() {
 
 document.getElementById('home-btn')!.addEventListener('click', () => {
     sessionStorage.removeItem('currentTab-status');
-    const trashBtn = document.getElementById('trash-btn');
+    const trashBtn = document.getElementById('showDeletedBtn');
     if (trashBtn) trashBtn.style.display = '';
     (window as any).location = '/quotation';
 });
@@ -334,7 +335,7 @@ function showNewQuotationForm() {
         const printBtn = document.getElementById('print-btn') as HTMLButtonElement;
         const savePdfBtn = document.getElementById('save-pdf-btn') as HTMLButtonElement;
         const viewPreviewBtn = document.getElementById('view-preview') as HTMLButtonElement;
-        const trashBtnEl = document.getElementById('trash-btn') as HTMLButtonElement;
+        const trashBtnEl = document.getElementById('showDeletedBtn') as HTMLButtonElement;
 
         if (printBtn) printBtn.style.display = 'none';
         if (savePdfBtn) savePdfBtn.style.display = 'none';
