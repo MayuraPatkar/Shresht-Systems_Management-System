@@ -31,7 +31,7 @@
 
         createPurchaseCard(purchase: any): HTMLElement {
             const div = document.createElement('div');
-            div.className = "bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative doc-card";
+            div.className = "bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative doc-card cursor-pointer";
             
             // Format ID for display
             const purchaseId = purchase.purchase_no;
@@ -48,7 +48,7 @@
             const supplierAddress = purchase.supplier_snapshot?.address?.line1 || 'N/A';
             
             div.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
+                <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
                             <h3 class="font-bold text-lg text-gray-800 line-clamp-1" title="${supplierName}">
@@ -73,18 +73,6 @@
                         <p class="font-bold text-lg text-gray-900">₹ ${totalAmount}</p>
                     </div>
                 </div>
-                
-                <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 mt-2">
-                    <button class="view-btn text-purple-600 hover:bg-purple-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-purple-200" title="View Purchase Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="edit-btn text-blue-600 hover:bg-blue-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-blue-200" title="Edit Purchase">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="delete-btn text-red-600 hover:bg-red-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-red-200" title="Delete Purchase">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
             `;
 
             // ID Copy Functionality
@@ -108,37 +96,12 @@
                 });
             }
 
-            // View Button
-            const viewBtn = div.querySelector('.view-btn');
-            if (viewBtn) {
-                viewBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if ((window as any).viewPurchase) {
-                        (window as any).viewPurchase(purchase.purchase_no);
-                    }
-                });
-            }
-
-            // Edit Button
-            const editBtn = div.querySelector('.edit-btn');
-            if (editBtn) {
-                editBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    sessionStorage.setItem('currentTab-status', 'update');
-                    if ((window as any).openPurchase) {
-                        (window as any).openPurchase(purchase.purchase_no);
-                    }
-                });
-            }
-
-            // Delete Button
-            const deleteBtn = div.querySelector('.delete-btn');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.handleDelete(purchase.purchase_no);
-                });
-            }
+            // Click anywhere on card to view purchase
+            div.addEventListener('click', () => {
+                if ((window as any).viewPurchase) {
+                    (window as any).viewPurchase(purchase.purchase_no);
+                }
+            });
 
             return div;
         }

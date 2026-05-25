@@ -55,6 +55,10 @@
             const archivedBtn = document.getElementById('archived-purchases-btn');
             const showDeletedBtn = document.getElementById('showDeletedBtn');
             const newPurchaseBtn = document.getElementById('new-purchase');
+            
+            const viewEditBtn = document.getElementById('view-edit-btn');
+            const viewSaveBtn = document.getElementById('view-save-btn');
+            const viewCancelBtn = document.getElementById('view-cancel-btn');
 
             if (isFormActive) {
                 // Creation mode: hide search, filter, archived, trash, refresh, new-purchase. Show home.
@@ -64,20 +68,41 @@
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
                 if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
                 if (homeBtn) homeBtn.style.display = 'flex';
+                
+                if (viewEditBtn) viewEditBtn.style.display = 'none';
+                if (viewSaveBtn) viewSaveBtn.style.display = 'none';
+                if (viewCancelBtn) viewCancelBtn.style.display = 'none';
             } else if (isViewActive) {
-                // View mode: hide search, filter, archived, trash. Show home, new-purchase, refresh.
+                // View mode: hide search, filter, archived, trash.
                 if (searchFilterContainer) searchFilterContainer.style.display = 'none';
                 if (refreshBtn) refreshBtn.style.display = 'none';
                 if (archivedBtn) archivedBtn.style.display = 'none';
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
-                if (newPurchaseBtn) newPurchaseBtn.style.display = 'flex';
-                if (homeBtn) homeBtn.style.display = 'flex';
+
+                const isEditing = !!(window as any).isEditingInline;
+                if (isEditing) {
+                    if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
+                    if (homeBtn) homeBtn.style.display = 'none';
+                    if (viewEditBtn) viewEditBtn.style.display = 'none';
+                    if (viewSaveBtn) viewSaveBtn.style.display = 'flex';
+                    if (viewCancelBtn) viewCancelBtn.style.display = 'flex';
+                } else {
+                    if (newPurchaseBtn) newPurchaseBtn.style.display = 'flex';
+                    if (homeBtn) homeBtn.style.display = 'flex';
+                    if (viewEditBtn) viewEditBtn.style.display = 'flex';
+                    if (viewSaveBtn) viewSaveBtn.style.display = 'none';
+                    if (viewCancelBtn) viewCancelBtn.style.display = 'none';
+                }
             } else {
                 // Dashboard management mode
                 if (searchFilterContainer) searchFilterContainer.style.display = 'flex';
                 if (refreshBtn) refreshBtn.style.display = 'flex';
                 if (showDeletedBtn) showDeletedBtn.style.display = 'flex';
                 if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
+                
+                if (viewEditBtn) viewEditBtn.style.display = 'none';
+                if (viewSaveBtn) viewSaveBtn.style.display = 'none';
+                if (viewCancelBtn) viewCancelBtn.style.display = 'none';
 
                 // Contextual elements based on Trash mode
                 const isTrashOpen = !!(window as any).showDeletedItems;
