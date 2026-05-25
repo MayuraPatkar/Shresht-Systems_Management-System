@@ -264,12 +264,24 @@
                     </div>
                 </div>
 
-                <!-- Step 2: Item List -->
+                <!-- Step 2: Item Details -->
                 <div class="steps" id="step-2">
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                             <i class="fas fa-list-ul text-green-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Item List</h2>
+                            <h2 class="text-2xl font-semibold text-gray-800">Item Details</h2>
+                        </div>
+
+                        <!-- Column Headers -->
+                        <div class="items-header item-details-header-row">
+                            <div class="header-number">#</div>
+                            <div class="header-field header-desc">Description</div>
+                            <div class="header-field header-hsn">HSN/SAC</div>
+                            <div class="header-field header-brand">Brand</div>
+                            <div class="header-field header-type">Type</div>
+                            <div class="header-field header-cat">Category</div>
+                            <div class="header-field header-unit">Unit</div>
+                            <div class="header-action"></div>
                         </div>
 
                         <!-- Items Container for Cards -->
@@ -327,8 +339,31 @@
                     </div>
                 </div>
 
-                <!-- Step 3: Specifications -->
+                <!-- Step 3: Quantities & Pricing -->
                 <div class="steps" id="step-3">
+                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <i class="fas fa-calculator text-blue-600 text-2xl"></i>
+                            <h2 class="text-2xl font-semibold text-gray-800">Quantities & Pricing</h2>
+                        </div>
+
+                        <!-- Column Headers -->
+                        <div class="items-header item-pricing-header-row">
+                            <div class="header-number">#</div>
+                            <div class="header-field header-desc">Item Description</div>
+                            <div class="header-field header-qty">Qty</div>
+                            <div class="header-field header-unit">Unit</div>
+                            <div class="header-field header-price">Unit Price</div>
+                            <div class="header-field header-gst">GST %</div>
+                        </div>
+
+                        <!-- Quantities & Pricing Container for Cards -->
+                        <div id="items-container-pricing"></div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Specifications -->
+                <div class="steps" id="step-4">
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                             <i class="fas fa-clipboard-list text-blue-600 text-2xl"></i>
@@ -365,8 +400,8 @@
                     </div>
                 </div>
 
-                <!-- Step 4: Preview -->
-                <div class="steps" id="step-4">
+                <!-- Step 5: Preview -->
+                <div class="steps" id="step-5">
                     <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                         <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                             <i class="fas fa-eye text-blue-600 text-2xl"></i>
@@ -378,7 +413,7 @@
                             <!-- Preview details will be dynamically populated here -->
                         </div>
                         
-                        <!-- Programmatic/Hidden Save Button mapped to Step 4 -->
+                        <!-- Programmatic/Hidden Save Button mapped to Step 5 -->
                         <button type="button" id="save-btn" style="display: none;"></button>
                     </div>
                 </div>

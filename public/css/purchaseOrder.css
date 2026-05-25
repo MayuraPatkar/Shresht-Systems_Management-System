@@ -142,9 +142,52 @@ main {
     color: #3b82f6;
 }
 
-/* Hide the old single-row header */
-#new .items-header {
-    display: none;
+/* Header Alignment and Column Styles */
+#new .item-details-header-row,
+#new .item-details-row {
+    display: grid !important;
+    grid-template-columns: 40px 2.2fr 1.1fr 1.2fr 1.2fr 1.2fr 1.1fr 40px !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
+}
+
+#new .item-pricing-header-row,
+#new .item-pricing-row {
+    display: grid !important;
+    grid-template-columns: 40px 3.5fr 1fr 0.8fr 1.2fr 1fr !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
+}
+
+#new .item-details-row .item-field,
+#new .item-pricing-row .item-field {
+    flex: none !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+#new .item-pricing-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+#new .item-pricing-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+#items-container-pricing {
+    overflow-x: visible;
+    overflow-y: visible;
+    padding-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 /* Two-row item card layout */

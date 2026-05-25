@@ -1,7 +1,7 @@
 // @ts-nocheck
 (function () {
     // Define totalSteps globally for purchase
-    (window as any).totalSteps = 4;
+    (window as any).totalSteps = 5;
 
     // Bind currentStep property on window to sync with the global declarative currentStep
     declare let currentStep: number;
@@ -716,9 +716,11 @@
             renderSupplierProfileCard();
 
             const itemsContainer = document.getElementById("items-container");
+            const pricingContainer = document.getElementById("items-container-pricing");
             const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
 
             if (itemsContainer) itemsContainer.innerHTML = "";
+            if (pricingContainer) pricingContainer.innerHTML = "";
             if (itemsTable) itemsTable.innerHTML = "";
 
             let sno = 1;
@@ -732,96 +734,110 @@
                 const unit = item.unit || "";
                 const unitPrice = item.unit_price || "";
                 const rate = item.gst_rate || item.rate || "";
+                const itemId = 'item-' + Math.random().toString(36).substr(2, 9);
 
-                if (itemsContainer) {
-                    const card = document.createElement("div");
-                    card.className = "item-card";
-                    card.setAttribute("draggable", "true");
+                // 1. Details Card (Step 2)
+                const card = document.createElement("div");
+                card.className = "item-card item-details-row";
+                card.setAttribute("draggable", "true");
+                card.dataset.itemId = itemId;
 
-                    card.innerHTML = `
-                        <div class="drag-handle" title="Drag to reorder">
-                            <i class="fas fa-grip-vertical"></i>
+                card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
+                    <div class="item-number">${sno}</div>
+                    <div class="item-field description">
+                        <div style="position: relative;">
+                            <input type="text" placeholder="Description" class="item_name" value="${description}" required>
+                            <ul class="suggestions"></ul>
                         </div>
-                        <div class="item-row-1">
-                            <div class="item-number">${sno}</div>
-                            <div class="item-field description">
-                                <div style="position: relative;">
-                                    <input type="text" placeholder="Description" class="item_name" value="${description}" required>
-                                    <ul class="suggestions"></ul>
-                                </div>
-                            </div>
-                            <div class="item-field hsn">
-                                <input type="text" placeholder="HSN/SAC" value="${hsnSac}" required>
-                            </div>
-                            <div class="item-field qty">
-                                <input type="number" placeholder="Qty" value="${quantity}" required>
-                            </div>
-                            <div class="item-field rate">
-                                <input type="number" placeholder="Unit Price" step="0.01" value="${unitPrice}" required>
-                            </div>
-                            <div class="item-field rate">
-                                <input type="number" placeholder="GST %" min="0" step="0.01" value="${rate}">
-                            </div>
-                            <div class="item-actions">
-                                <button type="button" class="remove-item-btn" title="Remove Item">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
+                    </div>
+                    <div class="item-field hsn">
+                        <input type="text" placeholder="HSN/SAC" value="${hsnSac}" required>
+                    </div>
+                    <div class="item-field brand">
+                        <div style="position: relative;">
+                            <input type="text" placeholder="Brand" class="item-company" value="${company}">
+                            <ul class="suggestions"></ul>
                         </div>
-                        <div class="item-row-2">
-                            <div class="row-spacer"></div>
-                            <div class="item-field">
-                                <div style="position: relative;">
-                                    <input type="text" placeholder="Brand" class="item-company" value="${company}">
-                                    <ul class="suggestions"></ul>
-                                </div>
-                            </div>
-                            <div class="item-field">
-                                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                    <option value="Material" ${type === 'Material' ? 'selected' : ''}>Material</option>
-                                    <option value="Asset" ${type === 'Asset' ? 'selected' : ''}>Asset</option>
-                                </select>
-                            </div>
-                            <div class="item-field">
-                                <div style="position: relative;">
-                                    <input type="text" placeholder="Category" class="item-category" value="${category}">
-                                    <ul class="suggestions"></ul>
-                                </div>
-                            </div>
-                            <div class="item-field">
-                                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
-                                    <option value="" disabled ${!unit ? 'selected' : ''}>Select Unit</option>
-                                    <option value="pc" ${unit === 'pc' ? 'selected' : ''}>Piece (pc)</option>
-                                    <option value="kg" ${unit === 'kg' ? 'selected' : ''}>Kilogram (kg)</option>
-                                    <option value="L" ${unit === 'L' ? 'selected' : ''}>Litre (L)</option>
-                                    <option value="m" ${unit === 'm' ? 'selected' : ''}>Metre (m)</option>
-                                </select>
-                            </div>
-                            <div class="row-spacer"></div>
+                    </div>
+                    <div class="item-field type">
+                        <select class="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="Material" ${type === 'Material' ? 'selected' : ''}>Material</option>
+                            <option value="Asset" ${type === 'Asset' ? 'selected' : ''}>Asset</option>
+                        </select>
+                    </div>
+                    <div class="item-field category">
+                        <div style="position: relative;">
+                            <input type="text" placeholder="Category" class="item-category" value="${category}">
+                            <ul class="suggestions"></ul>
                         </div>
-                    `;
-                    itemsContainer.appendChild(card);
+                    </div>
+                    <div class="item-field unit">
+                        <select class="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
+                            <option value="" disabled ${!unit ? 'selected' : ''}>Select Unit</option>
+                            <option value="pc" ${unit === 'pc' ? 'selected' : ''}>Piece (pc)</option>
+                            <option value="kg" ${unit === 'kg' ? 'selected' : ''}>Kilogram (kg)</option>
+                            <option value="L" ${unit === 'L' ? 'selected' : ''}>Litre (L)</option>
+                            <option value="m" ${unit === 'm' ? 'selected' : ''}>Metre (m)</option>
+                        </select>
+                    </div>
+                    <div class="item-actions">
+                        <button type="button" class="remove-item-btn" title="Remove Item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                if (itemsContainer) itemsContainer.appendChild(card);
 
-                    setupCardTabNavigation(card);
+                setupCardTabNavigation(card);
 
-                    const cardInput = card.querySelector(".item_name") as HTMLInputElement;
-                    const cardSuggestions = card.querySelector(".suggestions") as HTMLUListElement;
+                const cardInput = card.querySelector(".item_name") as HTMLInputElement;
+                const cardSuggestions = card.querySelector(".suggestions") as HTMLUListElement;
 
-                    if (cardInput && cardSuggestions) {
-                        cardInput.addEventListener("input", function () {
-                            showSuggestionsP(cardInput, cardSuggestions);
-                        });
-                        cardInput.addEventListener("keydown", function (event) {
-                            handleKeyboardNavigationP(event, cardInput, cardSuggestions);
-                        });
-                    }
-
-                    const cardCompany = card.querySelector(".item-company") as HTMLInputElement;
-                    const cardCategory = card.querySelector(".item-category") as HTMLInputElement;
-                    if (cardCompany) setupGenericAutocomplete(cardCompany, companySuggestionList);
-                    if (cardCategory) setupGenericAutocomplete(cardCategory, categorySuggestionList);
+                if (cardInput && cardSuggestions) {
+                    cardInput.addEventListener("input", function () {
+                        showSuggestionsP(cardInput, cardSuggestions);
+                    });
+                    cardInput.addEventListener("keydown", function (event) {
+                        handleKeyboardNavigationP(event, cardInput, cardSuggestions);
+                    });
                 }
 
+                const cardCompany = card.querySelector(".item-company") as HTMLInputElement;
+                const cardCategory = card.querySelector(".item-category") as HTMLInputElement;
+                if (cardCompany) setupGenericAutocomplete(cardCompany, companySuggestionList);
+                if (cardCategory) setupGenericAutocomplete(cardCategory, categorySuggestionList);
+
+                // 2. Pricing Card (Step 3)
+                const pricingCard = document.createElement("div");
+                pricingCard.className = "item-pricing-card item-pricing-row";
+                pricingCard.dataset.itemId = itemId;
+
+                pricingCard.innerHTML = `
+                    <div class="item-number">${sno}</div>
+                    <div class="item-field description">
+                        <input type="text" class="item_name_readonly" readonly placeholder="Description" value="${description}" style="background-color: #f3f4f6; cursor: not-allowed;">
+                    </div>
+                    <div class="item-field qty">
+                        <input type="number" placeholder="Qty" value="${quantity}" required>
+                    </div>
+                    <div class="item-field unit-display flex items-center justify-center font-semibold text-gray-600 text-sm">
+                        ${unit ? `(${unit})` : '-'}
+                    </div>
+                    <div class="item-field price">
+                        <input type="number" placeholder="Unit Price" step="0.01" value="${unitPrice}" required>
+                    </div>
+                    <div class="item-field rate">
+                        <input type="number" placeholder="GST %" min="0" step="0.01" value="${rate}">
+                    </div>
+                `;
+                if (pricingContainer) pricingContainer.appendChild(pricingCard);
+
+                const pricingDescInput = pricingCard.querySelector(".item_name_readonly") as HTMLInputElement;
+
+                // 3. Hidden Table Row
                 if (itemsTable) {
                     const row = document.createElement("tr");
                     row.innerHTML = `
@@ -863,52 +879,86 @@
                     if (tableInput && tableSuggestions) {
                         tableInput.addEventListener("input", function () {
                             showSuggestionsP(tableInput, tableSuggestions);
-                            const cardInput = itemsContainer.children[sno - 1]?.querySelector('.item_name') as HTMLInputElement | null;
                             if (cardInput) cardInput.value = tableInput.value;
+                            if (pricingDescInput) pricingDescInput.value = tableInput.value;
                         });
                         tableInput.addEventListener("keydown", function (event) {
                             handleKeyboardNavigationP(event, tableInput, tableSuggestions);
                         });
                     }
 
-                    // Sync card and table inputs
-                    const cardElement = itemsContainer.children[sno - 1] as HTMLElement;
-                    const row1Inputs = cardElement.querySelectorAll('.item-row-1 input');
-                    const row2Inputs = cardElement.querySelectorAll('.item-row-2 input');
-                    const row2Selects = cardElement.querySelectorAll('.item-row-2 select');
+                    // Sync card and pricingCard inputs with table inputs
+                    const detailsInputs = card.querySelectorAll('input');
+                    const detailsSelects = card.querySelectorAll('select');
+                    const pricingInputs = pricingCard.querySelectorAll('input');
+                    const pricingUnitDisplay = pricingCard.querySelector('.unit-display') as HTMLElement;
                     const tableInputs = row.querySelectorAll('input');
                     const tableSelects = row.querySelectorAll('select');
 
-                    const inputMapping = [
-                        { card: row1Inputs[0], table: tableInputs[0] }, // description
-                        { card: row1Inputs[1], table: tableInputs[1] }, // hsn
-                        { card: row2Inputs[0], table: tableInputs[2] }, // company
-                        { card: row2Selects[0], table: tableSelects[0] }, // type
-                        { card: row2Inputs[1], table: tableInputs[3] }, // category
-                        { card: row2Selects[1], table: tableSelects[1] }, // unit
-                        { card: row1Inputs[2], table: tableInputs[4] }, // qty
-                        { card: row1Inputs[3], table: tableInputs[5] }, // unit_price
-                        { card: row1Inputs[4], table: tableInputs[6] }, // rate
-                    ];
-
-                    inputMapping.forEach(({ card: cInput, table: tInput }) => {
-                        if (cInput && tInput) {
-                            cInput.addEventListener("input", () => { (tInput as HTMLInputElement).value = (cInput as HTMLInputElement).value; });
-                            tInput.addEventListener("input", () => { (cInput as HTMLInputElement).value = (tInput as HTMLInputElement).value; });
-                            if (cInput.tagName === 'SELECT' || tInput.tagName === 'SELECT') {
-                                cInput.addEventListener("change", () => { (tInput as HTMLInputElement).value = (cInput as HTMLInputElement).value; });
-                                tInput.addEventListener("change", () => { (cInput as HTMLInputElement).value = (tInput as HTMLInputElement).value; });
-                            }
-                        }
+                    // Sync Description
+                    cardInput.addEventListener("input", () => {
+                        tableInputs[0].value = cardInput.value;
+                        if (pricingDescInput) pricingDescInput.value = cardInput.value;
+                    });
+                    tableInputs[0].addEventListener("input", () => {
+                        cardInput.value = tableInputs[0].value;
+                        if (pricingDescInput) pricingDescInput.value = tableInputs[0].value;
                     });
 
-                    setupPQuantityDecimalSupport(cardElement, row);
+                    // Sync HSN/SAC
+                    detailsInputs[1].addEventListener("input", () => { tableInputs[1].value = detailsInputs[1].value; });
+                    tableInputs[1].addEventListener("input", () => { detailsInputs[1].value = tableInputs[1].value; });
+
+                    // Sync Brand
+                    detailsInputs[2].addEventListener("input", () => { tableInputs[2].value = detailsInputs[2].value; });
+                    tableInputs[2].addEventListener("input", () => { detailsInputs[2].value = tableInputs[2].value; });
+
+                    // Sync Type
+                    detailsSelects[0].addEventListener("change", () => { tableSelects[0].value = detailsSelects[0].value; });
+                    tableSelects[0].addEventListener("change", () => { detailsSelects[0].value = tableSelects[0].value; });
+
+                    // Sync Category
+                    detailsInputs[3].addEventListener("input", () => { tableInputs[3].value = detailsInputs[3].value; });
+                    tableInputs[3].addEventListener("input", () => { detailsInputs[3].value = tableInputs[3].value; });
+
+                    // Sync Unit
+                    const updateUnitDisplays = () => {
+                        const val = detailsSelects[1].value;
+                        tableSelects[1].value = val;
+                        if (pricingUnitDisplay) {
+                            pricingUnitDisplay.textContent = val ? `(${val})` : '-';
+                        }
+                    };
+                    detailsSelects[1].addEventListener("change", updateUnitDisplays);
+                    tableSelects[1].addEventListener("change", () => {
+                        detailsSelects[1].value = tableSelects[1].value;
+                        updateUnitDisplays();
+                    });
+
+                    // Sync Qty
+                    pricingInputs[1].addEventListener("input", () => { tableInputs[4].value = pricingInputs[1].value; });
+                    tableInputs[4].addEventListener("input", () => { pricingInputs[1].value = tableInputs[4].value; });
+
+                    // Sync Unit Price
+                    pricingInputs[2].addEventListener("input", () => { tableInputs[5].value = pricingInputs[2].value; });
+                    tableInputs[5].addEventListener("input", () => { pricingInputs[2].value = tableInputs[5].value; });
+
+                    // Sync GST %
+                    pricingInputs[3].addEventListener("input", () => { tableInputs[6].value = pricingInputs[3].value; });
+                    tableInputs[6].addEventListener("input", () => { pricingInputs[3].value = tableInputs[6].value; });
+
+                    setupPQuantityDecimalSupport(pricingCard, row);
+                    detailsSelects[1].addEventListener('change', () => {
+                        const event = new Event('change');
+                        tableSelects[1].dispatchEvent(event);
+                    });
 
                     // Add remove button event listeners
-                    const cardRemoveBtn = cardElement.querySelector(".remove-item-btn");
+                    const cardRemoveBtn = card.querySelector(".remove-item-btn");
                     if (cardRemoveBtn) {
                         cardRemoveBtn.addEventListener("click", function () {
-                            cardElement.remove();
+                            card.remove();
+                            pricingCard.remove();
                             row.remove();
                             renumberItems();
                         });
@@ -917,7 +967,8 @@
                     const tableRemoveBtn = row.querySelector(".remove-item-btn");
                     if (tableRemoveBtn) {
                         tableRemoveBtn.addEventListener("click", function () {
-                            cardElement.remove();
+                            card.remove();
+                            pricingCard.remove();
                             row.remove();
                             renumberItems();
                         });
@@ -1129,8 +1180,9 @@
 
     function addPurchaseItem(insertIndex?: number) {
         const container = document.getElementById("items-container");
+        const pricingContainer = document.getElementById("items-container-pricing");
         const tableBody = document.querySelector("#items-table tbody");
-        if (!container || !tableBody) return;
+        if (!container || !pricingContainer || !tableBody) return;
 
         const addItemBtn = document.getElementById("add-item-btn");
         if (addItemBtn) {
@@ -1138,89 +1190,104 @@
         }
 
         const itemNumber = tableBody.children.length + 1;
+        const itemId = 'item-' + Math.random().toString(36).substr(2, 9);
 
-        // Create card element
+        // Create card element (Step 2 - Item Details)
         const card = document.createElement("div");
-        card.className = "item-card";
+        card.className = "item-card item-details-row";
         card.setAttribute("draggable", "true");
+        card.dataset.itemId = itemId;
 
         card.innerHTML = `
             <div class="drag-handle" title="Drag to reorder">
                 <i class="fas fa-grip-vertical"></i>
             </div>
-            <div class="item-row-1">
-                <div class="item-number">${itemNumber}</div>
-                <div class="item-field description">
-                    <div style="position: relative;">
-                        <input type="text" placeholder="Description" class="item_name" required>
-                        <ul class="suggestions"></ul>
-                    </div>
-                </div>
-                <div class="item-field hsn">
-                    <input type="text" placeholder="HSN/SAC" required>
-                </div>
-                <div class="item-field qty">
-                    <input type="number" placeholder="Qty" required>
-                </div>
-                <div class="item-field rate">
-                    <input type="number" placeholder="Unit Price" step="0.01" required>
-                </div>
-                <div class="item-field rate">
-                    <input type="number" placeholder="GST %" min="0" step="0.01">
-                </div>
-                <div class="item-actions">
-                    <button type="button" class="remove-item-btn" title="Remove Item">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+            <div class="item-number">${itemNumber}</div>
+            <div class="item-field description">
+                <div style="position: relative;">
+                    <input type="text" placeholder="Description" class="item_name" required>
+                    <ul class="suggestions"></ul>
                 </div>
             </div>
-            <div class="item-row-2">
-                <div class="row-spacer"></div>
-                <div class="item-field">
-                    <div style="position: relative;">
-                        <input type="text" placeholder="Brand" class="item-company">
-                        <ul class="suggestions"></ul>
-                    </div>
+            <div class="item-field hsn">
+                <input type="text" placeholder="HSN/SAC" required>
+            </div>
+            <div class="item-field brand">
+                <div style="position: relative;">
+                    <input type="text" placeholder="Brand" class="item-company">
+                    <ul class="suggestions"></ul>
                 </div>
-                <div class="item-field">
-                    <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        <option value="Material" selected>Material</option>
-                        <option value="Asset">Asset</option>
-                    </select>
+            </div>
+            <div class="item-field type">
+                <select class="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <option value="Material" selected>Material</option>
+                    <option value="Asset">Asset</option>
+                </select>
+            </div>
+            <div class="item-field category">
+                <div style="position: relative;">
+                    <input type="text" placeholder="Category" class="item-category">
+                    <ul class="suggestions"></ul>
                 </div>
-                <div class="item-field">
-                    <div style="position: relative;">
-                        <input type="text" placeholder="Category" class="item-category">
-                        <ul class="suggestions"></ul>
-                    </div>
-                </div>
-                <div class="item-field">
-                    <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
-                        <option value="" disabled selected>Select Unit</option>
-                        <option value="pc">Piece (pc)</option>
-                        <option value="kg">Kilogram (kg)</option>
-                        <option value="L">Litre (L)</option>
-                        <option value="m">Metre (m)</option>
-                    </select>
-                </div>
-                <div class="row-spacer"></div>
+            </div>
+            <div class="item-field unit">
+                <select class="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
+                    <option value="" disabled selected>Select Unit</option>
+                    <option value="pc">Piece (pc)</option>
+                    <option value="kg">Kilogram (kg)</option>
+                    <option value="L">Litre (L)</option>
+                    <option value="m">Metre (m)</option>
+                </select>
+            </div>
+            <div class="item-actions">
+                <button type="button" class="remove-item-btn" title="Remove Item">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        `;
+
+        // Create pricingCard element (Step 3 - Quantities & Pricing)
+        const pricingCard = document.createElement("div");
+        pricingCard.className = "item-pricing-card item-pricing-row";
+        pricingCard.dataset.itemId = itemId;
+
+        pricingCard.innerHTML = `
+            <div class="item-number">${itemNumber}</div>
+            <div class="item-field description">
+                <input type="text" class="item_name_readonly" readonly placeholder="Description" style="background-color: #f3f4f6; cursor: not-allowed;">
+            </div>
+            <div class="item-field qty">
+                <input type="number" placeholder="Qty" required>
+            </div>
+            <div class="item-field unit-display flex items-center justify-center font-semibold text-gray-600 text-sm">
+                -
+            </div>
+            <div class="item-field price">
+                <input type="number" placeholder="Unit Price" step="0.01" required>
+            </div>
+            <div class="item-field rate">
+                <input type="number" placeholder="GST %" min="0" step="0.01">
             </div>
         `;
 
         if (typeof insertIndex === 'number' && insertIndex >= 0 && insertIndex < container.children.length) {
             container.insertBefore(card, container.children[insertIndex]);
+            pricingContainer.insertBefore(pricingCard, pricingContainer.children[insertIndex]);
         } else {
             container.appendChild(card);
+            pricingContainer.appendChild(pricingCard);
         }
 
         setupCardTabNavigation(card);
 
         const cardInput = card.querySelector(".item_name") as HTMLInputElement;
         const cardSuggestions = card.querySelector(".suggestions") as HTMLUListElement;
+        const pricingDescInput = pricingCard.querySelector(".item_name_readonly") as HTMLInputElement;
 
         if (cardInput && cardSuggestions) {
             cardInput.addEventListener("input", function () {
                 showSuggestionsP(cardInput, cardSuggestions);
+                if (pricingDescInput) pricingDescInput.value = cardInput.value;
             });
             cardInput.addEventListener("keydown", function (event) {
                 handleKeyboardNavigationP(event, cardInput, cardSuggestions);
@@ -1279,49 +1346,79 @@
             tableInput.addEventListener("input", function () {
                 showSuggestionsP(tableInput, tableSuggestions);
                 if (cardInput) cardInput.value = tableInput.value;
+                if (pricingDescInput) pricingDescInput.value = tableInput.value;
             });
             tableInput.addEventListener("keydown", function (event) {
                 handleKeyboardNavigationP(event, tableInput, tableSuggestions);
             });
         }
 
-        // Sync card inputs with table inputs
-        const row1Inputs = card.querySelectorAll('.item-row-1 input');
-        const row2Inputs = card.querySelectorAll('.item-row-2 input');
-        const row2Selects = card.querySelectorAll('.item-row-2 select');
+        // Sync card and pricingCard inputs with table inputs
+        const detailsInputs = card.querySelectorAll('input');
+        const detailsSelects = card.querySelectorAll('select');
+        const pricingInputs = pricingCard.querySelectorAll('input');
+        const pricingUnitDisplay = pricingCard.querySelector('.unit-display') as HTMLElement;
         const tableInputs = row.querySelectorAll('input');
         const tableSelects = row.querySelectorAll('select');
 
-        const inputMapping = [
-            { card: row1Inputs[0], table: tableInputs[0] }, // description
-            { card: row1Inputs[1], table: tableInputs[1] }, // hsn
-            { card: row2Inputs[0], table: tableInputs[2] }, // company
-            { card: row2Selects[0], table: tableSelects[0] }, // type
-            { card: row2Inputs[1], table: tableInputs[3] }, // category
-            { card: row2Selects[1], table: tableSelects[1] }, // unit
-            { card: row1Inputs[2], table: tableInputs[4] }, // qty
-            { card: row1Inputs[3], table: tableInputs[5] }, // unit_price
-            { card: row1Inputs[4], table: tableInputs[6] }, // rate
-        ];
+        // Sync Description (Card details input <-> Table input)
+        cardInput.addEventListener("input", () => { tableInputs[0].value = cardInput.value; });
+        tableInputs[0].addEventListener("input", () => { cardInput.value = tableInputs[0].value; });
 
-        inputMapping.forEach(({ card: cInput, table: tInput }) => {
-            if (cInput && tInput) {
-                cInput.addEventListener("input", () => { (tInput as HTMLInputElement).value = (cInput as HTMLInputElement).value; });
-                tInput.addEventListener("input", () => { (cInput as HTMLInputElement).value = (tInput as HTMLInputElement).value; });
-                if (cInput.tagName === 'SELECT' || tInput.tagName === 'SELECT') {
-                    cInput.addEventListener("change", () => { (tInput as HTMLInputElement).value = (cInput as HTMLInputElement).value; });
-                    tInput.addEventListener("change", () => { (cInput as HTMLInputElement).value = (tInput as HTMLInputElement).value; });
-                }
+        // Sync HSN/SAC
+        detailsInputs[1].addEventListener("input", () => { tableInputs[1].value = detailsInputs[1].value; });
+        tableInputs[1].addEventListener("input", () => { detailsInputs[1].value = tableInputs[1].value; });
+
+        // Sync Brand
+        detailsInputs[2].addEventListener("input", () => { tableInputs[2].value = detailsInputs[2].value; });
+        tableInputs[2].addEventListener("input", () => { detailsInputs[2].value = tableInputs[2].value; });
+
+        // Sync Type
+        detailsSelects[0].addEventListener("change", () => { tableSelects[0].value = detailsSelects[0].value; });
+        tableSelects[0].addEventListener("change", () => { detailsSelects[0].value = tableSelects[0].value; });
+
+        // Sync Category
+        detailsInputs[3].addEventListener("input", () => { tableInputs[3].value = detailsInputs[3].value; });
+        tableInputs[3].addEventListener("input", () => { detailsInputs[3].value = tableInputs[3].value; });
+
+        // Sync Unit
+        const updateUnitDisplays = () => {
+            const val = detailsSelects[1].value;
+            tableSelects[1].value = val;
+            if (pricingUnitDisplay) {
+                pricingUnitDisplay.textContent = val ? `(${val})` : '-';
             }
+        };
+        detailsSelects[1].addEventListener("change", updateUnitDisplays);
+        tableSelects[1].addEventListener("change", () => {
+            detailsSelects[1].value = tableSelects[1].value;
+            updateUnitDisplays();
         });
 
-        setupPQuantityDecimalSupport(card, row);
+        // Sync Qty
+        pricingInputs[1].addEventListener("input", () => { tableInputs[4].value = pricingInputs[1].value; });
+        tableInputs[4].addEventListener("input", () => { pricingInputs[1].value = tableInputs[4].value; });
+
+        // Sync Unit Price
+        pricingInputs[2].addEventListener("input", () => { tableInputs[5].value = pricingInputs[2].value; });
+        tableInputs[5].addEventListener("input", () => { pricingInputs[2].value = tableInputs[5].value; });
+
+        // Sync GST % (stored as Rate in table input 6)
+        pricingInputs[3].addEventListener("input", () => { tableInputs[6].value = pricingInputs[3].value; });
+        tableInputs[6].addEventListener("input", () => { pricingInputs[3].value = tableInputs[6].value; });
+
+        setupPQuantityDecimalSupport(pricingCard, row);
+        detailsSelects[1].addEventListener('change', () => {
+            const event = new Event('change');
+            tableSelects[1].dispatchEvent(event);
+        });
 
         // Add remove button event listeners
         const cardRemoveBtn = card.querySelector(".remove-item-btn");
         if (cardRemoveBtn) {
             cardRemoveBtn.addEventListener("click", function () {
                 card.remove();
+                pricingCard.remove();
                 row.remove();
                 renumberItems();
             });
@@ -1331,6 +1428,7 @@
         if (tableRemoveBtn) {
             tableRemoveBtn.addEventListener("click", function () {
                 card.remove();
+                pricingCard.remove();
                 row.remove();
                 renumberItems();
             });
@@ -1343,12 +1441,39 @@
 
     function renumberItems() {
         const cards = document.querySelectorAll("#items-container .item-card");
+        const pricingContainer = document.getElementById("items-container-pricing");
         const tableRows = document.querySelectorAll("#items-table tbody tr");
 
-        cards.forEach((card, index) => {
-            const numberBadge = card.querySelector(".item-number");
-            if (numberBadge) numberBadge.textContent = (index + 1).toString();
+        if (!pricingContainer) return;
+
+        // Collect all pricing cards
+        const pricingCards = Array.from(pricingContainer.querySelectorAll(".item-pricing-card")) as HTMLElement[];
+        const pricingCardsMap: { [key: string]: HTMLElement } = {};
+        pricingCards.forEach(pc => {
+            if (pc.dataset.itemId) {
+                pricingCardsMap[pc.dataset.itemId] = pc;
+            }
         });
+
+        // Re-append pricing cards in the exact same sequence as cards container
+        const pricingFragment = document.createDocumentFragment();
+
+        cards.forEach((card, index) => {
+            const element = card as HTMLElement;
+            const numberBadge = element.querySelector(".item-number");
+            if (numberBadge) numberBadge.textContent = (index + 1).toString();
+
+            const itemId = element.dataset.itemId;
+            if (itemId && pricingCardsMap[itemId]) {
+                const pc = pricingCardsMap[itemId];
+                const pcNumberBadge = pc.querySelector(".item-number");
+                if (pcNumberBadge) pcNumberBadge.textContent = (index + 1).toString();
+                pricingFragment.appendChild(pc);
+            }
+        });
+
+        pricingContainer.innerHTML = "";
+        pricingContainer.appendChild(pricingFragment);
 
         tableRows.forEach((row, index) => {
             const numberBadge = row.querySelector(".item-number");
@@ -1357,42 +1482,8 @@
     }
 
     function setupCardTabNavigation(card: HTMLDivElement) {
-        const rateInputs = card.querySelectorAll('.item-row-1 .item-field.rate input');
-        const gstInput = rateInputs[1] as HTMLInputElement | null;
-        const brandInput = card.querySelector('.item-company') as HTMLInputElement | null;
-        const unitSelect = card.querySelector('.item-unit') as HTMLSelectElement | null;
-        const removeBtn = card.querySelector('.remove-item-btn') as HTMLButtonElement | null;
         const descInput = card.querySelector('.item_name') as HTMLInputElement | null;
-
-        if (gstInput && brandInput) {
-            gstInput.addEventListener('keydown', (event: KeyboardEvent) => {
-                if (event.key === 'Tab' && !event.shiftKey) {
-                    event.preventDefault();
-                    brandInput.focus();
-                }
-            });
-            brandInput.addEventListener('keydown', (event: KeyboardEvent) => {
-                if (event.key === 'Tab' && event.shiftKey) {
-                    event.preventDefault();
-                    gstInput.focus();
-                }
-            });
-        }
-
-        if (unitSelect && removeBtn) {
-            unitSelect.addEventListener('keydown', (event: KeyboardEvent) => {
-                if (event.key === 'Tab' && !event.shiftKey) {
-                    event.preventDefault();
-                    removeBtn.focus();
-                }
-            });
-            removeBtn.addEventListener('keydown', (event: KeyboardEvent) => {
-                if (event.key === 'Tab' && event.shiftKey) {
-                    event.preventDefault();
-                    unitSelect.focus();
-                }
-            });
-        }
+        const removeBtn = card.querySelector('.remove-item-btn') as HTMLButtonElement | null;
 
         if (removeBtn) {
             removeBtn.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -1536,7 +1627,7 @@
             }
         }
 
-        // Step 2: Items
+        // Step 2: Item Details
         if (currentStep === 2) {
             clearAllErrors();
             const itemsTable = document.querySelector('#items-table tbody') as HTMLTableSectionElement;
@@ -1556,15 +1647,13 @@
             for (let i = 0; i < itemsTable.rows.length; i++) {
                 const row = itemsTable.rows[i];
                 const desc = row.querySelector('td:nth-child(2) input') as HTMLInputElement;
-                const qty = row.querySelector('td:nth-child(7) input') as HTMLInputElement;
+                const hsn = row.querySelector('td:nth-child(3) input') as HTMLInputElement;
                 const unit = row.querySelector('td:nth-child(8) select') as HTMLSelectElement;
-                const price = row.querySelector('td:nth-child(9) input') as HTMLInputElement;
 
                 const card = cards[i] as HTMLElement | undefined;
                 const cardDesc = card?.querySelector('.item_name') as HTMLInputElement | undefined;
-                const cardQty = card?.querySelector('.item-field.qty input') as HTMLInputElement | undefined;
+                const cardHsn = card?.querySelector('.item-field.hsn input') as HTMLInputElement | undefined;
                 const cardUnit = card?.querySelector('.item-unit') as HTMLSelectElement | undefined;
-                const cardPrice = card?.querySelector('input[placeholder="Unit Price"]') as HTMLInputElement | undefined;
 
                 if (!desc || !desc.value.trim()) {
                     if (desc) showFieldError(desc, `Description is required.`);
@@ -1572,17 +1661,48 @@
                     isValid = false;
                     if (!firstInvalidEl) firstInvalidEl = desc || cardDesc || null;
                 }
-                if (!qty || Number(qty.value) <= 0) {
-                    if (qty) showFieldError(qty, `Quantity must be greater than 0.`);
-                    if (cardQty) showFieldError(cardQty, `Quantity must be greater than 0.`);
+                if (!hsn || !hsn.value.trim()) {
+                    if (hsn) showFieldError(hsn, `HSN/SAC is required.`);
+                    if (cardHsn) showFieldError(cardHsn, `HSN/SAC is required.`);
                     isValid = false;
-                    if (!firstInvalidEl) firstInvalidEl = qty || cardQty || null;
+                    if (!firstInvalidEl) firstInvalidEl = hsn || cardHsn || null;
                 }
                 if (!unit || !unit.value) {
                     if (unit) showFieldError(unit, `Unit is required.`);
                     if (cardUnit) showFieldError(cardUnit, `Unit is required.`);
                     isValid = false;
                     if (!firstInvalidEl) firstInvalidEl = unit || cardUnit || null;
+                }
+            }
+
+            if (!isValid) {
+                if (firstInvalidEl) firstInvalidEl.focus();
+                return false;
+            }
+        }
+
+        // Step 3: Quantities & Pricing
+        if (currentStep === 3) {
+            clearAllErrors();
+            let isValid = true;
+            let firstInvalidEl: HTMLElement | null = null;
+            const itemsTable = document.querySelector('#items-table tbody') as HTMLTableSectionElement;
+            const pricingCards = document.querySelectorAll('#items-container-pricing .item-pricing-card');
+
+            for (let i = 0; i < itemsTable.rows.length; i++) {
+                const row = itemsTable.rows[i];
+                const qty = row.querySelector('td:nth-child(7) input') as HTMLInputElement;
+                const price = row.querySelector('td:nth-child(9) input') as HTMLInputElement;
+
+                const pCard = pricingCards[i] as HTMLElement | undefined;
+                const cardQty = pCard?.querySelector('.item-field.qty input') as HTMLInputElement | undefined;
+                const cardPrice = pCard?.querySelector('.item-field.price input') as HTMLInputElement | undefined;
+
+                if (!qty || Number(qty.value) <= 0) {
+                    if (qty) showFieldError(qty, `Quantity must be greater than 0.`);
+                    if (cardQty) showFieldError(cardQty, `Quantity must be greater than 0.`);
+                    isValid = false;
+                    if (!firstInvalidEl) firstInvalidEl = qty || cardQty || null;
                 }
                 if (!price || Number(price.value) <= 0) {
                     if (price) showFieldError(price, `Unit Price must be greater than 0.`);
@@ -1781,9 +1901,9 @@
 
     // Replace default next button handler / form hook
     window.beforeStepAdvance = async function (step) {
-        if (step === 2) {
+        if (step === 3) {
             await populateSpecifications();
-        } else if (step === 3) {
+        } else if (step === 4) {
             generateSimplePreview();
         }
         return true;
