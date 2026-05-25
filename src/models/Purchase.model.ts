@@ -86,6 +86,8 @@ export interface IPurchase extends Document {
 
     remarks?: string;
 
+    is_archived: boolean;
+
     deletion: ISoftDelete;
 
     createdAt: Date;
@@ -247,6 +249,12 @@ const purchaseSchema = new Schema<IPurchase>(
         deletion: {
             type: softDeleteSchema,
             default: () => ({ is_deleted: false }),
+        },
+
+        is_archived: {
+            type: Boolean,
+            default: false,
+            index: true,
         },
     },
     {

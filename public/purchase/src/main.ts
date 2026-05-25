@@ -1,5 +1,8 @@
 // @ts-nocheck
 (function () {
+    (window as any).showDeletedItems = false;
+    (window as any).statusFilter = '';
+
     const initializeMain = () => {
         // Initialize filters
         if ((window as any).initPurchaseFilters) {
@@ -37,6 +40,43 @@
             homeBtn.addEventListener('click', () => {
                 sessionStorage.removeItem('currentTab-status');
                 window.location.href = '/purchase';
+            });
+        }
+
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                const icon = refreshBtn.querySelector('i');
+                if (icon) icon.classList.add('animate-spin');
+                loadRecentPurchases().finally(() => {
+                    setTimeout(() => {
+                        if (icon) icon.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+        }
+
+        const archivedBtn = document.getElementById('archived-purchases-btn');
+        if (archivedBtn) {
+            archivedBtn.addEventListener('click', () => {
+                (window as any).showDeletedItems = false;
+                (window as any).statusFilter =
+                    (window as any).statusFilter === 'archived' ? '' : 'archived';
+                resetTrashButton();
+                loadRecentPurchases();
+            });
+        }
+
+        const showDeletedBtn = document.getElementById('showDeletedBtn');
+        if (showDeletedBtn) {
+            showDeletedBtn.addEventListener('click', () => {
+                (window as any).showDeletedItems = !(window as any).showDeletedItems;
+                (window as any).statusFilter = '';
+                updateTrashButton();
+                if (typeof (window as any).updateHeaderVisibility === 'function') {
+                    (window as any).updateHeaderVisibility();
+                }
+                loadRecentPurchases();
             });
         }
 
@@ -148,7 +188,9 @@
     async function loadRecentPurchases() {
         try {
             if ((window as any).purchaseApi) {
-                const data = await (window as any).purchaseApi.fetchRecentPurchases();
+                const status = (window as any).statusFilter || '';
+                const deleted = !!(window as any).showDeletedItems;
+                const data = await (window as any).purchaseApi.fetchRecentPurchases(status, deleted);
                 if ((window as any).allPurchases) {
                     (window as any).allPurchases = data.purchases;
                 }
@@ -158,12 +200,69 @@
                 } else if ((window as any).purchaseTable) {
                     (window as any).purchaseTable.renderPurchases(data.purchases);
                 }
+
+                updateArchivedButtonVisuals();
+                await updateArchivedCount();
             } else {
                 console.error("Purchase API not loaded");
             }
         } catch (error) {
             console.error("Error fetching recent purchases:", error);
             showToast("Failed to load purchases", "error");
+        }
+    }
+
+    async function updateArchivedCount() {
+        try {
+            const data = await (window as any).purchaseApi.fetchRecentPurchases('archived', false);
+            const badge = document.getElementById('archived-count-badge');
+            if (badge) badge.textContent = String((data.purchases || []).length);
+        } catch (error) {
+            console.error('Failed to update archived purchase count:', error);
+        }
+    }
+
+    function updateArchivedButtonVisuals() {
+        const archivedBtn = document.getElementById('archived-purchases-btn');
+        if (!archivedBtn) return;
+
+        const icon = archivedBtn.querySelector('i');
+        const badge = document.getElementById('archived-count-badge');
+        if ((window as any).statusFilter === 'archived') {
+            archivedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+            archivedBtn.classList.add('bg-amber-500', 'text-white', 'border-amber-500', 'hover:bg-amber-600');
+            if (icon) icon.className = 'fas fa-box-open text-white';
+            if (badge) badge.className = 'ml-1 px-1.5 py-0.5 bg-white/20 text-white rounded-md text-[10px] font-bold';
+        } else {
+            archivedBtn.classList.remove('bg-amber-500', 'text-white', 'border-amber-500', 'hover:bg-amber-600');
+            archivedBtn.classList.add('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+            if (icon) icon.className = 'fas fa-archive text-slate-400';
+            if (badge) badge.className = 'ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold';
+        }
+    }
+
+    function resetTrashButton() {
+        (window as any).showDeletedItems = false;
+        updateTrashButton();
+        if (typeof (window as any).updateHeaderVisibility === 'function') {
+            (window as any).updateHeaderVisibility();
+        }
+    }
+
+    function updateTrashButton() {
+        const showDeletedBtn = document.getElementById('showDeletedBtn');
+        if (!showDeletedBtn) return;
+
+        if ((window as any).showDeletedItems) {
+            showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+            showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
+            showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> Close Trash';
+            showDeletedBtn.title = 'Close Trash';
+        } else {
+            showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+            showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
+            showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            showDeletedBtn.title = 'View Trash';
         }
     }
 
@@ -272,6 +371,53 @@
             alert(message);
         }
     }
+
+    function confirmAction(message: string, action: () => Promise<void>) {
+        const showConfirm = (window as any).showConfirm;
+        if (showConfirm) {
+            showConfirm(message, async (response: string) => {
+                if (response === 'Yes') await action();
+            });
+        } else if (window.confirm(message)) {
+            action();
+        }
+    }
+
+    (window as any).handlePurchaseRestoreFromArchive = (id: string) => {
+        confirmAction(`Are you sure you want to restore purchase "${id}"?`, async () => {
+            try {
+                await (window as any).purchaseApi.restorePurchase(id);
+                showToast('Purchase restored successfully');
+                await loadRecentPurchases();
+            } catch (error) {
+                showToast('Failed to restore purchase', 'error');
+            }
+        });
+    };
+
+    (window as any).handlePurchaseRestoreFromTrash = (id: string) => {
+        confirmAction(`Are you sure you want to restore purchase "${id}" from trash?`, async () => {
+            try {
+                await (window as any).purchaseApi.restorePurchaseFromTrash(id);
+                showToast('Purchase restored successfully');
+                await loadRecentPurchases();
+            } catch (error) {
+                showToast('Failed to restore purchase', 'error');
+            }
+        });
+    };
+
+    (window as any).handlePurchaseHardDelete = (id: string) => {
+        confirmAction(`Are you sure you want to permanently delete purchase "${id}"? This cannot be undone.`, async () => {
+            try {
+                await (window as any).purchaseApi.hardDeletePurchase(id);
+                showToast('Purchase permanently deleted');
+                await loadRecentPurchases();
+            } catch (error) {
+                showToast('Failed to permanently delete purchase', 'error');
+            }
+        });
+    };
 
     // Assign to window for global access
     (window as any).loadRecentPurchases = loadRecentPurchases;

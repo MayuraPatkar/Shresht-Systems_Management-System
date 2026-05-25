@@ -250,13 +250,31 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
     }
 });
 
-// Route to get the 10 most recent purchases
+// Route to get recent purchases (supports filtering by archived/deleted status)
 router.get("/recent-purchases", async (req: Request, res: Response) => {
     try {
-        const recentPurchases = await PurchaseModel.find()
-            .sort({ createdAt: -1 })
-            .limit(10)
-            .select("purchase_no supplier_snapshot totals purchase_date createdAt");
+        const { status, deleted } = req.query;
+        let query: any = {};
+
+        if (deleted === 'true') {
+            query['deletion.is_deleted'] = true;
+        } else {
+            query['deletion.is_deleted'] = false;
+        }
+
+        if (status === 'archived') {
+            query.is_archived = true;
+        } else {
+            query.is_archived = { $ne: true };
+        }
+
+        let queryBuilder = PurchaseModel.find(query).sort({ createdAt: -1 });
+        if (status !== 'archived' && deleted !== 'true') {
+            queryBuilder = queryBuilder.limit(10);
+        }
+
+        const recentPurchases = await queryBuilder
+            .select("purchase_no supplier_snapshot totals purchase_date createdAt is_archived deletion");
 
         res.status(200).json({
             message: "Recent purchases retrieved successfully",
@@ -283,38 +301,165 @@ router.get("/:purchaseId", async (req: Request, res: Response) => {
     }
 });
 
-// Route to delete a purchase
+// Helper function to handle permanent purchase deletion (reverse stock quantity and delete stock movement reference)
+async function performHardDeletePurchase(purchaseId: string): Promise<boolean> {
+    const purchase = await PurchaseModel.findOne({ purchase_no: purchaseId }) as any;
+    if (!purchase) return false;
+
+    // Reverse stock changes (subtract the quantity added)
+    if (purchase.items && purchase.items.length > 0) {
+        for (const item of purchase.items) {
+            if (!item.description) continue;
+            const stockItem = await ItemModel.findOne({ item_name: item.description }) as any;
+            if (stockItem) {
+                stockItem.stock_quantity = (stockItem.stock_quantity || 0) - Number(item.quantity || 0);
+                await stockItem.save();
+            }
+        }
+    }
+
+    // Delete associated stock movements
+    await StockMovementModel.deleteMany({
+        'reference.type': 'Purchase',
+        'reference.number': purchaseId
+    });
+
+    await PurchaseModel.deleteOne({ purchase_no: purchaseId });
+    return true;
+}
+
+// Route to soft delete a purchase
 router.delete("/:purchaseId", async (req: Request, res: Response) => {
     try {
         const { purchaseId } = req.params;
-        const purchase = await PurchaseModel.findOne({ purchase_no: purchaseId });
+        const username = String((req.query && req.query.username) || (req.headers && req.headers['x-username']) || (req.body && req.body.username) || 'Admin');
+        const purchase = await PurchaseModel.findOneAndUpdate(
+            { purchase_no: purchaseId, 'deletion.is_deleted': false },
+            {
+                $set: {
+                    'deletion.is_deleted': true,
+                    'deletion.deleted_at': new Date(),
+                    'deletion.deleted_by': username
+                }
+            },
+            { new: true }
+        );
         if (!purchase) {
             return res.status(404).json({ message: 'Purchase not found' });
         }
-
-        // Reverse stock changes
-        if (purchase.items && purchase.items.length > 0) {
-            for (const item of purchase.items) {
-                if (!item.description) continue;
-                const stockItem = await ItemModel.findOne({ item_name: item.description }) as any;
-                if (stockItem) {
-                    stockItem.stock_quantity = (stockItem.stock_quantity || 0) - Number(item.quantity || 0);
-                    await stockItem.save();
-                }
-            }
-        }
-
-        // Delete associated stock movements
-        await StockMovementModel.deleteMany({
-            'reference.type': 'Purchase',
-            'reference.number': purchaseId
-        });
-
-        await PurchaseModel.deleteOne({ purchase_no: purchaseId });
         res.status(200).json({ message: 'Purchase deleted successfully' });
     } catch (error: unknown) {
-        logger.error("Error deleting purchase:", error);
+        logger.error("Error soft deleting purchase:", error);
         res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+// Route to archive purchase
+router.put("/:purchaseId/archive", async (req: Request, res: Response) => {
+    try {
+        const { purchaseId } = req.params;
+        const purchase = await PurchaseModel.findOneAndUpdate(
+            { purchase_no: purchaseId, 'deletion.is_deleted': false },
+            { $set: { is_archived: true } },
+            { new: true }
+        );
+        if (!purchase) return res.status(404).json({ message: 'Purchase not found' });
+        res.json({ message: 'Purchase archived successfully', purchase });
+    } catch (error: unknown) {
+        logger.error('Error archiving purchase:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Route to restore purchase from archive
+router.put("/:purchaseId/restore", async (req: Request, res: Response) => {
+    try {
+        const { purchaseId } = req.params;
+        const purchase = await PurchaseModel.findOneAndUpdate(
+            { purchase_no: purchaseId, 'deletion.is_deleted': false },
+            { $set: { is_archived: false } },
+            { new: true }
+        );
+        if (!purchase) return res.status(404).json({ message: 'Purchase not found' });
+        res.json({ message: 'Purchase restored successfully', purchase });
+    } catch (error: unknown) {
+        logger.error('Error restoring purchase from archive:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Route to restore soft-deleted purchase from trash
+router.post("/restoreItem", async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const purchase = await PurchaseModel.findOne({ purchase_no: itemId });
+        if (!purchase) {
+            return res.status(404).json({ error: 'Purchase not found' });
+        }
+
+        if (purchase.deletion) {
+            purchase.deletion.is_deleted = false;
+            purchase.deletion.deleted_at = undefined;
+            purchase.deletion.deleted_by = undefined;
+            await purchase.save();
+        }
+
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Purchase restore failed', { itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to restore purchase' });
+    }
+});
+
+// Route to permanently delete a single purchase
+router.post("/hardDeleteItem", async (req: Request, res: Response) => {
+    const { itemId } = req.body;
+    try {
+        const deleted = await performHardDeletePurchase(itemId);
+        if (!deleted) {
+            return res.status(404).json({ error: 'Purchase not found' });
+        }
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Purchase permanent deletion failed', { itemId, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to permanently delete purchase' });
+    }
+});
+
+// Route to bulk restore soft-deleted purchases
+router.post("/bulkRestore", async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        await PurchaseModel.updateMany(
+            { purchase_no: { $in: itemIds } },
+            {
+                $set: {
+                    "deletion.is_deleted": false,
+                    "deletion.deleted_at": undefined,
+                    "deletion.deleted_by": undefined
+                }
+            }
+        );
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk purchase restore failed', { count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk restore purchases' });
+    }
+});
+
+// Route to bulk permanently delete purchases
+router.post("/bulkHardDelete", async (req: Request, res: Response) => {
+    const { itemIds } = req.body;
+    try {
+        if (Array.isArray(itemIds)) {
+            for (const itemId of itemIds) {
+                await performHardDeletePurchase(itemId);
+            }
+        }
+        res.json({ success: true });
+    } catch (error: unknown) {
+        logger.error('Bulk purchase permanent deletion failed', { count: itemIds?.length, error: (error as Error).message });
+        res.status(500).json({ error: 'Failed to bulk permanently delete purchases' });
     }
 });
 
