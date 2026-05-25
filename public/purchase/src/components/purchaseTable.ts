@@ -9,22 +9,42 @@
             if (!this.container) return;
 
             this.container.innerHTML = '';
-            const isTrash = !!(window as any).showDeletedItems;
-            const isArchived = !isTrash && (window as any).statusFilter === 'archived';
             
+            const isTrash = !!(window as any).showDeletedItems;
+            const isArchivedView = !isTrash && (window as any).statusFilter === 'archived';
+
             if (!purchases || purchases.length === 0) {
-                const emptyTitle = isTrash ? 'Trash is Empty' : isArchived ? 'No Archived Purchases' : 'No Purchases Found';
-                const emptyText = isTrash ? 'No soft-deleted purchases found' : isArchived ? 'Purchases you archive will show up here' : 'Start creating purchases for your suppliers';
-                const emptyIcon = isTrash ? 'fa-trash-alt text-rose-500' : isArchived ? 'fa-archive text-amber-500' : 'fa-shopping-bag text-blue-500';
-                this.container.innerHTML = `
-                    <div class="col-span-full flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-                        <div class="text-5xl mb-4">
-                            <i class="fas ${emptyIcon}"></i>
+                if (isTrash) {
+                    this.container.innerHTML = `
+                        <div class="col-span-full flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                            <div class="text-rose-500 text-5xl mb-4">
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">Trash is Empty</h2>
+                            <p class="text-gray-600">No soft-deleted purchases found</p>
                         </div>
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2">${emptyTitle}</h2>
-                        <p class="text-gray-600">${emptyText}</p>
-                    </div>
-                `;
+                    `;
+                } else if (isArchivedView) {
+                    this.container.innerHTML = `
+                        <div class="col-span-full flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                            <div class="text-amber-500 text-5xl mb-4">
+                                <i class="fas fa-archive"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">No Archived Purchases</h2>
+                            <p class="text-gray-600">Purchases you archive will show up here</p>
+                        </div>
+                    `;
+                } else {
+                    this.container.innerHTML = `
+                        <div class="col-span-full flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                            <div class="text-blue-500 text-5xl mb-4">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">No Purchases Found</h2>
+                            <p class="text-gray-600">Start creating purchases for your suppliers</p>
+                        </div>
+                    `;
+                }
                 return;
             }
 
@@ -36,13 +56,17 @@
 
         createPurchaseCard(purchase: any): HTMLElement {
             const div = document.createElement('div');
+            
             const isTrash = !!(window as any).showDeletedItems;
-            const isArchived = !isTrash && !!purchase.is_archived;
-            div.className = isTrash
-                ? "bg-rose-50/10 p-6 rounded-lg shadow-sm border border-rose-200 transition-shadow relative doc-card"
-                : isArchived
-                    ? "bg-slate-50/90 p-6 rounded-lg shadow-sm border border-slate-300 hover:shadow-md transition-shadow relative doc-card opacity-80 hover:opacity-100"
-                    : "bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative doc-card cursor-pointer";
+            const isArchived = !isTrash && purchase.is_archived;
+
+            if (isTrash) {
+                div.className = "bg-rose-50/10 p-6 rounded-lg shadow-sm border border-rose-200 hover:shadow-md transition-shadow relative doc-card cursor-default";
+            } else if (isArchived) {
+                div.className = "bg-slate-50/90 p-6 rounded-lg shadow-sm border border-slate-300 hover:shadow-md transition-shadow relative doc-card opacity-80 hover:opacity-100 cursor-default";
+            } else {
+                div.className = "bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative doc-card cursor-pointer";
+            }
             
             // Format ID for display
             const purchaseId = purchase.purchase_no;
@@ -79,21 +103,21 @@
                             <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i> ${supplierAddress}
                         </p>
                     </div>
-                    ${isTrash || isArchived ? `
-                        <div class="flex items-start gap-2 ml-4">
-                            <button class="restore-card-btn px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-lg text-xs font-semibold cursor-pointer" title="Restore">
+                    <div class="flex items-center gap-3">
+                        ${isTrash || isArchived ? `
+                            <button class="restore-card-btn px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-emerald-300 active:scale-95 cursor-pointer" title="Restore">
                                 <i class="fas ${isTrash ? 'fa-trash-restore' : 'fa-box-open'}"></i> Restore
                             </button>
-                            <button class="hard-delete-card-btn px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg text-xs font-semibold cursor-pointer" title="Delete Forever">
+                            <button class="hard-delete-card-btn px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-rose-300 active:scale-95 cursor-pointer" title="Delete Forever">
                                 <i class="fas fa-trash-alt"></i> Delete Forever
                             </button>
-                        </div>
                     ` : ''}
                     <div class="text-right ml-4 bg-gray-50 p-3 rounded-lg border border-gray-100 min-w-[120px]">
                         <p class="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Total Amount</p>
                         <p class="font-bold text-lg text-gray-900">₹ ${totalAmount}</p>
                     </div>
                 </div>
+            </div>
             `;
 
             // ID Copy Functionality

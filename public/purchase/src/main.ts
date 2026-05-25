@@ -80,6 +80,76 @@
             });
         }
 
+        const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+        const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+        function updateBulkButtonLabels() {
+            const query = searchInput ? searchInput.value.trim() : '';
+            const isFiltered = query !== '';
+            
+            if (bulkRestoreBtn) {
+                const span = bulkRestoreBtn.querySelector('span');
+                if (span) {
+                    span.textContent = isFiltered ? 'Restore All Filtered' : 'Restore All';
+                }
+            }
+            if (bulkDeleteBtn) {
+                const span = bulkDeleteBtn.querySelector('span');
+                if (span) {
+                    span.textContent = isFiltered ? 'Delete All Filtered' : 'Delete All';
+                }
+            }
+        }
+        (window as any).updateBulkButtonLabels = updateBulkButtonLabels;
+
+        if (bulkRestoreBtn) {
+            bulkRestoreBtn.onclick = () => {
+                const filteredData = (window as any).currentFilteredPurchases || (window as any).allPurchases || [];
+                if (filteredData.length === 0) {
+                    showToast('No purchases to restore.', 'error');
+                    return;
+                }
+
+                const query = searchInput ? searchInput.value.trim() : '';
+                const isFiltered = query !== '';
+                const message = `Are you sure you want to restore all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}purchases?`;
+
+                confirmAction(message, async () => {
+                    try {
+                        await (window as any).purchaseApi.bulkRestorePurchases(filteredData.map((p: any) => p.purchase_no));
+                        showToast('Purchases restored successfully!');
+                        loadRecentPurchases();
+                    } catch (err) {
+                        showToast('Failed to bulk restore purchases.', 'error');
+                    }
+                });
+            };
+        }
+
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.onclick = () => {
+                const filteredData = (window as any).currentFilteredPurchases || (window as any).allPurchases || [];
+                if (filteredData.length === 0) {
+                    showToast('No purchases to delete.', 'error');
+                    return;
+                }
+
+                const query = searchInput ? searchInput.value.trim() : '';
+                const isFiltered = query !== '';
+                const message = `Are you sure you want to PERMANENTLY delete all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}purchases? This cannot be undone.`;
+
+                confirmAction(message, async () => {
+                    try {
+                        await (window as any).purchaseApi.bulkHardDeletePurchases(filteredData.map((p: any) => p.purchase_no));
+                        showToast('Purchases permanently deleted!');
+                        loadRecentPurchases();
+                    } catch (err) {
+                        showToast('Failed to bulk delete purchases.', 'error');
+                    }
+                });
+            };
+        }
+
         // Dynamically toggle Header elements visibility based on active section
         const homeSection = document.getElementById('home');
         const newSection = document.getElementById('new');
@@ -95,6 +165,8 @@
             const archivedBtn = document.getElementById('archived-purchases-btn');
             const showDeletedBtn = document.getElementById('showDeletedBtn');
             const newPurchaseBtn = document.getElementById('new-purchase');
+            const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+            const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
             
             const viewEditBtn = document.getElementById('view-edit-btn');
             const viewSaveBtn = document.getElementById('view-save-btn');
@@ -112,12 +184,30 @@
                 if (viewEditBtn) viewEditBtn.style.display = 'none';
                 if (viewSaveBtn) viewSaveBtn.style.display = 'none';
                 if (viewCancelBtn) viewCancelBtn.style.display = 'none';
+
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.style.display = 'none';
+                    bulkRestoreBtn.classList.add('hidden');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.style.display = 'none';
+                    bulkDeleteBtn.classList.add('hidden');
+                }
             } else if (isViewActive) {
                 // View mode: hide search, filter, archived, trash.
                 if (searchFilterContainer) searchFilterContainer.style.display = 'none';
                 if (refreshBtn) refreshBtn.style.display = 'none';
                 if (archivedBtn) archivedBtn.style.display = 'none';
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.style.display = 'none';
+                    bulkRestoreBtn.classList.add('hidden');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.style.display = 'none';
+                    bulkDeleteBtn.classList.add('hidden');
+                }
 
                 const isEditing = !!(window as any).isEditingInline;
                 if (isEditing) {
@@ -149,9 +239,25 @@
                 if (isTrashOpen) {
                     if (archivedBtn) archivedBtn.style.display = 'none';
                     if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
+                    if (bulkRestoreBtn) {
+                        bulkRestoreBtn.style.display = 'flex';
+                        bulkRestoreBtn.classList.remove('hidden');
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.style.display = 'flex';
+                        bulkDeleteBtn.classList.remove('hidden');
+                    }
                 } else {
                     if (archivedBtn) archivedBtn.style.display = 'flex';
                     if (newPurchaseBtn) newPurchaseBtn.style.display = 'flex';
+                    if (bulkRestoreBtn) {
+                        bulkRestoreBtn.style.display = 'none';
+                        bulkRestoreBtn.classList.add('hidden');
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.style.display = 'none';
+                        bulkDeleteBtn.classList.add('hidden');
+                    }
                 }
             }
         };
@@ -203,6 +309,9 @@
 
                 updateArchivedButtonVisuals();
                 await updateArchivedCount();
+                if (typeof (window as any).updateBulkButtonLabels === 'function') {
+                    (window as any).updateBulkButtonLabels();
+                }
             } else {
                 console.error("Purchase API not loaded");
             }

@@ -20,6 +20,7 @@
             customEndDate: currentFilters.customEndDate
         });
         
+        (window as any).currentFilteredPurchases = filtered;
         if ((window as any).purchaseTable) {
             (window as any).purchaseTable.renderPurchases(filtered);
         }

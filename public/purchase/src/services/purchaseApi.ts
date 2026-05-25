@@ -52,6 +52,26 @@
             if (!response.ok) throw new Error('Failed to permanently delete purchase');
             return response.json();
         }
+
+        async bulkRestorePurchases(ids: string[]): Promise<any> {
+            const response = await fetch(`/purchase/bulkRestore`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemIds: ids })
+            });
+            if (!response.ok) throw new Error('Failed bulk restore');
+            return response.json();
+        }
+
+        async bulkHardDeletePurchases(ids: string[]): Promise<any> {
+            const response = await fetch(`/purchase/bulkHardDelete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemIds: ids })
+            });
+            if (!response.ok) throw new Error('Failed bulk hard delete');
+            return response.json();
+        }
         
         async generateId(): Promise<any> {
             const response = await fetch('/purchase/generate-id');
