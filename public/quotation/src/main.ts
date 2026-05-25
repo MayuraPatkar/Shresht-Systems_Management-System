@@ -14,10 +14,90 @@ const quotationListDiv = document.querySelector(".records") as HTMLElement;
 
 
 
+// ====== Trash Mode State ======
+let isTrashMode = false;
+
+// ====== Refresh Button Animation Helper ======
+function triggerRefreshAnimation(btn: HTMLButtonElement) {
+    btn.classList.remove('spinning');
+    // Force reflow to restart animation
+    void btn.offsetWidth;
+    btn.classList.add('spinning');
+    setTimeout(() => btn.classList.remove('spinning'), 650);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentQuotations();
 
     document.getElementById('new-quotation')!.addEventListener('click', showNewQuotationForm);
+
+    // ====== Refresh Button (universal — refreshes trash or normal depending on mode) ======
+    const refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            triggerRefreshAnimation(refreshBtn);
+            if (isTrashMode) {
+                loadTrashQuotations();
+            } else {
+                loadRecentQuotations();
+            }
+        });
+    }
+
+    // ====== Trash Button ======
+    const trashBtn = document.getElementById('trash-btn') as HTMLButtonElement;
+    if (trashBtn) {
+        trashBtn.addEventListener('click', () => {
+            enterTrashMode();
+        });
+    }
+
+    const closeTrashBtn = document.getElementById('close-trash-btn') as HTMLButtonElement;
+    if (closeTrashBtn) {
+        closeTrashBtn.addEventListener('click', () => {
+            exitTrashMode();
+        });
+    }
+
+    const restoreAllBtn = document.getElementById('trash-restore-all-btn') as HTMLButtonElement;
+    if (restoreAllBtn) {
+        restoreAllBtn.addEventListener('click', async () => {
+            if (!(window as any).electronAPI) return;
+            (window as any).electronAPI.showAlert2('Restore ALL deleted quotations?');
+            (window as any).electronAPI.receiveAlertResponse(async (response: string) => {
+                if (response === 'Yes') {
+                    try {
+                        const res = await fetch('/quotation/trash/restore-all', { method: 'POST' });
+                        const data = await res.json();
+                        showToast(data.message || 'All quotations restored');
+                        exitTrashMode();
+                    } catch (e) {
+                        (window as any).electronAPI?.showAlert1('Failed to restore all quotations.');
+                    }
+                }
+            });
+        });
+    }
+
+    const deleteAllBtn = document.getElementById('trash-delete-all-btn') as HTMLButtonElement;
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener('click', async () => {
+            if (!(window as any).electronAPI) return;
+            (window as any).electronAPI.showAlert2('Permanently DELETE ALL trashed quotations? This cannot be undone.');
+            (window as any).electronAPI.receiveAlertResponse(async (response: string) => {
+                if (response === 'Yes') {
+                    try {
+                        const res = await fetch('/quotation/trash', { method: 'DELETE' });
+                        const data = await res.json();
+                        showToast(data.message || 'All trashed quotations deleted');
+                        loadTrashQuotations();
+                    } catch (e) {
+                        (window as any).electronAPI?.showAlert1('Failed to delete all trashed quotations.');
+                    }
+                }
+            });
+        });
+    }
 
     // Attach search: Enter key and real-time input (debounced)
     const qSearchInput = document.getElementById('search-input') as HTMLInputElement;
@@ -53,6 +133,102 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
 });
 
+// ====== Trash Mode Helpers ======
+
+function enterTrashMode() {
+    isTrashMode = true;
+
+    const trashToolbar = document.getElementById('trash-toolbar');
+    const newQuotationBtn = document.getElementById('new-quotation');
+    const trashBtn = document.getElementById('trash-btn');
+    const closeTrashBtn = document.getElementById('close-trash-btn');
+    const mainContent = document.getElementById('main-content');
+
+    // Show sub-toolbar band
+    if (trashToolbar) trashToolbar.style.display = 'block';
+    // Push main content down to make room for sub-toolbar
+    if (mainContent) mainContent.style.paddingTop = 'calc(6rem + 2.75rem)';
+    // Hide normal header buttons (refresh stays visible — it works universally)
+    if (newQuotationBtn) newQuotationBtn.style.display = 'none';
+    if (trashBtn) trashBtn.style.display = 'none';
+    // Show Close Trash button in header
+    if (closeTrashBtn) closeTrashBtn.style.display = '';
+
+    const homeBtnEl = document.getElementById('home-btn');
+    if (homeBtnEl) homeBtnEl.style.display = '';
+
+    loadTrashQuotations();
+}
+
+function exitTrashMode() {
+    isTrashMode = false;
+
+    const trashToolbar = document.getElementById('trash-toolbar');
+    const newQuotationBtn = document.getElementById('new-quotation');
+    const trashBtn = document.getElementById('trash-btn');
+    const closeTrashBtn = document.getElementById('close-trash-btn');
+    const mainContent = document.getElementById('main-content');
+
+    // Hide sub-toolbar band
+    if (trashToolbar) trashToolbar.style.display = 'none';
+    // Reset main content padding
+    if (mainContent) mainContent.style.paddingTop = '';
+    // Restore normal header buttons
+    if (newQuotationBtn) newQuotationBtn.style.display = '';
+    if (trashBtn) trashBtn.style.display = '';
+    // Hide Close Trash button
+    if (closeTrashBtn) closeTrashBtn.style.display = 'none';
+
+    loadRecentQuotations();
+}
+
+
+async function loadTrashQuotations() {
+    try {
+        const response = await fetch('/quotation/trash');
+        if (!response.ok) throw new Error('Failed to fetch trashed quotations');
+
+        const data = await response.json();
+        const trashed = (data.quotation || []);
+
+        if (!quotationListDiv) return;
+        quotationListDiv.innerHTML = '';
+
+        if (trashed.length === 0) {
+            quotationListDiv.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
+                    <div class="text-green-500 text-5xl mb-4">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Trash is Empty</h2>
+                    <p class="text-gray-600">No deleted quotations found</p>
+                </div>
+            `;
+            return;
+        }
+
+        trashed.forEach((quotation: any) => {
+            const card = (window as any).quotationTable?.createTrashCard(quotation);
+            if (card) quotationListDiv.appendChild(card);
+        });
+    } catch (error) {
+        console.error('Error loading trash:', error);
+        if (quotationListDiv) {
+            quotationListDiv.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16 fade-in select-none">
+                    <div class="bg-red-100 rounded-full p-8 mb-4">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-2">Failed to Load Trash</h2>
+                    <p class="text-gray-500">Please try again</p>
+                </div>
+            `;
+        }
+    }
+}
+
+
+
 // ====== Data Loading ======
 
 // Load recent quotations from the server
@@ -76,7 +252,7 @@ async function loadRecentQuotations() {
     } catch (error) {
         console.error("Error loading quotations:", error);
         quotationListDiv.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 fade-in">
+            <div class="flex flex-col items-center justify-center py-16 fade-in select-none">
                 <div class="bg-red-100 rounded-full p-8 mb-4">
                     <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
                 </div>
@@ -100,12 +276,16 @@ async function loadRecentQuotations() {
 
 document.getElementById('home-btn')!.addEventListener('click', () => {
     sessionStorage.removeItem('currentTab-status');
+    const trashBtn = document.getElementById('trash-btn');
+    if (trashBtn) trashBtn.style.display = '';
     (window as any).location = '/quotation';
 });
 
 // Show the new quotation form
 function showNewQuotationForm() {
     sessionStorage.setItem('currentTab-status', 'new');
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) refreshBtn.style.display = 'none';
     showNewDocumentForm({
         homeId: 'home',
         formId: 'new',
@@ -127,27 +307,39 @@ function showNewQuotationForm() {
         dateInput.value = `${yyyy}-${mm}-${dd}`;
     }
 
-    // Focus on the Quotation ID field and hide Print/PDF buttons for new quotations
+    const validTillInput = document.getElementById('valid-till') as HTMLInputElement;
+    if (validTillInput) {
+        const validTill = new Date();
+        validTill.setDate(validTill.getDate() + 30);
+        const yyyy = validTill.getFullYear();
+        const mm = String(validTill.getMonth() + 1).padStart(2, '0');
+        const dd = String(validTill.getDate()).padStart(2, '0');
+        validTillInput.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    const statusInput = document.getElementById('quotation-status') as HTMLSelectElement;
+    if (statusInput) statusInput.value = 'Draft';
+
+    // Focus on the Project Name field and hide Print/PDF buttons for new quotations
     setTimeout(() => {
         const idInput = document.getElementById('id') as HTMLInputElement;
         if (idInput) {
-            idInput.readOnly = false;
-            idInput.style.backgroundColor = ''; // Reset to default
             idInput.value = ''; // Clear any previous value
-            idInput.focus();
         }
-        // Reset custom ID flag (it's in quotationForms.ts scope)
-        if (typeof isCustomId !== 'undefined') {
-            (window as any).isCustomId = false;
+        const projectNameInput = document.getElementById('project-name') as HTMLInputElement;
+        if (projectNameInput) {
+            projectNameInput.focus();
         }
-        // Hide Print and Save as PDF buttons for new quotations
+        // Hide Print, Save as PDF, and Trash buttons for new/edit mode
         const printBtn = document.getElementById('print-btn') as HTMLButtonElement;
         const savePdfBtn = document.getElementById('save-pdf-btn') as HTMLButtonElement;
         const viewPreviewBtn = document.getElementById('view-preview') as HTMLButtonElement;
+        const trashBtnEl = document.getElementById('trash-btn') as HTMLButtonElement;
 
         if (printBtn) printBtn.style.display = 'none';
         if (savePdfBtn) savePdfBtn.style.display = 'none';
         if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+        if (trashBtnEl) trashBtnEl.style.display = 'none';
     }, 100);
 }
 
@@ -165,7 +357,7 @@ async function handleSearch() {
     
     if (cardRenderer) {
         await searchDocuments('quotation', query, quotationListDiv, cardRenderer,
-            `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+            `<div class="flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
                 <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
                 <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
                 <p class="text-gray-500">No quotations match your search</p>

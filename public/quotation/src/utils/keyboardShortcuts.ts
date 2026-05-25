@@ -21,7 +21,8 @@ const QUOTATION_SHORTCUT_GROUPS = [
             { label: 'Add Item', keys: ['Ctrl', 'I'] },
             { label: 'Delete Item', keys: ['Ctrl', 'Delete'] },
             { label: 'Go Home', keys: ['Ctrl', 'H'] },
-            { label: 'Focus Search', keys: ['Ctrl', 'F'] }
+            { label: 'Focus Search', keys: ['Ctrl', 'F'] },
+            { label: 'Refresh List', keys: ['Ctrl', 'R'] }
         ]
     }
 ];
@@ -311,6 +312,15 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
                     event.stopPropagation();
                     searchInput.focus();
                     searchInput.select();
+                }
+                break;
+            }
+            case 'r': {
+                const refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
+                if (refreshBtn) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    refreshBtn.click();
                 }
                 break;
             }

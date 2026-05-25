@@ -4,13 +4,18 @@ let allQuotations: any[] = [];
 let currentFilters = {
     dateFilter: 'all',
     sortBy: 'date-desc',
+    status: 'all',
     customStartDate: null as string | null,
     customEndDate: null as string | null
 };
 
 // Apply filters to quotations
 function applyQuotationFilters() {
-    const filtered = applyFilters(allQuotations, {
+    let source = [...allQuotations];
+    if (currentFilters.status && currentFilters.status !== 'all') {
+        source = source.filter(q => (q.quotation_status || 'Draft') === currentFilters.status);
+    }
+    const filtered = applyFilters(source, {
         dateFilter: currentFilters.dateFilter,
         sortBy: currentFilters.sortBy,
         dateField: 'quotation_date',
@@ -29,6 +34,7 @@ function initQuotationFilters() {
     const filterBtn = document.getElementById('filter-btn') as HTMLButtonElement;
     const filterPopover = document.getElementById('filter-popover') as HTMLElement;
     const dateFilter = document.getElementById('date-filter') as HTMLSelectElement;
+    const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
     const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement;
     const clearFiltersBtn = document.getElementById('clear-filters-btn') as HTMLButtonElement;
     const applyFiltersBtn = document.getElementById('apply-filters-btn') as HTMLButtonElement;
@@ -74,6 +80,7 @@ function initQuotationFilters() {
                 currentFilters.customStartDate = null;
                 currentFilters.customEndDate = null;
             }
+            if (statusFilter) currentFilters.status = statusFilter.value;
             if (sortFilter) currentFilters.sortBy = sortFilter.value;
             applyQuotationFilters();
             if (filterPopover) filterPopover.classList.add('hidden');
@@ -86,10 +93,12 @@ function initQuotationFilters() {
             currentFilters = {
                 dateFilter: 'all',
                 sortBy: 'date-desc',
+                status: 'all',
                 customStartDate: null,
                 customEndDate: null
             };
             if (dateFilter) dateFilter.value = 'all';
+            if (statusFilter) statusFilter.value = 'all';
             if (sortFilter) sortFilter.value = 'date-desc';
             applyQuotationFilters();
             if (filterPopover) filterPopover.classList.add('hidden');

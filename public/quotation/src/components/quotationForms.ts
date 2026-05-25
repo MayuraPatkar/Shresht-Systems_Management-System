@@ -4,11 +4,78 @@ let quotationId = '';
 let totalAmountNoTax = 0;
 let totalAmountTax = 0;
 let totalTax = 0;
-let isCustomId = false; // Tracks if user manually entered a custom ID
+// isCustomId has been deprecated as all quotation IDs are now system-generated and immutable.
+
+function calculateLineTotals(quantity, unitPrice, gstRate) {
+    const taxable_value = Math.round((Number(quantity || 0) * Number(unitPrice || 0)) * 100) / 100;
+    const tax_amount = Math.round((taxable_value * Number(gstRate || 0) / 100) * 100) / 100;
+    return {
+        taxable_value,
+        tax_amount,
+        total: Math.round((taxable_value + tax_amount) * 100) / 100
+    };
+}
+
+function getBillingAddressSnapshot() {
+    return {
+        line1: (document.getElementById("buyer-address-line1") as HTMLInputElement)?.value || "",
+        line2: (document.getElementById("buyer-address-line2") as HTMLInputElement)?.value || "",
+        city: (document.getElementById("buyer-city") as HTMLInputElement)?.value || "",
+        state: (document.getElementById("buyer-state") as HTMLInputElement)?.value || "Karnataka",
+        pincode: (document.getElementById("buyer-pincode") as HTMLInputElement)?.value || "",
+        country: (document.getElementById("buyer-country") as HTMLInputElement)?.value || "India"
+    };
+}
+
+async function autofillStockItem(input) {
+    const itemName = input?.value?.trim();
+    if (!itemName) return;
+    try {
+        const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
+        if (!response.ok) return;
+        const item = await response.json();
+        if (!item) return;
+
+        const card = input.closest('.item-card');
+        const cards = Array.from(document.querySelectorAll('#items-container .item-card'));
+        const index = cards.indexOf(card);
+        const row = document.querySelectorAll('#items-table tbody tr')[index];
+        if (row) row.dataset.itemId = item._id || '';
+
+        const values = {
+            hsn: item.hsn_sac || '',
+            price: item.selling_price || item.purchase_price || 0,
+            gst: item.gst_rate || 0
+        };
+
+        const cardInputs = card?.querySelectorAll('input') || [];
+        if (cardInputs[1] && !cardInputs[1].value) cardInputs[1].value = values.hsn;
+        if (cardInputs[3] && !Number(cardInputs[3].value || 0)) cardInputs[3].value = values.price;
+        if (cardInputs[4] && !Number(cardInputs[4].value || 0)) cardInputs[4].value = values.gst;
+
+        if (row) {
+            const rowInputs = row.querySelectorAll('input');
+            if (rowInputs[1] && !rowInputs[1].value) rowInputs[1].value = values.hsn;
+            if (rowInputs[3] && !Number(rowInputs[3].value || 0)) rowInputs[3].value = values.price;
+            if (rowInputs[4] && !Number(rowInputs[4].value || 0)) rowInputs[4].value = values.gst;
+        }
+    } catch (error) {
+        console.warn('Stock autofill failed', error);
+    }
+}
+
+// Helper: sync hidden #buyer-name from first+last name inputs
+function syncBuyerName() {
+    const first = (document.getElementById('buyer-first-name') as HTMLInputElement)?.value.trim() || '';
+    const last = (document.getElementById('buyer-last-name') as HTMLInputElement)?.value.trim() || '';
+    const combined = [first, last].filter(Boolean).join(' ');
+    const hidden = document.getElementById('buyer-name') as HTMLInputElement;
+    if (hidden) hidden.value = combined;
+}
 
 // Setup Customer Autocomplete
 function setupCustomerAutocomplete() {
-    const input = document.getElementById('buyer-name');
+    const input = document.getElementById('buyer-first-name');
     const suggestionsList = document.getElementById('customer-suggestions');
     if (!input || !suggestionsList) return;
 
@@ -29,6 +96,7 @@ function setupCustomerAutocomplete() {
     input.addEventListener('input', () => {
         clearTimeout(debounceTimer);
         const query = input.value.trim();
+        syncBuyerName();
         
         // Clear hidden ID when input changes manually
         const idInput = document.getElementById('buyer-customer-id');
@@ -115,21 +183,36 @@ function setupCustomerAutocomplete() {
     }
 
     function selectCustomer(customer) {
-        input.value = customer.customer?.name || customer.customer_name || '';
+        const fullName = customer.customer?.name || customer.customer_name || '';
+        // Split into first/last on first space
+        const spaceIdx = fullName.indexOf(' ');
+        const firstNameEl = document.getElementById('buyer-first-name') as HTMLInputElement;
+        const lastNameEl = document.getElementById('buyer-last-name') as HTMLInputElement;
+        if (firstNameEl) firstNameEl.value = spaceIdx > -1 ? fullName.slice(0, spaceIdx) : fullName;
+        if (lastNameEl) lastNameEl.value = spaceIdx > -1 ? fullName.slice(spaceIdx + 1) : '';
+        syncBuyerName();
         
         // Populate other fields
-        const idInput = document.getElementById('buyer-customer-id');
-        const addressInput = document.getElementById('buyer-address');
-        const phoneInput = document.getElementById('buyer-phone');
-        const emailInput = document.getElementById('buyer-email');
-        const gstinInput = document.getElementById('buyer-gstin');
+        const idInput = document.getElementById('buyer-customer-id') as HTMLInputElement;
+        const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
+        const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement;
+        const cityInput = document.getElementById('buyer-city') as HTMLInputElement;
+        const stateInput = document.getElementById('buyer-state') as HTMLInputElement;
+        const pincodeInput = document.getElementById('buyer-pincode') as HTMLInputElement;
+        const countryInput = document.getElementById('buyer-country') as HTMLInputElement;
+        const phoneInput = document.getElementById('buyer-phone') as HTMLInputElement;
+        const emailInput = document.getElementById('buyer-email') as HTMLInputElement;
+        const gstinInput = document.getElementById('buyer-gstin') as HTMLInputElement;
 
         if (idInput) idInput.value = customer._id || '';
         
-        if (addressInput) {
-            const billing = customer.billing_address || {};
-            addressInput.value = billing.line1 || customer.customer_address || '';
-        }
+        const billing = customer.billing_address || {};
+        if (line1Input) line1Input.value = billing.line1 || customer.customer_address || '';
+        if (line2Input) line2Input.value = billing.line2 || '';
+        if (cityInput) cityInput.value = billing.city || '';
+        if (stateInput) stateInput.value = billing.state || 'Karnataka';
+        if (pincodeInput) pincodeInput.value = billing.pincode || '';
+        if (countryInput) countryInput.value = billing.country || 'India';
         if (phoneInput) phoneInput.value = customer.customer?.phone || customer.customer_phone || '';
         if (emailInput) emailInput.value = customer.customer?.email || customer.customer_email || '';
         if (gstinInput) gstinInput.value = customer.gstin || customer.customer_GSTIN || '';
@@ -145,16 +228,39 @@ document.addEventListener('DOMContentLoaded', () => {
         stepIndicator.textContent = `Step 1 of ${totalSteps}`;
     }
 
-    // Add listener for custom ID input
-    const idInput = document.getElementById('id');
-    if (idInput) {
-        idInput.addEventListener('input', () => {
-            quotationId = idInput.value.trim();
-            isCustomId = true; // User manually typed in the ID field
-        });
-    }
+    // Custom ID listener removed as all IDs are system-generated.
     
     setupCustomerAutocomplete();
+
+    // Sync buyer-name hidden field when last name changes
+    const lastNameInput = document.getElementById('buyer-last-name');
+    if (lastNameInput) {
+        lastNameInput.addEventListener('input', syncBuyerName);
+    }
+
+    // GSTIN uppercase enforcement
+    const gstinInput = document.getElementById('buyer-gstin');
+    if (gstinInput) {
+        gstinInput.addEventListener('input', function() {
+            const pos = (this as HTMLInputElement).selectionStart;
+            (this as HTMLInputElement).value = (this as HTMLInputElement).value.toUpperCase();
+            (this as HTMLInputElement).setSelectionRange(pos, pos);
+        });
+    }
+
+    // Ensure phone and pincode only accept numbers
+    const pincodeInput = document.getElementById('buyer-pincode');
+    if (pincodeInput) {
+        pincodeInput.addEventListener('input', function() {
+            (this as HTMLInputElement).value = (this as HTMLInputElement).value.replace(/[^0-9]/g, '');
+        });
+    }
+    const phoneInput = document.getElementById('buyer-phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            (this as HTMLInputElement).value = (this as HTMLInputElement).value.replace(/[^0-9]/g, '');
+        });
+    }
 });
 
 // Helper functions normalizeTermsHTML and getQuotationHeaderHTML are in quotationView.ts
@@ -213,9 +319,16 @@ async function openQuotation(quotationId) {
     const quotation = {
         ...rawQuotation,
         quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
-        customer_id: rawQuotation.customer_snapshot?.customer_id || '',
+        customer_id: rawQuotation.customer_id || rawQuotation.customer_snapshot?.customer_id || '',
         customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
-        customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+        customer_address: (() => {
+            const b = rawQuotation.customer_snapshot?.billing_address;
+            if (!b) return rawQuotation.customer_address;
+            if (typeof b === 'string') return b;
+            const parts = [b.line1, b.line2, b.city, b.state, b.pincode, b.country].filter(p => p && typeof p === 'string' && p.trim() !== '');
+            return parts.length > 0 ? parts.join(', ') : rawQuotation.customer_address;
+        })(),
+        billing_address: rawQuotation.customer_snapshot?.billing_address || {},
         customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
         customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,
         customer_GSTIN: rawQuotation.customer_snapshot?.gstin || rawQuotation.customer_GSTIN,
@@ -233,7 +346,12 @@ async function openQuotation(quotationId) {
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
     document.getElementById('new-quotation').style.display = 'none';
+    const refreshBtnEdit = document.getElementById('refresh-btn');
+    if (refreshBtnEdit) refreshBtnEdit.style.display = 'none';
     document.getElementById('view-preview').style.display = 'block';
+    
+    const homeBtnEl = document.getElementById('home-btn');
+    if (homeBtnEl) homeBtnEl.style.display = '';
     if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
         document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
     }
@@ -243,21 +361,41 @@ async function openQuotation(quotationId) {
     idInput.readOnly = true;
     idInput.style.backgroundColor = '#f3f4f6'; // Light gray to indicate disabled
 
-    // Hide Print and Save as PDF buttons in form - only available in View mode
+    // Hide Print, Save as PDF, and Trash buttons in form - only available in View/List mode
     const printBtn = document.getElementById('print-btn');
     const savePdfBtn = document.getElementById('save-pdf-btn');
+    const trashBtnEdit = document.getElementById('trash-btn');
     if (printBtn) printBtn.style.display = 'none';
     if (savePdfBtn) savePdfBtn.style.display = 'none';
+    if (trashBtnEdit) trashBtnEdit.style.display = 'none';
 
     document.getElementById('project-name').value = quotation.project_name;
     // Use input-safe ISO date for the date field
     document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
+    document.getElementById('valid-till').value = toInputDate(quotation.valid_till);
+    document.getElementById('quotation-status').value = quotation.quotation_status || 'Draft';
+    document.getElementById('quotation-discount').value = quotation.discount || 0;
     
     const idInputCustomer = document.getElementById('buyer-customer-id');
     if (idInputCustomer) idInputCustomer.value = quotation.customer_id || '';
     
-    document.getElementById('buyer-name').value = quotation.customer_name || '';
-    document.getElementById('buyer-address').value = quotation.customer_address || '';
+    // Split full name into first + last name fields
+    const fullNameStr = quotation.customer_name || '';
+    const spaceIdx = fullNameStr.indexOf(' ');
+    const firstEl = document.getElementById('buyer-first-name') as HTMLInputElement;
+    const lastEl = document.getElementById('buyer-last-name') as HTMLInputElement;
+    const hiddenNameEl = document.getElementById('buyer-name') as HTMLInputElement;
+    if (firstEl) firstEl.value = spaceIdx > -1 ? fullNameStr.slice(0, spaceIdx) : fullNameStr;
+    if (lastEl) lastEl.value = spaceIdx > -1 ? fullNameStr.slice(spaceIdx + 1) : '';
+    if (hiddenNameEl) hiddenNameEl.value = fullNameStr;
+    const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
+    const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement;
+    if (line1Input) line1Input.value = quotation.billing_address?.line1 || quotation.customer_address || '';
+    if (line2Input) line2Input.value = quotation.billing_address?.line2 || '';
+    document.getElementById('buyer-city').value = quotation.billing_address?.city || '';
+    document.getElementById('buyer-state').value = quotation.billing_address?.state || 'Karnataka';
+    document.getElementById('buyer-pincode').value = quotation.billing_address?.pincode || '';
+    document.getElementById('buyer-country').value = quotation.billing_address?.country || 'India';
     document.getElementById('buyer-phone').value = quotation.customer_phone || '';
     document.getElementById('buyer-email').value = quotation.customer_email || '';
     document.getElementById('buyer-gstin').value = quotation.customer_GSTIN || '';
@@ -281,13 +419,14 @@ async function openQuotation(quotationId) {
     (quotation.items || []).forEach((item, index) => {
         // Create table row first
         const row = document.createElement("tr");
+        row.dataset.itemId = item.item_id || '';
         row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
-                <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
-                <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
-                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
+                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" required></td>
+                <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
         itemsTableBody.appendChild(row);
@@ -304,21 +443,21 @@ async function openQuotation(quotationId) {
                     <div class="item-number">${index + 1}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
-                            <input type="text" placeholder="Enter item description" class="item_name" value="${item.description || ''}" required>
+                            <input type="text" class="item_name" value="${item.description || ''}" required>
                             <ul class="suggestions"></ul>
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" placeholder="Code" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
+                        <input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" placeholder="0" min="1" value="${item.quantity || ''}" required>
+                        <input type="number" min="0.01" step="0.01" value="${item.quantity || ''}" required>
                     </div>
                     <div class="item-field price">
-                        <input type="number" placeholder="0.00" step="0.01" value="${item.unit_price || ''}" required>
+                        <input type="number" step="0.01" value="${item.unit_price || ''}" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                        <input type="number" min="0" step="0.01" value="${item.rate || item.Rate || item.gst_rate || ''}">
                     </div>
                     <div class="item-actions">
 
@@ -329,19 +468,7 @@ async function openQuotation(quotationId) {
                 `;
             itemsContainer.appendChild(card);
 
-            // Integer validation for quantity inputs
-            const qtyInputs = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
-            qtyInputs.forEach(input => {
-                if (input) {
-                    input.setAttribute('step', '1');
-                    input.addEventListener('keypress', function (event) {
-                        if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
-                    });
-                    input.addEventListener('input', function () {
-                        this.value = this.value.replace(/[^0-9]/g, '');
-                    });
-                }
-            });
+            // Decimal values are now allowed for quantity inputs.
 
             // Setup autocomplete for loaded items
             const cardInput = card.querySelector(".item_name");
@@ -394,9 +521,9 @@ async function openQuotation(quotationId) {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
-                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="number" value="${item.price || ''}" required></td>
+                <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
         nonItemsTableBody.appendChild(row);
@@ -412,13 +539,13 @@ async function openQuotation(quotationId) {
                     </div>
                     <div class="item-number">${index + 1}</div>
                     <div class="non-item-field description">
-                        <input type="text" placeholder="e.g., Installation Charges" value="${item.description || ''}" required>
+                        <input type="text" value="${item.description || ''}" required>
                     </div>
                     <div class="non-item-field price">
-                        <input type="number" placeholder="0.00" step="0.01" value="${item.price || ''}" required>
+                        <input type="number" step="0.01" value="${item.price || ''}" required>
                     </div>
                     <div class="non-item-field rate">
-                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                        <input type="number" min="0" step="0.01" value="${item.rate || ''}">
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -484,7 +611,7 @@ async function openQuotation(quotationId) {
                         <input type="text" value="${item.description || ''}" readonly style="background: #f9fafb; cursor: not-allowed;">
                     </div>
                     <div class="spec-field specification">
-                        <input type="text" placeholder="Enter specifications" value="${item.specification || ''}" required>
+                        <input type="text" value="${item.specification || ''}" required>
                     </div>
                 `;
             specificationsContainer.appendChild(card);
@@ -516,9 +643,16 @@ async function cloneQuotation(sourceQuotationId) {
         const quotation = {
             ...rawQuotation,
             quotation_id: rawQuotation.quotation_no || rawQuotation.quotation_id,
-            customer_id: rawQuotation.customer_snapshot?.customer_id || '',
+            customer_id: rawQuotation.customer_id || rawQuotation.customer_snapshot?.customer_id || '',
             customer_name: rawQuotation.customer_snapshot?.name || rawQuotation.customer_name,
-            customer_address: rawQuotation.customer_snapshot?.billing_address?.line1 || rawQuotation.customer_snapshot?.billing_address || rawQuotation.customer_address,
+            customer_address: (() => {
+                const b = rawQuotation.customer_snapshot?.billing_address;
+                if (!b) return rawQuotation.customer_address;
+                if (typeof b === 'string') return b;
+                const parts = [b.line1, b.line2, b.city, b.state, b.pincode, b.country].filter(p => p && typeof p === 'string' && p.trim() !== '');
+                return parts.length > 0 ? parts.join(', ') : rawQuotation.customer_address;
+            })(),
+            billing_address: rawQuotation.customer_snapshot?.billing_address || {},
             customer_phone: rawQuotation.customer_snapshot?.phone || rawQuotation.customer_phone,
             customer_email: rawQuotation.customer_snapshot?.email || rawQuotation.customer_email,
             customer_GSTIN: rawQuotation.customer_snapshot?.gstin || rawQuotation.customer_GSTIN,
@@ -537,7 +671,15 @@ async function cloneQuotation(sourceQuotationId) {
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
         document.getElementById('new-quotation').style.display = 'none';
+        const refreshBtnClone = document.getElementById('refresh-btn');
+        if (refreshBtnClone) refreshBtnClone.style.display = 'none';
         document.getElementById('view-preview').style.display = 'block';
+        const trashBtnEl = document.getElementById('trash-btn');
+        if (trashBtnEl) trashBtnEl.style.display = 'none';
+        
+        const homeBtnEl = document.getElementById('home-btn');
+        if (homeBtnEl) homeBtnEl.style.display = '';
+        
         if (typeof currentStep !== "undefined" && typeof totalSteps !== "undefined") {
             document.getElementById("step-indicator").textContent = `Step ${currentStep} of ${totalSteps}`;
         }
@@ -547,13 +689,12 @@ async function cloneQuotation(sourceQuotationId) {
         if (!idResponse.ok) throw new Error("Failed to generate new quotation ID");
         const { quotation_id: newId } = await idResponse.json();
 
-        // Set the new ID and make it editable (it's a new quotation)
+        // Set the new ID (hidden field)
         const idInput = document.getElementById('id');
-        idInput.value = newId;
-        idInput.readOnly = false;
-        idInput.style.backgroundColor = ''; // Reset to default (editable)
+        if (idInput) {
+            idInput.value = newId;
+        }
         quotationId = newId;
-        isCustomId = false;
 
         // Hide Print and Save as PDF buttons for cloned (new) quotations
         const printBtn = document.getElementById('print-btn');
@@ -584,12 +725,28 @@ async function cloneQuotation(sourceQuotationId) {
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         document.getElementById('quotation-date').value = `${yyyy}-${mm}-${dd}`;
+        document.getElementById('valid-till').value = '';
+        document.getElementById('quotation-status').value = 'Draft';
+        document.getElementById('quotation-discount').value = quotation.discount || 0;
 
         const idInputCustomer = document.getElementById('buyer-customer-id');
         if (idInputCustomer) idInputCustomer.value = '';
 
-        document.getElementById('buyer-name').value = '';
-        document.getElementById('buyer-address').value = '';
+        // Clear first/last name fields and hidden combined field
+        const firstEl = document.getElementById('buyer-first-name') as HTMLInputElement;
+        const lastEl = document.getElementById('buyer-last-name') as HTMLInputElement;
+        const hiddenNameEl = document.getElementById('buyer-name') as HTMLInputElement;
+        if (firstEl) firstEl.value = '';
+        if (lastEl) lastEl.value = '';
+        if (hiddenNameEl) hiddenNameEl.value = '';
+        const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
+        const line2Input = document.getElementById('buyer-address-line2') as HTMLInputElement;
+        if (line1Input) line1Input.value = '';
+        if (line2Input) line2Input.value = '';
+        document.getElementById('buyer-city').value = '';
+        document.getElementById('buyer-state').value = 'Karnataka';
+        document.getElementById('buyer-pincode').value = '';
+        document.getElementById('buyer-country').value = 'India';
         document.getElementById('buyer-phone').value = '';
         document.getElementById('buyer-email').value = '';
         document.getElementById('buyer-gstin').value = '';
@@ -613,13 +770,14 @@ async function cloneQuotation(sourceQuotationId) {
         // Copy items (same logic as openQuotation)
         (quotation.items || []).forEach((item, index) => {
             const row = document.createElement("tr");
+            row.dataset.itemId = item.item_id || '';
             row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
-                <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
-                <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
-                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
+                <td><input type="number" value="${item.quantity || ''}" min="0.01" step="0.01" required></td>
+                <td><input type="number" value="${item.unit_price || ''}" required></td>
+                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
             itemsTableBody.appendChild(row);
@@ -635,21 +793,21 @@ async function cloneQuotation(sourceQuotationId) {
                     <div class="item-number">${index + 1}</div>
                     <div class="item-field description">
                         <div style="position: relative;">
-                            <input type="text" placeholder="Enter item description" class="item_name" value="${item.description || ''}" required>
+                            <input type="text" class="item_name" value="${item.description || ''}" required>
                             <ul class="suggestions"></ul>
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" placeholder="Code" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
+                        <input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" placeholder="0" min="1" value="${item.quantity || ''}" required>
+                        <input type="number" min="0.01" step="0.01" value="${item.quantity || ''}" required>
                     </div>
                     <div class="item-field price">
-                        <input type="number" placeholder="0.00" step="0.01" value="${item.unit_price || ''}" required>
+                        <input type="number" step="0.01" value="${item.unit_price || ''}" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                        <input type="number" min="0" step="0.01" value="${item.rate || ''}">
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -659,19 +817,7 @@ async function cloneQuotation(sourceQuotationId) {
                 `;
                 itemsContainer.appendChild(card);
 
-                // Integer validation for quantity inputs
-                const qtyInputsClone = [card.querySelector('.item-field.qty input'), row.querySelector('td:nth-child(4) input')];
-                qtyInputsClone.forEach(input => {
-                    if (input) {
-                        input.setAttribute('step', '1');
-                        input.addEventListener('keypress', function (event) {
-                            if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
-                        });
-                        input.addEventListener('input', function () {
-                            this.value = this.value.replace(/[^0-9]/g, '');
-                        });
-                    }
-                });
+                // Decimal values are now allowed for quantity inputs.
 
                 // Setup autocomplete
                 const cardInput = card.querySelector(".item_name");
@@ -718,9 +864,9 @@ async function cloneQuotation(sourceQuotationId) {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
-                <td><input type="text" value="${item.description || ''}" placeholder="Item Description" required></td>
-                <td><input type="number" value="${item.price || ''}" placeholder="Price" required></td>
-                <td><input type="number" value="${item.rate || ''}" placeholder="Rate" min="0.01" step="0.01" required></td>
+                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="number" value="${item.price || ''}" required></td>
+                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
             nonItemsTableBody.appendChild(row);
@@ -735,13 +881,13 @@ async function cloneQuotation(sourceQuotationId) {
                     </div>
                     <div class="item-number">${index + 1}</div>
                     <div class="non-item-field description">
-                        <input type="text" placeholder="e.g., Installation Charges" value="${item.description || ''}" required>
+                        <input type="text" value="${item.description || ''}" required>
                     </div>
                     <div class="non-item-field price">
-                        <input type="number" placeholder="0.00" step="0.01" value="${item.price || ''}" required>
+                        <input type="number" step="0.01" value="${item.price || ''}" required>
                     </div>
                     <div class="non-item-field rate">
-                        <input type="number" placeholder="0" min="0" step="0.01" value="${item.rate || ''}">
+                        <input type="number" min="0" step="0.01" value="${item.rate || item.Rate || item.gst_rate || ''}">
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
@@ -806,7 +952,7 @@ async function cloneQuotation(sourceQuotationId) {
                         <input type="text" value="${item.description || ''}" readonly style="background: #f9fafb; cursor: not-allowed;">
                     </div>
                     <div class="spec-field specification">
-                        <input type="text" placeholder="Enter specifications" value="${item.specification || ''}" required>
+                        <input type="text" value="${item.specification || ''}" required>
                     </div>
                 `;
                 specificationsContainer.appendChild(card);
@@ -916,8 +1062,24 @@ async function generatePreview() {
     }
     const projectName = document.getElementById("project-name").value || "";
     const quotationDate = document.getElementById("quotation-date").value || "";
+    const validTill = document.getElementById("valid-till")?.value || "";
+    const quotationStatus = document.getElementById("quotation-status")?.value || "Draft";
+    const discountAmount = Number(document.getElementById("quotation-discount")?.value || 0);
     const buyerName = document.getElementById("buyer-name").value || "";
-    const buyerAddress = document.getElementById("buyer-address").value || "";
+    const line1 = (document.getElementById("buyer-address-line1") as HTMLInputElement)?.value || "";
+    const line2 = (document.getElementById("buyer-address-line2") as HTMLInputElement)?.value || "";
+    const city = (document.getElementById("buyer-city") as HTMLInputElement)?.value || "";
+    const state = (document.getElementById("buyer-state") as HTMLInputElement)?.value || "";
+    const pincode = (document.getElementById("buyer-pincode") as HTMLInputElement)?.value || "";
+    const country = (document.getElementById("buyer-country") as HTMLInputElement)?.value || "";
+
+    const addrParts = [
+        line1,
+        line2,
+        [city, state].filter(Boolean).join(", "),
+        [country, pincode].filter(Boolean).join(" - ")
+    ].filter(Boolean);
+    const buyerAddress = addrParts.join("<br>");
     const buyerPhone = document.getElementById("buyer-phone").value || "";
     const buyerGSTIN = document.getElementById("buyer-gstin").value || "";
     const itemsTable = document.getElementById("items-table").getElementsByTagName("tbody")[0];
@@ -925,18 +1087,19 @@ async function generatePreview() {
     const headerHTML = await getQuotationHeaderHTML();
 
     let totalPrice = 0;
-    let totalCGST = 0;
-    let totalSGST = 0;
-    let totalTaxableValue = 0;
-    let grandTotal = 0;
-    let roundOff = 0;
     let sno = 0;
 
     const allRenderableItems = [];
     const CHARS_PER_LINE = 60;
 
-    // Check if rate column is populated
-    let hasTax = Array.from(itemsTable.rows).some(row => parseFloat(row.cells[5].querySelector("input").value) > 0);
+    // Always show tax columns in the preview, even if rate is 0, so the structure is visible.
+    let hasTax = true;
+
+    let totalQtySum = 0;
+    let totalTaxableSum = 0;
+    let totalPriceSum = 0;
+    let totalUnitPriceSum = 0;
+    let totalItemsTaxSum = 0;
 
     // Process regular items
     for (const row of itemsTable.rows) {
@@ -947,25 +1110,22 @@ async function generatePreview() {
         const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
 
         const taxableValue = qty * unitPrice;
-        totalTaxableValue += taxableValue;
+        totalQtySum += qty;
+        totalTaxableSum += taxableValue;
+        totalUnitPriceSum += unitPrice;
         let itemHTML = "";
 
         if (hasTax) {
-            const cgstPercent = rate / 2;
-            const sgstPercent = rate / 2;
-            const cgstValue = (taxableValue * cgstPercent) / 100;
-            const sgstValue = (taxableValue * sgstPercent) / 100;
-            const rowTotal = taxableValue + cgstValue + sgstValue;
+            const taxAmount = (taxableValue * rate) / 100;
+            const rowTotal = taxableValue + taxAmount;
+            totalPriceSum += rowTotal;
+            totalItemsTaxSum += taxAmount;
 
-            totalCGST += cgstValue;
-            totalSGST += sgstValue;
-            totalPrice += rowTotal;
-
-            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(taxableValue, 2)}</td><td>${rate.toFixed(2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac}</td><td class="text-right">${qty}</td><td class="text-right">₹&nbsp;${formatIndian(unitPrice, 2)}</td><td class="text-right">₹&nbsp;${formatIndian(taxableValue, 2)}</td><td class="text-right">${rate.toFixed(2)}%</td><td class="text-right">₹&nbsp;${formatIndian(rowTotal, 2)}</td></tr>`;
         } else {
             const rowTotal = taxableValue;
-            totalPrice += rowTotal;
-            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>${hsnSac}</td><td>${qty}</td><td>${formatIndian(unitPrice, 2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
+            totalPriceSum += rowTotal;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">${hsnSac}</td><td class="text-right">${qty}</td><td class="text-right">₹&nbsp;${formatIndian(unitPrice, 2)}</td><td class="text-right">₹&nbsp;${formatIndian(rowTotal, 2)}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
@@ -984,60 +1144,119 @@ async function generatePreview() {
         const price = Number(item.price) || 0;
         const rate = Number(item.rate) || 0;
 
+        totalTaxableSum += price;
+
         let rowTotal = price;
-        totalTaxableValue += price; // Add non-item price to taxable value
-
         if (hasTax && rate > 0) {
-            const cgstPercent = rate / 2;
-            const sgstPercent = rate / 2;
-            const cgstValue = (price * cgstPercent) / 100;
-            const sgstValue = (price * sgstPercent) / 100;
-
-            totalCGST += cgstValue;
-            totalSGST += sgstValue;
-            rowTotal += cgstValue + sgstValue;
+            const taxAmount = (price * rate) / 100;
+            rowTotal += taxAmount;
         }
-
-        totalPrice += rowTotal; // Add the final row total to the grand total
+        totalPriceSum += rowTotal;
 
         // Generate HTML with consistent columns: S.No, Description, HSN/SAC, Qty, Unit Price, [Taxable Value, Rate %], Total
         let itemHTML = "";
         if (hasTax) {
-            // With tax: 8 columns (S.No, Description, HSN/SAC, Qty, Unit Price, Taxable Value, Rate %, Total)
-            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td><td>${formatIndian(price, 2)}</td><td>${formatIndian(price, 2)}</td><td>${rate.toFixed(2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">₹&nbsp;${formatIndian(price, 2)}</td><td class="text-right">${rate > 0 ? rate.toFixed(2) + '%' : '-'}</td><td class="text-right">₹&nbsp;${formatIndian(rowTotal, 2)}</td></tr>`;
         } else {
-            // Without tax: 6 columns (S.No, Description, HSN/SAC, Qty, Unit Price, Total)
-            itemHTML = `<tr><td>${sno + 1}</td><td>${description}</td><td>-</td><td>-</td><td>${formatIndian(price, 2)}</td><td>${formatIndian(rowTotal, 2)}</td></tr>`;
+            itemHTML = `<tr><td class="text-center">${sno + 1}</td><td class="text-left">${description}</td><td class="text-center">-</td><td class="text-right">-</td><td class="text-right">-</td><td class="text-right">₹&nbsp;${formatIndian(rowTotal, 2)}</td></tr>`;
         }
         const rowCount = Math.ceil(description.length / CHARS_PER_LINE) || 1;
         allRenderableItems.push({ html: itemHTML, rowCount: rowCount });
         sno++;
     }
 
-    grandTotal = totalPrice; // Use totalPrice which now includes non-items
-    roundOff = Math.round(grandTotal) - grandTotal;
-    totalTax = totalCGST + totalSGST;
+    // Calculate actual pro-rata totals matching backend exactly
+    const placeOfSupply = document.getElementById("buyer-state")?.value || "Karnataka";
+    const isInterState = String(placeOfSupply).trim().toLowerCase() !== "karnataka";
+
+    const discountRatio = totalTaxableSum > 0 ? Math.max(totalTaxableSum - discountAmount, 0) / totalTaxableSum : 1;
+
+    let totalCGST = 0;
+    let totalSGST = 0;
+    let totalIGST = 0;
+    const totalTaxableValue = Math.max(totalTaxableSum - discountAmount, 0);
+
+    for (const row of itemsTable.rows) {
+        const qty = parseFloat(row.cells[3].querySelector("input").value || "0");
+        const unitPrice = parseFloat(row.cells[4].querySelector("input").value || "0");
+        const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
+        const taxable = qty * unitPrice * discountRatio;
+        const tax = (taxable * rate) / 100;
+        if (isInterState) {
+            totalIGST += tax;
+        } else {
+            totalCGST += tax / 2;
+            totalSGST += tax - (tax / 2);
+        }
+    }
+    for (const item of nonItems) {
+        const price = Number(item.price) || 0;
+        const rate = Number(item.rate) || 0;
+        const taxable = price * discountRatio;
+        const tax = (taxable * rate) / 100;
+        if (isInterState) {
+            totalIGST += tax;
+        } else {
+            totalCGST += tax / 2;
+            totalSGST += tax - (tax / 2);
+        }
+    }
+
+    const totalTax = totalIGST + totalCGST + totalSGST;
+    totalPrice = totalTaxableValue + totalTax;
+    const roundedGrandTotal = Math.round(totalPrice);
+    const roundOff = roundedGrandTotal - totalPrice;
+
     totalAmountNoTax = totalTaxableValue;
-    totalAmountTax = (totalPrice + roundOff).toFixed(2);
+    totalAmountTax = roundedGrandTotal.toFixed(2);
 
     const totalsHTML = `
         <div style="display: flex; width: 100%;">
-            <div class="totals-section-sub1" style="width: 50%;">
-                ${hasTax ? `
-                <p>Taxable Value:</p>
+            <div class="totals-section-sub1" style="width: 55%;">
+                <p>Subtotal:</p>
+                ${hasTax ? (totalIGST > 0 ? `
+                <p>Total IGST:</p>` : `
                 <p>Total CGST:</p>
-                <p>Total SGST:</p>` : ""}
+                <p>Total SGST:</p>`) : ""}
+                ${discountAmount ? `<p>Discount:</p>` : ""}
+                <p>Round Off:</p>
                 <p>Grand Total:</p>
             </div>
-            <div class="totals-section-sub2" style="width: 50%;">
-                ${hasTax ? `
+            <div class="totals-section-sub2" style="width: 45%;">
                 <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
+                ${hasTax ? (totalIGST > 0 ? `
+                <p>₹ ${formatIndian(totalIGST, 2)}</p>` : `
                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
-                <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
-                <p>₹ ${formatIndian(Math.round(totalPrice), 2)}</p>
+                <p>₹ ${formatIndian(totalSGST, 2)}</p>`) : ""}
+                ${discountAmount ? `<p>-₹ ${formatIndian(discountAmount, 2)}</p>` : ""}
+                <p>₹ ${roundOff >= 0 ? "+" : ""}${formatIndian(roundOff, 2)}</p>
+                <p>₹ ${formatIndian(roundedGrandTotal, 2)}</p>
             </div>
         </div>
     `;
+
+    let totalsRowHTML = "";
+    if (hasTax) {
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-right">${totalQtySum}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalTaxableSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalItemsTaxSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
+    } else {
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-right">${totalQtySum}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
+    }
 
     const ITEMS_PER_PAGE = 20; // Represents available lines on a page for items.
     const SUMMARY_SECTION_ROW_COUNT = 8; // Estimated height of totals, payment, and notes sections.
@@ -1087,19 +1306,20 @@ async function generatePreview() {
                 <table class="items-table">
                     <thead>
                         <tr>
-                            <th>S. No</th>
-                            <th>Description</th>
-                            <th>HSN/SAC</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
+                            <th class="text-center">Sr. No</th>
+                            <th class="text-left">Description</th>
+                            <th class="text-center">HSN/SAC</th>
+                            <th class="text-right">Qty</th>
+                            <th class="text-right">Unit Price</th>
                             ${hasTax ? `
-                            <th>Taxable Value (₹)</th>
-                            <th>Rate (%)</th>` : ""}
-                            <th>Total Price (₹)</th>
+                            <th class="text-right">Taxable Value</th>
+                            <th class="text-right">Tax</th>
+                            <th class="text-right">Total (With Tax)</th>` : `
+                            <th class="text-right">Total Price (₹)</th>`}
                         </tr>
                     </thead>
                     <tbody>
-                        ${pageHTML}
+                        ${isLastItemsPage ? (pageHTML + totalsRowHTML) : pageHTML}
                     </tbody>
                 </table>
             </div>
@@ -1112,7 +1332,7 @@ async function generatePreview() {
                     <div class="fifth-section-sub2">
                         <div class="fifth-section-sub3">
                             <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
-                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(roundedGrandTotal)} Only</span></p>
                         </div>
                         <h3>Payment Details</h3>
                         <div class="bank-details">
@@ -1121,11 +1341,11 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company || company.company_name}</p>
                                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
-                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
-                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
+                                <p><strong>Account No: </strong>${bank.account_number || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.ifsc_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -1277,19 +1497,19 @@ async function generatePreview() {
                 <table class="items-table">
                     <thead>
                         <tr>
-                            <th>S. No</th>
-                            <th>Description</th>
-                            <th>HSN/SAC</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
+                            <th class="text-center">S. No</th>
+                            <th class="text-left">Description</th>
+                            <th class="text-center">HSN/SAC</th>
+                            <th class="text-right">Qty</th>
+                            <th class="text-right">Unit Price</th>
                             ${hasTax ? `
-                            <th>Taxable Value (₹)</th>
-                            <th>Rate (%)</th>` : ""}
-                            <th>Total Price (₹)</th>
+                            <th class="text-right">Taxable Value (₹)</th>
+                            <th class="text-right">Rate (%)</th>` : ""}
+                            <th class="text-right">Total Price (₹)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${pageHTML}
+                        ${isLastItemsPage ? (pageHTML + totalsRowHTML) : pageHTML}
                     </tbody>
                 </table>
             </div>
@@ -1302,7 +1522,7 @@ async function generatePreview() {
                     <div class="fifth-section-sub2">
                         <div class="fifth-section-sub3">
                             <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
-                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(roundedGrandTotal)} Only</span></p>
                         </div>
                         <h3>Payment Details</h3>
                         <div class="bank-details">
@@ -1311,11 +1531,11 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company || company.company_name}</p>
                                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
-                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
-                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
+                                <p><strong>Account No: </strong>${bank.account_number || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.ifsc_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -1429,19 +1649,19 @@ async function generatePreview() {
                 <table class="items-table">
                     <thead>
                         <tr>
-                            <th>S. No</th>
-                            <th>Description</th>
-                            <th>HSN/SAC</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
+                            <th class="text-center">S. No</th>
+                            <th class="text-left">Description</th>
+                            <th class="text-center">HSN/SAC</th>
+                            <th class="text-right">Qty</th>
+                            <th class="text-right">Unit Price</th>
                             ${hasTax ? `
-                            <th>Taxable Value (₹)</th>
-                            <th>Rate (%)</th>` : ""}
-                            <th>Total Price (₹)</th>
+                            <th class="text-right">Taxable Value (₹)</th>
+                            <th class="text-right">Rate (%)</th>` : ""}
+                            <th class="text-right">Total Price (₹)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${pageHTML}
+                        ${isLastItemsPage ? (pageHTML + totalsRowHTML) : pageHTML}
                     </tbody>
                 </table>
             </div>
@@ -1454,7 +1674,7 @@ async function generatePreview() {
                     <div class="fifth-section-sub2">
                         <div class="fifth-section-sub3">
                             <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
-                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(totalPrice)} Only</span></p>
+                            <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(roundedGrandTotal)} Only</span></p>
                         </div>
                         <h3>Payment Details</h3>
                         <div class="bank-details">
@@ -1463,11 +1683,11 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.name || company.company}</p>
+                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company || company.company_name}</p>
                                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
-                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
-                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
+                                <p><strong>Account No: </strong>${bank.account_number || ''}</p>
+                                <p><strong>IFSC Code: </strong>${bank.ifsc_code || ''}</p>
                             </div>
                         </div>
                     </div>
@@ -1651,31 +1871,83 @@ function collectFormData() {
         return "";
     };
 
+    const itemRows = Array.from(document.querySelectorAll("#items-table tbody tr"));
+    const chargeRows = Array.from(document.querySelectorAll("#non-items-table tbody tr"));
+    const items = itemRows.map(row => {
+        const quantity = Number(row.querySelector("td:nth-child(4) input").value) || 0;
+        const unit_price = Number(row.querySelector("td:nth-child(5) input").value) || 0;
+        const gst_rate = Number(row.querySelector("td:nth-child(6) input").value) || 0;
+        const lineTotals = calculateLineTotals(quantity, unit_price, gst_rate);
+        return {
+            item_id: row.dataset.itemId || '',
+            description: row.querySelector("td:nth-child(2) input").value,
+            hsn_sac: row.querySelector("td:nth-child(3) input").value,
+            HSN_SAC: row.querySelector("td:nth-child(3) input").value,
+            quantity,
+            unit_price,
+            gst_rate,
+            rate: gst_rate,
+            taxable_value: lineTotals.taxable_value,
+            total: lineTotals.total,
+            specification: getSpecification(row.querySelector("td:nth-child(2) input").value)
+        };
+    });
+    const otherCharges = chargeRows.map(row => {
+        const price = Number(row.querySelector("td:nth-child(3) input").value) || 0;
+        const gst_rate = Number(row.querySelector("td:nth-child(4) input").value) || 0;
+        const lineTotals = calculateLineTotals(1, price, gst_rate);
+        return {
+            description: row.querySelector("td:nth-child(2) input").value,
+            price,
+            gst_rate,
+            rate: gst_rate,
+            taxable_value: lineTotals.taxable_value,
+            total: lineTotals.total,
+            specification: getSpecification(row.querySelector("td:nth-child(2) input").value)
+        };
+    });
+
     return {
+        schema_version: 2,
         quotation_id: document.getElementById("id").value,
-        isCustomId: isCustomId, // True if user manually typed the ID
+        quotation_no: document.getElementById("id").value,
+        isUpdate: sessionStorage.getItem('currentTab-status') === 'update',
+        isCustomId: false,
         projectName: document.getElementById("project-name").value,
+        project_name: document.getElementById("project-name").value,
         quotationDate: document.getElementById("quotation-date").value,
+        quotation_date: document.getElementById("quotation-date").value,
+        valid_till: document.getElementById("valid-till")?.value || '',
+        quotation_status: document.getElementById("quotation-status")?.value || 'Draft',
         buyerCustomerId: document.getElementById("buyer-customer-id")?.value || '',
+        customer_id: document.getElementById("buyer-customer-id")?.value || '',
         buyerName: document.getElementById("buyer-name").value,
-        buyerAddress: document.getElementById("buyer-address").value,
+        buyerAddress: [
+            (document.getElementById("buyer-address-line1") as HTMLInputElement)?.value || "",
+            (document.getElementById("buyer-address-line2") as HTMLInputElement)?.value || "",
+            [
+                (document.getElementById("buyer-city") as HTMLInputElement)?.value || "",
+                (document.getElementById("buyer-state") as HTMLInputElement)?.value || ""
+            ].filter(Boolean).join(", "),
+            [
+                (document.getElementById("buyer-country") as HTMLInputElement)?.value || "",
+                (document.getElementById("buyer-pincode") as HTMLInputElement)?.value || ""
+            ].filter(Boolean).join(" - ")
+        ].filter(Boolean).join("\n"),
         buyerPhone: document.getElementById("buyer-phone").value,
         buyerEmail: document.getElementById("buyer-email").value,
         buyerGSTIN: document.getElementById("buyer-gstin").value,
-        items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
-            description: row.querySelector("td:nth-child(2) input").value,
-            HSN_SAC: row.querySelector("td:nth-child(3) input").value,
-            quantity: Number(row.querySelector("td:nth-child(4) input").value) || 0,
-            unit_price: Number(row.querySelector("td:nth-child(5) input").value) || 0,
-            rate: Number(row.querySelector("td:nth-child(6) input").value) || 0,
-            specification: getSpecification(row.querySelector("td:nth-child(2) input").value)
-        })),
-        non_items: Array.from(document.querySelectorAll("#non-items-table tbody tr")).map(row => ({
-            description: row.querySelector("td:nth-child(2) input").value,
-            price: Number(row.querySelector("td:nth-child(3) input").value) || 0,
-            rate: Number(row.querySelector("td:nth-child(4) input").value) || 0,
-            specification: getSpecification(row.querySelector("td:nth-child(2) input").value)
-        })),
+        customer_snapshot: {
+            name: document.getElementById("buyer-name").value,
+            phone: document.getElementById("buyer-phone").value,
+            email: document.getElementById("buyer-email").value,
+            gstin: document.getElementById("buyer-gstin").value,
+            billing_address: getBillingAddressSnapshot()
+        },
+        discount: Number(document.getElementById("quotation-discount")?.value) || 0,
+        items,
+        other_charges: otherCharges,
+        non_items: otherCharges,
         totalTax: totalTax,
         totalAmountNoTax: totalAmountNoTax,
         totalAmountTax: totalAmountTax,
@@ -1689,7 +1961,16 @@ function collectFormData() {
         letter_3: document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[2]?.innerText.trim() || '',
         notes: Array.from(document.querySelector("#preview-content .notes-section ul")?.querySelectorAll("li") || []).map(li => li.innerText.trim()),
         termsAndConditions: document.querySelector("#preview-content .terms-section")?.innerHTML.trim() || '',
-        headline: document.querySelector("#preview-content .headline-section p[contenteditable]")?.innerText.trim() || ''
+        headline: document.querySelector("#preview-content .headline-section p[contenteditable]")?.innerText.trim() || '',
+        content: {
+            subject: document.querySelector("#preview-content .quotation-letter-content p[contenteditable]")?.innerText.replace("Subject:", "").trim() || '',
+            letter_1: document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[1]?.innerText.trim() || '',
+            letter_2: Array.from(document.querySelectorAll("#preview-content .quotation-letter-content ul[contenteditable] li") || []).map(li => li.innerText.trim()),
+            letter_3: document.querySelectorAll("#preview-content .quotation-letter-content p[contenteditable]")[2]?.innerText.trim() || '',
+            notes: Array.from(document.querySelector("#preview-content .notes-section ul")?.querySelectorAll("li") || []).map(li => li.innerText.trim()),
+            terms_and_conditions: document.querySelector("#preview-content .terms-section")?.innerHTML.trim() || '',
+            headline: document.querySelector("#preview-content .headline-section p[contenteditable]")?.innerText.trim() || ''
+        }
     };
 }
 
@@ -1700,98 +1981,131 @@ function collectFormData() {
  * This is called by globalScript.js via the hook.
  */
 window.validateCurrentStep = async function () {
-    // currentStep is a global variable from globalScript.js
+    let stepValid = true;
+    let firstInvalidElement: HTMLElement | null = null;
+
+    const setFieldValidation = (input: HTMLElement | null, isValid: boolean, message: string = "") => {
+        if (!input) return;
+        
+        // Remove default purple ring and any existing validation classes
+        input.classList.remove('border-gray-300', 'border-red-500', 'border-green-500', 'focus:ring-purple-500', 'focus:ring-red-500', 'focus:ring-green-500');
+        
+        let errorP = input.parentElement?.querySelector('.inline-error') as HTMLElement;
+        
+        if (isValid) {
+            input.classList.add('border-green-500', 'focus:ring-green-500');
+            if (errorP) errorP.remove();
+        } else {
+            input.classList.add('border-red-500', 'focus:ring-red-500');
+            if (!errorP && input.parentElement) {
+                errorP = document.createElement('p');
+                errorP.className = 'text-red-500 text-xs mt-1 font-medium inline-error';
+                input.parentElement.appendChild(errorP);
+            }
+            if (errorP) errorP.textContent = message;
+            if (!firstInvalidElement) firstInvalidElement = input;
+            stepValid = false;
+        }
+    };
 
     if (currentStep === 1) {
-        const projectName = document.getElementById('project-name');
-        const quoteDate = document.getElementById('quotation-date');
-        const idInput = document.getElementById('id');
-        const enteredId = idInput.value.trim();
-
-        // Check for duplicate ID if not in update mode and ID is provided
-        if (sessionStorage.getItem('currentTab-status') !== 'update' && enteredId) {
-            try {
-                const response = await fetch(`/quotation/${enteredId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.quotation) {
-                        window.electronAPI.showAlert1("Quotation with this ID already exists. Please use a different ID.");
-                        idInput.focus();
-                        return false;
-                    }
-                }
-                // 404 is expected for new custom IDs - this is the desired outcome
-            } catch (error) {
-                // Network errors should block, but don't log 404s as errors
-                console.error("Error checking for duplicate quotation ID:", error);
-                window.electronAPI.showAlert1("Error verifying Quotation ID. Please try again.");
-                return false;
-            }
-        }
+        const projectName = document.getElementById('project-name') as HTMLInputElement;
+        const quoteDate = document.getElementById('quotation-date') as HTMLInputElement;
 
         if (!projectName.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the Project Name.");
-            projectName.focus();
-            return false;
+            setFieldValidation(projectName, false, "Please enter the Project Name.");
+        } else {
+            setFieldValidation(projectName, true);
         }
+
         if (!quoteDate.value) {
-            window.electronAPI.showAlert1("Please select a Quotation Date.");
-            quoteDate.focus();
-            return false;
+            setFieldValidation(quoteDate, false, "Please select a Quotation Date.");
+        } else {
+            setFieldValidation(quoteDate, true);
         }
     }
 
     if (currentStep === 2) {
-        const buyerName = document.getElementById('buyer-name');
-        const buyerAddress = document.getElementById('buyer-address');
-        const buyerPhone = document.getElementById('buyer-phone');
-        const buyerEmail = document.getElementById('buyer-email');
+        syncBuyerName();
 
-        if (!buyerName.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the Buyer Name.");
-            buyerName.focus();
-            return false;
+        const firstNameInput = document.getElementById('buyer-first-name') as HTMLInputElement;
+        const line1Input = document.getElementById('buyer-address-line1') as HTMLInputElement;
+        const cityInput = document.getElementById('buyer-city') as HTMLInputElement;
+        const stateInput = document.getElementById('buyer-state') as HTMLInputElement;
+        const pincodeInput = document.getElementById('buyer-pincode') as HTMLInputElement;
+        const buyerPhone = document.getElementById('buyer-phone') as HTMLInputElement;
+        const buyerEmail = document.getElementById('buyer-email') as HTMLInputElement;
+        const buyerGstin = document.getElementById('buyer-gstin') as HTMLInputElement;
+
+        if (!firstNameInput.value.trim()) {
+            setFieldValidation(firstNameInput, false, "Please enter the Buyer First Name.");
+        } else {
+            setFieldValidation(firstNameInput, true);
         }
-        if (!buyerAddress.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the Address.");
-            buyerAddress.focus();
-            return false;
+
+        if (!line1Input.value.trim()) {
+            setFieldValidation(line1Input, false, "Please enter Address Line 1.");
+        } else {
+            setFieldValidation(line1Input, true);
         }
-        if (!buyerPhone.value.trim()) {
-            window.electronAPI.showAlert1("Please enter the Phone Number.");
-            buyerPhone.focus();
-            return false;
+
+        if (!cityInput.value.trim()) {
+            setFieldValidation(cityInput, false, "Please enter the City.");
+        } else {
+            setFieldValidation(cityInput, true);
         }
-        // Ensure phone is 10 digits
+
+        if (!stateInput.value.trim()) {
+            setFieldValidation(stateInput, false, "Please enter the State.");
+        } else {
+            setFieldValidation(stateInput, true);
+        }
+
+        const pinValue = pincodeInput.value.trim();
+        if (!pinValue) {
+            setFieldValidation(pincodeInput, false, "Please enter the Pincode.");
+        } else if (!/^\d{6}$/.test(pinValue)) {
+            setFieldValidation(pincodeInput, false, "Please enter a valid 6-digit Pincode.");
+        } else {
+            setFieldValidation(pincodeInput, true);
+        }
+
         const phoneClean = buyerPhone.value.replace(/\D/g, '');
-        if (!/^\d{10}$/.test(phoneClean)) {
-            window.electronAPI.showAlert1("Please enter a valid 10-digit phone number.");
-            buyerPhone.focus();
-            return false;
+        if (!buyerPhone.value.trim()) {
+            setFieldValidation(buyerPhone, false, "Please enter the Phone Number.");
+        } else if (!/^\d{10}$/.test(phoneClean)) {
+            setFieldValidation(buyerPhone, false, "Please enter a valid 10-digit phone number.");
+        } else {
+            setFieldValidation(buyerPhone, true);
         }
-        // If email provided, ensure it's valid
+
         if (buyerEmail && buyerEmail.value.trim()) {
             const emailVal = buyerEmail.value.trim();
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(emailVal)) {
-                window.electronAPI.showAlert1("Please enter a valid email address.");
-                buyerEmail.focus();
-                return false;
+                setFieldValidation(buyerEmail, false, "Please enter a valid email address.");
+            } else {
+                setFieldValidation(buyerEmail, true);
             }
+        } else if (buyerEmail) {
+            setFieldValidation(buyerEmail, true); // Optional field
         }
-        // If GSTIN provided, ensure it's exactly 15 characters
-        const buyerGstin = document.getElementById('buyer-gstin');
+
         if (buyerGstin && buyerGstin.value.trim()) {
             if (buyerGstin.value.trim().length !== 15) {
-                window.electronAPI.showAlert1("GSTIN must be exactly 15 characters.");
-                buyerGstin.focus();
-                return false;
+                setFieldValidation(buyerGstin, false, "GSTIN must be exactly 15 characters.");
+            } else {
+                setFieldValidation(buyerGstin, true);
             }
+        } else if (buyerGstin) {
+            setFieldValidation(buyerGstin, true); // Optional field
         }
     }
 
     if (currentStep === 3) {
         const itemsContainer = document.getElementById('items-container');
+        if (!itemsContainer) return false;
+        
         const itemCards = itemsContainer.querySelectorAll('.item-card');
 
         if (itemCards.length === 0) {
@@ -1799,31 +2113,110 @@ window.validateCurrentStep = async function () {
             return false;
         }
 
-        // Validate individual fields inside the cards
-        let isValid = true;
+        const hsnMap: Record<string, number> = {};
+
         itemCards.forEach((card, index) => {
-            if (!isValid) return; // Stop checking if already failed
+            const desc = card.querySelector('.item_name') as HTMLInputElement;
+            const hsn = card.querySelector('.item-field.hsn input') as HTMLInputElement;
+            const qty = card.querySelector('.item-field.qty input') as HTMLInputElement;
+            const price = card.querySelector('.item-field.price input') as HTMLInputElement;
 
-            const desc = card.querySelector('.item_name');
-            const qty = card.querySelector('.item-field.qty input'); // Quantity
-            const price = card.querySelector('.item-field.price input'); // Price
+            if (desc) {
+                if (!desc.value.trim()) {
+                    setFieldValidation(desc, false, `Required.`);
+                } else {
+                    setFieldValidation(desc, true);
+                }
+            }
 
-            if (!desc.value.trim()) {
-                window.electronAPI.showAlert1(`Item #${index + 1}: Description is required.`);
-                desc.focus();
-                isValid = false;
-            } else if (!qty.value || parseFloat(qty.value) <= 0) {
-                window.electronAPI.showAlert1(`Item #${index + 1}: Quantity must be greater than 0.`);
-                qty.focus();
-                isValid = false;
-            } else if (!price.value || parseFloat(price.value) <= 0) {
-                window.electronAPI.showAlert1(`Item #${index + 1}: Unit Price must be greater than 0.`);
-                price.focus();
-                isValid = false;
+            if (qty) {
+                if (!qty.value || parseFloat(qty.value) <= 0) {
+                    setFieldValidation(qty, false, `Required.`);
+                } else {
+                    setFieldValidation(qty, true);
+                }
+            }
+
+            if (price) {
+                if (!price.value || parseFloat(price.value) <= 0) {
+                    setFieldValidation(price, false, `Required.`);
+                } else {
+                    setFieldValidation(price, true);
+                }
+            }
+
+            const rate = card.querySelector('.item-field.rate input') as HTMLInputElement;
+            if (rate) {
+                if (!rate.value.trim()) {
+                    setFieldValidation(rate, false, `Required.`);
+                } else {
+                    setFieldValidation(rate, true);
+                }
+            }
+
+            if (hsn) {
+                if (!hsn.value.trim()) {
+                    setFieldValidation(hsn, false, `Required.`);
+                } else {
+                    const hsnVal = hsn.value.trim().toUpperCase();
+                    const descVal = desc?.value.trim().toLowerCase() || '';
+                    if (hsnMap[hsnVal] !== undefined) {
+                        const firstIdx = hsnMap[hsnVal];
+                        const firstCard = itemCards[firstIdx] as Element;
+                        const firstDesc = (firstCard.querySelector('.item_name') as HTMLInputElement)?.value.trim().toLowerCase() || '';
+                        if (firstDesc !== descVal) {
+                            setFieldValidation(hsn, false, `HSN "${hsnVal}" is used by Item #${firstIdx + 1}.`);
+                        } else {
+                            setFieldValidation(hsn, true);
+                        }
+                    } else {
+                        hsnMap[hsnVal] = index;
+                        setFieldValidation(hsn, true);
+                    }
+                }
             }
         });
+    }
 
-        if (!isValid) return false;
+    if (currentStep === 4) {
+        const nonItemsContainer = document.getElementById('non-items-container');
+        if (nonItemsContainer) {
+            const nonItemCards = nonItemsContainer.querySelectorAll('.non-item-card');
+            nonItemCards.forEach((card, index) => {
+                const desc = card.querySelector('.non-item-field.description input') as HTMLInputElement;
+                const price = card.querySelector('.non-item-field.price input') as HTMLInputElement;
+                const rate = card.querySelector('.non-item-field.rate input') as HTMLInputElement;
+
+                if (desc) {
+                    if (!desc.value.trim()) {
+                        setFieldValidation(desc, false, `Required.`);
+                    } else {
+                        setFieldValidation(desc, true);
+                    }
+                }
+
+                if (price) {
+                    if (!price.value || parseFloat(price.value) <= 0) {
+                        setFieldValidation(price, false, `Required.`);
+                    } else {
+                        setFieldValidation(price, true);
+                    }
+                }
+
+                if (rate) {
+                    if (!rate.value.trim()) {
+                        setFieldValidation(rate, false, `Required.`);
+                    } else {
+                        setFieldValidation(rate, true);
+                    }
+                }
+            });
+        }
+    }
+
+    if (!stepValid && firstInvalidElement) {
+        firstInvalidElement.focus();
+        return false;
     }
 
     return true;
@@ -1859,17 +2252,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Expose the function to be called from other scripts
 document.addEventListener('DOMContentLoaded', () => {
-    // Global delegation for quantity inputs to ensure no decimals
-    document.body.addEventListener('keypress', function (e) {
-        if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(4)')?.querySelector('input') === e.target)) {
-            if (e.key === '.' || e.key === 'e' || e.key === '-' || e.key === '+') {
-                e.preventDefault();
-            }
+    // Decimals are now allowed for quantity inputs, so global blocking is removed
+    document.body.addEventListener('change', function (e) {
+        if (e.target && e.target.matches('.item_name')) {
+            autofillStockItem(e.target);
         }
     });
+
+    // --- Dynamic Validation Feedback ---
     document.body.addEventListener('input', function (e) {
-        if (e.target && (e.target.matches('.item-field.qty input') || e.target.closest('td:nth-child(4)')?.querySelector('input') === e.target)) {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        const target = e.target as HTMLElement;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA')) {
+            if (target.classList.contains('border-red-500')) {
+                target.classList.remove('border-red-500', 'focus:ring-red-500');
+                target.classList.add('border-gray-300', 'focus:ring-purple-500');
+                const errorP = target.parentElement?.querySelector('.inline-error');
+                if (errorP) errorP.remove();
+            }
         }
     });
 });

@@ -31,12 +31,22 @@ async function getSettingsValue(key: string, defaultValue: string | null = null)
 }
 
 /**
- * Helper to get Prefix and Date Part
+ * Return the financial-year start year for a given date.
+ * FY runs April 1 – March 31: Jan/Feb/Mar belong to the previous year's FY.
+ */
+function getFYStartYear(date: Date): number {
+    const month = date.getMonth(); // 0-indexed
+    return month < 3 ? date.getFullYear() - 1 : date.getFullYear();
+}
+
+/**
+ * Helper to get Prefix, Date Part, counter key, and isYearly flag
  */
 async function getPrefixAndDateParams(moduleKey: string): Promise<{
     prefix: string;
     datePart: string;
-    perDayCounterKey: string;
+    counterKey: string;
+    isYearly: boolean;
 }> {
     const mk = String(moduleKey);
     const mapping = moduleToSettingKey[mk] || {};
@@ -52,63 +62,88 @@ async function getPrefixAndDateParams(moduleKey: string): Promise<{
     const yy = String(yyyy).slice(-2);
     const datePart = `${yy}${mm}${dd}`;
 
-    const perDayCounterKey = `${mk}-${datePart}`;
+    let isYearly = false;
+    let counterKey = `${mk}-${datePart}`;
 
-    return { prefix, datePart, perDayCounterKey };
+    if (moduleKey === 'quotation') {
+        isYearly = true;
+        const fyStart = getFYStartYear(now);
+        counterKey = `${mk}-FY${fyStart}`;
+    }
+
+    return { prefix, datePart, counterKey, isYearly };
 }
 
 /**
  * READ-ONLY: Peeks at the next ID without incrementing the DB.
  * Use this for displaying the ID in the UI (Preview).
+ * Format: prefix + YYMMDD + seq (4-digit for quotation, 2-digit for others)
  */
 export async function previewNextId(moduleKey: string): Promise<string> {
-    const { prefix, datePart, perDayCounterKey } = await getPrefixAndDateParams(moduleKey);
+    const { prefix, datePart, counterKey, isYearly } = await getPrefixAndDateParams(moduleKey);
 
-    // Just find the current counter state, DO NOT update
-    const docDay = await CounterModel.findOne({ _id: perDayCounterKey }).lean();
+    const docDay = await CounterModel.findOne({ _id: counterKey }).lean();
 
-    const currentSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 0;
+    let nextSeq = 0;
+    let paddedSeq = "";
+    
+    if (isYearly) {
+        nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq + 1 : 1;
+        paddedSeq = String(nextSeq).padStart(4, "0");
+    } else {
+        nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 0;
+        paddedSeq = String(nextSeq).padStart(2, "0");
+    }
 
-    const paddedSeq = String(currentSeq).padStart(2, "0");
+    // For quotation: embed the current date so the full ID is prefix+YYMMDD+seq
     return `${prefix}${datePart}${paddedSeq}`;
 }
 
 /**
- * WRITE: Atomically increments the counter.
+ * WRITE: Atomically increments the counter and returns the generated ID.
  * Use this ONLY in the final SAVE route/controller.
+ * Format: prefix + YYMMDD + seq (4-digit for quotation, 2-digit for others)
  */
 export async function generateNextId(moduleKey: string): Promise<string> {
-    const { prefix, datePart, perDayCounterKey } = await getPrefixAndDateParams(moduleKey);
+    const { prefix, datePart, counterKey, isYearly } = await getPrefixAndDateParams(moduleKey);
 
     // Atomically increment
     const docDay = await CounterModel.findOneAndUpdate(
-        { _id: perDayCounterKey },
+        { _id: counterKey },
         { $inc: { seq: 1 } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
-    // 0-based logic:
-    // If it was 0, it becomes 1. We want 0. So subtract 1.
-    let seqDay = docDay && typeof docDay.seq === "number" ? docDay.seq - 1 : 0;
-    if (seqDay < 0) seqDay = 0;
+    let nextSeq = 0;
+    let paddedSeq = "";
+    
+    if (isYearly) {
+        nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 1;
+        paddedSeq = String(nextSeq).padStart(4, "0");
+    } else {
+        nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq - 1 : 0;
+        if (nextSeq < 0) nextSeq = 0;
+        paddedSeq = String(nextSeq).padStart(2, "0");
+    }
 
-    const paddedSeq = String(seqDay).padStart(2, "0");
     return `${prefix}${datePart}${paddedSeq}`;
 }
 
 /**
  * Syncs the counter if a custom ID matches the auto-generated pattern.
- * Prevents collision when user enters an ID like INV26010605 manually.
+ * Prevents collision when user enters an ID like QUO2601050005 manually.
  * Call this AFTER successfully saving a document with a custom ID.
  */
 export async function syncCounterIfNeeded(moduleKey: string, customId: string): Promise<void> {
     if (!customId || typeof customId !== "string") return;
 
-    const { prefix, datePart, perDayCounterKey } = await getPrefixAndDateParams(moduleKey);
+    const { prefix, datePart, counterKey, isYearly } = await getPrefixAndDateParams(moduleKey);
 
     // Build regex to match {prefix}{YYMMDD}{seq} pattern
     const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const pattern = new RegExp(`^${escapedPrefix}(\\d{6})(\\d{2,})$`);
+    // For quotation (yearly) seq is 4 digits; for daily counters it's 2 digits
+    const seqPattern = isYearly ? "(\\d{4,})" : "(\\d{2,})";
+    const pattern = new RegExp(`^${escapedPrefix}(\\d{6})${seqPattern}$`);
 
     const match = customId.match(pattern);
     if (!match) return; // Custom ID doesn't match auto-generated format
@@ -116,19 +151,29 @@ export async function syncCounterIfNeeded(moduleKey: string, customId: string): 
     const idDatePart = match[1];
     const idSeq = parseInt(match[2], 10);
 
-    // Only sync if the date part matches today's date
-    if (idDatePart !== datePart) return;
+    // For non-yearly, only sync if date matches exactly.
+    if (!isYearly && idDatePart !== datePart) return;
 
     // Get current counter value
-    const docDay = await CounterModel.findOne({ _id: perDayCounterKey }).lean();
+    const docDay = await CounterModel.findOne({ _id: counterKey }).lean();
     const currentSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 0;
 
-    // If custom ID's sequence >= current counter, update counter to avoid collision
-    if (idSeq >= currentSeq) {
-        await CounterModel.findOneAndUpdate(
-            { _id: perDayCounterKey },
-            { $set: { seq: idSeq + 1 } },
-            { upsert: true }
-        );
+    if (isYearly) {
+        if (idSeq > currentSeq) {
+            await CounterModel.findOneAndUpdate(
+                { _id: counterKey },
+                { $set: { seq: idSeq } },
+                { upsert: true }
+            );
+        }
+    } else {
+        // If custom ID's sequence >= current counter, update counter to avoid collision
+        if (idSeq >= currentSeq) {
+            await CounterModel.findOneAndUpdate(
+                { _id: counterKey },
+                { $set: { seq: idSeq + 1 } },
+                { upsert: true }
+            );
+        }
     }
 }

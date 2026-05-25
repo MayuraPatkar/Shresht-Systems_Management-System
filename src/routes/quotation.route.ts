@@ -1,317 +1,402 @@
 import { Router, Request, Response } from 'express';
-import { QuotationModel } from '../models';
+import { Types } from 'mongoose';
+import { CustomerModel, InvoiceModel, ItemModel, QuotationModel } from '../models';
 import logger from '../utils/logger';
 import { previewNextId, generateNextId, syncCounterIfNeeded } from '../utils/idGenerator';
+import {
+    normalizeQuotationDocument,
+    normalizeQuotationPayload,
+    QUOTATION_SCHEMA_VERSION,
+    QUOTATION_STATUSES,
+} from '../utils/quotationSchema';
 
 const router: Router = Router();
 
-/**
- * Route: Generate a Preview ID
- * Description: Returns the next likely ID for UI display.
- * Does NOT increment the database counter.
- */
-router.get("/generate-id", async (req: Request, res: Response) => {
+function activeQuotationQuery(extra: any = {}) {
+    return {
+        'deletion.is_deleted': { $ne: true },
+        is_deleted: { $ne: true },
+        ...extra,
+    };
+}
+
+async function findCustomer(customerId?: string) {
+    if (!customerId || !Types.ObjectId.isValid(customerId)) return null;
+    return CustomerModel.findOne({ _id: customerId, 'deletion.is_deleted': false }).lean();
+}
+
+async function enrichItemsFromStock(items: any[]) {
+    return Promise.all((items || []).map(async item => {
+        let stockItem: any = null;
+        if (item.item_id && Types.ObjectId.isValid(item.item_id)) {
+            stockItem = await ItemModel.findById(item.item_id).lean();
+        }
+        if (!stockItem && item.description) {
+            stockItem = await ItemModel.findOne({
+                item_name: { $regex: new RegExp(`^${String(item.description).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+                'deletion.is_deleted': { $ne: true },
+            }).lean();
+        }
+
+        if (!stockItem) return item;
+        return {
+            ...item,
+            item_id: item.item_id || stockItem._id,
+            description: item.description || stockItem.item_name,
+            specification: item.specification || stockItem.specifications || '',
+            hsn_sac: item.hsn_sac || stockItem.hsn_sac || '',
+            unit: item.unit || stockItem.unit || '',
+            unit_price: Number(item.unit_price || stockItem.selling_price || stockItem.purchase_price || 0),
+            gst_rate: Number(item.gst_rate || stockItem.gst_rate || 0),
+        };
+    }));
+}
+
+async function expireStaleQuotations() {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    await QuotationModel.updateMany(
+        activeQuotationQuery({
+            valid_till: { $lt: now },
+            quotation_status: { $nin: ['Converted', 'Rejected', 'Expired'] },
+        }),
+        { $set: { quotation_status: 'Expired' } }
+    );
+}
+
+function buildListQuery(req: Request) {
+    const { status, customer_id, expired, converted, includeDeleted, startDate, endDate } = req.query;
+    const query: any = includeDeleted === 'true' ? {} : activeQuotationQuery();
+
+    if (status && QUOTATION_STATUSES.includes(status as any)) query.quotation_status = status;
+    if (customer_id && Types.ObjectId.isValid(String(customer_id))) query.customer_id = customer_id;
+    if (converted === 'true') query.converted_invoice_id = { $exists: true, $ne: null };
+    if (expired === 'true') {
+        query.$or = [{ quotation_status: 'Expired' }, { valid_till: { $lt: new Date() } }];
+    }
+    if (startDate || endDate) {
+        query.quotation_date = {};
+        if (startDate) query.quotation_date.$gte = new Date(String(startDate));
+        if (endDate) query.quotation_date.$lte = new Date(String(endDate));
+    }
+
+    return query;
+}
+
+router.get("/generate-id", async (_req: Request, res: Response) => {
     try {
-        const quotation_id = await previewNextId('quotation');
-        return res.status(200).json({ quotation_id });
+        const quotation_no = await previewNextId('quotation');
+        return res.status(200).json({ quotation_no, quotation_id: quotation_no });
     } catch (err: unknown) {
         logger.error('Error generating quotation preview', { error: (err as Error).message || err });
         return res.status(500).json({ error: 'Failed to generate quotation id' });
     }
 });
 
-// Route to get all quotations
 router.get("/all", async (req: Request, res: Response) => {
     try {
-        const quotations = await QuotationModel.find().sort({ createdAt: -1 });
-        return res.status(200).json(quotations);
+        await expireStaleQuotations();
+        const quotations = await QuotationModel.find(buildListQuery(req)).populate('customer_id', 'customer_type').sort({ createdAt: -1 }).lean();
+        return res.status(200).json(quotations.map(normalizeQuotationDocument));
     } catch (error: unknown) {
         logger.error("Error fetching quotations:", error);
         return res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
-// Helper: Validate item structure
-function isValidItem(item: any): boolean {
-    return (
-        typeof item === 'object' &&
-        typeof item.description === 'string' &&
-        item.description.trim() !== '' &&
-        typeof item.quantity !== 'undefined' &&
-        !isNaN(Number(item.quantity)) &&
-        typeof item.unit_price !== 'undefined' &&
-        !isNaN(Number(item.unit_price))
-    );
-}
-
-/**
- * Route: Save or Update Quotation
- * Description: Creates a new Quotation (generating a fresh ID) or updates an existing one.
- */
 router.post("/save-quotation", async (req: Request, res: Response) => {
     try {
-        let {
-            quotation_id = '', // Could be a preview ID (new) or existing ID (update)
-            projectName,
-            quotationDate,
-            buyerCustomerId = '',
-            buyerName = '',
-            buyerAddress = '',
-            buyerPhone = '',
-            buyerEmail = '',
-            buyerGSTIN = '',
-            items = [],
-            other_charges = null as any,
-            discount = 0,
-            totalTax = 0,
-            totalAmountNoTax = 0,
-            totalAmountTax = 0,
+        const incomingId = String(req.body.quotation_no || req.body.quotation_id || '').trim();
+        const customer = await findCustomer(req.body.customer_id || req.body.buyerCustomerId);
+        const enrichedItems = await enrichItemsFromStock(req.body.items || []);
+        const payload = normalizeQuotationPayload({ ...req.body, items: enrichedItems }, customer);
 
-            subject = '',
-            letter_1 = '',
-            letter_2 = [] as string[],
-            letter_3 = '',
-            headline = '',
-            notes = [] as string[],
-            termsAndConditions = '',
-            duplicated_from = null as string | null, // Audit trail: source quotation ID if duplicated
-            isCustomId = false, // Tracks if user manually entered a custom ID
-
-        } = req.body;
-
-        // Validate and map items array
-        if (!Array.isArray(items)) {
-            return res.status(400).json({ message: 'Items must be an array.' });
+        if (!payload.project_name) {
+            return res.status(400).json({ message: 'Project name is required.' });
         }
-        const mappedItems = items.map((item: any) => ({
-            ...item,
-            hsn_sac: item.HSN_SAC || item.hsn_sac || ''
-        }));
-        
-        for (const item of mappedItems) {
-            if (!isValidItem(item)) {
-                return res.status(400).json({ message: 'Invalid item structure or missing fields.' });
-            }
+        if (!payload.customer_snapshot?.name) {
+            return res.status(400).json({ message: 'Customer name is required.' });
+        }
+        if (!Array.isArray(payload.items) || payload.items.length === 0) {
+            return res.status(400).json({ message: 'At least one quotation item is required.' });
         }
 
-        // Build customer_snapshot sub-document
-        const customer_snapshot: any = {};
-        if (buyerName) customer_snapshot.name = buyerName;
-        if (buyerPhone) customer_snapshot.phone = buyerPhone;
-        if (buyerEmail) customer_snapshot.email = buyerEmail;
-        if (buyerGSTIN) customer_snapshot.gstin = buyerGSTIN;
-        if (buyerAddress) {
-            // Accept address as string (legacy) or structured object
-            if (typeof buyerAddress === 'string') {
-                customer_snapshot.billing_address = { line1: buyerAddress };
-            } else {
-                customer_snapshot.billing_address = buyerAddress;
-            }
-        }
-
-        // Build totals sub-document
-        const totals = {
-            total_tax: totalTax,
-            taxable_value: totalAmountNoTax,
-            grand_total: totalAmountTax
-        };
-
-        // Build content sub-document
-        const content = {
-            subject,
-            letter_1,
-            letter_2,
-            letter_3,
-            headline: headline || projectName,
-            notes,
-            terms_and_conditions: termsAndConditions
-        };
-
-        // Attempt to find an existing quotation using the provided ID
+        const isUpdate = req.body.isUpdate === true || req.body.isUpdate === 'true';
         let quotation: any = null;
-        if (quotation_id) {
-            quotation = await QuotationModel.findOne({ quotation_no: quotation_id });
+        if (isUpdate && incomingId) {
+            quotation = await QuotationModel.findOne({ $or: [{ quotation_no: incomingId }, { quotation_id: incomingId }] } as any);
         }
 
-        if (quotation) {
-            // ---------------------------------------------------------
-            // SCENARIO 1: UPDATE EXISTING QUOTATION
-            // ---------------------------------------------------------
-            if (!projectName) {
-                return res.status(400).json({ message: 'Project name is required for updates.' });
-            }
-
-            quotation.project_name = projectName;
-            quotation.quotation_date = quotationDate;
-            if (buyerCustomerId) {
-                quotation.customer_id = buyerCustomerId;
-            }
-            quotation.customer_snapshot = customer_snapshot;
-            quotation.items = mappedItems;
-            quotation.other_charges = other_charges;
-            quotation.discount = discount;
-            quotation.totals = totals;
-            quotation.content = content;
-
+        if (!quotation) {
+            // Always generate next ID server-side for new quotations
+            const newId = await generateNextId('quotation');
+            quotation = new QuotationModel({ ...payload, quotation_no: newId });
         } else {
-            // ---------------------------------------------------------
-            // SCENARIO 2: CREATE NEW QUOTATION
-            // ---------------------------------------------------------
-
-            // Use provided custom ID only if user manually typed it, otherwise generate new
-            let newId: string;
-            if (isCustomId && quotation_id && quotation_id.trim()) {
-                // Check if this custom ID already exists
-                const existingCustom = await QuotationModel.findOne({ quotation_no: quotation_id.trim() });
-                if (existingCustom) {
-                    return res.status(400).json({ message: `Quotation ID "${quotation_id}" already exists. Please use a different ID.` });
-                }
-                newId = quotation_id.trim();
-            } else {
-                // Generate the permanent ID now (increments the counter)
-                newId = await generateNextId('quotation');
+            if (quotation.quotation_status === 'Converted') {
+                return res.status(409).json({ message: 'Converted quotations cannot be edited.' });
             }
-
-            if (!projectName) {
-                return res.status(400).json({ message: 'Project name is required.' });
-            }
-
-            quotation = new QuotationModel({
-                quotation_no: newId,
-                project_name: projectName,
-                quotation_date: quotationDate,
-                customer_id: buyerCustomerId || undefined,
-                customer_snapshot,
-                items: mappedItems,
-                other_charges,
-                discount,
-                totals,
-                content,
-                duplicated_from, // Audit trail for duplicated quotations
-            });
+            // Keep quotation_no immutable: ignore payload or incomingId override
+            Object.assign(quotation, payload, { quotation_no: quotation.quotation_no });
         }
 
-        // Save the quotation
+        quotation.schema_version = QUOTATION_SCHEMA_VERSION;
+        quotation.is_deleted = false;
+        quotation.deletion = { ...(quotation.deletion || {}), is_deleted: false };
+
         const savedQuotation = await quotation.save();
 
-        // If a custom ID was used for a NEW quotation, sync the counter to prevent collisions
-        if (isCustomId && savedQuotation.quotation_no) {
-            await syncCounterIfNeeded('quotation', savedQuotation.quotation_no);
-        }
-
-        res.status(201).json({
+        const normalized = normalizeQuotationDocument(savedQuotation);
+        return res.status(201).json({
             message: 'Quotation saved successfully',
-            quotation: savedQuotation,
-            quotation_id: savedQuotation.quotation_no // Return the final ID
+            quotation: normalized,
+            quotation_no: normalized.quotation_no,
+            quotation_id: normalized.quotation_no,
         });
-
     } catch (error: unknown) {
         logger.error('Error saving quotation:', error);
-        res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
+        return res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
     }
 });
 
-// Route to get the 10 most recent quotations
-router.get("/recent-quotations", async (req: Request, res: Response) => {
+router.get("/recent-quotations", async (_req: Request, res: Response) => {
     try {
-        const recentQuotations = await QuotationModel.find()
+        await expireStaleQuotations();
+        const recentQuotations = await QuotationModel.find(activeQuotationQuery())
             .sort({ createdAt: -1 })
-            .limit(10)
-            .select("project_name quotation_no quotation_date customer_snapshot totals");
+            .limit(25)
+            .lean();
 
-        res.status(200).json({
+        return res.status(200).json({
             message: "Recent quotations retrieved successfully",
-            quotation: recentQuotations,
+            quotation: recentQuotations.map(normalizeQuotationDocument),
         });
     } catch (error: unknown) {
         logger.error("Error retrieving recent quotations:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: (error as Error).message,
-        });
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
-// Route to get a quotation by ID
-router.get("/:quotationId", async (req: Request, res: Response) => {
+router.patch("/:quotationId/status", async (req: Request, res: Response) => {
     try {
-        const { quotationId } = req.params;
-
-        if (!quotationId) {
-            return res.status(400).json({ message: 'Quotation ID is required.' });
+        const status = req.body.quotation_status || req.body.status;
+        if (!QUOTATION_STATUSES.includes(status)) {
+            return res.status(400).json({ message: 'Invalid quotation status.' });
         }
-
-        const quotation = await QuotationModel.findOne({ quotation_no: quotationId });
-        if (!quotation) {
-            return res.status(404).json({ message: 'Quotation not found' });
-        }
-
-        res.status(200).json({
-            message: "Quotation retrieved successfully",
-            quotation,
-        });
-
+        const quotation = await QuotationModel.findOneAndUpdate(
+            activeQuotationQuery({ quotation_no: req.params.quotationId }),
+            { $set: { quotation_status: status } },
+            { new: true }
+        );
+        if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
+        return res.status(200).json({ quotation: normalizeQuotationDocument(quotation) });
     } catch (error: unknown) {
-        logger.error("Error retrieving quotation:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: (error as Error).message,
-        });
+        logger.error("Error updating quotation status:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
-// Route to delete a quotation
-router.delete("/:quotationId", async (req: Request, res: Response) => {
+router.post("/:quotationId/convert-to-invoice", async (req: Request, res: Response) => {
     try {
-        const { quotationId } = req.params;
-
-        if (!quotationId) {
-            return res.status(400).json({ message: 'Quotation ID is required.' });
+        const quotation = await QuotationModel.findOne(activeQuotationQuery({ quotation_no: req.params.quotationId }));
+        if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
+        if ((quotation as any).converted_invoice_id || quotation.quotation_status === 'Converted') {
+            return res.status(409).json({ message: 'Quotation has already been converted.', converted_invoice_id: (quotation as any).converted_invoice_id });
         }
 
-        const quotation = await QuotationModel.findOne({ quotation_no: quotationId });
-        if (!quotation) {
-            return res.status(404).json({ message: 'Quotation not found' });
-        }
-
-        await QuotationModel.deleteOne({ quotation_no: quotationId });
-
-        res.status(200).json({ message: 'Quotation deleted successfully' });
-    } catch (error: unknown) {
-        logger.error("Error deleting quotation:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: (error as Error).message,
+        const normalized = normalizeQuotationDocument(quotation);
+        const invoiceNo = await generateNextId('invoice');
+        const invoice = new InvoiceModel({
+            schema_version: 2,
+            invoice_no: invoiceNo,
+            quotation_id: quotation._id,
+            project_name: normalized.project_name,
+            invoice_date: req.body.invoice_date || new Date(),
+            invoice_status: 'Draft',
+            customer_id: normalized.customer_id,
+            customer_snapshot: normalized.customer_snapshot,
+            items_original: normalized.items,
+            items_duplicate: normalized.items,
+            other_charges: normalized.other_charges?.[0],
+            discount: normalized.discount,
+            totals_original: normalized.totals,
+            totals_duplicate: normalized.totals,
+            content: {
+                declaration: '',
+                terms_and_conditions: normalized.content?.terms_and_conditions || '',
+            },
         });
+        const savedInvoice = await invoice.save();
+
+        quotation.quotation_status = 'Converted';
+        (quotation as any).converted_invoice_id = savedInvoice._id;
+        await quotation.save();
+
+        return res.status(201).json({
+            message: 'Quotation converted to invoice successfully',
+            quotation: normalizeQuotationDocument(quotation),
+            invoice: savedInvoice,
+            invoice_no: invoiceNo,
+            invoice_id: invoiceNo,
+        });
+    } catch (error: unknown) {
+        logger.error("Error converting quotation:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
-// Search quotations
+router.post("/:quotationId/restore", async (req: Request, res: Response) => {
+    try {
+        const quotation = await QuotationModel.findOneAndUpdate(
+            { quotation_no: req.params.quotationId },
+            {
+                $set: {
+                    is_deleted: false,
+                    'deletion.is_deleted': false,
+                },
+                $unset: {
+                    deleted_at: 1,
+                    deleted_by: 1,
+                    'deletion.deleted_at': 1,
+                    'deletion.deleted_by': 1,
+                },
+            },
+            { new: true }
+        );
+        if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
+        return res.status(200).json({ message: 'Quotation restored successfully', quotation: normalizeQuotationDocument(quotation) });
+    } catch (error: unknown) {
+        logger.error("Error restoring quotation:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
 router.get('/search/:query', async (req: Request, res: Response) => {
     const { query } = req.params;
-    if (!query) {
-        return res.status(400).send('Query parameter is required.');
-    }
+    if (!query) return res.status(400).send('Query parameter is required.');
 
     try {
-        const quotations = await QuotationModel.find({
+        await expireStaleQuotations();
+        const regex = { $regex: query, $options: 'i' };
+        const quotations = await QuotationModel.find(activeQuotationQuery({
             $or: [
-                { quotation_no: { $regex: query, $options: 'i' } },
-                { project_name: { $regex: query, $options: 'i' } },
-                { 'customer_snapshot.name': { $regex: query, $options: 'i' } },
-                { 'customer_snapshot.phone': { $regex: query, $options: 'i' } },
-                { 'customer_snapshot.email': { $regex: query, $options: 'i' } }
-            ]
-        } as any);
+                { quotation_no: regex },
+                { quotation_id: regex } as any,
+                { project_name: regex },
+                { quotation_status: regex },
+                { 'customer_snapshot.name': regex },
+                { 'customer_snapshot.phone': regex },
+                { 'customer_snapshot.email': regex },
+            ],
+        })).lean();
 
-        if (quotations.length === 0) {
-            return res.status(404).send('No quotations found.');
-        } else {
-            return res.status(200).json({ quotation: quotations });
-        }
+        if (quotations.length === 0) return res.status(404).send('No quotations found.');
+        return res.status(200).json({ quotation: quotations.map(normalizeQuotationDocument) });
     } catch (err: unknown) {
         logger.error(err);
         return res.status(500).send('Failed to fetch quotations.');
+    }
+});
+
+// Get all soft-deleted (trashed) quotations — MUST be before /:quotationId
+router.get("/trash", async (_req: Request, res: Response) => {
+    try {
+        const deleted = await QuotationModel.find({
+            $or: [
+                { 'deletion.is_deleted': true },
+                { is_deleted: true },
+            ],
+        }).sort({ 'deletion.deleted_at': -1 }).lean();
+        return res.status(200).json({ quotation: deleted.map(normalizeQuotationDocument) });
+    } catch (error: unknown) {
+        logger.error("Error fetching trashed quotations:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+router.get("/:quotationId", async (req: Request, res: Response) => {
+    try {
+        const { quotationId } = req.params;
+        if (!quotationId) return res.status(400).json({ message: 'Quotation ID is required.' });
+
+        await expireStaleQuotations();
+        const quotation = await QuotationModel.findOne({ $or: [{ quotation_no: quotationId }, { quotation_id: quotationId }] } as any);
+        if (!quotation || (quotation as any).is_deleted || quotation.deletion?.is_deleted) {
+            return res.status(404).json({ message: 'Quotation not found' });
+        }
+
+        return res.status(200).json({
+            message: "Quotation retrieved successfully",
+            quotation: normalizeQuotationDocument(quotation),
+        });
+    } catch (error: unknown) {
+        logger.error("Error retrieving quotation:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+// Restore all soft-deleted quotations
+router.post("/trash/restore-all", async (_req: Request, res: Response) => {
+    try {
+        const result = await QuotationModel.updateMany(
+            { $or: [{ 'deletion.is_deleted': true }, { is_deleted: true }] },
+            {
+                $set: { is_deleted: false, 'deletion.is_deleted': false },
+                $unset: { deleted_at: 1, deleted_by: 1, 'deletion.deleted_at': 1, 'deletion.deleted_by': 1 },
+            }
+        );
+        return res.status(200).json({ message: `Restored ${result.modifiedCount} quotation(s)` });
+    } catch (error: unknown) {
+        logger.error("Error restoring all quotations:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+// Permanently delete all trashed quotations
+router.delete("/trash", async (_req: Request, res: Response) => {
+    try {
+        const result = await QuotationModel.deleteMany({
+            $or: [{ 'deletion.is_deleted': true }, { is_deleted: true }],
+        });
+        return res.status(200).json({ message: `Permanently deleted ${result.deletedCount} quotation(s)` });
+    } catch (error: unknown) {
+        logger.error("Error permanently deleting all quotations:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+// Permanently delete a single trashed quotation
+router.delete("/trash/:quotationId", async (req: Request, res: Response) => {
+    try {
+        const result = await QuotationModel.findOneAndDelete({ quotation_no: req.params.quotationId });
+        if (!result) return res.status(404).json({ message: 'Quotation not found in trash' });
+        return res.status(200).json({ message: 'Quotation permanently deleted' });
+    } catch (error: unknown) {
+        logger.error("Error permanently deleting quotation:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+router.delete("/:quotationId", async (req: Request, res: Response) => {
+    try {
+        const quotation = await QuotationModel.findOneAndUpdate(
+            activeQuotationQuery({ quotation_no: req.params.quotationId }),
+            {
+                $set: {
+                    is_deleted: true,
+                    deleted_at: new Date(),
+                    deleted_by: String(req.body?.deleted_by || req.query.deleted_by || 'Admin'),
+                    'deletion.is_deleted': true,
+                    'deletion.deleted_at': new Date(),
+                    'deletion.deleted_by': String(req.body?.deleted_by || req.query.deleted_by || 'Admin'),
+                },
+            },
+            { new: true }
+        );
+        if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
+        return res.status(200).json({ message: 'Quotation archived successfully', quotation: normalizeQuotationDocument(quotation) });
+    } catch (error: unknown) {
+        logger.error("Error deleting quotation:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });
 
