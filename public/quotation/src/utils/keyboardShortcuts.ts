@@ -60,11 +60,11 @@ function initShortcutsModal() {
 function renderShortcutSection(section: any) {
     return `
         <div class="shortcuts-section">
-            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
                 <i class="${section.icon}"></i>
                 ${section.title}
             </h3>
-            <div class="space-y-2">
+            <div class="space-y-1">
                 ${section.items.map(renderShortcutRow).join('')}
             </div>
         </div>
@@ -74,7 +74,7 @@ function renderShortcutSection(section: any) {
 function renderShortcutRow(item: any) {
     return `
         <div class="shortcut-row">
-            <span class="text-gray-700">${item.label}</span>
+            <span class="text-xs font-semibold text-slate-600">${item.label}</span>
             ${renderShortcutKeys(item.keys)}
         </div>
     `;
@@ -92,11 +92,19 @@ function renderShortcutKeys(keys: string[]) {
 function showShortcutsModal() {
     if (!shortcutsModalRef) return;
     shortcutsModalRef.classList.remove('hidden');
+    // Force a reflow
+    void shortcutsModalRef.offsetHeight;
+    shortcutsModalRef.classList.remove('opacity-0');
 }
 
 function hideShortcutsModal() {
     if (!shortcutsModalRef) return;
-    shortcutsModalRef.classList.add('hidden');
+    shortcutsModalRef.classList.add('opacity-0');
+    setTimeout(() => {
+        if (shortcutsModalRef) {
+            shortcutsModalRef.classList.add('hidden');
+        }
+    }, 200);
 }
 
 // ====== Keyboard Shortcuts ======
