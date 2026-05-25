@@ -45,6 +45,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
     document.getElementById(activeId)?.classList.add('active');
   }
+
+  // Restore and persist sidebar scroll position
+  const sidebarNav = document.getElementById('sidebar-nav');
+  if (sidebarNav) {
+    const savedScrollTop = sessionStorage.getItem('sidebarScrollTop');
+    if (savedScrollTop) {
+      const scrollTop = parseInt(savedScrollTop, 10);
+      sidebarNav.scrollTop = scrollTop;
+      // Fallback for potential layout rendering delays
+      requestAnimationFrame(() => {
+        if (sidebarNav) {
+          sidebarNav.scrollTop = scrollTop;
+        }
+      });
+    }
+
+    sidebarNav.addEventListener('scroll', () => {
+      sessionStorage.setItem('sidebarScrollTop', sidebarNav.scrollTop.toString());
+    });
+  }
 });
 
 document.addEventListener("keydown", function (event) {
