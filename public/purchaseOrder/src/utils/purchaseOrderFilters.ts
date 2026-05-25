@@ -10,7 +10,7 @@
 
     // Apply filters to purchase orders
     function applyPurchaseOrderFilters() {
-        const filtered = (window as any).applyFilters(allPurchaseOrders, {
+        const filtered = (window as any).applyFilters((window as any).allPurchaseOrders || [], {
             dateFilter: currentFilters.dateFilter,
             sortBy: currentFilters.sortBy,
             dateField: 'createdAt',

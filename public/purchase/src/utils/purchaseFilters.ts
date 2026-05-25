@@ -10,7 +10,7 @@
 
     // Apply filters to purchases
     function applyPurchaseFilters() {
-        const filtered = (window as any).applyFilters(allPurchases, {
+        const filtered = (window as any).applyFilters((window as any).allPurchases || [], {
             dateFilter: currentFilters.dateFilter,
             sortBy: currentFilters.sortBy,
             dateField: 'createdAt',
@@ -21,7 +21,7 @@
         });
         
         if ((window as any).purchaseTable) {
-            (window as any).purchaseTable.renderPurchaseOrders(filtered);
+            (window as any).purchaseTable.renderPurchases(filtered);
         }
     }
 
@@ -98,7 +98,7 @@
         }
     }
     
-    (window as any).allPurchaseOrders = allPurchases; // Keep same window property name for list search sync
-    (window as any).applyPurchaseOrderFilters = applyPurchaseFilters;
-    (window as any).initPurchaseOrderFilters = initPurchaseFilters;
+    (window as any).allPurchases = allPurchases;
+    (window as any).applyPurchaseFilters = applyPurchaseFilters;
+    (window as any).initPurchaseFilters = initPurchaseFilters;
 })();

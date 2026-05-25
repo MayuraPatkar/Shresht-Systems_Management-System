@@ -40,6 +40,70 @@
             });
         }
 
+        // Dynamically toggle Header elements visibility based on active section
+        const homeSection = document.getElementById('home');
+        const newSection = document.getElementById('new');
+        const viewSection = document.getElementById('view');
+
+        const updateHeaderVisibility = () => {
+            const isHomeVisible = homeSection ? window.getComputedStyle(homeSection).display !== 'none' : true;
+            const isFormActive = newSection ? window.getComputedStyle(newSection).display !== 'none' : false;
+            const isViewActive = viewSection ? window.getComputedStyle(viewSection).display !== 'none' : false;
+
+            const searchFilterContainer = document.getElementById('search-filter-container');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const archivedBtn = document.getElementById('archived-purchases-btn');
+            const showDeletedBtn = document.getElementById('showDeletedBtn');
+            const newPurchaseBtn = document.getElementById('new-purchase');
+
+            if (isFormActive) {
+                // Creation mode: hide search, filter, archived, trash, refresh, new-purchase. Show home.
+                if (searchFilterContainer) searchFilterContainer.style.display = 'none';
+                if (refreshBtn) refreshBtn.style.display = 'none';
+                if (archivedBtn) archivedBtn.style.display = 'none';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+                if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
+                if (homeBtn) homeBtn.style.display = 'flex';
+            } else if (isViewActive) {
+                // View mode: hide search, filter, archived, trash. Show home, new-purchase, refresh.
+                if (searchFilterContainer) searchFilterContainer.style.display = 'none';
+                if (refreshBtn) refreshBtn.style.display = 'none';
+                if (archivedBtn) archivedBtn.style.display = 'none';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+                if (newPurchaseBtn) newPurchaseBtn.style.display = 'flex';
+                if (homeBtn) homeBtn.style.display = 'flex';
+            } else {
+                // Dashboard management mode
+                if (searchFilterContainer) searchFilterContainer.style.display = 'flex';
+                if (refreshBtn) refreshBtn.style.display = 'flex';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'flex';
+                if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
+
+                // Contextual elements based on Trash mode
+                const isTrashOpen = !!(window as any).showDeletedItems;
+                if (isTrashOpen) {
+                    if (archivedBtn) archivedBtn.style.display = 'none';
+                    if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
+                } else {
+                    if (archivedBtn) archivedBtn.style.display = 'flex';
+                    if (newPurchaseBtn) newPurchaseBtn.style.display = 'flex';
+                }
+            }
+        };
+
+        if (homeSection && homeBtn) {
+            const observer = new MutationObserver(updateHeaderVisibility);
+            observer.observe(homeSection, { attributes: true, attributeFilter: ['style'] });
+            if (newSection) {
+                observer.observe(newSection, { attributes: true, attributeFilter: ['style'] });
+            }
+            if (viewSection) {
+                observer.observe(viewSection, { attributes: true, attributeFilter: ['style'] });
+            }
+            (window as any).updateHeaderVisibility = updateHeaderVisibility;
+            updateHeaderVisibility();
+        }
+
         // Handle URL parameters for cross-module navigation
         const urlParams = new URLSearchParams(window.location.search);
         const viewId = urlParams.get('view');
@@ -81,13 +145,9 @@
     function showNewPurchaseForm() {
         sessionStorage.removeItem('currentTab-status');
 
-        // Hide Search bar and Filter button
-        const searchFilterContainer = document.getElementById('search-filter-container');
-        if (searchFilterContainer) searchFilterContainer.style.display = 'none';
-
-        // Hide View Preview button
-        const viewPreview = document.getElementById('view-preview');
-        if (viewPreview) viewPreview.style.display = 'none';
+        if (typeof (window as any).updateHeaderVisibility === 'function') {
+            (window as any).updateHeaderVisibility();
+        }
 
         if ((window as any).showNewDocumentForm) {
             (window as any).showNewDocumentForm({
@@ -104,6 +164,10 @@
             if (home) home.style.display = 'none';
             if (newSection) newSection.style.display = 'block';
             if (viewSection) viewSection.style.display = 'none';
+        }
+
+        if (typeof (window as any).changeStep === 'function') {
+            (window as any).changeStep(1);
         }
 
         // Set default date to today

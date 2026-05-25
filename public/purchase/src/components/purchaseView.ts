@@ -128,13 +128,10 @@
             const viewSection = document.getElementById('view');
             if (viewSection) viewSection.style.display = 'block';
 
-            // Show home button, hide search & new button
-            const homeBtn = document.getElementById('home-btn');
-            if (homeBtn) homeBtn.style.display = 'flex';
-            const newBtn = document.getElementById('new-purchase');
-            if (newBtn) newBtn.style.display = 'none';
-            const searchFilterContainer = document.getElementById('search-filter-container');
-            if (searchFilterContainer) searchFilterContainer.style.display = 'none';
+            // Update header elements visibility contextually
+            if (typeof (window as any).updateHeaderVisibility === 'function') {
+                (window as any).updateHeaderVisibility();
+            }
 
         } catch (error) {
             console.error("Error fetching purchase:", error);

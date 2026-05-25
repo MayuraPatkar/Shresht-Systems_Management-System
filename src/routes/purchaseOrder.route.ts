@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { PurchaseOrderModel, ItemModel, StockMovementModel } from '../models';
+import { PurchaseOrderModel } from '../models';
 import logger from '../utils/logger';
 import { previewNextId, generateNextId } from '../utils/idGenerator';
 
@@ -116,128 +116,6 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
             });
         }
 
-        // ---------------------------------------------------------
-        // STOCK MANAGEMENT LOGIC
-        // ---------------------------------------------------------
-
-        // 1. Adjust Stock Quantities (Revert Old + Add New)
-        // We do this to ensure Stock collection is always accurate based on the PO content.
-
-        // A. Revert previous items
-        if (previousItems.length > 0) {
-            for (const prevItem of previousItems) {
-                if (!prevItem.description) continue;
-                const itemName = prevItem.description.trim();
-                const stockItem = await ItemModel.findOne({ item_name: itemName }) as any;
-                if (stockItem) {
-                    const reversalQty = Number(prevItem.quantity || 0);
-                    const stockBefore = stockItem.stock_quantity || 0;
-                    stockItem.stock_quantity = stockBefore - reversalQty;
-                    await stockItem.save();
-                }
-            }
-        }
-
-        // B. Add current items
-        for (const item of items) {
-            if (!item.description) continue;
-            const itemName = item.description.trim();
-            let stockItem = await ItemModel.findOne({ item_name: itemName }) as any;
-
-            const addQty = Number(item.quantity || 0);
-
-            if (stockItem) {
-                const stockBefore = stockItem.stock_quantity || 0;
-                stockItem.stock_quantity = stockBefore + addQty;
-                stockItem.purchase_price = Number(item.unit_price) || stockItem.purchase_price;
-                stockItem.gst_rate = Number(item.gst_rate || item.rate) || stockItem.gst_rate;
-                stockItem.specifications = item.specification || stockItem.specifications;
-                stockItem.brand = item.brand || item.company || stockItem.brand;
-                stockItem.category = item.category || stockItem.category;
-                stockItem.item_type = item.item_type || item.type || stockItem.item_type;
-                stockItem.unit = item.unit || stockItem.unit || 'pc';
-                stockItem.updatedAt = new Date();
-                await stockItem.save();
-            } else {
-                await ItemModel.create({
-                    item_name: itemName,
-                    hsn_sac: item.hsn_sac || "",
-                    specifications: item.specification || "",
-                    brand: item.brand || item.company || "",
-                    category: item.category || "",
-                    purchase_price: Number(item.unit_price) || 0,
-                    gst_rate: Number(item.gst_rate || item.rate) || 0,
-                    margin: 0,
-                    stock_quantity: addQty,
-                    item_type: item.item_type || item.type || 'Material',
-                    unit: item.unit || 'pc',
-                } as any);
-            }
-        }
-
-        // 2. Sync Stock Movements (Update Existing, Create New, Delete Removed)
-        const currentPOId = purchase_order_no || (purchaseOrder ? purchaseOrder.purchase_order_no : 'NEW');
-
-        // Fetch existing movements for this PO (using new schema: reference.type + reference.id)
-        const existingMovements = await StockMovementModel.find({
-            'reference.type': 'PurchaseOrder',
-            'reference.number': currentPOId
-        });
-
-        // Create a pool of available movements to match against
-        const movementPool = [...existingMovements];
-
-        for (const item of items) {
-            if (!item.description) continue;
-            const itemName = item.description.trim();
-            const qty = Number(item.quantity || 0);
-            const totalVal = qty * (Number(item.unit_price) || 0);
-
-            // Find a matching movement in the pool
-            const matchIndex = movementPool.findIndex((m: any) => m.item_name === itemName);
-
-            if (matchIndex !== -1) {
-                // UPDATE existing movement
-                const movement = movementPool[matchIndex] as any;
-                movement.quantity = qty;
-                movement.total_value = totalVal;
-                // Update item_id if we can find the stock item
-                const stockItem = await ItemModel.findOne({ item_name: itemName });
-                if (stockItem) {
-                    movement.item_id = stockItem._id;
-                    movement.stock_after = (stockItem as any).stock_quantity || 0;
-                    movement.stock_before = movement.stock_after - qty;
-                }
-                await movement.save();
-
-                // Remove from pool so we don't use it again
-                movementPool.splice(matchIndex, 1);
-            } else {
-                // CREATE new movement - look up stock item to get ID
-                const stockItem = await ItemModel.findOne({ item_name: itemName });
-                const stockQty = stockItem ? (stockItem as any).stock_quantity || 0 : 0;
-                await StockMovementModel.create({
-                    item_id: stockItem ? stockItem._id : null,
-                    item_name: itemName,
-                    direction: 'IN',
-                    quantity: qty,
-                    stock_before: stockQty - qty,
-                    stock_after: stockQty,
-                    reference: {
-                        type: 'PurchaseOrder',
-                        id: purchaseOrder._id || undefined,
-                        number: currentPOId
-                    },
-                    remarks: 'Purchase Order Received',
-                    total_value: totalVal
-                } as any);
-            }
-        }
-
-        // Delete any remaining movements in the pool (items removed from PO)
-        for (const unusedMovement of movementPool) {
-            await StockMovementModel.deleteOne({ _id: unusedMovement._id });
-        }
 
         // Save the document
         const savedPurchaseOrder = await purchaseOrder.save();
@@ -263,7 +141,7 @@ router.get("/recent-purchase-orders", async (req: Request, res: Response) => {
 
         res.status(200).json({
             message: "Recent purchase orders retrieved successfully",
-            purchaseOrder: recentPurchaseOrders,
+            purchaseOrders: recentPurchaseOrders,
         });
     } catch (error: unknown) {
         logger.error("Error retrieving recent purchase orders:", error);
@@ -294,24 +172,6 @@ router.delete("/:purchaseOrderId", async (req: Request, res: Response) => {
         if (!purchaseOrder) {
             return res.status(404).json({ message: 'Purchase order not found' });
         }
-
-        // Reverse stock changes (remove the quantity added)
-        if (purchaseOrder.items && purchaseOrder.items.length > 0) {
-            for (const item of purchaseOrder.items) {
-                if (!item.description) continue;
-                const stockItem = await ItemModel.findOne({ item_name: item.description }) as any;
-                if (stockItem) {
-                    stockItem.stock_quantity = (stockItem.stock_quantity || 0) - Number(item.quantity || 0);
-                    await stockItem.save();
-                }
-            }
-        }
-
-        // Delete associated stock movements
-        await StockMovementModel.deleteMany({
-            'reference.type': 'PurchaseOrder',
-            'reference.number': purchaseOrderId
-        });
 
         await PurchaseOrderModel.deleteOne({ purchase_order_no: purchaseOrderId });
         res.status(200).json({ message: 'Purchase order deleted successfully' });

@@ -260,7 +260,7 @@ router.get("/recent-purchases", async (req: Request, res: Response) => {
 
         res.status(200).json({
             message: "Recent purchases retrieved successfully",
-            purchase: recentPurchases,
+            purchases: recentPurchases,
         });
     } catch (error: unknown) {
         logger.error("Error retrieving recent purchases:", error);

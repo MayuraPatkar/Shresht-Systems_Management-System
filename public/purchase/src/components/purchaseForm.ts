@@ -1,7 +1,7 @@
 // @ts-nocheck
 (function () {
     // Define totalSteps globally for purchase
-    (window as any).totalSteps = 3;
+    (window as any).totalSteps = 4;
 
     // Bind currentStep property on window to sync with the global declarative currentStep
     declare let currentStep: number;
@@ -874,6 +874,10 @@
                 const data = await (window as any).purchaseApi.generateId();
                 (document.getElementById('id') as HTMLInputElement).value = data.purchase_no;
                 purchaseId = data.purchase_no;
+                // Generate preview if we are on the preview step
+                if ((window as any).currentStep === (window as any).totalSteps) {
+                    generateSimplePreview();
+                }
             }
         } catch (error) {
             console.error("Error fetching purchase ID:", error);
@@ -1532,10 +1536,190 @@
         return true;
     };
 
+    function generateSimplePreview() {
+        const previewContent = document.getElementById("preview-content");
+        if (!previewContent) return;
+
+        const data = collectFormData();
+        
+        let subtotal = 0;
+        let totalTax = 0;
+        data.items.forEach(item => {
+            const qty = Number(item.quantity) || 0;
+            const unitPrice = Number(item.unit_price) || 0;
+            const gstRate = Number(item.gst_rate) || 0;
+            const taxableValue = qty * unitPrice;
+            const taxAmount = (taxableValue * gstRate) / 100;
+            subtotal += taxableValue;
+            totalTax += taxAmount;
+        });
+        const grandTotal = data.totals.grand_total;
+
+        let specsHtml = "";
+        const specItems = data.items.filter(item => item.specification && item.specification.trim());
+        if (specItems.length > 0) {
+            specsHtml = `
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="flex items-center gap-2 bg-slate-50 px-5 py-3 border-b border-slate-200">
+                        <i class="fas fa-clipboard-list text-blue-600 text-base"></i>
+                        <h3 class="font-bold text-slate-700">Item Specifications</h3>
+                    </div>
+                    <div class="p-5 space-y-3">
+                        ${specItems.map((item, idx) => `
+                            <div class="flex gap-4 items-start border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                                <span class="px-2 py-0.5 bg-slate-100 rounded text-xs font-semibold text-slate-600">${idx + 1}</span>
+                                <div class="flex-1">
+                                    <span class="font-bold text-slate-800 text-sm block">${escapeHtml(item.description)}</span>
+                                    <p class="text-sm text-slate-600 mt-1 italic whitespace-pre-wrap">${escapeHtml(item.specification)}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        const itemsHtml = data.items.map((item, idx) => `
+            <tr class="hover:bg-slate-50/50">
+                <td class="px-5 py-3 text-center text-slate-500 font-semibold">${idx + 1}</td>
+                <td class="px-5 py-3">
+                    <div class="font-bold text-slate-900">${escapeHtml(item.description)}</div>
+                    <div class="text-xs text-slate-500 flex gap-3 mt-0.5">
+                        ${item.brand ? `<span>Brand: <strong>${escapeHtml(item.brand)}</strong></span>` : ''}
+                        ${item.category ? `<span>Category: <strong>${escapeHtml(item.category)}</strong></span>` : ''}
+                        <span>Type: <strong>${escapeHtml(item.item_type)}</strong></span>
+                    </div>
+                </td>
+                <td class="px-5 py-3 text-center font-mono text-slate-600">${escapeHtml(item.hsn_sac || '-')}</td>
+                <td class="px-5 py-3 text-right font-semibold tabular-nums text-slate-700">${item.quantity} ${escapeHtml(item.unit)}</td>
+                <td class="px-5 py-3 text-right font-mono tabular-nums text-slate-700">₹${Number(item.unit_price).toFixed(2)}</td>
+                <td class="px-5 py-3 text-center font-semibold text-slate-600">${item.gst_rate}%</td>
+                <td class="px-5 py-3 text-right font-bold font-mono tabular-nums text-slate-900">₹${Number(item.total).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        const formattedDate = data.purchase_date 
+            ? new Date(data.purchase_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) 
+            : '-';
+
+        previewContent.innerHTML = `
+            <div class="space-y-6 text-slate-800">
+                <!-- Top cards: Supplier and Document Info -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Supplier Details Card -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 shadow-sm">
+                        <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200">
+                            <i class="fas fa-truck text-blue-600 text-lg"></i>
+                            <h3 class="font-bold text-slate-700">Supplier Info</h3>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="text-lg font-bold text-slate-900">${escapeHtml(data.supplier_snapshot.name || '-')}</div>
+                            <div class="text-sm text-slate-600 leading-relaxed">
+                                ${escapeHtml([
+                                    data.supplier_snapshot.address.line1,
+                                    data.supplier_snapshot.address.line2,
+                                    data.supplier_snapshot.address.city,
+                                    data.supplier_snapshot.address.state,
+                                    data.supplier_snapshot.address.pincode
+                                ].filter(Boolean).join(', '))}
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-semibold text-slate-500 mt-2">
+                                <div><i class="fas fa-phone mr-1"></i> ${escapeHtml(data.supplier_snapshot.phone || '-')}</div>
+                                <div><i class="fas fa-envelope mr-1"></i> ${escapeHtml(data.supplier_snapshot.email || '-')}</div>
+                                <div class="sm:col-span-2"><i class="fas fa-id-card mr-1"></i> GSTIN: <span class="text-slate-700">${escapeHtml(data.supplier_snapshot.gstin || '-')}</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Document Info Card -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 shadow-sm">
+                        <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200">
+                            <i class="fas fa-file-invoice text-blue-600 text-lg"></i>
+                            <h3 class="font-bold text-slate-700">Purchase Details</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="block text-xs font-semibold text-slate-500">Purchase ID</span>
+                                <span class="font-bold text-slate-900 text-base">${escapeHtml(data.purchase_no || 'Draft')}</span>
+                            </div>
+                            <div>
+                                <span class="block text-xs font-semibold text-slate-500">Purchase Invoice ID</span>
+                                <span class="font-bold text-slate-900 text-base">${escapeHtml(data.purchase_invoice_no || '-')}</span>
+                            </div>
+                            <div>
+                                <span class="block text-xs font-semibold text-slate-500">Purchase Date</span>
+                                <span class="font-bold text-slate-900 text-base">${escapeHtml(formattedDate)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Table Card -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="flex items-center gap-2 bg-slate-50 px-5 py-3 border-b border-slate-200">
+                        <i class="fas fa-list text-green-600 text-base"></i>
+                        <h3 class="font-bold text-slate-700">Purchase Items</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase">
+                                    <th class="px-5 py-3 w-12 text-center">#</th>
+                                    <th class="px-5 py-3">Description</th>
+                                    <th class="px-5 py-3 w-28 text-center">HSN/SAC</th>
+                                    <th class="px-5 py-3 w-28 text-right">Qty</th>
+                                    <th class="px-5 py-3 w-32 text-right">Unit Price</th>
+                                    <th class="px-5 py-3 w-20 text-center">GST %</th>
+                                    <th class="px-5 py-3 w-36 text-right">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${itemsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Specifications Card -->
+                ${specsHtml}
+
+                <!-- Totals Section -->
+                <div class="flex justify-end">
+                    <div class="w-full md:w-80 bg-slate-50 border border-slate-200 rounded-xl p-5 shadow-sm space-y-3 text-sm">
+                        <div class="flex justify-between text-slate-600">
+                            <span>Subtotal</span>
+                            <span class="font-mono tabular-nums">₹${subtotal.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between text-slate-600 border-b border-slate-200 pb-2">
+                            <span>GST Tax</span>
+                            <span class="font-mono tabular-nums">₹${totalTax.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between font-bold text-slate-900 text-lg">
+                            <span>Total Amount</span>
+                            <span class="font-mono tabular-nums text-green-700">₹${grandTotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function escapeHtml(str: any) {
+        if (str === null || str === undefined) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     // Replace default next button handler / form hook
     window.beforeStepAdvance = async function (step) {
         if (step === 2) {
             await populateSpecifications();
+        } else if (step === 3) {
+            generateSimplePreview();
         }
         return true;
     };
@@ -1640,4 +1824,6 @@
     (window as any).addPurchaseItem = addPurchaseItem;
     (window as any).renumberItems = renumberItems;
     (window as any).closeAllSuggestions = closeAllSuggestions;
+    (window as any).generatePreview = generateSimplePreview;
+    (window as any).generateSimplePreview = generateSimplePreview;
 })();
