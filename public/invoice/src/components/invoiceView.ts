@@ -714,9 +714,9 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
                             <td class="px-4 py-3"></td>
                             <td class="px-4 py-3"></td>
                             <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
-                            <td class="px-4 py-3"></td>
                             <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(view_totalTaxable, 2)}</td>
-                            <td class="px-4 py-3"></td>
+                            <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(view_totalTaxable, 2)}</td>
+                            <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(view_totalCGST + view_totalSGST, 2)}</td>
                             <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(view_grandTotal, 2)}</td>
                         </tr>
                     `;
@@ -727,7 +727,7 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
                             <td class="px-4 py-3"></td>
                             <td class="px-4 py-3"></td>
                             <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
-                            <td class="px-4 py-3"></td>
+                            <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(view_totalTaxable, 2)}</td>
                             <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(view_grandTotal, 2)}</td>
                         </tr>
                     `;
