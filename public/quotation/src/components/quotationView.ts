@@ -538,7 +538,7 @@ async function renderQuotationView(quotation, viewType) {
                 <tr>
                     <td colspan="3" class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
                     <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
-                    <td class="px-4 py-3"></td>
+                    <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
                     <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalTax > 0 ? '₹ ' + formatIndian(totalTax, 2) : '-'}</td>
                     <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(grandTotal, 2)}</td>
                 </tr>
@@ -548,7 +548,7 @@ async function renderQuotationView(quotation, viewType) {
                 <tr>
                     <td colspan="3" class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
                     <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
-                    <td class="px-4 py-3"></td>
+                    <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
                     <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
                 </tr>
             `;
@@ -719,7 +719,7 @@ async function renderQuotationView(quotation, viewType) {
                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax</th>
-                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
             `;
         } else if (detailViewType === 1) {
             tableHead.innerHTML = `
@@ -738,7 +738,7 @@ async function renderQuotationView(quotation, viewType) {
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Specifications</th>
                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax %</th>
-                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
             `;
         }
     }
