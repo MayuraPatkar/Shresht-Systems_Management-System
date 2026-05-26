@@ -181,6 +181,49 @@ main {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
 }
 
+/* Step 3: Quantities & Pricing Row Inputs & Unit Display */
+#new .item-pricing-row .item-field input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    width: 100%;
+}
+
+#new .item-pricing-row .item-field input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+#new .item-pricing-row .item-field input.item_name_readonly {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #475569 !important;
+    font-weight: 500;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+#new .item-pricing-row .item-field.unit-display {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    height: 38px;
+    box-sizing: border-box;
+}
+
 #items-container-pricing {
     overflow-x: visible;
     overflow-y: visible;

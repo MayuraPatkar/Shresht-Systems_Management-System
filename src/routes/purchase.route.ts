@@ -105,8 +105,8 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
             // SCENARIO 2: CREATE NEW PURCHASE
             // ---------------------------------------------------------
 
-            // Generate the permanent ID now (increments the counter)
-            const newId = await generateNextId('purchase');
+            // Use user-entered purchase invoice ID as the purchase ID
+            const newId = purchase_no || purchase_invoice_no || await generateNextId('purchase');
 
             purchase = new PurchaseModel({
                 purchase_no: newId,

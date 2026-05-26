@@ -1007,21 +1007,15 @@
     }
 
     async function getId() {
-        try {
-            if ((window as any).purchaseApi) {
-                const data = await (window as any).purchaseApi.generateId();
-                (document.getElementById('id') as HTMLInputElement).value = data.purchase_no;
-                purchaseId = data.purchase_no;
-                // Generate preview if we are on the preview step
-                if ((window as any).currentStep === (window as any).totalSteps) {
-                    generateSimplePreview();
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching purchase ID:", error);
-            if ((window as any).electronAPI) {
-                (window as any).electronAPI.showAlert1("Failed to fetch purchase ID. Please try again later.");
-            }
+        const purchaseInvoiceIdEl = document.getElementById("purchase-invoice-id") as HTMLInputElement;
+        const idEl = document.getElementById('id') as HTMLInputElement;
+        if (idEl && purchaseInvoiceIdEl) {
+            idEl.value = purchaseInvoiceIdEl.value;
+            purchaseId = purchaseInvoiceIdEl.value;
+        }
+        // Generate preview if we are on the preview step
+        if ((window as any).currentStep === (window as any).totalSteps) {
+            generateSimplePreview();
         }
     }
 
@@ -1936,6 +1930,16 @@
                         this.value = parts.join('-');
                     }
                 }
+            });
+        }
+
+        // Sync purchase-invoice-id to hidden id field
+        const purchaseInvoiceId = document.getElementById('purchase-invoice-id') as HTMLInputElement;
+        const idField = document.getElementById('id') as HTMLInputElement;
+        if (purchaseInvoiceId && idField) {
+            purchaseInvoiceId.addEventListener('input', function () {
+                idField.value = this.value;
+                purchaseId = this.value;
             });
         }
 
