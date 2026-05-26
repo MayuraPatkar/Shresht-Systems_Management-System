@@ -552,45 +552,76 @@
                     </div>
                 </section>
 
-                <!-- Item List Card -->
+                <!-- Item Information Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-list-ul text-green-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Item List</h2>
+                        <i class="fas fa-info-circle text-green-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Item Information</h2>
                     </div>
-                    <div class="overflow-x-auto" id="view-items-table-container">
-                        <table id="view-items-table" class="w-full text-left border-collapse">
+                    <div class="overflow-x-auto" id="view-items-info-table-container">
+                        <table id="view-items-info-table" class="w-full text-left border-collapse">
                             <thead class="bg-gray-50/40 border-b border-gray-100">
                                 <tr>
                                     <th
-                                        class="w-[6%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Sl. No</th>
                                     <th
-                                        class="w-[20%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        class="w-[35%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Description</th>
                                     <th
-                                        class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        class="w-[15%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         HSN/SAC</th>
                                     <th
-                                        class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        class="w-[20%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Brand</th>
                                     <th
-                                        class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        class="w-[20%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Category</th>
                                     <th
-                                        class="w-[8%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
-                                        Qty</th>
+                                        class="action-header hidden w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Items will be dynamically filled -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Quantity & Finance Card -->
+                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                        <i class="fas fa-calculator text-blue-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Quantity & Finance</h2>
+                    </div>
+                    <div class="overflow-x-auto" id="view-items-finance-table-container">
+                        <table id="view-items-finance-table" class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50/40 border-b border-gray-100">
+                                <tr>
                                     <th
                                         class="w-[8%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
-                                        Unit</th>
+                                        Sl. No</th>
                                     <th
-                                        class="w-[12%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
-                                        Unit Price</th>
+                                        class="w-[25%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        Description</th>
                                     <th
                                         class="w-[10%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
-                                        Rate</th>
+                                        Qty</th>
                                     <th
-                                        class="action-header hidden w-[6%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        Unit</th>
+                                    <th
+                                        class="w-[15%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        Unit Price</th>
+                                    <th
+                                        class="w-[12%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        Tax</th>
+                                    <th
+                                        class="w-[15%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        Total</th>
+                                    <th
+                                        class="action-header hidden w-[8%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Action</th>
                                 </tr>
                             </thead>

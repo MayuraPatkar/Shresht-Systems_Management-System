@@ -111,11 +111,13 @@
             if (dangerZoneSection) dangerZoneSection.classList.remove("hidden");
         }
 
-        // Item List - clear and populate
-        const viewItemsTableBody = document.querySelector("#view-items-table tbody");
+        // Item Lists - clear and populate
+        const viewItemsInfoTableBody = document.querySelector("#view-items-info-table tbody");
+        const viewItemsFinanceTableBody = document.querySelector("#view-items-finance-table tbody");
         const viewSpecificationsTableBody = document.querySelector("#view-specifications-table tbody");
         
-        if (viewItemsTableBody) viewItemsTableBody.innerHTML = "";
+        if (viewItemsInfoTableBody) viewItemsInfoTableBody.innerHTML = "";
+        if (viewItemsFinanceTableBody) viewItemsFinanceTableBody.innerHTML = "";
         if (viewSpecificationsTableBody) viewSpecificationsTableBody.innerHTML = "";
 
         let itemNumber = 1;
@@ -137,7 +139,7 @@
                 totalTaxable += taxableValue;
                 totalTaxAmount += taxAmount;
 
-                if (viewItemsTableBody) {
+                if (viewItemsInfoTableBody) {
                     const row = document.createElement("tr");
                     row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                     row.innerHTML = `
@@ -146,12 +148,23 @@
                         <td class="px-4 py-3 text-sm text-gray-700">${item.hsn_sac || item.HSN_SAC || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.brand || item.company || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.category || '-'}</td>
+                    `;
+                    viewItemsInfoTableBody.appendChild(row);
+                }
+
+                if (viewItemsFinanceTableBody) {
+                    const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
                         <td class="px-4 py-3 text-sm text-right text-gray-900 tabular-nums">${qty}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">${item.unit || 'pc'}</td>
                         <td class="px-4 py-3 text-sm text-right text-gray-700 tabular-nums">₹ ${formatIndian(unitPrice, 2)}</td>
                         <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 tabular-nums">${rate}%</td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 tabular-nums">₹ ${formatIndian(taxableValue + taxAmount, 2)}</td>
                     `;
-                    viewItemsTableBody.appendChild(row);
+                    viewItemsFinanceTableBody.appendChild(row);
                 }
 
                 if (viewSpecificationsTableBody) {
@@ -170,25 +183,23 @@
         });
 
         if (!isEditingInline) {
-            // Set footer totals row
-            const viewItemsTableFoot = document.querySelector("#view-items-table tfoot") as HTMLTableSectionElement | null;
-            if (viewItemsTableFoot) {
-                viewItemsTableFoot.innerHTML = `
+            // Set footer totals row in finance table
+            const viewItemsFinanceTableFoot = document.querySelector("#view-items-finance-table tfoot") as HTMLTableSectionElement | null;
+            if (viewItemsFinanceTableFoot) {
+                viewItemsFinanceTableFoot.innerHTML = `
                     <tr>
                         <td class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
-                        <td class="px-4 py-3"></td>
-                        <td class="px-4 py-3"></td>
-                        <td class="px-4 py-3"></td>
                         <td class="px-4 py-3"></td>
                         <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
                         <td class="px-4 py-3"></td>
                         <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
-                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums"></td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxAmount, 2)}</td>
+                        <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(totalTaxable + totalTaxAmount, 2)}</td>
                     </tr>
                 `;
             }
 
-            // Set totals
+            // Set totals card
             const viewSubtotal = document.getElementById('view-subtotal');
             if (viewSubtotal) viewSubtotal.textContent = `₹ ${formatIndian(totalTaxable, 2)}`;
             
@@ -224,11 +235,12 @@
         let totalTaxAmount = 0;
         let totalQty = 0;
         
-        const rows = document.querySelectorAll("#view-items-table tbody tr");
+        const rows = document.querySelectorAll("#view-items-finance-table tbody tr");
         rows.forEach(row => {
             const qtyInput = row.querySelector(".inline-edit-qty") as HTMLInputElement;
             const priceInput = row.querySelector(".inline-edit-price") as HTMLInputElement;
             const rateInput = row.querySelector(".inline-edit-rate") as HTMLInputElement;
+            const rowTotalSpan = row.querySelector(".inline-edit-row-total") as HTMLSpanElement;
             
             if (qtyInput && priceInput && rateInput) {
                 const qty = parseFloat(qtyInput.value) || 0;
@@ -237,30 +249,35 @@
                 
                 const taxable = qty * price;
                 const tax = (taxable * rate) / 100;
+                const rowTotal = taxable + tax;
                 
                 totalQty += qty;
                 totalTaxable += taxable;
                 totalTaxAmount += tax;
+                
+                if (rowTotalSpan) {
+                    const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
+                    rowTotalSpan.textContent = formatIndian(rowTotal, 2);
+                }
             }
         });
         
         const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
 
-        // Set footer totals row
-        const viewItemsTableFoot = document.querySelector("#view-items-table tfoot") as HTMLTableSectionElement | null;
-        if (viewItemsTableFoot) {
-            viewItemsTableFoot.innerHTML = `
+        // Set footer totals row in finance table
+        const viewItemsFinanceTableFoot = document.querySelector("#view-items-finance-table tfoot") as HTMLTableSectionElement | null;
+        if (viewItemsFinanceTableFoot) {
+            const isEditing = (window as any).isEditingInline;
+            viewItemsFinanceTableFoot.innerHTML = `
                 <tr>
                     <td class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
-                    <td class="px-4 py-3"></td>
-                    <td class="px-4 py-3"></td>
-                    <td class="px-4 py-3"></td>
                     <td class="px-4 py-3"></td>
                     <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
                     <td class="px-4 py-3"></td>
                     <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
-                    <td class="px-4 py-3"></td>
-                    <td class="px-4 py-3 action-cell"></td>
+                    <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxAmount, 2)}</td>
+                    <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(totalTaxable + totalTaxAmount, 2)}</td>
+                    ${isEditing ? '<td class="px-4 py-3 action-cell"></td>' : ''}
                 </tr>
             `;
         }
@@ -280,18 +297,20 @@
     }
 
     function addInlineRow(item: any = {}) {
-        const viewItemsTableBody = document.querySelector("#view-items-table tbody");
+        const viewItemsInfoTableBody = document.querySelector("#view-items-info-table tbody");
+        const viewItemsFinanceTableBody = document.querySelector("#view-items-finance-table tbody");
         const viewSpecificationsTableBody = document.querySelector("#view-specifications-table tbody");
-        if (!viewItemsTableBody || !viewSpecificationsTableBody) return;
+        if (!viewItemsInfoTableBody || !viewItemsFinanceTableBody || !viewSpecificationsTableBody) return;
         
-        const itemNumber = viewItemsTableBody.children.length + 1;
+        const itemNumber = viewItemsInfoTableBody.children.length + 1;
         
         const qty = parseFloat(item.quantity || 0);
         const unitPrice = parseFloat(item.unit_price || 0);
         const rate = parseFloat(item.gst_rate || item.rate || 0);
+        const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
         
-        const row = document.createElement("tr");
-        row.innerHTML = `
+        const infoRow = document.createElement("tr");
+        infoRow.innerHTML = `
             <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
             <td class="px-4 py-3 text-sm text-gray-900">
                 <input type="text" class="inline-edit-desc w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${item.description || ''}">
@@ -304,6 +323,19 @@
             </td>
             <td class="px-4 py-3 text-sm text-gray-900">
                 <input type="text" class="inline-edit-category w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${item.category || ''}">
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-900 action-cell">
+                <button type="button" class="inline-delete-row-btn text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Delete Row">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
+        `;
+        
+        const financeRow = document.createElement("tr");
+        financeRow.innerHTML = `
+            <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
+            <td class="px-4 py-3 text-sm text-gray-900 font-medium">
+                <span class="inline-finance-desc-text">${item.description || '-'}</span>
             </td>
             <td class="px-4 py-3 text-sm text-gray-900">
                 <input type="number" step="any" min="0" class="inline-edit-qty w-20 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" value="${qty}">
@@ -322,23 +354,15 @@
             <td class="px-4 py-3 text-sm font-semibold text-gray-900">
                 <input type="number" step="any" min="0" class="inline-edit-rate w-16 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" value="${rate}">
             </td>
+            <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 tabular-nums">
+                ₹ <span class="inline-edit-row-total">${formatIndian(qty * unitPrice * (1 + rate / 100), 2)}</span>
+            </td>
             <td class="px-4 py-3 text-sm text-gray-900 action-cell">
                 <button type="button" class="inline-delete-row-btn text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Delete Row">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </td>
         `;
-        
-        const deleteBtn = row.querySelector(".inline-delete-row-btn");
-        deleteBtn?.addEventListener("click", () => {
-            const index = Array.from(viewItemsTableBody.children).indexOf(row);
-            row.remove();
-            viewSpecificationsTableBody.children[index]?.remove();
-            renumberRows();
-            calculateInlineTotals();
-        });
-        
-        viewItemsTableBody.appendChild(row);
         
         const specRow = document.createElement("tr");
         specRow.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
@@ -351,17 +375,44 @@
                 <input type="text" class="inline-edit-specification w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${item.specification || ''}">
             </td>
         `;
+
+        const deleteRow = (index: number) => {
+            infoRow.remove();
+            financeRow.remove();
+            specRow.remove();
+            renumberRows();
+            calculateInlineTotals();
+        };
+
+        infoRow.querySelector(".inline-delete-row-btn")?.addEventListener("click", () => {
+            const index = Array.from(viewItemsInfoTableBody.children).indexOf(infoRow);
+            deleteRow(index);
+        });
+
+        financeRow.querySelector(".inline-delete-row-btn")?.addEventListener("click", () => {
+            const index = Array.from(viewItemsFinanceTableBody.children).indexOf(financeRow);
+            deleteRow(index);
+        });
+        
+        viewItemsInfoTableBody.appendChild(infoRow);
+        viewItemsFinanceTableBody.appendChild(financeRow);
         viewSpecificationsTableBody.appendChild(specRow);
         
         calculateInlineTotals();
     }
 
     function renumberRows() {
-        const viewItemsTableBody = document.querySelector("#view-items-table tbody");
+        const viewItemsInfoTableBody = document.querySelector("#view-items-info-table tbody");
+        const viewItemsFinanceTableBody = document.querySelector("#view-items-finance-table tbody");
         const viewSpecificationsTableBody = document.querySelector("#view-specifications-table tbody");
-        if (!viewItemsTableBody || !viewSpecificationsTableBody) return;
+        if (!viewItemsInfoTableBody || !viewItemsFinanceTableBody || !viewSpecificationsTableBody) return;
         
-        Array.from(viewItemsTableBody.children).forEach((row, i) => {
+        Array.from(viewItemsInfoTableBody.children).forEach((row, i) => {
+            const tdNo = row.querySelector("td:first-child");
+            if (tdNo) tdNo.textContent = (i + 1).toString();
+        });
+        
+        Array.from(viewItemsFinanceTableBody.children).forEach((row, i) => {
             const tdNo = row.querySelector("td:first-child");
             if (tdNo) tdNo.textContent = (i + 1).toString();
         });
@@ -392,10 +443,11 @@
             return;
         }
 
-        const itemRows = document.querySelectorAll("#view-items-table tbody tr");
+        const infoRows = document.querySelectorAll("#view-items-info-table tbody tr");
+        const financeRows = document.querySelectorAll("#view-items-finance-table tbody tr");
         const specRows = document.querySelectorAll("#view-specifications-table tbody tr");
         
-        if (itemRows.length === 0) {
+        if (infoRows.length === 0) {
             showAlert("At least one item is required.");
             return;
         }
@@ -403,18 +455,19 @@
         const items: any[] = [];
         let totalVal = 0;
 
-        for (let i = 0; i < itemRows.length; i++) {
-            const row = itemRows[i];
+        for (let i = 0; i < infoRows.length; i++) {
+            const infoRow = infoRows[i];
+            const finRow = financeRows[i];
             const specRow = specRows[i];
             
-            const desc = (row.querySelector(".inline-edit-desc") as HTMLInputElement).value.trim();
-            const qty = parseFloat((row.querySelector(".inline-edit-qty") as HTMLInputElement).value) || 0;
-            const price = parseFloat((row.querySelector(".inline-edit-price") as HTMLInputElement).value) || 0;
-            const rate = parseFloat((row.querySelector(".inline-edit-rate") as HTMLInputElement).value) || 0;
-            const unit = (row.querySelector(".inline-edit-unit") as HTMLSelectElement).value;
-            const hsn = (row.querySelector(".inline-edit-hsn") as HTMLInputElement).value.trim();
-            const brand = (row.querySelector(".inline-edit-brand") as HTMLInputElement).value.trim();
-            const category = (row.querySelector(".inline-edit-category") as HTMLInputElement).value.trim();
+            const desc = (infoRow.querySelector(".inline-edit-desc") as HTMLInputElement).value.trim();
+            const qty = parseFloat((finRow.querySelector(".inline-edit-qty") as HTMLInputElement).value) || 0;
+            const price = parseFloat((finRow.querySelector(".inline-edit-price") as HTMLInputElement).value) || 0;
+            const rate = parseFloat((finRow.querySelector(".inline-edit-rate") as HTMLInputElement).value) || 0;
+            const unit = (finRow.querySelector(".inline-edit-unit") as HTMLSelectElement).value;
+            const hsn = (infoRow.querySelector(".inline-edit-hsn") as HTMLInputElement).value.trim();
+            const brand = (infoRow.querySelector(".inline-edit-brand") as HTMLInputElement).value.trim();
+            const category = (infoRow.querySelector(".inline-edit-category") as HTMLInputElement).value.trim();
             const spec = specRow ? (specRow.querySelector(".inline-edit-specification") as HTMLInputElement).value.trim() : "";
 
             if (!desc) {
@@ -596,14 +649,25 @@
             });
         }
 
-        const itemsTableBody = document.querySelector("#view-items-table tbody");
-        if (itemsTableBody) {
-            itemsTableBody.addEventListener("input", (e) => {
+        const infoTableBody = document.querySelector("#view-items-info-table tbody");
+        if (infoTableBody) {
+            infoTableBody.addEventListener("input", (e) => {
                 const target = e.target as HTMLElement;
                 if (target.classList.contains("inline-edit-desc")) {
                     const tr = target.closest("tr");
                     if (tr) {
                         const index = Array.from(tr.parentNode.children).indexOf(tr);
+                        
+                        // Sync with Finance Table Description
+                        const financeRows = document.querySelectorAll("#view-items-finance-table tbody tr");
+                        if (financeRows[index]) {
+                            const finDesc = financeRows[index].querySelector(".inline-finance-desc-text");
+                            if (finDesc) {
+                                finDesc.textContent = (target as HTMLInputElement).value || "-";
+                            }
+                        }
+                        
+                        // Sync with Specifications Table Description
                         const specRows = document.querySelectorAll("#view-specifications-table tbody tr");
                         if (specRows[index]) {
                             const specDesc = specRows[index].querySelector(".inline-spec-desc-text");
@@ -613,7 +677,13 @@
                         }
                     }
                 }
-                
+            });
+        }
+
+        const financeTableBody = document.querySelector("#view-items-finance-table tbody");
+        if (financeTableBody) {
+            financeTableBody.addEventListener("input", (e) => {
+                const target = e.target as HTMLElement;
                 if (target.classList.contains("inline-edit-qty") || 
                     target.classList.contains("inline-edit-price") || 
                     target.classList.contains("inline-edit-rate")) {
@@ -631,4 +701,3 @@
 
     (window as any).viewPurchase = viewPurchase;
 })();
-
