@@ -134,10 +134,10 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
     }
 });
 
-// Route to get recent purchase orders (supports filtering by deleted status)
+// Route to get recent purchase orders (supports filtering by archived/deleted status)
 router.get("/recent-purchase-orders", async (req: Request, res: Response) => {
     try {
-        const { deleted } = req.query;
+        const { status, deleted } = req.query;
         let query: any = {};
 
         if (deleted === 'true') {
@@ -146,13 +146,19 @@ router.get("/recent-purchase-orders", async (req: Request, res: Response) => {
             query['deletion.is_deleted'] = false;
         }
 
+        if (status === 'archived') {
+            query.is_archived = true;
+        } else {
+            query.is_archived = { $ne: true };
+        }
+
         let queryBuilder = PurchaseOrderModel.find(query).sort({ createdAt: -1 });
-        if (deleted !== 'true') {
+        if (status !== 'archived' && deleted !== 'true') {
             queryBuilder = queryBuilder.limit(10);
         }
 
         const recentPurchaseOrders = await queryBuilder
-            .select("purchase_order_no supplier_snapshot totals purchase_date createdAt deletion");
+            .select("purchase_order_no supplier_snapshot totals purchase_date createdAt is_archived deletion");
 
         res.status(200).json({
             message: "Recent purchase orders retrieved successfully",
@@ -211,6 +217,40 @@ router.delete("/:purchaseOrderId", async (req: Request, res: Response) => {
     } catch (error: unknown) {
         logger.error("Error soft deleting purchase order:", error);
         res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+// Route to archive purchase order
+router.put("/:purchaseOrderId/archive", async (req: Request, res: Response) => {
+    try {
+        const { purchaseOrderId } = req.params;
+        const purchaseOrder = await PurchaseOrderModel.findOneAndUpdate(
+            { purchase_order_no: purchaseOrderId, 'deletion.is_deleted': false },
+            { $set: { is_archived: true } },
+            { new: true }
+        );
+        if (!purchaseOrder) return res.status(404).json({ message: 'Purchase order not found' });
+        res.json({ message: 'Purchase order archived successfully', purchaseOrder });
+    } catch (error: unknown) {
+        logger.error('Error archiving purchase order:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Route to restore purchase order from archive
+router.put("/:purchaseOrderId/restore", async (req: Request, res: Response) => {
+    try {
+        const { purchaseOrderId } = req.params;
+        const purchaseOrder = await PurchaseOrderModel.findOneAndUpdate(
+            { purchase_order_no: purchaseOrderId, 'deletion.is_deleted': false },
+            { $set: { is_archived: false } },
+            { new: true }
+        );
+        if (!purchaseOrder) return res.status(404).json({ message: 'Purchase order not found' });
+        res.json({ message: 'Purchase order restored successfully', purchaseOrder });
+    } catch (error: unknown) {
+        logger.error('Error restoring purchase order:', error);
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
@@ -292,17 +332,29 @@ router.post("/bulkHardDelete", async (req: Request, res: Response) => {
 // Search purchase orders
 router.get('/search/:query', async (req: Request, res: Response) => {
     const { query } = req.params;
+    const { status, deleted } = req.query;
     if (!query) return res.status(400).send('Query parameter is required.');
 
+    let queryObj: any = {};
+    if (deleted === 'true') {
+        queryObj['deletion.is_deleted'] = true;
+    } else {
+        queryObj['deletion.is_deleted'] = false;
+    }
+
+    if (status === 'archived') {
+        queryObj.is_archived = true;
+    } else {
+        queryObj.is_archived = { $ne: true };
+    }
+
     try {
-        const purchaseOrders = await PurchaseOrderModel.find({
-            'deletion.is_deleted': false,
-            $or: [
-                { purchase_order_no: { $regex: query, $options: 'i' } },
-                { 'supplier_snapshot.name': { $regex: query, $options: 'i' } },
-                { 'supplier_snapshot.phone': { $regex: query, $options: 'i' } }
-            ]
-        } as any);
+        queryObj.$or = [
+            { purchase_order_no: { $regex: query, $options: 'i' } },
+            { 'supplier_snapshot.name': { $regex: query, $options: 'i' } },
+            { 'supplier_snapshot.phone': { $regex: query, $options: 'i' } }
+        ];
+        const purchaseOrders = await PurchaseOrderModel.find(queryObj);
 
         if (purchaseOrders.length === 0) {
             return res.status(404).send('No purchase orders found.');

@@ -64,6 +64,8 @@ router.get('/overview', async (req: Request, res: Response) => {
         const [{ total: orderExpenditure = 0 } = {}] = await PurchaseOrderModel.aggregate([
             {
                 $match: {
+                    'deletion.is_deleted': false,
+                    is_archived: { $ne: true },
                     $or: [
                         { purchase_date: { $gte: startOfMonth, $lt: startNextMon } },
                         { createdAt: { $gte: startOfMonth, $lt: startNextMon } },

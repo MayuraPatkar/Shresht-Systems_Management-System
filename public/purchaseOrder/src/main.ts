@@ -1,6 +1,7 @@
 // @ts-nocheck
 (function () {
     (window as any).showDeletedItems = false;
+    (window as any).statusFilter = '';
 
     const initializeMain = () => {
         // Initialize filters
@@ -20,6 +21,19 @@
         const newBtn = document.getElementById('new-purchase');
         if (newBtn) {
             newBtn.addEventListener('click', showNewPurchaseForm);
+        }
+
+        // Archived button toggle
+        const archivedBtn = document.getElementById('archived-purchase-orders-btn');
+        if (archivedBtn) {
+            archivedBtn.onclick = () => {
+                if ((window as any).statusFilter === 'archived') {
+                    (window as any).statusFilter = '';
+                } else {
+                    (window as any).statusFilter = 'archived';
+                }
+                loadRecentPurchaseOrders();
+            };
         }
 
         // Search functionality
@@ -153,6 +167,7 @@
             const searchFilterContainer = document.getElementById('search-filter-container');
             const refreshBtn = document.getElementById('refresh-btn');
             const showDeletedBtn = document.getElementById('showDeletedBtn');
+            const archivedBtn = document.getElementById('archived-purchase-orders-btn');
             const newPurchaseBtn = document.getElementById('new-purchase');
             const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
             const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
@@ -162,6 +177,7 @@
                 if (searchFilterContainer) searchFilterContainer.style.display = 'none';
                 if (refreshBtn) refreshBtn.style.display = 'none';
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+                if (archivedBtn) archivedBtn.style.display = 'none';
                 if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
                 if (homeBtn) homeBtn.style.display = 'flex';
                 
@@ -178,6 +194,7 @@
                 if (searchFilterContainer) searchFilterContainer.style.display = 'none';
                 if (refreshBtn) refreshBtn.style.display = 'none';
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+                if (archivedBtn) archivedBtn.style.display = 'none';
                 if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
                 if (homeBtn) homeBtn.style.display = 'flex';
 
@@ -198,6 +215,7 @@
 
                 const isTrashOpen = !!(window as any).showDeletedItems;
                 if (isTrashOpen) {
+                    if (archivedBtn) archivedBtn.style.display = 'none';
                     if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
                     if (bulkRestoreBtn) {
                         bulkRestoreBtn.style.display = 'flex';
@@ -208,6 +226,7 @@
                         bulkDeleteBtn.classList.remove('hidden');
                     }
                 } else {
+                    if (archivedBtn) archivedBtn.style.display = 'flex';
                     if (newPurchaseBtn) newPurchaseBtn.style.display = 'flex';
                     if (bulkRestoreBtn) {
                         bulkRestoreBtn.style.display = 'none';
@@ -253,8 +272,9 @@
     async function loadRecentPurchaseOrders() {
         try {
             if ((window as any).purchaseOrderApi) {
+                const status = (window as any).statusFilter || '';
                 const deleted = !!(window as any).showDeletedItems;
-                const data = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders(deleted);
+                const data = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders(status, deleted);
                 if ((window as any).allPurchaseOrders) {
                     (window as any).allPurchaseOrders = data.purchaseOrders;
                 }
@@ -265,6 +285,9 @@
                     (window as any).purchaseOrderTable.renderPurchaseOrders(data.purchaseOrders);
                 }
 
+                updateArchivedCount();
+                updateArchivedButtonVisuals();
+
                 if (typeof (window as any).updateBulkButtonLabels === 'function') {
                     (window as any).updateBulkButtonLabels();
                 }
@@ -274,6 +297,51 @@
         } catch (error) {
             console.error("Error fetching recent purchase orders:", error);
             showToast("Failed to load purchase orders", "error");
+        }
+    }
+
+    const updateArchivedCount = async () => {
+        try {
+            const archived = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders('archived', false);
+            const countBadge = document.getElementById('archived-count-badge');
+            if (countBadge) {
+                countBadge.textContent = (archived.purchaseOrders || archived).length.toString();
+            }
+        } catch (err) {
+            console.error('Failed to update archived count:', err);
+        }
+    };
+    (window as any).updateArchivedCount = updateArchivedCount;
+
+    function updateArchivedButtonVisuals() {
+        const archivedBtn = document.getElementById('archived-purchase-orders-btn') as HTMLButtonElement | null;
+        if (!archivedBtn) return;
+
+        const icon = archivedBtn.querySelector('i');
+        const badge = document.getElementById('archived-count-badge');
+
+        if ((window as any).statusFilter === 'archived') {
+            archivedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+            archivedBtn.classList.add('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+            
+            if (icon) {
+                icon.className = 'fas fa-box-open text-white';
+            }
+            if (badge) {
+                badge.classList.remove('bg-slate-100', 'text-slate-600');
+                badge.classList.add('bg-white', 'text-amber-600', 'font-extrabold');
+            }
+        } else {
+            archivedBtn.classList.remove('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+            archivedBtn.classList.add('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+
+            if (icon) {
+                icon.className = 'fas fa-archive text-slate-400';
+            }
+            if (badge) {
+                badge.classList.remove('bg-white', 'text-amber-600', 'font-extrabold');
+                badge.classList.add('bg-slate-100', 'text-slate-600');
+            }
         }
     }
 
@@ -297,9 +365,11 @@
     function showNewPurchaseForm() {
         sessionStorage.removeItem('currentTab-status');
 
-        // Reset showDeletedItems when opening new form
+        // Reset showDeletedItems and statusFilter when opening new form
         (window as any).showDeletedItems = false;
+        (window as any).statusFilter = '';
         updateTrashButton();
+        updateArchivedButtonVisuals();
         if (typeof (window as any).updateHeaderVisibility === 'function') {
             (window as any).updateHeaderVisibility();
         }
@@ -359,11 +429,24 @@
         }
 
         try {
-            if ((window as any).searchDocuments) {
-                const results = await (window as any).searchDocuments('purchaseOrder', query, ['purchase_order_id', 'supplier_name', 'supplier_phone']);
+            const status = (window as any).statusFilter || '';
+            const deleted = !!(window as any).showDeletedItems;
+            let url = `/purchaseOrder/search/${encodeURIComponent(query)}?`;
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+            if (deleted) url += `deleted=true&`;
+
+            const response = await fetch(url);
+            if (!response.ok) {
                 if ((window as any).purchaseOrderTable) {
-                    (window as any).purchaseOrderTable.renderPurchaseOrders(results);
+                    (window as any).purchaseOrderTable.renderPurchaseOrders([]);
                 }
+                return;
+            }
+
+            const data = await response.json();
+            const results = data.purchaseOrder || [];
+            if ((window as any).purchaseOrderTable) {
+                (window as any).purchaseOrderTable.renderPurchaseOrders(results);
             }
         } catch (error) {
             console.error("Search failed:", error);
@@ -402,6 +485,30 @@
                 await loadRecentPurchaseOrders();
             } catch (error) {
                 showToast('Failed to restore purchase order', 'error');
+            }
+        });
+    };
+
+    (window as any).handlePurchaseOrderRestoreFromArchive = (id: string) => {
+        confirmAction(`Are you sure you want to restore purchase order "${id}"?`, async () => {
+            try {
+                await (window as any).purchaseOrderApi.restorePurchaseOrder(id);
+                showToast('Purchase order restored successfully');
+                await loadRecentPurchaseOrders();
+            } catch (error) {
+                showToast('Failed to restore purchase order', 'error');
+            }
+        });
+    };
+
+    (window as any).handlePurchaseOrderArchive = (id: string) => {
+        confirmAction(`Are you sure you want to archive purchase order "${id}"?`, async () => {
+            try {
+                await (window as any).purchaseOrderApi.archivePurchaseOrder(id);
+                showToast('Purchase order archived successfully');
+                await loadRecentPurchaseOrders();
+            } catch (error) {
+                showToast('Failed to archive purchase order', 'error');
             }
         });
     };

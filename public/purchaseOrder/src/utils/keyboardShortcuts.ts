@@ -24,7 +24,8 @@
                 { label: 'Add Item', keys: ['Ctrl', 'I'] },
                 { label: 'Delete Item', keys: ['Ctrl', 'Delete'] },
                 { label: 'Go Home', keys: ['Ctrl', 'H'] },
-                { label: 'Focus Search', keys: ['Ctrl', 'F'] }
+                { label: 'Focus Search', keys: ['Ctrl', 'F'] },
+                { label: 'View Archived', keys: ['Ctrl', 'Shift', 'A'] }
             ]
         }
     ];
@@ -489,6 +490,16 @@
                 if (isHomeScreenActive()) {
                     const searchInput = document.getElementById('search-input');
                     if (searchInput) searchInput.focus();
+                }
+                break;
+
+            case 'a':
+                if (isShift) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                    const archivedBtn = document.getElementById('archived-purchase-orders-btn');
+                    if (archivedBtn) archivedBtn.click();
                 }
                 break;
         }

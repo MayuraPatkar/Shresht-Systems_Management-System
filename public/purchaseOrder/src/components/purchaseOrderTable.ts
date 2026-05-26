@@ -11,6 +11,7 @@
             this.container.innerHTML = '';
             
             const isTrash = !!(window as any).showDeletedItems;
+            const isArchivedView = !isTrash && (window as any).statusFilter === 'archived';
 
             if (!purchaseOrders || purchaseOrders.length === 0) {
                 if (isTrash) {
@@ -21,6 +22,16 @@
                             </div>
                             <h2 class="text-2xl font-bold text-gray-800 mb-2">Trash is Empty</h2>
                             <p class="text-gray-600 font-medium text-sm">Deleted purchase orders will appear here.</p>
+                        </div>
+                    `;
+                } else if (isArchivedView) {
+                    this.container.innerHTML = `
+                        <div class="col-span-full flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
+                            <div class="text-amber-500 text-5xl mb-4 animate-bounce">
+                                <i class="fas fa-archive"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">No Archived Purchase Orders</h2>
+                            <p class="text-gray-600 font-medium text-sm">Purchase orders you archive will show up here.</p>
                         </div>
                     `;
                 } else {
@@ -47,9 +58,12 @@
             const div = document.createElement('div');
             
             const isTrash = !!(window as any).showDeletedItems;
+            const isArchived = !isTrash && purchaseOrder.is_archived;
 
             if (isTrash) {
                 div.className = "bg-rose-50/10 p-6 rounded-lg shadow-sm border border-rose-200 hover:shadow-md transition-shadow relative doc-card cursor-default";
+            } else if (isArchived) {
+                div.className = "bg-slate-50/90 p-6 rounded-lg shadow-sm border border-slate-300 hover:shadow-md transition-shadow relative doc-card cursor-default opacity-85 hover:opacity-100";
             } else {
                 div.className = "bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative doc-card cursor-pointer";
             }
@@ -75,6 +89,11 @@
                             <h3 class="font-bold text-lg text-gray-800 line-clamp-1" title="${supplierName}">
                                 ${supplierName}
                             </h3>
+                            ${isArchived ? `
+                            <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                ARCHIVED
+                            </span>
+                            ` : ''}
                         </div>
                         <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
                             <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 font-medium cursor-pointer hover:bg-blue-100 copy-id" title="Click to copy ID" data-id="${poId}">
@@ -95,14 +114,16 @@
                     </div>
                 </div>
                 
-                ${isTrash ? `
+                ${isTrash || isArchived ? `
                 <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 mt-2">
                     <button class="restore-card-btn px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-emerald-300 active:scale-95 cursor-pointer" title="Restore">
-                        <i class="fas fa-trash-restore"></i> Restore
+                        <i class="fas ${isTrash ? 'fa-trash-restore' : 'fa-box-open'}"></i> Restore
                     </button>
+                    ${isTrash ? `
                     <button class="hard-delete-card-btn px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-rose-300 active:scale-95 cursor-pointer" title="Delete Forever">
                         <i class="fas fa-trash-alt"></i> Delete Forever
                     </button>
+                    ` : ''}
                 </div>
                 ` : `
                 <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 mt-2">
@@ -111,6 +132,9 @@
                     </button>
                     <button class="edit-btn text-blue-600 hover:bg-blue-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-blue-200" title="Edit Purchase Order">
                         <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="archive-btn text-amber-600 hover:bg-amber-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-amber-200" title="Archive Purchase Order">
+                        <i class="fas fa-archive"></i>
                     </button>
                     <button class="delete-btn text-red-600 hover:bg-red-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-red-200" title="Delete Purchase Order">
                         <i class="fas fa-trash-alt"></i>
@@ -145,8 +169,21 @@
             if (restoreBtn) {
                 restoreBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if ((window as any).handlePurchaseOrderRestoreFromTrash) {
+                    if (isTrash && (window as any).handlePurchaseOrderRestoreFromTrash) {
                         (window as any).handlePurchaseOrderRestoreFromTrash(poId);
+                    } else if (isArchived && (window as any).handlePurchaseOrderRestoreFromArchive) {
+                        (window as any).handlePurchaseOrderRestoreFromArchive(poId);
+                    }
+                });
+            }
+
+            // Archive Button
+            const archiveBtn = div.querySelector('.archive-btn');
+            if (archiveBtn) {
+                archiveBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if ((window as any).handlePurchaseOrderArchive) {
+                        (window as any).handlePurchaseOrderArchive(poId);
                     }
                 });
             }
@@ -203,7 +240,9 @@
                     // Refresh logic will be called by deleteDocument callback
                     if ((window as any).purchaseOrderApi) {
                         try {
-                            const data = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders();
+                            const status = (window as any).statusFilter || '';
+                            const deleted = !!(window as any).showDeletedItems;
+                            const data = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders(status, deleted);
                             if ((window as any).allPurchaseOrders) {
                                 (window as any).allPurchaseOrders = data.purchaseOrders;
                             }

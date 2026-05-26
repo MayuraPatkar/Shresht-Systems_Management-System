@@ -85,6 +85,8 @@ export interface IPurchaseOrder extends Document {
 
     deletion: ISoftDelete;
 
+    is_archived: boolean;
+
     createdAt: Date;
     updatedAt: Date;
 }
@@ -234,6 +236,12 @@ const purchaseOrderSchema = new Schema<IPurchaseOrder>(
             trim: true,
         },
 
+        is_archived: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+
         deletion: {
             type: softDeleteSchema,
             default: () => ({ is_deleted: false }),
@@ -252,6 +260,7 @@ const purchaseOrderSchema = new Schema<IPurchaseOrder>(
 purchaseOrderSchema.index({ purchase_invoice_no: 1, purchase_date: -1 });
 purchaseOrderSchema.index({ supplier_id: 1, purchase_date: -1 });
 purchaseOrderSchema.index({ "deletion.is_deleted": 1 });
+purchaseOrderSchema.index({ is_archived: 1 });
 
 /**
  * Model

@@ -1,8 +1,9 @@
 // @ts-nocheck
 (function () {
     class PurchaseOrderApi {
-        async fetchRecentPurchaseOrders(deleted: boolean = false): Promise<any> {
+        async fetchRecentPurchaseOrders(status: string = '', deleted: boolean = false): Promise<any> {
             let url = '/purchaseOrder/recent-purchase-orders?';
+            if (status) url += `status=${encodeURIComponent(status)}&`;
             if (deleted) url += 'deleted=true&';
             const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch purchase orders');
@@ -12,6 +13,18 @@
         async fetchPurchaseOrderById(id: string): Promise<any> {
             const response = await fetch(`/purchaseOrder/${id}`);
             if (!response.ok) throw new Error('Failed to fetch purchase order');
+            return response.json();
+        }
+
+        async archivePurchaseOrder(id: string): Promise<any> {
+            const response = await fetch(`/purchaseOrder/${id}/archive`, { method: 'PUT' });
+            if (!response.ok) throw new Error('Failed to archive purchase order');
+            return response.json();
+        }
+
+        async restorePurchaseOrder(id: string): Promise<any> {
+            const response = await fetch(`/purchaseOrder/${id}/restore`, { method: 'PUT' });
+            if (!response.ok) throw new Error('Failed to restore purchase order');
             return response.json();
         }
 
