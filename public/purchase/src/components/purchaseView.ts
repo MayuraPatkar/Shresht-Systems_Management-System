@@ -121,6 +121,7 @@
         let itemNumber = 1;
         let totalTaxable = 0;
         let totalTaxAmount = 0;
+        let totalQty = 0;
 
         (purchase.items || []).forEach((item: any) => {
             if (isEditingInline) {
@@ -132,27 +133,30 @@
                 const taxableValue = qty * unitPrice;
                 const taxAmount = (taxableValue * rate) / 100;
 
+                totalQty += qty;
                 totalTaxable += taxableValue;
                 totalTaxAmount += taxAmount;
 
                 if (viewItemsTableBody) {
                     const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.hsn_sac || item.HSN_SAC || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.brand || item.company || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.category || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${qty}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.unit || 'pc'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${formatIndian(unitPrice, 2)}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-gray-900">${rate}%</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.hsn_sac || item.HSN_SAC || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.brand || item.company || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.category || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-900 tabular-nums">${qty}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.unit || 'pc'}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-700 tabular-nums">₹ ${formatIndian(unitPrice, 2)}</td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 tabular-nums">${rate}%</td>
                     `;
                     viewItemsTableBody.appendChild(row);
                 }
 
                 if (viewSpecificationsTableBody) {
                     const specRow = document.createElement("tr");
+                    specRow.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                     specRow.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
@@ -166,6 +170,24 @@
         });
 
         if (!isEditingInline) {
+            // Set footer totals row
+            const viewItemsTableFoot = document.querySelector("#view-items-table tfoot") as HTMLTableSectionElement | null;
+            if (viewItemsTableFoot) {
+                viewItemsTableFoot.innerHTML = `
+                    <tr>
+                        <td class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums"></td>
+                    </tr>
+                `;
+            }
+
             // Set totals
             const viewSubtotal = document.getElementById('view-subtotal');
             if (viewSubtotal) viewSubtotal.textContent = `₹ ${formatIndian(totalTaxable, 2)}`;
@@ -200,6 +222,7 @@
     function calculateInlineTotals() {
         let totalTaxable = 0;
         let totalTaxAmount = 0;
+        let totalQty = 0;
         
         const rows = document.querySelectorAll("#view-items-table tbody tr");
         rows.forEach(row => {
@@ -215,12 +238,32 @@
                 const taxable = qty * price;
                 const tax = (taxable * rate) / 100;
                 
+                totalQty += qty;
                 totalTaxable += taxable;
                 totalTaxAmount += tax;
             }
         });
         
         const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
+
+        // Set footer totals row
+        const viewItemsTableFoot = document.querySelector("#view-items-table tfoot") as HTMLTableSectionElement | null;
+        if (viewItemsTableFoot) {
+            viewItemsTableFoot.innerHTML = `
+                <tr>
+                    <td class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
+                    <td class="px-4 py-3"></td>
+                    <td class="px-4 py-3"></td>
+                    <td class="px-4 py-3"></td>
+                    <td class="px-4 py-3"></td>
+                    <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
+                    <td class="px-4 py-3"></td>
+                    <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
+                    <td class="px-4 py-3"></td>
+                    <td class="px-4 py-3 action-cell"></td>
+                </tr>
+            `;
+        }
         
         const viewSubtotal = document.getElementById('view-subtotal');
         if (viewSubtotal) viewSubtotal.textContent = `₹ ${formatIndian(totalTaxable, 2)}`;
@@ -263,7 +306,7 @@
                 <input type="text" class="inline-edit-category w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${item.category || ''}">
             </td>
             <td class="px-4 py-3 text-sm text-gray-900">
-                <input type="number" step="any" min="0" class="inline-edit-qty w-20 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${qty}">
+                <input type="number" step="any" min="0" class="inline-edit-qty w-20 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" value="${qty}">
             </td>
             <td class="px-4 py-3 text-sm text-gray-900">
                 <select class="inline-edit-unit w-24 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -274,10 +317,10 @@
                 </select>
             </td>
             <td class="px-4 py-3 text-sm text-gray-900">
-                <input type="number" step="any" min="0" class="inline-edit-price w-24 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${unitPrice}">
+                <input type="number" step="any" min="0" class="inline-edit-price w-24 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" value="${unitPrice}">
             </td>
             <td class="px-4 py-3 text-sm font-semibold text-gray-900">
-                <input type="number" step="any" min="0" class="inline-edit-rate w-16 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${rate}">
+                <input type="number" step="any" min="0" class="inline-edit-rate w-16 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" value="${rate}">
             </td>
             <td class="px-4 py-3 text-sm text-gray-900 action-cell">
                 <button type="button" class="inline-delete-row-btn text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Delete Row">
@@ -298,6 +341,7 @@
         viewItemsTableBody.appendChild(row);
         
         const specRow = document.createElement("tr");
+        specRow.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
         specRow.innerHTML = `
             <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
             <td class="px-4 py-3 text-sm text-gray-900">
