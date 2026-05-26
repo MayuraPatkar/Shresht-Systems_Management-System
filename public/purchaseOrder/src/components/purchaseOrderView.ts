@@ -490,6 +490,7 @@
                 const rate = parseFloat(item.gst_rate || item.rate || 0);
                 const taxableValue = qty * unitPrice;
                 const taxAmount = (taxableValue * rate) / 100;
+                const rowTotal = taxableValue + taxAmount;
 
                 totalTaxable += taxableValue;
                 totalTaxAmount += taxAmount;
@@ -497,14 +498,16 @@
 
                 if (viewItemsTableBody) {
                     const row = document.createElement("tr");
+                    row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                     row.innerHTML = `
                         <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.hsn_sac || item.HSN_SAC || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.hsn_sac || item.HSN_SAC || '-'}</td>
                         <td class="px-4 py-3 text-sm text-right text-gray-900 tabular-nums">${qty}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${item.unit || 'pc'}</td>
-                        <td class="px-4 py-3 text-sm text-right text-gray-900 tabular-nums">₹ ${formatIndian(unitPrice, 2)}</td>
-                        <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">${rate}%</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${item.unit || 'pc'}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-700 tabular-nums">₹ ${formatIndian(unitPrice, 2)}</td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 tabular-nums">${rate}%</td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold text-blue-600 tabular-nums">₹ ${formatIndian(rowTotal, 2)}</td>
                     `;
                     viewItemsTableBody.appendChild(row);
                 }
@@ -522,7 +525,8 @@
                         <td colspan="3" class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
                         <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
                         <td class="px-4 py-3"></td>
-                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxAmount, 2)}</td>
                         <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(totalTaxable + totalTaxAmount, 2)}</td>
                     </tr>
                 `;
@@ -627,6 +631,7 @@
     function calculateInlineTotals() {
         let totalTaxable = 0;
         let totalTaxAmount = 0;
+        let totalQty = 0;
         
         const rows = document.querySelectorAll("#view-items-table tbody tr");
         rows.forEach(row => {
@@ -641,13 +646,33 @@
                 
                 const taxable = qty * price;
                 const tax = (taxable * rate) / 100;
+                const rowTotal = taxable + tax;
+
+                const rowTotalEl = row.querySelector(".inline-edit-row-total");
+                if (rowTotalEl) rowTotalEl.textContent = `₹ ${formatIndian(rowTotal, 2)}`;
                 
+                totalQty += qty;
                 totalTaxable += taxable;
                 totalTaxAmount += tax;
             }
         });
         
         const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
+
+        const viewItemsTableFoot = document.querySelector("#view-items-table tfoot");
+        if (viewItemsTableFoot) {
+            viewItemsTableFoot.innerHTML = `
+                <tr>
+                    <td colspan="3" class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
+                    <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
+                    <td class="px-4 py-3"></td>
+                    <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
+                    <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxAmount, 2)}</td>
+                    <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(totalTaxable + totalTaxAmount, 2)}</td>
+                    <td class="px-4 py-3 action-cell"></td>
+                </tr>
+            `;
+        }
         
         const viewSubtotal = document.getElementById('view-subtotal');
         if (viewSubtotal) viewSubtotal.textContent = `₹ ${formatIndian(totalTaxable, 2)}`;
@@ -672,6 +697,7 @@
         const qty = parseFloat(item.quantity || 0);
         const unitPrice = parseFloat(item.unit_price || 0);
         const rate = parseFloat(item.gst_rate || item.rate || 0);
+        const rowTotal = qty * unitPrice * (1 + rate / 100);
         
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -683,7 +709,7 @@
                 <input type="text" class="inline-edit-hsn w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${item.hsn_sac || item.HSN_SAC || ''}">
             </td>
             <td class="px-4 py-3 text-sm text-gray-900">
-                <input type="number" step="any" min="0" class="inline-edit-qty w-20 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${qty}">
+                <input type="number" step="any" min="0" class="inline-edit-qty w-20 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" value="${qty}">
             </td>
             <td class="px-4 py-3 text-sm text-gray-900">
                 <select class="inline-edit-unit w-24 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -694,10 +720,13 @@
                 </select>
             </td>
             <td class="px-4 py-3 text-sm text-gray-900">
-                <input type="number" step="any" min="0" class="inline-edit-price w-24 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${unitPrice}">
+                <input type="number" step="any" min="0" class="inline-edit-price w-24 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" value="${unitPrice}">
             </td>
             <td class="px-4 py-3 text-sm font-semibold text-gray-900">
-                <input type="number" step="any" min="0" class="inline-edit-rate w-16 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${rate}">
+                <input type="number" step="any" min="0" class="inline-edit-rate w-16 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" value="${rate}">
+            </td>
+            <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 tabular-nums inline-edit-row-total">
+                ₹ ${formatIndian(rowTotal, 2)}
             </td>
             <td class="px-4 py-3 text-sm text-gray-900 action-cell">
                 <button type="button" class="inline-delete-row-btn text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Delete Row">
