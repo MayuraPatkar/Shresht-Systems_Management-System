@@ -1034,11 +1034,40 @@
         };
         const statusBadgeClass = statusClassMap[wayBill.ewaybill_status as StatusType] || 'bg-gray-100 text-gray-800';
 
+        // Helper function to format address JSON or objects nicely
+        const formatAddress = (address: any): string => {
+            if (!address) return '-';
+            
+            // If it's a string, try to parse it if it looks like a JSON object
+            if (typeof address === 'string') {
+                const trimmed = address.trim();
+                if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                    try {
+                        address = JSON.parse(trimmed);
+                    } catch (e) {
+                        // Keep as string if parsing fails
+                    }
+                }
+            }
+            
+            if (typeof address === 'object' && address !== null) {
+                const parts = [
+                    address.line1,
+                    address.line2,
+                    address.city,
+                    address.state && address.pincode ? `${address.state} - ${address.pincode}` : (address.state || address.pincode)
+                ];
+                return parts.filter(Boolean).map(p => String(p).trim()).join(', ');
+            }
+            
+            return String(address || '-');
+        };
+
         // Truncate addresses for display
-        const fromAddressStr = typeof wayBill.from_address === 'object' ? JSON.stringify(wayBill.from_address) : String(wayBill.from_address || '-');
-        const toAddressStr = typeof wayBill.to_address === 'object' ? JSON.stringify(wayBill.to_address) : String(wayBill.to_address || '-');
-        const fromAddressShort = fromAddressStr.split('\n')[0].substring(0, 50);
-        const toAddressShort = toAddressStr.split('\n')[0].substring(0, 50);
+        const fromAddressStr = formatAddress(wayBill.from_address);
+        const toAddressStr = formatAddress(wayBill.to_address);
+        const fromAddressShort = fromAddressStr.substring(0, 50);
+        const toAddressShort = toAddressStr.substring(0, 50);
 
         wayBillDiv.innerHTML = `
             <!-- Left Border Accent -->
@@ -1073,12 +1102,6 @@
                             <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="action-btn archive-btn px-4 py-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 transition-all border border-amber-200 hover:border-amber-400" title="Archive">
-                                <i class="fas fa-archive"></i>
-                            </button>
-                            <button class="action-btn delete-btn px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all border border-red-200 hover:border-red-400" title="Delete">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
                         `}
                     </div>
                 </div>
@@ -1108,7 +1131,7 @@
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="text-xs text-gray-500 uppercase tracking-wider">From</p>
-                            <p class="text-sm font-medium text-gray-800 truncate" title="${wayBill.from_address || '-'}">${fromAddressShort}</p>
+                            <p class="text-sm font-medium text-gray-800 truncate" title="${fromAddressStr}">${fromAddressShort}</p>
                         </div>
                     </div>
                     
@@ -1122,7 +1145,7 @@
                         </div>
                         <div class="min-w-0 flex-1">
                             <p class="text-xs text-gray-500 uppercase tracking-wider">To</p>
-                            <p class="text-sm font-medium text-gray-800 truncate" title="${wayBill.to_address || '-'}">${toAddressShort}</p>
+                            <p class="text-sm font-medium text-gray-800 truncate" title="${toAddressStr}">${toAddressShort}</p>
                         </div>
                     </div>
                 </div>
@@ -1180,8 +1203,6 @@
         } else {
             const viewBtn = wayBillDiv.querySelector('.view-btn') as HTMLButtonElement;
             const editBtn = wayBillDiv.querySelector('.edit-btn') as HTMLButtonElement;
-            const archiveBtn = wayBillDiv.querySelector('.archive-btn') as HTMLButtonElement;
-            const deleteBtn = wayBillDiv.querySelector('.delete-btn') as HTMLButtonElement;
 
             viewBtn.addEventListener('click', () => {
                 if (typeof (window as any).viewWayBill === 'function') {
@@ -1193,43 +1214,6 @@
                 sessionStorage.setItem('currentTab-status', 'update');
                 if (typeof (window as any).openWayBill === 'function') {
                     (window as any).openWayBill(wayBillMongoId);
-                }
-            });
-
-            archiveBtn.addEventListener('click', async () => {
-                try {
-                    await (window as any).ewaybillApi.archiveEWayBill(wayBillMongoId);
-                    loadRecentWayBills();
-                } catch (err) {
-                    console.error('Archive failed:', err);
-                }
-            });
-
-            deleteBtn.addEventListener('click', () => {
-                const message = 'Are you sure you want to delete this e-way bill?';
-                if (electronAPI?.showAlert2) {
-                    electronAPI.showAlert2(message);
-                    electronAPI.receiveAlertResponse(async (response: string) => {
-                        if (response === "Yes") {
-                            try {
-                                await (window as any).ewaybillApi.deleteEWayBill(wayBillMongoId);
-                                loadRecentWayBills();
-                            } catch (err) {
-                                console.error('Delete failed:', err);
-                            }
-                        }
-                    });
-                } else {
-                    if (confirm(message)) {
-                        (async () => {
-                            try {
-                                await (window as any).ewaybillApi.deleteEWayBill(wayBillMongoId);
-                                loadRecentWayBills();
-                            } catch (err) {
-                                console.error('Delete failed:', err);
-                            }
-                        })();
-                    }
                 }
             });
         }

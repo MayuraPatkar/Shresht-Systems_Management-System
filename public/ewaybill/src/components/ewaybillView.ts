@@ -11,6 +11,35 @@
     const companyConfig = (window as any).companyConfig;
     const electronAPI = (window as any).electronAPI;
 
+    // Helper function to format address JSON or objects nicely
+    const formatAddress = (address: any): string => {
+        if (!address) return '-';
+        
+        // If it's a string, try to parse it if it looks like a JSON object
+        if (typeof address === 'string') {
+            const trimmed = address.trim();
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                try {
+                    address = JSON.parse(trimmed);
+                } catch (e) {
+                    // Keep as string if parsing fails
+                }
+            }
+        }
+        
+        if (typeof address === 'object' && address !== null) {
+            const parts = [
+                address.line1,
+                address.line2,
+                address.city,
+                address.state && address.pincode ? `${address.state} - ${address.pincode}` : (address.state || address.pincode)
+            ];
+            return parts.filter(Boolean).map(p => String(p).trim()).join(', ');
+        }
+        
+        return String(address || '-');
+    };
+
     // Generate HTML for preview, returns the HTML string.
     // If targetElementId is provided, it also updates that element's innerHTML.
     async function generateViewPreviewHTML(wayBill: EWayBill, targetElementId: string | null = "view-preview-content"): Promise<string> {
@@ -43,9 +72,10 @@
         });
 
         // Totals calculation
-        let totalTaxableValue = wayBill.total_taxable_value || 0;
-        let totalCGST = wayBill.cgst || 0;
-        let totalSGST = wayBill.sgst || 0;
+        const previewTotals = wayBill.totals || {};
+        let totalTaxableValue = previewTotals.taxable_value !== undefined ? previewTotals.taxable_value : (wayBill.total_taxable_value || 0);
+        let totalCGST = previewTotals.cgst !== undefined ? previewTotals.cgst : (wayBill.cgst || 0);
+        let totalSGST = previewTotals.sgst !== undefined ? previewTotals.sgst : (wayBill.sgst || 0);
 
         // If totals not provided in object (e.g. during preview before save), calculate them
         if (!totalTaxableValue && wayBill.items && wayBill.items.length > 0) {
@@ -68,7 +98,7 @@
         }
 
         const totalTax = totalCGST + totalSGST;
-        const grandTotal = wayBill.total_invoice_value || Math.round(totalTaxableValue + totalTax);
+        const grandTotal = previewTotals.grand_total !== undefined ? previewTotals.grand_total : (wayBill.total_invoice_value || Math.round(totalTaxableValue + totalTax));
 
         // Build paginated pages
         const itemRows = itemsHTML.split('</tr>').filter(r => r.trim().length > 0).map(r => r + '</tr>');
@@ -120,7 +150,7 @@
         const transportDate = wayBill.ewaybill_generated_at || new Date().toISOString();
 
         // Extract invoice_id - it might be a populated object or just a string
-        const invoiceIdDisplay = wayBill.invoice_id ? (typeof wayBill.invoice_id === 'object' ? (wayBill.invoice_id as any).invoice_id : wayBill.invoice_id) : '-';
+        const invoiceIdDisplay = wayBill.invoice_id ? (typeof wayBill.invoice_id === 'object' ? ((wayBill.invoice_id as any).invoice_no || (wayBill.invoice_id as any).invoice_id) : wayBill.invoice_id) : '-';
 
         const pagesHTML = pages.map((pageHTML, index) => {
             const isLastPage = index === pages.length - 1;
@@ -181,11 +211,11 @@
                 <div class="third-section">
                     <div class="buyer-details">
                         <p class="section-title" style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; color: #444;">Dispatch From</p>
-                        <p style="white-space: pre-line; min-height: 80px;">${wayBill.from_address || ''}</p>
+                        <p style="white-space: pre-line; min-height: 80px;">${formatAddress(wayBill.from_address)}</p>
                     </div>
                     <div class="order-info">
                         <p class="section-title" style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; color: #444;">Ship To</p>
-                        <p style="white-space: pre-line; min-height: 80px;">${wayBill.to_address || ''}</p>
+                        <p style="white-space: pre-line; min-height: 80px;">${formatAddress(wayBill.to_address)}</p>
                     </div>
                 </div>
                 
@@ -323,8 +353,8 @@
             const viewWbNoEl = document.getElementById('view-ewaybill-no');
             if (viewWbNoEl) viewWbNoEl.textContent = waybill.ewaybill_no || '-';
 
-            // Handle populated invoice_id - it might be an object with invoice_id property or just a string
-            const invoiceId = waybill.invoice_id ? (typeof waybill.invoice_id === 'object' ? (waybill.invoice_id as any).invoice_id : waybill.invoice_id) : '-';
+            // Handle populated invoice_id - it might be an object with invoice_id/invoice_no property or just a string
+            const invoiceId = waybill.invoice_id ? (typeof waybill.invoice_id === 'object' ? ((waybill.invoice_id as any).invoice_no || (waybill.invoice_id as any).invoice_id) : waybill.invoice_id) : '-';
             const viewInvoiceIdEl = document.getElementById('view-invoice-id');
             if (viewInvoiceIdEl) viewInvoiceIdEl.textContent = invoiceId;
 
@@ -338,9 +368,9 @@
 
             // Address Details
             const viewFromAddrEl = document.getElementById('view-from-address');
-            if (viewFromAddrEl) viewFromAddrEl.textContent = waybill.from_address || '-';
+            if (viewFromAddrEl) viewFromAddrEl.textContent = formatAddress(waybill.from_address);
             const viewToAddrEl = document.getElementById('view-to-address');
-            if (viewToAddrEl) viewToAddrEl.textContent = waybill.to_address || '-';
+            if (viewToAddrEl) viewToAddrEl.textContent = formatAddress(waybill.to_address);
 
             // Transportation Details
             const transport = waybill.transport || {};
@@ -381,12 +411,123 @@
                 if (el) el.textContent = value;
             };
 
-            setTextContent('view-total-taxable', `₹ ${formatIndian(waybill.total_taxable_value || 0, 2)}`);
-            setTextContent('view-cgst', `₹ ${formatIndian(waybill.cgst || 0, 2)}`);
-            setTextContent('view-sgst', `₹ ${formatIndian(waybill.sgst || 0, 2)}`);
-            setTextContent('view-total-invoice', `₹ ${formatIndian(waybill.total_invoice_value || 0, 2)}`);
+            const totals = waybill.totals || {};
+            const totalTaxable = totals.taxable_value !== undefined ? totals.taxable_value : (waybill.total_taxable_value || 0);
+            const cgst = totals.cgst !== undefined ? totals.cgst : (waybill.cgst || 0);
+            const sgst = totals.sgst !== undefined ? totals.sgst : (waybill.sgst || 0);
+            const grandTotal = totals.grand_total !== undefined ? totals.grand_total : (waybill.total_invoice_value || 0);
+
+            setTextContent('view-total-taxable', `₹ ${formatIndian(totalTaxable, 2)}`);
+            setTextContent('view-cgst', `₹ ${formatIndian(cgst, 2)}`);
+            setTextContent('view-sgst', `₹ ${formatIndian(sgst, 2)}`);
+            setTextContent('view-total-invoice', `₹ ${formatIndian(grandTotal, 2)}`);
 
             await generateViewPreviewHTML(waybill);
+
+            // Danger Zone logic for view page
+            const dangerZoneSection = document.getElementById('danger-zone-section');
+            if (dangerZoneSection) {
+                const userRole = sessionStorage.getItem('userRole') || 'user';
+                if (userRole === 'admin' || userRole === 'manager') {
+                    dangerZoneSection.classList.remove('hidden');
+                } else {
+                    dangerZoneSection.classList.add('hidden');
+                }
+            }
+
+            const archiveBtn = document.getElementById('archiveEwaybillBtn') as HTMLButtonElement | null;
+            const deleteBtn = document.getElementById('deleteEwaybillBtn') as HTMLButtonElement | null;
+
+            if (archiveBtn) {
+                const newArchiveBtn = archiveBtn.cloneNode(true) as HTMLButtonElement;
+                archiveBtn.parentNode?.replaceChild(newArchiveBtn, archiveBtn);
+
+                if (waybill.is_archived) {
+                    newArchiveBtn.innerHTML = '<i class="fas fa-box-open"></i> Restore from Archive';
+                    newArchiveBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer";
+                } else {
+                    newArchiveBtn.innerHTML = '<i class="fas fa-archive"></i> Archive E-Way Bill';
+                    newArchiveBtn.className = "bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer";
+                }
+
+                newArchiveBtn.addEventListener('click', async () => {
+                    try {
+                        if (waybill.is_archived) {
+                            await (window as any).ewaybillApi.restoreEWayBill(waybill._id);
+                            if (electronAPI && electronAPI.showAlert1) {
+                                electronAPI.showAlert1('E-Way Bill restored from archive.');
+                            }
+                        } else {
+                            await (window as any).ewaybillApi.archiveEWayBill(waybill._id);
+                            if (electronAPI && electronAPI.showAlert1) {
+                                electronAPI.showAlert1('E-Way Bill archived successfully.');
+                            }
+                        }
+                        const homeBtn = document.getElementById('home-btn');
+                        if (homeBtn) {
+                            homeBtn.click();
+                        } else {
+                            window.location.href = '/ewaybill';
+                        }
+                    } catch (err) {
+                        console.error('Archive/Restore action failed:', err);
+                        if (electronAPI && electronAPI.showAlert1) {
+                            electronAPI.showAlert1('Failed to perform archive/restore action.');
+                        }
+                    }
+                });
+            }
+
+            if (deleteBtn) {
+                const newDeleteBtn = deleteBtn.cloneNode(true) as HTMLButtonElement;
+                deleteBtn.parentNode?.replaceChild(newDeleteBtn, deleteBtn);
+
+                newDeleteBtn.addEventListener('click', () => {
+                    const message = 'Are you sure you want to delete this e-way bill?';
+                    if (electronAPI?.showAlert2) {
+                        electronAPI.showAlert2(message);
+                        electronAPI.receiveAlertResponse(async (response: string) => {
+                            if (response === "Yes") {
+                                try {
+                                    await (window as any).ewaybillApi.deleteEWayBill(waybill._id);
+                                    if (electronAPI.showAlert1) {
+                                        electronAPI.showAlert1('E-Way Bill deleted successfully.');
+                                    }
+                                    const homeBtn = document.getElementById('home-btn');
+                                    if (homeBtn) {
+                                        homeBtn.click();
+                                    } else {
+                                        window.location.href = '/ewaybill';
+                                    }
+                                } catch (err) {
+                                    console.error('Delete failed:', err);
+                                    if (electronAPI.showAlert1) {
+                                        electronAPI.showAlert1('Failed to delete e-way bill.');
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        if (confirm(message)) {
+                            (async () => {
+                                try {
+                                    await (window as any).ewaybillApi.deleteEWayBill(waybill._id);
+                                    alert('E-Way Bill deleted successfully.');
+                                    const homeBtn = document.getElementById('home-btn');
+                                    if (homeBtn) {
+                                        homeBtn.click();
+                                    } else {
+                                        window.location.href = '/ewaybill';
+                                    }
+                                } catch (err) {
+                                    console.error('Delete failed:', err);
+                                    alert('Failed to delete e-way bill.');
+                                }
+                            })();
+                        }
+                    }
+                });
+            }
 
         } catch (error) {
             console.error("Error fetching e-way bill:", error);

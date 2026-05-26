@@ -581,28 +581,55 @@
                     </div>
                 </div>
 
-                <!-- Preview & Actions Card -->
+                 <!-- Preview & Actions Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-file-alt text-indigo-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-file-alt text-indigo-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button type="button" id="printProject"
+                                class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium cursor-pointer">
+                                <i class="fas fa-print"></i>
+                                Print
+                            </button>
+                            <button type="button" id="saveProjectPDF"
+                                class="bg-red-600 text-white px-4 h-10 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium cursor-pointer">
+                                <i class="fas fa-file-pdf"></i>
+                                Save as PDF
+                            </button>
+                        </div>
                     </div>
                     <div id="view-preview-content" class="mb-6">
                         <!-- Preview content will be generated here -->
                     </div>
-                    <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200 justify-center">
-                        <button type="button" id="printProject"
-                            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-print"></i>
-                            Print
-                        </button>
-                        <button type="button" id="saveProjectPDF"
-                            class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-file-pdf"></i>
-                            Save as PDF
-                        </button>
-                    </div>
                 </div>
+
+                <!-- Danger Zone Section -->
+                <section id="danger-zone-section" class="bg-red-50 rounded-lg p-6 border-2 border-red-200 fade-in hidden">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-red-200">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <p class="text-sm text-red-700 font-medium">
+                            These actions are destructive or affect status. Please proceed with caution.
+                        </p>
+                        <div class="flex flex-wrap gap-4 justify-end">
+                            <button type="button" id="archiveEwaybillBtn"
+                                class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
+                                <i class="fas fa-archive"></i>
+                                Archive E-Way Bill
+                            </button>
+                            <button type="button" id="deleteEwaybillBtn"
+                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
+                                <i class="fas fa-trash-alt"></i>
+                                Delete E-Way Bill
+                            </button>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
 
