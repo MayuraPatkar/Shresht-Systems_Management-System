@@ -635,6 +635,20 @@
         // New Service button
         document.getElementById('new-service-btn')?.addEventListener('click', () => (window as any).showNewForm());
 
+        // Refresh button
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', async () => {
+                const icon = refreshBtn.querySelector('i');
+                if (icon) icon.classList.add('animate-spin');
+                await loadAllData().finally(() => {
+                    setTimeout(() => {
+                        if (icon) icon.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+        }
+
         // Home button
         document.getElementById('home-btn')?.addEventListener('click', () => {
             window.location.href = '../dashboard/dashboard.html';
