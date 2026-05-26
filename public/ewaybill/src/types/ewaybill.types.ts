@@ -35,6 +35,15 @@ interface EWayBill {
     cgst?: number;
     sgst?: number;
     total_invoice_value?: number;
+    totals?: {
+        taxable_value?: number;
+        cgst?: number;
+        sgst?: number;
+        igst?: number;
+        total_tax?: number;
+        round_off?: number;
+        grand_total?: number;
+    };
     is_archived?: boolean;
     deletion?: {
         is_deleted: boolean;
