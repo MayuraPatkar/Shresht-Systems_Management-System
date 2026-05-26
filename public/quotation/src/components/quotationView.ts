@@ -598,13 +598,19 @@ async function renderQuotationView(quotation, viewType) {
     let view_nonItemsSGST = 0;
     let view_nonItemsGrandTotal = 0;
 
+    const noOtherChargesMsg = document.getElementById("no-other-charges-msg");
+    const otherChargesContent = document.getElementById("other-charges-content");
+
+    if (nonItemsList.length === 0) {
+        if (noOtherChargesMsg) noOtherChargesMsg.classList.remove("hidden");
+        if (otherChargesContent) otherChargesContent.classList.add("hidden");
+    } else {
+        if (noOtherChargesMsg) noOtherChargesMsg.classList.add("hidden");
+        if (otherChargesContent) otherChargesContent.classList.remove("hidden");
+    }
+
     if (viewNonItemsTableBody) {
         viewNonItemsTableBody.innerHTML = "";
-        
-        if (nonItemsList.length === 0) {
-            const colSpan = detailViewType === 2 ? 4 : 3;
-            viewNonItemsTableBody.innerHTML = `<tr><td colspan="${colSpan}" class="px-4 py-8 text-center text-gray-500 font-medium bg-gray-50 border-b border-gray-200">No extra charges</td></tr>`;
-        }
         
         let nonItemNumber = 1;
         nonItemsList.forEach(item => {
@@ -710,19 +716,19 @@ async function renderQuotationView(quotation, viewType) {
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
             `;
         } else if (detailViewType === 1) {
             tableHead.innerHTML = `
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">HSN/SAC</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Unit Price</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total</th>
             `;
         } else {
             // Compact view: S.No, Description, Specifications, Qty, Tax %, Total (With Tax)
@@ -730,9 +736,9 @@ async function renderQuotationView(quotation, viewType) {
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">S. No</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Description</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Specifications</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax %</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
+                <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Qty</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Tax %</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider border-b">Total (With Tax)</th>
             `;
         }
     }
