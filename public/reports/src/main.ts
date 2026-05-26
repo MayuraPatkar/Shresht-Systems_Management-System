@@ -14,6 +14,8 @@ class ReportsMain {
         this.setupReportCards();
         this.setupBackButtons();
         this.setupHomeButton();
+        this.setupRefreshButton();
+        this.updateHomeButtonVisibility();
         this.loadRecentReports();
 
         document.getElementById('delete-all-reports')?.addEventListener('click', () => this.deleteAllReports());
@@ -106,6 +108,28 @@ class ReportsMain {
         });
     }
 
+    setupRefreshButton(): void {
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', async () => {
+                const icon = refreshBtn.querySelector('i');
+                if (icon) icon.classList.add('animate-spin');
+                await this.loadRecentReports().finally(() => {
+                    setTimeout(() => {
+                        if (icon) icon.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+        }
+    }
+
+    updateHomeButtonVisibility(): void {
+        const homeBtn = document.getElementById('home-btn');
+        if (homeBtn) {
+            homeBtn.style.display = this.currentReportSection === 'home' ? 'none' : 'flex';
+        }
+    }
+
     showReportSection(reportType: string): void {
         // Hide all sections
         const sections = [
@@ -167,6 +191,7 @@ class ReportsMain {
         }
 
         this.currentReportSection = reportType;
+        this.updateHomeButtonVisibility();
     }
 
     getReportTitle(report: SavedReport): string {
