@@ -505,7 +505,7 @@
         </div>
 
         <!-- View Quotation -->
-        <div id="view">
+        <div id="view" class="select-none">
             <div id="project-details-view" class="max-w-6xl mx-auto space-y-6">
 
                 <!-- Project Details Card -->
@@ -587,48 +587,37 @@
                         <i class="fas fa-list-ul text-green-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Item Details</h2>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-items-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
+                    <div class="overflow-x-auto" id="view-items-table-container">
+                        <table id="view-items-table" class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50/40 border-b border-gray-100">
                                 <tr>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         S. No</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Description</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         HSN/SAC</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Qty</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Unit Price</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Rate</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Items will be dynamically filled -->
                             </tbody>
+                            <tfoot class="bg-gray-50/30 border-t-2 border-gray-200 font-semibold text-gray-900">
+                                <!-- Totals will be dynamically filled -->
+                            </tfoot>
                         </table>
-                    </div>
-                    <div id="items-totals-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Items Total Amount</span>
-                            <span class="text-gray-900 font-bold" id="view-items-total-amount">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Items Total Tax</span>
-                            <span class="text-gray-900 font-bold" id="view-items-total-tax">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Overall</span>
-                            <span class="text-gray-900 font-bold" id="items-overall">-</span>
-                        </div>
                     </div>
                 </section>
 
@@ -642,43 +631,32 @@
                         class="hidden text-center py-6 text-gray-500 font-medium bg-gray-50 rounded-lg border border-dashed border-gray-300">
                         No extra charges
                     </div>
-                    <div id="other-charges-content">
-                        <div class="overflow-x-auto mb-4">
-                            <table id="view-non-items-table" class="w-full border border-gray-300 rounded-lg">
-                                <thead class="bg-gray-50">
+                     <div id="other-charges-content">
+                        <div class="overflow-x-auto mb-4" id="view-non-items-table-container">
+                            <table id="view-non-items-table" class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50/40 border-b border-gray-100">
                                     <tr>
                                         <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                            class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                             S. No</th>
                                         <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                            class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                             Description</th>
                                         <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                            class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                             Price</th>
                                         <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                            class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                             Rate</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <!-- Charges will be dynamically filled -->
                                 </tbody>
+                                <tfoot class="bg-gray-50/30 border-t-2 border-gray-200 font-semibold text-gray-900">
+                                    <!-- Totals will be dynamically filled -->
+                                </tfoot>
                             </table>
-                        </div>
-                        <div id="non-items-totals-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Amount</span>
-                                <span class="text-gray-900 font-bold" id="view-non-items-total-amount">-</span>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Tax</span>
-                                <span class="text-gray-900 font-bold" id="view-non-items-total-tax">-</span>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <span class="block text-sm font-medium text-gray-600 mb-1">Overall</span>
-                                <span class="text-gray-900 font-bold" id="non-items-overall">-</span>
-                            </div>
                         </div>
                     </div>
                 </section>
@@ -689,18 +667,18 @@
                         <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Specifications</h2>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-specifications-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
+                    <div class="overflow-x-auto" id="view-specifications-table-container">
+                        <table id="view-specifications-table" class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50/40 border-b border-gray-100">
                                 <tr>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         S. No</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Description</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Specifications</th>
                                 </tr>
                             </thead>
@@ -711,36 +689,39 @@
                     </div>
                 </section>
 
-                <!-- Totals Card -->
+                <!-- Quotation Summary Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-calculator text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Totals</h2>
+                    <div class="flex items-center gap-3 mb-5 pb-3 border-b border-gray-200">
+                        <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Quotation Summary</h2>
                     </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-sm font-medium text-gray-500 mb-2">Subtotal</span>
+                            <span class="text-gray-900 font-bold text-2xl" id="view-subtotal">₹ 0.00</span>
+                        </div>
+                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-sm font-medium text-gray-500 mb-2">Total Tax</span>
+                            <span class="text-gray-900 font-bold text-2xl" id="view-tax">₹ 0.00</span>
+                        </div>
+                        <div class="bg-blue-600 p-5 rounded-lg border border-blue-700 text-white shadow-md flex flex-col justify-between transform hover:scale-[1.01] transition-transform duration-200">
+                            <span class="block text-sm font-medium text-blue-100 mb-2">Grand Total</span>
+                            <span class="font-extrabold text-3xl tracking-tight" id="view-grand-total">₹ 0.00</span>
+                        </div>
+                    </div>
+                    <!-- Additional Tax Breakdowns -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Subtotal</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-subtotal">-</span>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-sm font-medium text-gray-500 mb-2">CGST</span>
+                            <span class="text-gray-900 font-bold text-xl" id="view-cgst">-</span>
                         </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Tax (GST)</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-tax">-</span>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-sm font-medium text-gray-500 mb-2">SGST</span>
+                            <span class="text-gray-900 font-bold text-xl" id="view-sgst">-</span>
                         </div>
-                        <div class="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
-                            <span class="block text-sm font-medium text-purple-600 mb-1">Total Amount Due</span>
-                            <span class="text-purple-900 font-bold text-xl" id="view-grand-total">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">CGST</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-cgst">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">SGST</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-sgst">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Round Off</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-round-off">-</span>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-sm font-medium text-gray-500 mb-2">Round Off</span>
+                            <span class="text-gray-900 font-bold text-xl" id="view-round-off">-</span>
                         </div>
                     </div>
                 </section>
