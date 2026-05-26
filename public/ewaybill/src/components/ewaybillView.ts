@@ -389,21 +389,45 @@
             const viewItemsTableBody = document.querySelector("#view-items-table tbody") as HTMLTableSectionElement | null;
             if (viewItemsTableBody) viewItemsTableBody.innerHTML = "";
 
+            let totalQty = 0;
+            let totalTaxableCalculated = 0;
+
             (waybill.items || []).forEach((item: EWayBillItem) => {
                 const row = document.createElement("tr");
-                const taxableValue = (Number(item.quantity) || 0) * (Number(item.unit_price) || 0);
+                const qty = Number(item.quantity) || 0;
+                const unitPrice = Number(item.unit_price) || 0;
+                const taxableValue = qty * unitPrice;
+                totalQty += qty;
+                totalTaxableCalculated += taxableValue;
+
                 row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";
                 row.innerHTML = `
-                    <td class="px-4 py-3 text-sm text-gray-700">${++sno}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${++sno}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-700">${item.hsn_sac || '-'}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.quantity || '-'}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-blue-600">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">${item.gst_rate || '0'}%</td>
-                    <td class="px-4 py-3 text-sm text-gray-700">₹ ${formatIndian(taxableValue, 2)}</td>
+                    <td class="px-4 py-3 text-sm text-right text-gray-900 tabular-nums">${item.quantity || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-right text-gray-700 tabular-nums">₹ ${formatIndian(item.unit_price, 2) || '-'}</td>
+                    <td class="px-4 py-3 text-sm text-right text-gray-700 tabular-nums">${item.gst_rate || '0'}%</td>
+                    <td class="px-4 py-3 text-sm text-right font-semibold text-blue-600 tabular-nums">₹ ${formatIndian(taxableValue, 2)}</td>
                 `;
                 if (viewItemsTableBody) viewItemsTableBody.appendChild(row);
             });
+
+            // Set footer totals row
+            const viewItemsTableFoot = document.querySelector("#view-items-table tfoot") as HTMLTableSectionElement | null;
+            if (viewItemsTableFoot) {
+                viewItemsTableFoot.innerHTML = `
+                    <tr>
+                        <td class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(totalTaxableCalculated, 2)}</td>
+                    </tr>
+                `;
+            }
 
             // Set totals
             const setTextContent = (id: string, value: string) => {
