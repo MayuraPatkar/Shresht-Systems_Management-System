@@ -198,30 +198,36 @@
                 <p>Email: ${cEmail}</p>
                 <p>Website: ${cWebsite}</p>
             </div>
-                <p>Website: ${companyData.website}</p>
             </div>
-        </div>
 
             <div class="second-section">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-                <p>Purchase Order-${purchaseOrderId}</p>
+                <p>Purchase Order - ${purchaseOrderId}</p>
                 <div style="text-align:right;"> 
                             <p><strong>Date:</strong> ${formattedDate || ((window as any).formatDateDisplay ? (window as any).formatDateDisplay(new Date()) : new Date().toLocaleDateString())}</p>
                         </div>
                         </div>
+                <div style="display:flex;justify-content:space-between;align-items:center; margin-top: 4px;">
+                    <p><strong>Purchase Invoice ID:</strong> ${purchaseInvoiceId}</p>
+                </div>
             </div>
 
             ${index === 0 ? `
             <div class="third-section">
                 <div class="buyer-details">
-                    <p><strong>Purchase From:</strong></p>
-                    <p>${supplierName}</p>
+                    <p class="section-title" style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; color: #444;">From (Supplier)</p>
+                    <p><strong>${supplierName}</strong></p>
                     <p>${supplierAddress}</p>
                     <p>Ph: ${supplierPhone}</p>
                     <p>GSTIN: ${GSTIN}</p>
                 </div>
                 <div class="order-info">
-                    <p><strong>Purchase Invoice ID:</strong> ${purchaseInvoiceId}</p>
+                    <p class="section-title" style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; color: #444;">To (Deliver To)</p>
+                    <p><strong>${companyName}</strong></p>
+                    <p>${cAddress}</p>
+                    <p>Ph: ${cPhone}</p>
+                    <p>GSTIN: ${cGSTIN}</p>
+                    <p>Email: ${cEmail}</p>
                 </div>
             </div>
             ` : ''}
@@ -257,20 +263,6 @@
                         <div class="fifth-section-sub3">
                             <p class="fifth-section-sub3-1"><strong>Amount in Words: </strong></p>
                             <p class="fifth-section-sub3-2"><span id="totalInWords">${numberToWords(grandTotal + roundOff)} Only</span></p>
-                        </div>
-                        <h3>Payment Details</h3>
-                        <div class="bank-details">
-                            <div class="QR-code bank-details-sub1">
-                                <img src="../assets/shresht-systems-payment-QR-code.jpg"
-                                    alt="qr-code" />
-                            </div>
-                            <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.name || companyData.company_name || companyData.company || ''}</p>
-                                <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
-                                <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
-                                <p><strong>Account No: </strong>${bank.accountNo || ''}</p>
-                                <p><strong>IFSC Code: </strong>${bank.IFSC_code || ''}</p>
-                            </div>
                         </div>
                     </div>
                     <div class="totals-section">
@@ -311,6 +303,10 @@
         const previewContent = document.getElementById("view-preview-content");
         if (previewContent) {
             previewContent.innerHTML = pagesHTML;
+        }
+        const formPreviewContent = document.getElementById("preview-content");
+        if (formPreviewContent) {
+            formPreviewContent.innerHTML = pagesHTML;
         }
     }
 
