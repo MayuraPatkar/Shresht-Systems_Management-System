@@ -833,6 +833,43 @@ async function renderQuotationView(quotation, viewType) {
         });
     }
 
+    const archiveBtn = document.getElementById('archiveQuotationBtn');
+    if (archiveBtn) {
+        const newArchiveBtn = archiveBtn.cloneNode(true) as HTMLButtonElement;
+        archiveBtn.parentNode?.replaceChild(newArchiveBtn, archiveBtn);
+        newArchiveBtn.innerHTML = quotation.is_archived
+            ? '<i class="fas fa-box-open"></i> Restore from Archive'
+            : '<i class="fas fa-archive"></i> Archive Quotation';
+        newArchiveBtn.className = quotation.is_archived
+            ? 'bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer'
+            : 'bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer';
+        newArchiveBtn.addEventListener('click', async () => {
+            const action = quotation.is_archived ? 'restore' : 'archive';
+            const message = `Are you sure you want to ${action} Quotation "${quotation.quotation_id}"?`;
+            const execute = async () => {
+                try {
+                    if (quotation.is_archived) {
+                        await (window as any).restoreQuotationFromArchive(quotation.quotation_id);
+                    } else {
+                        await (window as any).archiveQuotation(quotation.quotation_id);
+                    }
+                    document.getElementById('home-btn')?.click();
+                } catch (error) {
+                    (window as any).electronAPI?.showAlert1(`Failed to ${action} quotation.`);
+                }
+            };
+            const electronAPI = (window as any).electronAPI;
+            if (electronAPI?.showAlert2 && electronAPI?.receiveAlertResponse) {
+                electronAPI.showAlert2(message);
+                electronAPI.receiveAlertResponse((response: string) => {
+                    if (response === 'Yes') execute();
+                });
+            } else if (confirm(message)) {
+                await execute();
+            }
+        });
+    }
+
 }
 
 async function viewQuotation(quotationId, viewType) {

@@ -16,6 +16,7 @@ const quotationListDiv = document.querySelector(".records") as HTMLElement;
 
 // ====== Trash Mode State ======
 let isTrashMode = false;
+let isArchiveMode = false;
 
 // ====== Refresh Button Animation Helper ======
 function triggerRefreshAnimation(btn: HTMLButtonElement) {
@@ -28,6 +29,7 @@ function triggerRefreshAnimation(btn: HTMLButtonElement) {
 
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentQuotations();
+    updateArchivedCount();
 
     // Dynamically toggle Header elements visibility based on active section
     const homeSection = document.getElementById('home');
@@ -43,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const searchWrapper = document.getElementById('search-wrapper');
         const refreshBtn = document.getElementById('refresh-btn');
         const trashBtn = document.getElementById('showDeletedBtn');
+        const archivedBtn = document.getElementById('archived-quotations-btn');
         const closeTrashBtn = document.getElementById('close-trash-btn');
         const restoreAllBtn = document.getElementById('trash-restore-all-btn');
         const deleteAllBtn = document.getElementById('trash-delete-all-btn');
@@ -54,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (searchWrapper) searchWrapper.style.display = 'none';
             if (refreshBtn) refreshBtn.style.display = 'none';
             if (trashBtn) trashBtn.style.display = 'none';
+            if (archivedBtn) archivedBtn.style.display = 'none';
             if (closeTrashBtn) closeTrashBtn.style.display = 'none';
             if (restoreAllBtn) restoreAllBtn.style.display = 'none';
             if (deleteAllBtn) deleteAllBtn.style.display = 'none';
@@ -65,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (searchWrapper) searchWrapper.style.display = 'none';
             if (refreshBtn) refreshBtn.style.display = 'none';
             if (trashBtn) trashBtn.style.display = 'none';
+            if (archivedBtn) archivedBtn.style.display = 'none';
             if (closeTrashBtn) closeTrashBtn.style.display = 'none';
             if (restoreAllBtn) restoreAllBtn.style.display = 'none';
             if (deleteAllBtn) deleteAllBtn.style.display = 'none';
@@ -81,12 +86,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isTrashMode) {
                 if (newQuotationBtn) newQuotationBtn.style.display = 'none';
                 if (trashBtn) trashBtn.style.display = 'none';
+                if (archivedBtn) archivedBtn.style.display = 'none';
                 if (closeTrashBtn) closeTrashBtn.style.display = '';
                 if (restoreAllBtn) restoreAllBtn.style.display = 'flex';
                 if (deleteAllBtn) deleteAllBtn.style.display = 'flex';
             } else {
                 if (newQuotationBtn) newQuotationBtn.style.display = 'flex';
                 if (trashBtn) trashBtn.style.display = 'flex';
+                if (archivedBtn) archivedBtn.style.display = 'flex';
                 if (closeTrashBtn) closeTrashBtn.style.display = 'none';
                 if (restoreAllBtn) restoreAllBtn.style.display = 'none';
                 if (deleteAllBtn) deleteAllBtn.style.display = 'none';
@@ -127,6 +134,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (trashBtn) {
         trashBtn.addEventListener('click', () => {
             enterTrashMode();
+        });
+    }
+
+    const archivedBtn = document.getElementById('archived-quotations-btn') as HTMLButtonElement;
+    if (archivedBtn) {
+        archivedBtn.addEventListener('click', () => {
+            isTrashMode = false;
+            isArchiveMode = !isArchiveMode;
+            updateArchivedButtonVisuals();
+            updateHeaderVisibility();
+            loadRecentQuotations();
         });
     }
 
@@ -215,6 +233,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function enterTrashMode() {
     isTrashMode = true;
+    isArchiveMode = false;
+    updateArchivedButtonVisuals();
 
     if (typeof (window as any).updateHeaderVisibility === 'function') {
         (window as any).updateHeaderVisibility();
@@ -285,7 +305,7 @@ async function loadTrashQuotations() {
 // Load recent quotations from the server
 async function loadRecentQuotations() {
     try {
-        const response = await fetch(`/quotation/recent-quotations`);
+        const response = await fetch(`/quotation/recent-quotations${isArchiveMode ? '?status=archived' : ''}`);
         if (!response.ok) {
             throw new Error("Failed to fetch quotations");
         }
@@ -300,6 +320,7 @@ async function loadRecentQuotations() {
         }));
         
         applyQuotationFilters();
+        updateArchivedCount();
     } catch (error) {
         console.error("Error loading quotations:", error);
         quotationListDiv.innerHTML = `
@@ -318,6 +339,49 @@ async function loadRecentQuotations() {
         `;
     }
 }
+
+async function updateArchivedCount() {
+    try {
+        const response = await fetch('/quotation/recent-quotations?status=archived');
+        if (!response.ok) return;
+        const data = await response.json();
+        const badge = document.getElementById('archived-count-badge');
+        if (badge) badge.textContent = String((data.quotation || []).length);
+    } catch (error) {
+        console.error('Failed to update archived quotation count:', error);
+    }
+}
+
+function updateArchivedButtonVisuals() {
+    const archivedBtn = document.getElementById('archived-quotations-btn');
+    if (!archivedBtn) return;
+    const icon = archivedBtn.querySelector('i');
+    if (isArchiveMode) {
+        archivedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+        archivedBtn.classList.add('bg-amber-500', 'text-white', 'border-amber-500', 'hover:bg-amber-600');
+        if (icon) icon.className = 'fas fa-box-open text-white';
+    } else {
+        archivedBtn.classList.remove('bg-amber-500', 'text-white', 'border-amber-500', 'hover:bg-amber-600');
+        archivedBtn.classList.add('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+        if (icon) icon.className = 'fas fa-archive text-slate-400';
+    }
+}
+
+async function archiveQuotation(quotationId: string) {
+    await (window as any).quotationApi.archiveQuotation(quotationId);
+    showToast(`Quotation ${quotationId} archived`);
+    await loadRecentQuotations();
+}
+
+async function restoreQuotationFromArchive(quotationId: string) {
+    await (window as any).quotationApi.restoreQuotationFromArchive(quotationId);
+    showToast(`Quotation ${quotationId} restored`);
+    await loadRecentQuotations();
+}
+
+(window as any).archiveQuotation = archiveQuotation;
+(window as any).restoreQuotationFromArchive = restoreQuotationFromArchive;
+(window as any).loadRecentQuotations = loadRecentQuotations;
 
 // ====== Filters ======
 
@@ -401,6 +465,15 @@ async function handleSearch() {
     const query = (document.getElementById('search-input') as HTMLInputElement).value.trim();
     if (!query) {
         await loadRecentQuotations();
+        return;
+    }
+
+    if (isArchiveMode) {
+        const matches = allQuotations.filter((quotation: any) =>
+            [quotation.quotation_id, quotation.project_name, quotation.customer_snapshot?.name, quotation.quotation_status]
+                .some(value => String(value || '').toLowerCase().includes(query.toLowerCase()))
+        );
+        (window as any).quotationTable?.renderQuotations(matches);
         return;
     }
 

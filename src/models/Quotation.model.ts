@@ -120,6 +120,7 @@ export interface IQuotation extends Document {
     remarks?: string;
 
     deletion: ISoftDelete;
+    is_archived: boolean;
     is_deleted: boolean;
     deleted_at?: Date;
     deleted_by?: string;
@@ -332,6 +333,12 @@ const quotationSchema = new Schema<IQuotation>(
             default: () => ({ is_deleted: false }),
         },
 
+        is_archived: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+
         is_deleted: {
             type: Boolean,
             default: false,
@@ -360,6 +367,7 @@ const quotationSchema = new Schema<IQuotation>(
 quotationSchema.index({ project_name: 1, quotation_date: -1 });
 quotationSchema.index({ customer_id: 1, quotation_date: -1 });
 quotationSchema.index({ "deletion.is_deleted": 1 });
+quotationSchema.index({ is_archived: 1 });
 
 /**
  * Model

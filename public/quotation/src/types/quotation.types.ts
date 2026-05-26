@@ -7,6 +7,7 @@ interface Quotation {
     customer_phone: string;
     customer_email: string;
     customer_GSTIN?: string;
+    is_archived?: boolean;
     items: QuotationItem[];
     non_items: QuotationNonItem[];
 }

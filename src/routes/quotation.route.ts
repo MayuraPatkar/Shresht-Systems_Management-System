@@ -16,6 +16,7 @@ function activeQuotationQuery(extra: any = {}) {
     return {
         'deletion.is_deleted': { $ne: true },
         is_deleted: { $ne: true },
+        is_archived: { $ne: true },
         ...extra,
     };
 }
@@ -66,9 +67,13 @@ async function expireStaleQuotations() {
 
 function buildListQuery(req: Request) {
     const { status, customer_id, expired, converted, includeDeleted, startDate, endDate } = req.query;
-    const query: any = includeDeleted === 'true' ? {} : activeQuotationQuery();
+    const query: any = includeDeleted === 'true'
+        ? {}
+        : status === 'archived'
+            ? { 'deletion.is_deleted': { $ne: true }, is_deleted: { $ne: true }, is_archived: true }
+            : activeQuotationQuery();
 
-    if (status && QUOTATION_STATUSES.includes(status as any)) query.quotation_status = status;
+    if (status !== 'archived' && status && QUOTATION_STATUSES.includes(status as any)) query.quotation_status = status;
     if (customer_id && Types.ObjectId.isValid(String(customer_id))) query.customer_id = customer_id;
     if (converted === 'true') query.converted_invoice_id = { $exists: true, $ne: null };
     if (expired === 'true') {
@@ -158,10 +163,13 @@ router.post("/save-quotation", async (req: Request, res: Response) => {
     }
 });
 
-router.get("/recent-quotations", async (_req: Request, res: Response) => {
+router.get("/recent-quotations", async (req: Request, res: Response) => {
     try {
         await expireStaleQuotations();
-        const recentQuotations = await QuotationModel.find(activeQuotationQuery())
+        const query = req.query.status === 'archived'
+            ? { 'deletion.is_deleted': { $ne: true }, is_deleted: { $ne: true }, is_archived: true }
+            : activeQuotationQuery();
+        const recentQuotations = await QuotationModel.find(query)
             .sort({ createdAt: -1 })
             .limit(25)
             .lean();
@@ -191,6 +199,36 @@ router.patch("/:quotationId/status", async (req: Request, res: Response) => {
         return res.status(200).json({ quotation: normalizeQuotationDocument(quotation) });
     } catch (error: unknown) {
         logger.error("Error updating quotation status:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+router.put("/:quotationId/archive", async (req: Request, res: Response) => {
+    try {
+        const quotation = await QuotationModel.findOneAndUpdate(
+            activeQuotationQuery({ quotation_no: req.params.quotationId }),
+            { $set: { is_archived: true } },
+            { new: true }
+        );
+        if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
+        return res.status(200).json({ message: 'Quotation archived successfully', quotation: normalizeQuotationDocument(quotation) });
+    } catch (error: unknown) {
+        logger.error("Error archiving quotation:", error);
+        return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+});
+
+router.put("/:quotationId/restore-from-archive", async (req: Request, res: Response) => {
+    try {
+        const quotation = await QuotationModel.findOneAndUpdate(
+            { quotation_no: req.params.quotationId, is_archived: true, is_deleted: { $ne: true }, 'deletion.is_deleted': { $ne: true } },
+            { $set: { is_archived: false } },
+            { new: true }
+        );
+        if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
+        return res.status(200).json({ message: 'Quotation restored from archive successfully', quotation: normalizeQuotationDocument(quotation) });
+    } catch (error: unknown) {
+        logger.error("Error restoring quotation from archive:", error);
         return res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
 });

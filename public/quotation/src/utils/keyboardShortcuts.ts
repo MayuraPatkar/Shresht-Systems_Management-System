@@ -22,7 +22,8 @@ const QUOTATION_SHORTCUT_GROUPS = [
             { label: 'Delete Item', keys: ['Ctrl', 'Delete'] },
             { label: 'Go Home', keys: ['Ctrl', 'H'] },
             { label: 'Focus Search', keys: ['Ctrl', 'F'] },
-            { label: 'Refresh List', keys: ['Ctrl', 'R'] }
+            { label: 'Refresh List', keys: ['Ctrl', 'R'] },
+            { label: 'View Archived Quotations', keys: ['Ctrl', 'Shift', 'A'] }
         ]
     }
 ];
@@ -249,6 +250,16 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
     const keyLower = event.key.toLowerCase();
     const isModifierPressed = event.ctrlKey || event.metaKey;
     const homeButton = document.getElementById('home-btn');
+
+    if (isModifierPressed && event.shiftKey && keyLower === 'a') {
+        const archivedBtn = document.getElementById('archived-quotations-btn') as HTMLButtonElement | null;
+        if (archivedBtn && window.getComputedStyle(archivedBtn).display !== 'none') {
+            event.preventDefault();
+            event.stopPropagation();
+            archivedBtn.click();
+        }
+        return;
+    }
 
     if (!shortcutsModalRef) {
         shortcutsModalRef = document.getElementById('shortcuts-modal');

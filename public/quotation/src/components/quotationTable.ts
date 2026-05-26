@@ -76,13 +76,14 @@ class QuotationTable {
 
         quotationListDiv.innerHTML = "";
         if (!quotations || quotations.length === 0) {
+            const isArchivedView = typeof isArchiveMode !== 'undefined' && isArchiveMode;
             quotationListDiv.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
-                    <div class="text-purple-500 text-5xl mb-4">
-                        <i class="fas fa-file-invoice"></i>
+                    <div class="${isArchivedView ? 'text-amber-500' : 'text-purple-500'} text-5xl mb-4">
+                        <i class="fas ${isArchivedView ? 'fa-archive' : 'fa-file-invoice'}"></i>
                     </div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">No Quotations Found</h2>
-                    <p class="text-gray-600">Start creating professional quotations for your clients</p>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">${isArchivedView ? 'No Archived Quotations' : 'No Quotations Found'}</h2>
+                    <p class="text-gray-600">${isArchivedView ? 'Quotations you archive will show up here' : 'Start creating professional quotations for your clients'}</p>
                 </div>
             `;
             return;
@@ -96,7 +97,10 @@ class QuotationTable {
     // Create a quotation card element
     createQuotationCard(quotation: any): HTMLElement {
         const quotationCard = document.createElement("div");
-    quotationCard.className = "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-400 overflow-hidden fade-in";
+    const isArchived = !!quotation.is_archived;
+    quotationCard.className = isArchived
+        ? "group bg-slate-50/90 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-slate-300 overflow-hidden fade-in opacity-80 hover:opacity-100"
+        : "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-400 overflow-hidden fade-in";
 
     // Format the date for display
     const formattedDate = quotation.quotation_date ? formatDateIndian(quotation.quotation_date) : '-';
@@ -118,12 +122,12 @@ class QuotationTable {
     quotationCard.innerHTML = `
         <!-- Left Border Accent -->
         <div class="flex">
-            <div class="w-1.5 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-l-lg"></div>
+            <div class="w-1.5 bg-gradient-to-b ${isArchived ? 'from-slate-400 to-slate-600' : 'from-purple-500 to-indigo-600'} rounded-l-lg"></div>
             <div class="relative p-5 flex-1">
             <!-- Top Row: Header with Title & Actions -->
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-200">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br ${isArchived ? 'from-slate-400 to-slate-600 shadow-slate-200' : 'from-purple-500 to-indigo-600 shadow-purple-200'} flex items-center justify-center shadow-lg">
                         <i class="fas fa-file-invoice text-lg text-white"></i>
                     </div>
                     <div>
@@ -133,6 +137,11 @@ class QuotationTable {
                 
                 <!-- Actions -->
                 <div class="flex items-center gap-2">
+                    ${isArchived ? `
+                    <button class="action-btn restore-archive-btn px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-all border border-emerald-200 hover:border-emerald-400" title="Restore from Archive">
+                        <i class="fas fa-box-open mr-1"></i> Restore
+                    </button>
+                    ` : `
                     <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
                         <i class="fas fa-eye"></i>
                     </button>
@@ -142,6 +151,10 @@ class QuotationTable {
                     <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
+                    <button class="action-btn archive-btn px-4 py-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-all border border-amber-200 hover:border-amber-400" title="Archive">
+                        <i class="fas fa-archive"></i>
+                    </button>
+                    `}
                 </div>
             </div>
             
@@ -155,7 +168,7 @@ class QuotationTable {
                 <span class="text-xs text-gray-500">
                     <i class="fas fa-calendar-alt mr-1"></i>${formattedDate}
                 </span>
-                ${this.getStatusBadge(status)}
+                ${isArchived ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-slate-100 text-slate-600 border-slate-200">ARCHIVED</span>' : this.getStatusBadge(status)}
                 <span class="text-xs text-gray-500">
                     <i class="fas fa-hourglass-half mr-1"></i>${validTill}
                 </span>
@@ -186,7 +199,8 @@ class QuotationTable {
     const viewBtn = quotationCard.querySelector('.view-btn') as HTMLElement;
     const duplicateBtn = quotationCard.querySelector('.duplicate-btn') as HTMLElement;
     const editBtn = quotationCard.querySelector('.edit-btn') as HTMLElement;
-    const deleteBtn = quotationCard.querySelector('.delete-btn') as HTMLElement;
+    const archiveBtn = quotationCard.querySelector('.archive-btn') as HTMLElement;
+    const restoreArchiveBtn = quotationCard.querySelector('.restore-archive-btn') as HTMLElement;
 
     // Copy ID functionality
     copyElement?.addEventListener('click', async () => {
@@ -213,18 +227,39 @@ class QuotationTable {
             openQuotation(quotationId);
         });
 
-        deleteBtn?.addEventListener('click', () => {
-            (window as any).electronAPI.showAlert2('Are you sure you want to delete this quotation?');
-            if ((window as any).electronAPI) {
-                (window as any).electronAPI.receiveAlertResponse((response: string) => {
-                    if (response === "Yes") {
-                        this.deleteQuotation(quotationId);
-                    }
-                });
-            }
+        archiveBtn?.addEventListener('click', () => {
+            this.confirmAction(`Are you sure you want to archive quotation "${quotationId}"?`, async () => {
+                try {
+                    await (window as any).archiveQuotation(quotationId);
+                } catch (error) {
+                    (window as any).electronAPI?.showAlert1('Failed to archive quotation.');
+                }
+            });
+        });
+
+        restoreArchiveBtn?.addEventListener('click', () => {
+            this.confirmAction(`Are you sure you want to restore quotation "${quotationId}"?`, async () => {
+                try {
+                    await (window as any).restoreQuotationFromArchive(quotationId);
+                } catch (error) {
+                    (window as any).electronAPI?.showAlert1('Failed to restore quotation.');
+                }
+            });
         });
 
         return quotationCard;
+    }
+
+    confirmAction(message: string, onConfirm: () => void) {
+        const electronAPI = (window as any).electronAPI;
+        if (electronAPI?.showAlert2 && electronAPI?.receiveAlertResponse) {
+            electronAPI.showAlert2(message);
+            electronAPI.receiveAlertResponse((response: string) => {
+                if (response === 'Yes') onConfirm();
+            });
+        } else if (confirm(message)) {
+            onConfirm();
+        }
     }
 
     // Delete a quotation
