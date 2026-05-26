@@ -29,6 +29,84 @@ function triggerRefreshAnimation(btn: HTMLButtonElement) {
 document.addEventListener("DOMContentLoaded", () => {
     loadRecentQuotations();
 
+    // Dynamically toggle Header elements visibility based on active section
+    const homeSection = document.getElementById('home');
+    const newSection = document.getElementById('new');
+    const viewSection = document.getElementById('view');
+    const homeBtn = document.getElementById('home-btn');
+
+    const updateHeaderVisibility = () => {
+        const isHomeVisible = homeSection ? window.getComputedStyle(homeSection).display !== 'none' : true;
+        const isFormActive = newSection ? window.getComputedStyle(newSection).display !== 'none' : false;
+        const isViewActive = viewSection ? window.getComputedStyle(viewSection).display !== 'none' : false;
+
+        const searchWrapper = document.getElementById('search-wrapper');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const trashBtn = document.getElementById('showDeletedBtn');
+        const closeTrashBtn = document.getElementById('close-trash-btn');
+        const restoreAllBtn = document.getElementById('trash-restore-all-btn');
+        const deleteAllBtn = document.getElementById('trash-delete-all-btn');
+        const newQuotationBtn = document.getElementById('new-quotation');
+        const viewPreviewBtn = document.getElementById('view-preview');
+
+        if (isFormActive) {
+            // Creation/edit/clone mode: hide search, filter, refresh, trash, restore-all, delete-all, new-quotation. Show home and view-preview.
+            if (searchWrapper) searchWrapper.style.display = 'none';
+            if (refreshBtn) refreshBtn.style.display = 'none';
+            if (trashBtn) trashBtn.style.display = 'none';
+            if (closeTrashBtn) closeTrashBtn.style.display = 'none';
+            if (restoreAllBtn) restoreAllBtn.style.display = 'none';
+            if (deleteAllBtn) deleteAllBtn.style.display = 'none';
+            if (newQuotationBtn) newQuotationBtn.style.display = 'none';
+            if (viewPreviewBtn) viewPreviewBtn.style.display = 'flex';
+            if (homeBtn) homeBtn.style.display = 'flex';
+        } else if (isViewActive) {
+            // View mode: hide search, filter, refresh, trash, restore-all, delete-all, view-preview. Show home, new-quotation.
+            if (searchWrapper) searchWrapper.style.display = 'none';
+            if (refreshBtn) refreshBtn.style.display = 'none';
+            if (trashBtn) trashBtn.style.display = 'none';
+            if (closeTrashBtn) closeTrashBtn.style.display = 'none';
+            if (restoreAllBtn) restoreAllBtn.style.display = 'none';
+            if (deleteAllBtn) deleteAllBtn.style.display = 'none';
+            if (newQuotationBtn) newQuotationBtn.style.display = 'flex';
+            if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+            if (homeBtn) homeBtn.style.display = 'flex';
+        } else {
+            // Home/List/Trash mode
+            if (searchWrapper) searchWrapper.style.display = 'flex';
+            if (refreshBtn) refreshBtn.style.display = 'flex';
+            if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
+            if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+
+            if (isTrashMode) {
+                if (newQuotationBtn) newQuotationBtn.style.display = 'none';
+                if (trashBtn) trashBtn.style.display = 'none';
+                if (closeTrashBtn) closeTrashBtn.style.display = '';
+                if (restoreAllBtn) restoreAllBtn.style.display = 'flex';
+                if (deleteAllBtn) deleteAllBtn.style.display = 'flex';
+            } else {
+                if (newQuotationBtn) newQuotationBtn.style.display = 'flex';
+                if (trashBtn) trashBtn.style.display = 'flex';
+                if (closeTrashBtn) closeTrashBtn.style.display = 'none';
+                if (restoreAllBtn) restoreAllBtn.style.display = 'none';
+                if (deleteAllBtn) deleteAllBtn.style.display = 'none';
+            }
+        }
+    };
+
+    if (homeSection && homeBtn) {
+        const observer = new MutationObserver(updateHeaderVisibility);
+        observer.observe(homeSection, { attributes: true, attributeFilter: ['style'] });
+        if (newSection) {
+            observer.observe(newSection, { attributes: true, attributeFilter: ['style'] });
+        }
+        if (viewSection) {
+            observer.observe(viewSection, { attributes: true, attributeFilter: ['style'] });
+        }
+        (window as any).updateHeaderVisibility = updateHeaderVisibility;
+        updateHeaderVisibility();
+    }
+
     document.getElementById('new-quotation')!.addEventListener('click', showNewQuotationForm);
 
     // ====== Refresh Button (universal — refreshes trash or normal depending on mode) ======
@@ -138,23 +216,9 @@ document.addEventListener("DOMContentLoaded", () => {
 function enterTrashMode() {
     isTrashMode = true;
 
-    const newQuotationBtn = document.getElementById('new-quotation');
-    const trashBtn = document.getElementById('showDeletedBtn');
-    const closeTrashBtn = document.getElementById('close-trash-btn');
-    const restoreAllBtn = document.getElementById('trash-restore-all-btn');
-    const deleteAllBtn = document.getElementById('trash-delete-all-btn');
-
-    // Hide normal header buttons (refresh stays visible — it works universally)
-    if (newQuotationBtn) newQuotationBtn.style.display = 'none';
-    if (trashBtn) trashBtn.style.display = 'none';
-    
-    // Show Close Trash and Restore/Delete All buttons in header
-    if (closeTrashBtn) closeTrashBtn.style.display = '';
-    if (restoreAllBtn) restoreAllBtn.style.display = 'flex';
-    if (deleteAllBtn) deleteAllBtn.style.display = 'flex';
-
-    const homeBtnEl = document.getElementById('home-btn');
-    if (homeBtnEl) homeBtnEl.style.display = 'none';
+    if (typeof (window as any).updateHeaderVisibility === 'function') {
+        (window as any).updateHeaderVisibility();
+    }
 
     loadTrashQuotations();
 }
@@ -162,23 +226,9 @@ function enterTrashMode() {
 function exitTrashMode() {
     isTrashMode = false;
 
-    const newQuotationBtn = document.getElementById('new-quotation');
-    const trashBtn = document.getElementById('showDeletedBtn');
-    const closeTrashBtn = document.getElementById('close-trash-btn');
-    const restoreAllBtn = document.getElementById('trash-restore-all-btn');
-    const deleteAllBtn = document.getElementById('trash-delete-all-btn');
-
-    // Restore normal header buttons
-    if (newQuotationBtn) newQuotationBtn.style.display = '';
-    if (trashBtn) trashBtn.style.display = '';
-    
-    // Hide Close Trash and Restore/Delete All buttons
-    if (closeTrashBtn) closeTrashBtn.style.display = 'none';
-    if (restoreAllBtn) restoreAllBtn.style.display = 'none';
-    if (deleteAllBtn) deleteAllBtn.style.display = 'none';
-
-    const homeBtnEl = document.getElementById('home-btn');
-    if (homeBtnEl) homeBtnEl.style.display = 'none';
+    if (typeof (window as any).updateHeaderVisibility === 'function') {
+        (window as any).updateHeaderVisibility();
+    }
 
     loadRecentQuotations();
 }

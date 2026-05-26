@@ -447,7 +447,11 @@ function updateNavigation() {
         delete nextBtn.dataset.originalHtml;
       }
       if (saveBtn) {
-        saveBtn.style.display = '';
+        if (isInvoice) {
+          saveBtn.style.display = 'none';
+        } else {
+          saveBtn.style.display = currentStep === totalSteps ? '' : 'none';
+        }
       }
     }
   }

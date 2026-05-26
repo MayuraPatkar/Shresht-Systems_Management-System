@@ -2210,11 +2210,7 @@ window.validateCurrentStep = async function () {
                 }
 
                 if (rate) {
-                    if (!rate.value.trim()) {
-                        setFieldValidation(rate, false, `Required.`);
-                    } else {
-                        setFieldValidation(rate, true);
-                    }
+                    setFieldValidation(rate, true);
                 }
             });
         }
