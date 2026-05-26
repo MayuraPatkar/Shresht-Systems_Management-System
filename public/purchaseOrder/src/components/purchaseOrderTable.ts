@@ -125,22 +125,7 @@
                     </button>
                     ` : ''}
                 </div>
-                ` : `
-                <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 mt-2">
-                    <button class="view-btn text-purple-600 hover:bg-purple-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-purple-200" title="View Preview">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="edit-btn text-blue-600 hover:bg-blue-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-blue-200" title="Edit Purchase Order">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="archive-btn text-amber-600 hover:bg-amber-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-amber-200" title="Archive Purchase Order">
-                        <i class="fas fa-archive"></i>
-                    </button>
-                    <button class="delete-btn text-red-600 hover:bg-red-50 p-2 flex items-center justify-center rounded-lg transition-colors border border-transparent hover:border-red-200" title="Delete Purchase Order">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-                `}
+                ` : ''}
             `;
 
             // ID Copy Functionality
@@ -177,17 +162,6 @@
                 });
             }
 
-            // Archive Button
-            const archiveBtn = div.querySelector('.archive-btn');
-            if (archiveBtn) {
-                archiveBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if ((window as any).handlePurchaseOrderArchive) {
-                        (window as any).handlePurchaseOrderArchive(poId);
-                    }
-                });
-            }
-
             // Hard Delete Button
             const hardDeleteBtn = div.querySelector('.hard-delete-card-btn');
             if (hardDeleteBtn) {
@@ -199,35 +173,12 @@
                 });
             }
 
-            // View Button
-            const viewBtn = div.querySelector('.view-btn');
-            if (viewBtn) {
-                viewBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
+            if (!isTrash && !isArchived) {
+                // Click anywhere on an active card to view purchase order details.
+                div.addEventListener('click', () => {
                     if ((window as any).viewPurchaseOrder) {
                         (window as any).viewPurchaseOrder(purchaseOrder.purchase_order_no);
                     }
-                });
-            }
-
-            // Edit Button
-            const editBtn = div.querySelector('.edit-btn');
-            if (editBtn) {
-                editBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    sessionStorage.setItem('currentTab-status', 'update');
-                    if ((window as any).openPurchaseOrder) {
-                        (window as any).openPurchaseOrder(purchaseOrder.purchase_order_no);
-                    }
-                });
-            }
-
-            // Delete Button
-            const deleteBtn = div.querySelector('.delete-btn');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.handleDelete(purchaseOrder.purchase_order_no);
                 });
             }
 

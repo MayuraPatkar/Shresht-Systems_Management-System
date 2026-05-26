@@ -172,6 +172,10 @@
             const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
             const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
 
+            const viewEditBtn = document.getElementById('view-edit-btn');
+            const viewSaveBtn = document.getElementById('view-save-btn');
+            const viewCancelBtn = document.getElementById('view-cancel-btn');
+
             if (isFormActive) {
                 // Creation mode
                 if (searchFilterContainer) searchFilterContainer.style.display = 'none';
@@ -181,6 +185,10 @@
                 if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
                 if (homeBtn) homeBtn.style.display = 'flex';
                 
+                if (viewEditBtn) viewEditBtn.style.display = 'none';
+                if (viewSaveBtn) viewSaveBtn.style.display = 'none';
+                if (viewCancelBtn) viewCancelBtn.style.display = 'none';
+
                 if (bulkRestoreBtn) {
                     bulkRestoreBtn.style.display = 'none';
                     bulkRestoreBtn.classList.add('hidden');
@@ -195,8 +203,6 @@
                 if (refreshBtn) refreshBtn.style.display = 'none';
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
                 if (archivedBtn) archivedBtn.style.display = 'none';
-                if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
-                if (homeBtn) homeBtn.style.display = 'flex';
 
                 if (bulkRestoreBtn) {
                     bulkRestoreBtn.style.display = 'none';
@@ -206,12 +212,31 @@
                     bulkDeleteBtn.style.display = 'none';
                     bulkDeleteBtn.classList.add('hidden');
                 }
+
+                const isEditing = !!(window as any).isEditingInline;
+                if (isEditing) {
+                    if (newPurchaseBtn) newPurchaseBtn.style.display = 'none';
+                    if (homeBtn) homeBtn.style.display = 'none';
+                    if (viewEditBtn) viewEditBtn.style.display = 'none';
+                    if (viewSaveBtn) viewSaveBtn.style.display = 'flex';
+                    if (viewCancelBtn) viewCancelBtn.style.display = 'flex';
+                } else {
+                    if (newPurchaseBtn) newPurchaseBtn.style.display = 'flex';
+                    if (homeBtn) homeBtn.style.display = 'flex';
+                    if (viewEditBtn) viewEditBtn.style.display = 'flex';
+                    if (viewSaveBtn) viewSaveBtn.style.display = 'none';
+                    if (viewCancelBtn) viewCancelBtn.style.display = 'none';
+                }
             } else {
                 // Dashboard management mode
                 if (searchFilterContainer) searchFilterContainer.style.display = 'flex';
                 if (refreshBtn) refreshBtn.style.display = 'flex';
                 if (showDeletedBtn) showDeletedBtn.style.display = 'flex';
                 if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
+                
+                if (viewEditBtn) viewEditBtn.style.display = 'none';
+                if (viewSaveBtn) viewSaveBtn.style.display = 'none';
+                if (viewCancelBtn) viewCancelBtn.style.display = 'none';
 
                 const isTrashOpen = !!(window as any).showDeletedItems;
                 if (isTrashOpen) {
@@ -494,7 +519,11 @@
             try {
                 await (window as any).purchaseOrderApi.restorePurchaseOrder(id);
                 showToast('Purchase order restored successfully');
-                await loadRecentPurchaseOrders();
+                if (document.getElementById('view')?.style.display === 'block') {
+                    window.location.href = '/purchaseorder';
+                } else {
+                    await loadRecentPurchaseOrders();
+                }
             } catch (error) {
                 showToast('Failed to restore purchase order', 'error');
             }
@@ -506,7 +535,11 @@
             try {
                 await (window as any).purchaseOrderApi.archivePurchaseOrder(id);
                 showToast('Purchase order archived successfully');
-                await loadRecentPurchaseOrders();
+                if (document.getElementById('view')?.style.display === 'block') {
+                    window.location.href = '/purchaseorder';
+                } else {
+                    await loadRecentPurchaseOrders();
+                }
             } catch (error) {
                 showToast('Failed to archive purchase order', 'error');
             }
@@ -518,7 +551,11 @@
             try {
                 await (window as any).purchaseOrderApi.hardDeletePurchaseOrder(id);
                 showToast('Purchase order permanently deleted');
-                await loadRecentPurchaseOrders();
+                if (document.getElementById('view')?.style.display === 'block') {
+                    window.location.href = '/purchaseorder';
+                } else {
+                    await loadRecentPurchaseOrders();
+                }
             } catch (error) {
                 showToast('Failed to permanently delete purchase order', 'error');
             }

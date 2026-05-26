@@ -76,6 +76,18 @@
                     <i class="fas fa-eye"></i>
                     View Preview
                 </button>
+                <button type="button" id="view-edit-btn" class="view-mode-btn bg-blue-600 hover:bg-blue-700 text-white px-4 h-10 rounded-lg items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer" style="display: none;">
+                    <i class="fas fa-edit"></i>
+                    Edit Purchase Order
+                </button>
+                <button type="button" id="view-save-btn" class="edit-mode-btn bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer" style="display: none;">
+                    <i class="fas fa-save"></i>
+                    Save Changes
+                </button>
+                <button type="button" id="view-cancel-btn" class="edit-mode-btn bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-100 px-4 h-10 rounded-lg items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer transition-all" style="display: none;">
+                    <i class="fas fa-times text-gray-500"></i>
+                    Cancel
+                </button>
                 <button id="home-btn"
                     class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
                     <i class="fas fa-home"></i>
@@ -388,31 +400,81 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Purchase Invoice ID</span>
-                            <span class="text-gray-900 font-semibold" id="view-purchase-invoice-iD">-</span>
+                            <span class="text-gray-900 font-semibold view-field" id="view-purchase-invoice-iD">-</span>
+                            <input type="text" id="edit-purchase-invoice-id" class="edit-field hidden w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Purchase Date</span>
-                            <span class="text-gray-900 font-semibold" id="view-purchase-date">-</span>
+                            <span class="text-gray-900 font-semibold view-field" id="view-purchase-date">-</span>
+                            <input type="date" id="edit-purchase-date" class="edit-field hidden w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Supplier Name</span>
-                            <span class="text-gray-900 font-semibold" id="view-supplier-name">-</span>
+                            <span class="text-gray-900 font-semibold view-field" id="view-supplier-name">-</span>
+                            <input type="text" id="edit-supplier-name" class="edit-field hidden w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg md:col-span-2">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Address</span>
-                            <span class="text-gray-900 font-semibold" id="view-supplier-address">-</span>
+                            <span class="text-gray-900 font-semibold view-field" id="view-supplier-address">-</span>
+                            <div class="edit-field hidden grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <input type="text" id="edit-supplier-address-line1" placeholder="Line 1" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="text" id="edit-supplier-address-line2" placeholder="Line 2" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="text" id="edit-supplier-address-city" placeholder="City" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <select id="edit-supplier-address-state" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                    <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                    <option value="Assam">Assam</option>
+                                    <option value="Bihar">Bihar</option>
+                                    <option value="Chhattisgarh">Chhattisgarh</option>
+                                    <option value="Goa">Goa</option>
+                                    <option value="Gujarat">Gujarat</option>
+                                    <option value="Haryana">Haryana</option>
+                                    <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                    <option value="Jharkhand">Jharkhand</option>
+                                    <option value="Karnataka" selected>Karnataka</option>
+                                    <option value="Kerala">Kerala</option>
+                                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                    <option value="Maharashtra">Maharashtra</option>
+                                    <option value="Manipur">Manipur</option>
+                                    <option value="Meghalaya">Meghalaya</option>
+                                    <option value="Mizoram">Mizoram</option>
+                                    <option value="Nagaland">Nagaland</option>
+                                    <option value="Odisha">Odisha</option>
+                                    <option value="Punjab">Punjab</option>
+                                    <option value="Rajasthan">Rajasthan</option>
+                                    <option value="Sikkim">Sikkim</option>
+                                    <option value="Tamil Nadu">Tamil Nadu</option>
+                                    <option value="Telangana">Telangana</option>
+                                    <option value="Tripura">Tripura</option>
+                                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                    <option value="Uttarakhand">Uttarakhand</option>
+                                    <option value="West Bengal">West Bengal</option>
+                                    <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                    <option value="Chandigarh">Chandigarh</option>
+                                    <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                    <option value="Ladakh">Ladakh</option>
+                                    <option value="Lakshadweep">Lakshadweep</option>
+                                    <option value="Puducherry">Puducherry</option>
+                                </select>
+                                <input type="text" id="edit-supplier-address-pincode" placeholder="Pincode" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Phone Number</span>
-                            <span class="text-gray-900 font-semibold" id="view-supplier-phone">-</span>
+                            <span class="text-gray-900 font-semibold view-field" id="view-supplier-phone">-</span>
+                            <input type="text" id="edit-supplier-phone" class="edit-field hidden w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Email</span>
-                            <span class="text-gray-900 font-semibold" id="view-supplier-email">-</span>
+                            <span class="text-gray-900 font-semibold view-field" id="view-supplier-email">-</span>
+                            <input type="email" id="edit-supplier-email" class="edit-field hidden w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">GSTIN</span>
-                            <span class="text-gray-900 font-semibold" id="view-buyerGSTIN">-</span>
+                            <span class="text-gray-900 font-semibold view-field" id="view-buyerGSTIN">-</span>
+                            <input type="text" id="edit-buyerGSTIN" class="edit-field hidden w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                 </section>
@@ -439,12 +501,6 @@
                                         HSN/SAC</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Brand</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Category</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
                                         Qty</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
@@ -455,40 +511,20 @@
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
                                         Rate</th>
+                                    <th
+                                        class="action-header hidden px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Items will be dynamically filled -->
                             </tbody>
                         </table>
-                    </div>
-                </section>
-
-                <!-- Specifications Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Specifications</h2>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-specifications-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        S. No</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Description</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Specifications</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Specifications will be dynamically filled -->
-                            </tbody>
-                        </table>
+                        <button type="button" id="add-inline-item-btn"
+                            class="edit-field hidden mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium">
+                            <i class="fas fa-plus"></i>
+                            Add Item
+                        </button>
                     </div>
                 </section>
 
@@ -514,26 +550,52 @@
                     </div>
                 </section>
 
-                <!-- Preview & Actions Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-eye text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-eye text-purple-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button type="button" id="print-project"
+                                class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium cursor-pointer">
+                                <i class="fas fa-print"></i>
+                                Print
+                            </button>
+                            <button type="button" id="save-project-pdf"
+                                class="bg-red-600 text-white px-4 h-10 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium cursor-pointer">
+                                <i class="fas fa-file-pdf"></i>
+                                Save as PDF
+                            </button>
+                        </div>
                     </div>
                     <div id="view-preview-content" class="mb-6">
                         <!-- Preview content will be loaded here -->
                     </div>
-                    <div class="flex gap-3 justify-center">
-                        <button type="button" id="print-project"
-                            class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-print"></i>
-                            Print
-                        </button>
-                        <button type="button" id="save-project-pdf"
-                            class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-file-pdf"></i>
-                            Save as PDF
-                        </button>
+                </section>
+                
+                <!-- Danger Zone Section -->
+                <section id="danger-zone-section" class="bg-red-50 rounded-lg p-6 border-2 border-red-200 fade-in hidden">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-red-200">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <p class="text-sm text-red-700 font-medium">
+                            These actions are destructive or affect status. Please proceed with caution.
+                        </p>
+                        <div class="flex flex-wrap gap-4 justify-end">
+                            <button type="button" id="archivePurchaseOrderBtn"
+                                class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
+                                <i class="fas fa-archive"></i>
+                                Archive Purchase Order
+                            </button>
+                            <button type="button" id="deletePurchaseOrderBtn"
+                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
+                                <i class="fas fa-trash-alt"></i>
+                                Delete Purchase Order
+                            </button>
+                        </div>
                     </div>
                 </section>
             </div>
