@@ -542,10 +542,10 @@
                                         Unit Price</th>
                                     <th
                                         class="w-[10%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
-                                        GST Rate</th>
+                                        Tax</th>
                                     <th
                                         class="w-[15%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
-                                        Taxable Value</th>
+                                        Total</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -564,18 +564,14 @@
                         <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Totals</h2>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
                             <span class="block text-sm font-medium text-gray-500 mb-2">Total Taxable Value</span>
                             <span class="text-gray-900 font-bold text-2xl" id="view-total-taxable">₹ 0.00</span>
                         </div>
                         <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
-                            <span class="block text-sm font-medium text-gray-500 mb-2">CGST</span>
-                            <span class="text-gray-900 font-bold text-2xl" id="view-cgst">₹ 0.00</span>
-                        </div>
-                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
-                            <span class="block text-sm font-medium text-gray-500 mb-2">SGST</span>
-                            <span class="text-gray-900 font-bold text-2xl" id="view-sgst">₹ 0.00</span>
+                            <span class="block text-sm font-medium text-gray-500 mb-2">Total Tax</span>
+                            <span class="text-gray-900 font-bold text-2xl" id="view-tax">₹ 0.00</span>
                         </div>
                         <div class="bg-blue-600 p-5 rounded-lg border border-blue-700 text-white shadow-md flex flex-col justify-between transform hover:scale-[1.01] transition-transform duration-200">
                             <span class="block text-sm font-medium text-blue-100 mb-2">Total Invoice Value</span>

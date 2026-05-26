@@ -413,6 +413,14 @@
                 if (viewItemsTableBody) viewItemsTableBody.appendChild(row);
             });
 
+            // Set totals
+            const totals = waybill.totals || {};
+            const totalTaxable = totals.taxable_value !== undefined ? totals.taxable_value : (waybill.total_taxable_value || 0);
+            const cgst = totals.cgst !== undefined ? totals.cgst : (waybill.cgst || 0);
+            const sgst = totals.sgst !== undefined ? totals.sgst : (waybill.sgst || 0);
+            const grandTotal = totals.grand_total !== undefined ? totals.grand_total : (waybill.total_invoice_value || 0);
+            const taxTotal = cgst + sgst;
+
             // Set footer totals row
             const viewItemsTableFoot = document.querySelector("#view-items-table tfoot") as HTMLTableSectionElement | null;
             if (viewItemsTableFoot) {
@@ -422,28 +430,20 @@
                         <td class="px-4 py-3"></td>
                         <td class="px-4 py-3"></td>
                         <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
-                        <td class="px-4 py-3"></td>
-                        <td class="px-4 py-3"></td>
-                        <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(totalTaxableCalculated, 2)}</td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">₹ ${formatIndian(taxTotal, 2)}</td>
+                        <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(totalTaxable, 2)}</td>
                     </tr>
                 `;
             }
 
-            // Set totals
             const setTextContent = (id: string, value: string) => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = value;
             };
 
-            const totals = waybill.totals || {};
-            const totalTaxable = totals.taxable_value !== undefined ? totals.taxable_value : (waybill.total_taxable_value || 0);
-            const cgst = totals.cgst !== undefined ? totals.cgst : (waybill.cgst || 0);
-            const sgst = totals.sgst !== undefined ? totals.sgst : (waybill.sgst || 0);
-            const grandTotal = totals.grand_total !== undefined ? totals.grand_total : (waybill.total_invoice_value || 0);
-
             setTextContent('view-total-taxable', `₹ ${formatIndian(totalTaxable, 2)}`);
-            setTextContent('view-cgst', `₹ ${formatIndian(cgst, 2)}`);
-            setTextContent('view-sgst', `₹ ${formatIndian(sgst, 2)}`);
+            setTextContent('view-tax', `₹ ${formatIndian(taxTotal, 2)}`);
             setTextContent('view-total-invoice', `₹ ${formatIndian(grandTotal, 2)}`);
 
             await generateViewPreviewHTML(waybill);
