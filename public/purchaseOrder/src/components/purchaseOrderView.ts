@@ -479,6 +479,7 @@
         let itemNumber = 1;
         let totalTaxable = 0;
         let totalTaxAmount = 0;
+        let totalQty = 0;
 
         (purchaseOrder.items || []).forEach((item: any) => {
             if (isEditingInline) {
@@ -492,6 +493,7 @@
 
                 totalTaxable += taxableValue;
                 totalTaxAmount += taxAmount;
+                totalQty += qty;
 
                 if (viewItemsTableBody) {
                     const row = document.createElement("tr");
@@ -499,10 +501,10 @@
                         <td class="px-4 py-3 text-sm text-gray-900">${itemNumber}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.description || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.hsn_sac || item.HSN_SAC || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${qty}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-900 tabular-nums">${qty}</td>
                         <td class="px-4 py-3 text-sm text-gray-900">${item.unit || 'pc'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${formatIndian(unitPrice, 2)}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-gray-900">${rate}%</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-900 tabular-nums">₹ ${formatIndian(unitPrice, 2)}</td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">${rate}%</td>
                     `;
                     viewItemsTableBody.appendChild(row);
                 }
@@ -512,6 +514,22 @@
         });
 
         if (!isEditingInline) {
+            // Set footer totals row
+            const viewItemsTableFoot = document.querySelector("#view-items-table tfoot");
+            if (viewItemsTableFoot && (purchaseOrder.items || []).length > 0) {
+                viewItemsTableFoot.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="px-4 py-3 text-left font-bold text-gray-900">Totals</td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900 tabular-nums">${totalQty}</td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3 text-right font-bold text-blue-600 tabular-nums">₹ ${formatIndian(totalTaxable + totalTaxAmount, 2)}</td>
+                    </tr>
+                `;
+            } else if (viewItemsTableFoot) {
+                viewItemsTableFoot.innerHTML = "";
+            }
+
             // Set totals
             const viewSubtotal = document.getElementById('view-subtotal');
             if (viewSubtotal) viewSubtotal.textContent = `₹ ${formatIndian(totalTaxable, 2)}`;
@@ -525,6 +543,13 @@
             
             const viewGrandTotal = document.getElementById('view-grand-total');
             if (viewGrandTotal) viewGrandTotal.textContent = `₹ ${formatIndian(totalAmount, 2)}`;
+
+            const cgstEl = document.getElementById('view-cgst');
+            const sgstEl = document.getElementById('view-sgst');
+            const roundOffEl = document.getElementById('view-round-off');
+            if (cgstEl) cgstEl.textContent = `₹ ${formatIndian(totalTaxAmount / 2, 2)}`;
+            if (sgstEl) sgstEl.textContent = `₹ ${formatIndian(totalTaxAmount / 2, 2)}`;
+            if (roundOffEl) roundOffEl.textContent = `₹ ${formatIndian(roundOff, 2)}`;
         }
 
         // Generate HTML preview for printing
