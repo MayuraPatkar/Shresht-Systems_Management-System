@@ -200,6 +200,7 @@ interface Window {
         }
         clearInlineError(input);
 
+        input.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/20');
         input.style.borderColor = '#ef4444';
         input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
 
@@ -209,8 +210,7 @@ interface Window {
 
         const errorMsg = document.createElement('div');
         errorMsg.id = errorId;
-        errorMsg.className = 'error-message-inline';
-        errorMsg.style.cssText = 'font-size: 11px; font-weight: 600; color: #dc2626; margin-top: 4px; transition: all 0.2s ease-in-out;';
+        errorMsg.className = 'error-message-inline text-[11px] font-semibold text-red-600 mt-1 transition-all duration-200 ease-in-out';
         errorMsg.textContent = message;
 
         const parent = input.parentElement;
@@ -227,7 +227,11 @@ interface Window {
         input.addEventListener('change', clearHandler);
     }
 
+    // Export to window to allow reuse
+    (window as any).showInlineError = showInlineError;
+
     function clearInlineError(input: HTMLElement) {
+        input.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/20');
         input.style.borderColor = '';
         input.style.boxShadow = '';
         input.removeAttribute('aria-invalid');
@@ -248,10 +252,12 @@ interface Window {
 
         const errorInputs = form.querySelectorAll('[aria-invalid="true"]');
         errorInputs.forEach(input => {
-            (input as HTMLElement).style.borderColor = '';
-            (input as HTMLElement).style.boxShadow = '';
-            input.removeAttribute('aria-invalid');
-            input.removeAttribute('aria-describedby');
+            const htmlEl = input as HTMLElement;
+            htmlEl.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/20');
+            htmlEl.style.borderColor = '';
+            htmlEl.style.boxShadow = '';
+            htmlEl.removeAttribute('aria-invalid');
+            htmlEl.removeAttribute('aria-describedby');
         });
     }
 
@@ -1072,6 +1078,15 @@ interface Window {
         }
         if (!refType && refId) {
             showInlineError(refTypeSelect, 'Please select a Reference Type for the entered Reference ID.');
+            isValid = false;
+        }
+
+        const partyNameInput = document.getElementById('form-party-name') as HTMLInputElement;
+        if (!partyNameInput.value.trim()) {
+            showInlineError(partyNameInput, 'Please search and select a Party.');
+            isValid = false;
+        } else if (!$partyIdHidden.value.trim()) {
+            showInlineError(partyNameInput, 'Please select a valid, existing party profile from the suggestions list.');
             isValid = false;
         }
 

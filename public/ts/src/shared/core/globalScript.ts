@@ -427,6 +427,7 @@ function updateNavigation() {
   const nextBtn = document.getElementById("next-btn");
   const saveBtn = document.getElementById("save-btn");
   const isInvoice = window.location.pathname.toLowerCase().includes('/invoice') || window.location.pathname.toLowerCase().includes('/purchase');
+  const isQuotation = window.location.pathname.toLowerCase().includes('/quotation');
 
   if (prevBtn) prevBtn.disabled = currentStep === 1;
 
@@ -440,8 +441,16 @@ function updateNavigation() {
       if (saveBtn) {
         saveBtn.style.display = 'none';
       }
+    } else if (isQuotation && currentStep === totalSteps) {
+      nextBtn.style.display = 'none';
+      if (saveBtn) {
+        saveBtn.style.display = '';
+      }
     } else {
       nextBtn.disabled = currentStep === totalSteps;
+      if (isQuotation) {
+        nextBtn.style.display = '';
+      }
       if (nextBtn.dataset.originalHtml) {
         nextBtn.innerHTML = nextBtn.dataset.originalHtml;
         delete nextBtn.dataset.originalHtml;
@@ -457,8 +466,19 @@ function updateNavigation() {
   }
 
   const viewPreviewBtn = document.getElementById("view-preview");
-  if (viewPreviewBtn && isInvoice) {
-    viewPreviewBtn.style.display = 'none';
+  if (viewPreviewBtn) {
+    if (isInvoice) {
+      viewPreviewBtn.style.display = 'none';
+    } else if (isQuotation) {
+      if (currentStep === totalSteps) {
+        viewPreviewBtn.style.display = 'none';
+      } else {
+        const formEl = document.getElementById('new');
+        if (formEl && formEl.style.display !== 'none') {
+          viewPreviewBtn.style.display = 'flex';
+        }
+      }
+    }
   }
 }
 
