@@ -552,7 +552,7 @@
                 return;
             }
 
-            const filtered = currentParties.filter(p => p && p.name && p.name.toLowerCase().includes(query));
+            const filtered = currentParties.filter(p => p.name.toLowerCase().includes(query));
             if (filtered.length === 0) {
                 $partySuggestions.classList.add('hidden');
                 return;
