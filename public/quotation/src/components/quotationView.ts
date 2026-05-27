@@ -794,6 +794,25 @@ async function renderQuotationView(quotation, viewType) {
         dangerZoneSection.classList.remove('hidden');
     }
 
+    // Show and wire up the Convert to Invoice button
+    const convertToInvoiceSection = document.getElementById('convert-to-invoice-section');
+    if (convertToInvoiceSection) {
+        convertToInvoiceSection.classList.remove('hidden');
+    }
+    const convertToInvoiceBtn = document.getElementById('convertToInvoiceBtn');
+    if (convertToInvoiceBtn) {
+        const newConvertBtn = convertToInvoiceBtn.cloneNode(true) as HTMLButtonElement;
+        convertToInvoiceBtn.parentNode?.replaceChild(newConvertBtn, convertToInvoiceBtn);
+        newConvertBtn.addEventListener('click', () => {
+            // quotation.quotation_id is mapped to quotation_no (e.g. "QUO-001"), which the backend route accepts
+            const displayId = quotation.quotation_id || quotation.quotation_no;
+            sessionStorage.setItem('quotation-to-invoice-id', displayId);
+            sessionStorage.setItem('currentTab-status', 'new');
+            // Navigate to the invoice module
+            window.location.href = '../invoice/invoice.html';
+        });
+    }
+
     const deleteBtn = document.getElementById('deleteQuotationBtn');
     if (deleteBtn) {
         const newDeleteBtn = deleteBtn.cloneNode(true) as HTMLButtonElement;

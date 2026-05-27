@@ -151,6 +151,9 @@ class QuotationTable {
                     <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
+                    <button class="action-btn convert-invoice-btn px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" title="Convert to Invoice">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </button>
                     <button class="action-btn archive-btn px-4 py-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-all border border-amber-200 hover:border-amber-400" title="Archive">
                         <i class="fas fa-archive"></i>
                     </button>
@@ -201,6 +204,7 @@ class QuotationTable {
     const editBtn = quotationCard.querySelector('.edit-btn') as HTMLElement;
     const archiveBtn = quotationCard.querySelector('.archive-btn') as HTMLElement;
     const restoreArchiveBtn = quotationCard.querySelector('.restore-archive-btn') as HTMLElement;
+    const convertInvoiceBtn = quotationCard.querySelector('.convert-invoice-btn') as HTMLElement;
 
     // Copy ID functionality
     copyElement?.addEventListener('click', async () => {
@@ -245,6 +249,13 @@ class QuotationTable {
                     (window as any).electronAPI?.showAlert1('Failed to restore quotation.');
                 }
             });
+        });
+
+        convertInvoiceBtn?.addEventListener('click', () => {
+            // quotationId is already the display ID (quotation_no e.g. "QUO-001") which the backend route accepts
+            sessionStorage.setItem('quotation-to-invoice-id', quotationId);
+            sessionStorage.setItem('currentTab-status', 'new');
+            window.location.href = '../invoice/invoice.html';
         });
 
         return quotationCard;

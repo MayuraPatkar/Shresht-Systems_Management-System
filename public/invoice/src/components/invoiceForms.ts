@@ -1,5 +1,5 @@
 (function () {
-    (window as any).totalSteps = 7;
+    (window as any).totalSteps = 6;
 
     const formatIndian = (window as any).formatIndian;
     const formatDateIndian = (window as any).formatDateIndian;
@@ -454,8 +454,8 @@ function clearStepErrors(stepNumber: number) {
 const validateCurrentStep = async function (): Promise<boolean> {
     // Step 1 check is no longer needed since invoice ID is auto-generated and read-only.
 
-    if (currentStep === 2) {
-        clearStepErrors(2);
+    if (currentStep === 1) {
+        clearStepErrors(1);
         const projectName = document.getElementById('project-name') as HTMLInputElement;
         const invoiceDate = document.getElementById('invoice-date') as HTMLInputElement;
         const serviceMonths = document.getElementById('service-months') as HTMLInputElement;
@@ -482,8 +482,8 @@ const validateCurrentStep = async function (): Promise<boolean> {
         if (!isValid) return false;
     }
 
-    if (currentStep === 3) {
-        clearStepErrors(3);
+    if (currentStep === 2) {
+        clearStepErrors(2);
         const buyerName = document.getElementById('buyer-name') as HTMLInputElement;
         const buyerCustomerIdInput = document.getElementById('buyer-customer-id') as HTMLInputElement | null;
         let isValid = true;
@@ -501,8 +501,8 @@ const validateCurrentStep = async function (): Promise<boolean> {
         if (!isValid) return false;
     }
 
-    if (currentStep === 5) {
-        clearStepErrors(5);
+    if (currentStep === 4) {
+        clearStepErrors(4);
         const itemCards = document.querySelectorAll('#items-container .item-card');
         if (itemCards.length === 0) {
             if ((window as any).electronAPI?.showAlert1) {
@@ -560,216 +560,237 @@ const validateCurrentStep = async function (): Promise<boolean> {
 
 
 // Hook that runs before advancing a step
-const beforeStepAdvance = async function (step: number): Promise<boolean> {
-    if (step === 1 && sessionStorage.getItem('currentTab-status') !== 'update') {
-        const quotationIdEl = document.getElementById("quotation-id") as HTMLInputElement | null;
-        const quotationId = quotationIdEl?.value;
-        if (!quotationId) return true;
+/**
+ * Populate the invoice form with data from a quotation.
+ * Called automatically when navigating from Quotation -> Convert to Invoice.
+ */
+async function loadInvoiceFromQuotation(quotationId: string): Promise<void> {
+    try {
+        const response = await fetch(`/quotation/${quotationId}`);
+        if (!response.ok) throw new Error('Failed to fetch quotation');
+        const data = await response.json();
+        const quotation = data.quotation;
 
-        try {
-            const response = await fetch(`/quotation/${quotationId}`);
-            if (!response.ok) throw new Error('Failed to fetch quotation');
-            const data = await response.json();
-            const quotation = data.quotation;
+        const projectNameEl = document.getElementById("project-name") as HTMLInputElement | null;
+        const buyerNameEl = document.getElementById("buyer-name") as HTMLInputElement | null;
+        const line1El = document.getElementById("buyer-address-line1") as HTMLInputElement | null;
+        const line2El = document.getElementById("buyer-address-line2") as HTMLInputElement | null;
+        const cityEl = document.getElementById("buyer-address-city") as HTMLInputElement | null;
+        const stateEl = document.getElementById("buyer-address-state") as HTMLSelectElement | null;
+        const pincodeEl = document.getElementById("buyer-address-pincode") as HTMLInputElement | null;
+        const buyerPhoneEl = document.getElementById("buyer-phone") as HTMLInputElement | null;
+        const buyerEmailEl = document.getElementById("buyer-email") as HTMLInputElement | null;
+        const buyerGstinEl = document.getElementById("buyer-gstin") as HTMLInputElement | null;
+        const quotationIdStoredEl = document.getElementById("quotation-id") as HTMLInputElement | null;
 
-            const projectNameEl = document.getElementById("project-name") as HTMLInputElement | null;
-            const buyerNameEl = document.getElementById("buyer-name") as HTMLInputElement | null;
-            const line1El = document.getElementById("buyer-address-line1") as HTMLInputElement | null;
-            const line2El = document.getElementById("buyer-address-line2") as HTMLInputElement | null;
-            const cityEl = document.getElementById("buyer-address-city") as HTMLInputElement | null;
-            const stateEl = document.getElementById("buyer-address-state") as HTMLSelectElement | null;
-            const pincodeEl = document.getElementById("buyer-address-pincode") as HTMLInputElement | null;
-            const buyerPhoneEl = document.getElementById("buyer-phone") as HTMLInputElement | null;
-            const buyerEmailEl = document.getElementById("buyer-email") as HTMLInputElement | null;
-            const buyerGstinEl = document.getElementById("buyer-gstin") as HTMLInputElement | null;
+        if (projectNameEl) projectNameEl.value = quotation.project_name || '';
+        if (buyerNameEl) buyerNameEl.value = quotation.customer_snapshot?.name || quotation.customer_name || '';
+        // Store quotation_id reference
+        if (quotationIdStoredEl) quotationIdStoredEl.value = quotation.quotation_no || quotation.quotation_id || quotationId;
 
-            if (projectNameEl) projectNameEl.value = quotation.project_name || '';
-            if (buyerNameEl) buyerNameEl.value = quotation.customer_name || '';
-            if (quotation.customer_snapshot?.billing_address) {
-                const billing = quotation.customer_snapshot.billing_address;
-                if (line1El) line1El.value = billing.line1 || '';
-                if (line2El) line2El.value = billing.line2 || '';
-                if (cityEl) cityEl.value = billing.city || '';
-                if (stateEl) stateEl.value = billing.state || 'Karnataka';
-                if (pincodeEl) pincodeEl.value = billing.pincode || '';
-            } else {
-                if (line1El) line1El.value = quotation.customer_address || '';
-                if (line2El) line2El.value = '';
-                if (cityEl) cityEl.value = '';
-                if (stateEl) stateEl.value = 'Karnataka';
-                if (pincodeEl) pincodeEl.value = '';
-            }
-            if (buyerPhoneEl) buyerPhoneEl.value = quotation.customer_phone || '';
-            if (buyerEmailEl) buyerEmailEl.value = quotation.customer_email || '';
-            if (buyerGstinEl) buyerGstinEl.value = quotation.customer_GSTIN || '';
+        if (quotation.customer_snapshot?.billing_address) {
+            const billing = quotation.customer_snapshot.billing_address;
+            if (line1El) line1El.value = billing.line1 || '';
+            if (line2El) line2El.value = billing.line2 || '';
+            if (cityEl) cityEl.value = billing.city || '';
+            if (stateEl) stateEl.value = billing.state || 'Karnataka';
+            if (pincodeEl) pincodeEl.value = billing.pincode || '';
+        } else {
+            if (line1El) line1El.value = quotation.customer_address || '';
+            if (line2El) line2El.value = '';
+            if (cityEl) cityEl.value = '';
+            if (stateEl) stateEl.value = 'Karnataka';
+            if (pincodeEl) pincodeEl.value = '';
+        }
+        if (buyerPhoneEl) buyerPhoneEl.value = quotation.customer_snapshot?.phone || quotation.customer_phone || '';
+        if (buyerEmailEl) buyerEmailEl.value = quotation.customer_snapshot?.email || quotation.customer_email || '';
+        if (buyerGstinEl) buyerGstinEl.value = quotation.customer_snapshot?.gstin || quotation.customer_GSTIN || '';
 
-            const itemsTableBody = document.querySelector("#items-table tbody") as HTMLTableSectionElement;
-            const itemsContainer = document.getElementById("items-container") as HTMLElement;
-            const nonItemsTableBody = document.querySelector("#non-items-table tbody") as HTMLTableSectionElement;
-            const nonItemsContainer = document.getElementById("non-items-container") as HTMLElement;
+        const buyerCustomerIdEl = document.getElementById("buyer-customer-id") as HTMLInputElement | null;
+        if (buyerCustomerIdEl) buyerCustomerIdEl.value = quotation.customer_id || '';
+        renderBuyerProfileCard();
 
-            itemsTableBody.innerHTML = "";
-            itemsContainer.innerHTML = "";
-            nonItemsTableBody.innerHTML = "";
-            nonItemsContainer.innerHTML = "";
+        const itemsTableBody = document.querySelector("#items-table tbody") as HTMLTableSectionElement;
+        const itemsContainer = document.getElementById("items-container") as HTMLElement;
+        const nonItemsTableBody = document.querySelector("#non-items-table tbody") as HTMLTableSectionElement;
+        const nonItemsContainer = document.getElementById("non-items-container") as HTMLElement;
 
-            let sno = 1;
-            (quotation.items || []).forEach((item: any) => {
-                const card = document.createElement("div");
-                card.className = "item-card";
-                card.setAttribute("draggable", "true");
-                card.innerHTML = `
-                    <div class="drag-handle" title="Drag to reorder">
-                        <i class="fas fa-grip-vertical"></i>
-                    </div>
-                    <div class="item-number">${sno}</div>
-                    <div class="item-field description">
-                        <div style="position: relative;">
-                            <input type="text" value="${item.description || ''}" placeholder="Description" required>
-                            <ul class="suggestions"></ul>
-                        </div>
-                    </div>
-                    <div class="item-field hsn">
-                        <input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
-                    </div>
-                    <div class="item-field qty">
-                        <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
-                    </div>
-                    <div class="item-field rate">
-                        <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
-                    </div>
-                    <div class="item-field rate">
-                        <input type="number" value="${item.gst_rate || item.rate || 0}" placeholder="Rate" required>
-                    </div>
-                    <div class="item-actions">
-                        <button type="button" class="remove-item-btn" title="Remove Item">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                `;
-                itemsContainer.appendChild(card);
+        if (itemsTableBody) itemsTableBody.innerHTML = "";
+        if (itemsContainer) itemsContainer.innerHTML = "";
+        if (nonItemsTableBody) nonItemsTableBody.innerHTML = "";
+        if (nonItemsContainer) nonItemsContainer.innerHTML = "";
 
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td><div class="item-number">${sno}</div></td>
-                    <td><input type="text" value="${item.description || ''}" required></td>
-                    <td><input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" required></td>
-                    <td><input type="number" value="${item.quantity || 0}" step="any" min="0.000001" required></td>
-                    <td><input type="number" value="${item.unit_price || 0}" required></td>
-                    <td><input type="number" value="${item.gst_rate || item.rate || 0}" required></td>
-                    <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
-                `;
-                itemsTableBody.appendChild(row);
-
-                const cardInput = card.querySelector('.item-field.description input') as HTMLInputElement | null;
-                const cardSuggestions = card.querySelector('.suggestions') as HTMLElement | null;
-                if (cardInput && cardSuggestions) {
-                    cardInput.addEventListener('input', () => showSuggestions(cardInput, cardSuggestions));
-                    cardInput.addEventListener('keydown', (e) => handleKeyboardNavigation(e, cardInput, cardSuggestions));
-                }
-
-                const cardInputs = card.querySelectorAll('input');
-                const rowInputs = row.querySelectorAll('input');
-                cardInputs.forEach((input, index) => {
-                    input.addEventListener('input', () => {
-                        rowInputs[index].value = input.value;
-                    });
-                });
-
-                const qtyInputs = [card.querySelector('.item-field.qty input') as HTMLInputElement | null, row.querySelector('td:nth-child(4) input') as HTMLInputElement | null];
-                qtyInputs.forEach(input => {
-                    if (input) {
-                        input.setAttribute('step', 'any');
-                        input.addEventListener('keypress', (event) => {
-                            if (event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
-                        });
-                        input.addEventListener('input', () => {
-                            let val = input.value.replace(/[^0-9.]/g, '');
-                            const parts = val.split('.');
-                            if (parts.length > 2) {
-                                val = parts[0] + '.' + parts.slice(1).join('');
-                            }
-                            input.value = val;
-                        });
-                    }
-                });
-
-                const removeBtn = card.querySelector(".remove-item-btn");
-                if (removeBtn) {
-                    removeBtn.addEventListener("click", () => {
-                        card.remove();
-                        row.remove();
-                        updateItemNumbers();
-                    });
-                }
-
-                sno++;
-            });
-
-            (quotation.non_items || []).forEach((item: any) => {
-                const card = document.createElement("div");
-                card.className = "non-item-card";
-                card.setAttribute("draggable", "true");
-                card.innerHTML = `
-                    <div class="drag-handle" title="Drag to reorder">
-                        <i class="fas fa-grip-vertical"></i>
-                    </div>
-                    <div class="item-number">${sno}</div>
-                    <div class="non-item-field description">
+        let sno = 1;
+        (quotation.items || []).forEach((item: any) => {
+            const card = document.createElement("div");
+            card.className = "item-card";
+            card.setAttribute("draggable", "true");
+            card.innerHTML = `
+                <div class="drag-handle" title="Drag to reorder">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+                <div class="item-number">${sno}</div>
+                <div class="item-field description">
+                    <div style="position: relative;">
                         <input type="text" value="${item.description || ''}" placeholder="Description" required>
+                        <ul class="suggestions"></ul>
                     </div>
-                    <div class="non-item-field price">
-                        <input type="number" value="${item.price || 0}" placeholder="Price" required>
-                    </div>
-                    <div class="non-item-field rate">
-                        <input type="number" value="${item.rate || 0}" placeholder="Rate" required>
-                    </div>
-                    <div class="item-actions">
-                        <button type="button" class="remove-item-btn" title="Remove Item">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                `;
-                nonItemsContainer.appendChild(card);
+                </div>
+                <div class="item-field hsn">
+                    <input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" placeholder="HSN/SAC" required>
+                </div>
+                <div class="item-field qty">
+                    <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
+                </div>
+                <div class="item-field rate">
+                    <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
+                </div>
+                <div class="item-field rate">
+                    <input type="number" value="${item.gst_rate || item.rate || 0}" placeholder="Rate" required>
+                </div>
+                <div class="item-actions">
+                    <button type="button" class="remove-item-btn" title="Remove Item">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+            if (itemsContainer) itemsContainer.appendChild(card);
 
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td><div class="item-number">${sno}</div></td>
-                    <td><input type="text" value="${item.description || ''}" required></td>
-                    <td><input type="number" value="${item.price || 0}" required></td>
-                    <td><input type="number" value="${item.rate || 0}" required></td>
-                    <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
-                `;
-                nonItemsTableBody.appendChild(row);
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><div class="item-number">${sno}</div></td>
+                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="text" value="${item.hsn_sac || item.HSN_SAC || ''}" required></td>
+                <td><input type="number" value="${item.quantity || 0}" step="any" min="0.000001" required></td>
+                <td><input type="number" value="${item.unit_price || 0}" required></td>
+                <td><input type="number" value="${item.gst_rate || item.rate || 0}" required></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
+            `;
+            if (itemsTableBody) itemsTableBody.appendChild(row);
 
-                const cardInputs = card.querySelectorAll('input');
-                const rowInputs = row.querySelectorAll('input');
-                cardInputs.forEach((input, index) => {
-                    input.addEventListener('input', () => {
-                        rowInputs[index].value = input.value;
-                    });
+            const cardInput = card.querySelector('.item-field.description input') as HTMLInputElement | null;
+            const cardSuggestions = card.querySelector('.suggestions') as HTMLElement | null;
+            if (cardInput && cardSuggestions) {
+                cardInput.addEventListener('input', () => showSuggestions(cardInput, cardSuggestions));
+                cardInput.addEventListener('keydown', (e) => handleKeyboardNavigation(e, cardInput, cardSuggestions));
+            }
+
+            const cardInputs = card.querySelectorAll('input');
+            const rowInputs = row.querySelectorAll('input');
+            cardInputs.forEach((input, index) => {
+                input.addEventListener('input', () => {
+                    rowInputs[index].value = input.value;
                 });
-
-                const removeBtn = card.querySelector(".remove-item-btn");
-                if (removeBtn) {
-                    removeBtn.addEventListener("click", () => {
-                        card.remove();
-                        row.remove();
-                    });
-                }
-
-                sno++;
             });
 
-            return true;
-        } catch (error) {
-            console.error("Error importing quotation:", error);
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1("Failed to fetch quotation.");
+            const qtyInputs = [card.querySelector('.item-field.qty input') as HTMLInputElement | null, row.querySelector('td:nth-child(4) input') as HTMLInputElement | null];
+            qtyInputs.forEach(input => {
+                if (input) {
+                    input.setAttribute('step', 'any');
+                    input.addEventListener('keypress', (event) => {
+                        if (event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                    });
+                    input.addEventListener('input', () => {
+                        let val = input.value.replace(/[^0-9.]/g, '');
+                        const parts = val.split('.');
+                        if (parts.length > 2) {
+                            val = parts[0] + '.' + parts.slice(1).join('');
+                        }
+                        input.value = val;
+                    });
+                }
+            });
+
+            const removeBtn = card.querySelector(".remove-item-btn");
+            if (removeBtn) {
+                removeBtn.addEventListener("click", () => {
+                    card.remove();
+                    row.remove();
+                    updateItemNumbers();
+                });
             }
-            return false;
+
+            sno++;
+        });
+
+        (quotation.other_charges || quotation.non_items || []).forEach((item: any) => {
+            const card = document.createElement("div");
+            card.className = "non-item-card";
+            card.setAttribute("draggable", "true");
+            card.innerHTML = `
+                <div class="drag-handle" title="Drag to reorder">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+                <div class="item-number">${sno}</div>
+                <div class="non-item-field description">
+                    <input type="text" value="${item.description || ''}" placeholder="Description" required>
+                </div>
+                <div class="non-item-field price">
+                    <input type="number" value="${item.price || 0}" placeholder="Price" required>
+                </div>
+                <div class="non-item-field rate">
+                    <input type="number" value="${item.rate || 0}" placeholder="Rate" required>
+                </div>
+                <div class="item-actions">
+                    <button type="button" class="remove-item-btn" title="Remove Item">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+            if (nonItemsContainer) nonItemsContainer.appendChild(card);
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><div class="item-number">${sno}</div></td>
+                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="number" value="${item.price || 0}" required></td>
+                <td><input type="number" value="${item.rate || 0}" required></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
+            `;
+            if (nonItemsTableBody) nonItemsTableBody.appendChild(row);
+
+            const cardInputs = card.querySelectorAll('input');
+            const rowInputs = row.querySelectorAll('input');
+            cardInputs.forEach((input, index) => {
+                input.addEventListener('input', () => {
+                    rowInputs[index].value = input.value;
+                });
+            });
+
+            const removeBtn = card.querySelector(".remove-item-btn");
+            if (removeBtn) {
+                removeBtn.addEventListener("click", () => {
+                    card.remove();
+                    row.remove();
+                });
+            }
+
+            sno++;
+        });
+
+        showToast && showToast(`Quotation data loaded successfully!`);
+    } catch (error) {
+        console.error("Error loading from quotation:", error);
+        if ((window as any).electronAPI?.showAlert1) {
+            (window as any).electronAPI.showAlert1("Failed to load quotation data.");
         }
     }
+}
+
+// Auto-load quotation data on page load if coming from "Convert to Invoice" flow
+document.addEventListener('DOMContentLoaded', async () => {
+    const quotationIdToConvert = sessionStorage.getItem('quotation-to-invoice-id');
+    if (quotationIdToConvert && sessionStorage.getItem('currentTab-status') === 'new') {
+        // Clear the key so it only loads once
+        sessionStorage.removeItem('quotation-to-invoice-id');
+        // Small delay to let the form initialize and change to step 1
+        setTimeout(async () => {
+            await loadInvoiceFromQuotation(quotationIdToConvert);
+        }, 300);
+    }
+});
+
+const beforeStepAdvance = async function (step: number): Promise<boolean> {
     return true;
 };
 
@@ -802,7 +823,7 @@ const openInvoice = async function (id: string) {
         if (newInvoiceEl) newInvoiceEl.style.display = 'none';
         if (viewPreviewEl) viewPreviewEl.style.display = 'flex';
 
-        changeStep(2);
+        changeStep(1);
 
         const formatDateForInput = (dateString?: string) => {
             if (!dateString) return "";

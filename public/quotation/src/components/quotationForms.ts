@@ -374,9 +374,12 @@ document.getElementById("view-preview").addEventListener("click", async () => {
 });
 
 // Open a quotation for editing
-async function openQuotation(quotationId) {
-    const data = await fetchDocumentById('quotation', quotationId);
+async function openQuotation(idToOpen) {
+    const data = await fetchDocumentById('quotation', idToOpen);
     if (!data) return;
+    
+    // Update global quotationId
+    quotationId = idToOpen;
 
     const rawQuotation = data.quotation;
     // Map backend schema to the flat structure expected by the frontend
@@ -1207,11 +1210,16 @@ async function generatePreview() {
     }
 
     // Process non-items
-    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => ({
-        descriptions: row.querySelector('input[placeholder="Item Description"]').value,
-        price: row.querySelector('input[placeholder="Price"]').value,
-        rate: row.querySelector('input[placeholder="Rate"]').value,
-    }));
+    const nonItems = Array.from(nonItemsTable.querySelectorAll('tr')).map(row => {
+        const descInput = row.querySelector("td:nth-child(2) input");
+        const priceInput = row.querySelector("td:nth-child(3) input");
+        const rateInput = row.querySelector("td:nth-child(4) input");
+        return {
+            descriptions: descInput ? descInput.value : '',
+            price: priceInput ? priceInput.value : '',
+            rate: rateInput ? rateInput.value : ''
+        };
+    });
 
     for (const item of nonItems) {
         const description = item.descriptions || '-';
@@ -1848,7 +1856,8 @@ async function generatePreview() {
             // generateFilePages(files)
 
         } catch (error) {
-
+            console.error("Error generating preview in update mode:", error);
+            window.electronAPI.showAlert1("Error generating preview.");
         }
     }
 

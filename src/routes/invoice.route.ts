@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { InvoiceModel, ItemModel, StockMovementModel, InvoiceStatus, PaymentModel } from '../models';
+import { InvoiceModel, ItemModel, StockMovementModel, InvoiceStatus, PaymentModel, QuotationModel } from '../models';
 import logger from '../utils/logger';
 import { asyncHandler } from '../middleware/errorHandler';
 import { previewNextId, generateNextId, syncCounterIfNeeded } from '../utils/idGenerator';
@@ -12,21 +12,29 @@ const router: Router = Router();
 async function logStockMovement(
     itemId: any,
     itemName: string,
-    quantityChange: number,
-    movementType: string,
-    referenceType: string,
-    referenceId: string | null = null,
-    notes: string = ''
+    quantity: number,
+    direction: 'IN' | 'OUT',
+    stockBefore: number,
+    stockAfter: number,
+    referenceType: 'Purchase' | 'Invoice' | 'PurchaseReturn' | 'SalesReturn' | 'Service' | 'Manual' | 'Adjustment',
+    referenceId: Types.ObjectId | null = null,
+    referenceNumber: string = '',
+    remarks: string = ''
 ): Promise<void> {
     try {
         await StockMovementModel.create({
             item_id: itemId,
             item_name: itemName,
-            quantity_change: quantityChange,
-            movement_type: movementType,
-            reference_type: referenceType,
-            reference_id: referenceId,
-            notes: notes
+            direction,
+            quantity,
+            stock_before: stockBefore,
+            stock_after: stockAfter,
+            reference: {
+                type: referenceType,
+                id: referenceId || undefined,
+                number: referenceNumber || undefined
+            },
+            remarks
         } as any);
     } catch (error: unknown) {
         logger.error('Error logging stock movement:', error);
@@ -137,6 +145,17 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             } = req.body;
 
         const cleanQuotationId = (quotationId && String(quotationId).trim() !== '') ? String(quotationId).trim() : null;
+        let quotationObjectId = null;
+        if (cleanQuotationId) {
+            if (Types.ObjectId.isValid(cleanQuotationId)) {
+                quotationObjectId = new Types.ObjectId(cleanQuotationId);
+            } else {
+                const quotationDoc = await QuotationModel.findOne({ quotation_no: cleanQuotationId });
+                if (quotationDoc) {
+                    quotationObjectId = quotationDoc._id;
+                }
+            }
+        }
         const cleanBuyerCustomerId = (buyerCustomerId && String(buyerCustomerId).trim() !== '') ? String(buyerCustomerId).trim() : null;
 
         if (!projectName) {
@@ -302,7 +321,11 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                     }
 
                     if (stockItem) {
-                        (stockItem as any).quantity = ((stockItem as any).quantity || 0) + Number(prev.quantity || 0);
+                        const stockBefore = stockItem.stock_quantity ?? (stockItem as any).quantity ?? 0;
+                        const qty = Number(prev.quantity || 0);
+                        const stockAfter = stockBefore + qty;
+                        stockItem.stock_quantity = stockAfter;
+                        (stockItem as any).quantity = stockAfter;
                         await stockItem.save();
                     }
                 }
@@ -318,7 +341,11 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                     }
 
                     if (stockItem) {
-                        (stockItem as any).quantity = ((stockItem as any).quantity || 0) - Number(cur.quantity || 0);
+                        const stockBefore = stockItem.stock_quantity ?? (stockItem as any).quantity ?? 0;
+                        const qty = Number(cur.quantity || 0);
+                        const stockAfter = stockBefore - qty;
+                        stockItem.stock_quantity = stockAfter;
+                        (stockItem as any).quantity = stockAfter;
                         await stockItem.save();
                     }
                 }
@@ -327,8 +354,8 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 const currentInvoiceId = invoiceId || existingInvoice.invoice_id;
 
                 const existingMovements = await StockMovementModel.find({
-                    reference_type: 'invoice',
-                    reference_id: currentInvoiceId
+                    "reference.type": 'Invoice',
+                    "reference.number": currentInvoiceId
                 });
 
                 const movementPool = [...existingMovements];
@@ -351,17 +378,28 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
 
                     if (matchIndex !== -1) {
                         const movement = movementPool[matchIndex] as any;
-                        movement.quantity_change = qty;
+                        movement.quantity = qty;
+                        movement.direction = 'OUT';
+                        if (stockItem) {
+                            const stockAfter = stockItem.stock_quantity ?? (stockItem as any).quantity ?? 0;
+                            movement.stock_after = stockAfter;
+                            movement.stock_before = stockAfter + qty;
+                        }
                         await movement.save();
                         movementPool.splice(matchIndex, 1);
                     } else {
                         if (stockItem) {
+                            const stockAfter = stockItem.stock_quantity ?? (stockItem as any).quantity ?? 0;
+                            const stockBefore = stockAfter + qty;
                             await logStockMovement(
                                 stockItem._id,
                                 finalItemName,
                                 qty,
-                                'out',
-                                'invoice',
+                                'OUT',
+                                stockBefore,
+                                stockAfter,
+                                'Invoice',
+                                existingInvoice._id,
                                 currentInvoiceId,
                                 `Invoice Generated`
                             );
@@ -403,7 +441,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 invoice_date: invoiceDate,
                 po_number: poNumber,
                 po_date: poDate,
-                quotation_id: cleanQuotationId,
+                quotation_id: quotationObjectId,
                 dc_number: dcNumber,
                 dc_date: dcDate,
                 service_after_months: serviceAfterMonths,
@@ -447,34 +485,6 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
 
             const newId = await generateNextId('invoice');
 
-            // Stock Logic: Deduct stock for new invoice
-            if (type === 'original') {
-                for (const item of items_original) {
-                    if (!item.description) continue;
-                    const itemName = item.description.trim();
-
-                    let stockItem = await ItemModel.findOne({ item_name: itemName });
-                    if (!stockItem) {
-                        stockItem = await ItemModel.findOne({ item_name: { $regex: new RegExp(`^${itemName}$`, 'i') } });
-                    }
-
-                    if (stockItem) {
-                        (stockItem as any).quantity = ((stockItem as any).quantity || 0) - Number(item.quantity || 0);
-                        await stockItem.save();
-
-                        await logStockMovement(
-                            stockItem._id,
-                            stockItem.item_name,
-                            item.quantity,
-                            'out',
-                            'invoice',
-                            newId,
-                            `Deducted for new invoice: ${newId}`
-                        );
-                    }
-                }
-            }
-
             // Calculate next service date for new invoice
             let nextServiceDate: Date | undefined = undefined;
             if (Number(serviceAfterMonths) > 0) {
@@ -492,7 +502,7 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 project_name: projectName,
                 po_number: poNumber,
                 po_date: poDate,
-                quotation_id: cleanQuotationId,
+                quotation_id: quotationObjectId,
                 customer_id: cleanBuyerCustomerId,
                 customer_snapshot: customer_snapshot,
                 consignee: consignee,
@@ -523,6 +533,41 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
                 declaration: declaration,
                 termsAndConditions: termsAndConditions
             });
+
+            // Stock Logic: Deduct stock for new invoice
+            if (type === 'original') {
+                for (const item of items_original) {
+                    if (!item.description) continue;
+                    const itemName = item.description.trim();
+
+                    let stockItem = await ItemModel.findOne({ item_name: itemName });
+                    if (!stockItem) {
+                        stockItem = await ItemModel.findOne({ item_name: { $regex: new RegExp(`^${itemName}$`, 'i') } });
+                    }
+
+                    if (stockItem) {
+                        const stockBefore = stockItem.stock_quantity ?? (stockItem as any).quantity ?? 0;
+                        const qty = Number(item.quantity || 0);
+                        const stockAfter = stockBefore - qty;
+                        stockItem.stock_quantity = stockAfter;
+                        (stockItem as any).quantity = stockAfter;
+                        await stockItem.save();
+
+                        await logStockMovement(
+                            stockItem._id,
+                            stockItem.item_name,
+                            qty,
+                            'OUT',
+                            stockBefore,
+                            stockAfter,
+                            'Invoice',
+                            invoice._id,
+                            newId,
+                            `Deducted for new invoice: ${newId}`
+                        );
+                    }
+                }
+            }
 
             if (typeof invoice.updatePaymentStatus === 'function') {
                 invoice.updatePaymentStatus();
