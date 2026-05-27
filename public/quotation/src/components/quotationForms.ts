@@ -693,6 +693,10 @@ async function openQuotation(quotationId) {
             `;
         itemsSpecificationsTableBody.appendChild(row);
     });
+
+    if (typeof (window as any).markQuotationFormClean === 'function') {
+        (window as any).markQuotationFormClean();
+    }
 }
 
 // Clone a quotation - copies items, content, and customer details
@@ -1900,6 +1904,9 @@ document.getElementById("save-btn").addEventListener("click", async () => {
     const quotationData = collectFormData();
     const ok = await sendToServer(quotationData, false);
     if (ok) {
+        if (typeof (window as any).markQuotationFormClean === 'function') {
+            (window as any).markQuotationFormClean();
+        }
         window.electronAPI.showAlert1("Quotation saved successfully!");
         // Redirect to Home after saving a new quotation to prevent ID changes
         if (wasNewQuotation) {
@@ -2274,3 +2281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+(window as any).collectQuotationFormData = collectFormData;
+(window as any).openQuotation = openQuotation;
+

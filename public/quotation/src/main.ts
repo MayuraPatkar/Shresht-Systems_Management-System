@@ -390,6 +390,12 @@ async function restoreQuotationFromArchive(quotationId: string) {
 // ====== Navigation ======
 
 document.getElementById('home-btn')!.addEventListener('click', () => {
+    // Guard navigation if form has unsaved changes
+    const guardNavigation = (window as any).guardQuotationNavigation;
+    if (typeof guardNavigation === 'function' && guardNavigation('/quotation')) {
+        return; // Modal shown, navigation deferred
+    }
+
     sessionStorage.removeItem('currentTab-status');
     const trashBtn = document.getElementById('showDeletedBtn');
     if (trashBtn) trashBtn.style.display = '';

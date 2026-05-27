@@ -361,6 +361,21 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
             return;
         }
 
+        // If unsaved changes modal is open, let it handle Escape
+        if (typeof (window as any).isUnsavedChangesModalOpen === 'function' && (window as any).isUnsavedChangesModalOpen()) {
+            return; // Handled by unsavedChanges.ts capture-phase listener
+        }
+
+        // If form is active and dirty, show unsaved changes modal instead of navigating
+        if (isFormActive()) {
+            const guardNavigation = (window as any).guardQuotationNavigation;
+            if (typeof guardNavigation === 'function' && guardNavigation('/quotation')) {
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+        }
+
         if (isHomeScreenActive()) {
             event.preventDefault();
             event.stopPropagation();
