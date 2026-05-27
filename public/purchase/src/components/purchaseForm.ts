@@ -988,7 +988,7 @@
             const homeSection = document.getElementById("home");
             if (homeSection) homeSection.style.display = "none";
             const newSection = document.getElementById("new");
-            if (newSection) newSection.style.display = "block";
+if (newSection) newSection.style.display = "block";
 
             // Hide Search bar, Filter button, and View Preview button
             const searchFilterContainer = document.getElementById('search-filter-container');
@@ -996,6 +996,10 @@
 
             if ((window as any).itemReorder && typeof (window as any).itemReorder.initDragDrop === 'function') {
                 (window as any).itemReorder.initDragDrop('items-container', renumberItems);
+            }
+
+            if (typeof (window as any).markPurchaseFormClean === 'function') {
+                (window as any).markPurchaseFormClean();
             }
 
         } catch (error) {
@@ -1021,7 +1025,13 @@
 
     async function sendToServer(data: any) {
         if ((window as any).sendDocumentToServer) {
-            return await (window as any).sendDocumentToServer("/purchase/save-purchase", data);
+            const res = await (window as any).sendDocumentToServer("/purchase/save-purchase", data);
+            if (res) {
+                if (typeof (window as any).markPurchaseFormClean === 'function') {
+                    (window as any).markPurchaseFormClean();
+                }
+            }
+            return res;
         }
 
         try {
@@ -1031,6 +1041,10 @@
                 body: JSON.stringify(data)
             });
             if (!response.ok) throw new Error("Failed to save purchase");
+            
+            if (typeof (window as any).markPurchaseFormClean === 'function') {
+                (window as any).markPurchaseFormClean();
+            }
             return true;
         } catch (error) {
             console.error("Error saving purchase:", error);
@@ -2016,4 +2030,5 @@
     (window as any).generatePreview = generateSimplePreview;
     (window as any).generateSimplePreview = generateSimplePreview;
     (window as any).renderSupplierProfileCard = renderSupplierProfileCard;
+    (window as any).collectPurchaseFormData = collectFormData;
 })();

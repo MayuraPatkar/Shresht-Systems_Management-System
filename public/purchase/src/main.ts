@@ -38,6 +38,10 @@
         const homeBtn = document.getElementById('home-btn');
         if (homeBtn) {
             homeBtn.addEventListener('click', () => {
+                const guardNavigation = (window as any).guardPurchaseNavigation;
+                if (typeof guardNavigation === 'function' && guardNavigation('/purchase')) {
+                    return;
+                }
                 sessionStorage.removeItem('currentTab-status');
                 window.location.href = '/purchase';
             });
@@ -377,6 +381,9 @@
 
     function showNewPurchaseForm() {
         sessionStorage.removeItem('currentTab-status');
+        if (typeof (window as any).markPurchaseFormClean === 'function') {
+            (window as any).markPurchaseFormClean();
+        }
 
         if (typeof (window as any).updateHeaderVisibility === 'function') {
             (window as any).updateHeaderVisibility();
