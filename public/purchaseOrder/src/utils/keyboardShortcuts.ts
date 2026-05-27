@@ -362,6 +362,21 @@
                 (window as any).closeAllSuggestions();
             }
             
+            // If unsaved changes modal is open, let it handle Escape
+            if (typeof (window as any).isUnsavedChangesModalOpen === 'function' && (window as any).isUnsavedChangesModalOpen()) {
+                return;
+            }
+
+            // If form is active and dirty, show unsaved changes modal instead of navigating
+            if (isFormActive()) {
+                const guardNavigation = (window as any).guardPurchaseOrderNavigation;
+                if (typeof guardNavigation === 'function' && guardNavigation('/purchaseorder')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                }
+            }
+
             if (isHomeScreenActive()) {
                 event.preventDefault();
                 event.stopPropagation();

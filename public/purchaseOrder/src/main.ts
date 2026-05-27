@@ -51,6 +51,10 @@
         const homeBtn = document.getElementById('home-btn');
         if (homeBtn) {
             homeBtn.addEventListener('click', () => {
+                const guardNavigation = (window as any).guardPurchaseOrderNavigation;
+                if (typeof guardNavigation === 'function' && guardNavigation('/purchaseorder')) {
+                    return;
+                }
                 sessionStorage.removeItem('currentTab-status');
                 window.location.href = '/purchaseorder';
             });
@@ -389,6 +393,9 @@
 
     function showNewPurchaseForm() {
         sessionStorage.removeItem('currentTab-status');
+        if (typeof (window as any).markPurchaseOrderFormClean === 'function') {
+            (window as any).markPurchaseOrderFormClean();
+        }
 
         // Reset showDeletedItems and statusFilter when opening new form
         (window as any).showDeletedItems = false;

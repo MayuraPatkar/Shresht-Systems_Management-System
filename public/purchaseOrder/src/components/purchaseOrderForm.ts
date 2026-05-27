@@ -917,6 +917,10 @@
                 (window as any).itemReorder.initDragDrop('items-container', renumberItems);
             }
 
+            if (typeof (window as any).markPurchaseOrderFormClean === 'function') {
+                (window as any).markPurchaseOrderFormClean();
+            }
+
         } catch (error) {
             console.error("Error fetching purchase order:", error);
             if ((window as any).electronAPI) {
@@ -954,7 +958,13 @@
 
     async function sendToServer(data: any) {
         if ((window as any).sendDocumentToServer) {
-            return await (window as any).sendDocumentToServer("/purchaseOrder/save-purchase-order", data);
+            const res = await (window as any).sendDocumentToServer("/purchaseOrder/save-purchase-order", data);
+            if (res) {
+                if (typeof (window as any).markPurchaseOrderFormClean === 'function') {
+                    (window as any).markPurchaseOrderFormClean();
+                }
+            }
+            return res;
         }
 
         // Fallback if documentManager isn't loaded
@@ -965,6 +975,10 @@
                 body: JSON.stringify(data)
             });
             if (!response.ok) throw new Error("Failed to save purchase order");
+            
+            if (typeof (window as any).markPurchaseOrderFormClean === 'function') {
+                (window as any).markPurchaseOrderFormClean();
+            }
             return true;
         } catch (error) {
             console.error("Error saving purchase order:", error);
@@ -1722,6 +1736,7 @@
     (window as any).addPurchaseOrderItem = addPurchaseOrderItem;
     (window as any).renumberItems = renumberItems;
     (window as any).closeAllSuggestions = closeAllSuggestions;
+    (window as any).collectPurchaseOrderFormData = collectFormData;
 
     // Create shim for generatePreview to map to the new view function
     (window as any).generatePreview = async () => {
