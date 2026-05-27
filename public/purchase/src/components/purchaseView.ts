@@ -210,8 +210,17 @@
             const roundOff = Math.round(grandTotal) - grandTotal;
             const totalAmount = grandTotal + roundOff;
             
+            const totalPaid = Number(purchase.total_paid_amount || 0);
+            const balanceDue = totalAmount - totalPaid;
+            
             const viewGrandTotal = document.getElementById('view-grand-total');
             if (viewGrandTotal) viewGrandTotal.textContent = `₹ ${formatIndian(totalAmount, 2)}`;
+
+            const viewPaidAmount = document.getElementById('view-paid-amount');
+            if (viewPaidAmount) viewPaidAmount.textContent = `₹ ${formatIndian(totalPaid, 2)}`;
+
+            const viewBalanceDue = document.getElementById('view-balance-due');
+            if (viewBalanceDue) viewBalanceDue.textContent = `₹ ${formatIndian(balanceDue, 2)}`;
         }
 
         // Hide other sections, show view section
@@ -292,8 +301,17 @@
         const roundOff = Math.round(grandTotal) - grandTotal;
         const totalAmount = grandTotal + roundOff;
         
+        const totalPaid = Number(currentPurchase?.total_paid_amount || 0);
+        const balanceDue = totalAmount - totalPaid;
+        
         const viewGrandTotal = document.getElementById('view-grand-total');
         if (viewGrandTotal) viewGrandTotal.textContent = `₹ ${formatIndian(totalAmount, 2)}`;
+
+        const viewPaidAmount = document.getElementById('view-paid-amount');
+        if (viewPaidAmount) viewPaidAmount.textContent = `₹ ${formatIndian(totalPaid, 2)}`;
+
+        const viewBalanceDue = document.getElementById('view-balance-due');
+        if (viewBalanceDue) viewBalanceDue.textContent = `₹ ${formatIndian(balanceDue, 2)}`;
     }
 
     function addInlineRow(item: any = {}) {

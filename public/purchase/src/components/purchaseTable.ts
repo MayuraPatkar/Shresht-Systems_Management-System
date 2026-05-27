@@ -82,6 +82,14 @@
             const supplierName = purchase.supplier_snapshot?.name || 'N/A';
             const supplierAddress = purchase.supplier_snapshot?.address?.line1 || 'N/A';
             
+            const paymentStatus = purchase.payment_status || 'Unpaid';
+            let statusClass = 'bg-gray-100 text-gray-700';
+            if (paymentStatus === 'Paid') {
+                statusClass = 'bg-green-100 text-green-700';
+            } else if (paymentStatus === 'Partial') {
+                statusClass = 'bg-yellow-100 text-yellow-700';
+            }
+
             div.innerHTML = `
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
@@ -89,6 +97,9 @@
                             <h3 class="font-bold text-lg text-gray-800 line-clamp-1" title="${supplierName}">
                                 ${supplierName}
                             </h3>
+                            <span class="px-2 py-0.5 rounded-md text-xs font-semibold ${statusClass}">
+                                ${paymentStatus.toUpperCase()}
+                            </span>
                         </div>
                         <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
                             <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 font-medium cursor-pointer hover:bg-blue-100 copy-id" title="Click to copy ID" data-id="${purchaseId}">

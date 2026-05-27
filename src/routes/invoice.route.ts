@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { InvoiceModel, ItemModel, StockMovementModel, InvoiceStatus } from '../models';
+import { InvoiceModel, ItemModel, StockMovementModel, InvoiceStatus, PaymentModel } from '../models';
 import logger from '../utils/logger';
 import { asyncHandler } from '../middleware/errorHandler';
 import { previewNextId, generateNextId, syncCounterIfNeeded } from '../utils/idGenerator';
+import { Types } from 'mongoose';
+import { syncReferencePayments } from '../utils/paymentSync';
 
 const router: Router = Router();
 
@@ -627,28 +629,30 @@ router.post("/save-payment", async (req: Request, res: Response) => {
             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - currentPaid).toFixed(2)})` });
         }
 
-        invoice.payments.push({
-            payment_date: paymentDate,
-            paid_amount: Number(paidAmount),
-            payment_mode: paymentMode,
-            extra_details: paymentExtra || ''
-        });
+        const party = {
+            type: 'Customer' as const,
+            id: invoice.customer_snapshot?.name || invoice.customer_name || '',
+            ref: invoice.customer_id ? new Types.ObjectId(invoice.customer_id) : undefined
+        };
 
-        invoice.total_paid_amount = (invoice.payments || []).reduce((sum: number, p: any) => sum + Number(p.paid_amount || 0), 0);
+        const reference = {
+            type: 'Invoice' as const,
+            id: invoice.invoice_id || invoice.invoice_no,
+            ref: new Types.ObjectId(invoice._id)
+        };
 
-        if (totalDue > 0 && invoice.total_paid_amount >= totalDue) {
-            invoice.payment_status = 'Paid';
-        } else if (invoice.total_paid_amount > 0) {
-            invoice.payment_status = 'Partial';
-        } else {
-            invoice.payment_status = 'Unpaid';
-        }
+        const payment = new PaymentModel({
+            payment_date: paymentDate || new Date(),
+            amount: Number(paidAmount),
+            direction: 'IN',
+            party,
+            reference,
+            mode: paymentMode,
+            remarks: paymentExtra || undefined
+        } as any);
+        await payment.save();
 
-        if (typeof invoice.updatePaymentStatus === 'function') {
-            invoice.updatePaymentStatus();
-        }
-
-        await invoice.save();
+        await syncReferencePayments('Invoice', invoice._id);
 
         res.status(200).json({ message: "Payment saved successfully." });
     } catch (error: unknown) {
@@ -657,7 +661,6 @@ router.post("/save-payment", async (req: Request, res: Response) => {
     }
 });
 
-// Update existing payment
 router.put("/update-payment", async (req: Request, res: Response) => {
     try {
         const {
@@ -689,28 +692,42 @@ router.put("/update-payment", async (req: Request, res: Response) => {
             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - otherPaymentsTotal).toFixed(2)})` });
         }
 
-        invoice.payments[paymentIndex] = {
-            payment_date: paymentDate,
-            paid_amount: Number(paidAmount),
-            payment_mode: paymentMode,
-            extra_details: paymentExtra || ''
-        };
-
-        invoice.total_paid_amount = (invoice.payments || []).reduce((sum: number, p: any) => sum + Number(p.paid_amount || 0), 0);
-
-        if (totalDue > 0 && invoice.total_paid_amount >= totalDue) {
-            invoice.payment_status = 'Paid';
-        } else if (invoice.total_paid_amount > 0) {
-            invoice.payment_status = 'Partial';
+        const paymentRecord = invoice.payments[paymentIndex];
+        if (paymentRecord && paymentRecord.payment_ref) {
+            const payment = await PaymentModel.findById(paymentRecord.payment_ref);
+            if (payment) {
+                payment.payment_date = paymentDate || payment.payment_date;
+                payment.amount = Number(paidAmount);
+                payment.mode = paymentMode;
+                payment.remarks = paymentExtra || undefined;
+                await payment.save();
+            }
         } else {
-            invoice.payment_status = 'Unpaid';
+            const party = {
+                type: 'Customer' as const,
+                id: invoice.customer_snapshot?.name || invoice.customer_name || '',
+                ref: invoice.customer_id ? new Types.ObjectId(invoice.customer_id) : undefined
+            };
+
+            const reference = {
+                type: 'Invoice' as const,
+                id: invoice.invoice_id || invoice.invoice_no,
+                ref: new Types.ObjectId(invoice._id)
+            };
+
+            const payment = new PaymentModel({
+                payment_date: paymentDate || new Date(),
+                amount: Number(paidAmount),
+                direction: 'IN',
+                party,
+                reference,
+                mode: paymentMode,
+                remarks: paymentExtra || undefined
+            } as any);
+            await payment.save();
         }
 
-        if (typeof invoice.updatePaymentStatus === 'function') {
-            invoice.updatePaymentStatus();
-        }
-
-        await invoice.save();
+        await syncReferencePayments('Invoice', invoice._id);
 
         res.status(200).json({ message: "Payment updated successfully." });
     } catch (error: unknown) {
@@ -734,25 +751,20 @@ router.delete("/delete-payment/:invoiceId/:paymentIndex", async (req: Request, r
             return res.status(404).json({ message: "Payment not found" });
         }
 
-        invoice.payments.splice(index, 1);
-
-        invoice.total_paid_amount = (invoice.payments || []).reduce((sum: number, p: any) => sum + Number(p.paid_amount || 0), 0);
-
-        const totalDue = computeTotalDue(invoice);
-
-        if (totalDue > 0 && invoice.total_paid_amount >= totalDue) {
-            invoice.payment_status = 'Paid';
-        } else if (invoice.total_paid_amount > 0) {
-            invoice.payment_status = 'Partial';
-        } else {
-            invoice.payment_status = 'Unpaid';
+        const paymentRecord = invoice.payments[index];
+        if (paymentRecord && paymentRecord.payment_ref) {
+            const payment = await PaymentModel.findById(paymentRecord.payment_ref);
+            if (payment) {
+                payment.deletion = {
+                    is_deleted: true,
+                    deleted_at: new Date(),
+                    deleted_by: 'admin'
+                };
+                await payment.save();
+            }
         }
 
-        if (typeof invoice.updatePaymentStatus === 'function') {
-            invoice.updatePaymentStatus();
-        }
-
-        await invoice.save();
+        await syncReferencePayments('Invoice', invoice._id);
 
         res.status(200).json({ message: "Payment deleted successfully." });
     } catch (error: unknown) {

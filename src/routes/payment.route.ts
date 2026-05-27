@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { PaymentModel, CustomerModel, SupplierModel, InvoiceModel, PurchaseModel, PurchaseOrderModel, ServiceModel } from '../models';
 import { Types } from 'mongoose';
 import logger from '../utils/logger';
+import { syncReferencePayments } from '../utils/paymentSync';
 
 const router: Router = Router();
 
@@ -537,6 +538,10 @@ router.post('/create', async (req: Request, res: Response) => {
         } as any);
         await payment.save();
 
+        if (payment.reference?.type && payment.reference?.ref) {
+            await syncReferencePayments(payment.reference.type as any, payment.reference.ref);
+        }
+
         logger.info('Payment created', { paymentId: payment._id, direction, amount, mode });
         res.status(201).json({ success: true, message: 'Payment created successfully', payment: await enrichSinglePayment(payment) });
     } catch (error: unknown) {
@@ -570,6 +575,9 @@ router.put('/:id', async (req: Request, res: Response) => {
             remarks
         } = req.body;
 
+        const oldReferenceType = (payment as any).reference?.type;
+        const oldReferenceRef = (payment as any).reference?.ref;
+
         if (payment_date !== undefined) payment.payment_date = payment_date;
         if (amount !== undefined) payment.amount = Number(amount);
         if (direction !== undefined) payment.direction = direction;
@@ -598,6 +606,16 @@ router.put('/:id', async (req: Request, res: Response) => {
 
         await payment.save();
 
+        // Sync new reference
+        if (payment.reference?.type && payment.reference?.ref) {
+            await syncReferencePayments(payment.reference.type as any, payment.reference.ref);
+        }
+
+        // Sync old reference if it changed
+        if (oldReferenceType && oldReferenceRef && (String(oldReferenceType) !== String(payment.reference?.type) || String(oldReferenceRef) !== String(payment.reference?.ref))) {
+            await syncReferencePayments(oldReferenceType as any, oldReferenceRef);
+        }
+
         logger.info('Payment updated', { paymentId: payment._id });
         res.status(200).json({ success: true, message: 'Payment updated successfully', payment: await enrichSinglePayment(payment) });
     } catch (error: unknown) {
@@ -623,6 +641,10 @@ router.delete('/:id', async (req: Request, res: Response) => {
             deleted_by: 'admin'
         };
         await payment.save();
+
+        if (payment.reference?.type && payment.reference?.ref) {
+            await syncReferencePayments(payment.reference.type as any, payment.reference.ref);
+        }
 
         logger.info('Payment soft-deleted', { paymentId: payment._id });
         res.status(200).json({ success: true, message: 'Payment deleted successfully' });

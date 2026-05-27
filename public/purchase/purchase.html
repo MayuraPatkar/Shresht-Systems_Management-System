@@ -674,18 +674,26 @@
                         <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Totals</h2>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
-                            <span class="block text-sm font-medium text-gray-500 mb-2">Subtotal</span>
-                            <span class="text-gray-900 font-bold text-2xl" id="view-subtotal">₹ 0.00</span>
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Subtotal</span>
+                            <span class="text-gray-900 font-bold text-xl" id="view-subtotal">₹ 0.00</span>
                         </div>
-                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
-                            <span class="block text-sm font-medium text-gray-500 mb-2">Tax (GST)</span>
-                            <span class="text-gray-900 font-bold text-2xl" id="view-tax">₹ 0.00</span>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Tax (GST)</span>
+                            <span class="text-gray-900 font-bold text-xl" id="view-tax">₹ 0.00</span>
                         </div>
-                        <div class="bg-blue-600 p-5 rounded-lg border border-blue-700 text-white shadow-md flex flex-col justify-between transform hover:scale-[1.01] transition-transform duration-200">
-                            <span class="block text-sm font-medium text-blue-100 mb-2">Total Amount Due</span>
-                            <span class="font-extrabold text-3xl tracking-tight" id="view-grand-total">₹ 0.00</span>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Grand Total</span>
+                            <span class="text-gray-900 font-bold text-xl" id="view-grand-total">₹ 0.00</span>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Total Paid</span>
+                            <span class="text-emerald-600 font-bold text-xl" id="view-paid-amount">₹ 0.00</span>
+                        </div>
+                        <div class="bg-blue-600 p-4 rounded-lg border border-blue-700 text-white shadow-md flex flex-col justify-between transform hover:scale-[1.01] transition-transform duration-200">
+                            <span class="block text-xs font-semibold text-blue-100 uppercase tracking-wider mb-2">Balance Due</span>
+                            <span class="font-extrabold text-2xl tracking-tight" id="view-balance-due">₹ 0.00</span>
                         </div>
                     </div>
                 </section>

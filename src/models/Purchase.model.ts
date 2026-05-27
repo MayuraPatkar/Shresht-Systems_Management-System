@@ -64,6 +64,17 @@ export interface ITotals {
 }
 
 /**
+ * Payment record interface
+ */
+export interface IPaymentRecord {
+    payment_date?: Date;
+    payment_mode?: string;
+    paid_amount?: number;
+    extra_details?: string;
+    payment_ref?: Types.ObjectId;
+}
+
+/**
  * Purchase document interface
  */
 export interface IPurchase extends Document {
@@ -85,6 +96,10 @@ export interface IPurchase extends Document {
     totals?: ITotals;
 
     remarks?: string;
+
+    total_paid_amount: number;
+    payment_status: string;
+    payments: IPaymentRecord[];
 
     is_archived: boolean;
 
@@ -244,6 +259,21 @@ const purchaseSchema = new Schema<IPurchase>(
         remarks: {
             type: String,
             trim: true,
+        },
+
+        total_paid_amount: { type: Number, default: 0 },
+        payment_status: { type: String, default: "Unpaid" },
+        payments: {
+            type: [
+                {
+                    payment_date: { type: Date },
+                    paid_amount: { type: Number },
+                    payment_mode: { type: String },
+                    extra_details: { type: String },
+                    payment_ref: { type: Schema.Types.ObjectId, ref: 'Payment' }
+                }
+            ],
+            default: []
         },
 
         deletion: {

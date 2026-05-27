@@ -107,6 +107,7 @@ export interface IPaymentRecord {
     payment_mode?: string;
     paid_amount?: number;
     extra_details?: string;
+    payment_ref?: Types.ObjectId;
 }
 
 /**
@@ -462,6 +463,7 @@ const invoiceSchema = new Schema<IInvoice>(
                     paid_amount: { type: Number },
                     payment_mode: { type: String },
                     extra_details: { type: String },
+                    payment_ref: { type: Schema.Types.ObjectId, ref: 'Payment' }
                 }
             ],
             default: []
