@@ -15,6 +15,10 @@
 
     // Home button handler - keep this one as it's specific to this page
     document.getElementById('home-btn')?.addEventListener('click', () => {
+        const guardNavigation = (window as any).guardWayBillNavigation;
+        if (typeof guardNavigation === 'function' && guardNavigation('/ewaybill')) {
+            return;
+        }
         sessionStorage.removeItem('currentTab-status');
         window.location.href = '/ewaybill';
         sessionStorage.setItem('currentTab', 'ewaybill');
@@ -714,6 +718,21 @@
                 event.stopPropagation();
                 hideShortcutsModal();
                 return;
+            }
+
+            // If unsaved changes modal is open, let it handle Escape
+            if (typeof (window as any).isUnsavedChangesModalOpen === 'function' && (window as any).isUnsavedChangesModalOpen()) {
+                return; // Handled by unsavedChanges.ts capture-phase listener
+            }
+
+            // If form is active and dirty, show unsaved changes modal instead of navigating
+            if (isFormActive()) {
+                const guardNavigation = (window as any).guardWayBillNavigation;
+                if (typeof guardNavigation === 'function' && guardNavigation('/ewaybill')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                }
             }
 
             if (isHomeScreenActive()) {

@@ -570,6 +570,10 @@
                 addItemFromData(item, sno);
                 sno++;
             });
+
+            if (typeof (window as any).markWayBillFormClean === 'function') {
+                (window as any).markWayBillFormClean();
+            }
         } catch (error) {
             console.error('Error opening e-way bill:', error);
             if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
@@ -906,6 +910,9 @@
             const electronAPI = (window as any).electronAPI;
 
             if (ok) {
+                if (typeof (window as any).markWayBillFormClean === 'function') {
+                    (window as any).markWayBillFormClean();
+                }
                 if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
                     electronAPI.showAlert1("E-Way Bill saved successfully!");
                 } else {
@@ -968,4 +975,6 @@
             itemReorder.initDragDrop('items-container', renumberItems);
         }
     });
+
+    (window as any).collectWayBillFormData = collectFormData;
 })();
