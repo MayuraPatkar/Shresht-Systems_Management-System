@@ -284,11 +284,19 @@ router.get('/get-parties/:type', async (req: Request, res: Response) => {
         let parties: any[] = [];
 
         if (type === 'Customer') {
-            parties = await CustomerModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'customer.name': 1, _id: 1 }).lean();
-            res.json(parties.map(p => ({ id: p._id, name: p.customer.name })));
+            parties = await CustomerModel.find(
+                { 'deletion.is_deleted': { $ne: true } },
+                { 'customer.name': 1, 'customer.first_name': 1, 'customer.last_name': 1, _id: 1 }
+            ).lean();
+            res.json(parties.map(p => {
+                const firstName = String(p.customer?.first_name || '').trim();
+                const lastName = String(p.customer?.last_name || '').trim();
+                const name = p.customer?.name || [firstName, lastName].filter(Boolean).join(' ') || 'Unnamed Customer';
+                return { id: p._id, name };
+            }));
         } else if (type === 'Supplier') {
             parties = await SupplierModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'supplier_name': 1, _id: 1 }).lean();
-            res.json(parties.map(p => ({ id: p._id, name: p.supplier_name })));
+            res.json(parties.map(p => ({ id: p._id, name: p.supplier_name || 'Unnamed Supplier' })));
         } else {
             res.status(400).json({ success: false, message: 'Invalid party type' });
         }
@@ -340,11 +348,19 @@ router.get('/get-parties/:type', async (req: Request, res: Response) => {
         let parties: any[] = [];
 
         if (type === 'Customer') {
-            parties = await CustomerModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'customer.name': 1, _id: 1 }).lean();
-            res.json(parties.map(p => ({ id: p._id, name: p.customer.name })));
+            parties = await CustomerModel.find(
+                { 'deletion.is_deleted': { $ne: true } },
+                { 'customer.name': 1, 'customer.first_name': 1, 'customer.last_name': 1, _id: 1 }
+            ).lean();
+            res.json(parties.map(p => {
+                const firstName = String(p.customer?.first_name || '').trim();
+                const lastName = String(p.customer?.last_name || '').trim();
+                const name = p.customer?.name || [firstName, lastName].filter(Boolean).join(' ') || 'Unnamed Customer';
+                return { id: p._id, name };
+            }));
         } else if (type === 'Supplier') {
             parties = await SupplierModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'supplier_name': 1, _id: 1 }).lean();
-            res.json(parties.map(p => ({ id: p._id, name: p.supplier_name })));
+            res.json(parties.map(p => ({ id: p._id, name: p.supplier_name || 'Unnamed Supplier' })));
         } else {
             res.status(400).json({ success: false, message: 'Invalid party type' });
         }

@@ -476,6 +476,16 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             }
 
             const updatedInvoice = await existingInvoice.save();
+
+            if (quotationObjectId) {
+                await QuotationModel.findByIdAndUpdate(quotationObjectId, {
+                    $set: {
+                        quotation_status: 'Converted',
+                        converted_invoice_id: updatedInvoice._id
+                    }
+                });
+            }
+
             return res.status(200).json({ message: 'Invoice updated successfully', invoice: updatedInvoice });
 
         } else {
@@ -574,6 +584,15 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             }
 
             const savedInvoice = await invoice.save();
+
+            if (quotationObjectId) {
+                await QuotationModel.findByIdAndUpdate(quotationObjectId, {
+                    $set: {
+                        quotation_status: 'Converted',
+                        converted_invoice_id: savedInvoice._id
+                    }
+                });
+            }
 
             return res.status(201).json({
                 message: 'Invoice saved successfully',

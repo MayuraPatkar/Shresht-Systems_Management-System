@@ -35,7 +35,7 @@ async function getSettingsValue(key: string, defaultValue: string | null = null)
  * FY runs April 1 – March 31: Jan/Feb/Mar belong to the previous year's FY.
  */
 function getFYStartYear(date: Date): number {
-    const month = date.getMonth(); // 0-indexed
+    const month = date.getMonth(); // 0-indexed: Jan=0, Feb=1, Mar=2, Apr=3
     return month < 3 ? date.getFullYear() - 1 : date.getFullYear();
 }
 
@@ -60,15 +60,16 @@ async function getPrefixAndDateParams(moduleKey: string): Promise<{
     const mm = String(now.getMonth() + 1).padStart(2, "0");
     const dd = String(now.getDate()).padStart(2, "0");
     const yy = String(yyyy).slice(-2);
-    const datePart = `${yy}${mm}${dd}`;
 
-    let isYearly = false;
+    const isYearly = ['quotation', 'purchaseOrder', 'invoice', 'service'].includes(mk);
+    
+    let datePart = `${yy}${mm}${dd}`;
     let counterKey = `${mk}-${datePart}`;
 
-    if (moduleKey === 'quotation') {
-        isYearly = true;
+    if (isYearly) {
         const fyStart = getFYStartYear(now);
         counterKey = `${mk}-FY${fyStart}`;
+        datePart = String(fyStart).slice(-2); // YY of financial year
     }
 
     return { prefix, datePart, counterKey, isYearly };
@@ -77,7 +78,6 @@ async function getPrefixAndDateParams(moduleKey: string): Promise<{
 /**
  * READ-ONLY: Peeks at the next ID without incrementing the DB.
  * Use this for displaying the ID in the UI (Preview).
- * Format: prefix + YYMMDD + seq (4-digit for quotation, 2-digit for others)
  */
 export async function previewNextId(moduleKey: string): Promise<string> {
     const { prefix, datePart, counterKey, isYearly } = await getPrefixAndDateParams(moduleKey);
@@ -89,20 +89,18 @@ export async function previewNextId(moduleKey: string): Promise<string> {
     
     if (isYearly) {
         nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq + 1 : 1;
-        paddedSeq = String(nextSeq).padStart(4, "0");
+        paddedSeq = String(nextSeq).padStart(5, "0");
     } else {
         nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 0;
         paddedSeq = String(nextSeq).padStart(2, "0");
     }
 
-    // For quotation: embed the current date so the full ID is prefix+YYMMDD+seq
     return `${prefix}${datePart}${paddedSeq}`;
 }
 
 /**
  * WRITE: Atomically increments the counter and returns the generated ID.
  * Use this ONLY in the final SAVE route/controller.
- * Format: prefix + YYMMDD + seq (4-digit for quotation, 2-digit for others)
  */
 export async function generateNextId(moduleKey: string): Promise<string> {
     const { prefix, datePart, counterKey, isYearly } = await getPrefixAndDateParams(moduleKey);
@@ -119,7 +117,7 @@ export async function generateNextId(moduleKey: string): Promise<string> {
     
     if (isYearly) {
         nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 1;
-        paddedSeq = String(nextSeq).padStart(4, "0");
+        paddedSeq = String(nextSeq).padStart(5, "0");
     } else {
         nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq - 1 : 0;
         if (nextSeq < 0) nextSeq = 0;
@@ -131,34 +129,29 @@ export async function generateNextId(moduleKey: string): Promise<string> {
 
 /**
  * Syncs the counter if a custom ID matches the auto-generated pattern.
- * Prevents collision when user enters an ID like QUO2601050005 manually.
- * Call this AFTER successfully saving a document with a custom ID.
+ * Prevents collision when user enters an ID manually.
  */
 export async function syncCounterIfNeeded(moduleKey: string, customId: string): Promise<void> {
     if (!customId || typeof customId !== "string") return;
 
     const { prefix, datePart, counterKey, isYearly } = await getPrefixAndDateParams(moduleKey);
 
-    // Build regex to match {prefix}{YYMMDD}{seq} pattern
+    // Build regex to match prefix pattern
     const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    // For quotation (yearly) seq is 4 digits; for daily counters it's 2 digits
-    const seqPattern = isYearly ? "(\\d{4,})" : "(\\d{2,})";
-    const pattern = new RegExp(`^${escapedPrefix}(\\d{6})${seqPattern}$`);
-
-    const match = customId.match(pattern);
-    if (!match) return; // Custom ID doesn't match auto-generated format
-
-    const idDatePart = match[1];
-    const idSeq = parseInt(match[2], 10);
-
-    // For non-yearly, only sync if date matches exactly.
-    if (!isYearly && idDatePart !== datePart) return;
-
-    // Get current counter value
-    const docDay = await CounterModel.findOne({ _id: counterKey }).lean();
-    const currentSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 0;
-
+    
     if (isYearly) {
+        const pattern = new RegExp(`^${escapedPrefix}(\\d{2})(\\d{5,})$`);
+        const match = customId.match(pattern);
+        if (!match) return;
+
+        const idYearPart = match[1];
+        const idSeq = parseInt(match[2], 10);
+
+        if (idYearPart !== datePart) return;
+
+        const docDay = await CounterModel.findOne({ _id: counterKey }).lean();
+        const currentSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 0;
+
         if (idSeq > currentSeq) {
             await CounterModel.findOneAndUpdate(
                 { _id: counterKey },
@@ -167,7 +160,18 @@ export async function syncCounterIfNeeded(moduleKey: string, customId: string): 
             );
         }
     } else {
-        // If custom ID's sequence >= current counter, update counter to avoid collision
+        const pattern = new RegExp(`^${escapedPrefix}(\\d{6})(\\d{2,})$`);
+        const match = customId.match(pattern);
+        if (!match) return;
+
+        const idDatePart = match[1];
+        const idSeq = parseInt(match[2], 10);
+
+        if (idDatePart !== datePart) return;
+
+        const docDay = await CounterModel.findOne({ _id: counterKey }).lean();
+        const currentSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 0;
+
         if (idSeq >= currentSeq) {
             await CounterModel.findOneAndUpdate(
                 { _id: counterKey },

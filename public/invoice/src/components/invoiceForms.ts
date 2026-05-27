@@ -783,10 +783,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (quotationIdToConvert && sessionStorage.getItem('currentTab-status') === 'new') {
         // Clear the key so it only loads once
         sessionStorage.removeItem('quotation-to-invoice-id');
-        // Small delay to let the form initialize and change to step 1
-        setTimeout(async () => {
-            await loadInvoiceFromQuotation(quotationIdToConvert);
-        }, 300);
+        
+        // Wait for both scripts' DOMContentLoaded execution to finish so that click event listeners are registered
+        setTimeout(() => {
+            // Trigger showing the new invoice form first
+            document.getElementById('new-invoice')?.click();
+
+            // Small delay to let the form initialize and change to step 1
+            setTimeout(async () => {
+                await loadInvoiceFromQuotation(quotationIdToConvert);
+            }, 300);
+        }, 100);
     }
 });
 
