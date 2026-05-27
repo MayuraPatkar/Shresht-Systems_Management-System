@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Details</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        input,
+        textarea,
+        select,
+        [contenteditable="true"] {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        main {
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px !important;
+            height: 8px !important;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+            border-radius: 4px !important;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2563eb !important;
+            border-radius: 4px !important;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8 !important;
+        }
+
+        button,
+        [role="button"] {
+            cursor: pointer !important;
+        }
+
+        /* Modern Premium Modal Improvements */
+        .modal-overlay {
+            background: rgba(15, 23, 42, 0.28);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-card-premium {
+            border-radius: 18px;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.18),
+                0 0 0 1px rgba(15, 23, 42, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            animation: premiumModalShow 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes premiumModalShow {
+            from {
+                opacity: 0;
+                transform: scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .form-input-premium {
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #1f2937;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .form-input-premium::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-input-premium:hover {
+            border-color: #9ca3af;
+        }
+
+        .form-input-premium:focus {
+            outline: none;
+            border-color: #2563eb;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .form-section-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2563eb;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 0.5rem;
+        }
+
+        .badge-in {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge-out {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .suggestions {
+            position: absolute;
+            z-index: 50;
+            width: 100%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-h: 15rem;
+            overflow-y: auto;
+        }
+        
+        .suggestions li {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.15s;
+        }
+        
+        .suggestions li:hover, .suggestions li.selected {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        @keyframes dropdownShow {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .animate-dropdown {
+            animation: dropdownShow 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-fade-in {
+            animation: fadeInSmall 0.2s ease-out forwards;
+        }
+
+        @keyframes fadeInSmall {
+            from {
+                opacity: 0;
+                transform: translateY(2px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Icon" class="h-10 w-10">
+                <h1 id="header-title" class="text-xl font-bold text-gray-800">Payment Details</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="home-btn"
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium shadow-sm transition-all duration-150 active:scale-95 cursor-pointer"
+                    title="Go Back (Ctrl+H)">
+                    <i class="fas fa-home"></i>
+                    Home
+                </button>
+                <button id="shortcuts-btn"
+                    class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-keyboard"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select"
+        style="width: 280px;">
+        <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+            <div class="flex flex-col gap-2">
+                <a href="/dashboard" id="dashboard"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-th-large w-8 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
+                </a>
+                <a href="/quotation" id="quotation"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-alt w-8 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
+                </a>
+                <a href="../purchaseOrder/purchaseOrder.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
+                    <span>Purchase Order</span>
+                </a>
+                <a href="/invoice" id="invoice"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                    <span>Invoice</span>
+                </a>
+                <a href="/ewaybill" id="wayBill"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-route w-8 text-center"></i>
+                    <span>E-Way Bill</span>
+                </a>
+                <a href="/service" id="service"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-wrench w-8 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="../purchase/purchase.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold" id="purchaseOnly">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="/payment" id="payment"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
+                </a>
+                <a href="/stock" id="stock"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-box w-8 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="/comms" id="comms"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-comments w-8 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="/reports" id="reports"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-chart-bar w-8 text-center"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="/calculations" id="calculations"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-calculator w-8 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="/settings" id="settings"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-cog w-8 text-center"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="ml-[280px] pt-24 mt-6 p-8">
+
+        <!-- Payment Summary Header -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 mb-8 fade-in">
+            <div class="flex flex-wrap items-center justify-between gap-6">
+                <div class="flex items-center gap-5">
+                    <div id="details-icon" class="w-16 h-16 bg-blue-50 border border-blue-100/50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl font-bold shadow-sm">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-3">
+                            <h2 id="details-amount" class="text-3xl font-extrabold text-slate-800 tracking-tight">₹ 0.00</h2>
+                            <span id="details-direction" class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider">-</span>
+                            <span id="details-advance-badge" class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold uppercase tracking-wider hidden">ADVANCE</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-xs font-medium">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fas fa-calendar text-slate-400"></i>
+                                <span id="details-date" class="text-slate-600">-</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <i class="fas fa-credit-card text-slate-400"></i>
+                                <span id="details-mode" class="text-slate-600">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button id="details-edit-btn"
+                        class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        title="Edit Payment (Ctrl+E)">
+                        <i class="fas fa-edit"></i> Edit Payment
+                    </button>
+                    <button id="details-refund-btn"
+                        class="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/10"
+                        title="Refund Transaction (Ctrl+U)">
+                        <i class="fas fa-rotate-left"></i> Refund Transaction
+                    </button>
+                    <button id="details-delete-btn"
+                        class="px-5 py-3 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-sm font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500/10"
+                        title="Delete Payment (Ctrl+Delete)">
+                        <i class="fas fa-trash-alt"></i> Delete Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 fade-in">
+            <!-- Left Info Block: Details -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+                    <h3 class="text-lg font-bold text-gray-800 border-b pb-2">Transaction Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        <div>
+                            <span class="text-gray-500 font-medium block">Transaction Ref / Details:</span>
+                            <span id="details-transaction" class="font-semibold text-gray-800 text-base break-words">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 font-medium block">Party Link:</span>
+                            <span id="details-party" class="font-semibold text-gray-800 text-base">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 font-medium block">Reference:</span>
+                            <span id="details-reference" class="font-semibold text-gray-800 text-base">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 font-medium block">Created Date:</span>
+                            <span id="details-created" class="font-semibold text-gray-600">-</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4">
+                        <span class="text-gray-500 font-medium block mb-2">Remarks / Internal Notes:</span>
+                        <div id="details-remarks" class="bg-gray-50 p-4 rounded-lg border border-gray-100 italic text-gray-600 min-h-[80px]">
+                            -
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column Cards: Party & Reference Detail cards -->
+            <div class="space-y-6">
+                <!-- Expanded Party Info Card -->
+                <div id="details-party-expanded" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-sm font-bold text-blue-700 uppercase tracking-wider mb-4 flex items-center gap-1.5 border-b pb-2">
+                        <i class="fas fa-id-card"></i> Expanded Party Info
+                    </h3>
+                    <div class="space-y-3.5 text-sm">
+                        <div>
+                            <span class="text-gray-400 block text-xs font-semibold uppercase">Name / Business</span>
+                            <span id="details-party-name" class="font-bold text-slate-800">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block text-xs font-semibold uppercase">Phone Number</span>
+                            <span id="details-party-phone" class="font-semibold text-slate-700">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block text-xs font-semibold uppercase">Email Address</span>
+                            <span id="details-party-email" class="font-semibold text-slate-700 break-all">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block text-xs font-semibold uppercase">GSTIN</span>
+                            <span id="details-party-gstin" class="font-semibold text-slate-700">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block text-xs font-semibold uppercase">Address</span>
+                            <span id="details-party-address" class="font-medium text-slate-600 block leading-relaxed">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expanded Reference Info Card -->
+                <div id="details-ref-expanded" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-sm font-bold text-emerald-700 uppercase tracking-wider mb-4 flex items-center gap-1.5 border-b pb-2">
+                        <i class="fas fa-file-invoice"></i> Expanded Reference Info
+                    </h3>
+                    <div class="space-y-3.5 text-sm">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-gray-400 block text-xs font-semibold uppercase">Ref ID</span>
+                                <span id="details-ref-id" class="font-bold text-slate-800">-</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 block text-xs font-semibold uppercase">Status</span>
+                                <span id="details-ref-status" class="font-bold text-slate-700 uppercase">-</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block text-xs font-semibold uppercase">Total Amount</span>
+                            <span id="details-ref-amount" class="font-bold text-emerald-700">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block text-xs font-semibold uppercase">Document Date</span>
+                            <span id="details-ref-date" class="font-semibold text-slate-700">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Edit/Refund Payment Modal (Shared Form) -->
+    <div id="payment-modal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" id="modal-overlay"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative modal-card-premium">
+                <!-- Modal Header -->
+                <div class="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 rounded-t-2xl z-10">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                                <i class="fas fa-money-bill-wave text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h2 id="modal-title" class="text-xl font-bold text-gray-800">Edit Payment</h2>
+                                <p id="modal-subtitle" class="text-sm text-gray-500">Update transaction details</p>
+                            </div>
+                        </div>
+                        <button id="close-modal-btn" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <form id="payment-form" class="px-6 py-5 space-y-5">
+                    <input type="hidden" id="form-payment-id" value="">
+
+                    <!-- Direction Toggle -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-exchange-alt text-gray-500 mr-1"></i>Direction <span class="text-red-500">*</span>
+                        </label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="direction" value="IN" class="peer sr-only" checked>
+                                <div class="p-4 border-2 border-gray-200 rounded-xl text-center peer-checked:border-green-500 peer-checked:bg-green-50 transition-all">
+                                    <i class="fas fa-arrow-down text-2xl text-green-600 mb-1"></i>
+                                    <p class="font-semibold text-gray-800">Money In</p>
+                                    <p class="text-xs text-gray-500">Received</p>
+                                </div>
+                            </label>
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="direction" value="OUT" class="peer sr-only">
+                                <div class="p-4 border-2 border-gray-200 rounded-xl text-center peer-checked:border-red-500 peer-checked:bg-red-50 transition-all">
+                                    <i class="fas fa-arrow-up text-2xl text-red-600 mb-1"></i>
+                                    <p class="font-semibold text-gray-800">Money Out</p>
+                                    <p class="text-xs text-gray-500">Paid</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Amount & Date Row -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="form-amount" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>Amount <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" id="form-amount" step="0.01" min="0" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="0.00">
+                        </div>
+                        <div>
+                            <label for="form-date" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-calendar text-gray-500 mr-1"></i>Payment Date
+                            </label>
+                            <input type="date" id="form-date"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Payment Mode -->
+                    <div>
+                        <label for="form-mode" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-credit-card text-gray-500 mr-1"></i>Payment Mode <span class="text-red-500">*</span>
+                        </label>
+                        <select id="form-mode" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+
+                    <!-- Party Row -->
+                    <div class="space-y-4">
+                        <div class="relative">
+                            <label for="form-party-name" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-id-badge text-gray-500 mr-1"></i>Party ID
+                            </label>
+                            <input type="text" id="form-party-name" autocomplete="off"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Link to Customer/Supplier">
+                            <input type="hidden" id="form-party-id-hidden">
+                            <ul id="party-suggestions" class="suggestions hidden"></ul>
+                        </div>
+                        
+                        <!-- Party Details Preview -->
+                        <div id="party-details-container" class="hidden bg-gray-50 border border-gray-200 rounded-xl p-4 fade-in">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-blue-100 p-2 rounded-lg">
+                                    <i class="fas fa-user text-blue-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 id="preview-party-name" class="font-bold text-gray-800"></h3>
+                                    <div class="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-sm">
+                                        <div class="text-gray-500">Phone: <span id="preview-party-phone" class="text-gray-800 font-medium"></span></div>
+                                        <div class="text-gray-500">GSTIN: <span id="preview-party-gstin" class="text-gray-800 font-medium"></span></div>
+                                        <div class="text-gray-500 col-span-2">Email: <span id="preview-party-email" class="text-gray-800 font-medium"></span></div>
+                                        <div class="text-gray-500 col-span-2">Address: <span id="preview-party-address" class="text-gray-800 font-medium"></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="form-reference-type" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-link text-gray-500 mr-1"></i>Reference Type
+                            </label>
+                            <select id="form-reference-type"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="">-- None --</option>
+                                <option value="Invoice">Invoice</option>
+                                <option value="Purchase">Purchase</option>
+                                <option value="Service">Service</option>
+                                <option value="Adjustment">Adjustment</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="form-reference-id" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-hashtag text-gray-500 mr-1"></i>Reference ID
+                            </label>
+                            <input type="text" id="form-reference-id"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Invoice/PO/Service No.">
+                        </div>
+                    </div>
+
+                    <!-- Transaction Details -->
+                    <div>
+                        <label for="form-transaction-details" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-info-circle text-gray-500 mr-1"></i>Transaction Details
+                        </label>
+                        <input type="text" id="form-transaction-details"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="UTR / Cheque No. / Bank Ref.">
+                    </div>
+
+                    <!-- Advance Checkbox -->
+                    <div class="flex items-center gap-3 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                        <input type="checkbox" id="form-advance"
+                            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="form-advance" class="text-sm font-medium text-amber-800 cursor-pointer">
+                            <i class="fas fa-forward mr-1"></i>This is an advance payment
+                        </label>
+                    </div>
+
+                    <!-- Remarks -->
+                    <div>
+                        <label for="form-remarks" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-sticky-note text-gray-500 mr-1"></i>Remarks
+                        </label>
+                        <textarea id="form-remarks" rows="2"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                            placeholder="Optional notes..."></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex items-center gap-3 pt-2">
+                        <button type="submit" id="submit-btn"
+                            class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold flex items-center justify-center gap-2 transition-all">
+                            <i class="fas fa-save"></i>
+                            <span id="submit-btn-text">Save Payment</span>
+                        </button>
+                        <button type="button" id="cancel-btn"
+                            class="px-6 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-medium transition-all">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50 flex items-center gap-2">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Success!</span>
+    </div>
+
+    <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/validation.js"></script>
+    <script src="../../dist/public/payment/src/types/payment.types.js"></script>
+    <script src="../../dist/public/payment/src/services/paymentApi.js"></script>
+    <script src="../../dist/public/payment/src/details.js"></script>
+</body>
+
+</html>

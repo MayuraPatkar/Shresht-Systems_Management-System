@@ -16,8 +16,11 @@ export interface IAddress {
  * Contact info sub-document interface
  */
 export interface IContactInfo {
-    name?: string;
+    first_name?: string;
+    last_name?: string;
+    name?: string; // Kept for virtual/legacy
     phone?: string;
+    alternate_phone?: string;
     email?: string;
 }
 
@@ -36,6 +39,9 @@ export interface ISoftDelete {
 export interface ICustomer extends Document {
     schema_version: number;
 
+    // Customer generated ID
+    customer_id: string;
+
     // Customer info
     customer: IContactInfo;
 
@@ -47,13 +53,15 @@ export interface ICustomer extends Document {
     billing_address?: IAddress;
     shipping_address?: IAddress;
 
-    customer_type: "Individual" | "Company" | "Government";
+    customer_type: "Individual" | "Commercial" | "Government";
 
     credit_score: number;
 
     remarks?: string;
 
     is_active: boolean;
+
+    is_archived: boolean;
 
     deletion: ISoftDelete;
 
@@ -81,8 +89,11 @@ const addressSchema = new Schema<IAddress>(
  */
 const contactInfoSchema = new Schema<IContactInfo>(
     {
-        name: { type: String, trim: true },
+        first_name: { type: String, trim: true },
+        last_name: { type: String, trim: true },
+        name: { type: String, trim: true }, // Can store full name here as well for easier search
         phone: { type: String, trim: true },
+        alternate_phone: { type: String, trim: true },
         email: { type: String, trim: true, lowercase: true },
     },
     { _id: false }
@@ -108,6 +119,13 @@ const customerSchema = new Schema<ICustomer>(
         schema_version: {
             type: Number,
             default: 1,
+            index: true,
+        },
+
+        // Customer generated ID
+        customer_id: {
+            type: String,
+            unique: true,
             index: true,
         },
 
@@ -138,7 +156,7 @@ const customerSchema = new Schema<ICustomer>(
 
         customer_type: {
             type: String,
-            enum: ["Individual", "Company", "Government"],
+            enum: ["Individual", "Commercial", "Government"],
             default: "Individual",
             index: true,
         },
@@ -160,6 +178,12 @@ const customerSchema = new Schema<ICustomer>(
             index: true,
         },
 
+        is_archived: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+
         deletion: {
             type: softDeleteSchema,
             default: () => ({ is_deleted: false }),
@@ -173,10 +197,20 @@ const customerSchema = new Schema<ICustomer>(
 );
 
 /**
+ * Virtuals
+ */
+customerSchema.virtual('customer.full_name').get(function() {
+    if (this.customer.first_name || this.customer.last_name) {
+        return `${this.customer.first_name || ''} ${this.customer.last_name || ''}`.trim();
+    }
+    return this.customer.name;
+});
+
+/**
  * Indexes
  */
+customerSchema.index({ "customer.first_name": 1, "customer.last_name": 1, "customer.phone": 1 });
 customerSchema.index({ "customer.name": 1, "customer.phone": 1 });
-customerSchema.index({ gstin: 1 });
 customerSchema.index({ "customer.phone": 1 });
 customerSchema.index({ "customer.email": 1 });
 customerSchema.index({ "deletion.is_deleted": 1 });

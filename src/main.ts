@@ -21,7 +21,7 @@
 // Load environment variables FIRST before any other imports
 // In development: loads from .env file
 // In production: uses system environment variables
-require('./utils/envLoader');
+import './utils/envLoader';
 
 import { app, BrowserWindow, ipcMain, screen, dialog, shell, IpcMainInvokeEvent } from 'electron';
 import path from 'path';
@@ -30,15 +30,15 @@ import mongoose from 'mongoose';
 import { autoUpdater, UpdateInfo, ProgressInfo } from 'electron-updater';
 import { EventEmitter } from 'events';
 
-// Local imports using require for non-typed modules
-const logger = require('./utils/logger');
-const { handlePrintEvent } = require('./utils/printHandler');
-const { setupQuotationHandlers } = require('./utils/quotationPrintHandler');
-const autoBackup = require('./utils/backup');
-require('./utils/alertHandler');
+// Local imports
+import logger from './utils/logger';
+import { handlePrintEvent } from './utils/printHandler';
+import { setupQuotationHandlers } from './utils/quotationPrintHandler';
+import autoBackup from './utils/backup';
+import './utils/alertHandler';
 
 // Import package.json for version info
-const packageJson = require('../package.json');
+import packageJson from '../package.json';
 
 // Create a global event emitter for server-main communication
 global.dialogEmitter = new EventEmitter();
@@ -488,7 +488,7 @@ function setupIPCHandlers(): void {
     // Handle changelog-related IPC requests
     ipcMain.handle('get-changelog', (): ChangelogResult => {
         try {
-            const changelogPath = path.join(__dirname, 'json', 'changelog.json');
+            const changelogPath = path.join(__dirname, '..', 'json', 'changelog.json');
             const changelog = require(changelogPath);
             return { success: true, changelog: changelog };
         } catch (error) {
@@ -597,7 +597,7 @@ async function createWindow(): Promise<void> {
             show: false, // Don't show until ready
             autoHideMenuBar: true,
             frame: true,
-            icon: path.join(__dirname, 'public', 'assets', 'icon.ico'),
+            icon: path.join(__dirname, '../public', 'assets', 'icon.ico'),
             webPreferences: {
                 nodeIntegration: false, // Disabled for better security
                 contextIsolation: true, // Ensures safer IPC communication
@@ -615,7 +615,7 @@ async function createWindow(): Promise<void> {
         mainWindow.once('ready-to-show', () => {
             mainWindow!.show();
             mainWindow!.maximize();
-            // mainWindow.webContents.openDevTools();
+            // mainWindow!.webContents.openDevTools();
         });
 
         // Enhanced frontend loading with retry logic

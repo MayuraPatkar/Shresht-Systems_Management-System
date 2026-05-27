@@ -25,10 +25,10 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Quotation</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
+            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8" id="search-wrapper">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search quotations..."
+                    <input type="text" id="search-input" placeholder="Search by name, phone or email... (Ctrl+F)"
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                 </div>
                 <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
@@ -41,6 +41,39 @@
                     <i class="fas fa-plus"></i>
                     New Quotation
                 </button>
+                <button id="archived-quotations-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="View Archived Quotations (Ctrl+Shift+A)">
+                    <i class="fas fa-archive text-slate-400"></i>
+                    <span>Archived</span>
+                    <span id="archived-count-badge"
+                        class="ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold">0</span>
+                </button>
+                <button id="trash-restore-all-btn"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    style="display: none;" title="Restore All">
+                    <i class="fas fa-trash-restore"></i>
+                    <span>Restore All</span>
+                </button>
+                <button id="trash-delete-all-btn"
+                    class="bg-rose-600 hover:bg-rose-700 text-white px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    style="display: none;" title="Delete All">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Delete All</span>
+                </button>
+                <!-- Trash icon-only button (gray, shown in normal mode) -->
+                <button id="showDeletedBtn"
+                    class="bg-gray-200 text-gray-700 h-10 px-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-gray-300"
+                    title="View Trash">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <!-- Close Trash button (shown only in trash mode) -->
+                <button id="close-trash-btn"
+                    class="bg-white text-red-600 border-2 border-red-500 px-4 py-2 rounded-lg hover:bg-red-50 flex items-center gap-2 font-semibold transition-all"
+                    style="display:none;" title="Exit Trash">
+                    <i class="fas fa-trash-restore"></i>
+                    Close Trash
+                </button>
                 <button id="view-preview"
                     class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium"
                     style="display: none;">
@@ -48,11 +81,17 @@
                     View Preview
                 </button>
                 <button id="home-btn"
-                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium"
+                    style="display: none;">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
-                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -64,15 +103,25 @@
     <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
-                <a href="#"
+                <a href="/dashboard" id="dashboard"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
                 </a>
                 <a href="../quotation/quotation.html"
                     class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -93,6 +142,16 @@
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
+                </a>
+                <a href="../purchase/purchase.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold" id="purchaseOnly">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="../payment/payment.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
                 </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -124,10 +183,34 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-[280px] pt-24 mt-6 p-8">
+    <main id="main-content" class="ml-[280px] pt-24 mt-6 p-8">
 
         <!-- Home Section -->
         <div id="home">
+            <!-- Stats Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8" id="quotation-stats-summary">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">Total Quotations</p>
+                    <h3 class="text-2xl font-bold text-gray-800" id="total-quotations-count">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">Draft</p>
+                    <h3 class="text-2xl font-bold text-gray-600" id="draft-quotations-count">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">Approved</p>
+                    <h3 class="text-2xl font-bold text-green-600" id="approved-quotations-count">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">B2B Quotations</p>
+                    <h3 class="text-2xl font-bold text-blue-600" id="b2b-quotations-count">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">B2C Quotations</p>
+                    <h3 class="text-2xl font-bold text-purple-600" id="b2c-quotations-count">0</h3>
+                </div>
+            </div>
+
             <div class="records grid grid-cols-1 gap-4">
                 <!-- content will be loaded dynamically -->
             </div>
@@ -145,28 +228,58 @@
                             <h2 class="text-2xl font-semibold text-gray-800">Project Details</h2>
                         </div>
                         <div class="space-y-4">
-                            <div>
-                                <label for="id" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-barcode text-gray-500 mr-1"></i>Quotation ID (optional)
-                                </label>
-                                <input type="text" id="id" placeholder="Enter quotation ID"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="project-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-briefcase text-gray-500 mr-1"></i>Project Name <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="project-name" required placeholder="Enter project name"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="quotation-date" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-calendar text-gray-500 mr-1"></i>Quotation Date <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="date" id="quotation-date"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <input type="hidden" id="id">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Row 1: Project Name (Full Width) -->
+                                <div class="md:col-span-2">
+                                    <label for="project-name" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-briefcase text-gray-500 mr-1"></i>Project Name <span
+                                            class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" id="project-name" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+
+                                <!-- Row 2: Dates (Two Columns) -->
+                                <div>
+                                    <label for="quotation-date" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-calendar text-gray-500 mr-1"></i>Quotation Date <span
+                                            class="text-red-500">*</span>
+                                    </label>
+                                    <input type="date" id="quotation-date"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="valid-till" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-hourglass-half text-gray-500 mr-1"></i>Valid Till
+                                    </label>
+                                    <input type="date" id="valid-till"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+
+                                <!-- Row 3: Discount & Status (Two Columns) -->
+                                <div>
+                                    <label for="quotation-discount"
+                                        class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-percent text-gray-500 mr-1"></i>Discount
+                                    </label>
+                                    <input type="number" id="quotation-discount" min="0" step="0.01" value="0"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="quotation-status" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-signal text-gray-500 mr-1"></i>Status
+                                    </label>
+                                    <select id="quotation-status"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                        <option value="Draft">Draft</option>
+                                        <option value="Sent">Sent</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Rejected">Rejected</option>
+                                        <option value="Converted">Converted</option>
+                                        <option value="Expired">Expired</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -180,46 +293,36 @@
                             <h2 class="text-2xl font-semibold text-gray-800">Recipient Details</h2>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
+                            <!-- Recipient Search input -->
+                            <div class="md:col-span-2 relative">
                                 <label for="buyer-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-user text-gray-500 mr-1"></i>Buyer Name <span
+                                    <i class="fas fa-search text-gray-500 mr-1"></i>Search Recipient <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="buyer-name" placeholder="Enter buyer name"
+                                <input type="hidden" id="buyer-customer-id" value="">
+                                <input type="text" id="buyer-name" name="buyer-name" autocomplete="off" placeholder="Search by name, phone, email, or GSTIN..."
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <ul id="customer-suggestions" class="suggestions hidden absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto overflow-hidden isolate" style="display: none;"></ul>
                             </div>
-                            <div class="md:col-span-2">
-                                <label for="buyer-address" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <textarea id="buyer-address" rows="3" placeholder="Enter complete address"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+                            
+                            <!-- Profile Visualization Card Container -->
+                            <div id="buyer-profile-card-container" class="md:col-span-2 mt-2">
+                                <!-- Dynamic read-only profile card will be rendered here -->
                             </div>
-                            <div>
-                                <label for="buyer-phone" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="tel" id="buyer-phone" maxlength="10" pattern="[0-9]{10}"
-                                    inputmode="numeric" placeholder="Enter phone number"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="buyer-email" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-envelope text-gray-500 mr-1"></i>Email
-                                </label>
-                                <input type="email" id="buyer-email" maxlength="254" pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                                    placeholder="Enter email address"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="buyer-gstin" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-id-card text-gray-500 mr-1"></i>GSTIN
-                                </label>
-                                <input type="text" id="buyer-gstin" maxlength="15" pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
-                                    placeholder="Enter GSTIN (e.g., 29ABCDE1234F1Z5)"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+
+                            <!-- Hidden legacy inputs for compatibility with form data collection -->
+                            <div class="hidden">
+                                <input type="text" id="buyer-first-name" autocomplete="off">
+                                <input type="text" id="buyer-last-name" autocomplete="off">
+                                <input type="text" id="buyer-address-line1">
+                                <input type="text" id="buyer-address-line2">
+                                <input type="text" id="buyer-city">
+                                <input type="text" id="buyer-state" value="Karnataka">
+                                <input type="text" id="buyer-pincode">
+                                <input type="text" id="buyer-country" value="India">
+                                <input type="tel" id="buyer-phone">
+                                <input type="email" id="buyer-email">
+                                <input type="text" id="buyer-gstin">
                             </div>
                         </div>
                     </div>
@@ -370,11 +473,7 @@
                             <!-- Preview will be dynamically generated -->
                         </div>
                         <div class="flex gap-3 justify-center mt-6">
-                            <button type="button" id="save-btn"
-                                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-save"></i>
-                                Save
-                            </button>
+                            <!-- Save button moved to bottom navigation -->
                             <button type="button" id="print-btn"
                                 class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
                                 <i class="fas fa-print"></i>
@@ -400,34 +499,22 @@
                         <!-- Step indicator will be dynamically updated -->
                     </div>
                     <button type="button" id="next-btn"
-                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center">
                         Next<i class="fas fa-chevron-right ml-2"></i>
+                    </button>
+                    <button type="button" id="save-btn"
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2"
+                        style="display:none;">
+                        <i class="fas fa-save"></i>
+                        Save
                     </button>
                 </div>
             </form>
         </div>
 
         <!-- View Quotation -->
-        <div id="view">
+        <div id="view" class="select-none">
             <div id="project-details-view" class="max-w-6xl mx-auto space-y-6">
-
-                <!-- View Type Switcher - Segmented Control -->
-                <div class="flex justify-center fade-in">
-                    <div id="view-type-tabs" class="inline-flex bg-gray-100 rounded-lg p-1 gap-1">
-                        <button type="button" data-view-type="1"
-                            class="view-type-tab active px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-blue-600 text-white shadow-sm">
-                            Without Tax
-                        </button>
-                        <button type="button" data-view-type="2"
-                            class="view-type-tab px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            With Tax
-                        </button>
-                        <button type="button" data-view-type="3"
-                            class="view-type-tab px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Compact
-                        </button>
-                    </div>
-                </div>
 
                 <!-- Project Details Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
@@ -440,13 +527,33 @@
                             <span class="block text-sm font-medium text-gray-600 mb-1">Project Name</span>
                             <span class="text-gray-900 font-semibold" id="view-project-name">-</span>
                         </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Quotation ID</span>
-                            <span class="text-gray-900 font-semibold" id="view-project-id">-</span>
+                        <div class="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
+                            <div>
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Quotation ID</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-900 font-semibold" id="view-project-id">-</span>
+                                    <span class="text-xs text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded font-normal"
+                                        title="Generated automatically">System ID</span>
+                                </div>
+                            </div>
+                            <button type="button" id="copy-quotation-id-btn"
+                                class="text-gray-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                                title="Copy Quotation ID">
+                                <i class="far fa-copy text-lg"></i>
+                            </button>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Date</span>
                             <span class="text-gray-900 font-semibold" id="view-quotation-date">-</span>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="block text-sm font-medium text-gray-600 mb-1">Status</span>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                                id="view-quotation-status">-</span>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="block text-sm font-medium text-gray-600 mb-1">Valid Till</span>
+                            <span class="text-gray-900 font-semibold" id="view-valid-till">-</span>
                         </div>
                     </div>
                 </section>
@@ -464,7 +571,8 @@
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Address</span>
-                            <span class="text-gray-900 font-semibold" id="view-buyer-address">-</span>
+                            <span class="text-gray-900 font-semibold whitespace-pre-line"
+                                id="view-buyer-address">-</span>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Phone</span>
@@ -487,48 +595,37 @@
                         <i class="fas fa-list-ul text-green-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Item Details</h2>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-items-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
+                    <div class="overflow-x-auto" id="view-items-table-container">
+                        <table id="view-items-table" class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50/40 border-b border-gray-100">
                                 <tr>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         S. No</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Description</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         HSN/SAC</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Qty</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Unit Price</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Rate</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Items will be dynamically filled -->
                             </tbody>
+                            <tfoot class="bg-gray-50/30 border-t-2 border-gray-200 font-semibold text-gray-900">
+                                <!-- Totals will be dynamically filled -->
+                            </tfoot>
                         </table>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Items Total Amount</span>
-                            <span class="text-gray-900 font-bold" id="view-items-total-amount">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Items Total Tax</span>
-                            <span class="text-gray-900 font-bold" id="view-items-total-tax">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Overall</span>
-                            <span class="text-gray-900 font-bold" id="items-overall">-</span>
-                        </div>
                     </div>
                 </section>
 
@@ -538,41 +635,36 @@
                         <i class="fas fa-plus-circle text-indigo-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Other Charges</h2>
                     </div>
-                    <div class="overflow-x-auto mb-4">
-                        <table id="view-non-items-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        S. No</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Description</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Price</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Rate</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Charges will be dynamically filled -->
-                            </tbody>
-                        </table>
+                    <div id="no-other-charges-msg"
+                        class="hidden text-center py-6 text-gray-500 font-medium bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        No extra charges
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Amount</span>
-                            <span class="text-gray-900 font-bold" id="view-non-items-total-amount">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Tax</span>
-                            <span class="text-gray-900 font-bold" id="view-non-items-total-tax">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Overall</span>
-                            <span class="text-gray-900 font-bold" id="non-items-overall">-</span>
+                     <div id="other-charges-content">
+                        <div class="overflow-x-auto mb-4" id="view-non-items-table-container">
+                            <table id="view-non-items-table" class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50/40 border-b border-gray-100">
+                                    <tr>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                            S. No</th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                            Description</th>
+                                        <th
+                                            class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                            Price</th>
+                                        <th
+                                            class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                            Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Charges will be dynamically filled -->
+                                </tbody>
+                                <tfoot class="bg-gray-50/30 border-t-2 border-gray-200 font-semibold text-gray-900">
+                                    <!-- Totals will be dynamically filled -->
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
                 </section>
@@ -583,18 +675,18 @@
                         <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Specifications</h2>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-specifications-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
+                    <div class="overflow-x-auto" id="view-specifications-table-container">
+                        <table id="view-specifications-table" class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50/40 border-b border-gray-100">
                                 <tr>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         S. No</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Description</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Specifications</th>
                                 </tr>
                             </thead>
@@ -605,48 +697,96 @@
                     </div>
                 </section>
 
-                <!-- Totals Card -->
+                <!-- Quotation Summary Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-calculator text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Totals</h2>
+                    <div class="flex items-center gap-3 mb-5 pb-3 border-b border-gray-200">
+                        <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Quotation Summary</h2>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Subtotal</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-subtotal">-</span>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-sm font-medium text-gray-500 mb-2">Subtotal</span>
+                            <span class="text-gray-900 font-bold text-2xl" id="view-subtotal">₹ 0.00</span>
                         </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Tax (GST)</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-tax">-</span>
+                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-sm font-medium text-gray-500 mb-2">Total Tax</span>
+                            <span class="text-gray-900 font-bold text-2xl" id="view-tax">₹ 0.00</span>
                         </div>
-                        <div class="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
-                            <span class="block text-sm font-medium text-purple-600 mb-1">Total Amount Due</span>
-                            <span class="text-purple-900 font-bold text-xl" id="view-grand-total">-</span>
+                        <div class="bg-blue-600 p-5 rounded-lg border border-blue-700 text-white shadow-md flex flex-col justify-between transform hover:scale-[1.01] transition-transform duration-200">
+                            <span class="block text-sm font-medium text-blue-100 mb-2">Grand Total</span>
+                            <span class="font-extrabold text-3xl tracking-tight" id="view-grand-total">₹ 0.00</span>
                         </div>
                     </div>
                 </section>
 
                 <!-- Preview & Actions Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-eye text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-eye text-purple-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <!-- Animated View Type Switcher - Segmented Control -->
+                            <div class="bg-slate-100 rounded-lg p-1 shadow-inner border border-slate-200/60">
+                                <div id="view-type-tabs" class="relative flex items-center h-8 w-[320px]">
+                                    <div id="segmented-pill" class="absolute h-full bg-white rounded-md shadow transition-transform duration-300 ease-out z-0" style="width: 33.333%; left: 0; transform: translateX(0%);"></div>
+                                    <button type="button" data-view-type="1"
+                                        class="view-type-tab relative z-10 flex-1 text-[13px] font-semibold transition-colors duration-300 text-slate-800 h-full flex items-center justify-center active">
+                                        Without Tax
+                                    </button>
+                                    <button type="button" data-view-type="2"
+                                        class="view-type-tab relative z-10 flex-1 text-[13px] font-semibold transition-colors duration-300 text-slate-500 hover:text-slate-700 h-full flex items-center justify-center">
+                                        With Tax
+                                    </button>
+                                    <button type="button" data-view-type="3"
+                                        class="view-type-tab relative z-10 flex-1 text-[13px] font-semibold transition-colors duration-300 text-slate-500 hover:text-slate-700 h-full flex items-center justify-center">
+                                        Compact
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="h-6 w-[1px] bg-gray-200 mx-1"></div>
+
+                            <button type="button" id="printProject"
+                                class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium cursor-pointer transition-colors">
+                                <i class="fas fa-print"></i>
+                                Print
+                            </button>
+                            <button type="button" id="saveProjectPDF"
+                                class="bg-red-600 text-white px-4 h-10 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium cursor-pointer transition-colors">
+                                <i class="fas fa-file-pdf"></i>
+                                Save as PDF
+                            </button>
+                        </div>
                     </div>
                     <div id="view-preview-content" class="mb-6">
                         <!-- Preview will be dynamically generated -->
                     </div>
-                    <div class="flex gap-3 justify-center">
-                        <button type="button" id="printProject"
-                            class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-print"></i>
-                            Print
-                        </button>
-                        <button type="button" id="saveProjectPDF"
-                            class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-file-pdf"></i>
-                            Save as PDF
-                        </button>
+                </section>
+
+                <!-- Danger Zone Section -->
+                <section id="danger-zone-section" class="bg-red-50 rounded-lg p-6 border-2 border-red-200 fade-in hidden">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-red-200">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <p class="text-sm text-red-700 font-medium">
+                            These actions are destructive. Please proceed with caution.
+                        </p>
+                        <div class="flex flex-wrap gap-4 justify-end">
+                            <button type="button" id="archiveQuotationBtn"
+                                class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
+                                <i class="fas fa-archive"></i>
+                                Archive Quotation
+                            </button>
+                            <button type="button" id="deleteQuotationBtn"
+                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
+                                <i class="fas fa-trash-alt"></i>
+                                Delete Quotation
+                            </button>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -657,6 +797,18 @@
     <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden"
         style="width: 280px;">
         <h3 class="font-semibold text-gray-800 mb-3">Filter & Sort</h3>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select id="status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="all">All Statuses</option>
+                <option value="Draft">Draft</option>
+                <option value="Sent">Sent</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Converted">Converted</option>
+                <option value="Expired">Expired</option>
+            </select>
+        </div>
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
             <select id="date-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
@@ -690,40 +842,46 @@
     </div>
 
     <!-- Keyboard Shortcuts Modal -->
-    <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shortcuts-panel">
-            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
+    <div id="shortcuts-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[999] flex items-center justify-center hidden opacity-0 transition-opacity duration-200" role="dialog" aria-modal="true" aria-label="Keyboard Shortcuts">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto overflow-hidden isolate shortcuts-panel">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
                 <div class="flex items-center gap-3">
-                    <i class="fas fa-keyboard text-2xl"></i>
-                    <h2 class="text-xl font-semibold">Keyboard Shortcuts</h2>
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fas fa-keyboard text-lg"></i>
+                    </div>
+                    <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Keyboard Shortcuts Help</h2>
                 </div>
-                <button id="close-shortcuts" class="text-white hover:text-gray-200" aria-label="Close shortcuts modal">
-                    <i class="fas fa-times text-xl"></i>
+                <button id="close-shortcuts" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200" aria-label="Close shortcuts help modal">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
-            <div id="shortcuts-content" class="p-6 space-y-6"></div>
+            <div id="shortcuts-content" class="p-6 space-y-5"></div>
         </div>
     </div>
 
     <!-- Scripts -->
     <!-- Shared utilities -->
-    <script src="../js/shared/utils.js"></script>
-    <script src="../js/shared/calculations.js"></script>
-    <script src="../js/shared/filterUtils.js"></script>
-    <script src="../js/shared/ipc.js"></script>
-    <script src="../js/shared/documentManager.js"></script>
-    <script src="../js/shared/sectionRenderers.js"></script>
-    <script src="../js/shared/documentBuilder.js"></script>
-    <script src="../js/shared/itemReorder.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/src/shared/filters/filterUtils.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/documentManager.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/sectionRenderers.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/documentBuilder.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/itemReorder.js"></script>
 
     <!-- Shared scripts -->
-    <script src="../js/shared/companyConfig.js"></script>
-    <script src="../js/shared/globalScript.js"></script>
+    <script src="../../dist/public/ts/src/shared/config/companyConfig.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
 
-    <!-- Module-specific scripts -->
-    <script src="./quotation_home.js"></script>
-    <script src="./quotation_view.js"></script>
-    <script src="./quotation_form.js"></script>
+    <!-- Quotation module scripts (compiled from TypeScript) -->
+    <script src="../../dist/public/quotation/src/services/quotationApi.js"></script>
+    <script src="../../dist/public/quotation/src/utils/quotationFilters.js"></script>
+    <script src="../../dist/public/quotation/src/utils/keyboardShortcuts.js"></script>
+    <script src="../../dist/public/quotation/src/components/quotationView.js"></script>
+    <script src="../../dist/public/quotation/src/components/quotationForms.js"></script>
+    <script src="../../dist/public/quotation/src/components/quotationTable.js"></script>
+    <script src="../../dist/public/quotation/src/main.js"></script>
 </body>
 
 </html>

@@ -87,6 +87,29 @@ export interface ITotals {
 }
 
 /**
+ * Invoice Status enum
+ */
+export enum InvoiceStatus {
+    DRAFT = 'DRAFT',
+    SENT = 'SENT',
+    OVERDUE = 'OVERDUE',
+    PARTIALLY_PAID = 'PARTIALLY_PAID',
+    PAID = 'PAID',
+    CANCELLED = 'CANCELLED',
+    REFUNDED = 'REFUNDED'
+}
+
+/**
+ * Payment record interface
+ */
+export interface IPaymentRecord {
+    payment_date?: Date;
+    payment_mode?: string;
+    paid_amount?: number;
+    extra_details?: string;
+}
+
+/**
  * Content interface
  */
 export interface IContent {
@@ -101,6 +124,7 @@ export interface IInvoice extends Document {
     schema_version: number;
 
     invoice_no: string;
+    invoice_id: string; // Legacy field for backward compatibility
     quotation_id?: Types.ObjectId;
     purchase_order_id?: Types.ObjectId;
 
@@ -109,6 +133,7 @@ export interface IInvoice extends Document {
     invoice_date: Date;
     due_date?: Date;
 
+    status: InvoiceStatus;
     invoice_status: "Draft" | "Issued" | "Cancelled" | "Expired";
 
     delivery_challan?: IDeliveryChallan;
@@ -116,7 +141,16 @@ export interface IInvoice extends Document {
     customer_id?: Types.ObjectId;
     customer_snapshot?: ICustomerSnapshot;
 
+    // Legacy customer details
+    customer_name?: string;
+    customer_address?: string;
+    customer_phone?: string;
+    customer_email?: string;
+    customer_GSTIN?: string;
+
     consignee?: IConsignee;
+    consignee_name?: string; // Legacy
+    consignee_address?: string; // Legacy
 
     // Original and Duplicate items
     items_original?: IInvoiceItem[];
@@ -130,14 +164,38 @@ export interface IInvoice extends Document {
     totals_original?: ITotals;
     totals_duplicate?: ITotals;
 
+    // Legacy totals and payment info
+    total_amount_original?: number;
+    total_amount_duplicate?: number;
+    total_tax_original?: number;
+    total_tax_duplicate?: number;
+    total_paid_amount?: number;
+    payment_status?: string;
+
+    payments: IPaymentRecord[];
+
+    // Legacy non-items list
+    non_items_original?: any[];
+    non_items_duplicate?: any[];
+
+    // Service fields
+    service_after_months?: number;
+    next_service_date?: Date;
+    service_status?: string;
+
     content?: IContent;
 
     remarks?: string;
+
+    is_archived: boolean;
 
     deletion: ISoftDelete;
 
     createdAt: Date;
     updatedAt: Date;
+
+    // Methods
+    updatePaymentStatus(): void;
 }
 
 /**
@@ -212,7 +270,7 @@ const invoiceItemSchema = new Schema<IInvoiceItem>(
         description: { type: String, trim: true },
         hsn_sac: { type: String, trim: true },
         unit: { type: String, trim: true },
-        quantity: { type: Number, min: 1 },
+        quantity: { type: Number, min: 0 },
         unit_price: { type: Number },
         taxable_value: { type: Number },
         gst_rate: { type: Number },
@@ -280,6 +338,15 @@ const invoiceSchema = new Schema<IInvoice>(
             index: true,
         },
 
+        // Legacy ID mapping
+        invoice_id: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            index: true,
+        },
+
         quotation_id: {
             type: Schema.Types.ObjectId,
             ref: "Quotation",
@@ -307,6 +374,13 @@ const invoiceSchema = new Schema<IInvoice>(
 
         due_date: {
             type: Date,
+        },
+
+        status: {
+            type: String,
+            enum: Object.values(InvoiceStatus),
+            default: InvoiceStatus.DRAFT,
+            index: true,
         },
 
         invoice_status: {
@@ -363,10 +437,63 @@ const invoiceSchema = new Schema<IInvoice>(
             type: contentSchema,
         },
 
+        // Legacy flat customer details
+        customer_name: { type: String, trim: true },
+        customer_address: { type: String, trim: true },
+        customer_phone: { type: String, trim: true },
+        customer_email: { type: String, trim: true, lowercase: true },
+        customer_GSTIN: { type: String, trim: true },
+
+        consignee_name: { type: String, trim: true },
+        consignee_address: { type: String, trim: true },
+
+        // Legacy totals
+        total_amount_original: { type: Number, default: 0 },
+        total_amount_duplicate: { type: Number, default: 0 },
+        total_tax_original: { type: Number, default: 0 },
+        total_tax_duplicate: { type: Number, default: 0 },
+        total_paid_amount: { type: Number, default: 0 },
+        payment_status: { type: String, default: "Unpaid" },
+
+        payments: {
+            type: [
+                {
+                    payment_date: { type: Date },
+                    paid_amount: { type: Number },
+                    payment_mode: { type: String },
+                    extra_details: { type: String },
+                }
+            ],
+            default: []
+        },
+
+        // Legacy non-items list
+        non_items_original: { type: [Schema.Types.Mixed], default: [] },
+        non_items_duplicate: { type: [Schema.Types.Mixed], default: [] },
+
+        // Service fields
+        service_after_months: {
+            type: Number,
+            default: 0,
+        },
+        next_service_date: {
+            type: Date,
+        },
+        service_status: {
+            type: String,
+            default: "Closed",
+        },
+
         // Audit
         remarks: {
             type: String,
             trim: true,
+        },
+
+        is_archived: {
+            type: Boolean,
+            default: false,
+            index: true,
         },
 
         deletion: {
@@ -382,12 +509,58 @@ const invoiceSchema = new Schema<IInvoice>(
 );
 
 /**
+ * Method: update payment and lifecycle status
+ */
+invoiceSchema.methods.updatePaymentStatus = function (this: IInvoice) {
+    // Prefer duplicate total (customer-facing), fallback to original
+    const totalDue = (typeof this.total_amount_duplicate !== 'undefined' && this.total_amount_duplicate !== null)
+        ? this.total_amount_duplicate
+        : (this.total_amount_original || 0);
+    const totalPaid = this.total_paid_amount || 0;
+
+    if (totalPaid === 0) {
+        this.payment_status = 'Unpaid';
+        if (this.status === InvoiceStatus.PAID || this.status === InvoiceStatus.PARTIALLY_PAID) {
+            const isOverdue = this.due_date && new Date(this.due_date) < new Date();
+            if (this.invoice_status === 'Draft') {
+                this.status = InvoiceStatus.DRAFT;
+            } else if (isOverdue) {
+                this.status = InvoiceStatus.OVERDUE;
+            } else {
+                this.status = InvoiceStatus.SENT;
+            }
+        }
+    } else if (totalPaid >= totalDue) {
+        this.payment_status = 'Paid';
+        if (this.status !== InvoiceStatus.REFUNDED && this.status !== InvoiceStatus.CANCELLED) {
+            this.status = InvoiceStatus.PAID;
+        }
+    } else {
+        this.payment_status = 'Partial';
+        if (this.status !== InvoiceStatus.CANCELLED) {
+            this.status = InvoiceStatus.PARTIALLY_PAID;
+        }
+    }
+
+    // Keep legacy invoice_status in sync
+    if (this.status === InvoiceStatus.DRAFT) {
+        this.invoice_status = 'Draft';
+    } else if (this.status === InvoiceStatus.CANCELLED) {
+        this.invoice_status = 'Cancelled';
+    } else if (this.status === InvoiceStatus.OVERDUE) {
+        this.invoice_status = 'Expired';
+    } else {
+        this.invoice_status = 'Issued';
+    }
+};
+
+/**
  * Indexes
  */
-invoiceSchema.index({ invoice_no: 1 });
 invoiceSchema.index({ invoice_date: -1 });
 invoiceSchema.index({ customer_id: 1, invoice_date: -1 });
 invoiceSchema.index({ "deletion.is_deleted": 1 });
+invoiceSchema.index({ is_archived: 1 });
 
 /**
  * Model

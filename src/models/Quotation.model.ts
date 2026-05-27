@@ -42,6 +42,7 @@ export interface IQuotationItem {
     hsn_sac?: string;
     unit?: string;
     unit_price?: number;
+    rate?: number;
     gst_rate?: number;
     quantity?: number;
     discount_percent?: number;
@@ -56,6 +57,9 @@ export interface IOtherCharges {
     description?: string;
     specification?: string;
     price?: number;
+    rate?: number;
+    gst_rate?: number;
+    taxable_value?: number;
     discount_percent?: number;
     total?: number;
 }
@@ -103,7 +107,7 @@ export interface IQuotation extends Document {
     customer_snapshot?: ICustomerSnapshot;
 
     items?: IQuotationItem[];
-    other_charges?: IOtherCharges;
+    other_charges?: IOtherCharges[];
 
     discount: number;
     totals?: ITotals;
@@ -116,6 +120,10 @@ export interface IQuotation extends Document {
     remarks?: string;
 
     deletion: ISoftDelete;
+    is_archived: boolean;
+    is_deleted: boolean;
+    deleted_at?: Date;
+    deleted_by?: string;
 
     createdAt: Date;
     updatedAt: Date;
@@ -173,6 +181,7 @@ const quotationItemSchema = new Schema<IQuotationItem>(
         hsn_sac: { type: String, trim: true },
         unit: { type: String, trim: true },
         unit_price: { type: Number },
+        rate: { type: Number },
         gst_rate: { type: Number },
         quantity: { type: Number, min: 1 },
         discount_percent: { type: Number },
@@ -190,6 +199,9 @@ const otherChargesSchema = new Schema<IOtherCharges>(
         description: { type: String, trim: true },
         specification: { type: String, trim: true },
         price: { type: Number },
+        rate: { type: Number },
+        gst_rate: { type: Number },
+        taxable_value: { type: Number },
         discount_percent: { type: Number },
         total: { type: Number },
     },
@@ -235,7 +247,7 @@ const quotationSchema = new Schema<IQuotation>(
     {
         schema_version: {
             type: Number,
-            default: 1,
+            default: 2,
             index: true,
         },
 
@@ -283,9 +295,7 @@ const quotationSchema = new Schema<IQuotation>(
 
         items: [quotationItemSchema],
 
-        other_charges: {
-            type: otherChargesSchema,
-        },
+        other_charges: [otherChargesSchema],
 
         discount: {
             type: Number,
@@ -322,6 +332,27 @@ const quotationSchema = new Schema<IQuotation>(
             type: softDeleteSchema,
             default: () => ({ is_deleted: false }),
         },
+
+        is_archived: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+
+        is_deleted: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+
+        deleted_at: {
+            type: Date,
+        },
+
+        deleted_by: {
+            type: String,
+            trim: true,
+        },
     },
     {
         timestamps: true,
@@ -333,10 +364,10 @@ const quotationSchema = new Schema<IQuotation>(
 /**
  * Indexes
  */
-quotationSchema.index({ quotation_no: 1 });
 quotationSchema.index({ project_name: 1, quotation_date: -1 });
 quotationSchema.index({ customer_id: 1, quotation_date: -1 });
 quotationSchema.index({ "deletion.is_deleted": 1 });
+quotationSchema.index({ is_archived: 1 });
 
 /**
  * Model

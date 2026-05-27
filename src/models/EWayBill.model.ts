@@ -83,6 +83,8 @@ export interface IEWayBill extends Document {
 
     remarks?: string;
 
+    is_archived: boolean;
+
     deletion: ISoftDelete;
 
     createdAt: Date;
@@ -236,6 +238,12 @@ const eWayBillSchema = new Schema<IEWayBill>(
             type: softDeleteSchema,
             default: () => ({ is_deleted: false }),
         },
+
+        is_archived: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
     },
     {
         timestamps: true,
@@ -248,7 +256,6 @@ const eWayBillSchema = new Schema<IEWayBill>(
  * Indexes
  */
 eWayBillSchema.index({ invoice_id: 1, createdAt: -1 });
-eWayBillSchema.index({ ewaybill_status: 1 });
 eWayBillSchema.index({ "deletion.is_deleted": 1 });
 
 /**

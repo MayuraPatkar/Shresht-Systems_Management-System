@@ -142,9 +142,95 @@ main {
     color: #3b82f6;
 }
 
-/* Hide the old single-row header */
-#new .items-header {
-    display: none;
+/* Header Alignment and Column Styles */
+#new .item-details-header-row,
+#new .item-details-row {
+    display: grid !important;
+    grid-template-columns: 40px 2.2fr 1.1fr 1.2fr 1.2fr 1.2fr 1.1fr 40px !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
+}
+
+#new .item-pricing-header-row,
+#new .item-pricing-row {
+    display: grid !important;
+    grid-template-columns: 40px 3.5fr 1fr 0.8fr 1.2fr 1fr !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
+}
+
+#new .item-details-row .item-field,
+#new .item-pricing-row .item-field {
+    flex: none !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+#new .item-pricing-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+#new .item-pricing-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+/* Step 3: Quantities & Pricing Row Inputs & Unit Display */
+#new .item-pricing-row .item-field input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    width: 100%;
+}
+
+#new .item-pricing-row .item-field input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+#new .item-pricing-row .item-field input.item_name_readonly {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #475569 !important;
+    font-weight: 500;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+#new .item-pricing-row .item-field.unit-display {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    height: 38px;
+    box-sizing: border-box;
+}
+
+#items-container-pricing {
+    overflow-x: visible;
+    overflow-y: visible;
+    padding-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 /* Two-row item card layout */
@@ -180,10 +266,10 @@ main {
     align-items: center;
 }
 
-/* Second row: Company + Type + Category (with spacers to align) */
+/* Second row: Company + Type + Category + Unit (with spacers to align) */
 #new .item-card .item-row-2 {
     display: grid;
-    grid-template-columns: 40px 1fr 1fr 1fr 80px;
+    grid-template-columns: 40px 1fr 1fr 1fr 1fr 80px;
     gap: 0.75rem;
     align-items: center;
     padding-top: 0.25rem;
@@ -275,7 +361,7 @@ main {
     }
 
     #new .item-card .item-row-2 {
-        grid-template-columns: 36px 1fr 1fr 1fr 72px;
+        grid-template-columns: 36px 1fr 1fr 1fr 1fr 72px;
         gap: 0.5rem;
     }
     
@@ -465,7 +551,20 @@ main {
     background: #f3f4f6;
 }
 
-.supplier-suggestions li.selected {
+.supplier-suggestions li.selected,
+.supplier-suggestions li.active {
     background: #eff6ff;
     color: #3b82f6;
+}
+
+/* Premium unified hover and selection states for all autocomplete dropdowns */
+.suggestions li:hover,
+.suggestions li.selected,
+.suggestions li.active,
+.supplier-suggestions li:hover,
+.supplier-suggestions li.selected,
+.supplier-suggestions li.active {
+    background-color: #eff6ff !important;
+    color: #2563eb !important;
+    font-weight: 500;
 }

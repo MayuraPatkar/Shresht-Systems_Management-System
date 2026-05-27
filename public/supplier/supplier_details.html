@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Profile</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        main {
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tab-btn.active {
+            color: #2563eb;
+            border-bottom: 2px solid #2563eb;
+            background-color: #eff6ff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stat-card {
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.02);
+        }
+
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px !important;
+            height: 8px !important;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+            border-radius: 4px !important;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2563eb !important;
+            border-radius: 4px !important;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8 !important;
+        }
+
+        /* Make text unselectable globally except for inputs */
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        input, textarea, select, [contenteditable="true"] {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        button, [role="button"] {
+            cursor: pointer !important;
+        }
+
+        /* Modern Premium Modal Improvements */
+        .modal-overlay {
+            background: rgba(15, 23, 42, 0.28);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-card-premium {
+            border-radius: 18px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.18),
+                0 0 0 1px rgba(15, 23, 42, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            animation: premiumModalShow 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes premiumModalShow {
+            from {
+                opacity: 0;
+                transform: scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Modern input styling */
+        .form-input-premium {
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #1f2937;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .form-input-premium::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-input-premium:hover {
+            border-color: #9ca3af;
+        }
+
+        .form-input-premium:focus {
+            outline: none;
+            border-color: #2563eb;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .form-section-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2563eb;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 0.5rem;
+        }
+
+        /* Dropdown Animation */
+        @keyframes dropdownShow {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .animate-dropdown {
+            animation: dropdownShow 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Export Option Card Premium CSS */
+        .export-opt-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .export-opt-btn:not(:disabled):hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            border-color: rgba(226, 232, 240, 1) !important;
+            background-color: #ffffff !important;
+        }
+        .export-opt-btn:disabled {
+            cursor: not-allowed !important;
+            opacity: 0.45;
+        }
+        .export-opt-btn.processing-pdf {
+            background-color: #fafaf9 !important;
+            border-color: #e4e4e7 !important;
+            opacity: 1 !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .export-opt-btn.success-pdf {
+            background-color: #f0fdf4 !important;
+            border-color: #bbf7d0 !important;
+            opacity: 1 !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .export-opt-btn.error-pdf {
+            background-color: #fef2f2 !important;
+            border-color: #fecaca !important;
+            opacity: 1 !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        @keyframes fadeInSmall {
+            from { opacity: 0; transform: translateY(2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeInSmall 0.2s ease-out forwards;
+        }
+
+        /* High-Fidelity Business Report Print CSS */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-family: 'Inter', sans-serif !important;
+                user-select: auto !important;
+                -webkit-user-select: auto !important;
+                overflow: visible !important;
+            }
+            /* Hide entire screen-only dashboard and modals */
+            header, aside, main, #export-modal, #archive-modal, .modal-overlay, #global-toast, button, .sidebar {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                width: 0 !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            /* Style report for layout perfection */
+            #print-report-container {
+                display: block !important;
+                visibility: visible !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 10mm 15mm !important;
+                margin: 0 !important;
+            }
+            .print-header {
+                border-bottom: 2px solid #3b82f6 !important;
+                padding-bottom: 12px !important;
+                margin-bottom: 20px !important;
+            }
+            .print-section-title {
+                font-size: 11pt !important;
+                font-weight: 800 !important;
+                color: #1e3a8a !important;
+                border-bottom: 1px solid #cbd5e1 !important;
+                padding-bottom: 4px !important;
+                margin-top: 24px !important;
+                margin-bottom: 12px !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.5px !important;
+            }
+            .print-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 12px !important;
+                margin-bottom: 15px !important;
+            }
+            .print-meta-label {
+                font-size: 8pt !important;
+                font-weight: 700 !important;
+                color: #64748b !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.3px !important;
+            }
+            .print-meta-value {
+                font-size: 9.5pt !important;
+                font-weight: 600 !important;
+                color: #0f172a !important;
+                margin-top: 2px !important;
+            }
+            .print-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-top: 8px !important;
+                margin-bottom: 18px !important;
+            }
+            .print-table th {
+                background-color: #f8fafc !important;
+                color: #334155 !important;
+                font-weight: 700 !important;
+                text-align: left !important;
+                padding: 6px 8px !important;
+                font-size: 8.5pt !important;
+                border-bottom: 1.5px solid #cbd5e1 !important;
+            }
+            .print-table td {
+                padding: 6px 8px !important;
+                font-size: 8.5pt !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+                color: #475569 !important;
+            }
+        }
+
+        @media screen {
+            #print-report-container {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Icon" class="h-10 w-10">
+                <h1 id="header-supplier-name" class="text-xl font-bold text-gray-800">Supplier Profile</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="home-btn"
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium shadow-sm transition-all duration-150 active:scale-95 cursor-pointer"
+                    title="Go Home (Ctrl+H)">
+                    <i class="fas fa-home"></i>
+                    Home
+                </button>
+                <button id="shortcuts-btn"
+                    class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-keyboard"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select"
+        style="width: 280px;">
+        <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+            <div class="flex flex-col gap-2">
+                <a href="/dashboard" id="dashboard"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-th-large w-8 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
+                </a>
+                <a href="/quotation" id="quotation"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-alt w-8 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
+                </a>
+                <a href="/purchaseorder" id="postOrder"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
+                    <span>Purchase Order</span>
+                </a>
+                <a href="/invoice" id="invoice"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                    <span>Invoice</span>
+                </a>
+                <a href="/ewaybill" id="wayBill"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-route w-8 text-center"></i>
+                    <span>E-Way Bill</span>
+                </a>
+                <a href="/service" id="service"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-wrench w-8 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="/purchase" id="purchaseOnly"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="/payment" id="payment"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
+                </a>
+                <a href="/stock" id="stock"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-box w-8 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="/comms" id="comms"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-comments w-8 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="/reports" id="reports"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-chart-bar w-8 text-center"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="/calculations" id="calculations"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-calculator w-8 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="/settings" id="settings"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-cog w-8 text-center"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+
+    <!-- Main -->
+    <main class="ml-[280px] pt-24 mt-6 p-8">
+
+
+
+        <!-- Supplier Summary Header -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 mb-8 fade-in">
+            <div class="flex flex-wrap items-center justify-between gap-6">
+                <div class="flex items-center gap-5">
+                    <div class="w-16 h-16 bg-blue-50 border border-blue-100/50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl font-bold shadow-sm" id="name-initials">JS</div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-3">
+                            <h2 id="supplier-name" class="text-2xl font-extrabold text-slate-800 tracking-tight">Loading...</h2>
+                            <span id="supplier-type-badge" class="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider">Residential</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-xs font-medium">
+                            <div class="flex items-center gap-1.5" id="display-supplier-id-container">
+                                <i class="fas fa-id-badge text-slate-400"></i>
+                                <span id="display-supplier-id" class="font-semibold text-slate-600">N/A</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <i class="fas fa-phone text-slate-400"></i>
+                                <span id="display-phone" class="text-slate-600">N/A</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <i class="fas fa-envelope text-slate-400"></i>
+                                <span id="display-email" class="text-slate-600">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button id="dropdown-edit-btn" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20" title="Edit Profile (Ctrl+E)">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                    <button id="dropdown-export-btn" class="px-4 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-100" title="Export Data (Ctrl+P)">
+                        <i class="fas fa-file-export"></i> Export Data
+                    </button>
+                    <button id="dropdown-archive-btn" class="px-4 py-2.5 bg-amber-50/60 border border-amber-200/80 text-amber-700 hover:bg-amber-100/60 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/10" title="Archive Supplier (Ctrl+Shift+D)">
+                        <i class="fas fa-archive"></i> Archive Supplier
+                    </button>
+                    <button id="delete-supplier-btn" class="px-4 py-2.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500/10" title="Delete Supplier (Ctrl+Delete)">
+                        <i class="fas fa-trash-alt"></i> Delete Supplier
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 fade-in">
+            <div class="stat-card bg-white p-6 rounded-xl border border-gray-200 shadow-sm border-l-4 border-blue-500">
+                <p class="text-sm font-semibold text-gray-500 mb-1">Total Purchases</p>
+                <h4 id="stat-purchases" class="text-2xl font-bold text-gray-800">0</h4>
+            </div>
+            <div
+                class="stat-card bg-white p-6 rounded-xl border border-gray-200 shadow-sm border-l-4 border-orange-500">
+                <p class="text-sm font-semibold text-gray-500 mb-1">Total Paid</p>
+                <h4 id="stat-paid" class="text-2xl font-bold text-gray-800">₹0</h4>
+            </div>
+            <div class="stat-card bg-white p-6 rounded-xl border border-gray-200 shadow-sm border-l-4 border-red-500">
+                <p class="text-sm font-semibold text-gray-500 mb-1">Outstanding</p>
+                <h4 id="stat-outstanding" class="text-2xl font-bold text-gray-800">₹0</h4>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden fade-in">
+            <div class="flex border-b border-gray-200">
+                <button
+                    class="tab-btn active px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2"
+                    data-tab="overview">
+                    <i class="fas fa-info-circle"></i> Overview
+                </button>
+                <button
+                    class="tab-btn px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2"
+                    data-tab="purchases">
+                    <i class="fas fa-shopping-cart"></i> Purchases
+                </button>
+                <button
+                    class="tab-btn px-8 py-4 font-bold text-gray-600 hover:text-blue-600 transition-all flex items-center gap-2"
+                    data-tab="payments">
+                    <i class="fas fa-money-bill-wave"></i> Payments
+                </button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="p-8">
+                <!-- Overview Tab -->
+                <div id="overview" class="tab-content active space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Contact Details</h3>
+                            <div class="space-y-5">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500 font-bold">Supplier ID:</span>
+                                    <span id="info-supplier-id" class="font-black text-blue-700">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Supplier Name:</span>
+                                    <span id="info-supplier-name" class="font-semibold">-</span>
+                                </div>
+                                <div class="flex justify-between border-t pt-2">
+                                    <span class="text-gray-500">Phone Number:</span>
+                                    <span id="info-phone" class="font-semibold">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Email Address:</span>
+                                    <span id="info-email" class="font-semibold">-</span>
+                                </div>
+                                <div class="flex justify-between border-t pt-2">
+                                    <span class="text-gray-500">GSTIN:</span>
+                                    <span id="info-gstin" class="font-semibold">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Supplier Since:</span>
+                                    <span id="info-created" class="font-semibold">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Status:</span>
+                                    <span id="info-status" class="font-semibold text-green-600">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Address Information</h3>
+                                <div class="space-y-2">
+                                    <p id="info-address-line1" class="font-medium text-gray-700"></p>
+                                    <p id="info-address-line2" class="font-medium text-gray-700"></p>
+                                    <p id="info-address-city-state" class="font-bold text-gray-800"></p>
+                                    <p id="info-address-pincode" class="font-medium text-gray-600"></p>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Bank Details</h3>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between border-b pb-1">
+                                        <span class="text-gray-500">Account Name:</span>
+                                        <span id="info-bank-acc-name" class="font-semibold text-gray-800">-</span>
+                                    </div>
+                                    <div class="flex justify-between border-b pb-1">
+                                        <span class="text-gray-500">Bank Name:</span>
+                                        <span id="info-bank-name" class="font-semibold text-gray-800">-</span>
+                                    </div>
+                                    <div class="flex justify-between border-b pb-1">
+                                        <span class="text-gray-500">Account Number:</span>
+                                        <span id="info-bank-acc-num" class="font-semibold text-gray-800">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-500">IFSC:</span>
+                                        <span id="info-bank-ifsc" class="font-semibold text-gray-800">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Internal Notes</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 italic text-gray-600"
+                            id="info-remarks">
+                            No notes available for this supplier.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purchases Tab -->
+                <div id="purchases" class="tab-content">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-500 uppercase text-xs font-bold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4">PO / Inv No</th>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Amount</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchases-list" class="divide-y divide-gray-100">
+                                <!-- Data populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Payments Tab -->
+                <div id="payments" class="tab-content">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-500 uppercase text-xs font-bold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Reference</th>
+                                    <th class="px-6 py-4">Method</th>
+                                    <th class="px-6 py-4">Amount</th>
+                                    <th class="px-6 py-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payments-list" class="divide-y divide-gray-100">
+                                <!-- Data populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Supplier Modal -->
+    <div id="supplier-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 modal-overlay flex items-center justify-center p-4">
+            <div class="bg-white modal-card-premium w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+                    <h2 id="modal-title" class="text-xl font-bold text-slate-800">Edit Supplier</h2>
+                    <button id="close-modal" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                <form id="supplier-form" class="p-8 space-y-6">
+                    <input type="hidden" id="supplier-id">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Basic Info -->
+                        <div class="space-y-5">
+                            <h3 class="form-section-header">Basic Information</h3>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Supplier Name <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" name="supplier_name"
+                                    class="w-full px-4 py-2.5 form-input-premium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Phone Number <span
+                                        class="text-red-500">*</span></label>
+                                <input type="tel" name="phone"
+                                    class="w-full px-4 py-2.5 form-input-premium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Email Address</label>
+                                <input type="email" name="email"
+                                    class="w-full px-4 py-2.5 form-input-premium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">GST Number</label>
+                                <input type="text" name="gstin" id="gstin-input" maxlength="15"
+                                    class="w-full px-4 py-2.5 form-input-premium">
+                            </div>
+                        </div>
+
+                        <!-- Categorization & Status -->
+                        <div class="space-y-5">
+                            <h3 class="form-section-header">Categorization</h3>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Supplier Type</label>
+                                <select name="supplier_type" class="w-full px-4 py-2.5 form-input-premium">
+                                    <option value="Vendor">Vendor</option>
+                                    <option value="Manufacturer">Manufacturer</option>
+                                    <option value="Distributor">Distributor</option>
+                                    <option value="Service Provider">Service Provider</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Status</label>
+                                <select name="is_active" class="w-full px-4 py-2.5 form-input-premium">
+                                    <option value="true">Active</option>
+                                    <option value="false">Inactive</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Notes / Remarks</label>
+                                <textarea name="remarks" rows="4" class="w-full px-4 py-2.5 form-input-premium"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="md:col-span-2 space-y-5">
+                            <h3 class="form-section-header">Address Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Address Line 1</label>
+                                    <input type="text" name="billing_address.line1"
+                                        class="w-full px-4 py-2.5 form-input-premium">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Address Line 2</label>
+                                    <input type="text" name="billing_address.line2"
+                                        class="w-full px-4 py-2.5 form-input-premium">
+                                </div>
+                                <div class="grid grid-cols-5 gap-4 md:col-span-2">
+                                    <div class="col-span-2">
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">City</label>
+                                        <input type="text" name="billing_address.city"
+                                            class="w-full px-4 py-2.5 form-input-premium">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">State</label>
+                                        <select name="billing_address.state"
+                                            class="w-full px-4 py-2.5 form-input-premium bg-white">
+                                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                            <option value="Assam">Assam</option>
+                                            <option value="Bihar">Bihar</option>
+                                            <option value="Chhattisgarh">Chhattisgarh</option>
+                                            <option value="Goa">Goa</option>
+                                            <option value="Gujarat">Gujarat</option>
+                                            <option value="Haryana">Haryana</option>
+                                            <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                            <option value="Jharkhand">Jharkhand</option>
+                                            <option value="Karnataka" selected>Karnataka</option>
+                                            <option value="Kerala">Kerala</option>
+                                            <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                            <option value="Maharashtra">Maharashtra</option>
+                                            <option value="Manipur">Manipur</option>
+                                            <option value="Meghalaya">Meghalaya</option>
+                                            <option value="Mizoram">Mizoram</option>
+                                            <option value="Nagaland">Nagaland</option>
+                                            <option value="Odisha">Odisha</option>
+                                            <option value="Punjab">Punjab</option>
+                                            <option value="Rajasthan">Rajasthan</option>
+                                            <option value="Sikkim">Sikkim</option>
+                                            <option value="Tamil Nadu">Tamil Nadu</option>
+                                            <option value="Telangana">Telangana</option>
+                                            <option value="Tripura">Tripura</option>
+                                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                            <option value="Uttarakhand">Uttarakhand</option>
+                                            <option value="West Bengal">West Bengal</option>
+                                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands
+                                            </option>
+                                            <option value="Chandigarh">Chandigarh</option>
+                                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar
+                                                Haveli and Daman and Diu</option>
+                                            <option value="Delhi">Delhi</option>
+                                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                            <option value="Ladakh">Ladakh</option>
+                                            <option value="Lakshadweep">Lakshadweep</option>
+                                            <option value="Puducherry">Puducherry</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-span-1">
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Pincode</label>
+                                        <input type="text" name="billing_address.pincode"
+                                            class="w-full px-4 py-2.5 form-input-premium">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bank Details -->
+                        <div class="md:col-span-2 space-y-5">
+                            <h3 class="form-section-header">Bank Details</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Account Holder
+                                        Name</label>
+                                    <input type="text" name="bank_details.account_name"
+                                        class="w-full px-4 py-2.5 form-input-premium">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Bank Name</label>
+                                    <input type="text" name="bank_details.bank_name"
+                                        class="w-full px-4 py-2.5 form-input-premium">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Account Number</label>
+                                    <input type="text" name="bank_details.account_number" pattern="[0-9]+"
+                                        inputmode="numeric"
+                                        title="Please enter a valid bank account number (digits only)"
+                                        class="w-full px-4 py-2.5 form-input-premium">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">IFSC Code</label>
+                                    <input type="text" name="bank_details.ifsc"
+                                        class="w-full px-4 py-2.5 form-input-premium">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white/95 backdrop-blur-md z-10">
+                        <button type="button" id="cancel-btn"
+                            class="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all duration-200">Cancel</button>
+                        <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-1 shadow-sm hover:shadow transition-all duration-200">Save
+                            Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center hidden opacity-0 transition-opacity duration-200" role="dialog" aria-modal="true">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl p-6 w-[420px] scale-95 opacity-0 transition-all duration-200 transform" id="export-modal-card">
+            <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                <h3 class="font-extrabold text-slate-800 text-lg">Export Supplier Data</h3>
+                <button id="close-export-modal" class="text-slate-400 hover:text-slate-600 focus:outline-none w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-500 mb-5 leading-relaxed">Choose your preferred file format to download this supplier's profile, contact info, purchases, and complete payment histories.</p>
+            
+            <div class="space-y-3 mb-6">
+                <!-- PDF option -->
+                <button data-format="pdf" class="export-opt-btn w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-xl flex items-center justify-between transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left active:scale-[0.99] cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center text-sm font-bold shadow-sm">PDF</div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Portable Document Format (.pdf)</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Best for official summaries and printing</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                </button>
+                <!-- Excel option -->
+                <button data-format="excel" class="export-opt-btn w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-xl flex items-center justify-between transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left active:scale-[0.99] cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm">XLS</div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Microsoft Excel Spreadsheet (.xlsx)</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Best for detailed ledger analysis & calculations</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                </button>
+            </div>
+            
+            <div class="flex justify-end gap-2.5 pt-4 border-t border-slate-100">
+                <button id="cancel-export-btn" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all cursor-pointer">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Report Container -->
+    <div id="print-report-container"></div>
+
+    <!-- Scripts -->
+    <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/validation.js"></script>
+    <script src="../../dist/public/supplier/src/types/supplier.types.js"></script>
+    <script src="../../dist/public/supplier/src/services/supplierApi.js"></script>
+    <script src="../../dist/public/supplier/src/components/supplierForms.js"></script>
+    <script src="../../dist/public/supplier/src/utils/keyboardShortcuts.js"></script>
+    <script src="../../dist/public/supplier/src/components/details.js"></script>
+</body>
+
+</html>

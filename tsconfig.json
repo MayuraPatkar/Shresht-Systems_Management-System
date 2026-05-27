@@ -8,7 +8,6 @@
         "esModuleInterop": true,
         "allowJs": true,
         "checkJs": false,
-        "moduleResolution": "node",
         "resolveJsonModule": true,
         "skipLibCheck": true,
         "declaration": true,
@@ -19,7 +18,7 @@
             "./src/types"
         ],
         "forceConsistentCasingInFileNames": true,
-        "noImplicitReturns": true,
+        "noImplicitReturns": false,
         "noFallthroughCasesInSwitch": true
     },
     "include": [
@@ -30,5 +29,8 @@
         "node_modules",
         "dist",
         "src/public"
+    ],
+    "references": [
+        { "path": "./tsconfig.public.json" }
     ]
 }

@@ -1,15 +1,6 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
 
 /**
- * Soft delete sub-document interface
- */
-export interface ISoftDelete {
-    is_deleted: boolean;
-    deleted_at?: Date;
-    deleted_by?: string;
-}
-
-/**
  * Address sub-document interface
  */
 export interface IAddress {
@@ -18,16 +9,6 @@ export interface IAddress {
     city?: string;
     state?: string;
     pincode?: string;
-    country?: string;
-}
-
-/**
- * Contact info sub-document interface
- */
-export interface IContactInfo {
-    name?: string;
-    phone?: string;
-    email?: string;
 }
 
 /**
@@ -41,46 +22,48 @@ export interface IBankDetails {
 }
 
 /**
+ * Soft delete sub-document interface
+ */
+export interface ISoftDelete {
+    is_deleted: boolean;
+    deleted_at?: Date;
+    deleted_by?: string;
+}
+
+/**
  * Supplier document interface
  */
 export interface ISupplier extends Document {
     schema_version: number;
 
-    // Supplier info
-    supplier: IContactInfo;
+    // Supplier generated ID
+    supplier_id: string;
 
-    // Contact person info
-    contact_person: IContactInfo;
+    // Supplier info
+    supplier_name: string;
+    phone?: string;
+    email?: string;
 
     gstin?: string;
 
-    address?: IAddress;
-
-    supplier_type: "Vendor" | "Manufacturer" | "Distributor" | "Service Provider";
+    billing_address?: IAddress;
+    shipping_address?: IAddress;
 
     bank_details?: IBankDetails;
 
-    remarks?: string[];
+    supplier_type: "Vendor" | "Manufacturer" | "Distributor" | "Service Provider";
+
+    remarks?: string;
 
     is_active: boolean;
+
+    is_archived: boolean;
 
     deletion: ISoftDelete;
 
     createdAt: Date;
     updatedAt: Date;
 }
-
-/**
- * Soft delete sub-schema
- */
-const softDeleteSchema = new Schema<ISoftDelete>(
-    {
-        is_deleted: { type: Boolean, default: false },
-        deleted_at: { type: Date },
-        deleted_by: { type: String },
-    },
-    { _id: false }
-);
 
 /**
  * Address sub-schema
@@ -90,21 +73,8 @@ const addressSchema = new Schema<IAddress>(
         line1: { type: String, trim: true },
         line2: { type: String, trim: true },
         city: { type: String, trim: true },
-        state: { type: String, trim: true },
+        state: { type: String, trim: true, default: "Karnataka" },
         pincode: { type: String, trim: true },
-        country: { type: String, trim: true, default: "India" },
-    },
-    { _id: false }
-);
-
-/**
- * Contact info sub-schema
- */
-const contactInfoSchema = new Schema<IContactInfo>(
-    {
-        name: { type: String, trim: true },
-        phone: { type: String, trim: true },
-        email: { type: String, trim: true, lowercase: true },
     },
     { _id: false }
 );
@@ -123,6 +93,18 @@ const bankDetailsSchema = new Schema<IBankDetails>(
 );
 
 /**
+ * Soft delete sub-schema
+ */
+const softDeleteSchema = new Schema<ISoftDelete>(
+    {
+        is_deleted: { type: Boolean, default: false },
+        deleted_at: { type: Date },
+        deleted_by: { type: String },
+    },
+    { _id: false }
+);
+
+/**
  * Supplier schema
  */
 const supplierSchema = new Schema<ISupplier>(
@@ -133,15 +115,33 @@ const supplierSchema = new Schema<ISupplier>(
             index: true,
         },
 
-        // Supplier info
-        supplier: {
-            type: contactInfoSchema,
-            required: true,
+        // Supplier generated ID
+        supplier_id: {
+            type: String,
+            unique: true,
+            index: true,
         },
 
-        // Contact person info
-        contact_person: {
-            type: contactInfoSchema,
+        // Supplier info
+        supplier_name: {
+            type: String,
+            required: true,
+            trim: true,
+            index: true,
+        },
+
+        phone: {
+            type: String,
+            required: true,
+            trim: true,
+            index: true,
+        },
+
+        email: {
+            type: String,
+            trim: true,
+            lowercase: true,
+            index: true,
         },
 
         gstin: {
@@ -150,8 +150,16 @@ const supplierSchema = new Schema<ISupplier>(
             index: true,
         },
 
-        address: {
+        billing_address: {
             type: addressSchema,
+        },
+
+        shipping_address: {
+            type: addressSchema,
+        },
+
+        bank_details: {
+            type: bankDetailsSchema,
         },
 
         supplier_type: {
@@ -161,16 +169,21 @@ const supplierSchema = new Schema<ISupplier>(
             index: true,
         },
 
-        bank_details: {
-            type: bankDetailsSchema,
-        },
-
         // Audit
-        remarks: [{ type: String, trim: true }],
+        remarks: {
+            type: String,
+            trim: true,
+        },
 
         is_active: {
             type: Boolean,
             default: true,
+            index: true,
+        },
+
+        is_archived: {
+            type: Boolean,
+            default: false,
             index: true,
         },
 
@@ -189,10 +202,7 @@ const supplierSchema = new Schema<ISupplier>(
 /**
  * Indexes
  */
-supplierSchema.index({ "supplier.name": 1, "supplier.phone": 1 });
-supplierSchema.index({ gstin: 1 });
-supplierSchema.index({ "supplier.phone": 1 });
-supplierSchema.index({ "supplier.email": 1 });
+supplierSchema.index({ "supplier_name": 1, "phone": 1 });
 supplierSchema.index({ "deletion.is_deleted": 1 });
 
 /**
@@ -200,3 +210,4 @@ supplierSchema.index({ "deletion.is_deleted": 1 });
  */
 export const SupplierModel: Model<ISupplier> =
     mongoose.models.Supplier || mongoose.model<ISupplier>("Supplier", supplierSchema);
+

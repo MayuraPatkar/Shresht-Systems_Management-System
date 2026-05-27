@@ -443,7 +443,12 @@
                     <i class="fas fa-plus"></i>
                     New Service
                 </button>
-                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -460,10 +465,20 @@
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
                 </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
+                </a>
                 <a href="../quotation/quotation.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -484,6 +499,16 @@
                     class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
+                </a>
+                <a href="../purchase/purchase.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold" id="purchaseOnly">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="../payment/payment.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
                 </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -1092,26 +1117,56 @@
     -->
 
     <!-- Keyboard Shortcuts Modal -->
-    <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl max-w-lg w-full mx-4">
-            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
-                <h2 class="text-lg font-semibold"><i class="fas fa-keyboard mr-2"></i>Keyboard Shortcuts</h2>
-                <button id="close-shortcuts-btn" class="text-white hover:text-gray-200"><i
-                        class="fas fa-times"></i></button>
+    <div id="shortcuts-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[999] flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-label="Keyboard Shortcuts">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto overflow-hidden isolate shortcuts-panel">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fas fa-keyboard text-lg"></i>
+                    </div>
+                    <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Keyboard Shortcuts</h2>
+                </div>
+                <button id="close-shortcuts-btn" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200" aria-label="Close shortcuts help modal">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
             </div>
-            <div class="p-6 space-y-3 text-sm">
-                <div class="flex justify-between"><span>New Service</span><kbd
-                        class="px-2 py-1 bg-gray-100 rounded border text-xs">Ctrl + N</kbd></div>
-                <div class="flex justify-between"><span>Save</span><kbd
-                        class="px-2 py-1 bg-gray-100 rounded border text-xs">Ctrl + S</kbd></div>
-                <div class="flex justify-between"><span>Print</span><kbd
-                        class="px-2 py-1 bg-gray-100 rounded border text-xs">Ctrl + Shift + P</kbd></div>
-                <div class="flex justify-between"><span>Search</span><kbd
-                        class="px-2 py-1 bg-gray-100 rounded border text-xs">Ctrl + F</kbd></div>
-                <div class="flex justify-between"><span>Go Home</span><kbd
-                        class="px-2 py-1 bg-gray-100 rounded border text-xs">Ctrl + H</kbd></div>
-                <div class="flex justify-between"><span>Cancel/Close</span><kbd
-                        class="px-2 py-1 bg-gray-100 rounded border text-xs">Esc</kbd></div>
+            <div class="p-6 space-y-4">
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">New Service</span>
+                    <div class="shortcut-keys">
+                        <kbd>Ctrl</kbd> + <kbd>N</kbd>
+                    </div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Save</span>
+                    <div class="shortcut-keys">
+                        <kbd>Ctrl</kbd> + <kbd>S</kbd>
+                    </div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Print</span>
+                    <div class="shortcut-keys">
+                        <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd>
+                    </div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Search</span>
+                    <div class="shortcut-keys">
+                        <kbd>Ctrl</kbd> + <kbd>F</kbd>
+                    </div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Go Home</span>
+                    <div class="shortcut-keys">
+                        <kbd>Ctrl</kbd> + <kbd>H</kbd>
+                    </div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Cancel/Close</span>
+                    <div class="shortcut-keys">
+                        <kbd>Esc</kbd>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1123,14 +1178,18 @@
         <span id="toast-message">Success!</span>
     </div>
 
-    <script src="../js/shared/utils.js"></script>
-    <script src="../js/shared/filterUtils.js"></script>
-    <script src="../js/shared/companyConfig.js"></script>
-    <script src="../js/shared/sectionRenderers.js"></script>
-    <script src="../js/shared/documentBuilder.js"></script>
-    <script src="../js/shared/ipc.js"></script>
-    <script src="../js/shared/globalScript.js"></script>
-    <script src="./service.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/src/shared/filters/filterUtils.js"></script>
+    <script src="../../dist/public/ts/src/shared/config/companyConfig.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/sectionRenderers.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/documentBuilder.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/service/src/types/service.types.js"></script>
+    <script src="../../dist/public/service/src/services/serviceApi.js"></script>
+    <script src="../../dist/public/service/src/components/serviceView.js"></script>
+    <script src="../../dist/public/service/src/components/serviceForm.js"></script>
+    <script src="../../dist/public/service/src/main.js"></script>
 </body>
 
 </html>

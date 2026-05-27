@@ -24,34 +24,65 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Bill / Invoice</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
+            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8" id="search-wrapper">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search invoices..."
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="text" id="search-input" placeholder="Search by name, phone or email... (Ctrl+F)"
+                        class="w-full pl-10 pr-4 h-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
+                <button id="filter-btn" class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer">
                     <i class="fas fa-filter"></i>
                 </button>
             </div>
             <div class="flex items-center gap-3">
                 <button id="new-invoice"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                    class="bg-blue-600 text-white w-36 h-10 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer">
                     <i class="fas fa-plus"></i>
                     New Invoice
                 </button>
+                <button id="archived-invoices-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="View Archived Invoices (Ctrl+Shift+A)">
+                    <i class="fas fa-archive text-slate-400"></i>
+                    <span>Archived</span>
+                    <span id="archived-count-badge"
+                        class="ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold">0</span>
+                </button>
+                <button id="bulk-restore-btn"
+                    class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="Restore All Filtered">
+                    <i class="fas fa-trash-restore"></i>
+                    <span>Restore All Filtered</span>
+                </button>
+                <button id="bulk-delete-btn"
+                    class="hidden bg-rose-600 hover:bg-rose-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="Delete All Filtered">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Delete All Filtered</span>
+                </button>
+                <button id="showDeletedBtn"
+                    class="bg-gray-200 text-gray-700 w-10 h-10 rounded-lg font-semibold flex items-center justify-center hover:bg-gray-300 transition-all cursor-pointer shadow-sm animate-fade-in"
+                    title="View Trash">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
                 <button id="view-preview"
-                    class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium"
+                    class="bg-purple-600 text-white w-36 h-10 rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer"
                     style="display: none;">
                     <i class="fas fa-eye"></i>
                     View Preview
                 </button>
                 <button id="home-btn"
-                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
+                    class="bg-gray-600 text-white w-36 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer"
+                    style="display: none;">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
-                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -63,15 +94,25 @@
     <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
-                <a href="#"
+                <a href="/dashboard" id="dashboard"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
                 </a>
                 <a href="../quotation/quotation.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -92,6 +133,16 @@
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
+                </a>
+                <a href="../purchase/purchase.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold" id="purchaseOnly">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="../payment/payment.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
                 </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -127,6 +178,22 @@
 
         <!-- Home Section -->
         <div id="home">
+            <!-- Stats Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">Total Invoices</p>
+                    <h3 class="text-2xl font-bold text-gray-800" id="total-invoices-count">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">B2B Invoices</p>
+                    <h3 class="text-2xl font-bold text-indigo-600" id="b2b-invoices-count">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-sm text-gray-500 font-medium mb-1">B2C Invoices</p>
+                    <h3 class="text-2xl font-bold text-purple-600" id="b2c-invoices-count">0</h3>
+                </div>
+            </div>
+
             <div class="records grid grid-cols-1 gap-4">
                 <!-- content will be loaded dynamically -->
             </div>
@@ -151,21 +218,7 @@
                                 <input type="text" id="quotation-id" placeholder="Enter quotation ID to import data"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
-                            <div>
-                                <label for="id" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-barcode text-gray-500 mr-1"></i>Invoice ID (optional)
-                                </label>
-                                <input type="text" id="id" placeholder="Enter invoice ID"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="invoice-date" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-calendar text-gray-500 mr-1"></i>Invoice Date <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="date" id="invoice-date"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            </div>
+                            <input type="hidden" id="id">
                         </div>
                     </div>
                 </div>
@@ -183,8 +236,25 @@
                                     <i class="fas fa-briefcase text-gray-500 mr-1"></i>Project Name <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="project-name" required placeholder="Enter project name"
+                                <input type="text" id="project-name" name="project-name" required placeholder="Enter project name"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="invoice-date" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-calendar text-gray-500 mr-1"></i>Invoice Date <span
+                                        class="text-red-500">*</span>
+                                </label>
+                                <input type="date" id="invoice-date"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="invoice-status" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-info-circle text-gray-500 mr-1"></i>Invoice Status
+                                </label>
+                                <select id="invoice-status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white">
+                                    <option value="DRAFT">Draft</option>
+                                    <option value="SENT">Sent</option>
+                                </select>
                             </div>
                             <div>
                                 <label for="purchase-order-number" class="block text-sm font-medium text-gray-700 mb-2">
@@ -220,14 +290,7 @@
                                     <i class="fas fa-calendar-check text-gray-500 mr-1"></i>Service After (months)
                                     <span class="text-red-500">*</span>
                                 </label>
-                                <input type="number" id="service-months" required placeholder="Number of months"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="margin" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-calendar-check text-gray-500 mr-1"></i>Margin (%)
-                                </label>
-                                <input type="number" id="margin" value="0" required placeholder="Margin in percentage"
+                                <input type="number" id="service-months" name="service-months" required placeholder="Number of months"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             </div>
                         </div>
@@ -242,47 +305,125 @@
                             <h2 class="text-2xl font-semibold text-gray-800">Recipient Details (Sold/Bill to)</h2>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
+                            <div class="md:col-span-2 relative">
                                 <label for="buyer-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-user text-gray-500 mr-1"></i>Buyer Name <span
+                                    <i class="fas fa-search text-gray-500 mr-1"></i>Search Recipient <span
                                         class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="buyer-name" placeholder="Enter buyer name"
+                                <input type="hidden" id="buyer-customer-id" value="">
+                                <input type="text" id="buyer-name" name="buyer-name" autocomplete="off" placeholder="Search by name, phone, email, or GSTIN..."
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <ul id="customer-suggestions" class="suggestions hidden absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto overflow-hidden isolate" style="display: none;"></ul>
                             </div>
-                            <div class="md:col-span-2">
-                                <label for="buyer-address" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <textarea id="buyer-address" rows="3" placeholder="Enter complete address"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+                            
+                            <!-- Profile Visualization Card Container -->
+                            <div id="buyer-profile-card-container" class="md:col-span-2 mt-2">
+                                <!-- Dynamic read-only profile card will be rendered here -->
                             </div>
-                            <div>
-                                <label for="buyer-phone" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="tel" id="buyer-phone" placeholder="Enter phone number" inputmode="numeric"
-                                    maxlength="10" pattern="[0-9]{10}"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="buyer-email" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-envelope text-gray-500 mr-1"></i>Email
-                                </label>
-                                <input type="email" id="buyer-email" placeholder="Enter email address" maxlength="254"
-                                    pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="buyer-gstin" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-id-card text-gray-500 mr-1"></i>GSTIN
-                                </label>
-                                <input type="text" id="buyer-gstin" maxlength="15"
-                                    pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
-                                    placeholder="Enter GSTIN (e.g., 29ABCDE1234F1Z5)"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+
+                            <!-- Hidden inputs for compatibility with form data collection -->
+                            <div class="hidden">
+                                <div>
+                                    <label for="buyer-address-line1" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address Line 1 <span
+                                            class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" id="buyer-address-line1" name="buyer-address-line1" placeholder="Enter address line 1"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="buyer-address-line2" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address Line 2
+                                    </label>
+                                    <input type="text" id="buyer-address-line2" placeholder="Enter address line 2"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                </div>
+                                <div class="md:col-span-2 grid grid-cols-5 gap-4">
+                                    <div class="col-span-2">
+                                        <label for="buyer-address-city" class="block text-sm font-medium text-gray-700 mb-2">
+                                            City <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" id="buyer-address-city" name="buyer-address-city" placeholder="City"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label for="buyer-address-state" class="block text-sm font-medium text-gray-700 mb-2">
+                                            State <span class="text-red-500">*</span>
+                                        </label>
+                                        <select id="buyer-address-state" name="buyer-address-state"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white">
+                                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                            <option value="Assam">Assam</option>
+                                            <option value="Bihar">Bihar</option>
+                                            <option value="Chhattisgarh">Chhattisgarh</option>
+                                            <option value="Goa">Goa</option>
+                                            <option value="Gujarat">Gujarat</option>
+                                            <option value="Haryana">Haryana</option>
+                                            <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                            <option value="Jharkhand">Jharkhand</option>
+                                            <option value="Karnataka" selected>Karnataka</option>
+                                            <option value="Kerala">Kerala</option>
+                                            <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                            <option value="Maharashtra">Maharashtra</option>
+                                            <option value="Manipur">Manipur</option>
+                                            <option value="Meghalaya">Meghalaya</option>
+                                            <option value="Mizoram">Mizoram</option>
+                                            <option value="Nagaland">Nagaland</option>
+                                            <option value="Odisha">Odisha</option>
+                                            <option value="Punjab">Punjab</option>
+                                            <option value="Rajasthan">Rajasthan</option>
+                                            <option value="Sikkim">Sikkim</option>
+                                            <option value="Tamil Nadu">Tamil Nadu</option>
+                                            <option value="Telangana">Telangana</option>
+                                            <option value="Tripura">Tripura</option>
+                                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                            <option value="Uttarakhand">Uttarakhand</option>
+                                            <option value="West Bengal">West Bengal</option>
+                                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                            <option value="Chandigarh">Chandigarh</option>
+                                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                                            <option value="Delhi">Delhi</option>
+                                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                            <option value="Ladakh">Ladakh</option>
+                                            <option value="Lakshadweep">Lakshadweep</option>
+                                            <option value="Puducherry">Puducherry</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-span-1">
+                                        <label for="buyer-address-pincode" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Pincode <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" id="buyer-address-pincode" name="buyer-address-pincode" pattern="[0-9]{6}" maxlength="6" placeholder="Pincode"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="buyer-phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number <span
+                                            class="text-red-500">*</span>
+                                    </label>
+                                    <input type="tel" id="buyer-phone" name="buyer-phone" placeholder="Enter phone number" inputmode="numeric"
+                                        maxlength="10" pattern="[0-9]{10}"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="buyer-email" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-envelope text-gray-500 mr-1"></i>Email
+                                    </label>
+                                    <input type="email" id="buyer-email" name="buyer-email" placeholder="Enter email address" maxlength="254"
+                                        pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="buyer-gstin" class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-id-card text-gray-500 mr-1"></i>GSTIN
+                                    </label>
+                                    <input type="text" id="buyer-gstin" name="buyer-gstin" maxlength="15"
+                                        pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
+                                        placeholder="Enter GSTIN (e.g., 29ABCDE1234F1Z5)"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -295,24 +436,93 @@
                             <i class="fas fa-shipping-fast text-orange-600 text-2xl"></i>
                             <h2 class="text-2xl font-semibold text-gray-800">Consignee Details (Shipped To)</h2>
                         </div>
-                        <div class="space-y-4">
-                            <div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
                                 <label for="consignee-name" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-user text-gray-500 mr-1"></i>Name
                                 </label>
-                                <input type="text" id="consignee-name" required placeholder="Enter consignee name"
+                                <input type="text" id="consignee-name" name="consignee-name" placeholder="Enter consignee name"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                             </div>
                             <div>
-                                <label for="consignee-address" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address
+                                <label for="consignee-address-line1" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address Line 1
                                 </label>
-                                <textarea id="consignee-address" required rows="3" placeholder="Enter complete address"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"></textarea>
+                                <input type="text" id="consignee-address-line1" name="consignee-address-line1" placeholder="Enter address line 1"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="consignee-address-line2" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address Line 2
+                                </label>
+                                <input type="text" id="consignee-address-line2" name="consignee-address-line2" placeholder="Enter address line 2"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            </div>
+                            <div class="md:col-span-2 grid grid-cols-5 gap-4">
+                                <div class="col-span-2">
+                                    <label for="consignee-address-city" class="block text-sm font-medium text-gray-700 mb-2">
+                                        City
+                                    </label>
+                                    <input type="text" id="consignee-address-city" name="consignee-address-city" placeholder="City"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                </div>
+                                <div class="col-span-2">
+                                    <label for="consignee-address-state" class="block text-sm font-medium text-gray-700 mb-2">
+                                        State
+                                    </label>
+                                    <select id="consignee-address-state" name="consignee-address-state"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white">
+                                        <option value="">Select State</option>
+                                        <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                        <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                        <option value="Assam">Assam</option>
+                                        <option value="Bihar">Bihar</option>
+                                        <option value="Chhattisgarh">Chhattisgarh</option>
+                                        <option value="Goa">Goa</option>
+                                        <option value="Gujarat">Gujarat</option>
+                                        <option value="Haryana">Haryana</option>
+                                        <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                        <option value="Jharkhand">Jharkhand</option>
+                                        <option value="Karnataka" selected>Karnataka</option>
+                                        <option value="Kerala">Kerala</option>
+                                        <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                        <option value="Maharashtra">Maharashtra</option>
+                                        <option value="Manipur">Manipur</option>
+                                        <option value="Meghalaya">Meghalaya</option>
+                                        <option value="Mizoram">Mizoram</option>
+                                        <option value="Nagaland">Nagaland</option>
+                                        <option value="Odisha">Odisha</option>
+                                        <option value="Punjab">Punjab</option>
+                                        <option value="Rajasthan">Rajasthan</option>
+                                        <option value="Sikkim">Sikkim</option>
+                                        <option value="Tamil Nadu">Tamil Nadu</option>
+                                        <option value="Telangana">Telangana</option>
+                                        <option value="Tripura">Tripura</option>
+                                        <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                        <option value="Uttarakhand">Uttarakhand</option>
+                                        <option value="West Bengal">West Bengal</option>
+                                        <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                        <option value="Chandigarh">Chandigarh</option>
+                                        <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                                        <option value="Delhi">Delhi</option>
+                                        <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                        <option value="Ladakh">Ladakh</option>
+                                        <option value="Lakshadweep">Lakshadweep</option>
+                                        <option value="Puducherry">Puducherry</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-1">
+                                    <label for="consignee-address-pincode" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Pincode
+                                    </label>
+                                    <input type="text" id="consignee-address-pincode" name="consignee-address-pincode" pattern="[0-9]{6}" maxlength="6" placeholder="Pincode"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
 
                 <!-- Step 5: Item List -->
                 <div class="steps" id="step-5">
@@ -471,27 +681,7 @@
         <div id="view">
             <div id="project-details-view" class="w-full max-w-6xl mx-auto px-4 space-y-6">
 
-                <!-- View Type Switcher - Segmented Control -->
-                <div class="flex justify-center fade-in">
-                    <div id="view-type-tabs" class="inline-flex bg-gray-100 rounded-lg p-1 gap-1">
-                        <button type="button" data-view-type="duplicate"
-                            class="view-type-tab active px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-blue-600 text-white shadow-sm">
-                            Duplicate
-                        </button>
-                        <button type="button" data-view-type="duplicate-tax"
-                            class="view-type-tab px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Duplicate + Tax
-                        </button>
-                        <button type="button" data-view-type="original"
-                            class="view-type-tab px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Original
-                        </button>
-                        <button type="button" data-view-type="original-tax"
-                            class="view-type-tab px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Original + Tax
-                        </button>
-                    </div>
-                </div>
+
 
                 <!-- Project Details Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
@@ -507,6 +697,10 @@
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Invoice ID</span>
                             <span class="text-gray-900 font-semibold" id="view-project-id">-</span>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="block text-sm font-medium text-gray-600 mb-1">Status</span>
+                            <span id="view-invoice-status" class="px-2.5 py-1 rounded-full text-xs font-semibold inline-block mt-0.5">-</span>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Quotation ID</span>
@@ -540,10 +734,6 @@
                             <span class="block text-sm font-medium text-gray-600 mb-1">Service Stage</span>
                             <span class="text-gray-900 font-semibold" id="view-service-stage">-</span>
                         </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Margin (%)</span>
-                            <span class="text-gray-900 font-semibold" id="view-margin">-</span>
-                        </div>
                     </div>
                 </section>
 
@@ -556,7 +746,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <h4 class="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                                <i class="fas fa-user-tag text-purple-500"></i>Buyer (Bill To)
+                                <i class="fas fa-user-tag text-purple-500"></i>Recipient (Bill To)
                             </h4>
                             <div class="space-y-2">
                                 <div class="bg-gray-50 p-3 rounded-lg">
@@ -605,280 +795,193 @@
                         <i class="fas fa-list-ul text-green-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Item Details</h2>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-items-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
+                    <div class="overflow-x-auto" id="view-items-table-container">
+                        <table id="view-items-table" class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50/40 border-b border-gray-100">
                                 <tr>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="w-[8%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         S. No</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="w-[27%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Description</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         HSN/SAC</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="w-[8%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Qty</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="w-[12%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Unit Price</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Rate</th>
+                                        class="w-[12%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        Taxable Value</th>
+                                    <th
+                                        class="w-[10%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        Tax %</th>
+                                    <th
+                                        class="w-[13%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
+                                        Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Items will be dynamically filled -->
                             </tbody>
+                            <tfoot class="bg-gray-50/30 border-t-2 border-gray-200 font-semibold text-gray-900">
+                                <!-- Totals will be dynamically filled -->
+                            </tfoot>
                         </table>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Items Total Amount</span>
-                            <span class="text-gray-900 font-bold" id="view-items-total-amount">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Items Total Tax</span>
-                            <span class="text-gray-900 font-bold" id="view-items-total-tax">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Overall</span>
-                            <span class="text-gray-900 font-bold" id="items-overall">-</span>
-                        </div>
+                    <div id="view-items-empty-state" class="hidden py-10 flex flex-col items-center justify-center text-center text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <i class="fas fa-folder-open text-gray-300 text-5xl mb-3"></i>
+                        <p class="text-base font-medium">No items added to this invoice</p>
                     </div>
                 </section>
-
+ 
                 <!-- Non-Items Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
                         <i class="fas fa-plus-circle text-indigo-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-gray-800">Other Charges</h2>
                     </div>
-                    <div class="overflow-x-auto mb-4">
-                        <table id="view-non-items-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
+                    <div class="overflow-x-auto mb-4" id="view-non-items-table-container">
+                        <table id="view-non-items-table" class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50/40 border-b border-gray-100">
                                 <tr>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="w-[10%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         S. No</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="w-[50%] px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Description</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="w-[20%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Price</th>
                                     <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+                                        class="w-[20%] px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">
                                         Rate</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Items will be dynamically filled -->
                             </tbody>
+                            <tfoot class="bg-gray-50/30 border-t-2 border-gray-200 font-semibold text-gray-900">
+                                <!-- Totals will be dynamically filled -->
+                            </tfoot>
                         </table>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Amount</span>
-                            <span class="text-gray-900 font-bold" id="view-non-items-total-amount">-</span>
+                    <div id="view-non-items-empty-state" class="hidden py-10 flex flex-col items-center justify-center text-center text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <i class="fas fa-calculator text-gray-300 text-5xl mb-3"></i>
+                        <p class="text-base font-medium">No extra charges applied</p>
+                    </div>
+                </section>
+ 
+                <!-- Invoice Summary Card -->
+                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <div class="flex items-center gap-3 mb-5 pb-3 border-b border-gray-200">
+                        <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Invoice Summary</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-sm font-medium text-gray-500 mb-2">Subtotal</span>
+                            <span class="text-gray-900 font-bold text-2xl" id="view-subtotal">₹ 0.00</span>
                         </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Tax</span>
-                            <span class="text-gray-900 font-bold" id="view-non-items-total-tax">-</span>
+                        <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
+                            <span class="block text-sm font-medium text-gray-500 mb-2">Total Tax</span>
+                            <span class="text-gray-900 font-bold text-2xl" id="view-tax">₹ 0.00</span>
                         </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Overall</span>
-                            <span class="text-gray-900 font-bold" id="non-items-overall">-</span>
+                        <div class="bg-blue-600 p-5 rounded-lg border border-blue-700 text-white shadow-md flex flex-col justify-between transform hover:scale-[1.01] transition-transform duration-200">
+                            <span class="block text-sm font-medium text-blue-100 mb-2">Grand Total</span>
+                            <span class="font-extrabold text-3xl tracking-tight" id="view-grand-total">₹ 0.00</span>
                         </div>
                     </div>
                 </section>
 
-                <!-- Totals Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-calculator text-blue-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Totals</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Subtotal</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-subtotal">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Tax (GST)</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-tax">-</span>
-                        </div>
-                        <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
-                            <span class="block text-sm font-medium text-blue-600 mb-1">Total Amount Due</span>
-                            <span class="text-blue-900 font-bold text-xl" id="view-grand-total">-</span>
-                        </div>
-                    </div>
-                </section>
 
-                <!-- Payment Details Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
-                            <h2 class="text-xl font-semibold text-gray-800">Payment Details</h2>
-                        </div>
-                        <button id="view-add-payment-btn"
-                            class="text-sm bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 border border-green-700 transition-colors flex items-center gap-2">
-                            <i class="fas fa-plus"></i> Add Payment
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Payment Status</span>
-                            <span class="text-gray-900 font-semibold" id="view-payment-status">-</span>
-                        </div>
-                        <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
-                            <span class="block text-sm font-medium text-red-600 mb-1">Balance Due</span>
-                            <span class="text-red-900 font-bold text-xl" id="view-balance-due">-</span>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-payment-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Payment Date</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Mode</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Paid Amount</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Details</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Items will be dynamically filled -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
 
                 <!-- Preview & Actions Card -->
                 <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-eye text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-eye text-purple-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <!-- Animated Slide Toggle Button -->
+                            <div class="slide-toggle-container">
+                                <span class="slide-toggle-text slide-toggle-text-without">Without Tax</span>
+                                <label class="slide-toggle-label">
+                                    <input type="checkbox" id="preview-tax-toggle" class="slide-toggle-input" checked>
+                                    <span class="slide-toggle-slider"></span>
+                                </label>
+                                <span class="slide-toggle-text slide-toggle-text-with slide-toggle-active">With Tax</span>
+                            </div>
+                            <div class="h-6 w-[1px] bg-gray-200"></div>
+                            <button type="button" id="printProject"
+                                class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium cursor-pointer">
+                                <i class="fas fa-print"></i>
+                                Print
+                            </button>
+                            <button type="button" id="saveProjectPDF"
+                                class="bg-red-600 text-white px-4 h-10 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium cursor-pointer">
+                                <i class="fas fa-file-pdf"></i>
+                                Save as PDF
+                            </button>
+                        </div>
                     </div>
                     <div id="view-preview-content" class="mb-6">
                         <!-- Preview will be dynamically generated -->
                     </div>
-                    <div class="flex gap-3 justify-center">
+                </section>
 
-                        <button type="button" id="printProject"
-                            class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-print"></i>
-                            Print
-                        </button>
-                        <button type="button" id="saveProjectPDF"
-                            class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-file-pdf"></i>
-                            Save as PDF
-                        </button>
+                <!-- Danger Zone Section -->
+                <section id="danger-zone-section" class="bg-red-50 rounded-lg p-6 border-2 border-red-200 fade-in hidden">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-red-200">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <p class="text-sm text-red-700 font-medium">
+                            These actions are destructive or affect status and inventory. Please proceed with caution.
+                        </p>
+                        <div class="flex flex-wrap gap-4 justify-end">
+                            <button type="button" id="cancelInvoiceBtn"
+                                class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
+                                <i class="fas fa-ban"></i>
+                                Cancel Invoice
+                            </button>
+                            <button type="button" id="deleteInvoiceBtn"
+                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
+                                <i class="fas fa-trash-alt"></i>
+                                Delete Invoice
+                            </button>
+                        </div>
                     </div>
                 </section>
             </div>
         </div>
 
-        <!-- Payment Modal -->
-        <div class="payment-container fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50"
-            id="payment-container" style="display: none;">
-            <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-money-bill-wave text-green-600"></i>
-                        Payment Details
-                    </h1>
-                    <button type="button" id="close-payment-modal" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times text-2xl"></i>
-                    </button>
-                </div>
 
-                <div class="space-y-6">
-                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="block text-sm font-medium text-red-600 mb-1">Due Amount</span>
-                                <span class="text-2xl font-bold text-red-900" id="payment-due-amount">₹ 0.00</span>
-                            </div>
-                            <i class="fas fa-rupee-sign text-red-400 text-3xl"></i>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="paid-amount" class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>Paid Amount
-                            </label>
-                            <div class="flex gap-2">
-                                <input type="number" id="paid-amount" placeholder="Enter amount" min="0" step="0.01"
-                                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <button type="button" id="autofill-full-amount" title="Fill Full Amount"
-                                    class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">
-                                    <i class="fas fa-coins"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="payment-date" class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-calendar text-gray-500 mr-1"></i>Payment Date
-                            </label>
-                            <input type="date" id="payment-date"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="payment-mode" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-credit-card text-gray-500 mr-1"></i>Payment Method
-                        </label>
-                        <select id="payment-mode" required
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="Cash">Cash</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="UPI">UPI</option>
-                        </select>
-                    </div>
-                    <div id="extra-payment-details">
-                        <label for="cash-location" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Cash Location
-                        </label>
-                        <input type="text" id="cash-location" placeholder="Enter cash location"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <button id="payment-btn"
-                        class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i>
-                        Save Payment
-                    </button>
-                </div>
-            </div>
-        </div>
     </main>
 
     <!-- Filter Popover -->
     <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden"
         style="width: 280px;">
         <h3 class="font-semibold text-gray-800 mb-3">Filter & Sort</h3>
+
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
-            <select id="payment-status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="all">All Status</option>
-                <option value="paid">Paid</option>
-                <option value="unpaid">Unpaid</option>
-                <option value="partial">Partial</option>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select id="status-filter-top" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+                <option value="all">All Statuses</option>
+                <option value="DRAFT">Draft</option>
+                <option value="SENT">Sent</option>
+                <option value="OVERDUE">Overdue</option>
+                <option value="PARTIALLY_PAID">Partially Paid</option>
+                <option value="PAID">Paid</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="REFUNDED">Refunded</option>
             </select>
         </div>
         <div class="mb-4">
@@ -913,41 +1016,47 @@
         </div>
     </div>
 
-    <!-- Keyboard Shortcuts Modal -->
-    <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shortcuts-panel">
-            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
+    <div id="shortcuts-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[999] flex items-center justify-center hidden opacity-0 transition-opacity duration-200" role="dialog" aria-modal="true" aria-label="Keyboard Shortcuts">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto overflow-hidden isolate shortcuts-panel">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
                 <div class="flex items-center gap-3">
-                    <i class="fas fa-keyboard text-2xl"></i>
-                    <h2 class="text-xl font-semibold">Keyboard Shortcuts</h2>
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fas fa-keyboard text-lg"></i>
+                    </div>
+                    <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Keyboard Shortcuts Help</h2>
                 </div>
-                <button id="close-shortcuts" class="text-white hover:text-gray-200" aria-label="Close shortcuts modal">
-                    <i class="fas fa-times text-xl"></i>
+                <button id="close-shortcuts" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200" aria-label="Close shortcuts help modal">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
-            <div id="shortcuts-content" class="p-6 space-y-6"></div>
+            <div id="shortcuts-content" class="p-6 space-y-5"></div>
         </div>
     </div>
 
     <!-- Scripts -->
     <!-- Shared utilities -->
-    <script src="../js/shared/utils.js"></script>
-    <script src="../js/shared/calculations.js"></script>
-    <script src="../js/shared/filterUtils.js"></script>
-    <script src="../js/shared/ipc.js"></script>
-    <script src="../js/shared/documentManager.js"></script>
-    <script src="../js/shared/sectionRenderers.js"></script>
-    <script src="../js/shared/documentBuilder.js"></script>
-    <script src="../js/shared/itemReorder.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/validation.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/src/shared/filters/filterUtils.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/documentManager.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/sectionRenderers.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/documentBuilder.js"></script>
+    <script src="../../dist/public/ts/src/shared/documents/itemReorder.js"></script>
 
     <!-- Shared scripts -->
-    <script src="../js/shared/companyConfig.js"></script>
-    <script src="../js/shared/globalScript.js"></script>
+    <script src="../../dist/public/ts/src/shared/config/companyConfig.js"></script>
+    <script src="../../dist/public/ts/src/shared/core/globalScript.js"></script>
 
     <!-- Module-specific scripts -->
-    <script src="./invoice_home.js"></script>
-    <script src="./invoice_view.js"></script>
-    <script src="./invoice_form.js"></script>
+    <script src="../../dist/public/invoice/src/types/invoice.types.js"></script>
+    <script src="../../dist/public/invoice/src/services/invoiceApi.js"></script>
+    <script src="../../dist/public/invoice/src/components/invoiceTable.js"></script>
+    <script src="../../dist/public/invoice/src/components/invoiceView.js"></script>
+    <script src="../../dist/public/invoice/src/components/invoiceForms.js"></script>
+    <script src="../../dist/public/invoice/src/components/unsavedChanges.js"></script>
+    <script src="../../dist/public/invoice/src/main.js"></script>
 </body>
 
 </html>

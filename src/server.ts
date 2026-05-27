@@ -14,17 +14,17 @@ import rateLimit from 'express-rate-limit';
 import fs from 'fs';
 import http from 'http';
 
-// Local imports - using require for non-typed modules
-const config = require('./config/config');
-const logger = require('./utils/logger');
-const connectDB = require('./config/database');
-const { errorHandler, notFound } = require('./middleware/errorHandler');
-const { apiLimiter } = require('./middleware/rateLimiter');
-const autoBackup = require('./utils/backup');
-const backupScheduler = require('./utils/backupScheduler');
-const { findAvailablePort, printStartupBanner } = require('./utils/portFinder');
-const secureStore = require('./utils/secureStore');
-const fileCleanup = require('./utils/fileCleanup');
+// Local imports
+import config from './config/config';
+import logger from './utils/logger';
+import connectDB from './config/database';
+import { errorHandler, notFound } from './middleware/errorHandler';
+import { apiLimiter } from './middleware/rateLimiter';
+import autoBackup from './utils/backup';
+import * as backupScheduler from './utils/backupScheduler';
+import { findAvailablePort, printStartupBanner } from './utils/portFinder';
+import secureStore from './utils/secureStore';
+import * as fileCleanup from './utils/fileCleanup';
 
 // Express app instance
 const exServer: Express = express();
@@ -112,13 +112,15 @@ exServer.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Get paths from global or use defaults
 const publicPath = (() => {
-    const localPublic = path.join(__dirname, 'public');
-    if (fs.existsSync(localPublic)) return localPublic;
-
+    // Prefer the root-level public/ which contains HTML, CSS, and assets.
+    // dist/public/ may exist from TS compiling JS files but lacks static assets.
     const rootPublic = path.join(__dirname, '..', 'public');
-    if (fs.existsSync(rootPublic)) return rootPublic;
+    if (fs.existsSync(path.join(rootPublic, 'index.html'))) return rootPublic;
 
-    return localPublic; // Default to local even if missing
+    const localPublic = path.join(__dirname, 'public');
+    if (fs.existsSync(path.join(localPublic, 'index.html'))) return localPublic;
+
+    return rootPublic; // Default to root public
 })();
 
 /**
@@ -192,6 +194,13 @@ exServer.use(express.static(publicPath, {
     lastModified: true
 }));
 
+// Serve compiled frontend typescript files from dist/public
+exServer.use('/dist/public', express.static(path.join(__dirname, '..', 'dist', 'public'), {
+    maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0',
+    etag: true,
+    lastModified: true
+}));
+
 // Serve generated documents (PDFs for WhatsApp)
 exServer.use('/documents', express.static(documentsPath, {
     maxAge: '1h', // Cache for 1 hour
@@ -255,19 +264,24 @@ connectDB().then(async () => {
 });
 
 // Routes - Importing route modules
-const authRoutes = require('./routes/auth');
-const viewRoutes = require('./routes/views');
-const stockRoutes = require('./routes/stock');
-const invoiceRoutes = require('./routes/invoice');
-const quotationRoutes = require('./routes/quotation');
-const purchaseRoutes = require('./routes/purchaseOrder');
-const eWayBillRoutes = require('./routes/eWayBill');
-const serviceRoutes = require('./routes/service');
-const employeeRoute = require('./routes/employee');
-const analyticsRoutes = require('./routes/analytics');
-const commsRouter = require('./routes/comms');
-const settingsRoutes = require('./routes/settings');
-const reportsRoutes = require('./routes/reports');
+import authRoutes from './routes/auth.route';
+import viewRoutes from './routes/views.route';
+import stockRoutes from './routes/stock.route';
+import invoiceRoutes from './routes/invoice.route';
+import quotationRoutes from './routes/quotation.route';
+import purchaseOrderRoutes from './routes/purchaseOrder.route';
+import purchaseOnlyRoutes from './routes/purchase.route';
+import eWayBillRoutes from './routes/eWayBill.route';
+import serviceRoutes from './routes/service.route';
+import employeeRoute from './routes/employee.route';
+import analyticsRoutes from './routes/analytics.route';
+import commsRouter from './routes/comms.route';
+import settingsRoutes from './routes/settings.route';
+import reportsRoutes from './routes/reports.route';
+import paymentRoutes from './routes/payment.route';
+import customerRoutes from './routes/customer.route';
+import supplierRoutes from './routes/supplier.route';
+
 
 // Health check endpoint
 exServer.get('/health', async (req: Request, res: Response) => {
@@ -301,7 +315,9 @@ exServer.use('/admin', authRoutes);
 exServer.use('/stock', stockRoutes);
 exServer.use('/invoice', invoiceRoutes);
 exServer.use('/quotation', quotationRoutes);
-exServer.use('/purchaseOrder', purchaseRoutes);
+exServer.use('/purchaseOrder', purchaseOrderRoutes);
+exServer.use('/purchase', purchaseOnlyRoutes);
+exServer.use('/api/purchase', purchaseOnlyRoutes);
 exServer.use('/eWayBill', eWayBillRoutes);
 exServer.use('/service', serviceRoutes);
 exServer.use('/employee', employeeRoute);
@@ -309,6 +325,10 @@ exServer.use('/analytics', analyticsRoutes);
 exServer.use('/comms', commsRouter);
 exServer.use('/settings', settingsRoutes);
 exServer.use('/reports', reportsRoutes);
+exServer.use('/payment', paymentRoutes);
+exServer.use('/api/customers', customerRoutes);
+exServer.use('/api/suppliers', supplierRoutes);
+
 
 // View routes LAST (to avoid catching API routes)
 exServer.use('/', viewRoutes);
@@ -334,13 +354,13 @@ try {
         const retentionDays = config.uploadsRetentionDays || 7;
         if (documentsPath) {
             // Run on startup once
-            fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }: { success: boolean; removed: number }) => {
+            fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }) => {
                 if (success && removed) logger.info(`Uploads cleanup completed: removed ${removed} old files`);
             }).catch((err: Error) => logger.warn('Uploads cleanup error:', err && err.message));
 
             // Schedule daily cleanup
             setInterval(() => {
-                fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }: { success: boolean; removed: number }) => {
+                fileCleanup.cleanupOldFiles(documentsPath, retentionDays, ['.pdf']).then(({ success, removed }) => {
                     if (success && removed) logger.info(`Scheduled uploads cleanup removed ${removed} old files`);
                 }).catch((err: Error) => logger.warn('Scheduled uploads cleanup error:', err && err.message));
             }, 24 * 60 * 60 * 1000);

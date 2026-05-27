@@ -12,6 +12,18 @@ export interface ISoftDelete {
 /**
  * Payment document interface
  */
+export interface IPaymentParty {
+    type?: "Customer" | "Supplier";
+    id?: string;
+    ref?: Types.ObjectId;
+}
+
+export interface IPaymentReference {
+    type?: "Invoice" | "Purchase" | "Service" | "Adjustment";
+    id?: string;
+    ref?: Types.ObjectId;
+}
+
 export interface IPayment extends Document {
     schema_version: number;
 
@@ -21,11 +33,9 @@ export interface IPayment extends Document {
 
     direction: "IN" | "OUT";
 
-    party_type?: "Customer" | "Supplier";
-    party_id?: Types.ObjectId;
+    party?: IPaymentParty;
 
-    reference_type?: "Invoice" | "Purchase" | "Service" | "Adjustment";
-    reference_id?: Types.ObjectId;
+    reference?: IPaymentReference;
 
     mode: "Cash" | "UPI" | "Bank Transfer" | "Cheque";
 
@@ -49,6 +59,46 @@ const softDeleteSchema = new Schema<ISoftDelete>(
         is_deleted: { type: Boolean, default: false },
         deleted_at: { type: Date },
         deleted_by: { type: String },
+    },
+    { _id: false }
+);
+
+const paymentPartySchema = new Schema<IPaymentParty>(
+    {
+        type: {
+            type: String,
+            enum: ["Customer", "Supplier"],
+            index: true,
+        },
+        id: {
+            type: String,
+            trim: true,
+            index: true,
+        },
+        ref: {
+            type: Schema.Types.ObjectId,
+            index: true,
+        },
+    },
+    { _id: false }
+);
+
+const paymentReferenceSchema = new Schema<IPaymentReference>(
+    {
+        type: {
+            type: String,
+            enum: ["Invoice", "Purchase", "Service", "Adjustment"],
+            index: true,
+        },
+        id: {
+            type: String,
+            trim: true,
+            index: true,
+        },
+        ref: {
+            type: Schema.Types.ObjectId,
+            index: true,
+        },
     },
     { _id: false }
 );
@@ -83,29 +133,16 @@ const paymentSchema = new Schema<IPayment>(
             index: true,
         },
 
-        // Who is involved (null for Adjustment)
-        party_type: {
-            type: String,
-            enum: ["Customer", "Supplier"],
-            index: true,
+        // Who is involved. Stores both business id and MongoDB reference.
+        party: {
+            type: paymentPartySchema,
+            default: undefined,
         },
 
-        party_id: {
-            type: Schema.Types.ObjectId,
-            index: true,
-        },
-
-        // Why the payment happened
-        reference_type: {
-            type: String,
-            enum: ["Invoice", "Purchase", "Service", "Adjustment"],
-            index: true,
-        },
-
-        // Links to Invoice/Purchase/Service doc, or Item for Adjustment
-        reference_id: {
-            type: Schema.Types.ObjectId,
-            index: true,
+        // Why the payment happened. Stores both business id and MongoDB reference.
+        reference: {
+            type: paymentReferenceSchema,
+            default: undefined,
         },
 
         mode: {
@@ -146,8 +183,10 @@ const paymentSchema = new Schema<IPayment>(
 /**
  * Indexes
  */
-paymentSchema.index({ party_type: 1, party_id: 1, payment_date: -1 });
-paymentSchema.index({ reference_type: 1, reference_id: 1 });
+paymentSchema.index({ "party.type": 1, "party.ref": 1, payment_date: -1 });
+paymentSchema.index({ "party.type": 1, "party.id": 1, payment_date: -1 });
+paymentSchema.index({ "reference.type": 1, "reference.ref": 1 });
+paymentSchema.index({ "reference.type": 1, "reference.id": 1 });
 paymentSchema.index({ direction: 1, payment_date: -1 });
 paymentSchema.index({ "deletion.is_deleted": 1 });
 

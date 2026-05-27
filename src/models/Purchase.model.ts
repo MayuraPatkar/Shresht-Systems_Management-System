@@ -18,7 +18,6 @@ export interface IAddress {
     city?: string;
     state?: string;
     pincode?: string;
-    country?: string;
 }
 
 /**
@@ -70,7 +69,7 @@ export interface ITotals {
 export interface IPurchase extends Document {
     schema_version: number;
 
-    purchase_order_no?: string;
+    purchase_no?: string;
     purchase_invoice_no?: string;
     purchase_date: Date;
     due_date?: Date;
@@ -86,6 +85,8 @@ export interface IPurchase extends Document {
     totals?: ITotals;
 
     remarks?: string;
+
+    is_archived: boolean;
 
     deletion: ISoftDelete;
 
@@ -115,7 +116,6 @@ const addressSchema = new Schema<IAddress>(
         city: { type: String, trim: true },
         state: { type: String, trim: true },
         pincode: { type: String, trim: true },
-        country: { type: String, trim: true },
     },
     { _id: false }
 );
@@ -187,7 +187,7 @@ const purchaseSchema = new Schema<IPurchase>(
             index: true,
         },
 
-        purchase_order_no: {
+        purchase_no: {
             type: String,
             unique: true,
             sparse: true,
@@ -250,6 +250,12 @@ const purchaseSchema = new Schema<IPurchase>(
             type: softDeleteSchema,
             default: () => ({ is_deleted: false }),
         },
+
+        is_archived: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
     },
     {
         timestamps: true,
@@ -261,7 +267,6 @@ const purchaseSchema = new Schema<IPurchase>(
 /**
  * Indexes
  */
-purchaseSchema.index({ purchase_order_no: 1 });
 purchaseSchema.index({ purchase_invoice_no: 1, purchase_date: -1 });
 purchaseSchema.index({ supplier_id: 1, purchase_date: -1 });
 purchaseSchema.index({ "deletion.is_deleted": 1 });
