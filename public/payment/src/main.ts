@@ -72,12 +72,12 @@ interface Window {
         confirmDelete: (id: string) => Promise<void>;
         viewPayment: (id: string) => void;
     };
+    validateCurrentStep?: () => Promise<boolean>;
 }
-
 (function (): void {
     'use strict';
 
-    // ── State ──────────────────────────────────────────────
+    // ── State ───────────────────────────────
     let allPayments: IPaymentRecord[] = [];
     let filteredPayments: IPaymentRecord[] = [];
     let currentFilter: string = 'all';
@@ -85,6 +85,7 @@ interface Window {
     let selectedDetailsPayment: IPaymentRecord | null = null;
     let submitPartyTypeOverride: 'Customer' | 'Supplier' | null = null;
     let shortcutsModalRef: HTMLElement | null = null;
+    let validator: any = null;
     const advancedFilters = {
         direction: '',
         mode: '',
@@ -107,7 +108,9 @@ interface Window {
     const $modeFilter = document.getElementById('mode-filter') as HTMLSelectElement;
     const $referenceFilter = document.getElementById('reference-filter') as HTMLSelectElement;
     const $advanceFilter = document.getElementById('advance-filter') as HTMLSelectElement;
-    const $modal = document.getElementById('payment-modal') as HTMLDivElement;
+    const $newSec = document.getElementById('new') as HTMLDivElement;
+    const $homeSec = document.getElementById('home') as HTMLDivElement;
+    const $homeBtn = document.getElementById('home-btn') as HTMLButtonElement;
     const $form = document.getElementById('payment-form') as HTMLFormElement;
     const $formPaymentId = document.getElementById('form-payment-id') as HTMLInputElement;
     const $modalTitle = document.getElementById('modal-title') as HTMLElement;
@@ -119,6 +122,7 @@ interface Window {
     const $partyIdHidden = document.getElementById('form-party-id-hidden') as HTMLInputElement;
     const $partySuggestions = document.getElementById('party-suggestions') as HTMLUListElement;
     const $partyDetailsContainer = document.getElementById('party-details-container') as HTMLElement;
+    const $partyProfileCardContainer = document.getElementById('party-profile-card-container') as HTMLElement;
     const $previewPartyName = document.getElementById('preview-party-name') as HTMLElement;
     const $previewPartyPhone = document.getElementById('preview-party-phone') as HTMLElement;
     const $previewPartyGstin = document.getElementById('preview-party-gstin') as HTMLElement;
@@ -192,6 +196,62 @@ interface Window {
             case 'Cheque': return 'badge-cheque';
             default: return 'badge-cash';
         }
+    }
+
+    // ── Party Profile Card ────────────────────────────────
+    function renderPartyProfileCard() {
+        if (!$partyProfileCardContainer) return;
+
+        const hasPartySelected = $partyIdHidden && $partyIdHidden.value.trim() !== '';
+        const partyName = $partyNameInput ? $partyNameInput.value.trim() : '';
+
+        if (!hasPartySelected || !partyName) {
+            $partyProfileCardContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-500 text-center fade-in">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 mb-3">
+                        <i class="fas fa-user-tie text-xl"></i>
+                    </div>
+                    <p class="text-sm font-semibold text-gray-700">No Party Selected</p>
+                    <p class="text-xs text-gray-400 mt-1 max-w-sm">Please search and select a customer or supplier profile in the search input above to view details.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const phone = $previewPartyPhone ? ($previewPartyPhone.textContent || '') : '';
+        const email = $previewPartyEmail ? ($previewPartyEmail.textContent || '') : '';
+        const gstin = $previewPartyGstin ? ($previewPartyGstin.textContent || '') : '';
+        const address = $previewPartyAddress ? ($previewPartyAddress.textContent || '') : '';
+
+        $partyProfileCardContainer.innerHTML = `
+            <div class="bg-blue-50/40 rounded-xl p-5 border border-blue-100 flex flex-col md:flex-row gap-6 md:justify-between items-start fade-in">
+                <div class="space-y-3 flex-1 w-full">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h3 class="text-base font-bold text-gray-900">${escapeHtml(partyName)}</h3>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-2">
+                        <p class="flex items-start gap-2">
+                            <i class="fas fa-map-marker-alt text-blue-500 mt-1 flex-shrink-0 w-4 text-center"></i>
+                            <span class="leading-relaxed">${escapeHtml(address) || 'No Address Provided'}</span>
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pt-3 border-t border-blue-100/50 w-full">
+                            <p class="flex items-center gap-2">
+                                <i class="fas fa-phone text-blue-500 flex-shrink-0 w-4 text-center"></i>
+                                <span>${escapeHtml(phone) || 'No Phone Number'}</span>
+                            </p>
+                            <p class="flex items-center gap-2">
+                                <i class="fas fa-envelope text-blue-500 flex-shrink-0 w-4 text-center"></i>
+                                <span class="break-all">${escapeHtml(email) || 'No Email Address'}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg p-3 border border-blue-100 flex flex-col justify-center items-start min-w-[180px] w-full md:w-auto shadow-sm">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">GSTIN</span>
+                    <span class="text-sm font-bold text-gray-800 mt-1">${escapeHtml(gstin) || 'N/A (Consumer)'}</span>
+                </div>
+            </div>
+        `;
     }
 
     function showInlineError(input: HTMLElement, message: string) {
@@ -306,7 +366,12 @@ interface Window {
 
     async function fetchPartyDetails(type: 'Customer' | 'Supplier', partyName: string): Promise<void> {
         if (!partyName) {
-            $partyDetailsContainer.classList.add('hidden');
+            if ($previewPartyName) $previewPartyName.textContent = '';
+            if ($previewPartyPhone) $previewPartyPhone.textContent = '';
+            if ($previewPartyGstin) $previewPartyGstin.textContent = '';
+            if ($previewPartyEmail) $previewPartyEmail.textContent = '';
+            if ($previewPartyAddress) $previewPartyAddress.textContent = '';
+            renderPartyProfileCard();
             return;
         }
 
@@ -318,28 +383,27 @@ interface Window {
                 const contact = type === 'Customer' ? party.customer : party.supplier;
                 const address = type === 'Customer' ? party.billing_address : party.address;
 
-                $previewPartyName.textContent = contact?.name || partyName;
-                $previewPartyPhone.textContent = contact?.phone || '-';
-                $previewPartyGstin.textContent = party.gstin || '-';
-                $previewPartyEmail.textContent = contact?.email || '-';
+                if ($previewPartyName) $previewPartyName.textContent = contact?.name || partyName;
+                if ($previewPartyPhone) $previewPartyPhone.textContent = contact?.phone || '';
+                if ($previewPartyGstin) $previewPartyGstin.textContent = party.gstin || '';
+                if ($previewPartyEmail) $previewPartyEmail.textContent = contact?.email || '';
 
-                let addrStr = '-';
+                let addrStr = '';
                 if (address) {
                     addrStr = [address.line1, address.line2, address.city, address.state, address.pincode]
                         .filter(Boolean).join(', ');
                 }
-                $previewPartyAddress.textContent = addrStr;
+                if ($previewPartyAddress) $previewPartyAddress.textContent = addrStr;
 
-                $partyDetailsContainer.classList.remove('hidden');
-                
-                // Update hidden ID if name matches
+                // Update hidden ID
                 $partyIdHidden.value = party._id;
+                renderPartyProfileCard();
             } else {
-                $partyDetailsContainer.classList.add('hidden');
+                renderPartyProfileCard();
             }
         } catch (e) {
             console.error('Failed to fetch party details', e);
-            $partyDetailsContainer.classList.add('hidden');
+            renderPartyProfileCard();
         }
     }
 
@@ -448,13 +512,38 @@ interface Window {
         });
     }
 
+    function toggleSection(showNew: boolean): void {
+        const searchWrapper = document.getElementById('search-input')?.parentElement?.parentElement;
+        const newPaymentBtn = document.getElementById('new-payment-btn');
+        const refreshBtn = document.getElementById('refresh-btn');
+
+        if (showNew) {
+            $homeSec.classList.add('hidden');
+            $newSec.classList.remove('hidden');
+            $homeBtn.classList.remove('hidden');
+            
+            if (searchWrapper) searchWrapper.style.display = 'none';
+            if (newPaymentBtn) newPaymentBtn.style.display = 'none';
+            if (refreshBtn) refreshBtn.style.display = 'none';
+        } else {
+            $newSec.classList.add('hidden');
+            $homeSec.classList.remove('hidden');
+            $homeBtn.classList.add('hidden');
+
+            if (searchWrapper) searchWrapper.style.display = 'flex';
+            if (newPaymentBtn) newPaymentBtn.style.display = 'flex';
+            if (refreshBtn) refreshBtn.style.display = 'flex';
+        }
+    }
+
     // ── Modal ──────────────────────────────────────────────
     async function openModal(payment: IPaymentRecord | null): Promise<void> {
         editingId = payment ? payment._id : null;
         submitPartyTypeOverride = payment?.party_type || null;
         $formPaymentId.value = editingId || '';
-        $partyDetailsContainer.classList.add('hidden');
         $partyIdHidden.value = '';
+        if (validator) validator.clearAllErrors();
+        renderPartyProfileCard();
 
         if (payment) {
             $modalTitle.textContent = 'Edit Payment';
@@ -502,7 +591,13 @@ interface Window {
             if (inRadio) inRadio.checked = true;
         }
 
-        $modal.classList.remove('hidden');
+        (window as any).totalSteps = 3;
+        (window as any).currentStep = 1;
+        if (typeof (window as any).changeStep === 'function') {
+            (window as any).changeStep(1);
+        }
+
+        toggleSection(true);
         refreshSuggestions();
     }
 
@@ -703,7 +798,13 @@ interface Window {
             fetchPartyDetailsById(paymentPartyType(payment), payment.party_id);
         }
 
-        $modal.classList.remove('hidden');
+        (window as any).totalSteps = 3;
+        (window as any).currentStep = 1;
+        if (typeof (window as any).changeStep === 'function') {
+            (window as any).changeStep(1);
+        }
+
+        toggleSection(true);
         refreshSuggestions();
     }
 
@@ -845,13 +946,17 @@ interface Window {
     }
 
     function closeModal(): void {
-        $modal.classList.add('hidden');
+        toggleSection(false);
         editingId = null;
         submitPartyTypeOverride = null;
         $form.reset();
-        $partyDetailsContainer.classList.add('hidden');
         $partyIdHidden.value = '';
         clearFormErrors();
+        if (validator) validator.clearAllErrors();
+        renderPartyProfileCard();
+        
+        (window as any).currentStep = 1;
+        (window as any).totalSteps = 1;
     }
 
     let suggestionSelectedIndex = -1;
@@ -875,11 +980,22 @@ interface Window {
             if (!query) {
                 $partySuggestions.classList.add('hidden');
                 $partyIdHidden.value = '';
-                $partyDetailsContainer.classList.add('hidden');
+                if ($previewPartyName) $previewPartyName.textContent = '';
+                if ($previewPartyPhone) $previewPartyPhone.textContent = '';
+                if ($previewPartyGstin) $previewPartyGstin.textContent = '';
+                if ($previewPartyEmail) $previewPartyEmail.textContent = '';
+                if ($previewPartyAddress) $previewPartyAddress.textContent = '';
+                renderPartyProfileCard();
                 return;
             }
 
-            const filtered = currentParties.filter(p => p.name.toLowerCase().includes(query));
+            const filtered = currentParties.filter(p => {
+                const nameMatch = (p.name || '').toLowerCase().includes(query);
+                const phoneMatch = ((p as any).phone || '').toLowerCase().includes(query);
+                const emailMatch = ((p as any).email || '').toLowerCase().includes(query);
+                const gstinMatch = ((p as any).gstin || '').toLowerCase().includes(query);
+                return nameMatch || phoneMatch || emailMatch || gstinMatch;
+            });
             if (filtered.length === 0) {
                 $partySuggestions.classList.add('hidden');
                 return;
@@ -888,17 +1004,32 @@ interface Window {
             $partySuggestions.classList.remove('hidden');
             filtered.forEach((party, idx) => {
                 const li = document.createElement('li');
-                li.textContent = party.name;
-                li.className = 'px-4 py-2 cursor-pointer hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-0';
+                li.className = 'px-4 py-2.5 hover:bg-blue-50/70 cursor-pointer border-b border-gray-100 last:border-0 transition-colors duration-150';
+
+                const name = party.name || 'Unknown';
+                const phone = (party as any).phone || '';
+                const email = (party as any).email || '';
+                const gstin = (party as any).gstin || '';
+
+                let metaParts: string[] = [];
+                if (phone) metaParts.push(`<span class="inline-flex items-center"><i class="fas fa-phone text-gray-400 mr-1 text-[10px]"></i>${phone}</span>`);
+                if (email) metaParts.push(`<span class="inline-flex items-center"><i class="fas fa-envelope text-gray-400 mr-1 text-[10px]"></i>${email}</span>`);
+                if (gstin) metaParts.push(`<span class="inline-flex items-center bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-blue-100">GSTIN: ${gstin}</span>`);
+
+                li.innerHTML = `
+                    <div class="font-medium text-gray-800 text-sm">${name}</div>
+                    ${metaParts.length > 0 ? `<div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1 text-xs text-gray-500">${metaParts.join('<span class="text-gray-300">•</span>')}</div>` : ''}
+                `;
                 li.onclick = () => {
                     const directionRadio = document.querySelector(
                         'input[name="direction"]:checked'
                     ) as HTMLInputElement | null;
                     const type = directionRadio && directionRadio.value === 'OUT' ? 'Supplier' : 'Customer';
-                    $partyNameInput.value = party.name;
-                    $partyIdHidden.value = party.id;
+                    $partyNameInput.value = party.name || '';
+                    $partyIdHidden.value = party.id || '';
                     $partySuggestions.classList.add('hidden');
-                    fetchPartyDetails(type, party.name);
+                    fetchPartyDetails(type, party.name || '');
+                    $partyNameInput.dispatchEvent(new Event('input', { bubbles: true }));
                 };
                 $partySuggestions.appendChild(li);
             });
@@ -967,13 +1098,15 @@ interface Window {
     (document.getElementById('reset-filters') as HTMLButtonElement)
         .addEventListener('click', resetAdvancedFilters);
 
-    // Close modal
-    (document.getElementById('close-modal-btn') as HTMLButtonElement)
-        .addEventListener('click', closeModal);
-    (document.getElementById('cancel-btn') as HTMLButtonElement)
-        .addEventListener('click', closeModal);
-    (document.getElementById('modal-overlay') as HTMLDivElement)
-        .addEventListener('click', closeModal);
+    // Close/Cancel Form actions
+    const $homeBtnEl = document.getElementById('home-btn');
+    if ($homeBtnEl) $homeBtnEl.addEventListener('click', () => {
+        window.location.href = '/payment';
+    });
+    const $cancelBtn = document.getElementById('cancel-btn');
+    if ($cancelBtn) $cancelBtn.addEventListener('click', () => {
+        window.location.href = '/payment';
+    });
 
     (document.getElementById('close-details-modal-btn') as HTMLButtonElement)
         .addEventListener('click', closeDetailsModal);
@@ -1051,43 +1184,47 @@ interface Window {
         const date: string = (document.getElementById('form-date') as HTMLInputElement).value;
         const mode: string = (document.getElementById('form-mode') as HTMLSelectElement).value;
 
-        let isValid = true;
-        clearFormErrors();
-
-        const amountInput = document.getElementById('form-amount') as HTMLInputElement;
-        const amountVal = Number(amountInput.value);
-        if (!amountInput.value || isNaN(amountVal) || amountVal <= 0) {
-            showInlineError(amountInput, 'Please enter a valid amount greater than 0.');
-            isValid = false;
-        }
-
-        const modeSelect = document.getElementById('form-mode') as HTMLSelectElement;
-        if (!modeSelect.value) {
-            showInlineError(modeSelect, 'Please select a payment mode.');
-            isValid = false;
-        }
-
         const refTypeSelect = document.getElementById('form-reference-type') as HTMLSelectElement;
         const refIdInput = document.getElementById('form-reference-id') as HTMLInputElement;
-        const refType = refTypeSelect.value;
-        const refId = refIdInput.value.trim();
+        const refType = refTypeSelect ? refTypeSelect.value : '';
+        const refId = refIdInput ? refIdInput.value.trim() : '';
 
-        if (refType && refType !== 'Adjustment' && !refId) {
-            showInlineError(refIdInput, 'Please enter a Reference ID for the selected Reference Type.');
-            isValid = false;
-        }
-        if (!refType && refId) {
-            showInlineError(refTypeSelect, 'Please select a Reference Type for the entered Reference ID.');
-            isValid = false;
-        }
+        let isValid = true;
+        if (validator) {
+            isValid = validator.validateAll();
+        } else {
+            clearFormErrors();
 
-        const partyNameInput = document.getElementById('form-party-name') as HTMLInputElement;
-        if (!partyNameInput.value.trim()) {
-            showInlineError(partyNameInput, 'Please search and select a Party.');
-            isValid = false;
-        } else if (!$partyIdHidden.value.trim()) {
-            showInlineError(partyNameInput, 'Please select a valid, existing party profile from the suggestions list.');
-            isValid = false;
+            const amountInput = document.getElementById('form-amount') as HTMLInputElement;
+            const amountVal = Number(amountInput.value);
+            if (!amountInput.value || isNaN(amountVal) || amountVal <= 0) {
+                showInlineError(amountInput, 'Please enter a valid amount greater than 0.');
+                isValid = false;
+            }
+
+            const modeSelect = document.getElementById('form-mode') as HTMLSelectElement;
+            if (!modeSelect.value) {
+                showInlineError(modeSelect, 'Please select a payment mode.');
+                isValid = false;
+            }
+
+            if (refType && refType !== 'Adjustment' && !refId) {
+                if (refIdInput) showInlineError(refIdInput, 'Please enter a Reference ID for the selected Reference Type.');
+                isValid = false;
+            }
+            if (!refType && refId) {
+                if (refTypeSelect) showInlineError(refTypeSelect, 'Please select a Reference Type for the entered Reference ID.');
+                isValid = false;
+            }
+
+            const partyNameInput = document.getElementById('form-party-name') as HTMLInputElement;
+            if (!partyNameInput.value.trim()) {
+                showInlineError(partyNameInput, 'Please search and select a Party.');
+                isValid = false;
+            } else if (!$partyIdHidden.value.trim()) {
+                showInlineError(partyNameInput, 'Please select a valid, existing party profile from the suggestions list.');
+                isValid = false;
+            }
         }
 
         if (!isValid) {
@@ -1163,11 +1300,11 @@ interface Window {
             $filterPopover.classList.add('hidden');
             return;
         }
-        if (e.key === 'Escape' && !$modal.classList.contains('hidden')) {
+        if (e.key === 'Escape' && !$newSec.classList.contains('hidden')) {
             closeModal();
             return;
         }
-        if (isCtrlPressed && keyLower === 's' && !$modal.classList.contains('hidden')) {
+        if (isCtrlPressed && keyLower === 's' && !$newSec.classList.contains('hidden')) {
             e.preventDefault();
             $form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
             return;
@@ -1193,6 +1330,110 @@ interface Window {
             $searchInput.select();
         }
     });
+
+    window.validateCurrentStep = async () => {
+        const step = (window as any).currentStep;
+
+        if (validator) {
+            if (step === 1) {
+                const amountValid = validator.validateField('amount');
+                const modeValid = validator.validateField('mode');
+                if (!amountValid) {
+                    const amountInput = document.getElementById('form-amount') as HTMLInputElement;
+                    if (amountInput) amountInput.focus();
+                    return false;
+                }
+                if (!modeValid) {
+                    const modeSelect = document.getElementById('form-mode') as HTMLSelectElement;
+                    if (modeSelect) modeSelect.focus();
+                    return false;
+                }
+                return true;
+            }
+            if (step === 2) {
+                const partyValid = validator.validateField('party_name');
+                if (!partyValid) {
+                    const partyNameInput = document.getElementById('form-party-name') as HTMLInputElement;
+                    if (partyNameInput) partyNameInput.focus();
+                    return false;
+                }
+                return true;
+            }
+            if (step === 3) {
+                const refTypeValid = validator.validateField('reference_type');
+                const refIdValid = validator.validateField('reference_id');
+                if (!refTypeValid) {
+                    const refTypeSelect = document.getElementById('form-reference-type') as HTMLSelectElement;
+                    if (refTypeSelect) refTypeSelect.focus();
+                    return false;
+                }
+                if (!refIdValid) {
+                    const refIdInput = document.getElementById('form-reference-id') as HTMLInputElement;
+                    if (refIdInput) refIdInput.focus();
+                    return false;
+                }
+                return refTypeValid && refIdValid;
+            }
+            return true;
+        }
+
+        clearFormErrors();
+
+        if (step === 1) {
+            const amountInput = document.getElementById('form-amount') as HTMLInputElement;
+            const amountVal = Number(amountInput.value);
+            if (!amountInput.value || isNaN(amountVal) || amountVal <= 0) {
+                showInlineError(amountInput, 'Please enter a valid amount greater than 0.');
+                amountInput.focus();
+                return false;
+            }
+
+            const modeSelect = document.getElementById('form-mode') as HTMLSelectElement;
+            if (!modeSelect.value) {
+                showInlineError(modeSelect, 'Please select a payment mode.');
+                modeSelect.focus();
+                return false;
+            }
+            return true;
+        }
+
+        if (step === 2) {
+            const partyNameInput = document.getElementById('form-party-name') as HTMLInputElement;
+            const partyIdHidden = document.getElementById('form-party-id-hidden') as HTMLInputElement;
+            if (!partyNameInput.value.trim()) {
+                showInlineError(partyNameInput, 'Please search and select a Party.');
+                partyNameInput.focus();
+                return false;
+            } else if (!partyIdHidden.value.trim()) {
+                showInlineError(partyNameInput, 'Please select a valid, existing party profile from the suggestions list.');
+                partyNameInput.focus();
+                return false;
+            }
+            return true;
+        }
+
+        if (step === 3) {
+            const refTypeSelect = document.getElementById('form-reference-type') as HTMLSelectElement;
+            const refIdInput = document.getElementById('form-reference-id') as HTMLInputElement;
+            const refType = refTypeSelect.value;
+            const refId = refIdInput.value.trim();
+
+            let isValid = true;
+            if (refType && refType !== 'Adjustment' && !refId) {
+                showInlineError(refIdInput, 'Please enter a Reference ID for the selected Reference Type.');
+                refIdInput.focus();
+                isValid = false;
+            }
+            if (!refType && refId) {
+                showInlineError(refTypeSelect, 'Please select a Reference Type for the entered Reference ID.');
+                refTypeSelect.focus();
+                isValid = false;
+            }
+            return isValid;
+        }
+
+        return true;
+    };
 
     // ── Exposed for inline onclick handlers ────────────────
     window._paymentUI = {
@@ -1221,9 +1462,103 @@ interface Window {
         }
     };
 
+    function initValidation() {
+        if ((window as any).FormValidator && (window as any).Validators && $form) {
+            const V = (window as any).Validators;
+            validator = new (window as any).FormValidator($form);
+
+            validator.registerField('amount', [
+                {
+                    validate: (val: string) => {
+                        const num = Number(val);
+                        if (!val || isNaN(num) || num <= 0) {
+                            return 'Please enter a valid amount greater than 0.';
+                        }
+                        return true;
+                    }
+                }
+            ]);
+
+            validator.registerField('mode', [
+                V.required('Please select a payment mode.')
+            ]);
+
+            validator.registerField('party_name', [
+                V.required('Please search and select a Party.'),
+                {
+                    validate: (val: string) => {
+                        const hiddenId = ($partyIdHidden.value || '').trim();
+                        if (!hiddenId) {
+                            return 'Please select a valid, existing party profile from the suggestions list.';
+                        }
+                        return true;
+                    }
+                }
+            ]);
+
+            validator.registerField('reference_type', [
+                {
+                    validate: (val: string) => {
+                        const refIdInput = document.getElementById('form-reference-id') as HTMLInputElement;
+                        const refId = refIdInput ? refIdInput.value.trim() : '';
+                        if (!val && refId) {
+                            return 'Please select a Reference Type for the entered Reference ID.';
+                        }
+                        return true;
+                    }
+                }
+            ]);
+
+            validator.registerField('reference_id', [
+                {
+                    validate: (val: string) => {
+                        const refTypeSelect = document.getElementById('form-reference-type') as HTMLSelectElement;
+                        const refType = refTypeSelect ? refTypeSelect.value : '';
+                        if (refType && refType !== 'Adjustment' && !val.trim()) {
+                            return 'Please enter a Reference ID for the selected Reference Type.';
+                        }
+                        return true;
+                    }
+                }
+            ]);
+
+            const refTypeSelect = document.getElementById('form-reference-type') as HTMLSelectElement;
+            const refIdInput = document.getElementById('form-reference-id') as HTMLInputElement;
+            if (refTypeSelect && refIdInput) {
+                refTypeSelect.addEventListener('change', () => {
+                    if (validator) validator.validateField('reference_id');
+                });
+                refIdInput.addEventListener('input', () => {
+                    if (validator) validator.validateField('reference_type');
+                });
+            }
+        }
+    }
+
     // ── Init ───────────────────────────────────────────────
     initPartySuggestions();
     initShortcutsModal();
-    fetchPayments();
+    initValidation();
+    fetchPayments().then(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('id');
+        const isEdit = urlParams.get('edit') === 'true';
+        const isRefund = urlParams.get('refund') === 'true';
+
+        if (editId) {
+            fetch(`/payment/${editId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.payment) {
+                        if (isEdit) {
+                            openModal(data.payment);
+                        } else if (isRefund) {
+                            openRefundModal(data.payment);
+                        }
+                    }
+                })
+                .catch(err => console.error('Error auto-loading payment from params:', err));
+        }
+    });
 
 })();

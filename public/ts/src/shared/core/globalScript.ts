@@ -211,6 +211,13 @@ document.getElementById('settings')?.addEventListener('click', () => {
 })
 
 let currentStep = 1;
+if (typeof (window as any).currentStep === 'undefined') {
+  Object.defineProperty(window, 'currentStep', {
+    get: () => currentStep,
+    set: (val) => { currentStep = val; },
+    configurable: true
+  });
+}
 
 async function moveNext() {
   // Hook: Check if the current module has a validation function
@@ -356,7 +363,9 @@ if (nextBtn) {
       if (!isValid) return;
     }
 
-    const isInvoice = window.location.pathname.toLowerCase().includes('/invoice') || window.location.pathname.toLowerCase().includes('/purchase');
+    const isInvoice = window.location.pathname.toLowerCase().includes('/invoice') || 
+                      window.location.pathname.toLowerCase().includes('/purchase') ||
+                      window.location.pathname.toLowerCase().includes('/payment');
     if (isInvoice && currentStep === totalSteps) {
       const saveBtn = document.getElementById("save-btn");
       if (saveBtn) {
@@ -380,8 +389,11 @@ if (nextBtn) {
     if (currentStep < totalSteps) {
       changeStep(currentStep + 1);
       const idInput = document.getElementById('id') || document.getElementById('service-id');
-      if (currentStep === totalSteps && !idInput?.value) getId();
-      else if (currentStep === totalSteps && idInput?.value) generatePreview();
+      if (currentStep === totalSteps && !idInput?.value && typeof (window as any).getId === 'function') {
+        (window as any).getId();
+      } else if (currentStep === totalSteps && idInput?.value && typeof (window as any).generatePreview === 'function') {
+        (window as any).generatePreview();
+      }
     }
 
     if (currentStep === 5 && sessionStorage.getItem('currentTab') === 'quotation') {
@@ -420,13 +432,17 @@ function changeStep(step) {
   updateNavigation();
   if (stepIndicator) stepIndicator.textContent = `Step ${currentStep} of ${totalSteps}`;
 }
+(window as any).changeStep = changeStep;
+
 
 // Function to update the navigation buttons
 function updateNavigation() {
   const prevBtn = document.getElementById("prev-btn");
   const nextBtn = document.getElementById("next-btn");
   const saveBtn = document.getElementById("save-btn");
-  const isInvoice = window.location.pathname.toLowerCase().includes('/invoice') || window.location.pathname.toLowerCase().includes('/purchase');
+  const isInvoice = window.location.pathname.toLowerCase().includes('/invoice') || 
+                    window.location.pathname.toLowerCase().includes('/purchase') ||
+                    window.location.pathname.toLowerCase().includes('/payment');
   const isQuotation = window.location.pathname.toLowerCase().includes('/quotation');
 
   if (prevBtn) prevBtn.disabled = currentStep === 1;

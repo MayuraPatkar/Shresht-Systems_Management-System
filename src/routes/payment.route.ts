@@ -284,67 +284,33 @@ router.get('/get-parties/:type', async (req: Request, res: Response) => {
         let parties: any[] = [];
 
         if (type === 'Customer') {
-            parties = await CustomerModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'customer.name': 1, _id: 1 }).lean();
-            res.json(parties.map(p => ({ id: p._id, name: p.customer.name })));
+            parties = await CustomerModel.find(
+                { 'deletion.is_deleted': { $ne: true } },
+                { 'customer.name': 1, 'customer.first_name': 1, 'customer.last_name': 1, 'customer.phone': 1, 'customer.email': 1, gstin: 1, _id: 1 }
+            ).lean();
+            res.json(parties.map(p => {
+                const c = p.customer || {};
+                const fullName = [c.first_name, c.last_name].filter(Boolean).join(' ');
+                return {
+                    id: p._id,
+                    name: c.name || fullName || 'Unnamed Customer',
+                    phone: c.phone || '',
+                    email: c.email || '',
+                    gstin: p.gstin || ''
+                };
+            }));
         } else if (type === 'Supplier') {
-            parties = await SupplierModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'supplier_name': 1, _id: 1 }).lean();
-            res.json(parties.map(p => ({ id: p._id, name: p.supplier_name })));
-        } else {
-            res.status(400).json({ success: false, message: 'Invalid party type' });
-        }
-    } catch (error: unknown) {
-        logger.error('Error fetching parties:', error);
-        res.status(500).json({ success: false, message: 'Internal server error' });
-    }
-});
-
-/**
- * GET /payment/get-party-details/:type/:partyName
- * Fetch details for a specific party
- */
-router.get('/get-party-details/:type/:partyName', async (req: Request, res: Response) => {
-    try {
-        const { type, partyName } = req.params;
-        let party: any = null;
-
-        if (type === 'Customer') {
-            party = await CustomerModel.findOne({
-                'customer.name': partyName,
-                'deletion.is_deleted': { $ne: true }
-            }).lean();
-        } else if (type === 'Supplier') {
-            party = await SupplierModel.findOne({
-                'supplier_name': partyName,
-                'deletion.is_deleted': { $ne: true }
-            }).lean();
-        }
-
-        if (!party) {
-            return res.status(404).json({ success: false, message: 'Party not found' });
-        }
-
-        res.json({ success: true, party });
-    } catch (error: unknown) {
-        logger.error('Error fetching party details:', error);
-        res.status(500).json({ success: false, message: 'Internal server error' });
-    }
-});
-
-/**
- * GET /payment/get-parties/:type
- * Fetch party names for suggestions
- */
-router.get('/get-parties/:type', async (req: Request, res: Response) => {
-    try {
-        const type = req.params.type; // 'Customer' or 'Supplier'
-        let parties: any[] = [];
-
-        if (type === 'Customer') {
-            parties = await CustomerModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'customer.name': 1, _id: 1 }).lean();
-            res.json(parties.map(p => ({ id: p._id, name: p.customer.name })));
-        } else if (type === 'Supplier') {
-            parties = await SupplierModel.find({ 'deletion.is_deleted': { $ne: true } }, { 'supplier_name': 1, _id: 1 }).lean();
-            res.json(parties.map(p => ({ id: p._id, name: p.supplier_name })));
+            parties = await SupplierModel.find(
+                { 'deletion.is_deleted': { $ne: true } },
+                { 'supplier_name': 1, 'phone': 1, 'email': 1, 'gstin': 1, _id: 1 }
+            ).lean();
+            res.json(parties.map(p => ({
+                id: p._id,
+                name: p.supplier_name || 'Unnamed Supplier',
+                phone: p.phone || '',
+                email: p.email || '',
+                gstin: p.gstin || ''
+            })));
         } else {
             res.status(400).json({ success: false, message: 'Invalid party type' });
         }

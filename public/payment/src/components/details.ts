@@ -9,13 +9,7 @@
 
     // ── State ──────────────────────────────────────────────
     let currentPayment: IPaymentRecord | null = null;
-    let editingId: string | null = null;
-    let submitPartyTypeOverride: 'Customer' | 'Supplier' | null = null;
     let shortcutsModalRef: HTMLElement | null = null;
-    
-    // Autocomplete/Suggestions state
-    let suggestionSelectedIndex = -1;
-    let currentParties: {id: string, name: string}[] = [];
 
     // URL Param check
     const urlParams = new URLSearchParams(window.location.search);
@@ -64,24 +58,7 @@
     const $detailsRefundBtn = document.getElementById('details-refund-btn') as HTMLButtonElement;
     const $detailsDeleteBtn = document.getElementById('details-delete-btn') as HTMLButtonElement;
 
-    // Form Modal DOM Refs
-    const $modal = document.getElementById('payment-modal') as HTMLDivElement;
-    const $form = document.getElementById('payment-form') as HTMLFormElement;
-    const $formPaymentId = document.getElementById('form-payment-id') as HTMLInputElement;
-    const $modalTitle = document.getElementById('modal-title') as HTMLElement;
-    const $modalSubtitle = document.getElementById('modal-subtitle') as HTMLElement;
-    const $submitBtnText = document.getElementById('submit-btn-text') as HTMLElement;
 
-    // Party Input Suggestions inside Modal
-    const $partyNameInput = document.getElementById('form-party-name') as HTMLInputElement;
-    const $partyIdHidden = document.getElementById('form-party-id-hidden') as HTMLInputElement;
-    const $partySuggestions = document.getElementById('party-suggestions') as HTMLUListElement;
-    const $partyDetailsContainer = document.getElementById('party-details-container') as HTMLElement;
-    const $previewPartyName = document.getElementById('preview-party-name') as HTMLElement;
-    const $previewPartyPhone = document.getElementById('preview-party-phone') as HTMLElement;
-    const $previewPartyGstin = document.getElementById('preview-party-gstin') as HTMLElement;
-    const $previewPartyEmail = document.getElementById('preview-party-email') as HTMLElement;
-    const $previewPartyAddress = document.getElementById('preview-party-address') as HTMLElement;
 
     // ── Helper functions ───────────────────────────────────
     function formatCurrency(n: number): string {
@@ -218,74 +195,14 @@
         }
     }
 
-    async function savePayment(payload: IPaymentPayload): Promise<IApiResponse> {
-        const url: string = editingId ? `/payment/${editingId}` : '/payment/create';
-        const method: string = editingId ? 'PUT' : 'POST';
-        const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        return res.json();
-    }
+
 
     async function deletePayment(): Promise<IApiResponse> {
         const res = await fetch(`/payment/${paymentId}`, { method: 'DELETE' });
         return res.json();
     }
 
-    async function fetchParties(type: 'Customer' | 'Supplier'): Promise<{id: string, name: string}[]> {
-        try {
-            const res = await fetch(`/payment/get-parties/${type}`);
-            if (!res.ok) return [];
-            return await res.json();
-        } catch (e) {
-            console.error('Failed to fetch parties', e);
-            return [];
-        }
-    }
 
-    async function fetchPartyDetails(type: 'Customer' | 'Supplier', partyName: string): Promise<any> {
-        if (!partyName) return null;
-        try {
-            const res = await fetch(`/payment/get-party-details/${type}/${encodeURIComponent(partyName)}`);
-            return await res.json();
-        } catch (e) {
-            console.error('Failed to fetch party details', e);
-            throw e;
-        }
-    }
-
-    async function fetchPartyDetailsById(type: string, id: string): Promise<void> {
-        try {
-            const res = await fetch(`/payment/get-party-details-by-id/${type}/${id}`);
-            const data = await res.json();
-            if (data.success && data.party) {
-                const party = data.party;
-                const contact = type === 'Customer' ? party.customer : party.supplier;
-                $partyNameInput.value = contact?.name || '';
-                
-                // Display in modal preview container
-                const address = type === 'Customer' ? party.billing_address : party.address;
-                $previewPartyName.textContent = contact?.name || '';
-                $previewPartyPhone.textContent = contact?.phone || '-';
-                $previewPartyGstin.textContent = party.gstin || '-';
-                $previewPartyEmail.textContent = contact?.email || '-';
-
-                let addrStr = '-';
-                if (address) {
-                    addrStr = [address.line1, address.line2, address.city, address.state, address.pincode]
-                        .filter(Boolean).join(', ');
-                }
-                $previewPartyAddress.textContent = addrStr;
-                $partyDetailsContainer.classList.remove('hidden');
-                
-                $partyIdHidden.value = party._id;
-            }
-        } catch (e) {
-            console.error('Failed to fetch party by ID', e);
-        }
-    }
 
     async function fetchDetailsParty(type: 'Customer' | 'Supplier', id: string): Promise<void> {
         try {
@@ -429,211 +346,7 @@
         }
     }
 
-    // ── Form Modals ────────────────────────────────────────
-    function openModal(payment: IPaymentRecord | null): void {
-        editingId = payment ? payment._id : null;
-        submitPartyTypeOverride = payment?.party_type || null;
-        $formPaymentId.value = editingId || '';
-        $partyDetailsContainer.classList.add('hidden');
-        $partyIdHidden.value = '';
-        clearFormErrors();
 
-        if (payment) {
-            $modalTitle.textContent = 'Edit Payment';
-            $modalSubtitle.textContent = 'Update payment details';
-            $submitBtnText.textContent = 'Update Payment';
-
-            // Populate form
-            const dirRadio = document.querySelector(
-                `input[name="direction"][value="${payment.direction}"]`
-            ) as HTMLInputElement | null;
-            if (dirRadio) dirRadio.checked = true;
-
-            (document.getElementById('form-amount') as HTMLInputElement).value = String(payment.amount || '');
-            (document.getElementById('form-date') as HTMLInputElement).value =
-                payment.payment_date ? payment.payment_date.substring(0, 10) : todayISO();
-            (document.getElementById('form-mode') as HTMLSelectElement).value = payment.mode || 'Cash';
-            
-            $partyNameInput.value = ''; 
-            $partyIdHidden.value = payment.party_id || '';
-
-            (document.getElementById('form-reference-type') as HTMLSelectElement).value = payment.reference_type || '';
-            (document.getElementById('form-reference-id') as HTMLInputElement).value = payment.reference_id || '';
-            (document.getElementById('form-transaction-details') as HTMLInputElement).value = payment.transaction_details || '';
-            (document.getElementById('form-advance') as HTMLInputElement).checked = payment.is_advance || false;
-            (document.getElementById('form-remarks') as HTMLTextAreaElement).value = payment.remarks || '';
-
-            // Fetch details if party ID exists
-            if (payment.party_id) {
-                fetchPartyDetailsById(paymentPartyType(payment), payment.party_id);
-            }
-        } else {
-            $modalTitle.textContent = 'New Payment';
-            $modalSubtitle.textContent = 'Record a new payment transaction';
-            $submitBtnText.textContent = 'Save Payment';
-            $form.reset();
-            (document.getElementById('form-date') as HTMLInputElement).value = todayISO();
-            const inRadio = document.querySelector(
-                'input[name="direction"][value="IN"]'
-            ) as HTMLInputElement | null;
-            if (inRadio) inRadio.checked = true;
-        }
-
-        $modal.classList.remove('hidden');
-        refreshSuggestions();
-    }
-
-    function openRefundModal(payment: IPaymentRecord): void {
-        editingId = null;
-        submitPartyTypeOverride = paymentPartyType(payment);
-        $formPaymentId.value = '';
-        $form.reset();
-        clearFormErrors();
-        
-        $modalTitle.textContent = 'Refund Payment';
-        $modalSubtitle.textContent = 'Create a reverse adjustment for this transaction';
-        $submitBtnText.textContent = 'Save Refund';
-
-        const refundDirection = payment.direction === 'IN' ? 'OUT' : 'IN';
-        const dirRadio = document.querySelector(
-            `input[name="direction"][value="${refundDirection}"]`
-        ) as HTMLInputElement | null;
-        if (dirRadio) dirRadio.checked = true;
-
-        (document.getElementById('form-amount') as HTMLInputElement).value = String(payment.amount || '');
-        (document.getElementById('form-date') as HTMLInputElement).value = todayISO();
-        (document.getElementById('form-mode') as HTMLSelectElement).value = payment.mode || 'Cash';
-        (document.getElementById('form-reference-type') as HTMLSelectElement).value = 'Adjustment';
-        (document.getElementById('form-reference-id') as HTMLInputElement).value = '';
-        (document.getElementById('form-transaction-details') as HTMLInputElement).value = payment.transaction_details || '';
-        (document.getElementById('form-advance') as HTMLInputElement).checked = false;
-        (document.getElementById('form-remarks') as HTMLTextAreaElement).value = `Refund for payment ${payment._id}`;
-
-        $partyNameInput.value = '';
-        $partyIdHidden.value = payment.party_id || '';
-        $partyDetailsContainer.classList.add('hidden');
-        if (payment.party_id) {
-            fetchPartyDetailsById(paymentPartyType(payment), payment.party_id);
-        }
-
-        $modal.classList.remove('hidden');
-        refreshSuggestions();
-    }
-
-    function closeModal(): void {
-        $modal.classList.add('hidden');
-        editingId = null;
-        submitPartyTypeOverride = null;
-        $form.reset();
-        $partyDetailsContainer.classList.add('hidden');
-        $partyIdHidden.value = '';
-        clearFormErrors();
-    }
-
-    async function refreshSuggestions(): Promise<void> {
-        const directionRadio = document.querySelector(
-            'input[name="direction"]:checked'
-        ) as HTMLInputElement | null;
-        const type = directionRadio && directionRadio.value === 'OUT' ? 'Supplier' : 'Customer';
-        
-        currentParties = await fetchParties(type);
-    }
-
-    function initPartySuggestions(): void {
-        $partyNameInput.addEventListener('input', () => {
-            const query = $partyNameInput.value.toLowerCase().trim();
-            $partySuggestions.innerHTML = '';
-            suggestionSelectedIndex = -1;
-
-            if (!query) {
-                $partySuggestions.classList.add('hidden');
-                $partyIdHidden.value = '';
-                $partyDetailsContainer.classList.add('hidden');
-                return;
-            }
-
-            const filtered = currentParties.filter(p => p.name.toLowerCase().includes(query));
-            if (filtered.length === 0) {
-                $partySuggestions.classList.add('hidden');
-                return;
-            }
-
-            $partySuggestions.classList.remove('hidden');
-            filtered.forEach((party, idx) => {
-                const li = document.createElement('li');
-                li.textContent = party.name;
-                li.className = 'px-4 py-2 cursor-pointer hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-0';
-                li.onclick = () => {
-                    const directionRadio = document.querySelector(
-                        'input[name="direction"]:checked'
-                    ) as HTMLInputElement | null;
-                    const type = directionRadio && directionRadio.value === 'OUT' ? 'Supplier' : 'Customer';
-                    $partyNameInput.value = party.name;
-                    $partyIdHidden.value = party.id;
-                    $partySuggestions.classList.add('hidden');
-                    
-                    fetchPartyDetails(type, party.name).then(data => {
-                        if (data.success && data.party) {
-                            const pData = data.party;
-                            const contact = type === 'Customer' ? pData.customer : pData.supplier;
-                            const address = type === 'Customer' ? pData.billing_address : pData.address;
-
-                            $previewPartyName.textContent = contact?.name || party.name;
-                            $previewPartyPhone.textContent = contact?.phone || '-';
-                            $previewPartyGstin.textContent = pData.gstin || '-';
-                            $previewPartyEmail.textContent = contact?.email || '-';
-
-                            let addrStr = '-';
-                            if (address) {
-                                addrStr = [address.line1, address.line2, address.city, address.state, address.pincode]
-                                    .filter(Boolean).join(', ');
-                            }
-                            $previewPartyAddress.textContent = addrStr;
-                            $partyDetailsContainer.classList.remove('hidden');
-                        }
-                    });
-                };
-                $partySuggestions.appendChild(li);
-            });
-        });
-
-        $partyNameInput.addEventListener('keydown', (e: KeyboardEvent) => {
-            const items = $partySuggestions.querySelectorAll('li');
-            if (items.length === 0) return;
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                suggestionSelectedIndex = (suggestionSelectedIndex + 1) % items.length;
-                updateSelection(items);
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                suggestionSelectedIndex = (suggestionSelectedIndex - 1 + items.length) % items.length;
-                updateSelection(items);
-            } else if (e.key === 'Enter' && suggestionSelectedIndex > -1) {
-                e.preventDefault();
-                (items[suggestionSelectedIndex] as HTMLElement).click();
-            } else if (e.key === 'Escape') {
-                $partySuggestions.classList.add('hidden');
-            }
-        });
-
-        function updateSelection(items: NodeListOf<HTMLLIElement>) {
-            items.forEach((item, idx) => {
-                if (idx === suggestionSelectedIndex) {
-                    item.classList.add('bg-blue-50', 'text-blue-700', 'font-medium');
-                    item.scrollIntoView({ block: 'nearest' });
-                } else {
-                    item.classList.remove('bg-blue-50', 'text-blue-700', 'font-medium');
-                }
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (e.target !== $partyNameInput && !$partySuggestions.contains(e.target as Node)) {
-                $partySuggestions.classList.add('hidden');
-            }
-        });
-    }
 
     // ── Keyboard Shortcuts ─────────────────────────────────
     function injectShortcutsStyles(): void {
@@ -673,7 +386,7 @@
             ['Edit Payment', ['Ctrl', 'E']],
             ['Refund Transaction', ['Ctrl', 'U']],
             ['Delete Payment', ['Ctrl', 'Delete']],
-            ['Close Modal / Escape', ['Esc']],
+            ['Close Shortcuts / Escape', ['Esc']],
             ['Back to Payments', ['Ctrl', 'H']],
             ['Keyboard Shortcuts', ['?']]
         ].map(([label, keys]) => `
@@ -746,11 +459,11 @@
     });
 
     $detailsEditBtn.addEventListener('click', () => {
-        if (currentPayment) openModal(currentPayment);
+        window.location.href = `/payment?id=${paymentId}&edit=true`;
     });
 
     $detailsRefundBtn.addEventListener('click', () => {
-        if (currentPayment) openRefundModal(currentPayment);
+        window.location.href = `/payment?id=${paymentId}&refund=true`;
     });
 
     $detailsDeleteBtn.addEventListener('click', () => {
@@ -796,108 +509,6 @@
         }
     });
 
-    // Close Modal buttons
-    (document.getElementById('close-modal-btn') as HTMLButtonElement).addEventListener('click', closeModal);
-    (document.getElementById('cancel-btn') as HTMLButtonElement).addEventListener('click', closeModal);
-    (document.getElementById('modal-overlay') as HTMLDivElement).addEventListener('click', closeModal);
-
-    // Direction changes refresh suggestions
-    document.querySelectorAll('input[name="direction"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            submitPartyTypeOverride = null;
-            $partyNameInput.value = '';
-            $partyIdHidden.value = '';
-            $partyDetailsContainer.classList.add('hidden');
-            refreshSuggestions();
-        });
-    });
-
-    // Form submit
-    $form.addEventListener('submit', async (e: Event) => {
-        e.preventDefault();
-
-        const directionRadio = document.querySelector(
-            'input[name="direction"]:checked'
-        ) as HTMLInputElement | null;
-        const direction: string = directionRadio ? directionRadio.value : 'IN';
-        const amount: string = (document.getElementById('form-amount') as HTMLInputElement).value;
-        const date: string = (document.getElementById('form-date') as HTMLInputElement).value;
-        const mode: string = (document.getElementById('form-mode') as HTMLSelectElement).value;
-
-        let isValid = true;
-        clearFormErrors();
-
-        const amountInput = document.getElementById('form-amount') as HTMLInputElement;
-        const amountVal = Number(amountInput.value);
-        if (!amountInput.value || isNaN(amountVal) || amountVal <= 0) {
-            showInlineError(amountInput, 'Please enter a valid amount greater than 0.');
-            isValid = false;
-        }
-
-        const modeSelect = document.getElementById('form-mode') as HTMLSelectElement;
-        if (!modeSelect.value) {
-            showInlineError(modeSelect, 'Please select a payment mode.');
-            isValid = false;
-        }
-
-        const refTypeSelect = document.getElementById('form-reference-type') as HTMLSelectElement;
-        const refIdInput = document.getElementById('form-reference-id') as HTMLInputElement;
-        const refType = refTypeSelect.value;
-        const refId = refIdInput.value.trim();
-
-        if (refType && refType !== 'Adjustment' && !refId) {
-            showInlineError(refIdInput, 'Please enter a Reference ID for the selected Reference Type.');
-            isValid = false;
-        }
-        if (!refType && refId) {
-            showInlineError(refTypeSelect, 'Please select a Reference Type for the entered Reference ID.');
-            isValid = false;
-        }
-
-        if (!isValid) {
-            const firstInvalid = $form.querySelector('[aria-invalid="true"]') as HTMLElement | null;
-            if (firstInvalid) {
-                firstInvalid.focus();
-            }
-            return;
-        }
-
-        const payload: IPaymentPayload = {
-            direction: direction as 'IN' | 'OUT',
-            amount: Number(amount),
-            payment_date: date || todayISO(),
-            mode,
-            party_type: submitPartyTypeOverride || (direction === 'IN' ? 'Customer' : 'Supplier'),
-            party_id: $partyIdHidden.value || $partyNameInput.value || undefined,
-            reference_type: refType || "",
-            reference_id: refId || "",
-            transaction_details: (document.getElementById('form-transaction-details') as HTMLInputElement).value || "",
-            is_advance: (document.getElementById('form-advance') as HTMLInputElement).checked,
-            remarks: (document.getElementById('form-remarks') as HTMLTextAreaElement).value || ""
-        };
-
-        try {
-            const result: IApiResponse = await savePayment(payload);
-            if (result.success) {
-                showToast(editingId ? 'Payment updated successfully!' : 'Payment saved successfully!');
-                closeModal();
-                if (editingId) {
-                    fetchFullDetails();
-                } else {
-                    // Recorded refund/new payment, redirect back to payment lists
-                    setTimeout(() => {
-                        window.location.href = '/payment';
-                    }, 1000);
-                }
-            } else {
-                showToast(result.message || 'Failed to save payment', true);
-            }
-        } catch (err) {
-            console.error('Save error:', err);
-            showToast('Error saving payment', true);
-        }
-    });
-
     // Keyboard Shortcuts listener
     document.addEventListener('keydown', (e: KeyboardEvent) => {
         const keyLower = e.key.toLowerCase();
@@ -925,15 +536,7 @@
             hideShortcutsModal();
             return;
         }
-        if (e.key === 'Escape' && !$modal.classList.contains('hidden')) {
-            closeModal();
-            return;
-        }
-        if (isCtrlPressed && keyLower === 's' && !$modal.classList.contains('hidden')) {
-            e.preventDefault();
-            $form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-            return;
-        }
+
         if (isCtrlPressed && keyLower === 'e' && !isTypingContext()) {
             e.preventDefault();
             $detailsEditBtn.click();
@@ -957,7 +560,6 @@
     });
 
     // ── Init ───────────────────────────────────────────────
-    initPartySuggestions();
     initShortcutsModal();
     fetchFullDetails();
 
