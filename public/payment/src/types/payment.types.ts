@@ -28,6 +28,10 @@ interface IPaymentRecord {
     mode: 'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque';
     transaction_details?: string;
     is_advance: boolean;
+    is_refund?: boolean;
+    refunded_payment_ref?: string;
+    is_already_refunded?: boolean;
+    refund_payment_id?: string;
     remarks?: string;
     deletion: {
         is_deleted: boolean;
@@ -49,6 +53,8 @@ interface IPaymentPayload {
     reference_id?: string;
     transaction_details?: string;
     is_advance: boolean;
+    is_refund?: boolean;
+    refunded_payment_ref?: string;
     remarks?: string;
 }
 

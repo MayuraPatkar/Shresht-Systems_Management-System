@@ -43,6 +43,7 @@ export interface IPayment extends Document {
 
     is_advance: boolean;
     is_refund: boolean;
+    refunded_payment_ref?: Types.ObjectId;
 
     remarks?: string;
 
@@ -166,6 +167,12 @@ const paymentSchema = new Schema<IPayment>(
         is_refund: {
             type: Boolean,
             default: false,
+        },
+
+        refunded_payment_ref: {
+            type: Schema.Types.ObjectId,
+            ref: "Payment",
+            index: true,
         },
 
         // Audit

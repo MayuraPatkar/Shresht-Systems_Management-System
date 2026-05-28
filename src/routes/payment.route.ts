@@ -250,10 +250,32 @@ async function enrichSinglePayment(payment: any) {
     norm.party_id = partyRef ? String(partyRef) : undefined;
     norm.party_display_id = partyId;
     norm.party_name = partyName;
+
+    // Check if this payment is already refunded by an active refund payment
+    const refundDoc = await PaymentModel.findOne({
+        refunded_payment_ref: payment._id,
+        is_refund: true,
+        'deletion.is_deleted': { $ne: true }
+    }, { _id: 1 }).lean();
+    
+    norm.is_already_refunded = !!refundDoc;
+    if (refundDoc) {
+        norm.refund_payment_id = String(refundDoc._id);
+    }
+    
     return norm;
 }
 
 async function normalizePaymentResponses(payments: any[]) {
+    const paymentIds = payments.map(p => p._id);
+    const activeRefunds = await PaymentModel.find({
+        refunded_payment_ref: { $in: paymentIds },
+        is_refund: true,
+        'deletion.is_deleted': { $ne: true }
+    }, { refunded_payment_ref: 1 }).lean();
+    
+    const refundedSet = new Set(activeRefunds.map(r => r.refunded_payment_ref?.toString()).filter(Boolean));
+
     const customers = await CustomerModel.find({}, { 'customer.name': 1, customer_id: 1 }).lean();
     const suppliers = await SupplierModel.find({}, { supplier_name: 1, supplier_id: 1 }).lean();
     const customerMap = new Map(customers.map(c => [c._id.toString(), c]));
@@ -271,7 +293,11 @@ async function normalizePaymentResponses(payments: any[]) {
     ]);
     const serviceMap = new Map(services.map(s => [s._id.toString(), s] as [string, any]));
 
-    return payments.map(p => normalizePaymentResponse(p, customerMap, supplierMap, invoiceMap, purchaseMap, serviceMap));
+    return payments.map(p => {
+        const norm = normalizePaymentResponse(p, customerMap, supplierMap, invoiceMap, purchaseMap, serviceMap);
+        norm.is_already_refunded = refundedSet.has(p._id.toString());
+        return norm;
+    });
 }
 
 /**
@@ -479,6 +505,7 @@ router.post('/create', async (req: Request, res: Response) => {
             transaction_details,
             is_advance,
             is_refund,
+            refunded_payment_ref,
             remarks
         } = req.body;
 
@@ -487,6 +514,20 @@ router.post('/create', async (req: Request, res: Response) => {
                 success: false,
                 message: 'Amount, direction, and mode are required'
             });
+        }
+
+        if (is_refund && refunded_payment_ref) {
+            const existingRefund = await PaymentModel.findOne({
+                refunded_payment_ref,
+                is_refund: true,
+                'deletion.is_deleted': { $ne: true }
+            });
+            if (existingRefund) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This payment has already been refunded'
+                });
+            }
         }
 
         const party = await resolvePartyLink(party_type, party_id);
@@ -502,6 +543,7 @@ router.post('/create', async (req: Request, res: Response) => {
             transaction_details: transaction_details || undefined,
             is_advance: is_advance || false,
             is_refund: is_refund || false,
+            refunded_payment_ref: refunded_payment_ref || undefined,
             remarks: remarks || undefined
         } as any);
         await payment.save();
@@ -541,11 +583,27 @@ router.put('/:id', async (req: Request, res: Response) => {
             transaction_details,
             is_advance,
             is_refund,
+            refunded_payment_ref,
             remarks
         } = req.body;
 
         const oldReferenceType = (payment as any).reference?.type;
         const oldReferenceRef = (payment as any).reference?.ref;
+
+        if (is_refund && refunded_payment_ref) {
+            const existingRefund = await PaymentModel.findOne({
+                refunded_payment_ref,
+                is_refund: true,
+                _id: { $ne: new Types.ObjectId(req.params.id) },
+                'deletion.is_deleted': { $ne: true }
+            });
+            if (existingRefund) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This payment has already been refunded'
+                });
+            }
+        }
 
         if (payment_date !== undefined) payment.payment_date = payment_date;
         if (amount !== undefined) payment.amount = Number(amount);
@@ -572,6 +630,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         if (transaction_details !== undefined) (payment as any).transaction_details = transaction_details || undefined;
         if (is_advance !== undefined) payment.is_advance = is_advance;
         if (is_refund !== undefined) payment.is_refund = is_refund;
+        if (refunded_payment_ref !== undefined) (payment as any).refunded_payment_ref = refunded_payment_ref || undefined;
         if (remarks !== undefined) (payment as any).remarks = remarks || undefined;
 
         await payment.save();

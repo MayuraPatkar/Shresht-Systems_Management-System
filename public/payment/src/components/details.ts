@@ -29,6 +29,8 @@
     const $detailsAmount = document.getElementById('details-amount') as HTMLElement;
     const $detailsDirection = document.getElementById('details-direction') as HTMLElement;
     const $detailsAdvanceBadge = document.getElementById('details-advance-badge') as HTMLElement;
+    const $detailsRefundBadge = document.getElementById('details-refund-badge') as HTMLElement;
+    const $detailsRefundedBadge = document.getElementById('details-refunded-badge') as HTMLElement;
     const $detailsDate = document.getElementById('details-date') as HTMLElement;
     const $detailsMode = document.getElementById('details-mode') as HTMLElement;
     
@@ -323,6 +325,28 @@
             $detailsAdvanceBadge.classList.add('hidden');
         }
 
+        if (payment.is_refund) {
+            $detailsRefundBadge.classList.remove('hidden');
+        } else {
+            $detailsRefundBadge.classList.add('hidden');
+        }
+
+        if (payment.is_already_refunded) {
+            $detailsRefundedBadge.classList.remove('hidden');
+        } else {
+            $detailsRefundedBadge.classList.add('hidden');
+        }
+
+        if (payment.is_already_refunded || payment.is_refund) {
+            $detailsRefundBtn.disabled = true;
+            $detailsRefundBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            $detailsRefundBtn.title = payment.is_refund ? 'Cannot refund a refund transaction' : 'This payment has already been refunded';
+        } else {
+            $detailsRefundBtn.disabled = false;
+            $detailsRefundBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            $detailsRefundBtn.title = 'Refund Transaction (Ctrl+U)';
+        }
+
         $detailsDate.textContent = formatDate(payment.payment_date);
         $detailsMode.textContent = payment.mode || '-';
 
@@ -544,7 +568,9 @@
         }
         if (isCtrlPressed && keyLower === 'u' && !isTypingContext()) {
             e.preventDefault();
-            $detailsRefundBtn.click();
+            if (!$detailsRefundBtn.disabled) {
+                $detailsRefundBtn.click();
+            }
             return;
         }
         if (isCtrlPressed && e.key === 'Delete' && !isTypingContext()) {

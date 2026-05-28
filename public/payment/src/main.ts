@@ -35,6 +35,9 @@ interface IPaymentRecord {
     transaction_details?: string;
     is_advance: boolean;
     is_refund?: boolean;
+    refunded_payment_ref?: string;
+    is_already_refunded?: boolean;
+    refund_payment_id?: string;
     remarks?: string;
     deletion: {
         is_deleted: boolean;
@@ -57,6 +60,7 @@ interface IPaymentPayload {
     transaction_details?: string;
     is_advance: boolean;
     is_refund?: boolean;
+    refunded_payment_ref?: string;
     remarks?: string;
 }
 
@@ -84,6 +88,7 @@ interface Window {
     let filteredPayments: IPaymentRecord[] = [];
     let currentFilter: string = 'all';
     let editingId: string | null = null;
+    let refundedPaymentId: string | null = null;
     let selectedDetailsPayment: IPaymentRecord | null = null;
     let submitPartyTypeOverride: 'Customer' | 'Supplier' | null = null;
     let shortcutsModalRef: HTMLElement | null = null;
@@ -475,6 +480,12 @@ interface Window {
             const advanceBadge: string = p.is_advance
                 ? '<span class="ml-1 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold">ADV</span>'
                 : '';
+            const refundBadge: string = p.is_refund
+                ? '<span class="ml-1 text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">REFUND</span>'
+                : '';
+            const refundedBadge: string = p.is_already_refunded
+                ? '<span class="ml-1 text-[10px] bg-red-50 text-red-600 border border-red-200 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">REFUNDED</span>'
+                : '';
 
             return `
             <tr class="payment-row border-b border-gray-100" data-payment-id="${escapeHtml(p._id)}" tabindex="0" title="View payment details">
@@ -484,6 +495,8 @@ interface Window {
                         <i class="fas ${dirIcon} text-[10px]"></i>${dirLabel}
                     </span>
                     ${advanceBadge}
+                    ${refundBadge}
+                    ${refundedBadge}
                 </td>
                 <td class="px-6 py-4 text-right font-bold ${p.direction === 'IN' ? 'text-green-700' : 'text-red-700'}">
                     ${formatCurrency(p.amount)}
@@ -541,6 +554,7 @@ interface Window {
     // ── Modal ──────────────────────────────────────────────
     async function openModal(payment: IPaymentRecord | null): Promise<void> {
         editingId = payment ? payment._id : null;
+        refundedPaymentId = null;
         submitPartyTypeOverride = payment?.party_type || null;
         $formPaymentId.value = editingId || '';
         $partyIdHidden.value = '';
@@ -772,6 +786,7 @@ interface Window {
     function openRefundModal(payment: IPaymentRecord): void {
         closeDetailsModal();
         editingId = null;
+        refundedPaymentId = payment._id;
         submitPartyTypeOverride = paymentPartyType(payment);
         $formPaymentId.value = '';
         $form.reset();
@@ -953,6 +968,7 @@ interface Window {
     function closeModal(): void {
         toggleSection(false);
         editingId = null;
+        refundedPaymentId = null;
         submitPartyTypeOverride = null;
         $form.reset();
         $partyIdHidden.value = '';
@@ -1310,6 +1326,7 @@ interface Window {
             transaction_details: (document.getElementById('form-transaction-details') as HTMLInputElement).value || "",
             is_advance: (document.getElementById('form-advance') as HTMLInputElement).checked,
             is_refund: (document.getElementById('form-refund') as HTMLInputElement).checked,
+            refunded_payment_ref: refundedPaymentId || undefined,
             remarks: (document.getElementById('form-remarks') as HTMLTextAreaElement).value || ""
         };
 

@@ -209,6 +209,16 @@
                 transform: translateY(0);
             }
         }
+
+        /* Combined sidebar widget / Context Details card hide if empty */
+        #context-details-card:not(:has(#details-party-expanded:not(.hidden))):not(:has(#details-ref-expanded:not(.hidden))) {
+            display: none !important;
+        }
+
+        /* Divider border styling: remove border if next element is hidden */
+        #details-party-expanded:has(+ #details-ref-expanded.hidden) {
+            border-bottom: none !important;
+        }
     </style>
 </head>
 
@@ -222,6 +232,25 @@
                 <h1 id="header-title" class="text-xl font-bold text-gray-800">Payment Details</h1>
             </div>
             <div class="flex items-center gap-3">
+                <!-- Action button group -->
+                <div class="flex items-center gap-2 mr-3 border-r pr-3 border-gray-200">
+                    <button id="details-edit-btn"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        title="Edit Payment (Ctrl+E)">
+                        <i class="fas fa-edit text-xs"></i> Edit
+                    </button>
+                    <button id="details-refund-btn"
+                        class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold shadow-sm transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/10"
+                        title="Refund Transaction (Ctrl+U)">
+                        <i class="fas fa-rotate-left text-xs"></i> Refund
+                    </button>
+                    <button id="details-delete-btn"
+                        class="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500/10"
+                        title="Delete Payment (Ctrl+Delete)">
+                        <i class="fas fa-trash-alt text-xs"></i> Delete
+                    </button>
+                </div>
+
                 <button id="home-btn"
                     class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium shadow-sm transition-all duration-150 active:scale-95 cursor-pointer"
                     title="Go Back (Ctrl+H)">
@@ -336,6 +365,8 @@
                             <h2 id="details-amount" class="text-3xl font-extrabold text-slate-800 tracking-tight">₹ 0.00</h2>
                             <span id="details-direction" class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider">-</span>
                             <span id="details-advance-badge" class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold uppercase tracking-wider hidden">ADVANCE</span>
+                            <span id="details-refund-badge" class="px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold uppercase tracking-wider hidden">REFUND</span>
+                            <span id="details-refunded-badge" class="px-2.5 py-1 bg-red-50 text-red-600 border border-red-200 rounded-full text-xs font-bold uppercase tracking-wider hidden">REFUNDED</span>
                         </div>
                         <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-xs font-medium">
                             <div class="flex items-center gap-1.5">
@@ -349,120 +380,110 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="flex flex-wrap items-center gap-2.5">
-                    <button id="details-edit-btn"
-                        class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                        title="Edit Payment (Ctrl+E)">
-                        <i class="fas fa-edit"></i> Edit Payment
-                    </button>
-                    <button id="details-refund-btn"
-                        class="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/10"
-                        title="Refund Transaction (Ctrl+U)">
-                        <i class="fas fa-rotate-left"></i> Refund Transaction
-                    </button>
-                    <button id="details-delete-btn"
-                        class="px-5 py-3 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-sm font-bold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500/10"
-                        title="Delete Payment (Ctrl+Delete)">
-                        <i class="fas fa-trash-alt"></i> Delete Payment
-                    </button>
-                </div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 fade-in">
             <!-- Left Info Block: Details -->
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-5">
                     <h3 class="text-lg font-bold text-gray-800 border-b pb-2">Transaction Details</h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <span class="text-gray-500 font-medium block">Transaction Ref / Details:</span>
-                            <span id="details-transaction" class="font-semibold text-gray-800 text-base break-words">-</span>
+                            <span class="text-xs text-gray-400 font-medium tracking-normal block mb-1">Transaction Ref / Details</span>
+                            <span id="details-transaction" class="text-sm text-gray-900 font-semibold break-words block">-</span>
                         </div>
                         <div>
-                            <span class="text-gray-500 font-medium block">Party Link:</span>
-                            <span id="details-party" class="font-semibold text-gray-800 text-base">-</span>
+                            <span class="text-xs text-gray-400 font-medium tracking-normal block mb-1">Party Link</span>
+                            <span id="details-party" class="text-sm text-gray-900 font-semibold block">-</span>
                         </div>
                         <div>
-                            <span class="text-gray-500 font-medium block">Reference:</span>
-                            <span id="details-reference" class="font-semibold text-gray-800 text-base">-</span>
+                            <span class="text-xs text-gray-400 font-medium tracking-normal block mb-1">Reference</span>
+                            <span id="details-reference" class="text-sm text-gray-900 font-semibold block">-</span>
                         </div>
                         <div>
-                            <span class="text-gray-500 font-medium block">Created Date:</span>
-                            <span id="details-created" class="font-semibold text-gray-600">-</span>
+                            <span class="text-xs text-gray-400 font-medium tracking-normal block mb-1">Created Date</span>
+                            <span id="details-created" class="text-sm text-gray-900 font-semibold block">-</span>
                         </div>
                     </div>
 
                     <div class="border-t pt-4">
-                        <span class="text-gray-500 font-medium block mb-2">Remarks / Internal Notes:</span>
-                        <div id="details-remarks" class="bg-gray-50 p-4 rounded-lg border border-gray-100 italic text-gray-600 min-h-[80px]">
+                        <span class="text-xs text-gray-400 font-medium tracking-normal block mb-2">Remarks / Internal Notes</span>
+                        <div id="details-remarks" class="border-l-4 border-blue-500 bg-blue-50/30 p-4 rounded-r-lg italic text-gray-600 leading-relaxed text-sm min-h-[60px]">
                             -
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column Cards: Party & Reference Detail cards -->
+            <!-- Right Column Cards: Associated Metadata card -->
             <div class="space-y-6">
-                <!-- Expanded Party Info Card -->
-                <div id="details-party-expanded" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <h3 class="text-sm font-bold text-blue-700 uppercase tracking-wider mb-4 flex items-center gap-1.5 border-b pb-2">
-                        <i class="fas fa-id-card"></i> Expanded Party Info
-                    </h3>
-                    <div class="space-y-3.5 text-sm">
-                        <div>
-                            <span class="text-gray-400 block text-xs font-semibold uppercase">Name / Business</span>
-                            <span id="details-party-name" class="font-bold text-slate-800">-</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-xs font-semibold uppercase">Phone Number</span>
-                            <span id="details-party-phone" class="font-semibold text-slate-700">-</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-xs font-semibold uppercase">Email Address</span>
-                            <span id="details-party-email" class="font-semibold text-slate-700 break-all">-</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-xs font-semibold uppercase">GSTIN</span>
-                            <span id="details-party-gstin" class="font-semibold text-slate-700">-</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-xs font-semibold uppercase">Address</span>
-                            <span id="details-party-address" class="font-medium text-slate-600 block leading-relaxed">-</span>
+                <!-- Combined Context Details Card -->
+                <div id="context-details-card" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                        <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fas fa-info-circle text-gray-500"></i> Associated Metadata
+                        </h3>
+                    </div>
+
+                    <!-- Expanded Party Info Section -->
+                    <div id="details-party-expanded" class="hidden p-6 border-b border-gray-100">
+                        <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                            <i class="fas fa-id-card"></i> Party Info
+                        </h4>
+                        <div class="space-y-3.5 text-sm">
+                            <div>
+                                <span class="text-gray-400 block text-[10px] font-semibold uppercase tracking-wider mb-0.5">Name / Business</span>
+                                <span id="details-party-name" class="font-bold text-slate-800 text-sm">-</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 block text-[10px] font-semibold uppercase tracking-wider mb-0.5">Phone Number</span>
+                                <span id="details-party-phone" class="font-semibold text-slate-700 text-sm">-</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 block text-[10px] font-semibold uppercase tracking-wider mb-0.5">Email Address</span>
+                                <span id="details-party-email" class="font-semibold text-slate-700 text-sm break-all">-</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 block text-[10px] font-semibold uppercase tracking-wider mb-0.5">GSTIN</span>
+                                <span id="details-party-gstin" class="font-semibold text-slate-700 text-sm">-</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 block text-[10px] font-semibold uppercase tracking-wider mb-0.5">Address</span>
+                                <span id="details-party-address" class="font-medium text-slate-600 text-sm block leading-relaxed">-</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Expanded Reference Info Card -->
-                <div id="details-ref-expanded" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <h3 class="text-sm font-bold text-emerald-700 uppercase tracking-wider mb-4 flex items-center gap-1.5 border-b pb-2">
-                        <i class="fas fa-file-invoice"></i> Expanded Reference Info
-                    </h3>
-                    <div class="space-y-3.5 text-sm">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <span class="text-gray-400 block text-xs font-semibold uppercase">Ref ID</span>
-                                <span id="details-ref-id" class="font-bold text-slate-800">-</span>
+                    <!-- Expanded Reference Info Section -->
+                    <div id="details-ref-expanded" class="hidden p-6">
+                        <h4 class="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                            <i class="fas fa-file-invoice"></i> Reference Info
+                        </h4>
+                        <div class="space-y-3.5 text-sm">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="text-gray-400 block text-[10px] font-semibold uppercase tracking-wider mb-0.5">Ref ID</span>
+                                    <span id="details-ref-id" class="font-bold text-slate-800 text-sm">-</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400 block text-[10px] font-semibold uppercase tracking-wider mb-0.5">Status</span>
+                                    <span id="details-ref-status" class="font-bold text-slate-700 text-sm uppercase">-</span>
+                                </div>
                             </div>
                             <div>
-                                <span class="text-gray-400 block text-xs font-semibold uppercase">Status</span>
-                                <span id="details-ref-status" class="font-bold text-slate-700 uppercase">-</span>
+                                <span class="text-gray-400 block text-[10px] font-semibold uppercase tracking-wider mb-0.5">Total Amount</span>
+                                <span id="details-ref-amount" class="font-bold text-emerald-700 text-sm">-</span>
                             </div>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-xs font-semibold uppercase">Total Amount</span>
-                            <span id="details-ref-amount" class="font-bold text-emerald-700">-</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-xs font-semibold uppercase">Document Date</span>
-                            <span id="details-ref-date" class="font-semibold text-slate-700">-</span>
+                            <div>
+                                <span class="text-gray-400 block text-[10px] font-semibold uppercase tracking-wider mb-0.5">Document Date</span>
+                                <span id="details-ref-date" class="font-semibold text-slate-700 text-sm">-</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
     </main>
 
