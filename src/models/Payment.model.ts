@@ -42,6 +42,7 @@ export interface IPayment extends Document {
     transaction_details?: string;
 
     is_advance: boolean;
+    is_refund: boolean;
 
     remarks?: string;
 
@@ -158,6 +159,11 @@ const paymentSchema = new Schema<IPayment>(
         },
 
         is_advance: {
+            type: Boolean,
+            default: false,
+        },
+
+        is_refund: {
             type: Boolean,
             default: false,
         },

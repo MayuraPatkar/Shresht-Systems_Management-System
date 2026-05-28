@@ -478,6 +478,7 @@ router.post('/create', async (req: Request, res: Response) => {
             mode,
             transaction_details,
             is_advance,
+            is_refund,
             remarks
         } = req.body;
 
@@ -500,6 +501,7 @@ router.post('/create', async (req: Request, res: Response) => {
             mode,
             transaction_details: transaction_details || undefined,
             is_advance: is_advance || false,
+            is_refund: is_refund || false,
             remarks: remarks || undefined
         } as any);
         await payment.save();
@@ -538,6 +540,7 @@ router.put('/:id', async (req: Request, res: Response) => {
             mode,
             transaction_details,
             is_advance,
+            is_refund,
             remarks
         } = req.body;
 
@@ -568,6 +571,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         if (mode !== undefined) payment.mode = mode;
         if (transaction_details !== undefined) (payment as any).transaction_details = transaction_details || undefined;
         if (is_advance !== undefined) payment.is_advance = is_advance;
+        if (is_refund !== undefined) payment.is_refund = is_refund;
         if (remarks !== undefined) (payment as any).remarks = remarks || undefined;
 
         await payment.save();

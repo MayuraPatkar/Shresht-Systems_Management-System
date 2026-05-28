@@ -491,7 +491,6 @@
                                         <option value="Invoice">Invoice</option>
                                         <option value="Purchase">Purchase</option>
                                         <option value="Service">Service</option>
-                                        <option value="Adjustment">Adjustment</option>
                                     </select>
                                 </div>
                                 <div>
@@ -514,13 +513,22 @@
                                     placeholder="UTR / Cheque No. / Bank Ref.">
                             </div>
 
-                            <!-- Advance Checkbox -->
-                            <div class="flex items-center gap-3 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                                <input type="checkbox" id="form-advance"
-                                    class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                <label for="form-advance" class="text-sm font-medium text-amber-800 cursor-pointer">
-                                    <i class="fas fa-forward mr-1"></i>This is an advance payment
-                                </label>
+                            <!-- Advance & Refund Checkboxes -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="flex items-center gap-3 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                                    <input type="checkbox" id="form-advance"
+                                        class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <label for="form-advance" class="text-sm font-medium text-amber-800 cursor-pointer">
+                                        <i class="fas fa-forward mr-1"></i>This is an advance payment
+                                    </label>
+                                </div>
+                                <div class="flex items-center gap-3 bg-red-50 p-3 rounded-lg border border-red-200">
+                                    <input type="checkbox" id="form-refund"
+                                        class="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                                    <label for="form-refund" class="text-sm font-medium text-red-800 cursor-pointer">
+                                        <i class="fas fa-undo mr-1"></i>This is a refund transaction
+                                    </label>
+                                </div>
                             </div>
 
                             <!-- Remarks -->

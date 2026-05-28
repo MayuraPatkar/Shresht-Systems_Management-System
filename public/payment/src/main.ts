@@ -34,6 +34,7 @@ interface IPaymentRecord {
     mode: 'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque';
     transaction_details?: string;
     is_advance: boolean;
+    is_refund?: boolean;
     remarks?: string;
     deletion: {
         is_deleted: boolean;
@@ -55,6 +56,7 @@ interface IPaymentPayload {
     reference_id?: string;
     transaction_details?: string;
     is_advance: boolean;
+    is_refund?: boolean;
     remarks?: string;
 }
 
@@ -570,6 +572,7 @@ interface Window {
             (document.getElementById('form-reference-id') as HTMLInputElement).value = payment.reference_id || '';
             (document.getElementById('form-transaction-details') as HTMLInputElement).value = payment.transaction_details || '';
             (document.getElementById('form-advance') as HTMLInputElement).checked = payment.is_advance || false;
+            (document.getElementById('form-refund') as HTMLInputElement).checked = payment.is_refund || false;
             (document.getElementById('form-remarks') as HTMLTextAreaElement).value = payment.remarks || '';
 
             // Fetch details if party ID exists
@@ -785,11 +788,13 @@ interface Window {
         (document.getElementById('form-amount') as HTMLInputElement).value = String(payment.amount || '');
         (document.getElementById('form-date') as HTMLInputElement).value = todayISO();
         (document.getElementById('form-mode') as HTMLSelectElement).value = payment.mode || 'Cash';
-        (document.getElementById('form-reference-type') as HTMLSelectElement).value = 'Adjustment';
-        (document.getElementById('form-reference-id') as HTMLInputElement).value = '';
+        const refIdVal = payment.reference_id || '';
+        (document.getElementById('form-reference-type') as HTMLSelectElement).value = payment.reference_type || '';
+        (document.getElementById('form-reference-id') as HTMLInputElement).value = refIdVal;
         (document.getElementById('form-transaction-details') as HTMLInputElement).value = payment.transaction_details || '';
         (document.getElementById('form-advance') as HTMLInputElement).checked = false;
-        (document.getElementById('form-remarks') as HTMLTextAreaElement).value = `Refund for payment ${payment._id}`;
+        (document.getElementById('form-refund') as HTMLInputElement).checked = true;
+        (document.getElementById('form-remarks') as HTMLTextAreaElement).value = `Refund for payment ${refIdVal || payment._id.substring(payment._id.length - 6).toUpperCase()}`;
 
         $partyNameInput.value = '';
         $partyIdHidden.value = payment.party_id || '';
@@ -1304,6 +1309,7 @@ interface Window {
             reference_id: refId || "",
             transaction_details: (document.getElementById('form-transaction-details') as HTMLInputElement).value || "",
             is_advance: (document.getElementById('form-advance') as HTMLInputElement).checked,
+            is_refund: (document.getElementById('form-refund') as HTMLInputElement).checked,
             remarks: (document.getElementById('form-remarks') as HTMLTextAreaElement).value || ""
         };
 
