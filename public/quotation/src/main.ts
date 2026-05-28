@@ -441,6 +441,25 @@ function showNewQuotationForm() {
     const statusInput = document.getElementById('quotation-status') as HTMLSelectElement;
     if (statusInput) statusInput.value = 'Draft';
 
+    // Clear previous items and add 1 default empty item row
+    const itemsContainer = document.getElementById("items-container");
+    const nonItemsContainer = document.getElementById("non-items-container");
+    const specificationsContainer = document.getElementById("specifications-container");
+    const itemsTableBody = document.querySelector("#items-table tbody");
+    const nonItemsTableBody = document.querySelector("#non-items-table tbody");
+    const itemsSpecificationsTableBody = document.querySelector("#items-specifications-table tbody");
+
+    if (itemsContainer) itemsContainer.innerHTML = "";
+    if (nonItemsContainer) nonItemsContainer.innerHTML = "";
+    if (specificationsContainer) specificationsContainer.innerHTML = "";
+    if (itemsTableBody) itemsTableBody.innerHTML = "";
+    if (nonItemsTableBody) nonItemsTableBody.innerHTML = "";
+    if (itemsSpecificationsTableBody) itemsSpecificationsTableBody.innerHTML = "";
+
+    if (typeof (window as any).addItem === 'function') {
+        (window as any).addItem();
+    }
+
     // Focus on the Project Name field and hide Print/PDF buttons for new quotations
     setTimeout(() => {
         const idInput = document.getElementById('id') as HTMLInputElement;

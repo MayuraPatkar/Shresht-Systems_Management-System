@@ -28,7 +28,8 @@ class SupplierTable {
         container.classList.remove('hidden');
         emptyState.classList.add('hidden');
 
-        suppliers.forEach(supplier => {
+        const limitedSuppliers = suppliers.slice(0, 9);
+        limitedSuppliers.forEach(supplier => {
             const card = this.createSupplierCard(supplier);
             container.appendChild(card);
         });

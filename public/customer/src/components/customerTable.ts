@@ -28,7 +28,8 @@ class CustomerTable {
         container.classList.remove('hidden');
         emptyState.classList.add('hidden');
 
-        customers.forEach(customer => {
+        const limitedCustomers = customers.slice(0, 9);
+        limitedCustomers.forEach(customer => {
             const card = this.createCustomerCard(customer);
             container.appendChild(card);
         });
