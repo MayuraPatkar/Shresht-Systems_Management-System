@@ -100,7 +100,8 @@ function normalizeInvoicePayments(invoices: any[]) {
             reference_type: 'Invoice',
             reference_id: invoice._id,
             reference_no: invoice.invoice_id || invoice.invoice_no,
-            source: 'invoice'
+            source: 'invoice',
+            payment_ref: payment.payment_ref ? String(payment.payment_ref) : undefined
         }));
     });
 }
@@ -346,7 +347,14 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
         }).sort({ payment_date: -1 });
 
         const embeddedInvoicePayments = normalizeInvoicePayments(invoices);
-        const payments = [...directPayments, ...embeddedInvoicePayments]
+        
+        // De-duplicate: filter out embedded invoice payments that have a payment_ref matching an ID in directPayments
+        const directPaymentIds = new Set(directPayments.map((p: any) => p._id.toString()));
+        const uniqueEmbeddedPayments = embeddedInvoicePayments.filter((p: any) => 
+            !p.payment_ref || !directPaymentIds.has(p.payment_ref)
+        );
+
+        const payments = [...directPayments, ...uniqueEmbeddedPayments]
             .sort((a: any, b: any) => new Date(b.payment_date || b.createdAt || 0).getTime() - new Date(a.payment_date || a.createdAt || 0).getTime());
 
         // Fetch services via invoice ObjectIds. Service.invoice_id is an ObjectId field.

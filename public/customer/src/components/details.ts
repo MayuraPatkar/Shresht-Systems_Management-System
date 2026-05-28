@@ -858,7 +858,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="px-6 py-4"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs font-bold uppercase">${p.mode}</span></td>
             <td class="px-6 py-4 font-bold text-green-600">${formatCurrency(p.amount)}</td>
             <td class="px-6 py-4">
-                <button data-action="view-payment" data-id="${p.payment_id || ''}" class="bg-gray-50 text-gray-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-gray-100 transition-colors uppercase tracking-wider">Details</button>
+                <button data-action="view-payment" data-id="${p.payment_id || p._id || p.id || ''}" class="bg-gray-50 text-gray-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-gray-100 transition-colors uppercase tracking-wider">Details</button>
             </td>
         `);
     }
