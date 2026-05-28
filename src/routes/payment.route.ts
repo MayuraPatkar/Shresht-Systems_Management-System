@@ -594,7 +594,7 @@ router.put('/:id', async (req: Request, res: Response) => {
             const existingRefund = await PaymentModel.findOne({
                 refunded_payment_ref,
                 is_refund: true,
-                _id: { $ne: new Types.ObjectId(req.params.id) },
+                _id: { $ne: new Types.ObjectId(req.params.id as string) },
                 'deletion.is_deleted': { $ne: true }
             });
             if (existingRefund) {
