@@ -598,7 +598,7 @@ interface Window {
         }
 
         toggleSection(true);
-        refreshSuggestions();
+        // Suggestions are fetched live on input — no pre-load needed
     }
 
     async function fetchPartyDetailsById(type: string, id: string): Promise<void> {
@@ -805,7 +805,7 @@ interface Window {
         }
 
         toggleSection(true);
-        refreshSuggestions();
+        // Suggestions are fetched live on input — no pre-load needed
     }
 
     function toggleFilterPopover(): void {
@@ -960,102 +960,154 @@ interface Window {
     }
 
     let suggestionSelectedIndex = -1;
-    let currentParties: {id: string, name: string}[] = [];
+    let currentSuggestions: {id: string, name: string, phone: string, email: string, gstin: string}[] = [];
+    let partyDebounceTimer: ReturnType<typeof setTimeout>;
 
-    async function refreshSuggestions(): Promise<void> {
+    function getSelectedPartyType(): 'Customer' | 'Supplier' {
         const directionRadio = document.querySelector(
             'input[name="direction"]:checked'
         ) as HTMLInputElement | null;
-        const type = directionRadio && directionRadio.value === 'OUT' ? 'Supplier' : 'Customer';
-        
-        currentParties = await fetchParties(type);
+        return directionRadio && directionRadio.value === 'OUT' ? 'Supplier' : 'Customer';
+    }
+
+    async function searchParties(query: string): Promise<{id: string, name: string, phone: string, email: string, gstin: string}[]> {
+        const type = getSelectedPartyType();
+        try {
+            let url: string;
+            if (type === 'Customer') {
+                url = `/customer?search=${encodeURIComponent(query)}`;
+                const res = await fetch(url);
+                if (!res.ok) return [];
+                const customers = await res.json();
+                return (Array.isArray(customers) ? customers : []).map((c: any) => {
+                    const contact = c.customer || {};
+                    const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ');
+                    return {
+                        id: c._id,
+                        name: contact.name || fullName || 'Unnamed Customer',
+                        phone: contact.phone || '',
+                        email: contact.email || '',
+                        gstin: c.gstin || ''
+                    };
+                });
+            } else {
+                url = `/supplier?search=${encodeURIComponent(query)}`;
+                const res = await fetch(url);
+                if (!res.ok) return [];
+                const suppliers = await res.json();
+                return (Array.isArray(suppliers) ? suppliers : []).map((s: any) => ({
+                    id: s._id,
+                    name: s.supplier_name || 'Unnamed Supplier',
+                    phone: s.phone || '',
+                    email: s.email || '',
+                    gstin: s.gstin || ''
+                }));
+            }
+        } catch (e) {
+            console.error('Failed to search parties', e);
+            return [];
+        }
+    }
+
+    function renderSuggestionItem(party: {id: string, name: string, phone: string, email: string, gstin: string}): HTMLLIElement {
+        const li = document.createElement('li');
+        li.className = 'px-4 py-2.5 hover:bg-blue-50/70 cursor-pointer border-b border-gray-100 last:border-0 transition-colors duration-150';
+
+        let metaParts: string[] = [];
+        if (party.phone) metaParts.push(`<span class="inline-flex items-center"><i class="fas fa-phone text-gray-400 mr-1 text-[10px]"></i>${party.phone}</span>`);
+        if (party.email) metaParts.push(`<span class="inline-flex items-center"><i class="fas fa-envelope text-gray-400 mr-1 text-[10px]"></i>${party.email}</span>`);
+        if (party.gstin) metaParts.push(`<span class="inline-flex items-center bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-blue-100">GSTIN: ${party.gstin}</span>`);
+
+        li.innerHTML = `
+            <div class="font-medium text-gray-800 text-sm">${party.name}</div>
+            ${metaParts.length > 0 ? `<div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1 text-xs text-gray-500">${metaParts.join('<span class="text-gray-300">•</span>')}</div>` : ''}
+        `;
+
+        li.onclick = () => {
+            const type = getSelectedPartyType();
+            $partyNameInput.value = party.name;
+            $partyIdHidden.value = party.id;
+            $partySuggestions.classList.add('hidden');
+            $partySuggestions.innerHTML = '';
+            suggestionSelectedIndex = -1;
+            // Populate hidden spans and render the profile card directly using party data
+            if ($previewPartyName) $previewPartyName.textContent = party.name;
+            if ($previewPartyPhone) $previewPartyPhone.textContent = party.phone;
+            if ($previewPartyGstin) $previewPartyGstin.textContent = party.gstin;
+            if ($previewPartyEmail) $previewPartyEmail.textContent = party.email;
+            renderPartyProfileCard();
+            // Fetch full address details in background (updates card again)
+            fetchPartyDetails(type, party.name);
+        };
+
+        return li;
     }
 
     function initPartySuggestions(): void {
         $partyNameInput.addEventListener('input', () => {
-            const query = $partyNameInput.value.toLowerCase().trim();
+            const query = $partyNameInput.value.trim();
+            clearTimeout(partyDebounceTimer);
+
+            // Clear hidden ID when user types manually
+            $partyIdHidden.value = '';
+            if ($previewPartyName) $previewPartyName.textContent = '';
+            if ($previewPartyPhone) $previewPartyPhone.textContent = '';
+            if ($previewPartyGstin) $previewPartyGstin.textContent = '';
+            if ($previewPartyEmail) $previewPartyEmail.textContent = '';
+            if ($previewPartyAddress) $previewPartyAddress.textContent = '';
+            renderPartyProfileCard();
+
             $partySuggestions.innerHTML = '';
             suggestionSelectedIndex = -1;
 
-            if (!query) {
-                $partySuggestions.classList.add('hidden');
-                $partyIdHidden.value = '';
-                if ($previewPartyName) $previewPartyName.textContent = '';
-                if ($previewPartyPhone) $previewPartyPhone.textContent = '';
-                if ($previewPartyGstin) $previewPartyGstin.textContent = '';
-                if ($previewPartyEmail) $previewPartyEmail.textContent = '';
-                if ($previewPartyAddress) $previewPartyAddress.textContent = '';
-                renderPartyProfileCard();
-                return;
-            }
-
-            const filtered = currentParties.filter(p => {
-                const nameMatch = (p.name || '').toLowerCase().includes(query);
-                const phoneMatch = ((p as any).phone || '').toLowerCase().includes(query);
-                const emailMatch = ((p as any).email || '').toLowerCase().includes(query);
-                const gstinMatch = ((p as any).gstin || '').toLowerCase().includes(query);
-                return nameMatch || phoneMatch || emailMatch || gstinMatch;
-            });
-            if (filtered.length === 0) {
+            if (!query || query.length < 1) {
                 $partySuggestions.classList.add('hidden');
                 return;
             }
 
-            $partySuggestions.classList.remove('hidden');
-            filtered.forEach((party, idx) => {
-                const li = document.createElement('li');
-                li.className = 'px-4 py-2.5 hover:bg-blue-50/70 cursor-pointer border-b border-gray-100 last:border-0 transition-colors duration-150';
+            partyDebounceTimer = setTimeout(async () => {
+                currentSuggestions = await searchParties(query);
+                $partySuggestions.innerHTML = '';
+                suggestionSelectedIndex = -1;
 
-                const name = party.name || 'Unknown';
-                const phone = (party as any).phone || '';
-                const email = (party as any).email || '';
-                const gstin = (party as any).gstin || '';
-
-                let metaParts: string[] = [];
-                if (phone) metaParts.push(`<span class="inline-flex items-center"><i class="fas fa-phone text-gray-400 mr-1 text-[10px]"></i>${phone}</span>`);
-                if (email) metaParts.push(`<span class="inline-flex items-center"><i class="fas fa-envelope text-gray-400 mr-1 text-[10px]"></i>${email}</span>`);
-                if (gstin) metaParts.push(`<span class="inline-flex items-center bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-blue-100">GSTIN: ${gstin}</span>`);
-
-                li.innerHTML = `
-                    <div class="font-medium text-gray-800 text-sm">${name}</div>
-                    ${metaParts.length > 0 ? `<div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1 text-xs text-gray-500">${metaParts.join('<span class="text-gray-300">•</span>')}</div>` : ''}
-                `;
-                li.onclick = () => {
-                    const directionRadio = document.querySelector(
-                        'input[name="direction"]:checked'
-                    ) as HTMLInputElement | null;
-                    const type = directionRadio && directionRadio.value === 'OUT' ? 'Supplier' : 'Customer';
-                    $partyNameInput.value = party.name || '';
-                    $partyIdHidden.value = party.id || '';
+                if (currentSuggestions.length === 0) {
                     $partySuggestions.classList.add('hidden');
-                    fetchPartyDetails(type, party.name || '');
-                    $partyNameInput.dispatchEvent(new Event('input', { bubbles: true }));
-                };
-                $partySuggestions.appendChild(li);
-            });
+                    return;
+                }
+
+                $partySuggestions.classList.remove('hidden');
+                currentSuggestions.forEach(party => {
+                    $partySuggestions.appendChild(renderSuggestionItem(party));
+                });
+            }, 250);
         });
 
         $partyNameInput.addEventListener('keydown', (e: KeyboardEvent) => {
             const items = $partySuggestions.querySelectorAll('li');
-            if (items.length === 0) return;
+            if (items.length === 0 || $partySuggestions.classList.contains('hidden')) return;
 
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 suggestionSelectedIndex = (suggestionSelectedIndex + 1) % items.length;
-                updateSelection(items);
+                updateSuggestionSelection(items);
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
                 suggestionSelectedIndex = (suggestionSelectedIndex - 1 + items.length) % items.length;
-                updateSelection(items);
-            } else if (e.key === 'Enter' && suggestionSelectedIndex > -1) {
+                updateSuggestionSelection(items);
+            } else if (e.key === 'Enter') {
                 e.preventDefault();
-                (items[suggestionSelectedIndex] as HTMLElement).click();
+                if (suggestionSelectedIndex > -1) {
+                    (items[suggestionSelectedIndex] as HTMLElement).click();
+                } else if (currentSuggestions.length > 0) {
+                    // Select first on Enter with no highlight
+                    (items[0] as HTMLElement).click();
+                }
             } else if (e.key === 'Escape') {
                 $partySuggestions.classList.add('hidden');
             }
         });
 
-        function updateSelection(items: NodeListOf<HTMLLIElement>) {
+        function updateSuggestionSelection(items: NodeListOf<HTMLLIElement>) {
             items.forEach((item, idx) => {
                 if (idx === suggestionSelectedIndex) {
                     item.classList.add('bg-blue-50', 'text-blue-700', 'font-medium');
@@ -1066,7 +1118,7 @@ interface Window {
             });
         }
 
-        // Hide suggestions on click outside
+        // Hide suggestions on outside click
         document.addEventListener('click', (e) => {
             if (e.target !== $partyNameInput && !$partySuggestions.contains(e.target as Node)) {
                 $partySuggestions.classList.add('hidden');
@@ -1144,14 +1196,20 @@ interface Window {
             }
         });
 
-    // Direction changes refresh suggestions
+    // Direction changes: clear party field and reset profile card
     document.querySelectorAll('input[name="direction"]').forEach(radio => {
         radio.addEventListener('change', () => {
             submitPartyTypeOverride = null;
             $partyNameInput.value = '';
             $partyIdHidden.value = '';
-            $partyDetailsContainer.classList.add('hidden');
-            refreshSuggestions();
+            $partySuggestions.innerHTML = '';
+            $partySuggestions.classList.add('hidden');
+            if ($previewPartyName) $previewPartyName.textContent = '';
+            if ($previewPartyPhone) $previewPartyPhone.textContent = '';
+            if ($previewPartyGstin) $previewPartyGstin.textContent = '';
+            if ($previewPartyEmail) $previewPartyEmail.textContent = '';
+            if ($previewPartyAddress) $previewPartyAddress.textContent = '';
+            renderPartyProfileCard();
         });
     });
 
