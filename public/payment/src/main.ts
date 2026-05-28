@@ -975,7 +975,7 @@ interface Window {
         try {
             let url: string;
             if (type === 'Customer') {
-                url = `/customer?search=${encodeURIComponent(query)}`;
+                url = `/api/customers?search=${encodeURIComponent(query)}`;
                 const res = await fetch(url);
                 if (!res.ok) return [];
                 const customers = await res.json();
@@ -991,7 +991,7 @@ interface Window {
                     };
                 });
             } else {
-                url = `/supplier?search=${encodeURIComponent(query)}`;
+                url = `/api/suppliers?search=${encodeURIComponent(query)}`;
                 const res = await fetch(url);
                 if (!res.ok) return [];
                 const suppliers = await res.json();
