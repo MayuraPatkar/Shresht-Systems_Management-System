@@ -17,6 +17,7 @@ const quotationListDiv = document.querySelector(".records") as HTMLElement;
 // ====== Trash Mode State ======
 let isTrashMode = false;
 let isArchiveMode = false;
+let trashedQuotationsCount = 0;
 
 // ====== Refresh Button Animation Helper ======
 function triggerRefreshAnimation(btn: HTMLButtonElement) {
@@ -159,6 +160,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (restoreAllBtn) {
         restoreAllBtn.addEventListener('click', async () => {
             if (!(window as any).electronAPI) return;
+            if (trashedQuotationsCount === 0) {
+                (window as any).electronAPI.showAlert1('No items to restore.');
+                return;
+            }
             (window as any).electronAPI.showAlert2('Restore ALL deleted quotations?');
             (window as any).electronAPI.receiveAlertResponse(async (response: string) => {
                 if (response === 'Yes') {
@@ -179,6 +184,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (deleteAllBtn) {
         deleteAllBtn.addEventListener('click', async () => {
             if (!(window as any).electronAPI) return;
+            if (trashedQuotationsCount === 0) {
+                (window as any).electronAPI.showAlert1('No items to delete.');
+                return;
+            }
             (window as any).electronAPI.showAlert2('Permanently DELETE ALL trashed quotations? This cannot be undone.');
             (window as any).electronAPI.receiveAlertResponse(async (response: string) => {
                 if (response === 'Yes') {
@@ -261,6 +270,7 @@ async function loadTrashQuotations() {
 
         const data = await response.json();
         const trashed = (data.quotation || []);
+        trashedQuotationsCount = trashed.length;
 
         if (!quotationListDiv) return;
         quotationListDiv.innerHTML = '';
@@ -284,6 +294,7 @@ async function loadTrashQuotations() {
         });
     } catch (error) {
         console.error('Error loading trash:', error);
+        trashedQuotationsCount = 0;
         if (quotationListDiv) {
             quotationListDiv.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-16 fade-in select-none">
