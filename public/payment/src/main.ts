@@ -1027,7 +1027,7 @@ interface Window {
             const type = getSelectedPartyType();
             $partyNameInput.value = party.name;
             $partyIdHidden.value = party.id;
-            $partySuggestions.classList.add('hidden');
+            $partySuggestions.style.display = 'none';
             $partySuggestions.innerHTML = '';
             suggestionSelectedIndex = -1;
             // Populate hidden spans and render the profile card directly using party data
@@ -1061,7 +1061,7 @@ interface Window {
             suggestionSelectedIndex = -1;
 
             if (!query || query.length < 1) {
-                $partySuggestions.classList.add('hidden');
+                $partySuggestions.style.display = 'none';
                 return;
             }
 
@@ -1071,11 +1071,11 @@ interface Window {
                 suggestionSelectedIndex = -1;
 
                 if (currentSuggestions.length === 0) {
-                    $partySuggestions.classList.add('hidden');
+                    $partySuggestions.style.display = 'none';
                     return;
                 }
 
-                $partySuggestions.classList.remove('hidden');
+                $partySuggestions.style.display = 'block';
                 currentSuggestions.forEach(party => {
                     $partySuggestions.appendChild(renderSuggestionItem(party));
                 });
@@ -1084,7 +1084,7 @@ interface Window {
 
         $partyNameInput.addEventListener('keydown', (e: KeyboardEvent) => {
             const items = $partySuggestions.querySelectorAll('li');
-            if (items.length === 0 || $partySuggestions.classList.contains('hidden')) return;
+            if (items.length === 0 || $partySuggestions.style.display === 'none') return;
 
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
@@ -1103,7 +1103,7 @@ interface Window {
                     (items[0] as HTMLElement).click();
                 }
             } else if (e.key === 'Escape') {
-                $partySuggestions.classList.add('hidden');
+                $partySuggestions.style.display = 'none';
             }
         });
 
@@ -1121,7 +1121,7 @@ interface Window {
         // Hide suggestions on outside click
         document.addEventListener('click', (e) => {
             if (e.target !== $partyNameInput && !$partySuggestions.contains(e.target as Node)) {
-                $partySuggestions.classList.add('hidden');
+                $partySuggestions.style.display = 'none';
             }
         });
     }
@@ -1203,7 +1203,7 @@ interface Window {
             $partyNameInput.value = '';
             $partyIdHidden.value = '';
             $partySuggestions.innerHTML = '';
-            $partySuggestions.classList.add('hidden');
+            $partySuggestions.style.display = 'none';
             if ($previewPartyName) $previewPartyName.textContent = '';
             if ($previewPartyPhone) $previewPartyPhone.textContent = '';
             if ($previewPartyGstin) $previewPartyGstin.textContent = '';
