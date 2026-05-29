@@ -70,7 +70,10 @@ export interface IEWayBill extends Document {
     ewaybill_status: "Draft" | "Generated" | "Cancelled" | "Expired";
     ewaybill_date?: Date;
 
-    invoice_id: Types.ObjectId;
+    invoice_id: {
+        id: string;
+        ref: Types.ObjectId;
+    };
 
     from_address?: IAddress;
     to_address?: IAddress;
@@ -204,10 +207,8 @@ const eWayBillSchema = new Schema<IEWayBill>(
         },
 
         invoice_id: {
-            type: Schema.Types.ObjectId,
-            ref: "Invoice",
-            required: true,
-            index: true,
+            id: { type: String, required: true },
+            ref: { type: Schema.Types.ObjectId, ref: "Invoice", required: true, index: true }
         },
 
         from_address: {
@@ -247,15 +248,32 @@ const eWayBillSchema = new Schema<IEWayBill>(
     },
     {
         timestamps: true,
-        toJSON: { virtuals: true },
-        toObject: { virtuals: true },
+        toJSON: { 
+            virtuals: true,
+            transform: function(doc: any, ret: any) {
+                if (ret.invoice_id && ret.invoice_id.id) {
+                    ret.invoice_id = ret.invoice_id.id;
+                }
+                return ret;
+            }
+        },
+        toObject: { 
+            virtuals: true,
+            transform: function(doc: any, ret: any) {
+                if (ret.invoice_id && ret.invoice_id.id) {
+                    ret.invoice_id = ret.invoice_id.id;
+                }
+                return ret;
+            }
+        }
     }
 );
 
 /**
  * Indexes
  */
-eWayBillSchema.index({ invoice_id: 1, createdAt: -1 });
+eWayBillSchema.index({ "invoice_id.id": 1, createdAt: -1 });
+eWayBillSchema.index({ "invoice_id.ref": 1, createdAt: -1 });
 eWayBillSchema.index({ "deletion.is_deleted": 1 });
 
 /**

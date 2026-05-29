@@ -46,6 +46,7 @@
         // Build items table rows
         let itemsHTML = "";
         let sno = 0;
+        let totalQtySum = 0;
         (wayBill.items || []).forEach((item: EWayBillItem) => {
             const description = item.description || "-";
             const hsnCode = item.hsn_sac || "-";
@@ -57,6 +58,8 @@
             const cgst = (taxableValue * (gstRate / 2)) / 100;
             const sgst = (taxableValue * (gstRate / 2)) / 100;
             const rowTotal = taxableValue + cgst + sgst;
+
+            totalQtySum += qty;
 
             itemsHTML += `
                 <tr>
@@ -124,6 +127,22 @@
         if (currentPageHTML !== '') pages.push(currentPageHTML);
         if (pages.length === 0 && itemsHTML === '') pages.push(''); // Handle empty case
 
+        const totalsRowHTML = `
+            <tr class="totals-row" style="font-weight: bold; background-color: #f9fafb;">
+                <td colspan="3" style="text-align: left; padding-left: 10px;">TOTAL</td>
+                <td style="text-align: left;">${totalQtySum}</td>
+                <td style="text-align: left;">-</td>
+                <td style="text-align: left;">₹ ${formatIndian(totalTaxableValue, 2)}</td>
+                <td style="text-align: left;">₹ ${formatIndian(totalTax, 2)}</td>
+                <td style="text-align: left;">₹ ${formatIndian(grandTotal, 2)}</td>
+            </tr>
+        `;
+        
+        // Append totals row to the last page
+        if (pages.length > 0) {
+            pages[pages.length - 1] += totalsRowHTML;
+        }
+
         // Company and header info
         const company = companyConfig ? await companyConfig.getCompanyInfo() : {};
         const companyName = company?.company_name || 'Company Name';
@@ -147,7 +166,7 @@
         const companyWebsite = company?.website || '';
 
         const transport = wayBill.transport || {};
-        const transportDate = wayBill.ewaybill_generated_at || new Date().toISOString();
+        const transportDate = wayBill.ewaybill_date || wayBill.ewaybill_generated_at || new Date().toISOString();
 
         // Extract invoice_id - it might be a populated object or just a string
         const invoiceIdDisplay = wayBill.invoice_id ? (typeof wayBill.invoice_id === 'object' ? ((wayBill.invoice_id as any).invoice_no || (wayBill.invoice_id as any).invoice_id) : wayBill.invoice_id) : '-';
@@ -203,7 +222,6 @@
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center; margin-top: 4px;">
                          <p><strong>Invoice ID: </strong>${invoiceIdDisplay}</p>
-                         <p><strong>Status: </strong><span style="display:inline-block; padding: 2px 8px; border-radius: 9999px; background-color: #f3f4f6; font-size: 0.8em;">${wayBill.ewaybill_status || 'Draft'}</span></p>
                     </div>
                 </div>
 
@@ -363,7 +381,8 @@
 
             const viewDateEl = document.getElementById('view-waybill-date');
             if (viewDateEl) {
-                viewDateEl.textContent = waybill.ewaybill_generated_at ? (typeof formatDateIndian === 'function' ? formatDateIndian(waybill.ewaybill_generated_at) : waybill.ewaybill_generated_at) : '-';
+                const dateVal = waybill.ewaybill_date || waybill.ewaybill_generated_at;
+                viewDateEl.textContent = dateVal ? (typeof formatDateIndian === 'function' ? formatDateIndian(dateVal) : dateVal) : '-';
             }
 
             // Address Details

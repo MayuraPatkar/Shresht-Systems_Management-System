@@ -82,6 +82,15 @@ router.post("/save-ewaybill", async (req: Request, res: Response) => {
         const toAddr = typeof toAddress === 'string'
             ? { line1: toAddress } : toAddress;
 
+        // Resolve the invoice reference if invoiceId is provided
+        let invoiceRef = undefined;
+        if (invoiceId) {
+            const invoice = await InvoiceModel.findOne({ invoice_no: invoiceId });
+            if (invoice) {
+                invoiceRef = invoice._id;
+            }
+        }
+
         let eWayBill: any = null;
 
         // Try to find existing document by _id
@@ -95,7 +104,14 @@ router.post("/save-ewaybill", async (req: Request, res: Response) => {
             // ---------------------------------------------------------
             eWayBill.ewaybill_no = eWayBillNo;
             eWayBill.ewaybill_status = eWayBillStatus;
-            eWayBill.invoice_id = invoiceId || undefined;
+            
+            if (invoiceId && invoiceRef) {
+                eWayBill.invoice_id = { id: invoiceId, ref: invoiceRef };
+            } else if (invoiceId) {
+                // In case invoice isn't found in DB yet but we still want to save it as draft
+                eWayBill.invoice_id = { id: invoiceId, ref: new (require('mongoose').Types.ObjectId)() }; 
+            }
+
             eWayBill.from_address = fromAddr;
             eWayBill.to_address = toAddr;
             eWayBill.transport = {
@@ -112,10 +128,17 @@ router.post("/save-ewaybill", async (req: Request, res: Response) => {
             // ---------------------------------------------------------
             // SCENARIO 2: CREATE NEW E-WAY BILL
             // ---------------------------------------------------------
+            let newInvoiceIdObj = undefined;
+            if (invoiceId && invoiceRef) {
+                newInvoiceIdObj = { id: invoiceId, ref: invoiceRef };
+            } else if (invoiceId) {
+                newInvoiceIdObj = { id: invoiceId, ref: new (require('mongoose').Types.ObjectId)() };
+            }
+
             eWayBill = new EWayBillModel({
                 ewaybill_no: eWayBillNo,
                 ewaybill_status: eWayBillStatus,
-                invoice_id: invoiceId || undefined,
+                invoice_id: newInvoiceIdObj,
                 from_address: fromAddr,
                 to_address: toAddr,
                 transport: {
@@ -168,7 +191,6 @@ router.get("/recent-ewaybills", async (req: Request, res: Response) => {
         }
 
         const recentEWayBills = await queryBuilder
-            .populate('invoice_id', 'invoice_no')
             .select("ewaybill_no invoice_id ewaybill_status from_address to_address transport ewaybill_date totals createdAt is_archived deletion");
 
         res.status(200).json({
@@ -185,7 +207,7 @@ router.get("/recent-ewaybills", async (req: Request, res: Response) => {
 router.get("/:eWayBillId", async (req: Request, res: Response) => {
     try {
         const { eWayBillId } = req.params;
-        const eWayBill = await EWayBillModel.findById(eWayBillId).populate('invoice_id', 'invoice_no');
+        const eWayBill = await EWayBillModel.findById(eWayBillId);
         if (!eWayBill) {
             return res.status(404).json({ message: 'E-Way Bill not found' });
         }
@@ -273,8 +295,8 @@ router.get('/check-invoice/:invoiceId', async (req: Request, res: Response) => {
         }
 
         // Check if any e-way bill references this invoice
-        // Schema defines invoice_id as ObjectId, so we must strictly use the resolved _id
-        const existingEWayBill = await EWayBillModel.findOne({ invoice_id: invoice._id });
+        // Schema defines invoice_id as object { id, ref }, so we check against ref
+        const existingEWayBill = await EWayBillModel.findOne({ "invoice_id.ref": invoice._id });
 
         res.status(200).json({ exists: !!existingEWayBill });
     } catch (error: unknown) {

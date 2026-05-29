@@ -946,7 +946,7 @@
 
         return {
             _id: existingId,
-            invoiceId: formEl?.dataset?.invoiceId || '',
+            invoiceId: (document.getElementById("invoice-id") as HTMLInputElement | null)?.value || formEl?.dataset?.invoiceId || '',
             eWayBillNo: (document.getElementById("ewaybill-no") as HTMLInputElement | null)?.value || '',
             eWayBillStatus: ((document.getElementById("ewaybill-status") as HTMLSelectElement | null)?.value as any) || 'Draft',
             eWayBillDate: waybillDateISO,
