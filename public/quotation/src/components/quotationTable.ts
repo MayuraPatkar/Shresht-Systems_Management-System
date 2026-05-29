@@ -118,6 +118,7 @@ class QuotationTable {
     const totalAmountTax = quotation.totals?.grand_total || quotation.total_amount_tax || 0;
     const status = quotation.quotation_status || 'Draft';
     const validTill = quotation.valid_till ? formatDateIndian(quotation.valid_till) : '-';
+    const isConverted = status === 'Converted' || !!quotation.converted_invoice_id;
 
     quotationCard.innerHTML = `
         <!-- Left Border Accent -->
@@ -151,8 +152,8 @@ class QuotationTable {
                     <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn convert-invoice-btn px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400" title="Convert to Invoice">
-                        <i class="fas fa-file-invoice-dollar"></i>
+                    <button class="action-btn convert-invoice-btn px-4 py-2 ${isConverted ? 'bg-green-100 text-green-700 border border-green-300 cursor-not-allowed opacity-75' : 'bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400'} rounded-lg" title="${isConverted ? 'Already converted to invoice' : 'Convert to Invoice'}">
+                        <i class="fas ${isConverted ? 'fa-check-circle' : 'fa-file-invoice-dollar'}"></i>
                     </button>
                     `}
                 </div>
@@ -239,6 +240,14 @@ class QuotationTable {
         });
 
         convertInvoiceBtn?.addEventListener('click', () => {
+            if (isConverted) {
+                if ((window as any).electronAPI?.showAlert1) {
+                    (window as any).electronAPI.showAlert1('This quotation has already been converted to an invoice.');
+                } else {
+                    alert('This quotation has already been converted to an invoice.');
+                }
+                return;
+            }
             // quotationId is already the display ID (quotation_no e.g. "QUO-001") which the backend route accepts
             sessionStorage.setItem('quotation-to-invoice-id', quotationId);
             sessionStorage.setItem('currentTab-status', 'new');

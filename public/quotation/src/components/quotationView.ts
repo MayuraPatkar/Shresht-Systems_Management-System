@@ -847,18 +847,60 @@ async function renderQuotationView(quotation, viewType) {
     if (convertToInvoiceSection) {
         convertToInvoiceSection.classList.remove('hidden');
     }
+
+    const isAlreadyConverted = quotation.quotation_status === 'Converted' || !!quotation.converted_invoice_id;
+
+    // Update the section visually if already converted
+    const convertIconWrap = document.getElementById('convert-icon-wrap');
+    const convertTitle = document.getElementById('convert-title');
+    const convertDesc = document.getElementById('convert-desc');
+    if (isAlreadyConverted && convertToInvoiceSection) {
+        convertToInvoiceSection.classList.remove('bg-blue-50', 'border-blue-200');
+        convertToInvoiceSection.classList.add('bg-green-50', 'border-green-300');
+        if (convertIconWrap) {
+            convertIconWrap.classList.remove('bg-blue-600');
+            convertIconWrap.classList.add('bg-green-600');
+            convertIconWrap.innerHTML = '<i class="fas fa-check-circle text-white text-xl"></i>';
+        }
+        if (convertTitle) {
+            convertTitle.textContent = 'Already Converted to Invoice';
+            convertTitle.classList.remove('text-blue-900');
+            convertTitle.classList.add('text-green-900');
+        }
+        if (convertDesc) {
+            convertDesc.textContent = 'This quotation has already been converted to an invoice.';
+            convertDesc.classList.remove('text-blue-700');
+            convertDesc.classList.add('text-green-700');
+        }
+    }
+
     const convertToInvoiceBtn = document.getElementById('convertToInvoiceBtn');
     if (convertToInvoiceBtn) {
         const newConvertBtn = convertToInvoiceBtn.cloneNode(true) as HTMLButtonElement;
         convertToInvoiceBtn.parentNode?.replaceChild(newConvertBtn, convertToInvoiceBtn);
-        newConvertBtn.addEventListener('click', () => {
-            // quotation.quotation_id is mapped to quotation_no (e.g. "QUO-001"), which the backend route accepts
-            const displayId = quotation.quotation_id || quotation.quotation_no;
-            sessionStorage.setItem('quotation-to-invoice-id', displayId);
-            sessionStorage.setItem('currentTab-status', 'new');
-            // Navigate to the invoice module
-            window.location.href = '../invoice/invoice.html';
-        });
+
+        if (isAlreadyConverted) {
+            // Flag the button as already converted
+            newConvertBtn.disabled = true;
+            newConvertBtn.className = 'bg-green-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-semibold transition-all shadow-md opacity-80 cursor-not-allowed whitespace-nowrap';
+            newConvertBtn.innerHTML = '<i class="fas fa-check-circle"></i> Already Converted';
+            newConvertBtn.addEventListener('click', () => {
+                if ((window as any).electronAPI?.showAlert1) {
+                    (window as any).electronAPI.showAlert1('This quotation has already been converted to an invoice.');
+                } else {
+                    alert('This quotation has already been converted to an invoice.');
+                }
+            });
+        } else {
+            newConvertBtn.addEventListener('click', () => {
+                // quotation.quotation_id is mapped to quotation_no (e.g. "QUO-001"), which the backend route accepts
+                const displayId = quotation.quotation_id || quotation.quotation_no;
+                sessionStorage.setItem('quotation-to-invoice-id', displayId);
+                sessionStorage.setItem('currentTab-status', 'new');
+                // Navigate to the invoice module
+                window.location.href = '../invoice/invoice.html';
+            });
+        }
     }
 
     const deleteBtn = document.getElementById('deleteQuotationBtn');
