@@ -1,7 +1,7 @@
 // @ts-nocheck
 (function () {
     // Define totalSteps globally for purchase
-    (window as any).totalSteps = 5;
+    (window as any).totalSteps = 6;
 
     // Bind currentStep property on window to sync with the global declarative currentStep
     declare let currentStep: number;
@@ -1089,6 +1089,21 @@ if (newSection) newSection.style.display = "block";
         const roundOff = Math.round(totalVal) - totalVal;
         const roundedTotal = totalVal + roundOff;
 
+        const paymentAmountStr = (document.getElementById("payment-amount") as HTMLInputElement)?.value;
+        const paymentModeStr = (document.getElementById("payment-mode") as HTMLSelectElement)?.value;
+        const paymentDateStr = (document.getElementById("payment-date") as HTMLInputElement)?.value;
+        const paymentRefStr = (document.getElementById("payment-reference") as HTMLInputElement)?.value;
+        const paymentRemarksStr = (document.getElementById("payment-remarks") as HTMLTextAreaElement)?.value;
+
+        const payment = {
+            paid_amount: parseFloat(paymentAmountStr || "0"),
+            payment_mode: paymentModeStr || "Cash",
+            payment_date: paymentDateStr || new Date().toISOString().split('T')[0],
+            extra_details: (paymentRefStr || paymentRemarksStr) ? `Ref: ${paymentRefStr || 'N/A'}, Remarks: ${paymentRemarksStr || 'N/A'}` : "",
+            transaction_details: paymentRefStr || "",
+            remarks: paymentRemarksStr || ""
+        };
+
         return {
             purchase_no: (document.getElementById("id") as HTMLInputElement)?.value || "",
             purchase_invoice_no: (document.getElementById("purchase-invoice-id") as HTMLInputElement)?.value || "",
@@ -1108,6 +1123,7 @@ if (newSection) newSection.style.display = "block";
                 gstin: (document.getElementById("supplier-GSTIN") as HTMLInputElement)?.value || ""
             },
             items: itemsList,
+            payment: payment,
             totals: {
                 grand_total: roundedTotal
             }
@@ -1912,6 +1928,18 @@ if (newSection) newSection.style.display = "block";
         if (step === 3) {
             await populateSpecifications();
         } else if (step === 4) {
+            const formData = collectFormData();
+            const grandTotal = formData.totals.grand_total;
+            const paymentAmountInput = document.getElementById("payment-amount") as HTMLInputElement;
+            if (paymentAmountInput && !paymentAmountInput.value && grandTotal > 0) {
+                paymentAmountInput.value = grandTotal.toFixed(2);
+            }
+            const paymentDateInput = document.getElementById("payment-date") as HTMLInputElement;
+            if (paymentDateInput && !paymentDateInput.value) {
+                const today = (window as any).getTodayForInput ? (window as any).getTodayForInput() : new Date().toISOString().split('T')[0];
+                paymentDateInput.value = today;
+            }
+        } else if (step === 5) {
             generateSimplePreview();
         }
         return true;

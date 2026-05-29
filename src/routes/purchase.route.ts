@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { PurchaseModel, ItemModel, StockMovementModel } from '../models';
+import { PurchaseModel, ItemModel, StockMovementModel, PaymentModel } from '../models';
 import logger from '../utils/logger';
 import { previewNextId, generateNextId } from '../utils/idGenerator';
+import { syncReferencePayments } from '../utils/paymentSync';
+import { Types } from 'mongoose';
 
 const router: Router = Router();
 
@@ -73,7 +75,8 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
             supplier_id,
             supplier_snapshot,
             items = [] as any[],
-            totals
+            totals,
+            payment
         } = req.body;
 
         // Attempt to find an existing document using the provided ID
@@ -241,6 +244,47 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
 
         // Save the document
         const savedPurchase = await purchase.save();
+
+        // ---------------------------------------------------------
+        // PAYMENT MANAGEMENT LOGIC
+        // ---------------------------------------------------------
+        if (payment && Number(payment.paid_amount) > 0) {
+            // Check if this payment was already recorded to avoid duplicates on edit
+            // A simple approach is: if it's a new purchase, or if there's no payment on that date with that amount
+            const existingPayment = await PaymentModel.findOne({
+                'reference.type': 'Purchase',
+                'reference.id': savedPurchase.purchase_no,
+                amount: Number(payment.paid_amount),
+                payment_date: {
+                    $gte: new Date(new Date(payment.payment_date).setHours(0,0,0,0)),
+                    $lte: new Date(new Date(payment.payment_date).setHours(23,59,59,999))
+                }
+            });
+
+            if (!existingPayment) {
+                const newPayment = new PaymentModel({
+                    payment_date: payment.payment_date || new Date(),
+                    amount: Number(payment.paid_amount),
+                    direction: 'OUT',
+                    party: {
+                        type: 'Supplier',
+                        id: supplier_snapshot?.name || '',
+                        ref: supplier_id ? new Types.ObjectId(supplier_id) : undefined
+                    },
+                    reference: {
+                        type: 'Purchase',
+                        id: savedPurchase.purchase_no,
+                        ref: new Types.ObjectId(savedPurchase._id)
+                    },
+                    mode: payment.payment_mode || 'Cash',
+                    remarks: payment.extra_details || undefined,
+                    transaction_details: payment.transaction_details || undefined
+                } as any);
+                await newPayment.save();
+
+                await syncReferencePayments('Purchase', savedPurchase._id);
+            }
+        }
 
         res.status(201).json({
             message: 'Purchase saved successfully',
