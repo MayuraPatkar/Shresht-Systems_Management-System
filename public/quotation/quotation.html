@@ -807,21 +807,51 @@
                         <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
                     </div>
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <p class="text-sm text-red-700 font-medium">
+                    <div class="space-y-0">
+                        <p class="mb-4 text-sm font-medium text-red-700">
                             These actions are destructive. Please proceed with caution.
                         </p>
-                        <div class="flex flex-wrap gap-4 justify-end">
-                            <button type="button" id="archiveQuotationBtn"
-                                class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
-                                <i class="fas fa-archive"></i>
-                                Archive Quotation
-                            </button>
-                            <button type="button" id="deleteQuotationBtn"
-                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
-                                <i class="fas fa-trash-alt"></i>
-                                Delete Quotation
-                            </button>
+
+                        <div class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Eject / Reject Quotation</p>
+                                <p class="mt-1 text-sm text-slate-600">Flag this quotation as rejected by the client.</p>
+                            </div>
+                            <div class="sm:justify-self-end">
+                                <button type="button" id="ejectQuotationBtn"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:border-slate-700 hover:bg-slate-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-slate-300 cursor-pointer">
+                                    <i class="fas fa-times-circle"></i>
+                                    Reject Quotation
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Archive Quotation</p>
+                                <p class="mt-1 text-sm text-slate-600">Move this record out of the active workflow while keeping it recoverable.</p>
+                            </div>
+                            <div class="sm:justify-self-end">
+                                <button type="button" id="archiveQuotationBtn"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 transition-all hover:border-orange-500 hover:bg-orange-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-200 cursor-pointer">
+                                    <i class="fas fa-archive"></i>
+                                    Archive Quotation
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Delete Permanently</p>
+                                <p class="mt-1 text-sm text-slate-600">Irreversibly remove this quotation from the system.</p>
+                            </div>
+                            <div class="sm:justify-self-end">
+                                <button type="button" id="deleteQuotationBtn"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 transition-all hover:border-red-500 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-200 cursor-pointer">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Delete Quotation
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </section>

@@ -794,6 +794,54 @@ async function renderQuotationView(quotation, viewType) {
         dangerZoneSection.classList.remove('hidden');
     }
 
+    const rejectBtn = document.getElementById('ejectQuotationBtn');
+    if (rejectBtn) {
+        const newRejectBtn = rejectBtn.cloneNode(true) as HTMLButtonElement;
+        rejectBtn.parentNode?.replaceChild(newRejectBtn, rejectBtn);
+        if (quotation.quotation_status === 'Rejected') {
+            newRejectBtn.disabled = true;
+            newRejectBtn.classList.add('opacity-60', 'cursor-not-allowed');
+            newRejectBtn.innerHTML = '<i class="fas fa-check-circle"></i> Already Rejected';
+        }
+        newRejectBtn.addEventListener('click', async () => {
+            const confirmMsg = `Are you sure you want to mark Quotation "${quotation.quotation_id}" as Rejected?`;
+            const electronAPI = (window as any).electronAPI;
+            const perform = async () => {
+                try {
+                    const urlId = quotation.quotation_id || quotation.quotation_no;
+                    const res = await fetch(`/quotation/${encodeURIComponent(urlId)}/status`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ quotation_status: 'Rejected' })
+                    });
+                    if (!res.ok) throw new Error('Failed to update status');
+                    const data = await res.json();
+                    const updated = data.quotation || data;
+                    const statusElLocal = document.getElementById('view-quotation-status');
+                    if (statusElLocal) {
+                        statusElLocal.textContent = updated.quotation_status || 'Rejected';
+                        statusElLocal.className = `inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getQuotationStatusClass(updated.quotation_status)}`;
+                    }
+                    if (typeof showToast === 'function') showToast('Quotation marked as Rejected');
+                    const homeBtnEl = document.getElementById('home-btn');
+                    if (homeBtnEl) homeBtnEl.click();
+                } catch (err) {
+                    console.error('Failed to reject quotation', err);
+                    (window as any).electronAPI?.showAlert1('Failed to mark quotation as Rejected.');
+                }
+            };
+
+            if (electronAPI?.showAlert2 && electronAPI?.receiveAlertResponse) {
+                electronAPI.showAlert2(confirmMsg);
+                electronAPI.receiveAlertResponse((response: string) => {
+                    if (response === 'Yes') perform();
+                });
+            } else if (confirm(confirmMsg)) {
+                await perform();
+            }
+        });
+    }
+
     // Show and wire up the Convert to Invoice button
     const convertToInvoiceSection = document.getElementById('convert-to-invoice-section');
     if (convertToInvoiceSection) {
@@ -859,9 +907,6 @@ async function renderQuotationView(quotation, viewType) {
         newArchiveBtn.innerHTML = quotation.is_archived
             ? '<i class="fas fa-box-open"></i> Restore from Archive'
             : '<i class="fas fa-archive"></i> Archive Quotation';
-        newArchiveBtn.className = quotation.is_archived
-            ? 'bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer'
-            : 'bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer';
         newArchiveBtn.addEventListener('click', async () => {
             const action = quotation.is_archived ? 'restore' : 'archive';
             const message = `Are you sure you want to ${action} Quotation "${quotation.quotation_id}"?`;
