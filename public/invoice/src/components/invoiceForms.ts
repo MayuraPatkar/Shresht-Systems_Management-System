@@ -1831,13 +1831,17 @@ const collectFormData = function () {
         buyerEmail: buyerEmailInput ? buyerEmailInput.value : '',
         buyerGSTIN: buyerGstinInput ? buyerGstinInput.value : '',
         consigneeName: consigneeNameInput ? consigneeNameInput.value : '',
-        consigneeAddress: {
-            line1: conLine1Input ? conLine1Input.value : '',
-            line2: conLine2Input ? conLine2Input.value : '',
-            city: conCityInput ? conCityInput.value : '',
-            state: conStateInput ? conStateInput.value : '',
-            pincode: conPincodeInput ? conPincodeInput.value : ''
-        },
+        consigneeAddress: (function(){
+            const nameVal = consigneeNameInput ? (consigneeNameInput.value || '').trim() : '';
+            if (!nameVal) return undefined;
+            return {
+                line1: conLine1Input ? conLine1Input.value : '',
+                line2: conLine2Input ? conLine2Input.value : '',
+                city: conCityInput ? conCityInput.value : '',
+                state: conStateInput ? conStateInput.value : '',
+                pincode: conPincodeInput ? conPincodeInput.value : ''
+            };
+        })(),
         declaration: currentDeclaration,
         termsAndConditions: currentTermsAndConditions,
         items: Array.from(document.querySelectorAll("#items-table tbody tr")).map(row => ({
