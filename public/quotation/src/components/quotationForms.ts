@@ -2181,11 +2181,7 @@ window.validateCurrentStep = async function () {
 
             const rate = card.querySelector('.item-field.rate input') as HTMLInputElement;
             if (rate) {
-                if (!rate.value.trim()) {
-                    setFieldValidation(rate, false, `Required.`);
-                } else {
-                    setFieldValidation(rate, true);
-                }
+                setFieldValidation(rate, true);
             }
 
             if (hsn) {
