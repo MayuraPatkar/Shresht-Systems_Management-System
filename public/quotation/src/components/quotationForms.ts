@@ -440,7 +440,19 @@ async function openQuotation(idToOpen) {
     // Use input-safe ISO date for the date field
     document.getElementById('quotation-date').value = toInputDate(quotation.quotation_date);
     document.getElementById('valid-till').value = toInputDate(quotation.valid_till);
-    document.getElementById('quotation-status').value = quotation.quotation_status || 'Draft';
+    const statusSelect = document.getElementById('quotation-status') as HTMLSelectElement;
+    const restrictedStatuses = ['Rejected', 'Converted', 'Expired'];
+    const existingStatus = quotation.quotation_status || 'Draft';
+    if (restrictedStatuses.includes(existingStatus)) {
+        // Add the option dynamically so the saved value can be displayed in update mode
+        if (!Array.from(statusSelect.options).some(o => o.value === existingStatus)) {
+            const opt = document.createElement('option');
+            opt.value = existingStatus;
+            opt.textContent = existingStatus;
+            statusSelect.appendChild(opt);
+        }
+    }
+    statusSelect.value = existingStatus;
     document.getElementById('quotation-discount').value = quotation.discount || 0;
     
     const idInputCustomer = document.getElementById('buyer-customer-id');
@@ -2179,6 +2191,8 @@ window.validateCurrentStep = async function () {
             if (hsn) {
                 if (!hsn.value.trim()) {
                     setFieldValidation(hsn, false, `Required.`);
+                } else if (!/^\d+$/.test(hsn.value.trim())) {
+                    setFieldValidation(hsn, false, `HSN/SAC must contain numbers only.`);
                 } else {
                     const hsnVal = hsn.value.trim().toUpperCase();
                     const descVal = desc?.value.trim().toLowerCase() || '';
@@ -2274,6 +2288,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('change', function (e) {
         if (e.target && e.target.matches('.item_name')) {
             autofillStockItem(e.target);
+        }
+    });
+
+    // --- HSN/SAC: allow only numeric input in real-time ---
+    document.body.addEventListener('input', function (e) {
+        const target = e.target as HTMLInputElement;
+        if (target && target.closest('.item-field.hsn')) {
+            const cleaned = target.value.replace(/\D/g, '');
+            if (target.value !== cleaned) target.value = cleaned;
         }
     });
 
