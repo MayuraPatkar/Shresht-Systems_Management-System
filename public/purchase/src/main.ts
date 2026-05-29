@@ -175,6 +175,7 @@
             const viewEditBtn = document.getElementById('view-edit-btn');
             const viewSaveBtn = document.getElementById('view-save-btn');
             const viewCancelBtn = document.getElementById('view-cancel-btn');
+            const viewPaymentBtn = document.getElementById('view-payment-btn');
 
             if (isFormActive) {
                 // Creation mode: hide search, filter, archived, trash, refresh, new-purchase. Show home.
@@ -188,6 +189,7 @@
                 if (viewEditBtn) viewEditBtn.style.display = 'none';
                 if (viewSaveBtn) viewSaveBtn.style.display = 'none';
                 if (viewCancelBtn) viewCancelBtn.style.display = 'none';
+                if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
 
                 if (bulkRestoreBtn) {
                     bulkRestoreBtn.style.display = 'none';
@@ -220,12 +222,14 @@
                     if (viewEditBtn) viewEditBtn.style.display = 'none';
                     if (viewSaveBtn) viewSaveBtn.style.display = 'flex';
                     if (viewCancelBtn) viewCancelBtn.style.display = 'flex';
+                    if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
                 } else {
                     if (newPurchaseBtn) newPurchaseBtn.style.display = 'flex';
                     if (homeBtn) homeBtn.style.display = 'flex';
                     if (viewEditBtn) viewEditBtn.style.display = 'flex';
                     if (viewSaveBtn) viewSaveBtn.style.display = 'none';
                     if (viewCancelBtn) viewCancelBtn.style.display = 'none';
+                    if (viewPaymentBtn) viewPaymentBtn.style.display = 'flex';
                 }
             } else {
                 // Dashboard management mode
@@ -237,6 +241,7 @@
                 if (viewEditBtn) viewEditBtn.style.display = 'none';
                 if (viewSaveBtn) viewSaveBtn.style.display = 'none';
                 if (viewCancelBtn) viewCancelBtn.style.display = 'none';
+                if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
 
                 // Contextual elements based on Trash mode
                 const isTrashOpen = !!(window as any).showDeletedItems;

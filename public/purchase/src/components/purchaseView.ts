@@ -660,6 +660,48 @@
             });
         }
 
+        const viewPaymentBtn = document.getElementById("view-payment-btn");
+        if (viewPaymentBtn) {
+            viewPaymentBtn.addEventListener("click", () => {
+                if (currentPurchase) {
+                    let totalTaxable = 0;
+                    let totalTaxAmount = 0;
+                    (currentPurchase.items || []).forEach((item: any) => {
+                        const qty = parseFloat(item.quantity || 0);
+                        const unitPrice = parseFloat(item.unit_price || 0);
+                        const rate = parseFloat(item.gst_rate || item.rate || 0);
+                        const taxableValue = qty * unitPrice;
+                        const taxAmount = (taxableValue * rate) / 100;
+                        totalTaxable += taxableValue;
+                        totalTaxAmount += taxAmount;
+                    });
+                    
+                    const calcGrandTotal = totalTaxable + totalTaxAmount;
+                    const roundOff = Math.round(calcGrandTotal) - calcGrandTotal;
+                    const totalAmount = calcGrandTotal + roundOff;
+
+                    const storedGrandTotal = Number(currentPurchase.totals?.grand_total || totalAmount);
+
+                    const totalPaid = Number(currentPurchase.total_paid_amount || 0);
+                    const balanceDue = storedGrandTotal - totalPaid;
+
+                    if (currentPurchase.payment_status === 'PAID' || balanceDue <= 0) {
+                        showAlert("This purchase is already fully paid.");
+                        return;
+                    }
+
+                    const refId = currentPurchase.purchase_invoice_no || currentPurchase.purchase_no;
+                    const refType = 'Purchase';
+                    const partyType = 'Supplier';
+                    const partyId = currentPurchase.supplier_id || '';
+                    const partyName = encodeURIComponent(currentPurchase.supplier_snapshot?.name || '');
+
+                    const url = `/payment/payment.html?new=true&direction=OUT&amount=${balanceDue}&ref_type=${refType}&ref_id=${refId}&party_type=${partyType}&party_id=${partyId}&party_name=${partyName}`;
+                    window.location.href = url;
+                }
+            });
+        }
+
         const addRowBtn = document.getElementById("add-inline-item-btn");
         if (addRowBtn) {
             addRowBtn.addEventListener("click", () => {

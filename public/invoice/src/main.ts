@@ -107,6 +107,7 @@
             const archivedBtn = document.getElementById('archived-invoices-btn');
             const showDeletedBtn = document.getElementById('showDeletedBtn');
             const viewPreviewBtn = document.getElementById('view-preview');
+            const viewPaymentBtn = document.getElementById('view-payment-btn');
             const newInvoiceBtn = document.getElementById('new-invoice');
             const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
             const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
@@ -118,6 +119,7 @@
                 if (archivedBtn) archivedBtn.style.display = 'none';
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
                 if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+                if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
                 if (newInvoiceBtn) newInvoiceBtn.style.display = 'none';
                 if (homeBtn) homeBtn.style.display = 'flex';
                 if (bulkRestoreBtn) {
@@ -135,6 +137,7 @@
                 if (archivedBtn) archivedBtn.style.display = 'none';
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
                 if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+                if (viewPaymentBtn) viewPaymentBtn.style.display = 'flex';
                 if (newInvoiceBtn) newInvoiceBtn.style.display = 'flex';
                 if (homeBtn) homeBtn.style.display = 'flex';
                 if (bulkRestoreBtn) {
@@ -152,6 +155,7 @@
                 if (showDeletedBtn) showDeletedBtn.style.display = 'flex';
                 if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
                 if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+                if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
 
                 // Contextual elements based on Trash mode
                 const isTrashOpen = !!(window as any).showDeletedItems;

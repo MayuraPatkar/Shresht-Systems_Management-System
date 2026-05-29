@@ -1638,6 +1638,32 @@ interface Window {
                     }
                 })
                 .catch(err => console.error('Error auto-loading payment from params:', err));
+        } else if (urlParams.get('new') === 'true') {
+            openModal(null);
+            setTimeout(() => {
+                const amount = urlParams.get('amount');
+                const direction = urlParams.get('direction') || 'IN'; // Invoice usually means IN
+                const refType = urlParams.get('ref_type');
+                const refId = urlParams.get('ref_id');
+                const partyType = urlParams.get('party_type');
+                const partyId = urlParams.get('party_id');
+                const partyName = urlParams.get('party_name');
+
+                const dirRadio = document.querySelector(`input[name="direction"][value="${direction}"]`) as HTMLInputElement | null;
+                if (dirRadio) dirRadio.checked = true;
+
+                if (amount) (document.getElementById('form-amount') as HTMLInputElement).value = amount;
+                if (refType) (document.getElementById('form-reference-type') as HTMLSelectElement).value = refType;
+                if (refId) (document.getElementById('form-reference-id') as HTMLInputElement).value = refId;
+                if (partyName) (document.getElementById('form-party-name') as HTMLInputElement).value = partyName;
+                if (partyId) (document.getElementById('form-party-id-hidden') as HTMLInputElement).value = partyId;
+
+                if (partyType && partyName) {
+                    fetchPartyDetails(partyType as any, partyName);
+                } else if (partyType && partyId) {
+                    fetchPartyDetailsById(partyType, partyId);
+                }
+            }, 100);
         }
     });
 

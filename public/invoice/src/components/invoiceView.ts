@@ -1020,6 +1020,37 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
         });
     }
 
+    const viewPaymentBtn = document.getElementById('view-payment-btn');
+    if (viewPaymentBtn) {
+        const newViewPaymentBtn = viewPaymentBtn.cloneNode(true) as HTMLButtonElement;
+        viewPaymentBtn.parentNode?.replaceChild(newViewPaymentBtn, viewPaymentBtn);
+        newViewPaymentBtn.addEventListener('click', () => {
+            if (!cachedInvoice) return;
+            const grandTotal = Number(cachedInvoice.totals?.grand_total || 0);
+            const totalPaid = Number(cachedInvoice.total_paid_amount || 0);
+            const balanceDue = grandTotal - totalPaid;
+
+            if (cachedInvoice.payment_status === 'PAID' || balanceDue <= 0) {
+                if ((window as any).electronAPI?.showAlert1) {
+                    (window as any).electronAPI.showAlert1("This invoice is already fully paid.");
+                } else {
+                    alert("This invoice is already fully paid.");
+                }
+                return;
+            }
+
+            const amount = balanceDue > 0 ? balanceDue : grandTotal;
+            const refId = cachedInvoice.invoice_id || cachedInvoice.invoice_no;
+            const refType = 'Invoice';
+            const partyType = 'Customer';
+            const partyId = cachedInvoice.customer_id;
+            const partyName = encodeURIComponent((document.getElementById('view-buyer-name') as HTMLElement)?.textContent || '');
+
+            const url = `/payment/payment.html?new=true&direction=IN&amount=${amount}&ref_type=${refType}&ref_id=${refId}&party_type=${partyType}&party_id=${partyId}&party_name=${partyName}`;
+            window.location.href = url;
+        });
+    }
+
     const archiveBtn = document.getElementById('archiveInvoiceBtn');
     if (archiveBtn) {
         const newArchiveBtn = archiveBtn.cloneNode(true) as HTMLButtonElement;
