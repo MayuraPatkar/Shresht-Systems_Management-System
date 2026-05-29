@@ -37,7 +37,6 @@
 
         const purchaseOrderId = purchaseOrder.purchase_order_no;
         const purchaseDate = purchaseOrder.purchase_date;
-        const purchaseInvoiceId = purchaseOrder.purchase_invoice_no || purchaseOrderId;
         const snapshot = purchaseOrder.supplier_snapshot || {};
         const supplierName = snapshot.name || "";
         const addr = snapshot.address || {};
@@ -61,6 +60,12 @@
         let roundOff = 0;
         let sno = 0;
 
+        let totalQtySum = 0;
+        let totalUnitPriceSum = 0;
+        let totalTaxableSum = 0;
+        let totalItemsTaxSum = 0;
+        let totalPriceSum = 0;
+
         let itemsHTML = "";
         let hasTax = (purchaseOrder.items || []).some((item: any) => parseFloat(item.rate || 0) > 0);
 
@@ -74,6 +79,9 @@
 
             const taxableValue = qty * unitPrice;
             totalTaxableValue += taxableValue;
+            totalQtySum += qty;
+            totalUnitPriceSum += unitPrice;
+            totalTaxableSum += taxableValue;
 
             if (hasTax) {
                 const cgstPercent = rate / 2;
@@ -86,6 +94,8 @@
                 totalSGST += sgstValue;
                 totalTax = totalCGST + totalSGST;
                 totalPrice += rowTotal;
+                totalItemsTaxSum += cgstValue + sgstValue;
+                totalPriceSum += rowTotal;
 
                 itemsHTML += `
                     <tr>
@@ -103,6 +113,7 @@
             } else {
                 const rowTotal = taxableValue;
                 totalPrice += rowTotal;
+                totalPriceSum += rowTotal;
 
                 itemsHTML += `
                     <tr>
@@ -140,6 +151,29 @@
                 </div>
             </div>
         `;
+
+        let totalsRowHTML = '';
+        if (hasTax) {
+            totalsRowHTML = `
+                <tr class="totals-row">
+                    <td colspan="3" class="text-left">TOTAL</td>
+                    <td class="text-right">${totalQtySum}</td>
+                    <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                    <td class="text-right">₹&nbsp;${formatIndian(totalTaxableSum, 2)}</td>
+                    <td class="text-right">₹&nbsp;${formatIndian(totalItemsTaxSum, 2)}</td>
+                    <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
+                </tr>
+            `;
+        } else {
+            totalsRowHTML = `
+                <tr class="totals-row">
+                    <td colspan="3" class="text-left">TOTAL</td>
+                    <td class="text-right">${totalQtySum}</td>
+                    <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                    <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
+                </tr>
+            `;
+        }
 
         // Split items into rows for pagination
         const itemRows = itemsHTML.split('</tr>').filter((row: string) => row.trim().length > 0).map((row: string) => row + '</tr>');
@@ -207,27 +241,24 @@
                             <p><strong>Date:</strong> ${formattedDate || ((window as any).formatDateDisplay ? (window as any).formatDateDisplay(new Date()) : new Date().toLocaleDateString())}</p>
                         </div>
                         </div>
-                <div style="display:flex;justify-content:space-between;align-items:center; margin-top: 4px;">
-                    <p><strong>Purchase Invoice ID:</strong> ${purchaseInvoiceId}</p>
-                </div>
             </div>
 
             ${index === 0 ? `
             <div class="third-section">
                 <div class="buyer-details">
-                    <p class="section-title" style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; color: #444;">From (Supplier)</p>
-                    <p><strong>${supplierName}</strong></p>
-                    <p>${supplierAddress}</p>
-                    <p>Ph: ${supplierPhone}</p>
-                    <p>GSTIN: ${GSTIN}</p>
-                </div>
-                <div class="order-info">
-                    <p class="section-title" style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; color: #444;">To (Deliver To)</p>
+                    <p class="section-title" style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; color: #444;">From (Company)</p>
                     <p><strong>${companyName}</strong></p>
                     <p>${cAddress}</p>
                     <p>Ph: ${cPhone}</p>
                     <p>GSTIN: ${cGSTIN}</p>
                     <p>Email: ${cEmail}</p>
+                </div>
+                <div class="order-info">
+                    <p class="section-title" style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; color: #444;">To (Supplier)</p>
+                    <p><strong>${supplierName}</strong></p>
+                    <p>${supplierAddress}</p>
+                    <p>Ph: ${supplierPhone}</p>
+                    <p>GSTIN: ${GSTIN}</p>
                 </div>
             </div>
             ` : ''}
@@ -249,7 +280,7 @@
                 </tr>
             </thead>
             <tbody>
-                ${pageHTML}
+                ${isLastPage ? (pageHTML + totalsRowHTML) : pageHTML}
             </tbody>
             </table>
             </div>
@@ -318,7 +349,7 @@
                 const contentEl = document.getElementById('view-preview-content');
                 const content = contentEl ? contentEl.innerHTML : '';
                 if ((window as any).electronAPI && (window as any).electronAPI.handlePrintEventQuatation) {
-                    const poId = document.getElementById('view-purchase-invoice-iD')?.textContent || 'Document';
+                    const poId = purchaseOrderId || 'Document';
                     (window as any).electronAPI.handlePrintEventQuatation(content, "print", `PurchaseOrder-${poId}`);
                 } else if ((window as any).electronAPI && (window as any).electronAPI.handlePrintEvent) {
                     (window as any).electronAPI.handlePrintEvent(content, "print");
@@ -334,7 +365,7 @@
                 const contentEl = document.getElementById('view-preview-content');
                 const content = contentEl ? contentEl.innerHTML : '';
                 if ((window as any).electronAPI && (window as any).electronAPI.handlePrintEventQuatation) {
-                    const poId = document.getElementById('view-purchase-invoice-iD')?.textContent || 'Document';
+                    const poId = purchaseOrderId || 'Document';
                     (window as any).electronAPI.handlePrintEventQuatation(content, "savePDF", `PurchaseOrder-${poId}`);
                 } else if ((window as any).electronAPI && (window as any).electronAPI.handlePrintEvent) {
                     (window as any).electronAPI.handlePrintEvent(content, "savePDF", "PurchaseOrder");
@@ -392,9 +423,6 @@
         const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
 
         // Fill Project Details
-        const viewInvoiceId = document.getElementById('view-purchase-invoice-iD');
-        if (viewInvoiceId) viewInvoiceId.textContent = purchaseOrder.purchase_invoice_no || purchaseOrder.purchase_order_no || '-';
-        
         const viewDate = document.getElementById('view-purchase-date');
         if (viewDate) {
             viewDate.textContent = (window as any).formatDateDisplay ? 
@@ -444,7 +472,6 @@
             
             // Populating supplier edit fields
             const addr = snapshot.address || {};
-            (document.getElementById('edit-purchase-invoice-id') as HTMLInputElement).value = purchaseOrder.purchase_invoice_no || purchaseOrder.purchase_order_no || '';
             (document.getElementById('edit-purchase-date') as HTMLInputElement).value = purchaseOrder.purchase_date ? purchaseOrder.purchase_date.split('T')[0] : '';
             (document.getElementById('edit-supplier-name') as HTMLInputElement).value = snapshot.name || '';
             (document.getElementById('edit-supplier-address-line1') as HTMLInputElement).value = addr.line1 || '';
@@ -759,14 +786,10 @@
     async function saveInlineChanges() {
         if (!currentPurchaseOrder) return;
 
-        const invoiceId = (document.getElementById('edit-purchase-invoice-id') as HTMLInputElement).value.trim();
+        const invoiceId = currentPurchaseOrder.purchase_order_no || '';
         const date = (document.getElementById('edit-purchase-date') as HTMLInputElement).value.trim();
         const name = (document.getElementById('edit-supplier-name') as HTMLInputElement).value.trim();
 
-        if (!invoiceId) {
-            showAlert("Purchase Order No is required.");
-            return;
-        }
         if (!date) {
             showAlert("Date is required.");
             return;
@@ -840,7 +863,7 @@
 
         const payload = {
             purchase_order_no: currentPurchaseOrder.purchase_order_no,
-            purchase_invoice_no: invoiceId,
+            purchase_invoice_no: '',
             purchase_date: date,
             supplier_id: currentPurchaseOrder.supplier_id || "",
             supplier_snapshot: {

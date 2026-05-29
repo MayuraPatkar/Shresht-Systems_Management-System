@@ -693,7 +693,6 @@
                 (document.getElementById("purchase-date") as HTMLInputElement).value = formattedPurchaseDate;
             }
 
-            (document.getElementById("purchase-invoice-id") as HTMLInputElement).value = purchaseOrder.purchase_invoice_no || purchaseOrder.purchase_order_no || "";
             const snapshot = purchaseOrder.supplier_snapshot || {};
             (document.getElementById("supplier-id") as HTMLInputElement).value = purchaseOrder.supplier_id || "";
             (document.getElementById("supplier-search-input") as HTMLInputElement).value = snapshot.name || "";
@@ -1022,7 +1021,7 @@
 
         return {
             purchase_order_no: (document.getElementById("id") as HTMLInputElement)?.value || "",
-            purchase_invoice_no: (document.getElementById("purchase-invoice-id") as HTMLInputElement)?.value || "",
+            purchase_invoice_no: "",
             purchase_date: (document.getElementById("purchase-date") as HTMLInputElement)?.value || "",
             supplier_id: (document.getElementById("supplier-id") as HTMLInputElement)?.value || "",
             supplier_snapshot: {
@@ -1462,7 +1461,6 @@
             let firstInvalidEl: HTMLElement | null = null;
 
             const fields = [
-                { id: 'purchase-invoice-id', name: 'Purchase Invoice ID' },
                 { id: 'purchase-date', name: 'Purchase Date' },
             ];
             for (const f of fields) {

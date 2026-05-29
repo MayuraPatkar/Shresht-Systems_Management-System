@@ -447,7 +447,7 @@
 
         // Focus on the first field after the form is visible
         setTimeout(() => {
-            const firstInput = document.getElementById('purchase-invoice-id') as HTMLInputElement;
+            const firstInput = document.getElementById('purchase-date') as HTMLInputElement;
             if (firstInput) {
                 firstInput.focus();
             }
