@@ -1313,7 +1313,7 @@ async function generatePreview() {
                 <p>Total CGST:</p>
                 <p>Total SGST:</p>`) : ""}
                 ${discountAmount ? `<p>Discount:</p>` : ""}
-                <p>Round Off:</p>
+                ${Math.abs(roundOff) > 0.0001 ? `<p>Round Off:</p>` : ``}
                 <p>Grand Total:</p>
             </div>
             <div class="totals-section-sub2" style="width: 45%;">
@@ -1323,7 +1323,7 @@ async function generatePreview() {
                 <p>₹ ${formatIndian(totalCGST, 2)}</p>
                 <p>₹ ${formatIndian(totalSGST, 2)}</p>`) : ""}
                 ${discountAmount ? `<p>-₹ ${formatIndian(discountAmount, 2)}</p>` : ""}
-                <p>₹ ${roundOff >= 0 ? "+" : ""}${formatIndian(roundOff, 2)}</p>
+                ${Math.abs(roundOff) > 0.0001 ? `<p>₹ ${roundOff >= 0 ? "+" : ""}${formatIndian(roundOff, 2)}</p>` : ``}
                 <p>₹ ${formatIndian(roundedGrandTotal, 2)}</p>
             </div>
         </div>

@@ -1066,16 +1066,14 @@ async function fill(itemName, element) {
         // Fill fields (indices shifted by 1 due to hidden stock_id)
         if (inputs[2]) inputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
         
-        if (inputs[3] && (!inputs[3].value || inputs[3].value === '0')) {
-          inputs[3].value = 0;
-        }
+        // Do not force a default quantity when autofilling from stock data.
+        // Leave quantity unchanged so user can enter it intentionally.
 
         if (inputs[4]) inputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
         if (inputs[5]) inputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
 
-        // Trigger input events to sync with table
+        // Trigger input events to sync with table (skip quantity input)
         if (inputs[2]) inputs[2].dispatchEvent(new Event('input', { bubbles: true }));
-        if (inputs[3]) inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
         if (inputs[4]) inputs[4].dispatchEvent(new Event('input', { bubbles: true }));
         if (inputs[5]) inputs[5].dispatchEvent(new Event('input', { bubbles: true }));
 
@@ -1092,10 +1090,9 @@ async function fill(itemName, element) {
 
           if (rowInputs.length >= 6) {
             rowInputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
-            if (!rowInputs[3].value || rowInputs[3].value === '0') rowInputs[3].value = 0;
+            // Do not overwrite quantity; leave it for the user to input.
             rowInputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
             rowInputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
-            rowInputs[3].dispatchEvent(new Event('input', { bubbles: true }));
             rowInputs[4].dispatchEvent(new Event('input', { bubbles: true }));
             rowInputs[5].dispatchEvent(new Event('input', { bubbles: true }));
           }
@@ -1111,7 +1108,7 @@ async function fill(itemName, element) {
 
         if (rowInputs.length >= 6) {
           rowInputs[2].value = stockData.hsn_sac || stockData.HSN_SAC || '';
-          if (!rowInputs[3].value || rowInputs[3].value === '0') rowInputs[3].value = 0;
+          // Do not overwrite quantity for eWayBill table rows; leave for user input.
           rowInputs[4].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
           rowInputs[5].value = stockData.gst_rate ?? stockData.GST ?? 0;
         }
@@ -1121,10 +1118,8 @@ async function fill(itemName, element) {
       const inputs = element.querySelectorAll('input');
       inputs[1].value = stockData.hsn_sac || stockData.HSN_SAC || ""; // HSN/SAC
       
-      // Default quantity to 0 if empty or 0
-      if (!inputs[2].value || inputs[2].value === '0') {
-          inputs[2].value = 0;
-      }
+
+        // Do not set a default quantity when autofilling; leave it empty for user input.
 
       inputs[3].value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0; // Unit Price
       inputs[4].value = stockData.gst_rate ?? stockData.GST ?? 0; // Rate
@@ -1146,8 +1141,7 @@ async function fill(itemName, element) {
         
         if (hsnInput) hsnInput.value = stockData.hsn_sac || stockData.HSN_SAC || "";
         if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) {
-            qtyInput.value = 0;
-            qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
+            // Do not overwrite quantity; leave for user input. Only update unit price and rate.
         }
         if (unitInput) {
           unitInput.value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
@@ -1167,8 +1161,7 @@ async function fill(itemName, element) {
       
       if (hsnInput) hsnInput.value = stockData.hsn_sac || stockData.HSN_SAC || "";
       if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) {
-          qtyInput.value = 0;
-          qtyInput.dispatchEvent(new Event('input', { bubbles: true }));
+            // Do not set a default quantity; let the user enter it.
       }
       if (unitInput) {
         unitInput.value = parseFloat(stockData.purchase_price ?? stockData.unit_price ?? stockData.unitPrice ?? 0) || 0;
