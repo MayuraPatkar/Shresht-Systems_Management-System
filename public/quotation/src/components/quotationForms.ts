@@ -504,7 +504,7 @@ async function openQuotation(idToOpen) {
         row.dataset.itemId = item.item_id || '';
         row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
-                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="text" placeholder="Item Description" value="${item.description || ''}" required></td>
                 <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
                 <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" required></td>
@@ -603,7 +603,7 @@ async function openQuotation(idToOpen) {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
-                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="text" placeholder="Item Description" value="${item.description || ''}" required></td>
                 <td><input type="number" value="${item.price || ''}" required></td>
                 <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -886,7 +886,7 @@ async function cloneQuotation(sourceQuotationId) {
             row.dataset.itemId = item.item_id || '';
             row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
-                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="text" placeholder="Item Description" value="${item.description || ''}" required></td>
                 <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
                 <td><input type="number" value="${item.quantity || ''}" min="0.01" step="0.01" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" required></td>
@@ -977,7 +977,7 @@ async function cloneQuotation(sourceQuotationId) {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td><div class="item-number">${itemsTableBody.rows.length}</div></td>
-                <td><input type="text" value="${item.description || ''}" required></td>
+                <td><input type="text" placeholder="Item Description" value="${item.description || ''}" required></td>
                 <td><input type="number" value="${item.price || ''}" required></td>
                 <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
