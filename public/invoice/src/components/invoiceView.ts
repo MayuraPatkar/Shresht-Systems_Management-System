@@ -90,6 +90,12 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
     let totalSGST = 0;
     let totalTaxableValue = 0;
     let totalTax = 0;
+    // Totals for items table footer in preview
+    let totalQtySum = 0;
+    let totalUnitPriceSum = 0;
+    let totalTaxableSum = 0;
+    let totalItemsTaxSum = 0;
+    let totalPriceSum = 0;
     let hasTax = showTax;
     let items: InvoiceItem[] = [];
 
@@ -123,6 +129,12 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
                 totalPrice += rowTotal;
                 totalTax += cgstValue + sgstValue;
 
+                totalQtySum += qty;
+                totalUnitPriceSum += unitPrice;
+                totalTaxableSum += taxableValue;
+                totalItemsTaxSum += (cgstValue + sgstValue);
+                totalPriceSum += rowTotal;
+
                 itemsHTML += `
                     <tr>
                         <td>${sno++}</td>
@@ -138,6 +150,10 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
             } else {
                 const rowTotal = taxableValue;
                 totalPrice += rowTotal;
+
+                totalQtySum += qty;
+                totalUnitPriceSum += unitPrice;
+                totalPriceSum += rowTotal;
 
                 itemsHTML += `
                     <tr>
@@ -178,6 +194,10 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
                 totalPrice += rowTotal;
                 totalTax += cgstValue + sgstValue;
 
+                totalTaxableSum += price;
+                totalItemsTaxSum += (cgstValue + sgstValue);
+                totalPriceSum += rowTotal;
+
                 itemsHTML += `
                     <tr>
                         <td>${sno++}</td>
@@ -193,6 +213,9 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
             } else {
                 const rowTotal = price;
                 totalPrice += rowTotal;
+
+                totalTaxableSum += price;
+                totalPriceSum += rowTotal;
 
                 itemsHTML += `
                     <tr>
@@ -237,6 +260,30 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
         <p>₹ ${formatIndian(totalCGST, 2)}</p>
         <p>₹ ${formatIndian(totalSGST, 2)}</p>
     ` : ``;
+
+    // Build totals-row HTML (inserted on last items page in preview)
+    let totalsRowHTML = '';
+    if (hasTax) {
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-right">${totalQtySum}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalTaxableSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalItemsTaxSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
+    } else {
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-right">${totalQtySum}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
+    }
 
     const totalsHTML = `
         <div style="display: flex; width: 100%;">
@@ -342,7 +389,7 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
                         </tr>
                     </thead>
                     <tbody>
-                        ${pageHTML}
+                        ${isLastPage ? (pageHTML + totalsRowHTML) : pageHTML}
                     </tbody>
                 </table>
             </div>

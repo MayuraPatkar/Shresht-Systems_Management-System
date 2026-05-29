@@ -1511,6 +1511,83 @@ const generatePreview = async function () {
 
     const itemRows = itemsHTML.split('</tr>').filter(row => row.trim().length > 0).map(row => row + '</tr>');
 
+    // Compute aggregate totals for items table to show in preview footer (similar to view)
+    let totalQtySum = 0;
+    let totalUnitPriceSum = 0;
+    let totalTaxableSum = 0;
+    let totalItemsTaxSum = 0;
+    let totalPriceSum = 0;
+
+    const rows = Array.from(itemsTable.rows);
+    for (const row of rows) {
+        const qty = Number((row.cells[3].querySelector('input') as HTMLInputElement)?.value || 0);
+        const unitPrice = Number((row.cells[4].querySelector('input') as HTMLInputElement)?.value || 0);
+        const rate = Number((row.cells[5].querySelector('input') as HTMLInputElement)?.value || 0);
+        const taxableValue = qty * unitPrice;
+
+        if (hasTax) {
+            const cgst = (taxableValue * (rate / 2)) / 100;
+            const sgst = (taxableValue * (rate / 2)) / 100;
+            const rowTotal = taxableValue + cgst + sgst;
+
+            totalQtySum += qty;
+            totalUnitPriceSum += unitPrice;
+            totalTaxableSum += taxableValue;
+            totalItemsTaxSum += (cgst + sgst);
+            totalPriceSum += rowTotal;
+        } else {
+            const rowTotal = taxableValue;
+            totalQtySum += qty;
+            totalUnitPriceSum += unitPrice;
+            totalPriceSum += rowTotal;
+        }
+    }
+
+    // Include non-items in totals (taxable and price sums)
+    const nonItemsTable = document.querySelector('#non-items-table tbody') as HTMLTableSectionElement | null;
+    if (nonItemsTable) {
+        const nonRows = Array.from(nonItemsTable.rows);
+        for (const row of nonRows) {
+            const price = Number((row.cells[2].querySelector('input') as HTMLInputElement)?.value || 0);
+            const rate = Number((row.cells[3].querySelector('input') as HTMLInputElement)?.value || 0);
+            if (hasTax) {
+                const cgst = (price * (rate / 2)) / 100;
+                const sgst = (price * (rate / 2)) / 100;
+                const rowTotal = price + cgst + sgst;
+                totalTaxableSum += price;
+                totalItemsTaxSum += (cgst + sgst);
+                totalPriceSum += rowTotal;
+            } else {
+                totalTaxableSum += price;
+                totalPriceSum += price;
+            }
+        }
+    }
+
+    // Build totals-row HTML to append on the last preview page
+    let totalsRowHTML = '';
+    if (hasTax) {
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-right">${totalQtySum}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalTaxableSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalItemsTaxSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
+    } else {
+        totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left">TOTAL</td>
+                <td class="text-right">${totalQtySum}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
+    }
+
     const ITEMS_PER_PAGE = 15;
     const SUMMARY_SECTION_ROW_COUNT = 8;
 
@@ -1602,7 +1679,7 @@ const generatePreview = async function () {
                         </tr>
                     </thead>
                     <tbody>
-                        ${pageHTML}
+                        ${isLastPage ? (pageHTML + totalsRowHTML) : pageHTML}
                     </tbody>
                 </table>
             </div>
