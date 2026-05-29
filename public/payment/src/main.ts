@@ -506,9 +506,8 @@ interface Window {
                         ${escapeHtml(p.mode)}
                     </span>
                 </td>
-                <td class="px-6 py-4 text-gray-600 text-sm">${escapeHtml(p.party_display_id || p.party_id || '-')}</td>
+                <td class="px-6 py-4 text-gray-600 text-sm">${escapeHtml((p as any).party_name || p.party_display_id || p.party_id || '-')}</td>
                 <td class="px-6 py-4 text-gray-600 text-sm">${escapeHtml(p.reference_type || '-')}</td>
-                <td class="px-6 py-4 text-gray-500 text-sm max-w-[260px] truncate" title="${escapeHtml(p.transaction_details || p.remarks || '')}">${escapeHtml(p.transaction_details || p.remarks || '-')}</td>
             </tr>`;
         }).join('');
 
