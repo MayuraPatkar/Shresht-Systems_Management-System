@@ -689,6 +689,11 @@
             (window as any).isCustomId = false;
         }
 
+        // Add one default empty item row (same behavior as Quotation)
+        if (typeof (window as any).addItem === 'function') {
+            (window as any).addItem();
+        }
+
         const invoiceDateInput = document.getElementById('invoice-date') as HTMLInputElement | null;
         if (invoiceDateInput) {
             const today = new Date();
