@@ -369,7 +369,14 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
                     <p><strong>Project:</strong> ${invoice.project_name || ''}</p>
                     <p><strong>P.O No:</strong> ${invoice.po_number || ''}</p>
                     <p><strong>D.C No:</strong> ${invoice.dc_number || ''}</p>
+                    ${((invoice as any).consignee && ((invoice as any).consignee.name || (invoice as any).consignee.address)) || invoice.consignee_name || invoice.consignee_address ? `
+                    <div class="consignee-details">
+                        <p><strong>Consignee:</strong></p>
+                        <p>${(invoice as any).consignee?.name || invoice.consignee_name || ''}</p>
+                        <p>${getFormattedAddress((invoice as any).consignee?.address, invoice.consignee_address) || ''}</p>
+                    </div>
                 </div>
+                ` : ''}
             </div>
             ` : ''}
 

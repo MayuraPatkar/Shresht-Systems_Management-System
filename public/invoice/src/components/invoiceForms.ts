@@ -1498,6 +1498,13 @@ const generatePreview = async function () {
     ].filter(val => val && val.trim() !== "").join(', ');
     const buyerPhone = (document.getElementById("buyer-phone") as HTMLInputElement).value;
     const buyerGSTIN = (document.getElementById("buyer-gstin") as HTMLInputElement).value || '';
+    const consigneeName = (document.getElementById("consignee-name") as HTMLInputElement | null)?.value || '';
+    const conLine1 = (document.getElementById("consignee-address-line1") as HTMLInputElement | null)?.value || '';
+    const conLine2 = (document.getElementById("consignee-address-line2") as HTMLInputElement | null)?.value || '';
+    const conCity = (document.getElementById("consignee-address-city") as HTMLInputElement | null)?.value || '';
+    const conState = (document.getElementById("consignee-address-state") as HTMLSelectElement | null)?.value || '';
+    const conPincode = (document.getElementById("consignee-address-pincode") as HTMLInputElement | null)?.value || '';
+    const consigneeAddress = [conLine1, conLine2, conCity, conState ? conState + (conPincode ? ' - ' + conPincode : '') : ''].filter(val => val && val.trim() !== '').join(', ');
     const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0] as HTMLTableSectionElement;
 
     if (!itemsTable) return;
@@ -1659,7 +1666,14 @@ const generatePreview = async function () {
                     <p><strong>Project:</strong> ${projectName || '-'}</p>
                     <p><strong>P.O No:</strong> ${poNumber || '-'}</p>
                     <p><strong>D.C No:</strong> ${dcNumber || '-'}</p>
+                    ${consigneeName || consigneeAddress ? `
+                    <div class="consignee-details">
+                        <p><strong>Consignee:</strong></p>
+                        <p>${consigneeName || '-'}</p>
+                        <p>${consigneeAddress || '-'}</p>
+                    </div>
                 </div>
+                ` : ''}
             </div>
             ` : ''}
 
