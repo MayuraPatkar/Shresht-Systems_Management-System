@@ -61,11 +61,11 @@
             const isArchived = !isTrash && purchase.is_archived;
 
             if (isTrash) {
-                div.className = "bg-rose-50/10 p-6 rounded-lg shadow-sm border border-rose-200 hover:shadow-md transition-shadow relative doc-card cursor-default";
+                div.className = "bg-rose-50/10 p-5 rounded-xl border border-rose-200 hover:shadow-md hover:border-rose-300 transition-all duration-200 relative doc-card cursor-default";
             } else if (isArchived) {
-                div.className = "bg-slate-50/90 p-6 rounded-lg shadow-sm border border-slate-300 hover:shadow-md transition-shadow relative doc-card opacity-80 hover:opacity-100 cursor-default";
+                div.className = "bg-slate-50/90 p-5 rounded-xl border border-slate-200 hover:shadow-md hover:border-slate-300 transition-all duration-200 relative doc-card opacity-80 hover:opacity-100 cursor-default";
             } else {
-                div.className = "bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative doc-card cursor-pointer";
+                div.className = "bg-white p-5 rounded-xl border border-gray-100 transition-all duration-200 hover:shadow-md hover:border-gray-200 relative doc-card cursor-pointer";
             }
             
             // Format ID for display
@@ -83,36 +83,36 @@
             const supplierAddress = purchase.supplier_snapshot?.address?.line1 || 'N/A';
             
             const paymentStatus = purchase.payment_status || 'Unpaid';
-            let statusClass = 'bg-gray-100 text-gray-700';
+            let statusClass = 'text-red-700 bg-red-50';
             if (paymentStatus === 'Paid') {
-                statusClass = 'bg-green-100 text-green-700';
+                statusClass = 'text-green-700 bg-green-50';
             } else if (paymentStatus === 'Partial') {
-                statusClass = 'bg-yellow-100 text-yellow-700';
+                statusClass = 'text-yellow-700 bg-yellow-50';
             }
 
             div.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 pr-4">
+                        <div class="flex items-center gap-2">
                             <h3 class="font-bold text-lg text-gray-800 line-clamp-1" title="${supplierName}">
                                 ${supplierName}
                             </h3>
-                            <span class="px-2 py-0.5 rounded-md text-xs font-semibold ${statusClass}">
-                                ${paymentStatus.toUpperCase()}
+                            <span class="px-2 py-0.5 rounded text-[10px] font-medium tracking-wide uppercase ${statusClass}">
+                                ${paymentStatus}
                             </span>
                         </div>
-                        <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                            <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 font-medium cursor-pointer hover:bg-blue-100 copy-id" title="Click to copy ID" data-id="${purchaseId}">
+                        <div class="flex items-center gap-4 text-xs text-gray-500 mt-2">
+                            <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 font-medium cursor-pointer hover:bg-blue-100 transition-colors copy-id flex items-center gap-1" title="Click to copy ID" data-id="${purchaseId}">
                                 ${purchaseId}
-                                <i class="far fa-copy ml-1 text-xs opacity-70"></i>
+                                <i class="far fa-copy opacity-70"></i>
                             </span>
-                            <span class="flex items-center gap-1">
+                            <span class="flex items-center gap-1 whitespace-nowrap">
                                 <i class="far fa-calendar-alt"></i> ${dateStr}
                             </span>
+                            <span class="flex items-center gap-1 truncate max-w-sm" title="${supplierAddress}">
+                                <i class="fas fa-map-marker-alt"></i> ${supplierAddress}
+                            </span>
                         </div>
-                        <p class="text-gray-600 text-sm line-clamp-2 min-h-[40px]" title="${supplierAddress}">
-                            <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i> ${supplierAddress}
-                        </p>
                     </div>
                     <div class="flex items-center gap-3">
                         ${isTrash || isArchived ? `
@@ -122,10 +122,11 @@
                             <button class="hard-delete-card-btn px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-rose-300 active:scale-95 cursor-pointer" title="Delete Forever">
                                 <i class="fas fa-trash-alt"></i> Delete Forever
                             </button>
-                    ` : ''}
-                    <div class="text-right ml-4 bg-gray-50 p-3 rounded-lg border border-gray-100 min-w-[120px]">
-                        <p class="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Total Amount</p>
-                        <p class="font-bold text-lg text-gray-900">₹ ${totalAmount}</p>
+                        ` : ''}
+                        <div class="text-right ml-4 min-w-[100px]">
+                            <p class="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Total Amount</p>
+                            <p class="text-lg font-bold text-gray-900 mt-0.5">₹ ${totalAmount}</p>
+                        </div>
                     </div>
                 </div>
             </div>
