@@ -660,7 +660,7 @@ router.get('/unpaid-count', async (req: Request, res: Response) => {
 router.get("/:invoice_id", async (req: Request, res: Response) => {
     try {
         const { invoice_id } = req.params;
-        const invoice = await InvoiceModel.findOne({ invoice_id });
+        const invoice = await InvoiceModel.findOne({ invoice_id }).populate({ path: 'quotation_id', select: 'quotation_no quotation_id' });
         if (!invoice) {
             return res.status(404).json({ message: "Invoice not found" });
         }

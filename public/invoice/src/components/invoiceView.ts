@@ -454,7 +454,15 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
 
     setTextContent('view-project-name', invoice.project_name);
     setTextContent('view-project-id', invoice.invoice_id);
-    setTextContent('view-quotation-id', invoice.quotation_id);
+    // Prefer human-friendly quotation number when available. Handle cases where
+    // `quotation_id` may be a string, an ObjectId string, or a populated object.
+    const displayQuotationId = (
+        (invoice as any).quotation_no ||
+        (typeof invoice.quotation_id === 'string' ? invoice.quotation_id : undefined) ||
+        ((invoice as any).quotation_id && ((invoice as any).quotation_id.quotation_no || (invoice as any).quotation_id._id)) ||
+        ''
+    );
+    setTextContent('view-quotation-id', displayQuotationId);
     setTextContent('view-invoice-date', invoice.invoice_date ? formatDateIndian(invoice.invoice_date) : null);
     setTextContent('view-purchase-order-number', (invoice.po_number && invoice.po_number !== 'undefined') ? invoice.po_number : null);
     setTextContent('view-purchase-order-date', invoice.po_date ? formatDateIndian(invoice.po_date) : null);
