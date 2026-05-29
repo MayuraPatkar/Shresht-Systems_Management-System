@@ -278,8 +278,8 @@ async function loadTrashQuotations() {
         if (trashed.length === 0) {
             quotationListDiv.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
-                    <div class="text-green-500 text-5xl mb-4">
-                        <i class="fas fa-check-circle"></i>
+                    <div class="text-rose-500 text-5xl mb-4">
+                        <i class="fas fa-trash-alt"></i>
                     </div>
                     <h2 class="text-2xl font-bold text-gray-800 mb-2">Trash is Empty</h2>
                     <p class="text-gray-600">No deleted quotations found</p>
