@@ -811,7 +811,31 @@ async function cloneQuotation(sourceQuotationId) {
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         document.getElementById('quotation-date').value = `${yyyy}-${mm}-${dd}`;
-        document.getElementById('valid-till').value = '';
+        // Determine a sensible default for valid-till:
+        // 1) If source has both quotation_date and valid_till, preserve the same duration from new quotation date.
+        // 2) Else if source has valid_till, reuse that date.
+        // 3) Fallback to 30 days from today.
+        let validTillValue = '';
+        try {
+            if (quotation.quotation_date && quotation.valid_till) {
+                const srcQ = new Date(quotation.quotation_date);
+                const srcV = new Date(quotation.valid_till);
+                if (!isNaN(srcQ.getTime()) && !isNaN(srcV.getTime())) {
+                    const diffDays = Math.round((srcV.getTime() - srcQ.getTime()) / 86400000);
+                    const newValid = new Date(today.getTime() + (diffDays || 30) * 86400000);
+                    validTillValue = toInputDate(newValid);
+                } else {
+                    validTillValue = toInputDate(quotation.valid_till) || toInputDate(new Date(today.getTime() + 30 * 86400000));
+                }
+            } else if (quotation.valid_till) {
+                validTillValue = toInputDate(quotation.valid_till);
+            } else {
+                validTillValue = toInputDate(new Date(today.getTime() + 30 * 86400000));
+            }
+        } catch (e) {
+            validTillValue = toInputDate(new Date(today.getTime() + 30 * 86400000));
+        }
+        document.getElementById('valid-till').value = validTillValue;
         document.getElementById('quotation-status').value = 'Draft';
         document.getElementById('quotation-discount').value = quotation.discount || 0;
 
@@ -866,7 +890,7 @@ async function cloneQuotation(sourceQuotationId) {
                 <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
                 <td><input type="number" value="${item.quantity || ''}" min="0.01" step="0.01" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" required></td>
-                <td><input type="number" value="${item.rate || ''}" min="0.01" step="0.01" required></td>
+                <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || item.gstRate || item.GST || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
             `;
             itemsTableBody.appendChild(row);
@@ -896,7 +920,7 @@ async function cloneQuotation(sourceQuotationId) {
                         <input type="number" step="0.01" value="${item.unit_price || ''}" required>
                     </div>
                     <div class="item-field rate">
-                        <input type="number" min="0" step="0.01" value="${item.rate || ''}">
+                        <input type="number" min="0" step="0.01" value="${item.rate || item.Rate || item.gst_rate || item.gstRate || item.GST || ''}">
                     </div>
                     <div class="item-actions">
                         <button type="button" class="remove-item-btn" title="Remove Item">
