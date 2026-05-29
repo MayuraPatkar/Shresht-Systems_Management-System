@@ -67,7 +67,6 @@
         let totalPriceSum = 0;
 
         let itemsHTML = "";
-        let hasTax = (purchaseOrder.items || []).some((item: any) => parseFloat(item.rate || 0) > 0);
 
         (purchaseOrder.items || []).forEach((item: any) => {
             const description = item.description || "-";
@@ -83,50 +82,34 @@
             totalUnitPriceSum += unitPrice;
             totalTaxableSum += taxableValue;
 
-            if (hasTax) {
-                const cgstPercent = rate / 2;
-                const sgstPercent = rate / 2;
-                const cgstValue = (taxableValue * cgstPercent) / 100;
-                const sgstValue = (taxableValue * sgstPercent) / 100;
-                const rowTotal = taxableValue + cgstValue + sgstValue;
+            const cgstPercent = rate / 2;
+            const sgstPercent = rate / 2;
+            const cgstValue = (taxableValue * cgstPercent) / 100;
+            const sgstValue = (taxableValue * sgstPercent) / 100;
+            const taxAmount = cgstValue + sgstValue;
+            const rowTotal = taxableValue + taxAmount;
 
-                totalCGST += cgstValue;
-                totalSGST += sgstValue;
-                totalTax = totalCGST + totalSGST;
-                totalPrice += rowTotal;
-                totalItemsTaxSum += cgstValue + sgstValue;
-                totalPriceSum += rowTotal;
+            totalCGST += cgstValue;
+            totalSGST += sgstValue;
+            totalTax = totalCGST + totalSGST;
+            totalPrice += rowTotal;
+            totalItemsTaxSum += taxAmount;
+            totalPriceSum += rowTotal;
 
-                itemsHTML += `
-                    <tr>
-                        <td>${++sno}</td>
-                        <td>${description}</td>
-                        <td>${hsnSac}</td>
-                        <td>${qty}</td>
-                        <td>${unit}</td>
-                        <td>${formatIndian(unitPrice, 2)}</td>
-                        <td>${formatIndian(taxableValue, 2)}</td>
-                        <td>${rate.toFixed(2)}</td>
-                        <td>${formatIndian(rowTotal, 2)}</td>
-                    </tr>
-                `;
-            } else {
-                const rowTotal = taxableValue;
-                totalPrice += rowTotal;
-                totalPriceSum += rowTotal;
-
-                itemsHTML += `
-                    <tr>
-                        <td>${++sno}</td>
-                        <td>${description}</td>
-                        <td>${hsnSac}</td>
-                        <td>${qty}</td>
-                        <td>${unit}</td>
-                        <td>${formatIndian(unitPrice, 2)}</td>
-                        <td>${formatIndian(rowTotal, 2)}</td>
-                    </tr>
-                `;
-            }
+            itemsHTML += `
+                <tr>
+                    <td>${++sno}</td>
+                    <td>${description}</td>
+                    <td>${hsnSac}</td>
+                    <td>${qty}</td>
+                    <td>${unit}</td>
+                    <td>${formatIndian(unitPrice, 2)}</td>
+                    <td>${formatIndian(taxableValue, 2)}</td>
+                    <td>${rate.toFixed(2)}</td>
+                    <td>${formatIndian(taxAmount, 2)}</td>
+                    <td>${formatIndian(rowTotal, 2)}</td>
+                </tr>
+            `;
         });
 
         const grandTotal = totalPrice;
@@ -136,44 +119,32 @@
         let totalsHTML = `
             <div style="display: flex; width: 100%;">
                 <div class="totals-section-sub1" style="width: 50%;">
-                    ${hasTax ? `
                     <p>Taxable Value:</p>
                     <p>Total CGST:</p>
-                    <p>Total SGST:</p>` : ""}
+                    <p>Total SGST:</p>
                     <p>Grand Total:</p>
                 </div>
                 <div class="totals-section-sub2" style="width: 50%;">
-                    ${hasTax ? `
                     <p>₹ ${formatIndian(totalTaxableValue, 2)}</p>
                     <p>₹ ${formatIndian(totalCGST, 2)}</p>
-                    <p>₹ ${formatIndian(totalSGST, 2)}</p>` : ""}
+                    <p>₹ ${formatIndian(totalSGST, 2)}</p>
                     <p>₹ ${formatIndian(totalAmount, 2)}</p>
                 </div>
             </div>
         `;
 
-        let totalsRowHTML = '';
-        if (hasTax) {
-            totalsRowHTML = `
-                <tr class="totals-row">
-                    <td colspan="3" class="text-left">TOTAL</td>
-                    <td class="text-right">${totalQtySum}</td>
-                    <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
-                    <td class="text-right">₹&nbsp;${formatIndian(totalTaxableSum, 2)}</td>
-                    <td class="text-right">₹&nbsp;${formatIndian(totalItemsTaxSum, 2)}</td>
-                    <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
-                </tr>
-            `;
-        } else {
-            totalsRowHTML = `
-                <tr class="totals-row">
-                    <td colspan="3" class="text-left">TOTAL</td>
-                    <td class="text-right">${totalQtySum}</td>
-                    <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
-                    <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
-                </tr>
-            `;
-        }
+        let totalsRowHTML = `
+            <tr class="totals-row">
+                <td colspan="3" class="text-left font-bold">TOTAL</td>
+                <td class="text-center font-bold">${totalQtySum}</td>
+                <td></td>
+                <td></td>
+                <td class="text-right font-bold">₹ ${formatIndian(totalTaxableSum, 2)}</td>
+                <td></td>
+                <td class="text-right font-bold">₹ ${formatIndian(totalItemsTaxSum, 2)}</td>
+                <td class="text-right font-bold">₹ ${formatIndian(totalPriceSum, 2)}</td>
+            </tr>
+        `;
 
         // Split items into rows for pagination
         const itemRows = itemsHTML.split('</tr>').filter((row: string) => row.trim().length > 0).map((row: string) => row + '</tr>');
@@ -273,9 +244,9 @@
                     <th>Qty</th>
                     <th>Unit</th>
                     <th>Unit Price</th>
-                    ${hasTax ? `
-                        <th>Taxable Value (₹)</th>
-                        <th>Tax Rate (%)</th>` : ""}
+                    <th>Taxable (₹)</th>
+                    <th>Tax Rate (%)</th>
+                    <th>Tax (₹)</th>
                     <th>Total Price (₹)</th>
                 </tr>
             </thead>

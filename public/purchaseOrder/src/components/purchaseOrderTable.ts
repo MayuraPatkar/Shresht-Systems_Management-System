@@ -61,11 +61,11 @@
             const isArchived = !isTrash && purchaseOrder.is_archived;
 
             if (isTrash) {
-                div.className = "bg-rose-50/10 p-6 rounded-lg shadow-sm border border-rose-200 hover:shadow-md transition-shadow relative doc-card cursor-default";
+                div.className = "bg-rose-50/10 p-5 rounded-xl border border-rose-100 hover:border-rose-200 hover:shadow-md transition-all duration-200 relative doc-card cursor-default";
             } else if (isArchived) {
-                div.className = "bg-slate-50/90 p-6 rounded-lg shadow-sm border border-slate-300 hover:shadow-md transition-shadow relative doc-card cursor-default opacity-85 hover:opacity-100";
+                div.className = "bg-slate-50/90 p-5 rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-200 relative doc-card cursor-default opacity-85 hover:opacity-100";
             } else {
-                div.className = "bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative doc-card cursor-pointer";
+                div.className = "bg-white p-5 rounded-xl border border-gray-100 hover:border-blue-100 hover:shadow-md transition-all duration-200 relative doc-card cursor-pointer group";
             }
             
             // Format ID for display
@@ -83,39 +83,39 @@
             const supplierAddress = purchaseOrder.supplier_snapshot?.address?.line1 || 'N/A';
             
             div.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <h3 class="font-bold text-lg text-gray-800 line-clamp-1" title="${supplierName}">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 flex flex-col justify-center min-w-0 pr-4">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <h3 class="text-base font-semibold text-gray-900 truncate" title="${supplierName}">
                                 ${supplierName}
                             </h3>
                             ${isArchived ? `
-                            <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-slate-100 text-slate-500 border border-slate-200">
                                 ARCHIVED
                             </span>
                             ` : ''}
                         </div>
-                        <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                            <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 font-medium cursor-pointer hover:bg-blue-100 copy-id" title="Click to copy ID" data-id="${poId}">
+                        <div class="flex items-center gap-3 text-xs text-gray-500 truncate">
+                            <span class="flex items-center gap-1.5 bg-gray-50 text-gray-700 px-2 py-0.5 rounded border border-gray-200 font-medium cursor-pointer hover:bg-gray-100 copy-id transition-colors" title="Click to copy ID" data-id="${poId}">
                                 ${poId}
-                                <i class="far fa-copy ml-1 text-xs opacity-70"></i>
+                                <i class="far fa-copy text-[10px] opacity-70"></i>
                             </span>
-                            <span class="flex items-center gap-1">
-                                <i class="far fa-calendar-alt"></i> ${dateStr}
+                            <span class="flex items-center gap-1 shrink-0">
+                                <i class="far fa-calendar-alt opacity-70"></i> ${dateStr}
+                            </span>
+                            <span class="flex items-center gap-1 truncate" title="${supplierAddress}">
+                                <i class="fas fa-map-marker-alt opacity-70"></i> <span class="truncate">${supplierAddress}</span>
                             </span>
                         </div>
-                        <p class="text-gray-600 text-sm line-clamp-2 min-h-[40px]" title="${supplierAddress}">
-                            <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i> ${supplierAddress}
-                        </p>
                     </div>
-                    <div class="text-right ml-4 bg-gray-50 p-3 rounded-lg border border-gray-100 min-w-[120px]">
-                        <p class="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Total Amount</p>
-                        <p class="font-bold text-lg text-gray-900">₹ ${totalAmount}</p>
+                    <div class="flex flex-col items-end shrink-0 pl-4 border-l border-gray-50">
+                        <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Amount</p>
+                        <p class="text-lg font-bold text-gray-900">₹ ${totalAmount}</p>
                     </div>
                 </div>
                 
                 ${isTrash || isArchived ? `
-                <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 mt-2">
+                <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 mt-4">
                     <button class="restore-card-btn px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-emerald-300 active:scale-95 cursor-pointer" title="Restore">
                         <i class="fas ${isTrash ? 'fa-trash-restore' : 'fa-box-open'}"></i> Restore
                     </button>
