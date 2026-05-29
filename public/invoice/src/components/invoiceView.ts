@@ -1019,6 +1019,46 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
             }
         });
     }
+
+    const archiveBtn = document.getElementById('archiveInvoiceBtn');
+    if (archiveBtn) {
+        const newArchiveBtn = archiveBtn.cloneNode(true) as HTMLButtonElement;
+        archiveBtn.parentNode?.replaceChild(newArchiveBtn, archiveBtn);
+        newArchiveBtn.innerHTML = invoice.is_archived
+            ? '<i class="fas fa-box-open"></i> Restore from Archive'
+            : '<i class="fas fa-archive"></i> Archive Invoice';
+        newArchiveBtn.addEventListener('click', async () => {
+            const action = invoice.is_archived ? 'restore' : 'archive';
+            const message = `Are you sure you want to ${action} Invoice "${invoice.invoice_id}"?`;
+            const execute = async () => {
+                try {
+                    if (invoice.is_archived) {
+                        await (window as any).restoreInvoiceFromArchive(invoice.invoice_id);
+                    } else {
+                        await (window as any).archiveInvoice(invoice.invoice_id);
+                    }
+                    document.getElementById('home-btn')?.click();
+                } catch (error) {
+                    (window as any).electronAPI?.showAlert1(`Failed to ${action} invoice.`);
+                }
+            };
+            const electronAPI = (window as any).electronAPI;
+            if (electronAPI?.showAlert2 && electronAPI?.receiveAlertResponse) {
+                electronAPI.showAlert2(message);
+                electronAPI.receiveAlertResponse((response: string) => {
+                    if (response === 'Yes') execute();
+                });
+            } else if ((window as any).showConfirm) {
+                (window as any).showConfirm(message, (response: string) => {
+                    if (response === 'Yes') execute();
+                });
+            } else {
+                if (confirm(message)) {
+                    execute();
+                }
+            }
+        });
+    }
 }
 
 async function viewInvoice(invoiceId: string, userRole?: string | null) {

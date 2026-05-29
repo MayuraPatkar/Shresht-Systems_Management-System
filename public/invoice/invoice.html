@@ -927,21 +927,51 @@
                         <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
                     </div>
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <p class="text-sm text-red-700 font-medium">
-                            These actions are destructive or affect status and inventory. Please proceed with caution.
+                    <div class="space-y-0">
+                        <p class="mb-4 text-sm font-medium text-red-700">
+                            These actions are destructive. Please proceed with caution.
                         </p>
-                        <div class="flex flex-wrap gap-4 justify-end">
-                            <button type="button" id="cancelInvoiceBtn"
-                                class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
-                                <i class="fas fa-ban"></i>
-                                Cancel Invoice
-                            </button>
-                            <button type="button" id="deleteInvoiceBtn"
-                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
-                                <i class="fas fa-trash-alt"></i>
-                                Delete Invoice
-                            </button>
+
+                        <div class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Cancel Invoice</p>
+                                <p class="mt-1 text-sm text-slate-600">Flag this invoice as cancelled.</p>
+                            </div>
+                            <div class="sm:justify-self-end">
+                                <button type="button" id="cancelInvoiceBtn"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:border-slate-700 hover:bg-slate-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-slate-300 cursor-pointer">
+                                    <i class="fas fa-ban"></i>
+                                    Cancel Invoice
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Archive Invoice</p>
+                                <p class="mt-1 text-sm text-slate-600">Move this record out of the active workflow while keeping it recoverable.</p>
+                            </div>
+                            <div class="sm:justify-self-end">
+                                <button type="button" id="archiveInvoiceBtn"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 transition-all hover:border-orange-500 hover:bg-orange-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-200 cursor-pointer">
+                                    <i class="fas fa-archive"></i>
+                                    Archive Invoice
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Delete Invoice</p>
+                                <p class="mt-1 text-sm text-slate-600">Permanently delete this invoice. This action cannot be undone.</p>
+                            </div>
+                            <div class="sm:justify-self-end">
+                                <button type="button" id="deleteInvoiceBtn"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-600 transition-all hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-200 cursor-pointer">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Delete Invoice
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </section>

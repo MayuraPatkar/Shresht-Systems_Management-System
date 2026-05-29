@@ -21,6 +21,36 @@ class CustomerTable {
         if (customers.length === 0) {
             container.classList.add('hidden');
             emptyState.classList.remove('hidden');
+            
+            const isArchived = (document.getElementById('status-filter') as HTMLSelectElement)?.value === 'archived';
+            const isTrash = (window as any).showDeletedItems;
+            
+            if (isTrash) {
+                emptyState.innerHTML = `
+                    <div class="text-rose-500 text-5xl mb-4">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-800">Trash is Empty</p>
+                    <p class="mt-2 text-gray-600">No deleted customers found</p>
+                `;
+            } else if (isArchived) {
+                emptyState.innerHTML = `
+                    <div class="text-amber-500 text-5xl mb-4">
+                        <i class="fas fa-archive"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-800">No Archived Customers</p>
+                    <p class="mt-2 text-gray-600">Customers you archive will show up here</p>
+                `;
+            } else {
+                emptyState.innerHTML = `
+                    <div class="text-purple-500 text-5xl mb-4">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-800">No Customers Found</p>
+                    <p class="mt-2 text-gray-600">Try adjusting your search or filters</p>
+                `;
+            }
+
             this.updateStats([]);
             return;
         }

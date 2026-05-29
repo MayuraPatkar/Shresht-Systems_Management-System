@@ -1617,11 +1617,25 @@
         }
     }
 
+    async function archiveInvoice(invoiceId: string) {
+        await (window as any).invoiceApi.archiveInvoice(invoiceId);
+        showToast(`Invoice ${invoiceId} archived`);
+        await loadRecentInvoices();
+    }
+
+    async function restoreInvoiceFromArchive(invoiceId: string) {
+        await (window as any).invoiceApi.restoreInvoiceFromArchive(invoiceId);
+        showToast(`Invoice ${invoiceId} restored`);
+        await loadRecentInvoices();
+    }
+
     // Expose functions globally for payment and delete actions
     (window as any).payment = payment;
     (window as any).editPayment = editPayment;
     (window as any).deletePayment = deletePayment;
     (window as any).deleteInvoice = deleteInvoice;
+    (window as any).archiveInvoice = archiveInvoice;
+    (window as any).restoreInvoiceFromArchive = restoreInvoiceFromArchive;
     (window as any).loadRecentInvoices = loadRecentInvoices;
     (window as any).showToast = showToast;
 })();
