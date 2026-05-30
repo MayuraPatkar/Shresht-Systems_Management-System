@@ -367,7 +367,6 @@ const quotationSchema = new Schema<IQuotation>(
 quotationSchema.index({ project_name: 1, quotation_date: -1 });
 quotationSchema.index({ customer_id: 1, quotation_date: -1 });
 quotationSchema.index({ "deletion.is_deleted": 1 });
-quotationSchema.index({ is_archived: 1 });
 
 /**
  * Model

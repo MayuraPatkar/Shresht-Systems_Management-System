@@ -25,6 +25,7 @@ interface EWayBill {
     _id?: string;
     ewaybill_no?: string;
     ewaybill_status: 'Draft' | 'Generated' | 'Cancelled' | 'Expired';
+    ewaybill_date?: string;
     ewaybill_generated_at?: string;
     invoice_id?: string | { _id: string; invoice_no?: string; invoice_id?: string };
     from_address?: string;

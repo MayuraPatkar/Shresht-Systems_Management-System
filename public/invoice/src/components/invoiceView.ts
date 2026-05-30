@@ -375,8 +375,8 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
                         <p>${(invoice as any).consignee?.name || invoice.consignee_name || ''}</p>
                         <p>${getFormattedAddress((invoice as any).consignee?.address, invoice.consignee_address) || ''}</p>
                     </div>
+                    ` : ''}
                 </div>
-                ` : ''}
             </div>
             ` : ''}
 
@@ -1026,7 +1026,7 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
         viewPaymentBtn.parentNode?.replaceChild(newViewPaymentBtn, viewPaymentBtn);
         newViewPaymentBtn.addEventListener('click', () => {
             if (!cachedInvoice) return;
-            const grandTotal = Number(cachedInvoice.totals?.grand_total || 0);
+            const grandTotal = Number(cachedInvoice.total_amount_original || 0);
             const totalPaid = Number(cachedInvoice.total_paid_amount || 0);
             const balanceDue = grandTotal - totalPaid;
 

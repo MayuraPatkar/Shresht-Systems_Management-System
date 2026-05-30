@@ -387,13 +387,29 @@ interface Window {
             const data = await res.json();
             if (data.success && data.party) {
                 const party = data.party;
-                const contact = type === 'Customer' ? party.customer : party.supplier;
-                const address = type === 'Customer' ? party.billing_address : party.address;
+                
+                let name = partyName;
+                let phone = '';
+                let email = '';
+                let address = null;
 
-                if ($previewPartyName) $previewPartyName.textContent = contact?.name || partyName;
-                if ($previewPartyPhone) $previewPartyPhone.textContent = contact?.phone || '';
+                if (type === 'Customer') {
+                    const contact = party.customer;
+                    name = contact?.name || contact?.first_name || partyName;
+                    phone = contact?.phone || '';
+                    email = contact?.email || '';
+                    address = party.billing_address;
+                } else if (type === 'Supplier') {
+                    name = party.supplier_name || partyName;
+                    phone = party.phone || '';
+                    email = party.email || '';
+                    address = party.billing_address || party.address;
+                }
+
+                if ($previewPartyName) $previewPartyName.textContent = name;
+                if ($previewPartyPhone) $previewPartyPhone.textContent = phone;
                 if ($previewPartyGstin) $previewPartyGstin.textContent = party.gstin || '';
-                if ($previewPartyEmail) $previewPartyEmail.textContent = contact?.email || '';
+                if ($previewPartyEmail) $previewPartyEmail.textContent = email;
 
                 let addrStr = '';
                 if (address) {
@@ -624,9 +640,9 @@ interface Window {
             const data = await res.json();
             if (data.success && data.party) {
                 const party = data.party;
-                const contact = type === 'Customer' ? party.customer : party.supplier;
-                $partyNameInput.value = contact?.name || '';
-                fetchPartyDetails(type as 'Customer' | 'Supplier', contact?.name);
+                const name = type === 'Customer' ? (party.customer?.name || party.customer?.first_name || '') : (party.supplier_name || '');
+                $partyNameInput.value = name;
+                fetchPartyDetails(type as 'Customer' | 'Supplier', name);
             }
         } catch (e) {
             console.error('Failed to fetch party by ID', e);
@@ -687,12 +703,22 @@ interface Window {
             const data = await res.json();
             if (data.success && data.party) {
                 const party = data.party;
-                const contact = type === 'Customer' ? party.customer : party.supplier;
-                const address = type === 'Customer' ? party.billing_address : party.address;
+                
+                let phone = '-';
+                let email = '-';
+                let gstin = party.gstin || '-';
+                let address = null;
 
-                const phone = contact?.phone || '-';
-                const gstin = party.gstin || '-';
-                const email = contact?.email || '-';
+                if (type === 'Customer') {
+                    const contact = party.customer;
+                    phone = contact?.phone || '-';
+                    email = contact?.email || '-';
+                    address = party.billing_address;
+                } else if (type === 'Supplier') {
+                    phone = party.phone || '-';
+                    email = party.email || '-';
+                    address = party.billing_address || party.address;
+                }
 
                 let addrStr = '-';
                 if (address) {

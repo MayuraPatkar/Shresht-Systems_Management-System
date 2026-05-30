@@ -1672,8 +1672,8 @@ const generatePreview = async function () {
                         <p>${consigneeName || '-'}</p>
                         <p>${consigneeAddress || '-'}</p>
                     </div>
+                    ` : ''}
                 </div>
-                ` : ''}
             </div>
             ` : ''}
 

@@ -212,12 +212,25 @@
             const data = await res.json();
             if (data.success && data.party) {
                 const party = data.party;
-                const contact = type === 'Customer' ? party.customer : party.supplier;
-                const address = type === 'Customer' ? party.billing_address : party.address;
+                
+                let name = '-';
+                let phone = '-';
+                let email = '-';
+                let gstin = party.gstin || '-';
+                let address = null;
 
-                const phone = contact?.phone || '-';
-                const gstin = party.gstin || '-';
-                const email = contact?.email || '-';
+                if (type === 'Customer') {
+                    const contact = party.customer;
+                    name = contact?.name || contact?.first_name || '-';
+                    phone = contact?.phone || '-';
+                    email = contact?.email || '-';
+                    address = party.billing_address;
+                } else if (type === 'Supplier') {
+                    name = party.supplier_name || '-';
+                    phone = party.phone || '-';
+                    email = party.email || '-';
+                    address = party.billing_address || party.address;
+                }
 
                 let addrStr = '-';
                 if (address) {
@@ -225,7 +238,7 @@
                         .filter(Boolean).join(', ');
                 }
 
-                $detailsPartyName.textContent = contact?.name || '-';
+                $detailsPartyName.textContent = name;
                 $detailsPartyPhone.textContent = phone;
                 $detailsPartyGstin.textContent = gstin;
                 $detailsPartyEmail.textContent = email;
@@ -250,32 +263,47 @@
 
                 let idStr = '-';
                 let dateStr = '-';
-                let amountStr = '-';
+                let rawAmount = 0;
                 let statusStr = '-';
 
                 if (type === 'Invoice') {
                     idStr = details.invoice_no || details.invoice_id || '-';
                     dateStr = details.invoice_date ? formatDate(details.invoice_date) : '-';
-                    amountStr = details.totals?.grand_total !== undefined ? formatCurrency(details.totals.grand_total) : '-';
+                    rawAmount = details.totals?.grand_total || details.total_amount_original || details.amount || 0;
                     statusStr = details.status || '-';
                 } else if (type === 'Purchase') {
                     idStr = details.purchase_invoice_no || details.purchase_order_no || '-';
                     dateStr = details.purchase_date ? formatDate(details.purchase_date) : '-';
-                    amountStr = details.totals?.grand_total !== undefined ? formatCurrency(details.totals.grand_total) : '-';
+                    rawAmount = details.totals?.grand_total || details.total_amount_original || details.amount || 0;
                     statusStr = details.status || '-';
                 } else if (type === 'Service') {
                     idStr = details.service_no || '-';
                     dateStr = details.service_date ? formatDate(details.service_date) : '-';
-                    amountStr = details.totals?.grand_total !== undefined ? formatCurrency(details.totals.grand_total) : '-';
+                    rawAmount = details.totals?.grand_total || details.total_amount_original || details.amount || 0;
                     statusStr = details.status || '-';
                 }
 
+                const rawPaid = details.total_paid_amount || 0;
+                const rawRefund = details.refund_amount || 0;
+                const rawBalance = Math.max(0, rawAmount - rawPaid + rawRefund);
+
+                const $refTypeText = document.getElementById('details-ref-type-text');
+                if ($refTypeText) $refTypeText.textContent = type;
+
                 $detailsRefId.textContent = idStr;
                 $detailsRefDate.textContent = dateStr;
-                $detailsRefAmount.textContent = amountStr;
+                $detailsRefAmount.textContent = formatCurrency(rawAmount);
+
+                const $refPaid = document.getElementById('details-ref-paid');
+                const $refRefunded = document.getElementById('details-ref-refunded');
+                const $refBalance = document.getElementById('details-ref-balance');
+
+                if ($refPaid) $refPaid.textContent = formatCurrency(rawPaid);
+                if ($refRefunded) $refRefunded.textContent = formatCurrency(rawRefund);
+                if ($refBalance) $refBalance.textContent = formatCurrency(rawBalance);
                 
                 $detailsRefStatus.textContent = statusStr;
-                $detailsRefStatus.className = 'font-bold';
+                $detailsRefStatus.className = 'font-bold text-sm uppercase';
                 const lowerStatus = statusStr.toLowerCase();
                 if (lowerStatus === 'paid') {
                     $detailsRefStatus.classList.add('text-green-600');
@@ -297,44 +325,137 @@
         }
     }
 
-    // ── Render Page ─────────────────────────────────────────
     function populateDetails(payment: IPaymentRecord) {
         const isIn = payment.direction === 'IN';
 
         // Document title and header
+        const formattedId = payment._id.substring(payment._id.length - 6).toUpperCase();
         document.title = `Payment Detail | ${payment.party_name || payment.party_display_id || 'Ref'}`;
-        $headerTitle.textContent = `Payment ID: ${payment._id.substring(payment._id.length - 6).toUpperCase()}`;
+        $headerTitle.textContent = `Payment ID: ${formattedId}`;
 
-        // Banner details
-        $detailsIcon.className = `w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-sm ${
-            isIn ? 'bg-green-50 text-green-600 border border-green-100/50' : 'bg-red-50 text-red-600 border border-red-100/50'
-        }`;
-        $detailsIcon.innerHTML = `<i class="fas ${isIn ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>`;
-        
+        // Set Breadcrumb payment ID
+        const $breadcrumbPaymentId = document.getElementById('breadcrumb-payment-id');
+        if ($breadcrumbPaymentId) {
+            $breadcrumbPaymentId.textContent = `Payment #${formattedId}`;
+        }
+
+        // Set Payment Amount
         $detailsAmount.textContent = formatCurrency(payment.amount);
-        $detailsAmount.className = `text-3xl font-extrabold tracking-tight ${isIn ? 'text-green-700' : 'text-red-700'}`;
-        
-        $detailsDirection.textContent = isIn ? 'Money In' : 'Money Out';
-        $detailsDirection.className = `px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-            isIn ? 'badge-in' : 'badge-out'
-        }`;
+        $detailsAmount.className = `text-3xl font-extrabold tracking-tight ${isIn ? 'text-green-700' : 'text-slate-800'}`;
 
-        if (payment.is_advance) {
-            $detailsAdvanceBadge.classList.remove('hidden');
-        } else {
-            $detailsAdvanceBadge.classList.add('hidden');
+        // Set Single Status Badge
+        const $statusBadge = document.getElementById('details-status-badge') as HTMLElement;
+        if ($statusBadge) {
+            let statusText = 'Completed';
+            let bgClass = 'bg-green-100 text-green-800';
+            
+            if (payment.is_refund) {
+                statusText = 'Refund';
+                bgClass = 'bg-amber-100 text-amber-800';
+            } else if (payment.is_already_refunded) {
+                statusText = 'Refunded';
+                bgClass = 'bg-red-100 text-red-800';
+            } else if (payment.is_advance) {
+                statusText = 'Advance';
+                bgClass = 'bg-blue-100 text-blue-800';
+            }
+
+            $statusBadge.textContent = statusText;
+            $statusBadge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${bgClass}`;
         }
 
-        if (payment.is_refund) {
-            $detailsRefundBadge.classList.remove('hidden');
-        } else {
-            $detailsRefundBadge.classList.add('hidden');
+        // Set header elements
+        const $headerType = document.getElementById('header-type');
+        const $headerMethod = document.getElementById('header-method');
+        const $headerDate = document.getElementById('header-date');
+        const $headerTxId = document.getElementById('header-tx-id');
+        const $headerLinkedDoc = document.getElementById('header-linked-doc');
+
+        if ($headerType) $headerType.textContent = isIn ? 'Money In' : 'Money Out';
+        if ($headerMethod) $headerMethod.textContent = payment.mode || '-';
+        if ($headerDate) $headerDate.textContent = formatDate(payment.payment_date);
+        if ($headerTxId) $headerTxId.textContent = payment.transaction_details || '-';
+        if ($headerLinkedDoc) $headerLinkedDoc.textContent = referenceLabel(payment);
+
+        // Transaction Details
+        $detailsTransaction.textContent = valOrDash(payment.transaction_details);
+        $detailsMode.textContent = payment.mode || '-';
+        $detailsDate.textContent = formatDate(payment.payment_date);
+        $detailsParty.textContent = `${paymentPartyType(payment)}${payment.party_display_id || payment.party_id ? `: ${payment.party_display_id || payment.party_id}` : ''}`;
+        $detailsReference.textContent = referenceLabel(payment);
+        $detailsCreated.textContent = formatDate(payment.createdAt);
+        $detailsRemarks.textContent = valOrDash(payment.remarks);
+
+        // Populate Financial Details
+        const $financialAmount = document.getElementById('financial-amount');
+        const $financialRefund = document.getElementById('financial-refund');
+        const $financialNet = document.getElementById('financial-net');
+        const $financialMode = document.getElementById('financial-mode');
+
+        const refundAmt = payment.is_already_refunded ? payment.amount : 0; 
+        if ($financialAmount) $financialAmount.textContent = formatCurrency(payment.amount);
+        if ($financialRefund) $financialRefund.textContent = formatCurrency(refundAmt);
+        if ($financialNet) $financialNet.textContent = formatCurrency(payment.amount - refundAmt);
+        if ($financialMode) $financialMode.textContent = payment.mode || '-';
+
+        // Populate Activity Timeline
+        const $timeline = document.getElementById('activity-timeline');
+        if ($timeline) {
+            let timelineHTML = '';
+            // Payment Created
+            timelineHTML += `
+                <div class="relative">
+                    <span class="absolute -left-8 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 ring-4 ring-white">
+                        <i class="fas fa-check text-[8px] text-blue-600"></i>
+                    </span>
+                    <p class="text-xs font-bold text-slate-800">Payment Created</p>
+                    <p class="text-[10px] text-slate-500 font-medium">${formatDate(payment.createdAt)}</p>
+                </div>
+            `;
+            // Linked Document
+            if (payment.reference_id) {
+                timelineHTML += `
+                    <div class="relative">
+                        <span class="absolute -left-8 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 ring-4 ring-white">
+                            <i class="fas fa-link text-[8px] text-emerald-600"></i>
+                        </span>
+                        <p class="text-xs font-bold text-slate-800">Linked to ${payment.reference_type || 'Document'} #${payment.reference_id}</p>
+                        <p class="text-[10px] text-slate-500 font-medium">${formatDate(payment.payment_date)}</p>
+                    </div>
+                `;
+            }
+            // Refund state
+            if (payment.is_refund) {
+                timelineHTML += `
+                    <div class="relative">
+                        <span class="absolute -left-8 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-100 ring-4 ring-white">
+                            <i class="fas fa-undo text-[8px] text-amber-600"></i>
+                        </span>
+                        <p class="text-xs font-bold text-slate-800">Refund Processed</p>
+                        <p class="text-[10px] text-slate-500 font-medium">${formatDate(payment.payment_date)}</p>
+                    </div>
+                `;
+            } else if (payment.is_already_refunded) {
+                timelineHTML += `
+                    <div class="relative">
+                        <span class="absolute -left-8 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-100 ring-4 ring-white">
+                            <i class="fas fa-exclamation-circle text-[8px] text-red-600"></i>
+                        </span>
+                        <p class="text-xs font-bold text-slate-800">Refund Issued</p>
+                        <p class="text-[10px] text-slate-500 font-medium">${formatDate(payment.payment_date)}</p>
+                    </div>
+                `;
+            }
+
+            $timeline.innerHTML = timelineHTML;
         }
 
-        if (payment.is_already_refunded) {
-            $detailsRefundedBadge.classList.remove('hidden');
-        } else {
-            $detailsRefundedBadge.classList.add('hidden');
+        // Set Party profile link href
+        const $partyProfileBtn = document.getElementById('party-profile-btn') as HTMLAnchorElement | null;
+        if ($partyProfileBtn && payment.party_id) {
+            const pType = paymentPartyType(payment);
+            $partyProfileBtn.href = pType === 'Customer' ? `/customer?id=${payment.party_id}` : `/supplier?id=${payment.party_id}`;
+            $partyProfileBtn.textContent = pType === 'Customer' ? 'Open Customer Profile' : 'View Supplier';
         }
 
         if (payment.is_already_refunded || payment.is_refund) {
@@ -346,16 +467,6 @@
             $detailsRefundBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             $detailsRefundBtn.title = 'Refund Transaction (Ctrl+U)';
         }
-
-        $detailsDate.textContent = formatDate(payment.payment_date);
-        $detailsMode.textContent = payment.mode || '-';
-
-        // Transaction main details
-        $detailsTransaction.textContent = valOrDash(payment.transaction_details);
-        $detailsParty.textContent = `${paymentPartyType(payment)}${payment.party_display_id || payment.party_id ? `: ${payment.party_display_id || payment.party_id}` : ''}`;
-        $detailsReference.textContent = referenceLabel(payment);
-        $detailsCreated.textContent = formatDate(payment.createdAt);
-        $detailsRemarks.textContent = valOrDash(payment.remarks);
 
         // Fetch expanded cards
         $detailsPartyExpanded.classList.add('hidden');
