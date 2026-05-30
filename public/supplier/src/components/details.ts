@@ -330,15 +330,25 @@ document.addEventListener('DOMContentLoaded', () => {
             </td>
         `);
 
-        renderTable('payments-list', payments, (p: any) => `
-            <td class="px-6 py-4">${formatDate(p.payment_date)}</td>
-            <td class="px-6 py-4 text-gray-500">${valOrDash(p.transaction_details)}</td>
-            <td class="px-6 py-4"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs font-bold uppercase">${p.mode}</span></td>
-            <td class="px-6 py-4 font-bold text-green-600">${formatCurrency(p.amount)}</td>
-            <td class="px-6 py-4">
-                <button data-action="view-payment" data-id="${p.payment_id || p._id}" class="bg-gray-50 text-gray-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-gray-100 transition-colors uppercase tracking-wider">Details</button>
-            </td>
-        `);
+        renderTable('payments-list', payments, (p: any) => {
+            const refType = p.reference_type || p.reference?.type || '';
+            const refId = p.reference_id || p.reference?.id || '';
+            let refDisplay = '-';
+            if (refType) {
+                refDisplay = refId ? `${refType}: ${refId}` : refType;
+            } else if (p.transaction_details) {
+                refDisplay = p.transaction_details;
+            }
+            return `
+                <td class="px-6 py-4">${formatDate(p.payment_date)}</td>
+                <td class="px-6 py-4 font-bold text-green-600">${formatCurrency(p.amount)}</td>
+                <td class="px-6 py-4"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs font-bold uppercase">${p.mode || p.payment_mode || '-'}</span></td>
+                <td class="px-6 py-4 text-gray-500">${valOrDash(refDisplay)}</td>
+                <td class="px-6 py-4">
+                    <button data-action="view-payment" data-id="${p.payment_id || p._id}" class="bg-gray-50 text-gray-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-gray-100 transition-colors uppercase tracking-wider">Details</button>
+                </td>
+            `;
+        });
     }
 
     function renderTable(id: string, items: any[], rowTemplate: (item: any) => string) {
