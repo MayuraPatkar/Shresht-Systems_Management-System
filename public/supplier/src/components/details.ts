@@ -157,6 +157,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'bg-blue-50 text-blue-700';
     }
 
+    function getPurchaseDisplayStatus(purchase: any) {
+        return purchase?.payment_status || purchase?.purchase_status || '-';
+    }
+
+    function getPurchaseStatusClasses(purchase: any) {
+        const status = getPurchaseDisplayStatus(purchase).toLowerCase();
+        if (status === 'paid') return 'bg-green-50 text-green-700';
+        if (status === 'partial' || status === 'unpaid' || status === 'partially refunded' || status === 'refunded') return 'bg-orange-50 text-orange-700';
+        if (status === 'cancelled') return 'bg-red-50 text-red-700';
+        return 'bg-blue-50 text-blue-700';
+    }
+
     function populateData(data: any) {
         const { supplier, stats, purchases, payments } = data;
 
@@ -312,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="px-6 py-4 font-medium text-blue-600">${p.purchase_invoice_no || p.purchase_order_no || '-'}</td>
             <td class="px-6 py-4">${formatDate(p.purchase_date)}</td>
             <td class="px-6 py-4 font-bold">${formatCurrency(p.totals?.grand_total)}</td>
-            <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs uppercase font-bold">${p.purchase_status || '-'}</span></td>
+            <td class="px-6 py-4"><span class="px-2 py-1 ${getPurchaseStatusClasses(p)} rounded text-xs uppercase font-bold">${getPurchaseDisplayStatus(p)}</span></td>
             <td class="px-6 py-4">
                 <button data-action="view-purchase" data-id="${p.purchase_order_no || p._id}" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-blue-100 transition-colors uppercase tracking-wider">View</button>
             </td>
@@ -324,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="px-6 py-4"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs font-bold uppercase">${p.mode}</span></td>
             <td class="px-6 py-4 font-bold text-green-600">${formatCurrency(p.amount)}</td>
             <td class="px-6 py-4">
-                <button class="bg-gray-50 text-gray-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-gray-100 transition-colors uppercase tracking-wider">Details</button>
+                <button data-action="view-payment" data-id="${p.payment_id || p._id}" class="bg-gray-50 text-gray-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-gray-100 transition-colors uppercase tracking-wider">Details</button>
             </td>
         `);
     }
@@ -359,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = btn.getAttribute('data-id');
 
             if (action === 'view-purchase') window.location.href = `/purchaseorder?id=${id}`;
+            if (action === 'view-payment') window.location.href = `/payment/details?id=${id}`;
         };
     }
 

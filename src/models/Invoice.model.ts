@@ -519,9 +519,10 @@ invoiceSchema.methods.updatePaymentStatus = function (this: IInvoice) {
         ? this.total_amount_duplicate
         : (this.total_amount_original || 0);
     const totalPaid = this.total_paid_amount || 0;
+    const hasRefund = (this.payments || []).some((p: any) => p.paid_amount < 0);
 
-    if (totalPaid === 0) {
-        this.payment_status = 'Unpaid';
+    if (totalPaid <= 0) {
+        this.payment_status = hasRefund ? 'Refunded' : 'Unpaid';
         if (this.status === InvoiceStatus.PAID || this.status === InvoiceStatus.PARTIALLY_PAID) {
             const isOverdue = this.due_date && new Date(this.due_date) < new Date();
             if (this.invoice_status === 'Draft') {
@@ -532,13 +533,16 @@ invoiceSchema.methods.updatePaymentStatus = function (this: IInvoice) {
                 this.status = InvoiceStatus.SENT;
             }
         }
+        if (hasRefund && this.status !== InvoiceStatus.CANCELLED) {
+            this.status = InvoiceStatus.REFUNDED;
+        }
     } else if (totalPaid >= totalDue) {
-        this.payment_status = 'Paid';
+        this.payment_status = hasRefund ? 'Partially Refunded' : 'Paid';
         if (this.status !== InvoiceStatus.REFUNDED && this.status !== InvoiceStatus.CANCELLED) {
             this.status = InvoiceStatus.PAID;
         }
     } else {
-        this.payment_status = 'Partial';
+        this.payment_status = hasRefund ? 'Partially Refunded' : 'Partial';
         if (this.status !== InvoiceStatus.CANCELLED) {
             this.status = InvoiceStatus.PARTIALLY_PAID;
         }

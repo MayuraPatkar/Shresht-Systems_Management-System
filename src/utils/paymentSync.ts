@@ -15,11 +15,17 @@ export async function syncReferencePayments(referenceType: 'Invoice' | 'Purchase
             "deletion.is_deleted": { $ne: true }
         }).sort({ payment_date: 1 }).lean();
 
-        const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const hasRefund = payments.some(p => p.is_refund);
+        const totalPaid = payments.reduce((sum, p) => {
+            if (p.is_refund) {
+                return sum - (p.amount || 0);
+            }
+            return sum + (p.amount || 0);
+        }, 0);
 
         const embeddedPayments = payments.map(p => ({
             payment_date: p.payment_date,
-            paid_amount: p.amount,
+            paid_amount: p.is_refund ? -(p.amount || 0) : (p.amount || 0),
             payment_mode: p.mode,
             extra_details: p.remarks || p.transaction_details || '',
             payment_ref: p._id
@@ -36,12 +42,12 @@ export async function syncReferencePayments(referenceType: 'Invoice' | 'Purchase
                     ? invoice.total_amount_duplicate
                     : (invoice.total_amount_original || 0);
 
-                if (totalPaid === 0) {
-                    invoice.payment_status = 'Unpaid';
+                if (totalPaid <= 0) {
+                    invoice.payment_status = hasRefund ? 'Refunded' : 'Unpaid';
                 } else if (totalPaid >= totalDue - 0.01) {
-                    invoice.payment_status = 'Paid';
+                    invoice.payment_status = hasRefund ? 'Partially Refunded' : 'Paid';
                 } else {
-                    invoice.payment_status = 'Partial';
+                    invoice.payment_status = hasRefund ? 'Partially Refunded' : 'Partial';
                 }
 
                 if (typeof invoice.updatePaymentStatus === 'function') {
@@ -57,12 +63,12 @@ export async function syncReferencePayments(referenceType: 'Invoice' | 'Purchase
                 purchase.total_paid_amount = totalPaid;
 
                 const grandTotal = purchase.totals?.grand_total || 0;
-                if (totalPaid === 0) {
-                    purchase.payment_status = 'Unpaid';
+                if (totalPaid <= 0) {
+                    purchase.payment_status = hasRefund ? 'Refunded' : 'Unpaid';
                 } else if (totalPaid >= grandTotal - 0.01) {
-                    purchase.payment_status = 'Paid';
+                    purchase.payment_status = hasRefund ? 'Partially Refunded' : 'Paid';
                 } else {
-                    purchase.payment_status = 'Partial';
+                    purchase.payment_status = hasRefund ? 'Partially Refunded' : 'Partial';
                 }
                 await purchase.save();
                 logger.info(`Synced payments for Purchase ${refId}. Total Paid: ${totalPaid}`);
@@ -74,12 +80,12 @@ export async function syncReferencePayments(referenceType: 'Invoice' | 'Purchase
                 service.total_paid_amount = totalPaid;
 
                 const grandTotal = service.totals?.grand_total || 0;
-                if (totalPaid === 0) {
-                    service.payment_status = 'Unpaid';
+                if (totalPaid <= 0) {
+                    service.payment_status = hasRefund ? 'Refunded' : 'Unpaid';
                 } else if (totalPaid >= grandTotal - 0.01) {
-                    service.payment_status = 'Paid';
+                    service.payment_status = hasRefund ? 'Partially Refunded' : 'Paid';
                 } else {
-                    service.payment_status = 'Partial';
+                    service.payment_status = hasRefund ? 'Partially Refunded' : 'Partial';
                 }
                 await service.save();
                 logger.info(`Synced payments for Service ${refId}. Total Paid: ${totalPaid}`);
