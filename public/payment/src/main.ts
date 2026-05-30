@@ -39,6 +39,8 @@ interface IPaymentRecord {
     is_already_refunded?: boolean;
     refund_payment_id?: string;
     remarks?: string;
+    status: string; // Added status field
+    createdBy?: string; // Added for audit tracking
     deletion: {
         is_deleted: boolean;
         deleted_at?: string;
@@ -62,6 +64,7 @@ interface IPaymentPayload {
     is_refund?: boolean;
     refunded_payment_ref?: string;
     remarks?: string;
+    status: string; // Added status field
 }
 
 interface IApiResponse {
@@ -77,6 +80,8 @@ interface Window {
         editPayment: (id: string) => void;
         confirmDelete: (id: string) => Promise<void>;
         viewPayment: (id: string) => void;
+        refundPayment?: (id: string) => void;
+        printPayment?: (id: string) => void;
     };
     validateCurrentStep?: () => Promise<boolean>;
 }
@@ -94,10 +99,16 @@ interface Window {
     let shortcutsModalRef: HTMLElement | null = null;
     let validator: any = null;
     const advancedFilters = {
-        direction: '',
+        txType: '',
+        status: '',
+        party: '',
         mode: '',
         referenceType: '',
-        advance: ''
+        amountMin: null as number | null,
+        amountMax: null as number | null,
+        dateRange: 'month', // 'today', 'week', 'month', 'quarter', 'year', 'custom', 'all'
+        startDate: '',
+        endDate: ''
     };
 
     // ── DOM Refs ──────────────────────────────────────────
@@ -111,10 +122,21 @@ interface Window {
     const $filterPopover = document.getElementById('filter-popover') as HTMLDivElement;
     const $filterBtn = document.getElementById('filter-btn') as HTMLButtonElement;
     const $refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
-    const $directionFilter = document.getElementById('direction-filter') as HTMLSelectElement;
-    const $modeFilter = document.getElementById('mode-filter') as HTMLSelectElement;
-    const $referenceFilter = document.getElementById('reference-filter') as HTMLSelectElement;
-    const $advanceFilter = document.getElementById('advance-filter') as HTMLSelectElement;
+
+    // Redesigned DOM elements
+    const $trendMoneyIn = document.getElementById('trend-money-in') as HTMLElement;
+    const $trendMoneyOut = document.getElementById('trend-money-out') as HTMLElement;
+    const $netBalanceSub = document.getElementById('net-balance-sub') as HTMLElement;
+    const $transactionsSub = document.getElementById('transactions-sub') as HTMLElement;
+    const $toggleRunningBalance = document.getElementById('toggle-running-balance') as HTMLInputElement;
+    const $filterChipsContainer = document.getElementById('filter-chips-container') as HTMLDivElement;
+    const $chipsList = document.getElementById('chips-list') as HTMLDivElement;
+    const $clearAllChips = document.getElementById('clear-all-chips') as HTMLButtonElement;
+    const $exportBtn = document.getElementById('export-btn') as HTMLButtonElement;
+    const $exportMenu = document.getElementById('export-menu') as HTMLDivElement;
+    const $searchSuggestions = document.getElementById('search-suggestions') as HTMLUListElement;
+    const $paymentCardsMobile = document.getElementById('payment-cards-mobile') as HTMLDivElement;
+
     const $newSec = document.getElementById('new') as HTMLDivElement;
     const $homeSec = document.getElementById('home') as HTMLDivElement;
     const $homeBtn = document.getElementById('home-btn') as HTMLButtonElement;
@@ -203,6 +225,204 @@ interface Window {
             case 'Cheque': return 'badge-cheque';
             default: return 'badge-cash';
         }
+    }
+
+    function printPaymentReceipt(payment: IPaymentRecord): void {
+        const type = getTransactionTypeLabel(payment);
+        const party = (payment as any).party_name || payment.party_display_id || payment.party_id || '-';
+        const amountStr = formatCurrency(payment.amount);
+        const dateStr = formatDate(payment.payment_date);
+        
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            showToast('Popup blocked. Please allow popups for printing receipts.', true);
+            return;
+        }
+        
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Payment Receipt - ${payment._id}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+                    .logo { font-size: 24px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; }
+                    .subtitle { font-size: 14px; color: #666; }
+                    .receipt-title { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-top: 20px; margin-bottom: 20px; letter-spacing: 1px; }
+                    .details-table { w-full border-collapse: collapse; margin-top: 20px; width: 100%; }
+                    .details-table td { padding: 12px 8px; border-bottom: 1px solid #eee; font-size: 14px; }
+                    .details-table td.label { font-weight: bold; color: #555; width: 35%; }
+                    .amount-box { margin-top: 30px; padding: 15px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; text-align: right; }
+                    .amount-val { font-size: 20px; font-weight: bold; color: #1e3a8a; }
+                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
+                    @media print {
+                        body { padding: 0; }
+                        button { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="logo">SHRESHT SYSTEMS</div>
+                    <div class="subtitle">Management System - Payment Receipt</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="receipt-title">${type} Acknowledgement</div>
+                </div>
+                <table class="details-table">
+                    <tr>
+                        <td class="label">Payment ID</td>
+                        <td>${payment._id}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Date</td>
+                        <td>${dateStr}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Party Name</td>
+                        <td>${party}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Transaction Type</td>
+                        <td>${type}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Payment Mode</td>
+                        <td>${payment.mode}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Reference Document</td>
+                        <td>${payment.reference_type ? `${payment.reference_type} (${payment.reference_id || '-'})` : '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Transaction Details</td>
+                        <td>${payment.transaction_details || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Remarks / Description</td>
+                        <td>${payment.remarks || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Status</td>
+                        <td>${payment.status || 'Completed'}</td>
+                    </tr>
+                </table>
+                <div class="amount-box">
+                    <span style="font-size: 14px; font-weight: bold; color: #666; margin-right: 10px;">Total Amount:</span>
+                    <span class="amount-val">${amountStr}</span>
+                </div>
+                <div class="footer">
+                    This is a system-generated transaction acknowledgement receipt.
+                </div>
+                <script>
+                    window.onload = function() {
+                        window.print();
+                    };
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+
+    function downloadBlob(content: string, fileName: string, mimeType: string): void {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function generatePaymentsCSV(): string {
+        const headers = ['Date', 'Transaction Type', 'Status', 'Party', 'Reference', 'Method', 'Amount', 'Running Balance', 'Created By'];
+        const showBalance = $toggleRunningBalance?.checked || false;
+        
+        const rows = filteredPayments.map(p => {
+            const date = p.payment_date ? p.payment_date.substring(0, 10) : '';
+            const type = getTransactionTypeLabel(p);
+            const status = p.status || 'Completed';
+            const party = (p as any).party_name || p.party_display_id || p.party_id || '-';
+            
+            const refLabel = p.reference_type 
+                ? (p.reference_id ? `${p.reference_type}: ${p.reference_id}` : p.reference_type) 
+                : '-';
+            const method = p.mode;
+            const amountStr = (p.direction === 'IN' ? '' : '-') + p.amount;
+            const balanceStr = showBalance && (p as any).running_balance !== undefined ? String((p as any).running_balance) : '';
+            const createdBy = p.createdBy || 'System Admin';
+            
+            return [date, type, status, party, refLabel, method, amountStr, balanceStr, createdBy]
+                .map(val => `"${String(val).replace(/"/g, '""')}"`)
+                .join(',');
+        });
+        
+        return [headers.join(','), ...rows].join('\n');
+    }
+
+    function showSearchSuggestions(query: string) {
+        if (!query) {
+            $searchSuggestions.classList.add('hidden');
+            $searchSuggestions.innerHTML = '';
+            return;
+        }
+        
+        const matches = allPayments.filter(p => {
+            const party = ((p as any).party_name || p.party_display_id || p.party_id || '').toLowerCase();
+            const ref = (p.reference_id || '').toLowerCase();
+            const type = getTransactionTypeLabel(p).toLowerCase();
+            const mode = (p.mode || '').toLowerCase();
+            const amount = String(p.amount);
+            const id = p._id.toLowerCase();
+            const q = query.toLowerCase();
+            
+            return party.includes(q) || ref.includes(q) || type.includes(q) || mode.includes(q) || amount.includes(q) || id.includes(q);
+        }).slice(0, 8);
+        
+        if (matches.length === 0) {
+            $searchSuggestions.classList.add('hidden');
+            $searchSuggestions.innerHTML = '';
+            return;
+        }
+        
+        $searchSuggestions.innerHTML = matches.map(p => {
+            const type = getTransactionTypeLabel(p);
+            const party = (p as any).party_name || p.party_display_id || p.party_id || '-';
+            const amountStr = formatCurrency(p.amount);
+            const ref = p.reference_id ? `Ref: ${p.reference_id}` : '';
+            const isReceived = p.direction === 'IN';
+            const colorClass = isReceived ? 'text-emerald-600' : 'text-rose-600';
+            
+            return `
+            <li class="px-4 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 flex items-center justify-between text-xs transition-colors" data-id="${p._id}">
+                <div>
+                    <span class="font-bold text-slate-800">${escapeHtml(party)}</span>
+                    <span class="text-slate-400 mx-1">•</span>
+                    <span class="text-slate-500">${type} (${p.mode})</span>
+                    ${ref ? `<span class="text-slate-400 mx-1">•</span><span class="text-blue-600 font-semibold">${escapeHtml(ref)}</span>` : ''}
+                </div>
+                <div class="font-extrabold ${colorClass}">
+                    ${isReceived ? '+' : '-'}${amountStr}
+                </div>
+            </li>
+            `;
+        }).join('');
+        
+        $searchSuggestions.classList.remove('hidden');
+        
+        $searchSuggestions.querySelectorAll('li').forEach(li => {
+            li.addEventListener('click', () => {
+                const id = li.dataset.id;
+                if (id) {
+                    $searchInput.value = id;
+                    $searchSuggestions.classList.add('hidden');
+                    applyFilter();
+                }
+            });
+        });
     }
 
     // ── Party Profile Card ────────────────────────────────
@@ -431,6 +651,105 @@ interface Window {
     }
 
     // ── Render ─────────────────────────────────────────────
+    function getMonthlyTotal(direction: 'IN' | 'OUT', month: number, year: number): number {
+        return allPayments
+            .filter(p => {
+                if (p.direction !== direction) return false;
+                const d = new Date(p.payment_date);
+                return d.getMonth() === month && d.getFullYear() === year;
+            })
+            .reduce((sum, p) => sum + (p.amount || 0), 0);
+    }
+
+    function formatCurrencyShort(num: number): string {
+        if (num >= 100000) {
+            return '₹' + (num / 100000).toFixed(2) + 'L';
+        }
+        return '₹' + num.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    }
+
+    function getTransactionTypeLabel(p: IPaymentRecord): string {
+        if (p.is_refund) {
+            return p.direction === 'IN' ? 'Refund Received' : 'Refund Issued';
+        }
+        if (p.is_advance) {
+            return p.direction === 'IN' ? 'Advance Received' : 'Advance Paid';
+        }
+        return p.direction === 'IN' ? 'Payment Received' : 'Payment Sent';
+    }
+
+    function getTransactionTypeBadge(p: IPaymentRecord): string {
+        const type = getTransactionTypeLabel(p);
+        let badgeClass = '';
+        switch (type) {
+            case 'Payment Received':
+                badgeClass = 'bg-emerald-55 text-emerald-700 border border-emerald-200';
+                break;
+            case 'Payment Sent':
+                badgeClass = 'bg-rose-55 text-rose-700 border border-rose-200';
+                break;
+            case 'Refund Issued':
+                badgeClass = 'bg-orange-55 text-orange-700 border border-orange-200';
+                break;
+            case 'Refund Received':
+                badgeClass = 'bg-teal-55 text-teal-700 border border-teal-200';
+                break;
+            case 'Advance Received':
+                badgeClass = 'bg-amber-55 text-amber-700 border border-amber-200';
+                break;
+            case 'Advance Paid':
+                badgeClass = 'bg-indigo-55 text-indigo-700 border border-indigo-200';
+                break;
+            default:
+                badgeClass = 'bg-slate-55 text-slate-700 border border-slate-200';
+        }
+        return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide ${badgeClass}">${type}</span>`;
+    }
+
+    function getStatusBadge(status: string): string {
+        const s = status || 'Completed';
+        let badgeClass = '';
+        switch (s) {
+            case 'Completed':
+                badgeClass = 'bg-green-50 text-green-700 border border-green-200';
+                break;
+            case 'Pending':
+                badgeClass = 'bg-amber-50 text-amber-700 border border-amber-200';
+                break;
+            case 'Refunded':
+                badgeClass = 'bg-blue-50 text-blue-700 border border-blue-200';
+                break;
+            case 'Partially Refunded':
+                badgeClass = 'bg-sky-50 text-sky-700 border border-sky-200';
+                break;
+            case 'Cancelled':
+                badgeClass = 'bg-slate-50 text-slate-700 border border-slate-200';
+                break;
+            case 'Failed':
+                badgeClass = 'bg-red-50 text-red-700 border border-red-200';
+                break;
+            default:
+                badgeClass = 'bg-slate-50 text-slate-700 border border-slate-200';
+        }
+        return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold ${badgeClass}">${s}</span>`;
+    }
+
+    function getReferenceLink(p: IPaymentRecord): string {
+        if (!p.reference_type || !p.reference_id) return '-';
+        let path = '';
+        if (p.reference_type === 'Invoice') {
+            path = `../invoice/invoice.html?view=${p.reference_ref || p.reference_id}`;
+        } else if (p.reference_type === 'Purchase') {
+            path = `../purchase/purchase.html?view=${p.reference_ref || p.reference_id}`;
+        } else if (p.reference_type === 'Service') {
+            path = `../service/service.html?view=${p.reference_ref || p.reference_id}`;
+        } else {
+            return escapeHtml(p.reference_id);
+        }
+        
+        return `<a href="${path}" onclick="event.stopPropagation();" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold" title="View Linked Document: ${escapeHtml(p.reference_type)} ${escapeHtml(p.reference_id)}">${escapeHtml(p.reference_id)}</a>`;
+    }
+
     function updateSummary(): void {
         const totalIn: number = allPayments
             .filter((p: IPaymentRecord) => p.direction === 'IN')
@@ -438,31 +757,145 @@ interface Window {
         const totalOut: number = allPayments
             .filter((p: IPaymentRecord) => p.direction === 'OUT')
             .reduce((s: number, p: IPaymentRecord) => s + (p.amount || 0), 0);
+            
         $totalIn.textContent = formatCurrency(totalIn);
         $totalOut.textContent = formatCurrency(totalOut);
         $netBalance.textContent = formatCurrency(totalIn - totalOut);
         $totalCount.textContent = String(allPayments.length);
+
+        // Trend calculations (cur month vs prev month)
+        const now = new Date();
+        const curMonth = now.getMonth();
+        const curYear = now.getFullYear();
+        const prevMonth = curMonth === 0 ? 11 : curMonth - 1;
+        const prevYear = curMonth === 0 ? curYear - 1 : curYear;
+
+        const curIn = getMonthlyTotal('IN', curMonth, curYear);
+        const prevIn = getMonthlyTotal('IN', prevMonth, prevYear);
+        const curOut = getMonthlyTotal('OUT', curMonth, curYear);
+        const prevOut = getMonthlyTotal('OUT', prevMonth, prevYear);
+
+        const trendInPercent = prevIn === 0 ? (curIn > 0 ? 100 : 0) : Math.round(((curIn - prevIn) / prevIn) * 100);
+        const trendOutPercent = prevOut === 0 ? (curOut > 0 ? 100 : 0) : Math.round(((curOut - prevOut) / prevOut) * 100);
+
+        if ($trendMoneyIn) {
+            $trendMoneyIn.innerHTML = trendInPercent >= 0 
+                ? `<i class="fas fa-caret-up mr-0.5"></i>+${trendInPercent}% vs last month` 
+                : `<i class="fas fa-caret-down mr-0.5"></i>${trendInPercent}% vs last month`;
+            $trendMoneyIn.className = `text-[10px] font-bold flex items-center gap-0.5 ${trendInPercent >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+        }
+        if ($trendMoneyOut) {
+            $trendMoneyOut.innerHTML = trendOutPercent >= 0 
+                ? `<i class="fas fa-caret-up mr-0.5"></i>+${trendOutPercent}% vs last month` 
+                : `<i class="fas fa-caret-down mr-0.5"></i>${trendOutPercent}% vs last month`;
+            $trendMoneyOut.className = `text-[10px] font-bold flex items-center gap-0.5 ${trendOutPercent >= 0 ? 'text-rose-655' : 'text-emerald-600'}`;
+        }
+
+        if ($netBalanceSub) {
+            $netBalanceSub.textContent = `Received ${formatCurrencyShort(totalIn)} • Paid ${formatCurrencyShort(totalOut)}`;
+        }
+
+        // Transactions subtext
+        const completed = allPayments.filter(p => p.status === 'Completed' || !['Pending', 'Failed', 'Cancelled'].includes(p.status)).length;
+        const pending = allPayments.filter(p => p.status === 'Pending').length;
+        if ($transactionsSub) {
+            $transactionsSub.textContent = `Completed: ${completed} • Pending: ${pending}`;
+        }
+    }
+
+    function getRangeDates(range: string, start?: string, end?: string): { min: Date | null, max: Date | null } {
+        const now = new Date();
+        let min: Date | null = null;
+        let max: Date | null = null;
+        
+        const startOfDay = (d: Date) => { d.setHours(0,0,0,0); return d; };
+        const endOfDay = (d: Date) => { d.setHours(23,59,59,999); return d; };
+        
+        switch (range) {
+            case 'today':
+                min = startOfDay(new Date());
+                max = endOfDay(new Date());
+                break;
+            case 'week': {
+                const currentDay = now.getDay();
+                const diff = now.getDate() - currentDay;
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(diff);
+                min = startOfDay(startOfWeek);
+                max = endOfDay(new Date());
+                break;
+            }
+            case 'month':
+                min = startOfDay(new Date(now.getFullYear(), now.getMonth(), 1));
+                max = endOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+                break;
+            case 'quarter': {
+                const currentQuarter = Math.floor(now.getMonth() / 3);
+                min = startOfDay(new Date(now.getFullYear(), currentQuarter * 3, 1));
+                max = endOfDay(new Date(now.getFullYear(), (currentQuarter + 1) * 3, 0));
+                break;
+            }
+            case 'year':
+                min = startOfDay(new Date(now.getFullYear(), 0, 1));
+                max = endOfDay(new Date(now.getFullYear(), 11, 31));
+                break;
+            case 'custom':
+                if (start) min = startOfDay(new Date(start));
+                if (end) max = endOfDay(new Date(end));
+                break;
+        }
+        return { min, max };
     }
 
     function applyFilter(): void {
         const query: string = ($searchInput.value || '').toLowerCase().trim();
 
+        // Calculate Date bounds
+        const { min: dateMin, max: dateMax } = getRangeDates(
+            advancedFilters.dateRange, 
+            advancedFilters.startDate, 
+            advancedFilters.endDate
+        );
+
         filteredPayments = allPayments.filter((p: IPaymentRecord) => {
-            // Direction filter
+            // Card quick-filter toggles
             if (currentFilter === 'IN' && p.direction !== 'IN') return false;
             if (currentFilter === 'OUT' && p.direction !== 'OUT') return false;
-            if (currentFilter === 'advance' && !p.is_advance) return false;
-            if (advancedFilters.direction && p.direction !== advancedFilters.direction) return false;
+            if (currentFilter === 'Pending' && p.status !== 'Pending') return false;
+
+            // Advanced filters
+            if (advancedFilters.txType) {
+                const type = getTransactionTypeLabel(p);
+                if (type !== advancedFilters.txType) return false;
+            }
+            if (advancedFilters.status && p.status !== advancedFilters.status) return false;
             if (advancedFilters.mode && p.mode !== advancedFilters.mode) return false;
             if (advancedFilters.referenceType && p.reference_type !== advancedFilters.referenceType) return false;
-            if (advancedFilters.advance === 'yes' && !p.is_advance) return false;
-            if (advancedFilters.advance === 'no' && p.is_advance) return false;
+            
+            if (advancedFilters.party) {
+                const name = ((p as any).party_name || '').toLowerCase();
+                const displayId = (p.party_display_id || '').toLowerCase();
+                const pId = (p.party_id || '').toLowerCase();
+                const filterParty = advancedFilters.party.toLowerCase();
+                if (!name.includes(filterParty) && !displayId.includes(filterParty) && !pId.includes(filterParty)) return false;
+            }
+
+            if (advancedFilters.amountMin !== null && p.amount < advancedFilters.amountMin) return false;
+            if (advancedFilters.amountMax !== null && p.amount > advancedFilters.amountMax) return false;
+
+            // Date Range check
+            if (dateMin || dateMax) {
+                const pDate = new Date(p.payment_date);
+                if (dateMin && pDate < dateMin) return false;
+                if (dateMax && pDate > dateMax) return false;
+            }
 
             // Search filter
             if (query) {
                 const searchable: string = [
-                    p.remarks, p.transaction_details, p.party_type,
-                    p.reference_type, p.mode, p.direction,
+                    p._id,
+                    p.remarks, p.transaction_details, p.party_type, p.party_display_id, (p as any).party_name,
+                    p.reference_type, p.reference_id, p.mode, p.direction, p.status,
                     String(p.amount)
                 ].filter(Boolean).join(' ').toLowerCase();
                 if (!searchable.includes(query)) return false;
@@ -472,61 +905,140 @@ interface Window {
         });
 
         $filterCount.textContent = String(filteredPayments.length);
+        renderFilterChips();
         renderTable();
     }
 
     function renderTable(): void {
+        const showBalance = $toggleRunningBalance?.checked || false;
+
+        // Toggle balance headers in DOM
+        document.querySelectorAll('.running-balance-col').forEach(el => {
+            el.classList.toggle('hidden', !showBalance);
+        });
+
+        // Compute running balances if enabled
+        if (showBalance) {
+            let balance = 0;
+            const chronological = [...allPayments]
+                .filter(p => !p.deletion?.is_deleted)
+                .sort((a, b) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime());
+            
+            const balMap = new Map<string, number>();
+            for (const p of chronological) {
+                if (p.direction === 'IN') {
+                    balance += p.amount || 0;
+                } else {
+                    balance -= p.amount || 0;
+                }
+                balMap.set(p._id, balance);
+            }
+            
+            filteredPayments.forEach(p => {
+                (p as any).running_balance = balMap.get(p._id) || 0;
+            });
+        }
+
+        // Empty state check
         if (filteredPayments.length === 0) {
-            $tbody.innerHTML = `
+            const emptyStateHTML = `
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center text-gray-400">
-                        <i class="fas fa-inbox text-4xl mb-3"></i>
-                        <p class="text-lg font-medium">No payments found</p>
-                        <p class="text-sm">Click "New Payment" to record one.</p>
+                    <td colspan="8" class="px-6 py-16 text-center text-slate-450 bg-white">
+                        <div class="max-w-md mx-auto flex flex-col items-center">
+                            <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-4 border border-dashed border-slate-300">
+                                <i class="fas fa-inbox text-2xl"></i>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-800 mb-1">No Payments Found</h3>
+                            <p class="text-xs text-slate-500 mb-5">Create your first payment to start tracking cash flow in the ledger.</p>
+                            <button id="empty-new-payment-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all duration-150 active:scale-95 cursor-pointer">
+                                <i class="fas fa-plus mr-1"></i>New Payment
+                            </button>
+                        </div>
                     </td>
                 </tr>`;
+            $tbody.innerHTML = emptyStateHTML;
+            if ($paymentCardsMobile) {
+                $paymentCardsMobile.innerHTML = `
+                    <div class="text-center py-10 bg-white rounded-xl border border-slate-200 p-6">
+                        <i class="fas fa-inbox text-3xl text-slate-300 mb-2"></i>
+                        <p class="text-sm font-bold text-slate-700">No Payments Found</p>
+                        <p class="text-xs text-slate-500 mt-1">Create a payment transaction to begin.</p>
+                    </div>`;
+            }
+
+            document.getElementById('empty-new-payment-btn')?.addEventListener('click', () => openModal(null));
             return;
         }
 
+        // Desktop table render
         $tbody.innerHTML = filteredPayments.map((p: IPaymentRecord) => {
-            const dirClass: string = p.direction === 'IN' ? 'badge-in' : 'badge-out';
-            const dirIcon: string = p.direction === 'IN' ? 'fa-arrow-down' : 'fa-arrow-up';
-            const dirLabel: string = p.direction === 'IN' ? 'IN' : 'OUT';
-            const modeClass: string = modeBadgeClass(p.mode);
-            const advanceBadge: string = p.is_advance
-                ? '<span class="ml-1 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold">ADV</span>'
-                : '';
-            const refundBadge: string = p.is_refund
-                ? '<span class="ml-1 text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">REFUND</span>'
-                : '';
-            const refundedBadge: string = p.is_already_refunded
-                ? '<span class="ml-1 text-[10px] bg-red-50 text-red-600 border border-red-200 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">REFUNDED</span>'
+            const typeBadge = getTransactionTypeBadge(p);
+            const statusBadge = getStatusBadge(p.status);
+            const modeClass = modeBadgeClass(p.mode);
+            const refLink = getReferenceLink(p);
+            
+            const isReceived = p.direction === 'IN';
+            const amountPrefix = isReceived ? '+ ' : '- ';
+            const amountColor = isReceived ? 'text-emerald-600' : 'text-rose-600';
+            
+            const balanceCell = showBalance 
+                ? `<td class="px-4 py-3 text-right font-medium text-slate-850 running-balance-col">${formatCurrency((p as any).running_balance)}</td>`
                 : '';
 
+            const canRefund = !p.is_refund && !p.is_already_refunded;
+
             return `
-            <tr class="payment-row border-b border-gray-100" data-payment-id="${escapeHtml(p._id)}" tabindex="0" title="View payment details">
-                <td class="px-6 py-4 text-gray-800 font-medium whitespace-nowrap">${formatDate(p.payment_date)}</td>
-                <td class="px-6 py-4">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${dirClass}">
-                        <i class="fas ${dirIcon} text-[10px]"></i>${dirLabel}
-                    </span>
-                    ${advanceBadge}
-                    ${refundBadge}
-                    ${refundedBadge}
+            <tr class="payment-row border-b border-slate-100 hover:bg-slate-50 transition-all duration-150 group cursor-pointer" data-payment-id="${escapeHtml(p._id)}" tabindex="0">
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formatDate(p.payment_date)}</td>
+                <td class="px-4 py-3 whitespace-nowrap">${typeBadge}</td>
+                <td class="px-4 py-3 whitespace-nowrap">${statusBadge}</td>
+                <td class="px-4 py-3 text-slate-700 text-xs font-semibold max-w-[150px] truncate" title="${escapeHtml((p as any).party_name || p.party_display_id || p.party_id || '-')}">
+                    ${escapeHtml((p as any).party_name || p.party_display_id || p.party_id || '-')}
                 </td>
-                <td class="px-6 py-4 text-right font-bold ${p.direction === 'IN' ? 'text-green-700' : 'text-red-700'}">
-                    ${formatCurrency(p.amount)}
-                </td>
-                <td class="px-6 py-4">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${modeClass}">
+                <td class="px-4 py-3 whitespace-nowrap">${refLink}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-xs">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${modeClass === 'badge-cash' ? 'bg-amber-50 text-amber-700 border-amber-200' : modeClass === 'badge-upi' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : modeClass === 'badge-bank' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'}">
                         ${escapeHtml(p.mode)}
                     </span>
                 </td>
-                <td class="px-6 py-4 text-gray-600 text-sm">${escapeHtml((p as any).party_name || p.party_display_id || p.party_id || '-')}</td>
-                <td class="px-6 py-4 text-gray-600 text-sm">${escapeHtml(p.reference_type || '-')}</td>
+                <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap ${amountColor}">
+                    ${amountPrefix}${formatCurrency(p.amount)}
+                </td>
+                ${balanceCell}
             </tr>`;
         }).join('');
 
+        // Mobile cards render
+        if ($paymentCardsMobile) {
+            $paymentCardsMobile.innerHTML = filteredPayments.map((p: IPaymentRecord) => {
+                const type = getTransactionTypeLabel(p);
+                const isReceived = p.direction === 'IN';
+                const amountPrefix = isReceived ? '+ ' : '- ';
+                const amountColor = isReceived ? 'text-emerald-600' : 'text-rose-600';
+                
+                return `
+                <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col gap-2.5 active:bg-slate-50" onclick="window._paymentUI.viewPayment('${p._id}')">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-450 uppercase tracking-wider">${formatDate(p.payment_date)}</span>
+                        ${getStatusBadge(p.status)}
+                    </div>
+                    <div class="flex items-center justify-between mt-0.5">
+                        <div>
+                            <p class="text-sm font-bold text-slate-800">${escapeHtml((p as any).party_name || p.party_display_id || '-')}</p>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">${type} • ${escapeHtml(p.mode)}</p>
+                        </div>
+                        <p class="text-sm font-extrabold ${amountColor}">${amountPrefix}${formatCurrency(p.amount)}</p>
+                    </div>
+                    ${p.reference_id ? `
+                    <div class="bg-slate-50 rounded-lg p-2 flex items-center justify-between text-xs text-slate-600 border border-slate-100">
+                        <span>Reference: <span class="font-bold text-slate-800">${escapeHtml(p.reference_type)}</span></span>
+                        <span class="font-bold text-blue-600">${escapeHtml(p.reference_id)}</span>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        // Add standard click handlers for desktop rows
         $tbody.querySelectorAll<HTMLElement>('.payment-row').forEach(row => {
             row.addEventListener('click', () => {
                 const id = row.dataset.paymentId;
@@ -546,6 +1058,7 @@ interface Window {
         const searchWrapper = document.getElementById('search-input')?.parentElement?.parentElement;
         const newPaymentBtn = document.getElementById('new-payment-btn');
         const refreshBtn = document.getElementById('refresh-btn');
+        const exportWrapper = document.getElementById('export-dropdown-wrapper');
 
         if (showNew) {
             $homeSec.classList.add('hidden');
@@ -555,6 +1068,7 @@ interface Window {
             if (searchWrapper) searchWrapper.style.display = 'none';
             if (newPaymentBtn) newPaymentBtn.style.display = 'none';
             if (refreshBtn) refreshBtn.style.display = 'none';
+            if (exportWrapper) exportWrapper.style.display = 'none';
         } else {
             $newSec.classList.add('hidden');
             $homeSec.classList.remove('hidden');
@@ -563,6 +1077,7 @@ interface Window {
             if (searchWrapper) searchWrapper.style.display = 'flex';
             if (newPaymentBtn) newPaymentBtn.style.display = 'flex';
             if (refreshBtn) refreshBtn.style.display = 'flex';
+            if (exportWrapper) exportWrapper.style.display = 'inline-block';
         }
     }
 
@@ -591,6 +1106,7 @@ interface Window {
             (document.getElementById('form-date') as HTMLInputElement).value =
                 payment.payment_date ? payment.payment_date.substring(0, 10) : todayISO();
             (document.getElementById('form-mode') as HTMLSelectElement).value = payment.mode || 'Cash';
+            (document.getElementById('form-status') as HTMLSelectElement).value = payment.status || 'Completed';
             
             // NOTE: We don't have the party name here, only ID. 
             // We should fetch details by ID to show the name.
@@ -617,6 +1133,7 @@ interface Window {
             $submitBtnText.textContent = 'Save Payment';
             $form.reset();
             (document.getElementById('form-date') as HTMLInputElement).value = todayISO();
+            (document.getElementById('form-status') as HTMLSelectElement).value = 'Completed';
             const inRadio = document.querySelector(
                 'input[name="direction"][value="IN"]'
             ) as HTMLInputElement | null;
@@ -828,6 +1345,7 @@ interface Window {
         (document.getElementById('form-amount') as HTMLInputElement).value = String(payment.amount || '');
         (document.getElementById('form-date') as HTMLInputElement).value = todayISO();
         (document.getElementById('form-mode') as HTMLSelectElement).value = payment.mode || 'Cash';
+        (document.getElementById('form-status') as HTMLSelectElement).value = 'Completed';
         const refIdVal = payment.reference_id || '';
         (document.getElementById('form-reference-type') as HTMLSelectElement).value = payment.reference_type || '';
         (document.getElementById('form-reference-id') as HTMLInputElement).value = refIdVal;
@@ -866,24 +1384,117 @@ interface Window {
         }
     }
 
+    function renderFilterChips(): void {
+        if (!$chipsList || !$filterChipsContainer) return;
+        $chipsList.innerHTML = '';
+        let hasActive = false;
+
+        const addChip = (label: string, key: keyof typeof advancedFilters) => {
+            hasActive = true;
+            const chip = document.createElement('span');
+            chip.className = 'inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-semibold border border-blue-150';
+            chip.innerHTML = `${label} <button class="hover:text-blue-900 ml-1 focus:outline-none" style="cursor: pointer;"><i class="fas fa-times"></i></button>`;
+            chip.querySelector('button')?.addEventListener('click', () => {
+                if (key === 'amountMin' || key === 'amountMax') {
+                    advancedFilters[key] = null;
+                    const el = document.getElementById(key === 'amountMin' ? 'amount-min-filter' : 'amount-max-filter') as HTMLInputElement;
+                    if (el) el.value = '';
+                } else {
+                    (advancedFilters as any)[key] = '';
+                    const el = document.getElementById(
+                        key === 'txType' ? 'tx-type-filter' : 
+                        key === 'status' ? 'status-filter' : 
+                        key === 'party' ? 'party-filter' : 
+                        key === 'mode' ? 'mode-filter' : 
+                        'reference-filter'
+                    ) as HTMLInputElement | HTMLSelectElement;
+                    if (el) el.value = '';
+                }
+                applyFilter();
+            });
+            $chipsList.appendChild(chip);
+        };
+
+        if (advancedFilters.txType) addChip(`Type: ${advancedFilters.txType}`, 'txType');
+        if (advancedFilters.status) addChip(`Status: ${advancedFilters.status}`, 'status');
+        if (advancedFilters.party) addChip(`Party: ${advancedFilters.party}`, 'party');
+        if (advancedFilters.mode) addChip(`Method: ${advancedFilters.mode}`, 'mode');
+        if (advancedFilters.referenceType) addChip(`Ref: ${advancedFilters.referenceType}`, 'referenceType');
+        if (advancedFilters.amountMin !== null) addChip(`Min: ₹${advancedFilters.amountMin}`, 'amountMin');
+        if (advancedFilters.amountMax !== null) addChip(`Max: ₹${advancedFilters.amountMax}`, 'amountMax');
+        
+        // Also add date range if not Month
+        if (advancedFilters.dateRange !== 'month') {
+            let label = 'Period: ';
+            switch (advancedFilters.dateRange) {
+                case 'today': label += 'Today'; break;
+                case 'week': label += 'This Week'; break;
+                case 'quarter': label += 'This Quarter'; break;
+                case 'year': label += 'This Year'; break;
+                case 'all': label += 'All Time'; break;
+                case 'custom': label += `${advancedFilters.startDate} to ${advancedFilters.endDate}`; break;
+            }
+            hasActive = true;
+            const chip = document.createElement('span');
+            chip.className = 'inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-semibold border border-blue-150';
+            chip.innerHTML = `${label} <button class="hover:text-blue-900 ml-1 focus:outline-none" style="cursor: pointer;"><i class="fas fa-times"></i></button>`;
+            chip.querySelector('button')?.addEventListener('click', () => {
+                advancedFilters.dateRange = 'month';
+                // Reset active class in period buttons
+                document.querySelectorAll('.date-filter-btn').forEach(btn => {
+                    const r = (btn as HTMLElement).dataset.range;
+                    btn.classList.toggle('active', r === 'month');
+                    btn.classList.toggle('bg-blue-50', r === 'month');
+                    btn.classList.toggle('border-blue-200', r === 'month');
+                    btn.classList.toggle('text-blue-600', r === 'month');
+                    btn.classList.toggle('font-semibold', r === 'month');
+                });
+                document.getElementById('custom-date-inputs')?.classList.add('hidden');
+                applyFilter();
+            });
+            $chipsList.appendChild(chip);
+        }
+
+        $filterChipsContainer.classList.toggle('hidden', !hasActive);
+    }
+
     function applyAdvancedFilters(): void {
-        advancedFilters.direction = $directionFilter?.value || '';
-        advancedFilters.mode = $modeFilter?.value || '';
-        advancedFilters.referenceType = $referenceFilter?.value || '';
-        advancedFilters.advance = $advanceFilter?.value || '';
+        advancedFilters.txType = (document.getElementById('tx-type-filter') as HTMLSelectElement)?.value || '';
+        advancedFilters.status = (document.getElementById('status-filter') as HTMLSelectElement)?.value || '';
+        advancedFilters.party = (document.getElementById('party-filter') as HTMLInputElement)?.value || '';
+        advancedFilters.mode = (document.getElementById('mode-filter') as HTMLSelectElement)?.value || '';
+        advancedFilters.referenceType = (document.getElementById('reference-filter') as HTMLSelectElement)?.value || '';
+        
+        const minVal = (document.getElementById('amount-min-filter') as HTMLInputElement)?.value;
+        const maxVal = (document.getElementById('amount-max-filter') as HTMLInputElement)?.value;
+        advancedFilters.amountMin = minVal ? Number(minVal) : null;
+        advancedFilters.amountMax = maxVal ? Number(maxVal) : null;
+
         $filterPopover?.classList.add('hidden');
         applyFilter();
     }
 
     function resetAdvancedFilters(): void {
-        advancedFilters.direction = '';
+        advancedFilters.txType = '';
+        advancedFilters.status = '';
+        advancedFilters.party = '';
         advancedFilters.mode = '';
         advancedFilters.referenceType = '';
-        advancedFilters.advance = '';
-        if ($directionFilter) $directionFilter.value = '';
-        if ($modeFilter) $modeFilter.value = '';
-        if ($referenceFilter) $referenceFilter.value = '';
-        if ($advanceFilter) $advanceFilter.value = '';
+        advancedFilters.amountMin = null;
+        advancedFilters.amountMax = null;
+
+        const setVal = (id: string, val: string) => {
+            const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+            if (el) el.value = val;
+        };
+        setVal('tx-type-filter', '');
+        setVal('status-filter', '');
+        setVal('party-filter', '');
+        setVal('mode-filter', '');
+        setVal('reference-filter', '');
+        setVal('amount-min-filter', '');
+        setVal('amount-max-filter', '');
+
         applyFilter();
     }
 
@@ -1259,21 +1870,124 @@ interface Window {
         });
     });
 
-    // Filter tabs
-    document.querySelectorAll<HTMLElement>('.filter-tab').forEach((tab: HTMLElement) => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            currentFilter = tab.dataset.filter || 'all';
-            applyFilter();
+    // Clickable KPI Cards
+    const $cardMoneyIn = document.getElementById('card-money-in');
+    const $cardMoneyOut = document.getElementById('card-money-out');
+    const $cardNetCash = document.getElementById('card-net-cash');
+    const $cardTransactions = document.getElementById('card-transactions');
+
+    function highlightActiveCard(activeId: string): void {
+        const cards = ['card-money-in', 'card-money-out', 'card-net-cash', 'card-transactions'];
+        cards.forEach(id => {
+            const card = document.getElementById(id);
+            if (!card) return;
+            if (id === activeId) {
+                card.classList.add('ring-2', 'ring-blue-500', 'ring-offset-1');
+            } else {
+                card.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-1');
+            }
         });
+    }
+
+    $cardMoneyIn?.addEventListener('click', () => {
+        currentFilter = 'IN';
+        highlightActiveCard('card-money-in');
+        applyFilter();
+    });
+    $cardMoneyOut?.addEventListener('click', () => {
+        currentFilter = 'OUT';
+        highlightActiveCard('card-money-out');
+        applyFilter();
+    });
+    $cardNetCash?.addEventListener('click', () => {
+        currentFilter = 'all';
+        highlightActiveCard('card-net-cash');
+        applyFilter();
+    });
+    $cardTransactions?.addEventListener('click', () => {
+        currentFilter = 'Pending';
+        highlightActiveCard('card-transactions');
+        applyFilter();
+    });
+
+    // Date Range Filters Toolbar
+    document.querySelectorAll('.date-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.date-filter-btn').forEach(b => {
+                b.classList.remove('active', 'bg-blue-50', 'border-blue-200', 'text-blue-600', 'font-semibold');
+            });
+            
+            const range = (btn as HTMLElement).dataset.range || 'month';
+            btn.classList.add('active', 'bg-blue-50', 'border-blue-200', 'text-blue-600', 'font-semibold');
+            
+            const $customInputs = document.getElementById('custom-date-inputs');
+            if (range === 'custom') {
+                $customInputs?.classList.remove('hidden');
+            } else {
+                $customInputs?.classList.add('hidden');
+                advancedFilters.dateRange = range;
+                applyFilter();
+            }
+        });
+    });
+
+    const $applyCustomDate = document.getElementById('apply-custom-date');
+    $applyCustomDate?.addEventListener('click', () => {
+        const startVal = (document.getElementById('custom-start-date') as HTMLInputElement)?.value;
+        const endVal = (document.getElementById('custom-end-date') as HTMLInputElement)?.value;
+        advancedFilters.dateRange = 'custom';
+        advancedFilters.startDate = startVal || '';
+        advancedFilters.endDate = endVal || '';
+        applyFilter();
+    });
+
+    // Running Balance Toggle
+    $toggleRunningBalance?.addEventListener('change', () => {
+        renderTable();
+    });
+
+    // Export Dropdown Trigger
+    $exportBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        $exportMenu?.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+        if ($exportMenu && !$exportMenu.classList.contains('hidden') && !$exportBtn.contains(e.target as Node)) {
+            $exportMenu.classList.add('hidden');
+        }
+        if (e.target !== $searchInput && !$searchSuggestions.contains(e.target as Node)) {
+            $searchSuggestions.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('export-csv')?.addEventListener('click', () => {
+        const csv = generatePaymentsCSV();
+        downloadBlob(csv, `payments_ledger_${todayISO()}.csv`, 'text/csv;charset=utf-8;');
+        $exportMenu?.classList.add('hidden');
+    });
+
+    document.getElementById('export-excel')?.addEventListener('click', () => {
+        const csv = generatePaymentsCSV();
+        const excelContent = '\uFEFF' + csv;
+        downloadBlob(excelContent, `payments_excel_${todayISO()}.csv`, 'text/csv;charset=utf-8;');
+        $exportMenu?.classList.add('hidden');
+    });
+
+    document.getElementById('print-report')?.addEventListener('click', () => {
+        $exportMenu?.classList.add('hidden');
+        window.print();
     });
 
     // Search
     let searchTimer: ReturnType<typeof setTimeout>;
     $searchInput.addEventListener('input', () => {
+        const query = $searchInput.value.trim();
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(applyFilter, 250);
+        searchTimer = setTimeout(() => {
+            applyFilter();
+            showSearchSuggestions(query);
+        }, 250);
     });
 
     // Form submit
@@ -1287,6 +2001,7 @@ interface Window {
         const amount: string = (document.getElementById('form-amount') as HTMLInputElement).value;
         const date: string = (document.getElementById('form-date') as HTMLInputElement).value;
         const mode: string = (document.getElementById('form-mode') as HTMLSelectElement).value;
+        const status: string = (document.getElementById('form-status') as HTMLSelectElement).value;
 
         const refTypeSelect = document.getElementById('form-reference-type') as HTMLSelectElement;
         const refIdInput = document.getElementById('form-reference-id') as HTMLInputElement;
@@ -1352,7 +2067,8 @@ interface Window {
             is_advance: (document.getElementById('form-advance') as HTMLInputElement).checked,
             is_refund: (document.getElementById('form-refund') as HTMLInputElement).checked,
             refunded_payment_ref: refundedPaymentId || undefined,
-            remarks: (document.getElementById('form-remarks') as HTMLTextAreaElement).value || ""
+            remarks: (document.getElementById('form-remarks') as HTMLTextAreaElement).value || "",
+            status: status || 'Completed'
         };
 
         try {
@@ -1565,6 +2281,14 @@ interface Window {
                 console.error('Delete error:', err);
                 showToast('Error deleting payment', true);
             }
+        },
+        refundPayment: function (id: string): void {
+            const payment = allPayments.find((p: IPaymentRecord) => p._id === id);
+            if (payment) openRefundModal(payment);
+        },
+        printPayment: function (id: string): void {
+            const payment = allPayments.find((p: IPaymentRecord) => p._id === id);
+            if (payment) printPaymentReceipt(payment);
         }
     };
 
@@ -1646,6 +2370,7 @@ interface Window {
     initShortcutsModal();
     initValidation();
     fetchPayments().then(() => {
+        highlightActiveCard('card-net-cash');
         const urlParams = new URLSearchParams(window.location.search);
         const editId = urlParams.get('id');
         const isEdit = urlParams.get('edit') === 'true';

@@ -148,8 +148,12 @@
             <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search payments... (Ctrl+F)"
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="text" id="search-input" placeholder="Search payments... (Ctrl+F)" autocomplete="off"
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <!-- Search Suggestions List -->
+                    <ul id="search-suggestions" class="hidden absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50">
+                        <!-- Rendered dynamically -->
+                    </ul>
                 </div>
                 <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
                     title="Open Filters (Ctrl+Shift+F)">
@@ -157,14 +161,36 @@
                 </button>
             </div>
             <div class="flex items-center gap-2">
+                <!-- Export Dropdown -->
+                <div class="relative inline-block text-left" id="export-dropdown-wrapper">
+                    <button id="export-btn" class="bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 px-3 py-2 rounded-lg flex items-center gap-2 font-semibold h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm" title="Export payments">
+                        <i class="fas fa-download"></i>
+                        <span>Export</span>
+                    </button>
+                    <!-- Dropdown menu -->
+                    <div id="export-menu" class="hidden absolute right-0 mt-1.5 w-40 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 border border-slate-155">
+                        <div class="py-1" role="menu" aria-orientation="vertical">
+                            <button id="export-csv" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer transition-colors" role="menuitem">
+                                <i class="fas fa-file-csv text-green-600 text-sm"></i>Export CSV
+                            </button>
+                            <button id="export-excel" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer transition-colors" role="menuitem">
+                                <i class="fas fa-file-excel text-emerald-600 text-sm"></i>Export Excel
+                            </button>
+                            <button id="print-report" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer transition-colors" role="menuitem">
+                                <i class="fas fa-print text-blue-600 text-sm"></i>Print Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <button id="home-btn"
-                    class="hidden bg-gray-600 text-white px-4 py-2.5 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium"
+                    class="hidden bg-gray-600 text-white px-4 py-2.5 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium h-10"
                     title="Home (Ctrl+H)">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
                 <button id="new-payment-btn"
-                    class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium"
+                    class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium h-10"
                     title="New Payment (Ctrl+N)">
                     <i class="fas fa-plus"></i>
                     New Payment
@@ -272,93 +298,155 @@
         <!-- Home Section -->
         <div id="home">
             <!-- Summary Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500 fade-in">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="bg-green-100 p-3 rounded-lg">
-                            <i class="fas fa-arrow-down text-green-600 text-xl"></i>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Money In -->
+                <div id="card-money-in" class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-emerald-500 hover:border-emerald-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Click to filter by Money In">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Money In</span>
+                        <div class="bg-emerald-50 p-2 rounded-lg text-emerald-600 w-8 h-8 flex items-center justify-center">
+                            <i class="fas fa-arrow-down text-sm"></i>
                         </div>
-                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Money In</span>
                     </div>
-                    <h2 id="total-in" class="text-2xl font-bold text-gray-800 mb-1">₹ 0</h2>
-                    <p class="text-gray-600 text-sm font-medium">Total Received</p>
+                    <div>
+                        <h2 id="total-in" class="text-xl font-bold text-slate-900 tracking-tight">₹ 0.00</h2>
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="text-slate-500 text-xs font-medium">Total Received</span>
+                            <span id="trend-money-in" class="text-xs font-bold text-emerald-600 flex items-center gap-0.5">--</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500 fade-in">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="bg-red-100 p-3 rounded-lg">
-                            <i class="fas fa-arrow-up text-red-600 text-xl"></i>
+                <!-- Money Out -->
+                <div id="card-money-out" class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-rose-500 hover:border-rose-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Click to filter by Money Out">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Money Out</span>
+                        <div class="bg-rose-50 p-2 rounded-lg text-rose-600 w-8 h-8 flex items-center justify-center">
+                            <i class="fas fa-arrow-up text-sm"></i>
                         </div>
-                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Money Out</span>
                     </div>
-                    <h2 id="total-out" class="text-2xl font-bold text-gray-800 mb-1">₹ 0</h2>
-                    <p class="text-gray-600 text-sm font-medium">Total Paid Out</p>
+                    <div>
+                        <h2 id="total-out" class="text-xl font-bold text-slate-900 tracking-tight">₹ 0.00</h2>
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="text-slate-500 text-xs font-medium">Total Paid</span>
+                            <span id="trend-money-out" class="text-xs font-bold text-rose-600 flex items-center gap-0.5">--</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500 fade-in">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="bg-blue-100 p-3 rounded-lg">
-                            <i class="fas fa-balance-scale text-blue-600 text-xl"></i>
+                <!-- Net Cash Flow -->
+                <div id="card-net-cash" class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-blue-500 hover:border-blue-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Click to reset filters">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Net Cash Flow</span>
+                        <div class="bg-blue-50 p-2 rounded-lg text-blue-600 w-8 h-8 flex items-center justify-center">
+                            <i class="fas fa-balance-scale text-sm"></i>
                         </div>
-                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Net Balance</span>
                     </div>
-                    <h2 id="net-balance" class="text-2xl font-bold text-gray-800 mb-1">₹ 0</h2>
-                    <p class="text-gray-600 text-sm font-medium">In − Out</p>
+                    <div>
+                        <h2 id="net-balance" class="text-xl font-bold text-slate-900 tracking-tight">₹ 0.00</h2>
+                        <div class="flex items-center mt-1 text-slate-500 text-xs font-medium">
+                            <span id="net-balance-sub">Received ₹0.00 • Paid ₹0.00</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500 fade-in">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="bg-purple-100 p-3 rounded-lg">
-                            <i class="fas fa-receipt text-purple-600 text-xl"></i>
+                <!-- Transactions -->
+                <div id="card-transactions" class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-purple-500 hover:border-purple-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Click to filter by Pending">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Transactions</span>
+                        <div class="bg-purple-50 p-2 rounded-lg text-purple-600 w-8 h-8 flex items-center justify-center">
+                            <i class="fas fa-receipt text-sm"></i>
                         </div>
-                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</span>
                     </div>
-                    <h2 id="total-count" class="text-2xl font-bold text-gray-800 mb-1">0</h2>
-                    <p class="text-gray-600 text-sm font-medium">Total Transactions</p>
+                    <div>
+                        <h2 id="total-count" class="text-xl font-bold text-slate-900 tracking-tight">0</h2>
+                        <div class="flex items-center mt-1 text-slate-500 text-xs font-medium">
+                            <span id="transactions-sub">Completed: 0 • Pending: 0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Toolbar -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-4 fade-in">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <!-- Left: Date Range Filters -->
+                    <div class="flex flex-wrap items-center gap-1.5" id="date-range-filters">
+                        <span class="text-xs font-semibold text-slate-500 mr-2"><i class="fas fa-calendar-alt mr-1"></i>Period:</span>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer" data-range="today">Today</button>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer" data-range="week">This Week</button>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer active bg-blue-50 border-blue-200 text-blue-600 font-semibold" data-range="month">This Month</button>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer" data-range="quarter">This Quarter</button>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer" data-range="year">This Year</button>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer" data-range="custom">Custom Range</button>
+                    </div>
+
+                    <!-- Middle/Right: Custom Date Range Inputs (hidden by default) -->
+                    <div id="custom-date-inputs" class="hidden flex items-center gap-2 text-xs bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+                        <input type="date" id="custom-start-date" class="px-2 py-1 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-slate-800">
+                        <span class="text-slate-400 font-medium">to</span>
+                        <input type="date" id="custom-end-date" class="px-2 py-1 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-slate-800">
+                        <button id="apply-custom-date" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer">Apply</button>
+                    </div>
+
+                    <!-- Right: Running Balance Toggle -->
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <label class="relative inline-flex items-center cursor-pointer select-none">
+                                <input type="checkbox" id="toggle-running-balance" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                <span class="ml-2 text-xs font-semibold text-slate-700">Running Balance</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Filter Chips (hidden by default) -->
+                <div id="filter-chips-container" class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-slate-100 hidden">
+                    <span class="text-xs font-semibold text-slate-500"><i class="fas fa-tags mr-1"></i>Active Filters:</span>
+                    <div id="chips-list" class="flex flex-wrap gap-1.5">
+                        <!-- Chips dynamically rendered here -->
+                    </div>
+                    <button id="clear-all-chips" class="text-xs font-semibold text-blue-600 hover:text-blue-800 ml-auto cursor-pointer">Clear All</button>
                 </div>
             </div>
 
             <!-- Filter Tabs & Payment List -->
-            <section class="bg-white rounded-lg shadow-md border border-gray-200 fade-in">
-                <div class="px-6 pt-4 pb-0 flex items-center justify-between border-b border-gray-200">
-                    <div class="flex gap-0">
-                        <div class="filter-tab active" data-filter="all">
-                            <i class="fas fa-list mr-1"></i>All
-                        </div>
-                        <div class="filter-tab" data-filter="IN">
-                            <i class="fas fa-arrow-down mr-1"></i>Money In
-                        </div>
-                        <div class="filter-tab" data-filter="OUT">
-                            <i class="fas fa-arrow-up mr-1"></i>Money Out
-                        </div>
-                        <div class="filter-tab" data-filter="advance">
-                            <i class="fas fa-forward mr-1"></i>Advance
-                        </div>
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
+                <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-slate-800 text-sm">Transactions Ledger</h3>
+                        <span id="filter-count" class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-100">0</span>
                     </div>
-                    <span id="filter-count" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium mb-2">0</span>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Direction</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Amount</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Mode</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Party</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Reference</th>
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full text-sm border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr class="text-slate-700 border-b border-slate-200">
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Transaction Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Party</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Reference</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Method</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Amount</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider running-balance-col hidden">Balance</th>
                             </tr>
                         </thead>
                         <tbody id="payment-tbody">
                             <tr>
-                                <td colspan="7" class="px-6 py-12 text-center text-gray-400">
+                                <td colspan="8" class="px-4 py-12 text-center text-slate-400">
                                     <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
                                     <p>Loading payments...</p>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile stacked layout (displayed only on mobile) -->
+                <div id="payment-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50">
+                    <!-- Cards will be populated dynamically by JavaScript -->
                 </div>
             </section>
         </div>
@@ -428,18 +516,32 @@
                                 </div>
                             </div>
 
-                            <!-- Payment Mode -->
-                            <div>
-                                <label for="form-mode" class="block text-sm font-medium text-gray-700 mb-1">
-                                    <i class="fas fa-credit-card text-gray-500 mr-1"></i>Payment Mode <span class="text-red-500">*</span>
-                                </label>
-                                <select id="form-mode" name="mode" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                                    <option value="Cash">Cash</option>
-                                    <option value="UPI">UPI</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="Cheque">Cheque</option>
-                                </select>
+                            <!-- Mode & Status Row -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="form-mode" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-credit-card text-gray-500 mr-1"></i>Payment Mode <span class="text-red-500">*</span>
+                                    </label>
+                                    <select id="form-mode" name="mode" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                        <option value="Cash">Cash</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Cheque">Cheque</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="form-status" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-check-circle text-gray-500 mr-1"></i>Status <span class="text-red-500">*</span>
+                                    </label>
+                                    <select id="form-status" name="status" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                        <option value="Completed">Completed</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Failed">Failed</option>
+                                        <option value="Cancelled">Cancelled</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -682,64 +784,99 @@
         <span id="toast-message">Success!</span>
     </div>
 
-    <!-- Filter Popover -->
-    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden"
-        style="width: 280px;">
-        <div class="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
-            <h3 class="font-semibold text-gray-800">Filter Payments</h3>
-            <button id="close-filter" class="text-gray-400 hover:text-gray-600 text-sm">
+    <!-- Filter Popover (Redesigned) -->
+    <div id="filter-popover" class="fixed bg-white rounded-xl shadow-2xl border border-slate-200 p-5 z-40 hidden transition-all duration-200 ease-in-out"
+        style="width: 320px;">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                <i class="fas fa-filter text-blue-600"></i>Advanced Filters
+            </h3>
+            <button id="close-filter" class="text-slate-400 hover:text-slate-600 text-sm cursor-pointer p-1 rounded hover:bg-slate-100">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <div class="mb-3">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Direction</label>
-            <select id="direction-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
-                <option value="">All Directions</option>
-                <option value="IN">Money In</option>
-                <option value="OUT">Money Out</option>
-            </select>
+        <div class="space-y-3.5 max-h-[400px] overflow-y-auto pr-1">
+            <!-- Transaction Type -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Transaction Type</label>
+                <select id="tx-type-filter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Types</option>
+                    <option value="Payment Received">Payment Received</option>
+                    <option value="Payment Sent">Payment Sent</option>
+                    <option value="Refund Issued">Refund Issued</option>
+                    <option value="Refund Received">Refund Received</option>
+                    <option value="Advance Received">Advance Received</option>
+                    <option value="Advance Paid">Advance Paid</option>
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                <select id="status-filter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Statuses</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Refunded">Refunded</option>
+                    <option value="Partially Refunded">Partially Refunded</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Failed">Failed</option>
+                </select>
+            </div>
+
+            <!-- Party Name Search -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Party Name</label>
+                <input type="text" id="party-filter" placeholder="Search customer or supplier..."
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <!-- Payment Method -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Method</label>
+                <select id="mode-filter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Methods</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Card">Card</option>
+                </select>
+            </div>
+
+            <!-- Reference Type -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Reference Type</label>
+                <select id="reference-filter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Reference Types</option>
+                    <option value="Invoice">Invoice</option>
+                    <option value="Purchase">Purchase</option>
+                    <option value="Service">Service</option>
+                    <option value="Adjustment">Adjustment</option>
+                </select>
+            </div>
+
+            <!-- Amount Range -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Amount Range</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="amount-min-filter" placeholder="Min (₹)"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <input type="number" id="amount-max-filter" placeholder="Max (₹)"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                </div>
+            </div>
         </div>
 
-        <div class="mb-3">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Payment Mode</label>
-            <select id="mode-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
-                <option value="">All Modes</option>
-                <option value="Cash">Cash</option>
-                <option value="UPI">UPI</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-                <option value="Cheque">Cheque</option>
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Reference Type</label>
-            <select id="reference-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
-                <option value="">All References</option>
-                <option value="Invoice">Invoice</option>
-                <option value="Purchase">Purchase</option>
-                <option value="Service">Service</option>
-                <option value="Adjustment">Adjustment</option>
-            </select>
-        </div>
-
-        <div class="mb-4">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Advance Payment</label>
-            <select id="advance-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
-                <option value="">All Transactions</option>
-                <option value="yes">Advance Only</option>
-                <option value="no">Exclude Advance</option>
-            </select>
-        </div>
-
-        <div class="flex gap-2">
+        <div class="flex gap-2.5 mt-4 pt-3 border-t border-slate-100">
             <button id="reset-filters"
-                class="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm transition-all">
-                Reset
+                class="flex-1 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-bold text-xs transition-all cursor-pointer">
+                Reset All
             </button>
             <button id="apply-filters-btn"
-                class="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm transition-all">
-                Apply
+                class="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-xs transition-all cursor-pointer">
+                Apply Filters
             </button>
         </div>
     </div>

@@ -33,6 +33,8 @@ interface IPaymentRecord {
     is_already_refunded?: boolean;
     refund_payment_id?: string;
     remarks?: string;
+    status: string;
+    createdBy?: string;
     deletion: {
         is_deleted: boolean;
         deleted_at?: string;
@@ -56,6 +58,7 @@ interface IPaymentPayload {
     is_refund?: boolean;
     refunded_payment_ref?: string;
     remarks?: string;
+    status: string;
 }
 
 interface IApiResponse {
@@ -70,5 +73,9 @@ interface Window {
         editPayment: (id: string) => void;
         confirmDelete: (id: string) => Promise<void>;
         viewPayment: (id: string) => void;
+        refundPayment?: (id: string) => void;
+        printPayment?: (id: string) => void;
     };
+    validateCurrentStep?: () => Promise<boolean>;
 }
+

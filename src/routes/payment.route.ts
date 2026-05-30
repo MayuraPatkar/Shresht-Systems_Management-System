@@ -252,15 +252,24 @@ async function enrichSinglePayment(payment: any) {
     norm.party_name = partyName;
 
     // Check if this payment is already refunded by an active refund payment
-    const refundDoc = await PaymentModel.findOne({
+    const refunds = await PaymentModel.find({
         refunded_payment_ref: payment._id,
         is_refund: true,
         'deletion.is_deleted': { $ne: true }
-    }, { _id: 1 }).lean();
+    }, { _id: 1, amount: 1 }).lean();
     
-    norm.is_already_refunded = !!refundDoc;
-    if (refundDoc) {
-        norm.refund_payment_id = String(refundDoc._id);
+    const refundSum = refunds.reduce((sum, r) => sum + (r.amount || 0), 0);
+    norm.is_already_refunded = refundSum > 0;
+    if (refunds.length > 0) {
+        norm.refund_payment_id = String(refunds[0]._id);
+    }
+    
+    if (norm.status !== 'Cancelled' && norm.status !== 'Failed') {
+        if (refundSum >= norm.amount) {
+            norm.status = 'Refunded';
+        } else if (refundSum > 0) {
+            norm.status = 'Partially Refunded';
+        }
     }
     
     return norm;
@@ -272,10 +281,16 @@ async function normalizePaymentResponses(payments: any[]) {
         refunded_payment_ref: { $in: paymentIds },
         is_refund: true,
         'deletion.is_deleted': { $ne: true }
-    }, { refunded_payment_ref: 1 }).lean();
+    }, { refunded_payment_ref: 1, amount: 1 }).lean();
     
-    const refundedSet = new Set(activeRefunds.map(r => r.refunded_payment_ref?.toString()).filter(Boolean));
-
+    const refundMap = new Map<string, number>();
+    for (const r of activeRefunds) {
+        if (r.refunded_payment_ref) {
+            const refStr = r.refunded_payment_ref.toString();
+            refundMap.set(refStr, (refundMap.get(refStr) || 0) + (r.amount || 0));
+        }
+    }
+    
     const customers = await CustomerModel.find({}, { 'customer.name': 1, customer_id: 1 }).lean();
     const suppliers = await SupplierModel.find({}, { supplier_name: 1, supplier_id: 1 }).lean();
     const customerMap = new Map(customers.map(c => [c._id.toString(), c]));
@@ -295,7 +310,17 @@ async function normalizePaymentResponses(payments: any[]) {
 
     return payments.map(p => {
         const norm = normalizePaymentResponse(p, customerMap, supplierMap, invoiceMap, purchaseMap, serviceMap);
-        norm.is_already_refunded = refundedSet.has(p._id.toString());
+        const refStr = p._id.toString();
+        const refundSum = refundMap.get(refStr) || 0;
+        norm.is_already_refunded = refundSum > 0;
+        
+        if (norm.status !== 'Cancelled' && norm.status !== 'Failed') {
+            if (refundSum >= norm.amount) {
+                norm.status = 'Refunded';
+            } else if (refundSum > 0) {
+                norm.status = 'Partially Refunded';
+            }
+        }
         return norm;
     });
 }
@@ -506,7 +531,8 @@ router.post('/create', async (req: Request, res: Response) => {
             is_advance,
             is_refund,
             refunded_payment_ref,
-            remarks
+            remarks,
+            status
         } = req.body;
 
         if (!amount || !direction || !mode) {
@@ -544,7 +570,8 @@ router.post('/create', async (req: Request, res: Response) => {
             is_advance: is_advance || false,
             is_refund: is_refund || false,
             refunded_payment_ref: refunded_payment_ref || undefined,
-            remarks: remarks || undefined
+            remarks: remarks || undefined,
+            status: status || 'Completed'
         } as any);
         await payment.save();
 
@@ -584,7 +611,8 @@ router.put('/:id', async (req: Request, res: Response) => {
             is_advance,
             is_refund,
             refunded_payment_ref,
-            remarks
+            remarks,
+            status
         } = req.body;
 
         const oldReferenceType = (payment as any).reference?.type;
@@ -632,6 +660,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         if (is_refund !== undefined) payment.is_refund = is_refund;
         if (refunded_payment_ref !== undefined) (payment as any).refunded_payment_ref = refunded_payment_ref || undefined;
         if (remarks !== undefined) (payment as any).remarks = remarks || undefined;
+        if (status !== undefined) (payment as any).status = status;
 
         await payment.save();
 

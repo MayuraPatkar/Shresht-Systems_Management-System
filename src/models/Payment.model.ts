@@ -44,6 +44,7 @@ export interface IPayment extends Document {
     is_advance: boolean;
     is_refund: boolean;
     refunded_payment_ref?: Types.ObjectId;
+    status?: "Completed" | "Pending" | "Refunded" | "Partially Refunded" | "Cancelled" | "Failed";
 
     remarks?: string;
 
@@ -172,6 +173,13 @@ const paymentSchema = new Schema<IPayment>(
         refunded_payment_ref: {
             type: Schema.Types.ObjectId,
             ref: "Payment",
+            index: true,
+        },
+
+        status: {
+            type: String,
+            enum: ["Completed", "Pending", "Refunded", "Partially Refunded", "Cancelled", "Failed"],
+            default: "Completed",
             index: true,
         },
 

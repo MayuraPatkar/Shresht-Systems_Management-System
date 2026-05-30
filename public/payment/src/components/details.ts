@@ -59,8 +59,106 @@
     const $detailsEditBtn = document.getElementById('details-edit-btn') as HTMLButtonElement;
     const $detailsRefundBtn = document.getElementById('details-refund-btn') as HTMLButtonElement;
     const $detailsDeleteBtn = document.getElementById('details-delete-btn') as HTMLButtonElement;
+    const $detailsPdfBtn = document.getElementById('details-pdf-btn') as HTMLButtonElement;
 
 
+
+    // ── Helper functions ───────────────────────────────────
+    function getTransactionTypeLabel(p: IPaymentRecord): string {
+        if (p.is_refund) {
+            return p.direction === 'IN' ? 'Refund Received' : 'Refund Issued';
+        }
+        if (p.is_advance) {
+            return p.direction === 'IN' ? 'Advance Received' : 'Advance Paid';
+        }
+        return p.direction === 'IN' ? 'Payment Received' : 'Payment Sent';
+    }
+
+    function getReceiptHTML(payment: IPaymentRecord): string {
+        const type = getTransactionTypeLabel(payment);
+        const party = (payment as any).party_name || payment.party_display_id || payment.party_id || '-';
+        const amountStr = formatCurrency(payment.amount);
+        const dateStr = formatDate(payment.payment_date);
+
+        return `
+            <html>
+            <head>
+                <title>Payment Receipt - ${payment._id}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+                    .logo { font-size: 24px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; }
+                    .subtitle { font-size: 14px; color: #666; }
+                    .receipt-title { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-top: 20px; margin-bottom: 20px; letter-spacing: 1px; }
+                    .details-table { w-full border-collapse: collapse; margin-top: 20px; width: 100%; }
+                    .details-table td { padding: 12px 8px; border-bottom: 1px solid #eee; font-size: 14px; }
+                    .details-table td.label { font-weight: bold; color: #555; width: 35%; }
+                    .amount-box { margin-top: 30px; padding: 15px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; text-align: right; }
+                    .amount-val { font-size: 20px; font-weight: bold; color: #1e3a8a; }
+                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
+                    @media print {
+                        body { padding: 0; }
+                        button { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="logo">SHRESHT SYSTEMS</div>
+                    <div class="subtitle">Management System - Payment Receipt</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="receipt-title">${type} Acknowledgement</div>
+                </div>
+                <table class="details-table">
+                    <tr>
+                        <td class="label">Payment ID</td>
+                        <td>${payment._id}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Date</td>
+                        <td>${dateStr}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Party Name</td>
+                        <td>${party}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Transaction Type</td>
+                        <td>${type}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Payment Mode</td>
+                        <td>${payment.mode}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Reference Document</td>
+                        <td>${payment.reference_type ? `${payment.reference_type} (${payment.reference_id || '-'})` : '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Transaction Details</td>
+                        <td>${payment.transaction_details || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Remarks / Description</td>
+                        <td>${payment.remarks || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Status</td>
+                        <td>${payment.status || 'Completed'}</td>
+                    </tr>
+                </table>
+                <div class="amount-box">
+                    <span style="font-size: 14px; font-weight: bold; color: #666; margin-right: 10px;">Total Amount:</span>
+                    <span class="amount-val">${amountStr}</span>
+                </div>
+                <div class="footer">
+                    This is a system-generated transaction acknowledgement receipt.
+                </div>
+            </body>
+            </html>
+        `;
+    }
 
     // ── Helper functions ───────────────────────────────────
     function formatCurrency(n: number): string {
@@ -599,6 +697,28 @@
 
     $detailsRefundBtn.addEventListener('click', () => {
         window.location.href = `/payment?id=${paymentId}&refund=true`;
+    });
+
+    $detailsPdfBtn?.addEventListener('click', () => {
+        if (!currentPayment) return;
+        const htmlContent = getReceiptHTML(currentPayment);
+        const filename = `PaymentReceipt-${currentPayment._id}`;
+        
+        const electronAPI = (window as any).electronAPI;
+        if (electronAPI && typeof electronAPI.handlePrintEvent === 'function') {
+            electronAPI.handlePrintEvent(htmlContent, 'savePDF', filename);
+        } else {
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
+                printWindow.onload = () => {
+                    printWindow.print();
+                };
+            } else {
+                showToast('Popup blocked. Please allow popups to save/print PDF.', true);
+            }
+        }
     });
 
     $detailsDeleteBtn.addEventListener('click', () => {
