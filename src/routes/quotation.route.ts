@@ -170,6 +170,7 @@ router.get("/recent-quotations", async (req: Request, res: Response) => {
             ? { 'deletion.is_deleted': { $ne: true }, is_deleted: { $ne: true }, is_archived: true }
             : activeQuotationQuery();
         const recentQuotations = await QuotationModel.find(query)
+            .populate('customer_id', 'customer_type')
             .sort({ createdAt: -1 })
             .limit(25)
             .lean();
@@ -325,7 +326,7 @@ router.get('/search/:query', async (req: Request, res: Response) => {
                 { 'customer_snapshot.phone': regex },
                 { 'customer_snapshot.email': regex },
             ],
-        })).lean();
+        })).populate('customer_id', 'customer_type').lean();
 
         if (quotations.length === 0) return res.status(404).send('No quotations found.');
         return res.status(200).json({ quotation: quotations.map(normalizeQuotationDocument) });
@@ -343,7 +344,7 @@ router.get("/trash", async (_req: Request, res: Response) => {
                 { 'deletion.is_deleted': true },
                 { is_deleted: true },
             ],
-        }).sort({ 'deletion.deleted_at': -1 }).lean();
+        }).populate('customer_id', 'customer_type').sort({ 'deletion.deleted_at': -1 }).lean();
         return res.status(200).json({ quotation: deleted.map(normalizeQuotationDocument) });
     } catch (error: unknown) {
         logger.error("Error fetching trashed quotations:", error);

@@ -57,8 +57,9 @@ class QuotationTable {
                         b2c++;
                     } else {
                         // Fallback to gstin check if customer_type is unknown
-                        const gstin = q.customer_snapshot?.gstin || q.customer_GSTIN;
-                        if (gstin && gstin.trim() !== '') {
+                        const gstin = (q.customer_snapshot?.gstin || q.customer_GSTIN || '').trim().toUpperCase();
+                        const hasGstin = gstin !== '' && gstin !== '-' && gstin !== 'N/A' && gstin !== 'NA' && gstin !== 'UNDEFINED';
+                        if (hasGstin) {
                             b2b++;
                         } else {
                             b2c++;

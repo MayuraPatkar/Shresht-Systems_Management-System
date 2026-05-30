@@ -299,6 +299,22 @@
         });
     }
 
+    const consigneePincodeInput = document.getElementById('consignee-address-pincode') as HTMLInputElement | null;
+    if (consigneePincodeInput) {
+        consigneePincodeInput.setAttribute('inputmode', 'numeric');
+        consigneePincodeInput.setAttribute('maxlength', '6');
+        consigneePincodeInput.setAttribute('pattern', '[0-9]{6}');
+        consigneePincodeInput.addEventListener('keypress', (e) => {
+            if (!/[0-9]/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
+        consigneePincodeInput.addEventListener('input', () => {
+            const cleaned = consigneePincodeInput.value.replace(/\D/g, '').slice(0, 6);
+            if (consigneePincodeInput.value !== cleaned) consigneePincodeInput.value = cleaned;
+        });
+    }
+
     document.body.addEventListener('keypress', function (e) {
         const target = e.target as HTMLElement | null;
         if (target && (target.matches('.item-field.qty input') || target.closest('td:nth-child(4)')?.querySelector('input') === target)) {
