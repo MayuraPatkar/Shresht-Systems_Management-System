@@ -42,6 +42,7 @@ export interface ISupplier extends Document {
     // Supplier info
     supplier_name: string;
     phone?: string;
+    alternate_phone?: string;
     email?: string;
 
     gstin?: string;
@@ -135,6 +136,11 @@ const supplierSchema = new Schema<ISupplier>(
             required: true,
             trim: true,
             index: true,
+        },
+
+        alternate_phone: {
+            type: String,
+            trim: true,
         },
 
         email: {

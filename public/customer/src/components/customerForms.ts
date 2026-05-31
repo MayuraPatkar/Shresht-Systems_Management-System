@@ -26,10 +26,32 @@ class CustomerForms {
                 this.validator.registerField('customer.first_name', [V.required('First name is required')]);
                 this.validator.registerField('customer.phone', [
                     V.required('Phone number is required'),
-                    V.phone(true, 'Please enter a valid 10-digit phone number')
+                    V.phone(true, 'Please enter a valid 10-digit phone number'),
+                    {
+                        validate: (val: string) => {
+                            const cleanedPhone = val.trim();
+                            const altInput = form.querySelector('[name="customer.alternate_phone"]') as HTMLInputElement;
+                            const cleanedAlt = altInput ? altInput.value.trim() : '';
+                            if (cleanedPhone && cleanedAlt && cleanedPhone === cleanedAlt) {
+                                return 'Phone number cannot be the same as alternate phone number';
+                            }
+                            return true;
+                        }
+                    }
                 ]);
                 this.validator.registerField('customer.alternate_phone', [
-                    V.phone(false, 'Please enter a valid 10-digit phone number')
+                    V.phone(false, 'Please enter a valid 10-digit phone number'),
+                    {
+                        validate: (val: string) => {
+                            const cleanedAlt = val.trim();
+                            const phoneInput = form.querySelector('[name="customer.phone"]') as HTMLInputElement;
+                            const cleanedPhone = phoneInput ? phoneInput.value.trim() : '';
+                            if (cleanedPhone && cleanedAlt && cleanedPhone === cleanedAlt) {
+                                return 'Alternate phone number cannot be the same as phone number';
+                            }
+                            return true;
+                        }
+                    }
                 ]);
                 this.validator.registerField('customer.email', [
                     V.email(false, 'Please enter a valid email address')
@@ -55,6 +77,20 @@ class CustomerForms {
                 if (phoneInput) (window as any).setupNumericInput(phoneInput, 10);
                 if (altPhoneInput) (window as any).setupNumericInput(altPhoneInput, 10);
                 if (pincodeInput) (window as any).setupNumericInput(pincodeInput, 6);
+
+                // Cross-validate phone and alternate phone to clear matching errors on change
+                if (phoneInput && altPhoneInput) {
+                    phoneInput.addEventListener('input', () => {
+                        if (this.validator && altPhoneInput.value.trim() !== '') {
+                            this.validator.validateField('customer.alternate_phone');
+                        }
+                    });
+                    altPhoneInput.addEventListener('input', () => {
+                        if (this.validator && phoneInput.value.trim() !== '') {
+                            this.validator.validateField('customer.phone');
+                        }
+                    });
+                }
             }
         }
 

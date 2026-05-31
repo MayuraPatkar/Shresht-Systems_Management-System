@@ -25,7 +25,32 @@ class SupplierForms {
                 this.validator.registerField('supplier_name', [V.required('Supplier Name is required')]);
                 this.validator.registerField('phone', [
                     V.required('Phone Number is required'),
-                    V.phone(true, 'Please enter a valid 10-digit phone number')
+                    V.phone(true, 'Please enter a valid 10-digit phone number'),
+                    {
+                        validate: (val: string) => {
+                            const cleanedPhone = val.trim();
+                            const altInput = form.querySelector('[name="alternate_phone"]') as HTMLInputElement;
+                            const cleanedAlt = altInput ? altInput.value.trim() : '';
+                            if (cleanedPhone && cleanedAlt && cleanedPhone === cleanedAlt) {
+                                return 'Phone number cannot be the same as alternate phone number';
+                            }
+                            return true;
+                        }
+                    }
+                ]);
+                this.validator.registerField('alternate_phone', [
+                    V.phone(false, 'Please enter a valid 10-digit phone number'),
+                    {
+                        validate: (val: string) => {
+                            const cleanedAlt = val.trim();
+                            const phoneInput = form.querySelector('[name="phone"]') as HTMLInputElement;
+                            const cleanedPhone = phoneInput ? phoneInput.value.trim() : '';
+                            if (cleanedPhone && cleanedAlt && cleanedPhone === cleanedAlt) {
+                                return 'Alternate phone number cannot be the same as phone number';
+                            }
+                            return true;
+                        }
+                    }
                 ]);
                 this.validator.registerField('email', [
                     V.email(false, 'Please enter a valid email address')
@@ -45,12 +70,28 @@ class SupplierForms {
             // Bind Numeric Input restrictions
             if ((window as any).setupNumericInput) {
                 const phoneInput = form.querySelector('[name="phone"]') as HTMLInputElement;
+                const altPhoneInput = form.querySelector('[name="alternate_phone"]') as HTMLInputElement;
                 const pincodeInput = form.querySelector('[name="billing_address.pincode"]') as HTMLInputElement;
                 const accountInput = form.querySelector('[name="bank_details.account_number"]') as HTMLInputElement;
 
                 if (phoneInput) (window as any).setupNumericInput(phoneInput, 10);
+                if (altPhoneInput) (window as any).setupNumericInput(altPhoneInput, 10);
                 if (pincodeInput) (window as any).setupNumericInput(pincodeInput, 6);
                 if (accountInput) (window as any).setupNumericInput(accountInput, 20); // Arbitrary large max length for bank account
+
+                // Cross-validate phone and alternate phone to clear matching errors on change
+                if (phoneInput && altPhoneInput) {
+                    phoneInput.addEventListener('input', () => {
+                        if (this.validator && altPhoneInput.value.trim() !== '') {
+                            this.validator.validateField('alternate_phone');
+                        }
+                    });
+                    altPhoneInput.addEventListener('input', () => {
+                        if (this.validator && phoneInput.value.trim() !== '') {
+                            this.validator.validateField('phone');
+                        }
+                    });
+                }
             }
         }
 
@@ -106,6 +147,7 @@ class SupplierForms {
         const elements = form.elements as any;
         elements['supplier_name'].value = supplier.supplier_name || '';
         elements['phone'].value = supplier.phone || '';
+        elements['alternate_phone'].value = supplier.alternate_phone || '';
         elements['email'].value = supplier.email || '';
         elements['gstin'].value = supplier.gstin || '';
         elements['supplier_type'].value = supplier.supplier_type || 'Vendor';
@@ -152,6 +194,7 @@ class SupplierForms {
         const data = {
             supplier_name: String(formData.get('supplier_name') || '').trim(),
             phone: String(formData.get('phone') || '').replace(/\D/g, '').slice(0, 10),
+            alternate_phone: String(formData.get('alternate_phone') || '').replace(/\D/g, '').slice(0, 10) || undefined,
             email: String(formData.get('email') || '').trim().toLowerCase(),
             gstin: String(formData.get('gstin') || '').trim().toUpperCase(),
             supplier_type: formData.get('supplier_type'),

@@ -22,6 +22,7 @@ interface Supplier {
     supplier_id?: string;
     supplier_name: string;
     phone: string;
+    alternate_phone?: string;
     email: string;
     billing_address: Address;
     gstin?: string;
