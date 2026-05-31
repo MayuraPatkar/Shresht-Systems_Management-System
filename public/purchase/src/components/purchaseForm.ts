@@ -503,12 +503,21 @@
                 let card = element.closest('.item-card') as HTMLDivElement | null;
                 let tr = element.closest('tr') as HTMLTableRowElement | null;
 
+                let cardIndex = -1;
                 if (card && !tr) {
-                    const cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(card);
+                    cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(card);
                     tr = document.querySelector(`#items-table tbody tr:nth-child(${cardIndex + 1})`) as HTMLTableRowElement;
                 } else if (tr && !card) {
                     const trIndex = Array.from(document.querySelectorAll('#items-table tbody tr')).indexOf(tr);
+                    cardIndex = trIndex;
                     card = document.querySelector(`#items-container .item-card:nth-child(${trIndex + 1})`) as HTMLDivElement;
+                } else if (card && tr) {
+                    cardIndex = Array.from(document.querySelectorAll('#items-container .item-card')).indexOf(card);
+                }
+
+                let pricingCard: HTMLElement | null = null;
+                if (cardIndex !== -1) {
+                    pricingCard = document.querySelector(`#items-container-pricing .item-pricing-card:nth-child(${cardIndex + 1})`) as HTMLElement;
                 }
 
                 const hsnVal = stockData.hsn_sac ?? stockData.HSN_SAC ?? stockData.hsn_code ?? '';
@@ -541,12 +550,30 @@
                     const gstInput = card.querySelector('input[placeholder="GST %"]') as HTMLInputElement;
                     const unitSelect = card.querySelector('.item-unit') as HTMLSelectElement;
 
-                    if (hsnInput) hsnInput.value = hsnVal;
-                    if (brandInput) brandInput.value = brandVal;
-                    if (typeSelect) typeSelect.value = typeVal;
-                    if (categoryInput) categoryInput.value = categoryVal;
-                    if (priceInput) priceInput.value = unitPriceVal;
-                    if (gstInput) gstInput.value = gstVal;
+                    if (hsnInput) {
+                        hsnInput.value = hsnVal;
+                        hsnInput.dispatchEvent(new Event('input'));
+                    }
+                    if (brandInput) {
+                        brandInput.value = brandVal;
+                        brandInput.dispatchEvent(new Event('input'));
+                    }
+                    if (typeSelect) {
+                        typeSelect.value = typeVal;
+                        typeSelect.dispatchEvent(new Event('change'));
+                    }
+                    if (categoryInput) {
+                        categoryInput.value = categoryVal;
+                        categoryInput.dispatchEvent(new Event('input'));
+                    }
+                    if (priceInput) {
+                        priceInput.value = unitPriceVal;
+                        priceInput.dispatchEvent(new Event('input'));
+                    }
+                    if (gstInput) {
+                        gstInput.value = gstVal;
+                        gstInput.dispatchEvent(new Event('input'));
+                    }
                     if (unitSelect) {
                         unitSelect.value = unitVal;
                         unitSelect.dispatchEvent(new Event('change'));
@@ -562,15 +589,47 @@
                     const priceInput = tr.querySelector('td:nth-child(9) input') as HTMLInputElement;
                     const gstInput = tr.querySelector('td:nth-child(10) input') as HTMLInputElement;
 
-                    if (hsnInput) hsnInput.value = hsnVal;
-                    if (brandInput) brandInput.value = brandVal;
-                    if (typeSelect) typeSelect.value = typeVal;
-                    if (categoryInput) categoryInput.value = categoryVal;
-                    if (priceInput) priceInput.value = unitPriceVal;
-                    if (gstInput) gstInput.value = gstVal;
+                    if (hsnInput) {
+                        hsnInput.value = hsnVal;
+                        hsnInput.dispatchEvent(new Event('input'));
+                    }
+                    if (brandInput) {
+                        brandInput.value = brandVal;
+                        brandInput.dispatchEvent(new Event('input'));
+                    }
+                    if (typeSelect) {
+                        typeSelect.value = typeVal;
+                        typeSelect.dispatchEvent(new Event('change'));
+                    }
+                    if (categoryInput) {
+                        categoryInput.value = categoryVal;
+                        categoryInput.dispatchEvent(new Event('input'));
+                    }
+                    if (priceInput) {
+                        priceInput.value = unitPriceVal;
+                        priceInput.dispatchEvent(new Event('input'));
+                    }
+                    if (gstInput) {
+                        gstInput.value = gstVal;
+                        gstInput.dispatchEvent(new Event('input'));
+                    }
                     if (unitSelect) {
                         unitSelect.value = unitVal;
                         unitSelect.dispatchEvent(new Event('change'));
+                    }
+                }
+
+                if (pricingCard) {
+                    const priceInput = pricingCard.querySelector('.item-field.price input') as HTMLInputElement;
+                    const gstInput = pricingCard.querySelector('.item-field.rate input') as HTMLInputElement;
+
+                    if (priceInput) {
+                        priceInput.value = unitPriceVal;
+                        priceInput.dispatchEvent(new Event('input'));
+                    }
+                    if (gstInput) {
+                        gstInput.value = gstVal;
+                        gstInput.dispatchEvent(new Event('input'));
                     }
                 }
             }
@@ -1930,10 +1989,6 @@ if (newSection) newSection.style.display = "block";
         } else if (step === 4) {
             const formData = collectFormData();
             const grandTotal = formData.totals.grand_total;
-            const paymentAmountInput = document.getElementById("payment-amount") as HTMLInputElement;
-            if (paymentAmountInput && !paymentAmountInput.value && grandTotal > 0) {
-                paymentAmountInput.value = grandTotal.toFixed(2);
-            }
             const paymentDateInput = document.getElementById("payment-date") as HTMLInputElement;
             if (paymentDateInput && !paymentDateInput.value) {
                 const today = (window as any).getTodayForInput ? (window as any).getTodayForInput() : new Date().toISOString().split('T')[0];

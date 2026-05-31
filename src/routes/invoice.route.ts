@@ -907,6 +907,23 @@ async function performHardDeleteInvoice(invoiceId: string): Promise<boolean> {
         reference_id: invoiceId
     });
 
+    // Rollback quotation status if it was converted from a quotation
+    if (invoice.quotation_id) {
+        await QuotationModel.findByIdAndUpdate(invoice.quotation_id, {
+            $set: { quotation_status: 'Approved' },
+            $unset: { converted_invoice_id: 1 }
+        });
+    }
+
+    // Also rollback any quotation referencing this invoice ID as converted_invoice_id
+    await QuotationModel.updateMany(
+        { converted_invoice_id: invoice._id },
+        {
+            $set: { quotation_status: 'Approved' },
+            $unset: { converted_invoice_id: 1 }
+        }
+    );
+
     await InvoiceModel.deleteOne({ invoice_id: invoiceId });
     return true;
 }

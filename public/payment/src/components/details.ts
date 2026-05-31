@@ -278,6 +278,69 @@
         return refId === '-' ? refType : `${refType}: ${refId}`;
     }
 
+    async function handleReferenceClick(event: MouseEvent, type: string, refDbId: string, path: string) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        try {
+            const res = await fetch(`/payment/get-reference-details/${type}/${refDbId}`);
+            if (!res.ok) {
+                if ((window as any).electronAPI?.showAlert1) {
+                    (window as any).electronAPI.showAlert1('This reference document has been deleted.');
+                } else {
+                    alert('This reference document has been deleted.');
+                }
+                return;
+            }
+            
+            const data = await res.json();
+            if (data.success && data.details) {
+                if (data.details.deletion?.is_deleted) {
+                    if ((window as any).electronAPI?.showAlert1) {
+                        (window as any).electronAPI.showAlert1('This reference document has been deleted.');
+                    } else {
+                        alert('This reference document has been deleted.');
+                    }
+                } else {
+                    window.location.href = path;
+                }
+            } else {
+                if ((window as any).electronAPI?.showAlert1) {
+                    (window as any).electronAPI.showAlert1('This reference document has been deleted.');
+                } else {
+                    alert('This reference document has been deleted.');
+                }
+            }
+        } catch (err) {
+            console.error('Error verifying reference document:', err);
+            if ((window as any).electronAPI?.showAlert1) {
+                (window as any).electronAPI.showAlert1('This reference document has been deleted.');
+            } else {
+                alert('This reference document has been deleted.');
+            }
+        }
+    }
+    (window as any).handleReferenceClick = handleReferenceClick;
+
+    function getReferenceLinkHtml(p: IPaymentRecord): string {
+        const refType = valOrDash(p.reference_type);
+        const refId = valOrDash(p.reference_id);
+        if (refId === '-' || !p.reference_type || !p.reference_id) return refType === '-' ? '-' : refType;
+        if (p.reference_type === 'Adjustment') return `${escapeHtml(p.reference_type)}: ${escapeHtml(p.reference_id)}`;
+
+        let path = '';
+        if (p.reference_type === 'Invoice') {
+            path = `../invoice/invoice.html?view=${p.reference_ref || p.reference_id}`;
+        } else if (p.reference_type === 'Purchase') {
+            path = `../purchase/purchase.html?view=${p.reference_ref || p.reference_id}`;
+        } else if (p.reference_type === 'Service') {
+            path = `../service/service.html?view=${p.reference_ref || p.reference_id}`;
+        } else {
+            return `${escapeHtml(p.reference_type)}: ${escapeHtml(p.reference_id)}`;
+        }
+        return `${escapeHtml(p.reference_type)}: <a href="${path}" onclick="handleReferenceClick(event, '${p.reference_type}', '${p.reference_ref || p.reference_id}', '${path}')" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold" title="View Linked Document: ${escapeHtml(p.reference_type)} ${escapeHtml(p.reference_id)}">${escapeHtml(p.reference_id)}</a>`;
+    }
+
     // ── API Calls ──────────────────────────────────────────
     async function fetchFullDetails() {
         try {
@@ -473,14 +536,14 @@
         if ($headerMethod) $headerMethod.textContent = payment.mode || '-';
         if ($headerDate) $headerDate.textContent = formatDate(payment.payment_date);
         if ($headerTxId) $headerTxId.textContent = payment.transaction_details || '-';
-        if ($headerLinkedDoc) $headerLinkedDoc.textContent = referenceLabel(payment);
+        if ($headerLinkedDoc) $headerLinkedDoc.innerHTML = getReferenceLinkHtml(payment);
 
         // Transaction Details
         $detailsTransaction.textContent = valOrDash(payment.transaction_details);
         $detailsMode.textContent = payment.mode || '-';
         $detailsDate.textContent = formatDate(payment.payment_date);
         $detailsParty.textContent = `${paymentPartyType(payment)}${payment.party_display_id || payment.party_id ? `: ${payment.party_display_id || payment.party_id}` : ''}`;
-        $detailsReference.textContent = referenceLabel(payment);
+        $detailsReference.innerHTML = getReferenceLinkHtml(payment);
         $detailsCreated.textContent = formatDate(payment.createdAt);
         $detailsRemarks.textContent = valOrDash(payment.remarks);
 
@@ -552,7 +615,7 @@
         const $partyProfileBtn = document.getElementById('party-profile-btn') as HTMLAnchorElement | null;
         if ($partyProfileBtn && payment.party_id) {
             const pType = paymentPartyType(payment);
-            $partyProfileBtn.href = pType === 'Customer' ? `/customer?id=${payment.party_id}` : `/supplier?id=${payment.party_id}`;
+            $partyProfileBtn.href = pType === 'Customer' ? `../customer/customer_details.html?id=${payment.party_id}` : `../supplier/supplier_details.html?id=${payment.party_id}`;
             $partyProfileBtn.textContent = pType === 'Customer' ? 'Open Customer Profile' : 'View Supplier';
         }
 
