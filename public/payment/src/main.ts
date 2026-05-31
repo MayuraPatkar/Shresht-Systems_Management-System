@@ -742,43 +742,63 @@ interface Window {
     async function handleReferenceClick(event: MouseEvent, type: string, refDbId: string, path: string) {
         event.preventDefault();
         event.stopPropagation();
-        
+
+        const link = event.currentTarget as HTMLAnchorElement || (event.target as HTMLElement).closest('a');
+        const originalHtml = link ? link.innerHTML : null;
+
+        // Show inline loading state on the link
+        if (link) {
+            link.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:0.8em;"></i>';
+            (link as HTMLElement).style.pointerEvents = 'none';
+        }
+
+        const showAlert = (msg: string) => {
+            if ((window as any).electronAPI?.showAlert1) {
+                (window as any).electronAPI.showAlert1(msg);
+            } else {
+                alert(msg);
+            }
+        };
+
+        const restoreLink = () => {
+            if (link && originalHtml !== null) {
+                link.innerHTML = originalHtml;
+                (link as HTMLElement).style.pointerEvents = '';
+            }
+        };
+
         try {
             const res = await fetch(`/payment/get-reference-details/${type}/${refDbId}`);
-            if (!res.ok) {
-                if ((window as any).electronAPI?.showAlert1) {
-                    (window as any).electronAPI.showAlert1('This reference document has been deleted.');
-                } else {
-                    alert('This reference document has been deleted.');
-                }
+
+            if (res.status === 404) {
+                restoreLink();
+                showAlert(`This ${type} record no longer exists. It may have been permanently deleted.`);
                 return;
             }
-            
+
+            if (!res.ok) {
+                restoreLink();
+                showAlert(`Unable to verify the linked ${type} record. Server returned an error (${res.status}). Please try again.`);
+                return;
+            }
+
             const data = await res.json();
             if (data.success && data.details) {
                 if (data.details.deletion?.is_deleted) {
-                    if ((window as any).electronAPI?.showAlert1) {
-                        (window as any).electronAPI.showAlert1('This reference document has been deleted.');
-                    } else {
-                        alert('This reference document has been deleted.');
-                    }
+                    restoreLink();
+                    showAlert(`This ${type} record has been deleted and is no longer accessible.`);
                 } else {
+                    // Record exists and is active — navigate
                     window.location.href = path;
                 }
             } else {
-                if ((window as any).electronAPI?.showAlert1) {
-                    (window as any).electronAPI.showAlert1('This reference document has been deleted.');
-                } else {
-                    alert('This reference document has been deleted.');
-                }
+                restoreLink();
+                showAlert(`This ${type} record no longer exists. It may have been permanently deleted.`);
             }
         } catch (err) {
             console.error('Error verifying reference document:', err);
-            if ((window as any).electronAPI?.showAlert1) {
-                (window as any).electronAPI.showAlert1('This reference document has been deleted.');
-            } else {
-                alert('This reference document has been deleted.');
-            }
+            restoreLink();
+            showAlert(`Could not reach the server to verify this ${type} record. Please check your connection and try again.`);
         }
     }
     (window as any).handleReferenceClick = handleReferenceClick;
@@ -791,15 +811,15 @@ interface Window {
 
         let path = '';
         if (p.reference_type === 'Invoice') {
-            path = `../invoice/invoice.html?view=${p.reference_ref || p.reference_id}`;
+            path = `../invoice/invoice.html?view=${p.reference_id}`;
         } else if (p.reference_type === 'Purchase') {
-            path = `../purchase/purchase.html?view=${p.reference_ref || p.reference_id}`;
+            path = `../purchase/purchase.html?view=${p.reference_id}`;
         } else if (p.reference_type === 'Service') {
-            path = `../service/service.html?view=${p.reference_ref || p.reference_id}`;
+            path = `../service/service.html?view=${p.reference_id}`;
         } else {
             return `${escapeHtml(p.reference_type)}: ${escapeHtml(p.reference_id)}`;
         }
-        return `${escapeHtml(p.reference_type)}: <a href="${path}" onclick="handleReferenceClick(event, '${p.reference_type}', '${p.reference_ref || p.reference_id}', '${path}')" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold" title="View Linked Document: ${escapeHtml(p.reference_type)} ${escapeHtml(p.reference_id)}">${escapeHtml(p.reference_id)}</a>`;
+        return `${escapeHtml(p.reference_type)}: <a href="${path}" onclick="handleReferenceClick(event, '${p.reference_type}', '${p.reference_id}', '${path}')" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold" title="View Linked Document: ${escapeHtml(p.reference_type)} ${escapeHtml(p.reference_id)}">${escapeHtml(p.reference_id)}</a>`;
     }
 
     function updateSummary(): void {
@@ -1259,8 +1279,8 @@ interface Window {
             fetchDetailsModalParty(partyType, payment.party_id);
         }
 
-        if (payment.reference_ref && payment.reference_type && payment.reference_type !== 'Adjustment') {
-            fetchDetailsModalReference(payment.reference_type as any, payment.reference_ref);
+        if (payment.reference_id && payment.reference_type && payment.reference_type !== 'Adjustment') {
+            fetchDetailsModalReference(payment.reference_type as any, payment.reference_id);
         }
 
         $detailsModal.classList.remove('hidden');

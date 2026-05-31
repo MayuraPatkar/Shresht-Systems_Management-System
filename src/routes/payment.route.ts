@@ -736,17 +736,28 @@ router.get('/get-party-details-by-id/:type/:id', async (req: Request, res: Respo
 
 router.get('/get-reference-details/:type/:id', async (req: Request, res: Response) => {
     try {
-        const { type, id } = req.params;
+        const type = String(req.params.type);
+        const id = String(req.params.id);
         let details: any = null;
 
+        const isObjectId = Types.ObjectId.isValid(id) && String(new Types.ObjectId(id)) === id;
+
         if (type === 'Invoice') {
-            details = await InvoiceModel.findById(id).lean();
+            details = isObjectId
+                ? await InvoiceModel.findById(id).lean()
+                : await InvoiceModel.findOne({ $or: [{ invoice_id: id }, { invoice_no: id }] }).lean();
         } else if (type === 'Purchase') {
-            details = await PurchaseModel.findById(id).lean();
+            details = isObjectId
+                ? await PurchaseModel.findById(id).lean()
+                : await PurchaseModel.findOne({ $or: [{ purchase_no: id }, { purchase_invoice_no: id }] }).lean();
         } else if (type === 'PurchaseOrder') {
-            details = await PurchaseOrderModel.findById(id).lean();
+            details = isObjectId
+                ? await PurchaseOrderModel.findById(id).lean()
+                : await PurchaseOrderModel.findOne({ $or: [{ purchase_order_no: id }, { purchase_invoice_no: id }] }).lean();
         } else if (type === 'Service') {
-            details = await ServiceModel.findById(id).lean();
+            details = isObjectId
+                ? await ServiceModel.findById(id).lean()
+                : await ServiceModel.findOne({ $or: [{ service_no: id }, { service_id: id }] }).lean();
         }
 
         if (details) {
