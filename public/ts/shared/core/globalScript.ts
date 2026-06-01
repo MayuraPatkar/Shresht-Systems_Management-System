@@ -1,6 +1,98 @@
 // @ts-nocheck
+const SSMS_MODULE_NAV_CURRENT_KEY = 'ssms.currentModuleNavigation';
+const SSMS_MODULE_NAV_BACK_KEY = 'ssms.moduleBackTarget';
+const SSMS_MODULE_NAV_BACK_FLAG_KEY = 'ssms.moduleBackInProgress';
+
+const SSMS_MODULES = [
+  { id: 'purchaseorder', label: 'Purchase Order', patterns: ['/purchaseorder', '/purchaseorder/'] },
+  { id: 'ewaybill', label: 'E-Way Bill', patterns: ['/ewaybill', '/ewaybill/'] },
+  { id: 'dashboard', label: 'Dashboard', patterns: ['/dashboard', '/dashboard/'] },
+  { id: 'customer', label: 'Customers', patterns: ['/customer', '/customer/'] },
+  { id: 'quotation', label: 'Quotation', patterns: ['/quotation', '/quotation/'] },
+  { id: 'supplier', label: 'Suppliers', patterns: ['/supplier', '/supplier/'] },
+  { id: 'invoice', label: 'Invoice', patterns: ['/invoice', '/invoice/'] },
+  { id: 'service', label: 'Service', patterns: ['/service', '/service/'] },
+  { id: 'purchase', label: 'Purchases', patterns: ['/purchase', '/purchase/'] },
+  { id: 'payment', label: 'Payments', patterns: ['/payment', '/payment/'] },
+  { id: 'stock', label: 'Stock', patterns: ['/stock', '/stock/'] },
+  { id: 'comms', label: 'Comms', patterns: ['/comms', '/comms/'] },
+  { id: 'reports', label: 'Reports', patterns: ['/reports', '/reports/'] },
+  { id: 'calculations', label: 'Calculations', patterns: ['/calculations', '/calculations/'] },
+  { id: 'settings', label: 'Settings', patterns: ['/settings', '/settings/'] }
+];
+
+function getCurrentModuleNavigation() {
+  const pathname = window.location.pathname.toLowerCase();
+  const module = SSMS_MODULES.find(item => item.patterns.some(pattern => pathname === pattern || pathname.startsWith(pattern)));
+  if (!module) return null;
+
+  return {
+    id: module.id,
+    label: module.label,
+    url: `${window.location.pathname}${window.location.search}${window.location.hash}`
+  };
+}
+
+function readModuleNavigationState(key) {
+  try {
+    const value = sessionStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function writeModuleNavigationState(key, value) {
+  sessionStorage.setItem(key, JSON.stringify(value));
+}
+
+function updateModuleBackTarget() {
+  const current = getCurrentModuleNavigation();
+  if (!current) return;
+
+  const previous = readModuleNavigationState(SSMS_MODULE_NAV_CURRENT_KEY);
+  const backInProgress = sessionStorage.getItem(SSMS_MODULE_NAV_BACK_FLAG_KEY) === 'true';
+
+  if (backInProgress) {
+    sessionStorage.removeItem(SSMS_MODULE_NAV_BACK_FLAG_KEY);
+    sessionStorage.removeItem(SSMS_MODULE_NAV_BACK_KEY);
+  } else if (previous && previous.id && previous.id !== current.id && previous.url && previous.url !== current.url) {
+    writeModuleNavigationState(SSMS_MODULE_NAV_BACK_KEY, previous);
+  }
+
+  writeModuleNavigationState(SSMS_MODULE_NAV_CURRENT_KEY, current);
+}
+
+function renderModuleBackButton() {
+  const current = getCurrentModuleNavigation();
+  const backTarget = readModuleNavigationState(SSMS_MODULE_NAV_BACK_KEY);
+  if (!current || !backTarget || !backTarget.url || backTarget.id === current.id || backTarget.url === current.url) {
+    return;
+  }
+
+  const headerTitle = document.querySelector('header .flex.items-center.gap-3');
+  if (!headerTitle || document.getElementById('module-back-btn')) return;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.id = 'module-back-btn';
+  button.className = 'bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 px-3 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm';
+  button.title = `Back to ${backTarget.label || 'previous module'}`;
+  button.innerHTML = '<i class="fas fa-arrow-left"></i><span>Back</span>';
+
+  button.addEventListener('click', () => {
+    sessionStorage.setItem(SSMS_MODULE_NAV_BACK_FLAG_KEY, 'true');
+    window.location.href = backTarget.url;
+  });
+
+  headerTitle.insertBefore(button, headerTitle.firstChild);
+}
+
 // Sidebar Active State Management
 document.addEventListener('DOMContentLoaded', () => {
+  updateModuleBackTarget();
+  renderModuleBackButton();
+
   const currentPath = window.location.pathname.toLowerCase();
 
   // Map routes to sidebar element IDs
