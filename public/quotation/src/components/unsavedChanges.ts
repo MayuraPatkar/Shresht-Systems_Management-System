@@ -195,7 +195,14 @@
                 throw new Error('Could not collect form data');
             }
 
-            const response = await sendDocumentToServer('/quotation/save-quotation', formData);
+            const draftData = {
+                ...formData,
+                quotation_status: 'Draft',
+                save_as_draft: true,
+                saveAsDraft: true,
+            };
+
+            const response = await sendDocumentToServer('/quotation/save-quotation', draftData);
 
             if (response) {
                 // Update quotation ID if returned (new quotation)

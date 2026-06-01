@@ -891,6 +891,18 @@ async function renderQuotationView(quotation, viewType) {
                     alert('This quotation has already been converted to an invoice.');
                 }
             });
+        } else if (quotation.quotation_status !== 'Approved') {
+            newConvertBtn.disabled = true;
+            newConvertBtn.className = 'bg-gray-400 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-semibold transition-all shadow-md opacity-80 cursor-not-allowed whitespace-nowrap';
+            newConvertBtn.innerHTML = '<i class="fas fa-ban"></i> Cannot Convert';
+            newConvertBtn.title = 'Only approved quotations can be converted to invoices.';
+            newConvertBtn.addEventListener('click', () => {
+                if ((window as any).electronAPI?.showAlert1) {
+                    (window as any).electronAPI.showAlert1('Only approved quotations can be converted to invoices.');
+                } else {
+                    alert('Only approved quotations can be converted to invoices.');
+                }
+            });
         } else {
             newConvertBtn.addEventListener('click', () => {
                 // quotation.quotation_id is mapped to quotation_no (e.g. "QUO-001"), which the backend route accepts

@@ -53,6 +53,36 @@ async function enrichItemsFromStock(items: any[]) {
     }));
 }
 
+function isDraftSaveRequest(body: any): boolean {
+    return body.save_as_draft === true ||
+        body.save_as_draft === 'true' ||
+        body.saveAsDraft === true ||
+        body.saveAsDraft === 'true';
+}
+
+function draftItemHasContent(item: any): boolean {
+    return Boolean(
+        String(item.description || item.item_name || '').trim() ||
+        String(item.hsn_sac || item.HSN_SAC || '').trim() ||
+        String(item.specification || item.specifications || '').trim() ||
+        String(item.unit || '').trim() ||
+        item.item_id ||
+        Number(item.quantity) > 0 ||
+        Number(item.unit_price ?? item.price) > 0 ||
+        Number(item.gst_rate ?? item.rate) > 0
+    );
+}
+
+function prepareDraftItems(items: any[] = []) {
+    return items
+        .filter(draftItemHasContent)
+        .map(item => {
+            if (Number(item.quantity) > 0) return item;
+            const { quantity: _quantity, ...draftItem } = item;
+            return draftItem;
+        });
+}
+
 async function expireStaleQuotations() {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -111,18 +141,32 @@ router.get("/all", async (req: Request, res: Response) => {
 
 router.post("/save-quotation", async (req: Request, res: Response) => {
     try {
+        const isDraftSave = isDraftSaveRequest(req.body);
         const incomingId = String(req.body.quotation_no || req.body.quotation_id || '').trim();
         const customer = await findCustomer(req.body.customer_id || req.body.buyerCustomerId);
-        const enrichedItems = await enrichItemsFromStock(req.body.items || []);
+        const rawItems = isDraftSave ? prepareDraftItems(req.body.items || []) : (req.body.items || []);
+        const enrichedItems = await enrichItemsFromStock(rawItems);
         const payload = normalizeQuotationPayload({ ...req.body, items: enrichedItems }, customer);
 
-        if (!payload.project_name) {
+        if (isDraftSave) {
+            payload.quotation_status = 'Draft';
+            if (!payload.project_name) {
+                payload.project_name = 'Untitled Quotation Draft';
+            }
+            payload.items = (payload.items || []).map((item: any) => {
+                if (Number(item.quantity) > 0) return item;
+                const { quantity: _quantity, ...draftItem } = item;
+                return draftItem;
+            });
+        }
+
+        if (!isDraftSave && !payload.project_name) {
             return res.status(400).json({ message: 'Project name is required.' });
         }
-        if (!payload.customer_snapshot?.name) {
+        if (!isDraftSave && !payload.customer_snapshot?.name) {
             return res.status(400).json({ message: 'Customer name is required.' });
         }
-        if (!Array.isArray(payload.items) || payload.items.length === 0) {
+        if (!isDraftSave && (!Array.isArray(payload.items) || payload.items.length === 0)) {
             return res.status(400).json({ message: 'At least one quotation item is required.' });
         }
 
@@ -240,6 +284,9 @@ router.post("/:quotationId/convert-to-invoice", async (req: Request, res: Respon
         if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
         if ((quotation as any).converted_invoice_id || quotation.quotation_status === 'Converted') {
             return res.status(409).json({ message: 'Quotation has already been converted.', converted_invoice_id: (quotation as any).converted_invoice_id });
+        }
+        if (quotation.quotation_status !== 'Approved') {
+            return res.status(400).json({ message: 'Only approved quotations can be converted to invoices.' });
         }
 
         const normalized = normalizeQuotationDocument(quotation);

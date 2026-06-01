@@ -284,6 +284,17 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
             existingInvoice = await InvoiceModel.findOne({ invoice_id: invoiceId });
         }
 
+        if (quotationObjectId) {
+            const quotationDocCheck = await QuotationModel.findById(quotationObjectId);
+            if (quotationDocCheck) {
+                // If it's already converted to THIS invoice, that's fine
+                const isConvertedToThis = existingInvoice && quotationDocCheck.converted_invoice_id && quotationDocCheck.converted_invoice_id.toString() === existingInvoice._id.toString();
+                if (!isConvertedToThis && quotationDocCheck.quotation_status !== 'Approved') {
+                    return res.status(400).json({ message: 'Only approved quotations can be converted to invoices.' });
+                }
+            }
+        }
+
         let items_original = existingInvoice?.items_original || [];
         let items_duplicate = existingInvoice?.items_duplicate || [];
         let non_items_original = existingInvoice?.non_items_original || [];

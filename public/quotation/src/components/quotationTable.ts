@@ -153,7 +153,7 @@ class QuotationTable {
                     <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn convert-invoice-btn px-4 py-2 ${isConverted ? 'bg-green-100 text-green-700 border border-green-300 cursor-not-allowed opacity-75' : 'bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400'} rounded-lg" title="${isConverted ? 'Already converted to invoice' : 'Convert to Invoice'}">
+                    <button class="action-btn convert-invoice-btn px-4 py-2 ${isConverted ? 'bg-green-100 text-green-700 border border-green-300 cursor-not-allowed opacity-75' : status !== 'Approved' ? 'bg-gray-100 text-gray-500 border border-gray-300 cursor-not-allowed opacity-75' : 'bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400'} rounded-lg" title="${isConverted ? 'Already converted to invoice' : status !== 'Approved' ? 'Only approved quotations can be converted' : 'Convert to Invoice'}">
                         <i class="fas ${isConverted ? 'fa-check-circle' : 'fa-file-invoice-dollar'}"></i>
                     </button>
                     `}
@@ -246,6 +246,14 @@ class QuotationTable {
                     (window as any).electronAPI.showAlert1('This quotation has already been converted to an invoice.');
                 } else {
                     alert('This quotation has already been converted to an invoice.');
+                }
+                return;
+            }
+            if (status !== 'Approved') {
+                if ((window as any).electronAPI?.showAlert1) {
+                    (window as any).electronAPI.showAlert1('Only approved quotations can be converted to invoices.');
+                } else {
+                    alert('Only approved quotations can be converted to invoices.');
                 }
                 return;
             }
