@@ -149,8 +149,8 @@ router.get('/gst', async (req: Request, res: Response) => {
         invoices.forEach(invoice => {
             const items = invoice.items_original || [];
             items.forEach((item: any) => {
-                const rate = parseFloat(item.rate) || 0;
-                const taxableValue = (item.quantity || 0) * (item.unit_price || 0);
+                const rate = parseFloat(item.gst_rate !== undefined ? item.gst_rate : item.rate) || 0;
+                const taxableValue = typeof item.taxable_value === 'number' ? item.taxable_value : ((item.quantity || 0) * (item.unit_price || 0));
                 const cgst = (taxableValue * rate / 2) / 100;
                 const sgst = (taxableValue * rate / 2) / 100;
                 const key = rate.toString();
@@ -169,10 +169,12 @@ router.get('/gst', async (req: Request, res: Response) => {
 
         const taxRateList = Object.values(rateBreakdown).sort((a: any, b: any) => b.rate - a.rate);
         const invoiceBreakdown = invoices.map(inv => ({
-            invoice_id: inv.invoice_id, invoice_date: inv.invoice_date, customer_name: inv.customer_name,
-            taxable_value: inv.total_amount_original - (inv.total_tax_original || 0),
-            cgst: (inv.total_tax_original || 0) / 2, sgst: (inv.total_tax_original || 0) / 2,
-            total_tax: inv.total_tax_original || 0, total_value: inv.total_amount_original || 0
+            invoice_id: inv.invoice_no || inv.invoice_id, invoice_date: inv.invoice_date, customer_name: inv.customer_snapshot?.name || inv.customer_name || '-',
+            taxable_value: inv.totals_original?.taxable_value || inv.totals_duplicate?.taxable_value || (inv.total_amount_original - (inv.total_tax_original || 0)),
+            cgst: inv.totals_original?.cgst || inv.totals_duplicate?.cgst || (inv.total_tax_original || 0) / 2,
+            sgst: inv.totals_original?.sgst || inv.totals_duplicate?.sgst || (inv.total_tax_original || 0) / 2,
+            total_tax: inv.totals_original?.total_tax || inv.totals_duplicate?.total_tax || inv.total_tax_original || 0,
+            total_value: inv.totals_original?.grand_total || inv.totals_duplicate?.grand_total || inv.total_amount_original || 0
         }));
 
         if (invoices.length > 0) {
@@ -221,7 +223,7 @@ router.get('/gst/summary', async (req: Request, res: Response) => {
                         is_archived: { $ne: true }
                     } 
                 },
-                { $group: { _id: null, total_invoices: { $sum: 1 }, total_amount: { $sum: '$total_amount_original' }, total_tax: { $sum: '$total_tax_original' } } }
+                { $group: { _id: null, total_invoices: { $sum: 1 }, total_amount: { $sum: { $ifNull: ['$totals_original.grand_total', '$total_amount_original'] } }, total_tax: { $sum: { $ifNull: ['$totals_original.total_tax', '$total_tax_original'] } } } }
             ]);
             monthlySummary.push({
                 month, month_name: new Date(reportYear, month - 1, 1).toLocaleString('en-IN', { month: 'long' }),
@@ -256,8 +258,8 @@ router.get('/purchase-gst', async (req: Request, res: Response) => {
 
         purchaseOrders.forEach(po => {
             (po.items || []).forEach((item: any) => {
-                const rate = parseFloat(item.rate) || 0;
-                const taxableValue = (item.quantity || 0) * (item.unit_price || 0);
+                const rate = parseFloat(item.gst_rate !== undefined ? item.gst_rate : item.rate) || 0;
+                const taxableValue = typeof item.taxable_value === 'number' ? item.taxable_value : ((item.quantity || 0) * (item.unit_price || 0));
                 const cgst = (taxableValue * rate / 2) / 100;
                 const sgst = (taxableValue * rate / 2) / 100;
                 const key = rate.toString();
@@ -273,8 +275,23 @@ router.get('/purchase-gst', async (req: Request, res: Response) => {
         const taxRateList = Object.values(rateBreakdown).sort((a: any, b: any) => b.rate - a.rate);
         const purchaseBreakdown = purchaseOrders.map(po => {
             let poTaxableValue = 0, poTax = 0;
-            (po.items || []).forEach((item: any) => { const t = (item.quantity || 0) * (item.unit_price || 0); poTaxableValue += t; poTax += (t * (item.rate || 0)) / 100; });
-            return { purchase_order_id: po.purchase_order_id, purchase_invoice_id: po.purchase_invoice_id, purchase_date: po.purchase_date, supplier_name: po.supplier_name, taxable_value: poTaxableValue, cgst: poTax / 2, sgst: poTax / 2, total_tax: poTax, total_value: po.total_amount || (poTaxableValue + poTax) };
+            (po.items || []).forEach((item: any) => {
+                const t = typeof item.taxable_value === 'number' ? item.taxable_value : ((item.quantity || 0) * (item.unit_price || 0));
+                poTaxableValue += t;
+                const rate = item.gst_rate !== undefined ? item.gst_rate : (item.rate || 0);
+                poTax += (t * rate) / 100;
+            });
+            return {
+                purchase_order_id: po.purchase_order_no || po.purchase_order_id || po.purchase_no || po._id,
+                purchase_invoice_id: po.purchase_invoice_no || po.purchase_invoice_id,
+                purchase_date: po.purchase_date,
+                supplier_name: po.supplier_snapshot?.name || po.supplier_name || '-',
+                taxable_value: poTaxableValue,
+                cgst: poTax / 2,
+                sgst: poTax / 2,
+                total_tax: poTax,
+                total_value: po.totals?.grand_total || po.total_amount || (poTaxableValue + poTax)
+            };
         });
 
         if (purchaseOrders.length > 0) {

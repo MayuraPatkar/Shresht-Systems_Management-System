@@ -187,7 +187,7 @@ class StockReportComponent {
                     timestamp: stock.createdAt || stock.created_at || new Date().toISOString(),
                     item_name: stock.item_name || stock.itemName || 'Unknown Item',
                     movement_type: 'in' as const,
-                    quantity_change: stock.quantity || stock.Quantity || 0,
+                    quantity_change: stock.stock_quantity !== undefined ? stock.stock_quantity : (stock.quantity || stock.Quantity || 0),
                     reference_type: 'stock',
                     reference_id: stock._id,
                     notes: `Initial stock entry - ${stock.item_id || ''}`

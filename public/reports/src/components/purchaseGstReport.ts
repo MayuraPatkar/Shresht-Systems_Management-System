@@ -210,8 +210,8 @@ class PurchaseGstReportComponent {
             filteredPurchases.forEach((po: any) => {
                 const items = po.items || [];
                 items.forEach((item: any) => {
-                    const gstRate = parseFloat(item.rate) || 0;
-                    const taxableValue = (item.quantity || 0) * (item.unit_price || 0);
+                    const gstRate = parseFloat(item.gst_rate !== undefined ? item.gst_rate : item.rate) || 0;
+                    const taxableValue = typeof item.taxable_value === 'number' ? item.taxable_value : ((item.quantity || 0) * (item.unit_price || 0));
                     const cgst = (taxableValue * gstRate / 2) / 100;
                     const sgst = (taxableValue * gstRate / 2) / 100;
 
@@ -248,14 +248,14 @@ class PurchaseGstReportComponent {
                 },
                 taxRateBreakdown,
                 purchases: filteredPurchases.map((po: any) => ({
-                    purchase_order_id: po.purchase_order_id || po._id,
-                    purchase_invoice_id: po.purchase_invoice_id,
+                    purchase_order_id: po.purchase_order_no || po.purchase_order_id || po.purchase_no || po._id,
+                    purchase_invoice_id: po.purchase_invoice_no || po.purchase_invoice_id,
                     date: po.purchase_date,
-                    supplier: po.supplier_name || 'Unknown',
-                    taxableValue: po.total_amount || 0,
-                    cgst: 0,
-                    sgst: 0,
-                    total: po.total_amount || 0
+                    supplier: po.supplier_snapshot?.name || po.supplier_name || 'Unknown',
+                    taxableValue: po.totals?.taxable_value || po.total_amount || 0,
+                    cgst: po.totals?.cgst || 0,
+                    sgst: po.totals?.sgst || 0,
+                    total: po.totals?.grand_total || po.total_amount || 0
                 }))
             };
 

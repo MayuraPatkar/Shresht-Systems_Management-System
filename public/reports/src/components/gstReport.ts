@@ -215,8 +215,8 @@ class GstReportComponent {
             filteredInvoices.forEach((invoice: any) => {
                 const items = invoice.items_original || invoice.items || [];
                 items.forEach((item: any) => {
-                    const gstRate = parseFloat(item.rate) || 0;
-                    const taxableValue = (item.quantity || 0) * (item.unit_price || 0);
+                    const gstRate = parseFloat(item.gst_rate !== undefined ? item.gst_rate : item.rate) || 0;
+                    const taxableValue = typeof item.taxable_value === 'number' ? item.taxable_value : ((item.quantity || 0) * (item.unit_price || 0));
                     const cgst = (taxableValue * gstRate / 2) / 100;
                     const sgst = (taxableValue * gstRate / 2) / 100;
 
@@ -253,13 +253,13 @@ class GstReportComponent {
                 },
                 taxRateBreakdown,
                 invoices: filteredInvoices.map((inv: any) => ({
-                    invoice_id: inv.invoice_id || inv._id,
+                    invoice_id: inv.invoice_no || inv.invoice_id || inv._id,
                     date: inv.invoice_date || inv.date,
-                    customer: inv.buyer_name || inv.buyer?.name || 'Unknown',
-                    taxableValue: inv.subtotal || inv.sub_total || 0,
-                    cgst: (inv.tax || 0) / 2,
-                    sgst: (inv.tax || 0) / 2,
-                    total: inv.grand_total || inv.grandTotal || 0
+                    customer: inv.customer_snapshot?.name || inv.customer_name || inv.buyer_name || inv.buyer?.name || 'Unknown',
+                    taxableValue: inv.totals_original?.taxable_value || inv.totals_duplicate?.taxable_value || inv.subtotal || inv.sub_total || 0,
+                    cgst: inv.totals_original?.cgst || inv.totals_duplicate?.cgst || (inv.tax || 0) / 2,
+                    sgst: inv.totals_original?.sgst || inv.totals_duplicate?.sgst || (inv.tax || 0) / 2,
+                    total: inv.totals_original?.grand_total || inv.totals_duplicate?.grand_total || inv.grand_total || inv.grandTotal || 0
                 }))
             };
 
