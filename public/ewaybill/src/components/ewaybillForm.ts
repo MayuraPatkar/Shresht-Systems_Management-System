@@ -632,7 +632,7 @@
                 <input type="text" value="${item.hsn_sac || ''}" placeholder="Code" required>
             </div>
             <div class="item-field qty">
-                <input type="number" value="${item.quantity || ''}" placeholder="0" min="1" required>
+                <input type="number" value="${item.quantity || ''}" placeholder="0" min="0.000001" step="any" required>
             </div>
             <div class="item-field price">
                 <input type="number" value="${item.unit_price || ''}" placeholder="0.00" step="0.01" required>
@@ -663,7 +663,7 @@
                 <ul class="suggestions"></ul>
             </td>
             <td><input type="text" value="${item.hsn_sac || ''}" placeholder="HSN/SAC" required></td>
-            <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="1" required></td>
+            <td><input type="number" value="${item.quantity || ''}" placeholder="Qty" min="0.000001" step="any" required></td>
             <td><input type="number" value="${item.unit_price || ''}" placeholder="Unit Price" required></td>
             <td><input type="number" value="${item.gst_rate || ''}" placeholder="GST Rate" min="0" step="0.01" required></td>
             <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -684,16 +684,22 @@
             });
         });
 
-        // Integer validation for quantity inputs
+        // Decimal validation for quantity inputs
         const qtyInputs = [card.querySelector('.item-field.qty input') as HTMLInputElement | null, row.querySelector('td:nth-child(4) input') as HTMLInputElement | null];
         qtyInputs.forEach(input => {
             if (input) {
-                input.setAttribute('step', '1');
+                input.setAttribute('step', 'any');
+                input.setAttribute('min', '0.000001');
                 input.addEventListener('keypress', function (event: KeyboardEvent) {
-                    if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                    if (event.key === 'e' || event.key === 'E' || event.key === '-' || event.key === '+') event.preventDefault();
                 });
                 input.addEventListener('input', function () {
-                    this.value = this.value.replace(/[^0-9]/g, '');
+                    let sanitized = this.value.replace(/[^0-9.]/g, '');
+                    const parts = sanitized.split('.');
+                    if (parts.length > 2) {
+                        sanitized = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    if (this.value !== sanitized) this.value = sanitized;
                 });
             }
         });

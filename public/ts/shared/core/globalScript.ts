@@ -564,7 +564,7 @@ function addItem(insertAtIndex) {
     </div>
     
     <div class="item-field qty">
-      <input type="number" placeholder="0" step="any" min="0.000001" required class="qty-input">
+      <input type="text" placeholder="0" inputmode="decimal" pattern="[0-9]*[.]?[0-9]*" required class="qty-input">
     </div>
     
     <div class="item-field price">
@@ -600,7 +600,7 @@ function addItem(insertAtIndex) {
       <ul class="suggestions"></ul>
     </td>
     <td><input type="text" placeholder="HSN/SAC" required></td>
-    <td><input type="number" placeholder="Qty" step="any" min="0.000001" required class="qty-input"></td>
+    <td><input type="text" placeholder="Qty" inputmode="decimal" pattern="[0-9]*[.]?[0-9]*" required class="qty-input"></td>
     <td><input type="number" placeholder="Unit Price" required></td>
     <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>
     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -677,7 +677,7 @@ function addItem(insertAtIndex) {
 
   [...qtyInputs, ...tableQtyInputs].forEach(input => {
     input.addEventListener('keypress', function (event) {
-      if (event.key === 'e' || event.key === '-' || event.key === '+') {
+      if (event.key === 'e' || event.key === 'E' || event.key === '-' || event.key === '+') {
         event.preventDefault();
       }
     });

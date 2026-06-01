@@ -313,7 +313,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
                 <ul class="suggestions" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 9999; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 200px; overflow-y: auto; margin-top: 4px; list-style: none; padding: 0;"></ul>
             </div>
             <input type="text" placeholder="HSN" class="item-hsn" value="${escapeHtml(data.HSN_SAC || '')}">
-            <input type="number" placeholder="Qty" class="item-qty" value="${data.quantity || ''}" min="0">
+            <input type="number" placeholder="Qty" class="item-qty" value="${data.quantity || ''}" min="0.000001" step="any">
             <input type="number" placeholder="Price" class="item-price" value="${data.unit_price || ''}" min="0">
             <input type="number" placeholder="Tax%" class="item-tax" value="${data.rate || ''}" min="0" max="100">
             <button type="button" class="text-red-500 hover:text-red-700 remove-item-btn" title="Remove">
@@ -325,12 +325,17 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
 
         const qtyInput = row.querySelector('.item-qty') as HTMLInputElement;
         if (qtyInput) {
-            qtyInput.setAttribute('step', '1');
+            qtyInput.setAttribute('step', 'any');
             qtyInput.addEventListener('keypress', function (event) {
-                if (event.key === '.' || event.key === 'e' || event.key === '-' || event.key === '+') event.preventDefault();
+                if (event.key === 'e' || event.key === 'E' || event.key === '-' || event.key === '+') event.preventDefault();
             });
             qtyInput.addEventListener('input', function () {
-                qtyInput.value = qtyInput.value.replace(/[^0-9]/g, '');
+                let sanitized = qtyInput.value.replace(/[^0-9.]/g, '');
+                const parts = sanitized.split('.');
+                if (parts.length > 2) {
+                    sanitized = parts[0] + '.' + parts.slice(1).join('');
+                }
+                if (qtyInput.value !== sanitized) qtyInput.value = sanitized;
                 updateLiveTotals();
             });
         }

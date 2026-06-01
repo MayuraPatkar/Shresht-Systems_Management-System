@@ -583,78 +583,49 @@
 
         if (!cardQtyInput || !tableQtyInput) return;
 
-        function applyConstraints(unit: string) {
-            const isPc = unit === 'pc';
+        function applyConstraints() {
             [cardQtyInput, tableQtyInput].forEach(input => {
                 if (!input) return;
-                if (isPc) {
-                    input.setAttribute('step', '1');
-                    input.setAttribute('min', '1');
-                    input.setAttribute('data-integer-only', 'true');
-                } else {
-                    input.setAttribute('step', '0.01');
-                    input.setAttribute('min', '0.01');
-                    input.removeAttribute('data-integer-only');
-                }
+                input.setAttribute('step', 'any');
+                input.setAttribute('min', '0.000001');
             });
         }
 
-        function handleUnitChange(unitValue: string) {
-            applyConstraints(unitValue);
-            if (unitValue === 'pc') {
-                [cardQtyInput, tableQtyInput].forEach(input => {
-                    if (input && input.value !== '') {
-                        const rounded = Math.round(parseFloat(input.value)) || 1;
-                        input.value = String(rounded < 1 ? 1 : rounded);
-                    }
-                });
-            }
+        function handleUnitChange() {
+            applyConstraints();
         }
 
         if (cardUnitSelect) {
-            cardUnitSelect.addEventListener('change', () => handleUnitChange(cardUnitSelect.value));
+            cardUnitSelect.addEventListener('change', () => handleUnitChange());
         }
         if (tableUnitSelect) {
-            tableUnitSelect.addEventListener('change', () => handleUnitChange(tableUnitSelect.value));
+            tableUnitSelect.addEventListener('change', () => handleUnitChange());
         }
 
-        // Keypress and input validators that adapt dynamically based on unit attribute
+        // Keypress and input validators for decimal quantities
         [cardQtyInput, tableQtyInput].forEach(input => {
             if (!input) return;
 
             input.addEventListener('keypress', (event: KeyboardEvent) => {
-                const isIntegerOnly = input.getAttribute('data-integer-only') === 'true';
-                if (isIntegerOnly) {
-                    if (event.key.length === 1 && (event.key < '0' || event.key > '9')) {
-                        event.preventDefault();
-                    }
-                } else {
-                    if (event.key === '-' || event.key === '+' || event.key === 'e' || event.key === 'E') {
-                        event.preventDefault();
-                    }
+                if (event.key === '-' || event.key === '+' || event.key === 'e' || event.key === 'E') {
+                    event.preventDefault();
                 }
             });
 
             input.addEventListener('input', () => {
-                const isIntegerOnly = input.getAttribute('data-integer-only') === 'true';
-                if (isIntegerOnly) {
-                    input.value = input.value.replace(/[^0-9]/g, '');
-                } else {
-                    let sanitized = input.value.replace(/[^0-9.]/g, '');
-                    const parts = sanitized.split('.');
-                    if (parts.length > 2) {
-                        sanitized = parts[0] + '.' + parts.slice(1).join('');
-                    }
-                    if (input.value !== sanitized) {
-                        input.value = sanitized;
-                    }
+                let sanitized = input.value.replace(/[^0-9.]/g, '');
+                const parts = sanitized.split('.');
+                if (parts.length > 2) {
+                    sanitized = parts[0] + '.' + parts.slice(1).join('');
+                }
+                if (input.value !== sanitized) {
+                    input.value = sanitized;
                 }
             });
         });
 
         // Initial run
-        const initialUnit = cardUnitSelect?.value || tableUnitSelect?.value || 'pc';
-        applyConstraints(initialUnit);
+        applyConstraints();
     }
 
     async function openPurchaseOrder(id: string) {
@@ -749,7 +720,7 @@
                                 <input type="text" placeholder="HSN/SAC" value="${hsnSac}" required>
                             </div>
                             <div class="item-field qty">
-                                <input type="number" placeholder="Qty" value="${quantity}" required>
+                                <input type="number" placeholder="Qty" value="${quantity}" min="0.000001" step="any" required>
                             </div>
                             <div class="item-field unit">
                                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
@@ -808,7 +779,7 @@
                                 </div>
                             </td>
                             <td><input type="text" placeholder="HSN/SAC" value="${hsnSac}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-                            <td><input type="number" placeholder="Qty" value="${quantity}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                            <td><input type="number" placeholder="Qty" value="${quantity}" min="0.000001" step="any" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
                             <td>
                                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
                                     <option value="" disabled ${!unit ? 'selected' : ''}>Select Unit</option>
@@ -1146,7 +1117,7 @@
                     <input type="text" placeholder="HSN/SAC" required>
                 </div>
                 <div class="item-field qty">
-                    <input type="number" placeholder="Qty" required>
+                    <input type="number" placeholder="Qty" min="0.000001" step="any" required>
                 </div>
                 <div class="item-field unit">
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
@@ -1207,7 +1178,7 @@
                 </div>
             </td>
             <td><input type="text" placeholder="HSN/SAC" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
-            <td><input type="number" placeholder="Qty" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+            <td><input type="number" placeholder="Qty" min="0.000001" step="any" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
             <td>
                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
                     <option value="" disabled selected>Select Unit</option>
@@ -1267,7 +1238,7 @@
             }
         });
 
-        // Set up dynamic decimal and integer validation for quantity inputs
+        // Set up decimal validation for quantity inputs
         setupPOQuantityDecimalSupport(card, row);
 
         // Add remove button event listeners

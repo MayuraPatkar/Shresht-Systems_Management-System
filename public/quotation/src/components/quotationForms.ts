@@ -506,7 +506,7 @@ async function openQuotation(idToOpen) {
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" placeholder="Item Description" value="${item.description || ''}" required></td>
                 <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
-                <td><input type="number" value="${item.quantity || ''}" min="1" required></td>
+                <td><input type="number" value="${item.quantity || ''}" min="0.000001" step="any" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" required></td>
                 <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -533,7 +533,7 @@ async function openQuotation(idToOpen) {
                         <input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" min="0.01" step="0.01" value="${item.quantity || ''}" required>
+                        <input type="number" min="0.000001" step="any" value="${item.quantity || ''}" required>
                     </div>
                     <div class="item-field price">
                         <input type="number" step="0.01" value="${item.unit_price || ''}" required>
@@ -888,7 +888,7 @@ async function cloneQuotation(sourceQuotationId) {
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" placeholder="Item Description" value="${item.description || ''}" required></td>
                 <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
-                <td><input type="number" value="${item.quantity || ''}" min="0.01" step="0.01" required></td>
+                <td><input type="number" value="${item.quantity || ''}" min="0.000001" step="any" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" required></td>
                 <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || item.gstRate || item.GST || ''}" min="0.01" step="0.01" required></td>
                 <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
@@ -914,7 +914,7 @@ async function cloneQuotation(sourceQuotationId) {
                         <input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
                     </div>
                     <div class="item-field qty">
-                        <input type="number" min="0.01" step="0.01" value="${item.quantity || ''}" required>
+                        <input type="number" min="0.000001" step="any" value="${item.quantity || ''}" required>
                     </div>
                     <div class="item-field price">
                         <input type="number" step="0.01" value="${item.unit_price || ''}" required>
