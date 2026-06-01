@@ -258,28 +258,20 @@ main {
     gap: 1rem;
 }
 
-/* First row: # + Description + HSN + Qty + Unit Price + Rate + Actions */
+/* Table headers styling for items list */
+#new .items-header {
+    display: grid !important;
+    grid-template-columns: 40px 2.5fr 1.1fr 0.7fr 0.9fr 0.9fr 0.7fr 80px !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
+}
+
+/* First row: # + Description + HSN + Qty + Unit + Unit Price + GST % + Actions */
 #new .item-card .item-row-1 {
     display: grid;
-    grid-template-columns: 40px 2.5fr 1fr 0.7fr 0.9fr 0.7fr 80px;
+    grid-template-columns: 40px 2.5fr 1.1fr 0.7fr 0.9fr 0.9fr 0.7fr 80px;
     gap: 0.75rem;
     align-items: center;
-}
-
-/* Second row: Company + Type + Category + Unit (with spacers to align) */
-#new .item-card .item-row-2 {
-    display: grid;
-    grid-template-columns: 40px 1fr 1fr 1fr 1fr 80px;
-    gap: 0.75rem;
-    align-items: center;
-    padding-top: 0.25rem;
-    border-top: 1px dashed #f3f4f6;
-    margin-top: 0.25rem;
-}
-
-/* Spacer to align with item number and action buttons */
-#new .item-card .row-spacer {
-    width: 80px;
 }
 
 /* Item number badge */
@@ -353,20 +345,12 @@ main {
     overflow: visible;
 }
 
-/* Responsive adjustments for two-row layout */
+/* Responsive adjustments for layout */
 @media (max-width: 1200px) {
+    #new .items-header,
     #new .item-card .item-row-1 {
-        grid-template-columns: 36px 2fr 0.9fr 0.6fr 0.8fr 0.6fr 72px;
+        grid-template-columns: 36px 2fr 1fr 0.6fr 0.8fr 0.8fr 0.6fr 72px;
         gap: 0.5rem;
-    }
-
-    #new .item-card .item-row-2 {
-        grid-template-columns: 36px 1fr 1fr 1fr 1fr 72px;
-        gap: 0.5rem;
-    }
-    
-    #new .item-card .row-spacer {
-        width: 72px;
     }
 
     #new .item-card .item-field input {
@@ -376,10 +360,12 @@ main {
 }
 
 @media (max-width: 900px) {
+    #new .items-header {
+        display: none !important;
+    }
 
     /* Stack rows vertically on smaller screens */
-    #new .item-card .item-row-1,
-    #new .item-card .item-row-2 {
+    #new .item-card .item-row-1 {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
@@ -397,10 +383,6 @@ main {
 
     #new .item-card .item-field.description {
         flex: 1 1 100%;
-    }
-
-    #new .item-card .row-spacer {
-        display: none;
     }
 }
 

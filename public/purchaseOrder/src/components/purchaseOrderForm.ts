@@ -751,6 +751,15 @@
                             <div class="item-field qty">
                                 <input type="number" placeholder="Qty" value="${quantity}" required>
                             </div>
+                            <div class="item-field unit">
+                                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
+                                    <option value="" disabled ${!unit ? 'selected' : ''}>Select Unit</option>
+                                    <option value="pc" ${unit === 'pc' ? 'selected' : ''}>Piece (pc)</option>
+                                    <option value="kg" ${unit === 'kg' ? 'selected' : ''}>Kilogram (kg)</option>
+                                    <option value="L" ${unit === 'L' ? 'selected' : ''}>Litre (L)</option>
+                                    <option value="m" ${unit === 'm' ? 'selected' : ''}>Metre (m)</option>
+                                </select>
+                            </div>
                             <div class="item-field rate">
                                 <input type="number" placeholder="Unit Price" step="0.01" value="${unitPrice}" required>
                             </div>
@@ -762,19 +771,6 @@
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
-                        </div>
-                        <div class="item-row-2">
-                            <div class="row-spacer"></div>
-                            <div class="item-field">
-                                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
-                                    <option value="" disabled ${!unit ? 'selected' : ''}>Select Unit</option>
-                                    <option value="pc" ${unit === 'pc' ? 'selected' : ''}>Piece (pc)</option>
-                                    <option value="kg" ${unit === 'kg' ? 'selected' : ''}>Kilogram (kg)</option>
-                                    <option value="L" ${unit === 'L' ? 'selected' : ''}>Litre (L)</option>
-                                    <option value="m" ${unit === 'm' ? 'selected' : ''}>Metre (m)</option>
-                                </select>
-                            </div>
-                            <div class="row-spacer"></div>
                         </div>
                     `;
                     itemsContainer.appendChild(card);
@@ -843,14 +839,14 @@
 
                         // Sync card inputs with table inputs
                         const row1Inputs = card.querySelectorAll('.item-row-1 input');
-                        const row2Selects = card.querySelectorAll('.item-row-2 select');
+                        const row1Selects = card.querySelectorAll('.item-row-1 select');
                         const tableInputs = row.querySelectorAll('input');
                         const tableSelects = row.querySelectorAll('select');
 
                         const inputMapping = [
                             { card: row1Inputs[0], table: tableInputs[0] }, // description
                             { card: row1Inputs[1], table: tableInputs[1] }, // hsn
-                            { card: row2Selects[0], table: tableSelects[0] }, // unit
+                            { card: row1Selects[0], table: tableSelects[0] }, // unit
                             { card: row1Inputs[2], table: tableInputs[2] }, // qty
                             { card: row1Inputs[3], table: tableInputs[3] }, // unit_price
                             { card: row1Inputs[4], table: tableInputs[4] }, // rate
@@ -1152,6 +1148,15 @@
                 <div class="item-field qty">
                     <input type="number" placeholder="Qty" required>
                 </div>
+                <div class="item-field unit">
+                    <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
+                        <option value="" disabled selected>Select Unit</option>
+                        <option value="pc">Piece (pc)</option>
+                        <option value="kg">Kilogram (kg)</option>
+                        <option value="L">Litre (L)</option>
+                        <option value="m">Metre (m)</option>
+                    </select>
+                </div>
                 <div class="item-field rate">
                     <input type="number" placeholder="Unit Price" step="0.01" required>
                 </div>
@@ -1163,19 +1168,6 @@
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
-            </div>
-            <div class="item-row-2">
-                <div class="row-spacer"></div>
-                <div class="item-field">
-                    <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
-                        <option value="" disabled selected>Select Unit</option>
-                        <option value="pc">Piece (pc)</option>
-                        <option value="kg">Kilogram (kg)</option>
-                        <option value="L">Litre (L)</option>
-                        <option value="m">Metre (m)</option>
-                    </select>
-                </div>
-                <div class="row-spacer"></div>
             </div>
         `;
 
@@ -1251,14 +1243,14 @@
 
         // Sync card inputs with table inputs
         const row1Inputs = card.querySelectorAll('.item-row-1 input');
-        const row2Selects = card.querySelectorAll('.item-row-2 select');
+        const row1Selects = card.querySelectorAll('.item-row-1 select');
         const tableInputs = row.querySelectorAll('input');
         const tableSelects = row.querySelectorAll('select');
 
         const inputMapping = [
             { card: row1Inputs[0], table: tableInputs[0] }, // description
             { card: row1Inputs[1], table: tableInputs[1] }, // hsn
-            { card: row2Selects[0], table: tableSelects[0] }, // unit
+            { card: row1Selects[0], table: tableSelects[0] }, // unit
             { card: row1Inputs[2], table: tableInputs[2] }, // qty
             { card: row1Inputs[3], table: tableInputs[3] }, // unit_price
             { card: row1Inputs[4], table: tableInputs[4] }, // rate
@@ -1565,26 +1557,26 @@
                 const cardPrice = card?.querySelector('input[placeholder="Unit Price"]') as HTMLInputElement | undefined;
 
                 if (!desc || !desc.value.trim()) {
-                    if (desc) showFieldError(desc, `Description is required.`);
-                    if (cardDesc) showFieldError(cardDesc, `Description is required.`);
+                    if (desc) showFieldError(desc, `required.`);
+                    if (cardDesc) showFieldError(cardDesc, `required.`);
                     isValid = false;
                     if (!firstInvalidEl) firstInvalidEl = desc || cardDesc || null;
                 }
                 if (!qty || Number(qty.value) <= 0) {
-                    if (qty) showFieldError(qty, `Quantity must be greater than 0.`);
-                    if (cardQty) showFieldError(cardQty, `Quantity must be greater than 0.`);
+                    if (qty) showFieldError(qty, `Required`);
+                    if (cardQty) showFieldError(cardQty, `Required`);
                     isValid = false;
                     if (!firstInvalidEl) firstInvalidEl = qty || cardQty || null;
                 }
                 if (!unit || !unit.value) {
-                    if (unit) showFieldError(unit, `Unit is required.`);
-                    if (cardUnit) showFieldError(cardUnit, `Unit is required.`);
+                    if (unit) showFieldError(unit, `required.`);
+                    if (cardUnit) showFieldError(cardUnit, `required.`);
                     isValid = false;
                     if (!firstInvalidEl) firstInvalidEl = unit || cardUnit || null;
                 }
                 if (!price || Number(price.value) <= 0) {
-                    if (price) showFieldError(price, `Unit Price must be greater than 0.`);
-                    if (cardPrice) showFieldError(cardPrice, `Unit Price must be greater than 0.`);
+                    if (price) showFieldError(price, `Required`);
+                    if (cardPrice) showFieldError(cardPrice, `Required`);
                     isValid = false;
                     if (!firstInvalidEl) firstInvalidEl = price || cardPrice || null;
                 }
@@ -1675,6 +1667,14 @@
 
                 const currentStep = (window as any).currentStep;
                 const totalSteps = (window as any).totalSteps;
+
+                if (currentStep === totalSteps) {
+                    const saveBtn = document.getElementById('save-btn');
+                    if (saveBtn) {
+                        saveBtn.click();
+                    }
+                    return;
+                }
 
                 if (currentStep < totalSteps) {
                     if (typeof (window as any).changeStep === 'function') {

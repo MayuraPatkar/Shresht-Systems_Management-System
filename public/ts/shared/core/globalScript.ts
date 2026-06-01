@@ -486,7 +486,7 @@ function updateNavigation() {
     if (isInvoice) {
       viewPreviewBtn.style.display = 'none';
     } else if (isQuotation) {
-      if (currentStep === totalSteps) {
+      if (currentStep === totalSteps || sessionStorage.getItem('currentTab-status') === 'new') {
         viewPreviewBtn.style.display = 'none';
       } else {
         const formEl = document.getElementById('new');

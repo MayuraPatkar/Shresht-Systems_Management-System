@@ -422,7 +422,6 @@ function showNewQuotationForm() {
         homeId: 'home',
         formId: 'new',
         newButtonId: 'new-quotation',
-        previewButtonId: 'view-preview',
         viewId: 'view',
         stepIndicatorId: 'step-indicator',
         currentStep: typeof currentStep !== 'undefined' ? currentStep : undefined,
