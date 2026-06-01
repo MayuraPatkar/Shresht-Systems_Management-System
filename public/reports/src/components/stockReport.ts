@@ -132,7 +132,7 @@ class StockReportComponent {
             const data = await reportsApi.getStockMovements(params);
 
             if (data.success && data.movements) {
-                this.stockReportData = data.movements;
+                this.stockReportData = this.normalizeStockMovements(data.movements);
 
                 if (this.stockReportData.length === 0) {
                     reportsUtils.showNotification('No stock movements found for the selected criteria.', 'info');
@@ -148,15 +148,16 @@ class StockReportComponent {
                     const inQty = data.summary.in ? (data.summary.in.total_quantity || 0) : 0;
                     const outQty = data.summary.out ? (data.summary.out.total_quantity || 0) : 0;
                     const adjQty = data.summary.adjustment ? (data.summary.adjustment.total_quantity || 0) : 0;
+                    const signedOutQty = outQty <= 0 ? outQty : -outQty;
 
                     summary.total_in = inQty;
                     summary.total_out = Math.abs(outQty);
                     summary.total_adjustments = adjQty;
-                    summary.net_change = inQty + outQty + adjQty;
+                    summary.net_change = inQty + signedOutQty + adjQty;
                 }
 
                 this.stockReportSummary = summary;
-                this.renderStockReport(data.movements, summary);
+                this.renderStockReport(this.stockReportData, summary);
             } else {
                 await this.generateStockReportFromStock(startDate, endDate, movementType, itemFilter);
             }
@@ -443,23 +444,80 @@ class StockReportComponent {
             }
         }
 
-        this.stockReportData = report.data.movements || [];
+        this.stockReportData = this.normalizeStockMovements(report.data.movements || []);
 
         let summary = report.data.summary;
 
         if (summary && summary.in && summary.out) {
+            const inQty = summary.in.total_quantity || 0;
+            const outQty = summary.out.total_quantity || 0;
+            const adjQty = summary.adjustment ? summary.adjustment.total_quantity : 0;
+            const signedOutQty = outQty <= 0 ? outQty : -outQty;
             const renderSummary: StockReportSummary = {
-                total_in: summary.in.total_quantity || 0,
-                total_out: summary.out.total_quantity || 0,
-                total_adjustments: summary.adjustment ? summary.adjustment.total_quantity : 0,
-                net_change: 0
+                total_in: inQty,
+                total_out: Math.abs(outQty),
+                total_adjustments: adjQty,
+                net_change: inQty + signedOutQty + adjQty
             };
-            renderSummary.net_change = renderSummary.total_in - renderSummary.total_out + renderSummary.total_adjustments;
             summary = renderSummary;
         }
 
         this.stockReportSummary = summary;
         this.renderStockReport(this.stockReportData, summary);
+    }
+
+    private normalizeStockMovements(movements: any[]): StockMovement[] {
+        return Array.isArray(movements) ? movements.map(movement => this.normalizeStockMovement(movement)) : [];
+    }
+
+    private normalizeStockMovement(movement: any): StockMovement {
+        const movementType = this.getMovementType(movement);
+        const quantityChange = this.getQuantityChange(movement, movementType);
+        const reference = movement.reference || {};
+        const referenceId = reference.number || reference.id || movement.reference_id;
+
+        return {
+            timestamp: movement.timestamp || movement.createdAt || movement.updatedAt || new Date().toISOString(),
+            item_name: movement.item_name || 'Unknown Item',
+            movement_type: movementType,
+            quantity_change: quantityChange,
+            reference_type: reference.type || movement.reference_type,
+            reference_id: referenceId ? String(referenceId) : undefined,
+            notes: movement.notes || movement.remarks || ''
+        };
+    }
+
+    private getMovementType(movement: any): 'in' | 'out' | 'adjustment' {
+        const legacyType = String(movement.movement_type || '').toLowerCase();
+        if (legacyType === 'in' || legacyType === 'out' || legacyType === 'adjustment') {
+            return legacyType;
+        }
+
+        const direction = String(movement.direction || '').toUpperCase();
+        if (direction === 'IN') return 'in';
+        if (direction === 'OUT') return 'out';
+
+        const referenceType = String(movement.reference?.type || '').toLowerCase();
+        if (referenceType === 'adjustment') return 'adjustment';
+
+        const quantityChange = Number(movement.quantity_change);
+        if (!Number.isNaN(quantityChange)) {
+            if (quantityChange < 0) return 'out';
+            if (quantityChange > 0) return 'in';
+        }
+
+        return 'adjustment';
+    }
+
+    private getQuantityChange(movement: any, movementType: 'in' | 'out' | 'adjustment'): number {
+        const legacyQuantityChange = Number(movement.quantity_change);
+        const baseQuantity = Number.isNaN(legacyQuantityChange)
+            ? Number(movement.quantity || 0)
+            : legacyQuantityChange;
+
+        if (movementType === 'out') return -Math.abs(baseQuantity);
+        if (movementType === 'in') return Math.abs(baseQuantity);
+        return baseQuantity;
     }
 
     async loadStockItemSuggestions(): Promise<void> {

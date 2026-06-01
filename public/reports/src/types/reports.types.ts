@@ -20,6 +20,16 @@ interface StockMovement {
     reference_type?: string;
     reference_id?: string;
     notes?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    direction?: 'IN' | 'OUT';
+    quantity?: number;
+    reference?: {
+        type?: string;
+        id?: string;
+        number?: string;
+    };
+    remarks?: string;
 }
 
 interface StockReportSummary {

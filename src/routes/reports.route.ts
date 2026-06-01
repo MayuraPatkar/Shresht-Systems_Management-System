@@ -5,6 +5,84 @@ import logger from '../utils/logger';
 
 const router: Router = Router();
 
+type StockReportMovementType = 'in' | 'out' | 'adjustment';
+
+interface StockReportMovement {
+    _id?: unknown;
+    item_id?: unknown;
+    timestamp: Date | string;
+    item_name: string;
+    movement_type: StockReportMovementType;
+    quantity_change: number;
+    total_value: number;
+    reference_type?: string;
+    reference_id?: string;
+    notes?: string;
+    stock_before?: number;
+    stock_after?: number;
+}
+
+function getStockMovementType(movement: any): StockReportMovementType {
+    const legacyType = String(movement.movement_type || '').toLowerCase();
+    if (legacyType === 'in' || legacyType === 'out' || legacyType === 'adjustment') {
+        return legacyType;
+    }
+
+    const direction = String(movement.direction || '').toUpperCase();
+    if (direction === 'IN') return 'in';
+    if (direction === 'OUT') return 'out';
+
+    const referenceType = String(movement.reference?.type || '').toLowerCase();
+    if (referenceType === 'adjustment') return 'adjustment';
+
+    const quantityChange = Number(movement.quantity_change);
+    if (!Number.isNaN(quantityChange)) {
+        if (quantityChange < 0) return 'out';
+        if (quantityChange > 0) return 'in';
+    }
+
+    return 'adjustment';
+}
+
+function getStockMovementQuantityChange(movement: any, type: StockReportMovementType): number {
+    const legacyQuantityChange = Number(movement.quantity_change);
+    const baseQuantity = Number.isNaN(legacyQuantityChange)
+        ? Number(movement.quantity || 0)
+        : legacyQuantityChange;
+
+    if (type === 'out') return -Math.abs(baseQuantity);
+    if (type === 'in') return Math.abs(baseQuantity);
+    return baseQuantity;
+}
+
+function normalizeStockMovement(movement: any): StockReportMovement {
+    const type = getStockMovementType(movement);
+    const reference = movement.reference || {};
+    const referenceId = reference.number || reference.id || movement.reference_id;
+
+    return {
+        _id: movement._id,
+        item_id: movement.item_id,
+        timestamp: movement.timestamp || movement.createdAt || movement.updatedAt || new Date(),
+        item_name: movement.item_name || 'Unknown Item',
+        movement_type: type,
+        quantity_change: getStockMovementQuantityChange(movement, type),
+        total_value: Number(movement.total_value || 0),
+        reference_type: reference.type || movement.reference_type,
+        reference_id: referenceId ? String(referenceId) : undefined,
+        notes: movement.notes || movement.remarks || '',
+        stock_before: movement.stock_before,
+        stock_after: movement.stock_after
+    };
+}
+
+function formatReportDate(value?: string): string | null {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 // ============================================================================
 // STOCK REPORT ENDPOINTS
 // ============================================================================
@@ -14,14 +92,23 @@ router.get('/stock', async (req: Request, res: Response) => {
         const { start_date, end_date, item_name, item_id, movement_type } = req.query as Record<string, string>;
 
         const query: any = {};
+        const queryParts: any[] = [];
+
         if (start_date || end_date) {
-            query.timestamp = {};
-            if (start_date) query.timestamp.$gte = new Date(start_date);
+            const dateRange: any = {};
+            if (start_date) dateRange.$gte = new Date(start_date);
             if (end_date) {
                 const endDate = new Date(end_date);
                 endDate.setHours(23, 59, 59, 999);
-                query.timestamp.$lte = endDate;
+                dateRange.$lte = endDate;
             }
+
+            queryParts.push({
+                $or: [
+                    { createdAt: dateRange },
+                    { timestamp: dateRange }
+                ]
+            });
         }
 
         if (item_id) {
@@ -33,11 +120,30 @@ router.get('/stock', async (req: Request, res: Response) => {
         }
 
         if (movement_type && movement_type !== 'all') {
-            query.movement_type = movement_type;
+            const direction = movement_type === 'in' ? 'IN' : movement_type === 'out' ? 'OUT' : null;
+            if (direction) {
+                queryParts.push({
+                    $or: [
+                        { direction },
+                        { movement_type }
+                    ]
+                });
+            } else if (movement_type === 'adjustment') {
+                queryParts.push({
+                    $or: [
+                        { 'reference.type': 'Adjustment' },
+                        { movement_type }
+                    ]
+                });
+            }
         }
 
-        const movements = await StockMovementModel.find(query).sort({ timestamp: -1 }).limit(1000);
-        const allMovements = movements;
+        if (queryParts.length > 0) {
+            query.$and = queryParts;
+        }
+
+        const movements = await StockMovementModel.find(query).sort({ createdAt: -1, timestamp: -1 }).limit(1000).lean();
+        const allMovements = movements.map(normalizeStockMovement);
 
         const summary: any = {
             in: { total_quantity: 0, total_value: 0, count: 0 },
@@ -54,23 +160,26 @@ router.get('/stock', async (req: Request, res: Response) => {
             }
         });
 
-        const currentStock = await ItemModel.find({}).select('item_name quantity unit_price HSN_SAC').sort({ item_name: 1 });
+        const currentStock = await ItemModel.find({}).select('item_name stock_quantity quantity purchase_price unit_price hsn_sac HSN_SAC').sort({ item_name: 1 }).lean();
 
         if (allMovements.length > 0) {
             try {
                 let reportNameParts = ['Stock Report'];
-                const startFormatted = new Date(start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                const endFormatted = new Date(end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                reportNameParts.push(`${startFormatted} to ${endFormatted}`);
+                const startFormatted = formatReportDate(start_date);
+                const endFormatted = formatReportDate(end_date);
+                if (startFormatted && endFormatted) reportNameParts.push(`${startFormatted} to ${endFormatted}`);
+                else if (startFormatted) reportNameParts.push(`From ${startFormatted}`);
+                else if (endFormatted) reportNameParts.push(`Until ${endFormatted}`);
                 if (movement_type && movement_type !== 'all') reportNameParts.push(`Type: ${movement_type.charAt(0).toUpperCase() + movement_type.slice(1)}`);
-                if (item_name) reportNameParts.push(`Item: ${item_name}`);
+                const itemLabel = item_name || (item_id ? allMovements[0]?.item_name : '');
+                if (itemLabel) reportNameParts.push(`Item: ${itemLabel}`);
 
                 const reportData: any = {
                     report_type: 'stock', report_name: reportNameParts.join(' - '),
                     parameters: {
                         start_date: start_date ? new Date(start_date) : undefined,
                         end_date: end_date ? new Date(end_date) : undefined,
-                        filters: { item_name: item_name || null, movement_type: movement_type || null }
+                        filters: { item_name: item_name || null, item_id: item_id || null, movement_type: movement_type || null }
                     },
                     data: { movements: allMovements, summary: { in: summary.in, out: summary.out, adjustment: summary.adjustment }, currentStock },
                     summary: { total_records: allMovements.length, total_value: summary.in.total_value + summary.out.total_value },
@@ -81,6 +190,7 @@ router.get('/stock', async (req: Request, res: Response) => {
                     report_type: 'stock', 'parameters.filters.item_name': item_name || null,
                     'parameters.filters.movement_type': movement_type || null
                 };
+                if (item_id) reportQuery['parameters.filters.item_id'] = item_id;
                 if (start_date) reportQuery['parameters.start_date'] = new Date(start_date);
                 else reportQuery['parameters.start_date'] = { $exists: false };
                 if (end_date) reportQuery['parameters.end_date'] = new Date(end_date);
@@ -104,15 +214,58 @@ router.get('/stock/summary', async (req: Request, res: Response) => {
         const { start_date, end_date } = req.query as Record<string, string>;
         const matchStage: any = {};
         if (start_date || end_date) {
-            matchStage.timestamp = {};
-            if (start_date) matchStage.timestamp.$gte = new Date(start_date);
-            if (end_date) { const endDate = new Date(end_date); endDate.setHours(23, 59, 59, 999); matchStage.timestamp.$lte = endDate; }
+            const dateRange: any = {};
+            if (start_date) dateRange.$gte = new Date(start_date);
+            if (end_date) { const endDate = new Date(end_date); endDate.setHours(23, 59, 59, 999); dateRange.$lte = endDate; }
+            matchStage.$or = [{ createdAt: dateRange }, { timestamp: dateRange }];
         }
 
         const summary = await StockMovementModel.aggregate([
             { $match: matchStage },
-            { $group: { _id: '$item_id', item_name: { $last: '$item_name' }, total_in: { $sum: { $cond: [{ $eq: ['$movement_type', 'in'] }, '$quantity_change', 0] } }, total_out: { $sum: { $cond: [{ $eq: ['$movement_type', 'out'] }, { $abs: '$quantity_change' }, 0] } }, total_value_in: { $sum: { $cond: [{ $eq: ['$movement_type', 'in'] }, '$total_value', 0] } }, total_value_out: { $sum: { $cond: [{ $eq: ['$movement_type', 'out'] }, '$total_value', 0] } }, transaction_count: { $sum: 1 } } },
-            { $lookup: { from: 'stocks', localField: '_id', foreignField: '_id', as: 'stockItem' } },
+            {
+                $group: {
+                    _id: '$item_id',
+                    item_name: { $last: '$item_name' },
+                    total_in: {
+                        $sum: {
+                            $cond: [
+                                { $or: [{ $eq: ['$direction', 'IN'] }, { $eq: ['$movement_type', 'in'] }] },
+                                { $abs: { $ifNull: ['$quantity', '$quantity_change'] } },
+                                0
+                            ]
+                        }
+                    },
+                    total_out: {
+                        $sum: {
+                            $cond: [
+                                { $or: [{ $eq: ['$direction', 'OUT'] }, { $eq: ['$movement_type', 'out'] }] },
+                                { $abs: { $ifNull: ['$quantity', '$quantity_change'] } },
+                                0
+                            ]
+                        }
+                    },
+                    total_value_in: {
+                        $sum: {
+                            $cond: [
+                                { $or: [{ $eq: ['$direction', 'IN'] }, { $eq: ['$movement_type', 'in'] }] },
+                                { $ifNull: ['$total_value', 0] },
+                                0
+                            ]
+                        }
+                    },
+                    total_value_out: {
+                        $sum: {
+                            $cond: [
+                                { $or: [{ $eq: ['$direction', 'OUT'] }, { $eq: ['$movement_type', 'out'] }] },
+                                { $ifNull: ['$total_value', 0] },
+                                0
+                            ]
+                        }
+                    },
+                    transaction_count: { $sum: 1 }
+                }
+            },
+            { $lookup: { from: 'items', localField: '_id', foreignField: '_id', as: 'stockItem' } },
             { $addFields: { item_name: { $ifNull: [{ $arrayElemAt: ['$stockItem.item_name', 0] }, '$item_name'] } } },
             { $project: { stockItem: 0 } },
             { $sort: { item_name: 1 } }
