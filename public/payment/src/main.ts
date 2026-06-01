@@ -875,6 +875,25 @@ interface Window {
         }
     }
 
+    function parseLocalDate(dateStr: string | undefined): Date {
+        if (!dateStr) return new Date();
+        const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) {
+            return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        }
+        return new Date(dateStr);
+    }
+
+    function setDateBtnActive(btn: HTMLElement, isActive: boolean): void {
+        if (isActive) {
+            btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+            btn.classList.add('active', 'bg-blue-50', 'border-blue-200', 'text-blue-600', 'font-semibold');
+        } else {
+            btn.classList.remove('active', 'bg-blue-50', 'border-blue-200', 'text-blue-600', 'font-semibold');
+            btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+        }
+    }
+
     function getRangeDates(range: string, start?: string, end?: string): { min: Date | null, max: Date | null } {
         const now = new Date();
         let min: Date | null = null;
@@ -912,8 +931,8 @@ interface Window {
                 max = endOfDay(new Date(now.getFullYear(), 11, 31));
                 break;
             case 'custom':
-                if (start) min = startOfDay(new Date(start));
-                if (end) max = endOfDay(new Date(end));
+                if (start) min = startOfDay(parseLocalDate(start));
+                if (end) max = endOfDay(parseLocalDate(end));
                 break;
         }
         return { min, max };
@@ -957,7 +976,7 @@ interface Window {
 
             // Date Range check
             if (dateMin || dateMax) {
-                const pDate = new Date(p.payment_date);
+                const pDate = parseLocalDate(p.payment_date);
                 if (dateMin && pDate < dateMin) return false;
                 if (dateMax && pDate > dateMax) return false;
             }
@@ -1495,15 +1514,15 @@ interface Window {
         if (advancedFilters.amountMin !== null) addChip(`Min: ₹${advancedFilters.amountMin}`, 'amountMin');
         if (advancedFilters.amountMax !== null) addChip(`Max: ₹${advancedFilters.amountMax}`, 'amountMax');
         
-        // Also add date range if not Month
-        if (advancedFilters.dateRange !== 'month') {
+        // Also add date range if not All
+        if (advancedFilters.dateRange !== 'all') {
             let label = 'Period: ';
             switch (advancedFilters.dateRange) {
                 case 'today': label += 'Today'; break;
                 case 'week': label += 'This Week'; break;
+                case 'month': label += 'This Month'; break;
                 case 'quarter': label += 'This Quarter'; break;
                 case 'year': label += 'This Year'; break;
-                case 'all': label += 'All Time'; break;
                 case 'custom': label += `${advancedFilters.startDate} to ${advancedFilters.endDate}`; break;
             }
             hasActive = true;
@@ -1511,15 +1530,10 @@ interface Window {
             chip.className = 'inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-semibold border border-blue-150';
             chip.innerHTML = `${label} <button class="hover:text-blue-900 ml-1 focus:outline-none" style="cursor: pointer;"><i class="fas fa-times"></i></button>`;
             chip.querySelector('button')?.addEventListener('click', () => {
-                advancedFilters.dateRange = 'month';
-                // Reset active class in period buttons
+                advancedFilters.dateRange = 'all';
+                // Reset active class in period buttons (no buttons active)
                 document.querySelectorAll('.date-filter-btn').forEach(btn => {
-                    const r = (btn as HTMLElement).dataset.range;
-                    btn.classList.toggle('active', r === 'month');
-                    btn.classList.toggle('bg-blue-50', r === 'month');
-                    btn.classList.toggle('border-blue-200', r === 'month');
-                    btn.classList.toggle('text-blue-600', r === 'month');
-                    btn.classList.toggle('font-semibold', r === 'month');
+                    setDateBtnActive(btn as HTMLElement, false);
                 });
                 document.getElementById('custom-date-inputs')?.classList.add('hidden');
                 applyFilter();
@@ -1554,6 +1568,9 @@ interface Window {
         advancedFilters.referenceType = '';
         advancedFilters.amountMin = null;
         advancedFilters.amountMax = null;
+        advancedFilters.dateRange = 'month';
+        advancedFilters.startDate = '';
+        advancedFilters.endDate = '';
 
         const setVal = (id: string, val: string) => {
             const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
@@ -1566,6 +1583,14 @@ interface Window {
         setVal('reference-filter', '');
         setVal('amount-min-filter', '');
         setVal('amount-max-filter', '');
+        setVal('custom-start-date', '');
+        setVal('custom-end-date', '');
+
+        document.querySelectorAll('.date-filter-btn').forEach(btn => {
+            const r = (btn as HTMLElement).dataset.range;
+            setDateBtnActive(btn as HTMLElement, r === 'month');
+        });
+        document.getElementById('custom-date-inputs')?.classList.add('hidden');
 
         applyFilter();
     }
@@ -1977,7 +2002,7 @@ interface Window {
         applyFilter();
     });
     $cardTransactions?.addEventListener('click', () => {
-        currentFilter = 'Pending';
+        currentFilter = 'all';
         highlightActiveCard('card-transactions');
         applyFilter();
     });
@@ -1985,20 +2010,29 @@ interface Window {
     // Date Range Filters Toolbar
     document.querySelectorAll('.date-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+            const isAlreadyActive = btn.classList.contains('active');
+            
             document.querySelectorAll('.date-filter-btn').forEach(b => {
-                b.classList.remove('active', 'bg-blue-50', 'border-blue-200', 'text-blue-600', 'font-semibold');
+                setDateBtnActive(b as HTMLElement, false);
             });
             
-            const range = (btn as HTMLElement).dataset.range || 'month';
-            btn.classList.add('active', 'bg-blue-50', 'border-blue-200', 'text-blue-600', 'font-semibold');
-            
             const $customInputs = document.getElementById('custom-date-inputs');
-            if (range === 'custom') {
-                $customInputs?.classList.remove('hidden');
-            } else {
+            
+            if (isAlreadyActive) {
                 $customInputs?.classList.add('hidden');
-                advancedFilters.dateRange = range;
+                advancedFilters.dateRange = 'all';
                 applyFilter();
+            } else {
+                const range = (btn as HTMLElement).dataset.range || 'month';
+                setDateBtnActive(btn as HTMLElement, true);
+                
+                if (range === 'custom') {
+                    $customInputs?.classList.remove('hidden');
+                } else {
+                    $customInputs?.classList.add('hidden');
+                    advancedFilters.dateRange = range;
+                    applyFilter();
+                }
             }
         });
     });
@@ -2010,6 +2044,47 @@ interface Window {
         advancedFilters.dateRange = 'custom';
         advancedFilters.startDate = startVal || '';
         advancedFilters.endDate = endVal || '';
+        applyFilter();
+    });
+
+    $clearAllChips?.addEventListener('click', () => {
+        advancedFilters.txType = '';
+        advancedFilters.status = '';
+        advancedFilters.party = '';
+        advancedFilters.mode = '';
+        advancedFilters.referenceType = '';
+        advancedFilters.amountMin = null;
+        advancedFilters.amountMax = null;
+        advancedFilters.dateRange = 'month';
+        advancedFilters.startDate = '';
+        advancedFilters.endDate = '';
+
+        const txType = document.getElementById('tx-type-filter') as HTMLSelectElement;
+        const status = document.getElementById('status-filter') as HTMLSelectElement;
+        const party = document.getElementById('party-filter') as HTMLInputElement;
+        const mode = document.getElementById('mode-filter') as HTMLSelectElement;
+        const ref = document.getElementById('reference-filter') as HTMLSelectElement;
+        const amountMin = document.getElementById('amount-min-filter') as HTMLInputElement;
+        const amountMax = document.getElementById('amount-max-filter') as HTMLInputElement;
+        const customStart = document.getElementById('custom-start-date') as HTMLInputElement;
+        const customEnd = document.getElementById('custom-end-date') as HTMLInputElement;
+
+        if (txType) txType.value = '';
+        if (status) status.value = '';
+        if (party) party.value = '';
+        if (mode) mode.value = '';
+        if (ref) ref.value = '';
+        if (amountMin) amountMin.value = '';
+        if (amountMax) amountMax.value = '';
+        if (customStart) customStart.value = '';
+        if (customEnd) customEnd.value = '';
+
+        document.querySelectorAll('.date-filter-btn').forEach(btn => {
+            const r = (btn as HTMLElement).dataset.range;
+            setDateBtnActive(btn as HTMLElement, r === 'month');
+        });
+        document.getElementById('custom-date-inputs')?.classList.add('hidden');
+
         applyFilter();
     });
 

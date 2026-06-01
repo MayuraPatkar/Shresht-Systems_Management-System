@@ -46,8 +46,9 @@ function renderStockTable(data: StockItem[]): void {
         const hsn = item.hsn_sac;
         const brand = item.brand;
         const purchasePrice = item.purchase_price || 0;
-        const quantity = Number(item.stock_quantity) || 0;
         const gstRate = item.gst_rate || 0;
+        const purchasePriceWithTax = purchasePrice * (1 + gstRate / 100);
+        const quantity = Number(item.stock_quantity) || 0;
         const minQuantity = Number(item.min_stock_quantity) || 0;
         const category = item.category;
         const itemType = item.item_type;
@@ -221,7 +222,7 @@ function renderStockTable(data: StockItem[]): void {
                     <div class="text-sm text-gray-500">${escapeHtml(brand)} • ${escapeHtml(category)}</div>
                 </div>
             </td>
-            <td class="p-4 text-center font-medium">₹ ${escapeHtml(formatIndian(purchasePrice, 2))}</td>
+            <td class="p-4 text-center font-medium">₹ ${escapeHtml(formatIndian(purchasePriceWithTax, 2))}</td>
             <td class="p-4 text-center font-medium">${escapeHtml(formatIndian(quantity, isPc ? 0 : 2))} ${escapeHtml(unit)}</td>
             <td class="p-4 text-center">${escapeHtml(gstRate)}%</td>
             <td class="p-4 text-center" style="width:140px;">

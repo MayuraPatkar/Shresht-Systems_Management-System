@@ -355,9 +355,15 @@
 
     let currentPurchaseOrder: any = null;
     let isEditingInline = false;
+    function setEditingInline(val: boolean) {
+        isEditingInline = val;
+        if (typeof (window as any).updateHeaderVisibility === 'function') {
+            (window as any).updateHeaderVisibility();
+        }
+    }
     Object.defineProperty(window, 'isEditingInline', {
         get: () => isEditingInline,
-        set: (val) => { isEditingInline = val; },
+        set: (val) => { setEditingInline(val); },
         configurable: true
     });
 
@@ -381,7 +387,7 @@
             }
             
             const purchaseOrder = data.purchaseOrder;
-            isEditingInline = false;
+            setEditingInline(false);
             renderPurchaseOrderDetails(purchaseOrder);
         } catch (error) {
             console.error("Error fetching purchase order:", error);
@@ -871,7 +877,7 @@
 
             if (success) {
                 showAlert("Purchase Order saved successfully!");
-                isEditingInline = false;
+                setEditingInline(false);
                 currentPurchaseOrder = payload;
                 renderPurchaseOrderDetails(currentPurchaseOrder);
                 
@@ -903,7 +909,7 @@
         if (editBtn) {
             editBtn.addEventListener("click", () => {
                 if (currentPurchaseOrder) {
-                    isEditingInline = true;
+                    setEditingInline(true);
                     renderPurchaseOrderDetails(currentPurchaseOrder);
                 }
             });
@@ -913,7 +919,7 @@
         if (cancelBtn) {
             cancelBtn.addEventListener("click", () => {
                 if (currentPurchaseOrder) {
-                    isEditingInline = false;
+                    setEditingInline(false);
                     renderPurchaseOrderDetails(currentPurchaseOrder);
                 }
             });

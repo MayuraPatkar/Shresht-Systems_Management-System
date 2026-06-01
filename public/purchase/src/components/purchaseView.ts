@@ -19,15 +19,33 @@
     async function viewPurchase(purchaseId: string) {
         try {
             let data;
-            if ((window as any).purchaseApi) {
-                data = await (window as any).purchaseApi.fetchPurchaseById(purchaseId);
-            } else {
-                const response = await fetch(`/purchase/${purchaseId}`);
-                if (!response.ok) throw new Error("Failed to fetch purchase");
-                data = await response.json();
+            const response = await fetch(`/purchase/${purchaseId}`);
+            const showDeletedPurchaseAlert = () => {
+                showAlert("Reference is deleted.");
+                const home = document.getElementById('home');
+                if (home) home.style.display = 'block';
+                const newSection = document.getElementById('new');
+                if (newSection) newSection.style.display = 'none';
+                const viewSection = document.getElementById('view');
+                if (viewSection) viewSection.style.display = 'none';
+
+                if (typeof (window as any).updateHeaderVisibility === 'function') {
+                    (window as any).updateHeaderVisibility();
+                }
+            };
+
+            if (response.status === 404) {
+                showDeletedPurchaseAlert();
+                return;
             }
+            if (!response.ok) throw new Error("Failed to fetch purchase");
+            data = await response.json();
             
             const purchase = data.purchase;
+            if (purchase?.deletion?.is_deleted) {
+                showDeletedPurchaseAlert();
+                return;
+            }
             isEditingInline = false;
             renderPurchaseDetails(purchase);
         } catch (error) {

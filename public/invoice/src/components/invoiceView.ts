@@ -1113,12 +1113,44 @@ async function viewInvoice(invoiceId: string, userRole?: string | null) {
 
 
         const response = await fetch(`/invoice/${invoiceId}`);
+        const showDeletedInvoiceAlert = () => {
+            const msg = "Reference is deleted.";
+            if ((window as any).electronAPI?.showAlert1) {
+                (window as any).electronAPI.showAlert1(msg);
+            } else {
+                alert(msg);
+            }
+            const viewPreview = document.getElementById('view-preview');
+            const home = document.getElementById('home');
+            const newSection = document.getElementById('new');
+            const view = document.getElementById('view');
+
+            if (view) view.style.display = 'none';
+            if (viewPreview) viewPreview.style.display = 'none';
+            if (newSection) newSection.style.display = 'none';
+            if (home) home.style.display = 'block';
+
+            if (typeof (window as any).updateHeaderVisibility === 'function') {
+                (window as any).updateHeaderVisibility();
+            }
+        };
+
+        if (response.status === 404) {
+            showDeletedInvoiceAlert();
+            return;
+        }
+
         if (!response.ok) {
             throw new Error("Failed to fetch invoice");
         }
 
         const data = await response.json();
         const invoice = data.invoice as Invoice;
+
+        if (invoice.deletion?.is_deleted) {
+            showDeletedInvoiceAlert();
+            return;
+        }
 
         cachedInvoice = invoice;
         cachedUserRole = role;

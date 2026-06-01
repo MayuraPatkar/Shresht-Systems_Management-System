@@ -239,8 +239,8 @@ function sortData(data: StockItem[], field: string, direction: 'asc' | 'desc'): 
                 bVal = (b.item_name || '').toLowerCase();
                 break;
             case 'price':
-                aVal = parseFloat(String(a.purchase_price)) || 0;
-                bVal = parseFloat(String(b.purchase_price)) || 0;
+                aVal = (parseFloat(String(a.purchase_price)) || 0) * (1 + (parseFloat(String(a.gst_rate)) || 0) / 100);
+                bVal = (parseFloat(String(b.purchase_price)) || 0) * (1 + (parseFloat(String(b.gst_rate)) || 0) / 100);
                 break;
             case 'quantity':
                 aVal = Number(a.stock_quantity) || 0;
