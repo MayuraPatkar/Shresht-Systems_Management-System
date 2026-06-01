@@ -88,10 +88,215 @@ function renderModuleBackButton() {
   headerTitle.insertBefore(button, headerTitle.firstChild);
 }
 
+const HSN_DUPLICATE_ERROR_ATTR = 'data-hsn-duplicate-error';
+const HSN_DUPLICATE_INPUT_ATTR = 'data-hsn-duplicate-invalid';
+
+function normalizeHsnCode(value) {
+  return (value || '').replace(/\s+/g, '').toUpperCase();
+}
+
+function isVisibleElement(element) {
+  if (!element || !(element instanceof HTMLElement)) return false;
+  const style = window.getComputedStyle(element);
+  if (style.display === 'none' || style.visibility === 'hidden') return false;
+  return element.offsetParent !== null || element.getClientRects().length > 0;
+}
+
+function getHsnValidationScope(trigger) {
+  const triggerStep = trigger?.closest?.('.steps');
+  if (triggerStep) return triggerStep;
+
+  const activeStep = document.querySelector('.steps.active');
+  if (activeStep) return activeStep;
+
+  return trigger?.closest?.('#new, form, main') || document.getElementById('new') || document;
+}
+
+function getHsnInputsForScope(scope) {
+  const root = scope || document;
+  const selectors = [
+    '#items-container .item-card .item-field.hsn input',
+    '#items-container .item-row .item-hsn',
+    '.item-field.hsn input',
+    '.item-hsn'
+  ];
+
+  let inputs = Array.from(root.querySelectorAll(selectors.join(', ')));
+
+  if (inputs.length === 0) {
+    inputs = Array.from(root.querySelectorAll('#items-table tbody tr td:nth-child(3) input'));
+  }
+
+  return inputs.filter(input =>
+    input instanceof HTMLInputElement &&
+    input.type !== 'hidden' &&
+    !input.disabled &&
+    isVisibleElement(input)
+  );
+}
+
+function ensureHsnInputId(input) {
+  if (!input.id) {
+    input.id = `hsn-input-${Math.random().toString(36).slice(2, 11)}`;
+  }
+  return input.id;
+}
+
+function removeDescribedBy(input, errorId) {
+  const describedBy = (input.getAttribute('aria-describedby') || '')
+    .split(/\s+/)
+    .filter(id => id && id !== errorId)
+    .join(' ');
+
+  if (describedBy) {
+    input.setAttribute('aria-describedby', describedBy);
+  } else {
+    input.removeAttribute('aria-describedby');
+  }
+}
+
+function clearHsnDuplicateError(input) {
+  const inputId = input.id;
+  const errorId = inputId ? `${inputId}-hsn-duplicate-error` : '';
+
+  if (errorId) {
+    document.getElementById(errorId)?.remove();
+    removeDescribedBy(input, errorId);
+  }
+
+  input.parentElement?.querySelectorAll(`[${HSN_DUPLICATE_ERROR_ATTR}="true"]`).forEach(error => error.remove());
+  input.removeAttribute(HSN_DUPLICATE_INPUT_ATTR);
+
+  if (!input.parentElement?.querySelector('.error-message-inline')) {
+    input.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/20', 'focus:ring-red-500');
+    input.style.borderColor = '';
+    input.style.boxShadow = '';
+    input.removeAttribute('aria-invalid');
+  }
+}
+
+function showHsnDuplicateError(input, message) {
+  clearHsnDuplicateError(input);
+
+  const inputId = ensureHsnInputId(input);
+  const errorId = `${inputId}-hsn-duplicate-error`;
+  const describedBy = new Set((input.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+  describedBy.add(errorId);
+
+  input.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/20');
+  input.style.borderColor = '#ef4444';
+  input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+  input.setAttribute('aria-invalid', 'true');
+  input.setAttribute(HSN_DUPLICATE_INPUT_ATTR, 'true');
+  input.setAttribute('aria-describedby', Array.from(describedBy).join(' '));
+
+  const errorMsg = document.createElement('div');
+  errorMsg.id = errorId;
+  errorMsg.className = 'text-[11px] font-semibold text-red-600 mt-1 transition-all duration-200 ease-in-out error-message-inline';
+  errorMsg.setAttribute(HSN_DUPLICATE_ERROR_ATTR, 'true');
+  errorMsg.textContent = message;
+
+  input.parentElement?.appendChild(errorMsg);
+}
+
+function getHsnItemLabel(input, index) {
+  const container = input.closest('.item-card, .item-row, tr');
+  const numberText = container?.querySelector('.item-number')?.textContent?.trim();
+  return numberText || `${index + 1}`;
+}
+
+function validateHsnDuplicateFields(trigger, options = {}) {
+  const scope = getHsnValidationScope(trigger);
+  const inputs = getHsnInputsForScope(scope);
+  const hsnMap = new Map();
+  let firstInvalidInput = null;
+
+  inputs.forEach(input => clearHsnDuplicateError(input));
+
+  inputs.forEach((input, index) => {
+    const hsn = normalizeHsnCode(input.value);
+    if (!hsn) return;
+
+    const entry = {
+      input,
+      index,
+      label: getHsnItemLabel(input, index)
+    };
+    const existing = hsnMap.get(hsn) || [];
+    existing.push(entry);
+    hsnMap.set(hsn, existing);
+  });
+
+  hsnMap.forEach((entries, hsn) => {
+    if (entries.length < 2) return;
+
+    entries.forEach(entry => {
+      const otherItems = entries
+        .filter(other => other.input !== entry.input)
+        .map(other => `Item #${other.label}`)
+        .join(', ');
+      showHsnDuplicateError(entry.input, `HSN/SAC "${hsn}" already exists in ${otherItems}.`);
+      if (!firstInvalidInput) firstInvalidInput = entry.input;
+    });
+  });
+
+  if (firstInvalidInput && options.focus) {
+    firstInvalidInput.focus();
+    firstInvalidInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  return !firstInvalidInput;
+}
+
+function isHsnRelatedInput(target) {
+  return target instanceof HTMLInputElement && (
+    target.closest('.item-field.hsn') ||
+    target.classList.contains('item-hsn') ||
+    target.closest('#items-table tbody tr td:nth-child(3)') ||
+    target.classList.contains('item_name') ||
+    target.classList.contains('item-desc') ||
+    target.closest('.item-field.description')
+  );
+}
+
+function scheduleHsnDuplicateValidation(trigger, delay = 0) {
+  window.setTimeout(() => validateHsnDuplicateFields(trigger), delay);
+}
+
+(window as any).validateHsnDuplicateFields = validateHsnDuplicateFields;
+
 // Sidebar Active State Management
 document.addEventListener('DOMContentLoaded', () => {
   updateModuleBackTarget();
   renderModuleBackButton();
+
+  document.addEventListener('input', event => {
+    if (isHsnRelatedInput(event.target)) {
+      scheduleHsnDuplicateValidation(event.target);
+    }
+  });
+
+  document.addEventListener('change', event => {
+    if (isHsnRelatedInput(event.target)) {
+      scheduleHsnDuplicateValidation(event.target);
+    }
+  });
+
+  document.addEventListener('click', event => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const actionButton = target.closest('#next-btn, #save-btn, #view-preview, #form-next-btn, #form-save-btn');
+    if (actionButton && !validateHsnDuplicateFields(actionButton, { focus: true })) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+
+    if (target.closest('.remove-item-btn, #add-item-btn, .suggestions li')) {
+      scheduleHsnDuplicateValidation(target, 150);
+    }
+  }, true);
 
   const currentPath = window.location.pathname.toLowerCase();
 
