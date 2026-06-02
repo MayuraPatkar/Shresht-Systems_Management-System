@@ -369,6 +369,7 @@ router.post('/send-invoice', async (req: Request, res: Response) => {
         }
 
         let documentUrl = providedUrl;
+        let isCloudUploaded = false;
 
         if (!documentUrl && pdfGenerator) {
             const companyInfo = await getCompanyInfo();
@@ -386,6 +387,7 @@ router.post('/send-invoice', async (req: Request, res: Response) => {
                 const uploadResult = await cloudStorage.uploadPDF(pdfResult.path, invoiceId);
                 if (uploadResult.success) {
                     documentUrl = uploadResult.url;
+                    isCloudUploaded = true;
                     logger.info('Invoice PDF uploaded to cloud', { service: "messaging", url: documentUrl, invoiceId });
 
                     try {
@@ -424,6 +426,18 @@ router.post('/send-invoice', async (req: Request, res: Response) => {
             documentUrl: documentUrl
         });
 
+        // Auto-delete temp PDF from Cloudinary after 3 minutes
+        if (isCloudUploaded && cloudStorage) {
+            setTimeout(async () => {
+                try {
+                    await cloudStorage.deletePDF(invoiceId);
+                    logger.info(`Auto-deleted temp PDF from Cloudinary: ${invoiceId}`);
+                } catch (e: any) {
+                    logger.warn(`Failed to auto-delete temp PDF from Cloudinary: ${invoiceId}`, e && e.message);
+                }
+            }, 3 * 60 * 1000);
+        }
+
         res.json({
             message: 'Invoice sent via WhatsApp.',
             pdfUrl: documentUrl
@@ -450,6 +464,7 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
         }
 
         let documentUrl = providedUrl;
+        let isCloudUploaded = false;
 
         if (!documentUrl && pdfGenerator) {
             const companyInfo = await getCompanyInfo();
@@ -467,6 +482,7 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
                 const uploadResult = await cloudStorage.uploadPDF(pdfResult.path, quotationId);
                 if (uploadResult.success) {
                     documentUrl = uploadResult.url;
+                    isCloudUploaded = true;
                     logger.info('Quotation PDF uploaded to cloud', { service: "messaging", url: documentUrl, quotationId });
 
                     try {
@@ -504,6 +520,18 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
             amount: formatAmountForTemplate(totalAmount),
             documentUrl: documentUrl
         });
+
+        // Auto-delete temp PDF from Cloudinary after 3 minutes
+        if (isCloudUploaded && cloudStorage) {
+            setTimeout(async () => {
+                try {
+                    await cloudStorage.deletePDF(quotationId);
+                    logger.info(`Auto-deleted temp PDF from Cloudinary: ${quotationId}`);
+                } catch (e: any) {
+                    logger.warn(`Failed to auto-delete temp PDF from Cloudinary: ${quotationId}`, e && e.message);
+                }
+            }, 3 * 60 * 1000);
+        }
 
         res.json({
             message: 'Quotation sent via WhatsApp.',
