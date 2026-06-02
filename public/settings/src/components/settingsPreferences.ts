@@ -23,6 +23,37 @@ class SettingsPreferences {
                 console.error('Directory selection cancelled or failed:', err);
             }
         });
+
+        // Add auto backup toggle visual dimming behavior
+        const autoBackupCheckbox = document.getElementById("backup-auto-enabled") as HTMLInputElement;
+        if (autoBackupCheckbox) {
+            autoBackupCheckbox.addEventListener("change", () => this.updateAutoBackupFieldsState());
+        }
+    }
+
+    private updateAutoBackupFieldsState(): void {
+        const autoBackupCheckbox = document.getElementById("backup-auto-enabled") as HTMLInputElement;
+        if (!autoBackupCheckbox) return;
+
+        const isEnabled = autoBackupCheckbox.checked;
+        const fieldsToToggle = [
+            "backup-frequency",
+            "backup-retention",
+            "backup-location",
+            "backup-browse"
+        ];
+
+        fieldsToToggle.forEach(id => {
+            const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | HTMLButtonElement;
+            if (el) {
+                el.disabled = !isEnabled;
+                if (!isEnabled) {
+                    el.classList.add("opacity-50", "cursor-not-allowed");
+                } else {
+                    el.classList.remove("opacity-50", "cursor-not-allowed");
+                }
+            }
+        });
     }
 
     loadPreferences(): void {
@@ -30,31 +61,34 @@ class SettingsPreferences {
             .then((data: { success: boolean; settings: SystemPreferences }) => {
                 if (data.success && data.settings) {
                     const s = data.settings;
-
+ 
                     const invoicePrefInput = document.getElementById("pref-invoice-prefix") as HTMLInputElement;
                     if (invoicePrefInput) invoicePrefInput.value = s.numbering?.invoice_prefix || 'INV';
-
+ 
                     const quotationPrefInput = document.getElementById("pref-quotation-prefix") as HTMLInputElement;
                     if (quotationPrefInput) quotationPrefInput.value = s.numbering?.quotation_prefix || 'QUO';
-
+ 
                     const purchasePrefInput = document.getElementById("pref-purchase-prefix") as HTMLInputElement;
                     if (purchasePrefInput) purchasePrefInput.value = s.numbering?.purchase_prefix || 'PO';
-
+ 
                     const servicePrefInput = document.getElementById("pref-service-prefix") as HTMLInputElement;
                     if (servicePrefInput) servicePrefInput.value = s.numbering?.service_prefix || 'SRV';
-
+ 
                     const stockInactiveMonthsInput = document.getElementById("pref-stock-inactive-months") as HTMLInputElement;
                     if (stockInactiveMonthsInput) stockInactiveMonthsInput.value = (s.notifications?.stock_inactive_months || 3).toString();
-
+ 
                     const backupAutoEnabledInput = document.getElementById("backup-auto-enabled") as HTMLInputElement;
-                    if (backupAutoEnabledInput) backupAutoEnabledInput.checked = s.backup?.auto_backup_enabled || false;
-
+                    if (backupAutoEnabledInput) {
+                        backupAutoEnabledInput.checked = s.backup?.auto_backup_enabled || false;
+                        this.updateAutoBackupFieldsState();
+                    }
+ 
                     const backupFrequencyInput = document.getElementById("backup-frequency") as HTMLSelectElement;
                     if (backupFrequencyInput) backupFrequencyInput.value = s.backup?.backup_frequency || 'daily';
-
+ 
                     const backupRetentionInput = document.getElementById("backup-retention") as HTMLInputElement;
                     if (backupRetentionInput) backupRetentionInput.value = (s.backup?.retention_days || 30).toString();
-
+ 
                     let location = s.backup?.backup_location || '';
                     if (location === './backups' || location === '.\\backups') {
                         location = '';

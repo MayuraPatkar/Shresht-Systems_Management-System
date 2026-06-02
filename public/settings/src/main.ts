@@ -26,11 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
         settingsUtils.toggleSection("admin-info-section");
     });
 
-    // Change Credentials section
-    document.getElementById("change-password-button1")?.addEventListener("click", () => {
-        settingsUtils.toggleSection("change-credentials-section");
-    });
-
     // Data Backup section
     document.getElementById("data-control-button")?.addEventListener("click", () => {
         settingsUtils.toggleSection("data-backup-section");

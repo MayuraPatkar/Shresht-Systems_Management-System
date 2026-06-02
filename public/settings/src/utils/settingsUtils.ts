@@ -6,13 +6,21 @@ class SettingsUtils {
     toggleSection(sectionId: string): void {
         const sections = [
             "admin-info-section",
-            "change-credentials-section",
             "data-backup-section",
             "preferences-section",
             "security-section",
             "integrations-section",
             "about-section"
         ];
+
+        const sectionToButtonMap: Record<string, string> = {
+            "admin-info-section": "admin-info-button",
+            "data-control-button": "data-control-button",
+            "preferences-section": "preferences-button",
+            "security-section": "security-button",
+            "integrations-section": "integrations-button",
+            "about-section": "about-button"
+        };
 
         // Cleanup when leaving about section
         const currentAboutSection = document.getElementById("about-section");
@@ -36,6 +44,17 @@ class SettingsUtils {
                 } else {
                     sectionElement.classList.add('hidden');
                     sectionElement.classList.remove('fade-in');
+                }
+            }
+
+            // Update button styles to show active vs inactive neutral layout
+            const btnId = sectionToButtonMap[id];
+            const btnElement = document.getElementById(btnId);
+            if (btnElement) {
+                if (id === sectionId) {
+                    btnElement.className = "flex items-center gap-2 px-3.5 py-2 text-sm text-white bg-indigo-600 rounded-lg font-medium shadow-sm border border-indigo-600 transition-all cursor-pointer";
+                } else {
+                    btnElement.className = "flex items-center gap-2 px-3.5 py-2 text-sm text-slate-500 bg-transparent rounded-lg hover:bg-slate-100 hover:text-slate-800 font-medium border border-transparent transition-all cursor-pointer";
                 }
             }
         });

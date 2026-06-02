@@ -54,42 +54,42 @@ class SettingsAdmin {
         const addressStr = typeof addr === 'string' ? addr : [addr.line1, addr.line2, addr.city, addr.state ? addr.state + (addr.pincode ? ' - ' + addr.pincode : '') : ''].filter(Boolean).join(', ');
         
         const addressEl = document.getElementById("admin-address");
-        if (addressEl) addressEl.textContent = `Address: ${addressStr}`;
+        if (addressEl) addressEl.textContent = addressStr;
 
         const stateEl = document.getElementById("admin-state");
-        if (stateEl) stateEl.textContent = `State: ${typeof addr === 'object' ? (addr.state || '') : (data.state || '')}`;
+        if (stateEl) stateEl.textContent = typeof addr === 'object' ? (addr.state || '') : (data.state || '');
 
         const contact1El = document.getElementById("admin-contact1");
-        if (contact1El) contact1El.textContent = `Contact: ${data.phone.ph1}`;
+        if (contact1El) contact1El.textContent = data.phone.ph1;
 
         const contact2El = document.getElementById("admin-contact2");
-        if (contact2El) contact2El.textContent = `Contact: ${data.phone.ph2}`;
+        if (contact2El) contact2El.textContent = data.phone.ph2;
 
         const emailEl = document.getElementById("admin-email");
-        if (emailEl) emailEl.textContent = `Email: ${data.email}`;
+        if (emailEl) emailEl.textContent = data.email;
 
         const websiteEl = document.getElementById("admin-website");
-        if (websiteEl) websiteEl.textContent = `Website: ${data.website}`;
+        if (websiteEl) websiteEl.textContent = data.website;
 
         const gstinEl = document.getElementById("admin-gstin");
-        if (gstinEl) gstinEl.textContent = `GSTIN: ${data.gstin}`;
+        if (gstinEl) gstinEl.textContent = data.gstin;
 
         const bankNameEl = document.getElementById("bank-name");
-        if (bankNameEl) bankNameEl.textContent = `Bank Name: ${data.bank_details.bank_name}`;
+        if (bankNameEl) bankNameEl.textContent = data.bank_details.bank_name;
 
         const accountHolderElement = document.getElementById("account-holder");
         if (accountHolderElement && data.bank_details.account_holder_name) {
-            accountHolderElement.textContent = `Account Holder: ${data.bank_details.account_holder_name}`;
+            accountHolderElement.textContent = data.bank_details.account_holder_name;
         }
 
         const accountNumberEl = document.getElementById("account-number");
-        if (accountNumberEl) accountNumberEl.textContent = `Account No: ${data.bank_details.account_number}`;
+        if (accountNumberEl) accountNumberEl.textContent = data.bank_details.account_number;
 
         const ifscCodeEl = document.getElementById("ifsc-code");
-        if (ifscCodeEl) ifscCodeEl.textContent = `IFSC Code: ${data.bank_details.ifsc_code}`;
+        if (ifscCodeEl) ifscCodeEl.textContent = data.bank_details.ifsc_code;
 
         const branchNameEl = document.getElementById("branch-name");
-        if (branchNameEl) branchNameEl.textContent = `Branch: ${data.bank_details.branch}`;
+        if (branchNameEl) branchNameEl.textContent = data.bank_details.branch;
     }
 
     private enterEditMode(): void {
