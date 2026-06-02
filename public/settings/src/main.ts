@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("integrations-button")?.addEventListener("click", () => {
         settingsUtils.toggleSection("integrations-section");
         settingsPreferences.loadWhatsAppStatus();
+        settingsPreferences.loadCloudinaryStatus();
     });
 
     // About section
@@ -77,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
 (window as any).loadPreferences = () => settingsPreferences.loadPreferences();
 (window as any).loadSecuritySettings = () => settingsPreferences.loadSecuritySettings();
 (window as any).loadWhatsAppStatus = () => settingsPreferences.loadWhatsAppStatus();
+(window as any).loadCloudinaryStatus = () => settingsPreferences.loadCloudinaryStatus();
 (window as any).loadSystemInfo = () => settingsSystem.loadSystemInfo();
 (window as any).loadDatabaseStats = () => settingsSystem.loadDatabaseStats();
 (window as any).loadChangelog = () => settingsSystem.loadChangelog();

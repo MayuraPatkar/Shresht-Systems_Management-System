@@ -70,6 +70,7 @@ interface CloudinaryPref {
     cloudName?: string;
     apiKey?: string;
     apiSecret?: string;
+    configured?: boolean;
 }
 
 interface SystemPreferences {

@@ -223,6 +223,52 @@ class SettingsPreferences {
             });
     }
 
+    loadCloudinaryStatus(): void {
+        settingsApi.getPreferences()
+            .then((data: { success: boolean; settings: SystemPreferences }) => {
+                const statusEl = document.getElementById('cloudinary-status');
+                if (!statusEl) return;
+
+                if (data.success && data.settings?.cloudinary) {
+                    const cl = data.settings.cloudinary;
+                    const cloudNameInput = document.getElementById('cloudinary-cloud-name') as HTMLInputElement;
+                    const apiKeyInput = document.getElementById('cloudinary-api-key') as HTMLInputElement;
+
+                    const cloudName = cl.cloudName || (cl as any).cloud_name || "";
+                    const apiKey = cl.apiKey || (cl as any).api_key || "";
+                    const configured = cl.configured || (cl as any).configured || false;
+
+                    if (cloudNameInput) cloudNameInput.value = cloudName;
+                    if (apiKeyInput) apiKeyInput.value = apiKey;
+
+                    if (configured && cloudName && apiKey) {
+                        statusEl.innerHTML = `
+                            <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                            <span class="text-green-700 font-medium">Cloudinary Configured</span>
+                        `;
+                        statusEl.className = 'flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200 mb-4';
+                    } else {
+                        statusEl.innerHTML = `
+                            <i class="fas fa-exclamation-circle text-yellow-500 text-sm"></i>
+                            <span class="text-yellow-700 font-medium">Not Configured - Enter credentials below</span>
+                        `;
+                        statusEl.className = 'flex items-center gap-2 p-3 rounded-lg bg-yellow-50 border border-yellow-200 mb-4';
+                    }
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to load Cloudinary status:', err);
+                const statusEl = document.getElementById('cloudinary-status');
+                if (statusEl) {
+                    statusEl.innerHTML = `
+                        <i class="fas fa-times-circle text-red-500 text-sm"></i>
+                        <span class="text-red-700 font-medium">Error checking status</span>
+                    `;
+                    statusEl.className = 'flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 mb-4';
+                }
+            });
+    }
+
     private saveWhatsAppSettings(): void {
         const saveButton = document.getElementById('save-whatsapp-button') as HTMLButtonElement;
         if (!saveButton) return;
@@ -295,6 +341,7 @@ class SettingsPreferences {
                     (window as any).electronAPI.showAlert1('Cloudinary settings saved successfully!');
                     const secretInput = document.getElementById('cloudinary-api-secret') as HTMLInputElement;
                     if (secretInput) secretInput.value = '';
+                    this.loadCloudinaryStatus();
                 } else {
                     (window as any).electronAPI.showAlert1(`Failed to save: ${data.message}`);
                 }

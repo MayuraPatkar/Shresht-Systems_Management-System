@@ -61,14 +61,14 @@ async function loadCloudinaryFromDB(): Promise<boolean> {
 
         if (
             settings?.cloudinary?.configured &&
-            settings.cloudinary.cloud_name &&
-            settings.cloudinary.api_key &&
-            settings.cloudinary.api_secret_encrypted
+            settings.cloudinary.cloudName &&
+            settings.cloudinary.apiKey &&
+            settings.cloudinary.apiSecretEncrypted
         ) {
             // Decrypt the API secret
             const secret =
                 process.env.SESSION_SECRET || "unsafe-default-secret-change-in-production";
-            const [ivHex, dataHex] = settings.cloudinary.api_secret_encrypted.split(":");
+            const [ivHex, dataHex] = settings.cloudinary.apiSecretEncrypted.split(":");
             const iv = Buffer.from(ivHex, "hex");
             const encrypted = Buffer.from(dataHex, "hex");
             const decipher = crypto.createDecipheriv(
@@ -82,14 +82,14 @@ async function loadCloudinaryFromDB(): Promise<boolean> {
 
             // Configure cloudinary
             cloudinary.config({
-                cloud_name: settings.cloudinary.cloud_name,
-                api_key: settings.cloudinary.api_key,
+                cloud_name: settings.cloudinary.cloudName,
+                api_key: settings.cloudinary.apiKey,
                 api_secret: apiSecret,
             });
 
             // Also set env vars for other modules
-            process.env.CLOUDINARY_CLOUD_NAME = settings.cloudinary.cloud_name;
-            process.env.CLOUDINARY_API_KEY = settings.cloudinary.api_key;
+            process.env.CLOUDINARY_CLOUD_NAME = settings.cloudinary.cloudName;
+            process.env.CLOUDINARY_API_KEY = settings.cloudinary.apiKey;
             process.env.CLOUDINARY_API_SECRET = apiSecret;
 
             cloudinaryConfigured = true;
@@ -168,8 +168,8 @@ export async function uploadPDF(filePath: string, publicId: string): Promise<Upl
             url: result.secure_url,
             publicId: result.public_id,
         };
-    } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
+    } catch (error: any) {
+        const message = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
         logger.error("Cloudinary upload error:", { error: message, filePath, publicId });
         return {
             success: false,
@@ -193,8 +193,8 @@ export async function deletePDF(publicId: string): Promise<DeleteResult> {
         });
         logger.info(`PDF deleted from Cloudinary: ${publicId}`);
         return { success: true };
-    } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
+    } catch (error: any) {
+        const message = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
         logger.error("Cloudinary delete error:", { error: message, publicId });
         return { success: false, error: message };
     }

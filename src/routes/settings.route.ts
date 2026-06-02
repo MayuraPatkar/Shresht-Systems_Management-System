@@ -266,8 +266,36 @@ router.get("/backup/status", asyncHandler(async (req: Request, res: Response) =>
 
 router.get("/preferences", asyncHandler(async (req: Request, res: Response) => {
     try {
-        let settings = await SettingsModel.findOne() as any;
-        if (!settings) { settings = new SettingsModel({}); await settings.save(); }
+        let settingsDoc = await SettingsModel.findOne();
+        if (!settingsDoc) { settingsDoc = new SettingsModel({}); await settingsDoc.save(); }
+        
+        const settings = settingsDoc.toObject() as any;
+        
+        // WhatsApp settings fallbacks
+        settings.whatsapp = settings.whatsapp || {};
+        if (!settings.whatsapp.phoneNumberId) {
+            settings.whatsapp.phoneNumberId = process.env.PHONE_NUMBER_ID || config.whatsapp?.phoneNumberId || "";
+        }
+        if (!settings.whatsapp.storedTokenReference && (process.env.WHATSAPP_TOKEN || config.whatsapp?.token)) {
+            settings.whatsapp.storedTokenReference = "env";
+        }
+        
+        // Cloudinary settings fallbacks
+        settings.cloudinary = settings.cloudinary || {};
+        if (!settings.cloudinary.cloudName) {
+            settings.cloudinary.cloudName = process.env.CLOUDINARY_CLOUD_NAME || config.cloudinary?.cloudName || "";
+        }
+        if (!settings.cloudinary.apiKey) {
+            settings.cloudinary.apiKey = process.env.CLOUDINARY_API_KEY || config.cloudinary?.apiKey || "";
+        }
+        if (!settings.cloudinary.configured) {
+            settings.cloudinary.configured = !!(
+                settings.cloudinary.cloudName && 
+                settings.cloudinary.apiKey && 
+                (process.env.CLOUDINARY_API_SECRET || config.cloudinary?.apiSecret || settings.cloudinary.apiSecretEncrypted)
+            );
+        }
+
         res.json({ success: true, settings });
     } catch (error: unknown) { res.status(500).json({ success: false, message: 'Failed to fetch settings', error: (error as Error).message }); }
 }));

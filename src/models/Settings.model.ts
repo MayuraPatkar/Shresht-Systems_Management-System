@@ -49,18 +49,18 @@ export interface INotifications {
  */
 export interface IWhatsApp {
     enabled?: boolean;
-    phone_number_id?: string;
-    pdf_base_url?: string;
-    stored_token_reference?: string;
+    phoneNumberId?: string;
+    pdfBaseUrl?: string;
+    storedTokenReference?: string;
 }
 
 /**
  * Cloudinary sub-document interface
  */
 export interface ICloudinary {
-    cloud_name?: string;
-    api_key?: string;
-    api_secret_encrypted?: string;
+    cloudName?: string;
+    apiKey?: string;
+    apiSecretEncrypted?: string;
     configured?: boolean;
 }
 
@@ -165,9 +165,9 @@ const notificationsSchema = new Schema<INotifications>(
 const whatsappSchema = new Schema<IWhatsApp>(
     {
         enabled: { type: Boolean, default: false },
-        phone_number_id: { type: String, default: "" },
-        pdf_base_url: { type: String, default: "" },
-        stored_token_reference: { type: String, default: "" },
+        phoneNumberId: { type: String, default: "" },
+        pdfBaseUrl: { type: String, default: "" },
+        storedTokenReference: { type: String, default: "" },
     },
     { _id: false }
 );
@@ -177,9 +177,9 @@ const whatsappSchema = new Schema<IWhatsApp>(
  */
 const cloudinarySchema = new Schema<ICloudinary>(
     {
-        cloud_name: { type: String, default: "" },
-        api_key: { type: String, default: "" },
-        api_secret_encrypted: { type: String, default: "" },
+        cloudName: { type: String, default: "" },
+        apiKey: { type: String, default: "" },
+        apiSecretEncrypted: { type: String, default: "" },
         configured: { type: Boolean, default: false },
     },
     { _id: false }
