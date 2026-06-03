@@ -400,8 +400,8 @@
                     </div>
                 </div>
 
-                <!-- Bank details (Right side, 1 col) - Flat divider layout -->
-                <div class="lg:col-span-1 border-t lg:border-t-0 lg:border-l border-slate-200/80 pt-8 lg:pt-0 lg:pl-10 space-y-8 flex flex-col justify-between">
+                <!-- Bank details (Right side, 1 col) - Encased sub-card container -->
+                <div class="lg:col-span-1 bg-slate-50/50 rounded-xl border border-slate-200/60 p-6 space-y-6 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center gap-3.5 mb-8">
                             <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100/50">
@@ -442,7 +442,12 @@
                                 </div>
                                 <div>
                                     <span class="block text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1">Account Number</span>
-                                    <span id="account-number" class="text-slate-850 font-bold font-mono tracking-wide text-sm text-slate-800"></span>
+                                    <div class="flex items-center gap-2">
+                                        <span id="account-number" class="text-slate-850 font-bold font-mono tracking-wide text-sm text-slate-800"></span>
+                                        <button id="toggle-account-mask-btn" type="button" class="text-slate-400 hover:text-slate-600 transition cursor-pointer" title="Toggle Masking">
+                                            <i id="account-mask-icon" class="fas fa-eye text-xs"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <!-- IFSC Code -->
@@ -452,7 +457,7 @@
                                 </div>
                                 <div>
                                     <span class="block text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1">IFSC Code</span>
-                                    <span id="ifsc-code" class="inline-flex items-center gap-1.5 py-1 px-3 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-sm"></span>
+                                    <span id="ifsc-code" class="inline-flex items-center gap-2 py-1 px-3 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100/60 shadow-sm"></span>
                                 </div>
                             </div>
                             <!-- Branch -->
@@ -499,313 +504,443 @@
                 </div>
             </div>
 
-            <!-- System Diagnostics Divider & Header -->
-            <hr class="border-slate-200/80 my-10">
+            <!-- System Diagnostics Header -->
+            <hr class="border-slate-200 mt-12 mb-8">
             
-            <div class="pb-6">
-                <h2 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
-                    <i class="fas fa-server text-indigo-600 text-lg"></i>
-                    <span>System Diagnostics & Status</span>
-                </h2>
-                <p class="text-xs text-slate-500 mt-1">Monitor server health, resources, logs, database stats, and system update channels</p>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
+                        <i class="fas fa-server text-purple-600 text-lg"></i>
+                        <span>System Diagnostics & Status</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Real-time system health, database metrics, and update channels</p>
+                </div>
             </div>
 
-            <!-- Diagnostics Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Application Info Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500 border border-blue-100/50">
-                            <i class="fas fa-info-circle text-sm"></i>
+            <!-- Redesigned Grid Section -->
+            <div class="space-y-6">
+                <!-- System Health Overview Row -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- App Status -->
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/30">
+                            <i class="fas fa-circle-check text-sm"></i>
                         </div>
                         <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Application Information</h2>
-                            <p class="text-xs text-slate-400 font-medium">Details and metadata about the running software release</p>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Application</span>
+                            <span id="health-app-status" class="text-xs font-semibold text-slate-700">Healthy</span>
                         </div>
                     </div>
-                    <div class="space-y-4 pt-2">
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Application Name</span>
-                            <span id="app-name" class="text-sm font-semibold text-slate-800">Shresht Systems Management</span>
+                    <!-- Database Status -->
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/30">
+                            <i class="fas fa-database text-sm"></i>
                         </div>
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Version</span>
-                            <span id="app-version" class="text-sm font-semibold bg-slate-100 px-2 py-0.5 rounded text-slate-800">1.0.0</span>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Database</span>
+                            <span id="health-db-status" class="text-xs font-semibold text-slate-700">Connected</span>
                         </div>
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Node Version</span>
-                            <span id="node-version" class="font-mono text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded">-</span>
+                    </div>
+                    <!-- Memory Usage Overview -->
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 border border-purple-100/30">
+                            <i class="fas fa-microchip text-sm"></i>
                         </div>
-                        <div class="flex justify-between items-center py-2">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Platform</span>
-                            <span id="platform" class="text-sm font-semibold text-slate-800 capitalize">-</span>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">System RAM</span>
+                            <span id="health-ram-status" class="text-xs font-semibold text-slate-700">- / -</span>
+                        </div>
+                    </div>
+                    <!-- Update Status -->
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 border border-purple-100/30">
+                            <i class="fas fa-sync text-sm"></i>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Updates</span>
+                            <span id="health-update-status" class="text-xs font-semibold text-slate-700">Up to Date</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- System Logs Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 border border-slate-200/50">
-                            <i class="fas fa-file-alt text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">System Logs</h2>
-                            <p class="text-xs text-slate-400 font-medium">Download system diagnostics and error log files</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-2">
-                        <p class="text-xs text-slate-500 font-medium leading-relaxed">
-                            Download system logs for troubleshooting and debugging purposes.
-                        </p>
-                        <div class="flex gap-3 pt-2">
-                            <button type="button" id="download-app-logs-button"
-                                class="flex-1 px-5 py-2.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-semibold hover:bg-slate-200 active:scale-[0.98] transition text-xs cursor-pointer flex items-center justify-center gap-2">
-                                <i class="fas fa-download"></i>
-                                App Logs
-                            </button>
-                            <button type="button" id="download-error-logs-button"
-                                class="flex-1 px-5 py-2.5 bg-rose-50 hover:bg-rose-100/70 text-rose-600 border border-rose-200/60 rounded-lg font-semibold active:scale-[0.98] transition text-xs cursor-pointer flex items-center justify-center gap-2">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Error Logs
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Update Check Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
-                            <i class="fas fa-sync-alt text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Software Updates</h2>
-                            <p class="text-xs text-slate-400 font-medium">Check for and install system updates</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-2">
-                        <!-- Update Status Display (top) -->
-                        <div id="update-status-container" class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                            <div class="flex items-center gap-2.5">
-                                <i id="update-status-icon" class="fas fa-info-circle text-purple-500"></i>
-                                <p id="update-status-text" class="text-xs font-semibold text-slate-700">Ready to check for updates</p>
+                <!-- Main Grid Layout -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left Column: App Information & System Resources -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Application Info Card (Compact) -->
+                        <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600 border border-purple-100/50">
+                                        <i class="fas fa-info-circle text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h3 id="app-name" class="text-base font-bold text-slate-800 tracking-tight">Shresht Systems</h3>
+                                        <p class="text-[10px] text-slate-400 font-medium">Core Service Platform</p>
+                                    </div>
+                                </div>
+                                <span id="app-version" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">v1.0.0</span>
+                            </div>
+                            
+                            <!-- Technical Metadata Grouped into Compact Chips -->
+                            <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md text-[11px] font-medium text-slate-650">
+                                    <span class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Node</span>
+                                    <span id="node-version" class="font-mono text-slate-700">-</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md text-[11px] font-medium text-slate-650">
+                                    <span class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Platform</span>
+                                    <span id="platform" class="capitalize text-slate-700">-</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md text-[11px] font-medium text-slate-650">
+                                    <span class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Arch</span>
+                                    <span id="arch" class="uppercase text-slate-700">-</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md text-[11px] font-medium text-slate-650">
+                                    <span class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Uptime</span>
+                                    <span id="uptime" class="text-slate-700">-</span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Pre-release Option (underneath status box) -->
-                        <div class="flex items-center gap-2.5 p-3.5 bg-slate-50 rounded-lg border border-slate-200">
-                            <input type="checkbox" id="allow-prerelease-checkbox"
-                                class="w-4 h-4 text-purple-600 focus:ring-purple-500/20 border-slate-350 rounded transition">
-                            <label for="allow-prerelease-checkbox" class="text-xs font-semibold text-slate-700 cursor-pointer">
-                                Include pre-release versions (beta/alpha)
-                            </label>
-                        </div>
-                        <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
-                            <i class="fas fa-info-circle text-slate-400"></i>
-                            <span>Pre-release versions may contain bugs and are intended for testing purposes.</span>
-                        </p>
-
-                        <!-- Download Progress Bar (hidden by default) -->
-                        <div id="update-progress-container" class="hidden space-y-2">
-                            <div class="w-full bg-slate-100 rounded-full h-2">
-                                <div id="update-progress-bar"
-                                    class="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                                    style="width: 0%"></div>
+                        <!-- System Resources Metric Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- CPU Usage Card -->
+                            <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold text-gray-500 tracking-wider uppercase">CPU Usage</span>
+                                    <span id="cpu-usage-value" class="text-xs font-bold text-slate-700">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div id="cpu-usage-bar" class="bg-purple-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                                <p class="text-[10px] text-slate-400">Avg core utilization load</p>
                             </div>
-                            <p id="update-progress-text" class="text-xs font-semibold text-slate-505 text-center">Downloading...</p>
+
+                            <!-- Memory Usage Card -->
+                            <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold text-gray-500 tracking-wider uppercase">RAM Usage</span>
+                                    <span id="ram-usage-value" class="text-xs font-bold text-slate-700">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div id="ram-usage-bar" class="bg-purple-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                                <div class="flex justify-between text-[10px] text-slate-400">
+                                    <span>Free: <span id="free-memory">-</span></span>
+                                    <span>Total: <span id="total-memory">-</span></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Update Info Details (hidden by default) -->
-                        <div id="update-info" class="hidden bg-purple-50/50 p-4 rounded-lg border border-purple-100/50">
-                            <p class="text-xs text-purple-800 font-bold mb-2">Update Details:</p>
-                            <div id="update-details" class="text-xs text-slate-650 space-y-1 font-medium font-mono"></div>
+                        <!-- Database Statistics Card -->
+                        <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-100/50">
+                                        <i class="fas fa-database text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-slate-800 tracking-tight">Database Statistics</h3>
+                                        <p class="text-[10px] text-slate-400 font-medium">Storage & index metrics for MongoDB</p>
+                                    </div>
+                                </div>
+                                <button type="button" id="refresh-stats-button" class="px-2.5 py-1.5 text-slate-500 hover:text-purple-600 bg-slate-50 rounded-lg border border-slate-200 hover:bg-purple-50 hover:border-purple-200 transition cursor-pointer text-xs flex items-center justify-center gap-1.5 font-semibold">
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span>Sync</span>
+                                </button>
+                            </div>
+
+                            <!-- Storage Progress & Trend Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                                <!-- KPIs -->
+                                <div class="md:col-span-1 flex flex-col justify-center space-y-3.5 border-r border-slate-100 pr-4">
+                                    <div>
+                                        <span class="block text-[10px] font-bold text-gray-500 tracking-wider uppercase">DB Size</span>
+                                        <span id="db-size" class="text-sm font-bold text-slate-800">-</span>
+                                    </div>
+                                    <div>
+                                        <span class="block text-[10px] font-bold text-gray-500 tracking-wider uppercase">Total Docs</span>
+                                        <span id="total-docs" class="text-sm font-bold text-slate-800">-</span>
+                                    </div>
+                                </div>
+
+                                <!-- Storage progress bar -->
+                                <div class="md:col-span-1 flex flex-col justify-center space-y-2 border-r border-slate-100 pr-4">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[10px] font-bold text-gray-500 tracking-wider uppercase">Storage Ratio</span>
+                                        <span id="storage-ratio-val" class="text-xs font-bold text-slate-700">0%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                        <div id="storage-usage-bar" class="bg-emerald-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-[9px] text-slate-400">
+                                        <span>Data: <span id="storage-size">-</span></span>
+                                    </div>
+                                </div>
+
+                                <!-- SVG Sparkline Trend -->
+                                <div class="md:col-span-1 flex flex-col justify-between items-stretch">
+                                    <span class="text-[10px] font-bold text-gray-500 tracking-wider uppercase mb-1">Doc Growth (7 Days)</span>
+                                    <div class="h-10 w-full flex items-end">
+                                        <svg id="db-sparkline" class="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                            <path d="" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="" fill="url(#sparkline-grad)" opacity="0.1" />
+                                            <defs>
+                                                <linearGradient id="sparkline-grad" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="0%" stop-color="#10b981" />
+                                                    <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                    </div>
+                                    <div class="flex justify-between text-[9px] text-slate-400 mt-1">
+                                        <span>7d ago</span>
+                                        <span>Today</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 text-center border-t border-slate-100/50 pt-2 font-medium">Last calculated: <span id="last-calculated-timestamp">Just now</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Software Updates & System Logs -->
+                    <div class="space-y-6">
+                        <!-- Software Updates (Simplified) -->
+                        <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600 border border-purple-100/50">
+                                    <i class="fas fa-cloud-arrow-down text-xs"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-800 tracking-tight">Software Updates</h3>
+                                    <p class="text-[10px] text-slate-400 font-medium">Update channel and installations</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3 pt-1">
+                                <!-- Status Display Box -->
+                                <div id="update-status-container" class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center gap-2">
+                                    <i id="update-status-icon" class="fas fa-info-circle text-purple-500 text-xs"></i>
+                                    <p id="update-status-text" class="text-[11px] font-semibold text-slate-700">Ready to check for updates</p>
+                                </div>
+
+                                <!-- Current / Latest details -->
+                                <div class="grid grid-cols-2 gap-3 text-xs">
+                                    <div class="bg-slate-50 p-2 border border-slate-200/50 rounded-lg">
+                                        <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Installed</span>
+                                        <span id="update-current-version" class="font-semibold text-slate-800">1.0.0</span>
+                                    </div>
+                                    <div class="bg-slate-50 p-2 border border-slate-200/50 rounded-lg">
+                                        <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Latest</span>
+                                        <span id="update-latest-version" class="font-semibold text-slate-800">-</span>
+                                    </div>
+                                </div>
+
+                                <!-- Beta Toggle (Refactored Custom Checkbox) -->
+                                <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-semibold text-slate-700">Include pre-releases</span>
+                                        <span class="text-[9px] text-slate-400">Include alpha/beta builds</span>
+                                    </div>
+                                    <label for="allow-prerelease-checkbox" class="relative flex items-center justify-center cursor-pointer select-none">
+                                        <input type="checkbox" id="allow-prerelease-checkbox" class="sr-only peer">
+                                        <div class="w-5 h-5 bg-white border border-slate-300 rounded-md flex items-center justify-center transition-all duration-200 peer-checked:bg-purple-600 peer-checked:border-purple-600 peer-focus-visible:ring-2 peer-focus-visible:ring-purple-500/20">
+                                            <svg class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- Progress bar for update download -->
+                                <div id="update-progress-container" class="hidden space-y-1.5">
+                                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                        <div id="update-progress-bar" class="bg-purple-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                                    </div>
+                                    <p id="update-progress-text" class="text-[10px] font-semibold text-slate-500 text-center">Downloading...</p>
+                                </div>
+
+                                <!-- Update Details info box -->
+                                <div id="update-info" class="hidden bg-purple-50/50 p-3 rounded-lg border border-purple-100/50">
+                                    <span class="text-[10px] font-bold text-purple-800 uppercase tracking-wider block mb-1">Details</span>
+                                    <div id="update-details" class="text-[10px] text-slate-600 space-y-0.5 font-mono"></div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="flex gap-2">
+                                    <button type="button" id="check-updates-button" class="flex-1 py-2 px-3 bg-purple-600 text-white hover:bg-purple-700 text-xs font-semibold rounded-lg active:scale-[0.98] transition shadow-sm cursor-pointer flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-arrows-rotate text-[10px]"></i>
+                                        <span>Check</span>
+                                    </button>
+                                    <button type="button" id="install-update-button" class="hidden flex-1 py-2 px-3 bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold rounded-lg active:scale-[0.98] transition shadow-sm cursor-pointer flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-circle-check text-[10px]"></i>
+                                        <span>Install</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Action Buttons (bottom of stack) -->
-                        <div class="space-y-2 pt-2">
-                            <button type="button" id="check-updates-button"
-                                class="w-full px-5 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <i class="fas fa-cloud-download-alt"></i>
-                                Check for Updates
-                            </button>
-                            <button type="button" id="install-update-button"
-                                class="hidden w-full px-5 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 active:scale-[0.98] transition shadow-sm hover:shadow-emerald-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
-                                <i class="fas fa-rocket"></i>
-                                Restart and Install Update
-                            </button>
+                        <!-- System Logs Section (Enhanced) -->
+                        <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 border border-slate-200/50">
+                                    <i class="fas fa-file-lines text-xs"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-800 tracking-tight">System Logs</h3>
+                                    <p class="text-[10px] text-slate-400 font-medium">Download logs & view metrics</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3 pt-1">
+                                <!-- Log Counts and Details -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="p-3 border border-slate-100 bg-slate-50/50 rounded-lg space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">App Logs</span>
+                                            <span id="log-count-app-size" class="text-[9px] font-semibold text-slate-500">-</span>
+                                        </div>
+                                        <div id="log-count-app" class="text-base font-bold text-slate-750">-</div>
+                                        <span class="block text-[8px] text-slate-400">Total recorded lines</span>
+                                    </div>
+                                    <div class="p-3 border border-slate-100 bg-rose-50/20 rounded-lg space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[9px] font-bold text-rose-500/80 uppercase tracking-wider">Error Logs</span>
+                                            <span id="log-count-error-size" class="text-[9px] font-semibold text-rose-500">-</span>
+                                        </div>
+                                        <div id="log-count-error" class="text-base font-bold text-rose-700">-</div>
+                                        <span class="block text-[8px] text-rose-450">Total recorded lines</span>
+                                    </div>
+                                </div>
+
+                                <!-- Latest Error Summary -->
+                                <div class="border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+                                    <div class="bg-slate-100 px-3 py-1.5 border-b border-slate-200 flex justify-between items-center">
+                                        <span class="text-[9px] font-bold text-gray-500 tracking-wider uppercase">Latest Error Summary</span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                    </div>
+                                    <div class="p-3 max-h-16 overflow-y-auto text-[10px] font-mono text-slate-650 leading-normal break-all" id="log-latest-error-summary">
+                                        No errors recorded
+                                    </div>
+                                </div>
+
+                                <!-- Log Actions -->
+                                <div class="flex gap-2">
+                                    <button type="button" id="download-app-logs-button" class="flex-1 py-2 px-3 bg-slate-50 text-slate-650 hover:bg-slate-100 hover:text-slate-800 border border-slate-200 text-xs font-semibold rounded-lg active:scale-[0.98] transition cursor-pointer flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-download text-[10px] text-slate-400"></i>
+                                        <span>App Logs</span>
+                                    </button>
+                                    <button type="button" id="download-error-logs-button" class="flex-1 py-2 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100/70 border border-rose-200/60 text-xs font-semibold rounded-lg active:scale-[0.98] transition cursor-pointer flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-triangle-exclamation text-[10px]"></i>
+                                        <span>Error Logs</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Database Statistics Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center gap-3.5 mb-2">
-                            <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500 border border-emerald-100/50">
-                                <i class="fas fa-database text-sm"></i>
+                <!-- Reorganized Collapsible Release Notes (Full Width) -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600 border border-purple-100/50">
+                                <i class="fas fa-clipboard-list text-xs"></i>
                             </div>
                             <div>
-                                <h2 class="text-lg font-bold text-slate-800 tracking-tight">Database Statistics</h2>
-                                <p class="text-xs text-slate-400 font-medium">Real-time usage statistics of MongoDB storage</p>
+                                <h3 class="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                                    <span>Release Notes</span>
+                                    <span id="notes-version-badge" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 border border-slate-200 font-semibold font-mono">-</span>
+                                </h3>
+                                <p class="text-[10px] text-slate-400 font-medium">History of features, improvements, and fixes</p>
                             </div>
                         </div>
-                        <div class="space-y-4 pt-2">
-                            <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Database Size</span>
-                                <span id="db-size" class="text-sm font-semibold text-slate-800">-</span>
+                        <span id="notes-date" class="text-xs text-slate-400 font-medium">-</span>
+                    </div>
+
+                    <!-- Collapsible Accordion Groups -->
+                    <div class="space-y-2 pt-1" id="changelog-container-redesign">
+                        <!-- Features Accordion -->
+                        <details class="group border border-slate-100 rounded-lg bg-slate-50/50 [&_summary::-webkit-details-marker]:hidden" open>
+                            <summary class="flex justify-between items-center p-3 font-semibold text-xs text-slate-700 cursor-pointer hover:bg-slate-100/50 transition duration-150 select-none">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                                    <span class="uppercase tracking-wider">Features</span>
+                                </div>
+                                <span class="text-slate-400 group-open:rotate-180 transition-transform duration-200"><i class="fas fa-chevron-down text-[10px]"></i></span>
+                            </summary>
+                            <div class="px-4 pb-3 pt-1 text-xs text-slate-600 border-t border-slate-100 bg-white">
+                                <ul class="space-y-1.5 list-disc pl-4" id="changelog-features-list">
+                                    <li class="text-slate-400 italic">No new features listed.</li>
+                                </ul>
                             </div>
-                            <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Storage Size</span>
-                                <span id="storage-size" class="text-sm font-semibold text-slate-800">-</span>
+                        </details>
+
+                        <!-- Improvements Accordion -->
+                        <details class="group border border-slate-100 rounded-lg bg-slate-50/50 [&_summary::-webkit-details-marker]:hidden" open>
+                            <summary class="flex justify-between items-center p-3 font-semibold text-xs text-slate-700 cursor-pointer hover:bg-slate-100/50 transition duration-150 select-none">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                    <span class="uppercase tracking-wider">Improvements</span>
+                                </div>
+                                <span class="text-slate-400 group-open:rotate-180 transition-transform duration-200"><i class="fas fa-chevron-down text-[10px]"></i></span>
+                            </summary>
+                            <div class="px-4 pb-3 pt-1 text-xs text-slate-600 border-t border-slate-100 bg-white">
+                                <ul class="space-y-1.5 list-disc pl-4" id="changelog-improvements-list">
+                                    <li class="text-slate-400 italic">No improvements listed.</li>
+                                </ul>
                             </div>
-                            <div class="flex justify-between items-center py-2">
-                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Documents</span>
-                                <span id="total-docs" class="text-sm font-semibold text-slate-800">-</span>
+                        </details>
+
+                        <!-- Bug Fixes Accordion -->
+                        <details class="group border border-slate-100 rounded-lg bg-slate-50/50 [&_summary::-webkit-details-marker]:hidden" open>
+                            <summary class="flex justify-between items-center p-3 font-semibold text-xs text-slate-700 cursor-pointer hover:bg-slate-100/50 transition duration-150 select-none">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                                    <span class="uppercase tracking-wider">Bug Fixes</span>
+                                </div>
+                                <span class="text-slate-400 group-open:rotate-180 transition-transform duration-200"><i class="fas fa-chevron-down text-[10px]"></i></span>
+                            </summary>
+                            <div class="px-4 pb-3 pt-1 text-xs text-slate-600 border-t border-slate-100 bg-white">
+                                <ul class="space-y-1.5 list-disc pl-4" id="changelog-bugfixes-list">
+                                    <li class="text-slate-400 italic">No bug fixes listed.</li>
+                                </ul>
                             </div>
-                        </div>
+                        </details>
                     </div>
-                    <div class="pt-2 border-t border-slate-100">
-                        <button type="button" id="refresh-stats-button"
-                            class="w-full px-5 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 active:scale-[0.98] transition shadow-sm hover:shadow-emerald-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
-                            <i class="fas fa-sync-alt"></i>
-                            Refresh Statistics
-                        </button>
-                        <p class="text-[10px] text-slate-400 text-center mt-2 font-medium">Last calculated: Just now</p>
-                    </div>
+
+                    <!-- Fallback default container (kept hidden to prevent JS errors) -->
+                    <div id="changelog-container" class="hidden"></div>
                 </div>
 
-                <!-- Collection Counts Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
-                            <i class="fas fa-table text-sm"></i>
+                <!-- Support Links Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center text-amber-500 border border-amber-100/50">
+                            <i class="fas fa-certificate text-xs"></i>
                         </div>
                         <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Collection Document Counts</h2>
-                            <p class="text-xs text-slate-400 font-medium">Breakdown of the document count stored inside each database collection</p>
+                            <h3 class="text-sm font-bold text-slate-800 tracking-tight">License & Support</h3>
+                            <p class="text-[10px] text-slate-400 font-medium">Copyright details and project support channels</p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2" id="collection-counts">
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-blue-600" id="count-invoices">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Invoices</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-emerald-600" id="count-quotations">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Quotations</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-purple-600" id="count-purchases">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Purchases</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-orange-650" id="count-waybills">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Waybills</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-rose-600" id="count-stock">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Stock Items</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-amber-600" id="count-services">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Services</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-indigo-600" id="count-employees">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Employees</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-pink-605" id="count-attendence">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Attendance</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- System Resources Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center text-orange-500 border border-orange-100/50">
-                            <i class="fas fa-server text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">System Resources</h2>
-                            <p class="text-xs text-slate-400 font-medium">Live resource utilization on the host server</p>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-2">
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Memory</span>
-                            <div id="total-memory" class="text-sm font-semibold text-slate-800">-</div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Free Memory</span>
-                            <div id="free-memory" class="text-sm font-semibold text-slate-800 transition-all duration-300">-</div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Architecture</span>
-                            <div id="arch" class="text-sm font-semibold text-slate-800 capitalize">-</div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Uptime</span>
-                            <div id="uptime" class="text-sm font-semibold text-slate-800 transition-all duration-300">-</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Current Version Changelog Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-teal-50 rounded-lg flex items-center justify-center text-teal-500 border border-teal-100/50">
-                            <i class="fas fa-rocket text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">What's New in This Version</h2>
-                            <p class="text-xs text-slate-400 font-medium">Release notes and update logs for the current version</p>
-                        </div>
-                    </div>
-                    <div id="changelog-container" class="space-y-4 pt-2">
-                        <!-- Current version changelog will be populated dynamically -->
-                        <div class="flex items-center justify-center py-8">
-                            <i class="fas fa-spinner fa-spin text-slate-400 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- License & Support Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-amber-500 border border-amber-100/50">
-                            <i class="fas fa-certificate text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">License & Support</h2>
-                            <p class="text-xs text-slate-400 font-medium">Copyright details and links to documentation and project support channels</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-2">
-                        <p class="text-xs text-slate-500 font-medium leading-relaxed">
-                            <strong>© 2025 Shresht Systems Management System</strong><br>
-                            All rights reserved. This software is open source.
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-1">
+                        <p class="text-xs text-slate-500 font-medium">
+                            <strong>© 2026 Shresht Systems Management System</strong>. All rights reserved. Licensed open source.
                         </p>
-                        <div class="flex flex-wrap gap-6 pt-2">
-                            <a href="javascript:void(0)"
-                                data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System"
-                                class="external-link text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition">
+                        <div class="flex flex-wrap gap-4">
+                            <a href="javascript:void(0)" data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System" class="external-link text-xs font-semibold text-purple-600 hover:text-purple-800 flex items-center gap-1.5 transition">
                                 <i class="fab fa-github"></i>
-                                GitHub Repository
+                                Repository
                             </a>
-                            <a href="javascript:void(0)"
-                                data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System/wiki"
-                                class="external-link text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition">
+                            <a href="javascript:void(0)" data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System/wiki" class="external-link text-xs font-semibold text-purple-600 hover:text-purple-800 flex items-center gap-1.5 transition">
                                 <i class="fas fa-book"></i>
-                                Documentation
+                                Docs
                             </a>
-                            <a href="javascript:void(0)"
-                                data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System/issues"
-                                class="external-link text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition">
+                            <a href="javascript:void(0)" data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System/issues" class="external-link text-xs font-semibold text-purple-600 hover:text-purple-800 flex items-center gap-1.5 transition">
                                 <i class="fas fa-bug"></i>
-                                Report Issue
+                                Issues
                             </a>
                         </div>
                     </div>

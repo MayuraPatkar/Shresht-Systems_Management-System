@@ -109,6 +109,10 @@ class SettingsApi {
         return this.request("/settings/database/stats");
     }
 
+    async getLogsStats(): Promise<{ success: boolean; stats: any }> {
+        return this.request("/settings/logs/stats");
+    }
+
     async exportCompanyInfo(): Promise<{ success: boolean; message?: string }> {
         return this.request("/settings/company-info/export");
     }

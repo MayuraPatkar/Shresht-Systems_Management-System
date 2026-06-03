@@ -524,6 +524,59 @@ router.get("/system-info", asyncHandler(async (req: Request, res: Response) => {
     } catch (error: unknown) { res.status(500).json({ success: false, message: 'Failed to fetch system information', error: (error as Error).message }); }
 }));
 
+router.get("/logs/stats", asyncHandler(async (req: Request, res: Response) => {
+    try {
+        const appLogPath = path.join(process.cwd(), 'logs', 'app.log');
+        const errorLogPath = path.join(process.cwd(), 'logs', 'error.log');
+        
+        let appLogLines = 0;
+        let appLogSize = '0 KB';
+        try {
+            const stats = await fsp.stat(appLogPath);
+            appLogSize = (stats.size / 1024).toFixed(1) + ' KB';
+            if (stats.size > 1024 * 1024) {
+                appLogSize = (stats.size / (1024 * 1024)).toFixed(1) + ' MB';
+            }
+            const content = await fsp.readFile(appLogPath, 'utf8');
+            appLogLines = content.split('\n').filter(line => line.trim()).length;
+        } catch {}
+
+        let errorLogLines = 0;
+        let errorLogSize = '0 KB';
+        let latestError = 'No errors recorded';
+        try {
+            const stats = await fsp.stat(errorLogPath);
+            errorLogSize = (stats.size / 1024).toFixed(1) + ' KB';
+            if (stats.size > 1024 * 1024) {
+                errorLogSize = (stats.size / (1024 * 1024)).toFixed(1) + ' MB';
+            }
+            const content = await fsp.readFile(errorLogPath, 'utf8');
+            const lines = content.split('\n').filter(line => line.trim());
+            errorLogLines = lines.length;
+            if (lines.length > 0) {
+                const lastLine = lines[lines.length - 1];
+                try {
+                    const parsed = JSON.parse(lastLine);
+                    latestError = parsed.message || lastLine;
+                } catch {
+                    latestError = lastLine;
+                }
+            }
+        } catch {}
+
+        res.json({
+            success: true,
+            stats: {
+                app: { lines: appLogLines, size: appLogSize },
+                error: { lines: errorLogLines, size: errorLogSize, latest: latestError }
+            }
+        });
+    } catch (error: unknown) {
+        res.status(500).json({ success: false, message: 'Failed to fetch logs statistics', error: (error as Error).message });
+    }
+}));
+
+
 router.get('/download-logs', async (req: Request, res: Response) => {
     try {
         const logType = (req.query && (req.query.type as string)) || 'app';

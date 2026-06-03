@@ -6,6 +6,8 @@ declare var settingsApi: any;
 
 class SettingsAdmin {
     private originalAdminData: AdminData | null = null;
+    private rawAccountNumber: string = "";
+    private accountMasked: boolean = true;
 
     init(): void {
         // Company info editing and exporting
@@ -13,6 +15,7 @@ class SettingsAdmin {
         document.getElementById("save-company-info-button")?.addEventListener("click", () => this.saveCompanyInfo());
         document.getElementById("cancel-edit-company-button")?.addEventListener("click", () => this.exitEditMode());
         document.getElementById("export-company-info-button")?.addEventListener("click", () => this.exportCompanyDetails());
+        document.getElementById("toggle-account-mask-btn")?.addEventListener("click", () => this.toggleAccountMask());
 
         // Credential management
         document.getElementById("change-username-button")?.addEventListener("click", () => this.handleChangeUsername());
@@ -163,8 +166,8 @@ class SettingsAdmin {
             accountHolderElement.textContent = data.bank_details.account_holder_name;
         }
 
-        const accountNumberEl = document.getElementById("account-number");
-        if (accountNumberEl) accountNumberEl.textContent = data.bank_details.account_number;
+        this.rawAccountNumber = data.bank_details.account_number || "";
+        this.renderAccountNumber();
 
         const ifscCodeEl = document.getElementById("ifsc-code");
         if (ifscCodeEl) ifscCodeEl.textContent = data.bank_details.ifsc_code;
@@ -446,6 +449,35 @@ class SettingsAdmin {
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
             });
+    }
+
+    private toggleAccountMask(): void {
+        this.accountMasked = !this.accountMasked;
+        this.renderAccountNumber();
+    }
+
+    private renderAccountNumber(): void {
+        const accountNumberEl = document.getElementById("account-number");
+        const maskIconEl = document.getElementById("account-mask-icon");
+        if (!accountNumberEl) return;
+
+        if (this.accountMasked) {
+            const raw = this.rawAccountNumber || "";
+            if (raw.length > 4) {
+                const last4 = raw.slice(-4);
+                accountNumberEl.textContent = `•••• •••• ${last4}`;
+            } else {
+                accountNumberEl.textContent = "••••";
+            }
+            if (maskIconEl) {
+                maskIconEl.className = "fas fa-eye text-xs";
+            }
+        } else {
+            accountNumberEl.textContent = this.rawAccountNumber;
+            if (maskIconEl) {
+                maskIconEl.className = "fas fa-eye-slash text-xs";
+            }
+        }
     }
 }
 

@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Load initial data
     settingsAdmin.fetchAdminInfo();
     settingsBackup.checkBackupToolsStatus();
+    settingsSystem.loadSystemInfo();
+    settingsSystem.loadDatabaseStats();
 
     // Set up navigation event listeners
     
