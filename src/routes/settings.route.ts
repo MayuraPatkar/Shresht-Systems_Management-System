@@ -359,15 +359,31 @@ router.patch('/preferences/cloudinary', asyncHandler(async (req: Request, res: R
         settings.cloudinary.cloudName = cloudName;
         settings.cloudinary.apiKey = apiKey;
         settings.cloudinary.configured = true;
-        const secret = process.env.SESSION_SECRET || 'unsafe-default-secret-change-in-production';
-        const iv = crypto.randomBytes(16);
-        const cipher = crypto.createCipheriv('aes-256-cbc', crypto.createHash('sha256').update(secret).digest(), iv);
-        const encrypted = Buffer.concat([cipher.update(apiSecret, 'utf8'), cipher.final()]);
-        settings.cloudinary.apiSecretEncrypted = iv.toString('hex') + ':' + encrypted.toString('hex');
+
+        if (apiSecret !== '••••••••••••••••') {
+            const secret = process.env.SESSION_SECRET || 'unsafe-default-secret-change-in-production';
+            const iv = crypto.randomBytes(16);
+            const cipher = crypto.createCipheriv('aes-256-cbc', crypto.createHash('sha256').update(secret).digest(), iv);
+            const encrypted = Buffer.concat([cipher.update(apiSecret, 'utf8'), cipher.final()]);
+            settings.cloudinary.apiSecretEncrypted = iv.toString('hex') + ':' + encrypted.toString('hex');
+            process.env.CLOUDINARY_API_SECRET = apiSecret;
+        } else if (settings.cloudinary.apiSecretEncrypted) {
+            const secret = process.env.SESSION_SECRET || 'unsafe-default-secret-change-in-production';
+            const [ivHex, dataHex] = settings.cloudinary.apiSecretEncrypted.split(":");
+            const iv = Buffer.from(ivHex, "hex");
+            const encrypted = Buffer.from(dataHex, "hex");
+            const decipher = crypto.createDecipheriv(
+                "aes-256-cbc",
+                crypto.createHash("sha256").update(secret).digest(),
+                iv
+            );
+            const decryptedSecret = Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
+            process.env.CLOUDINARY_API_SECRET = decryptedSecret;
+        }
+
         await settings.save();
         process.env.CLOUDINARY_CLOUD_NAME = cloudName;
         process.env.CLOUDINARY_API_KEY = apiKey;
-        process.env.CLOUDINARY_API_SECRET = apiSecret;
         return res.json({ success: true, message: 'Cloudinary settings saved successfully' });
     } catch (error: unknown) { return res.status(500).json({ success: false, message: 'Failed to update Cloudinary settings', error: (error as Error).message }); }
 }));
@@ -382,6 +398,37 @@ router.put("/company-info", asyncHandler(async (req: Request, res: Response) => 
         await admin.save();
         res.json({ success: true, message: 'Company information updated successfully', admin });
     } catch (error: unknown) { res.status(500).json({ success: false, message: 'Failed to update company information', error: (error as Error).message }); }
+}));
+
+router.get("/company-info/export", asyncHandler(async (req: Request, res: Response) => {
+    try {
+        const admin = await AdminModel.findOne() as any;
+        if (!admin) return res.status(404).json({ success: false, message: 'Company information not found' });
+        const timestamp = new Date().toISOString().split("T")[0];
+        const result = await showDialog('show-save-dialog', {
+            title: "Export Company Details",
+            defaultPath: `company-details-${timestamp}.json`,
+            filters: [{ name: "JSON Files", extensions: ["json"] }]
+        });
+        if (result.canceled) { return res.json({ success: true, message: "Export cancelled by user" }); }
+        const filePath = result.filePath;
+        if (!filePath || typeof filePath !== 'string') throw new Error('Invalid file path selected');
+        await fsp.mkdir(path.dirname(filePath), { recursive: true });
+        const exportData = {
+            company_name: admin.company_name,
+            address: admin.address,
+            phone: admin.phone,
+            email: admin.email,
+            website: admin.website,
+            gstin: admin.gstin,
+            bank_details: admin.bank_details
+        };
+        await fsp.writeFile(filePath, JSON.stringify(exportData, null, 2), 'utf8');
+        return res.json({ success: true, message: `Successfully exported company details to ${path.basename(filePath)}` });
+    } catch (error: unknown) {
+        logger.error("Company details export error", { service: "settings", error: (error as Error).message });
+        return res.status(500).json({ success: false, message: "Export failed", error: (error as Error).message });
+    }
 }));
 
 router.get("/database/stats", asyncHandler(async (req: Request, res: Response) => {

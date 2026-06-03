@@ -11,6 +11,37 @@ class SettingsBackup {
         document.getElementById("restore-database-button")?.addEventListener("click", () => this.handleRestoreDatabase());
         document.getElementById("manual-backup-button")?.addEventListener("click", () => this.handleManualBackup());
         document.getElementById("manual-backup-open-folder")?.addEventListener("click", () => this.handleOpenBackupFolder());
+        document.getElementById("status-backup-shortcut-button")?.addEventListener("click", () => this.handleManualBackup());
+
+        // Custom File Upload Visuals
+        const collFileInput = document.getElementById("restore-collection-file") as HTMLInputElement;
+        const collFileName = document.getElementById("restore-collection-file-name");
+        collFileInput?.addEventListener("change", () => {
+            if (collFileInput.files && collFileInput.files.length > 0) {
+                if (collFileName) collFileName.textContent = collFileInput.files[0].name;
+            } else {
+                if (collFileName) collFileName.textContent = "No file selected";
+            }
+        });
+
+        const dbFileInput = document.getElementById("restore-database-file") as HTMLInputElement;
+        const dbFileName = document.getElementById("restore-database-file-name");
+        const dbRestoreButton = document.getElementById("restore-database-button") as HTMLButtonElement;
+        dbFileInput?.addEventListener("change", () => {
+            if (dbFileInput.files && dbFileInput.files.length > 0) {
+                if (dbFileName) dbFileName.textContent = dbFileInput.files[0].name;
+                if (dbRestoreButton) {
+                    dbRestoreButton.disabled = false;
+                    dbRestoreButton.classList.remove("opacity-50", "pointer-events-none");
+                }
+            } else {
+                if (dbFileName) dbFileName.textContent = "No file selected";
+                if (dbRestoreButton) {
+                    dbRestoreButton.disabled = true;
+                    dbRestoreButton.classList.add("opacity-50", "pointer-events-none");
+                }
+            }
+        });
 
         // Load initial status
         this.loadLastBackupStatus();
@@ -38,12 +69,20 @@ class SettingsBackup {
                 if (data.success && data.settings) {
                     const s = data.settings;
                     const statusElement = document.getElementById("backup-status");
+                    const shortcutBtn = document.getElementById("status-backup-shortcut-button");
 
-                    if (statusElement && s.backup?.last_backup) {
-                        const lastBackupDate = new Date(s.backup.last_backup);
-                        if (!isNaN(lastBackupDate.getTime())) {
-                            statusElement.innerHTML = `Last backup: <span class="font-semibold">${lastBackupDate.toLocaleString()}</span>`;
-                            statusElement.className = "text-green-700 font-medium";
+                    if (statusElement) {
+                        if (s.backup?.last_backup) {
+                            const lastBackupDate = new Date(s.backup.last_backup);
+                            if (!isNaN(lastBackupDate.getTime())) {
+                                statusElement.innerHTML = `Last backup: <span class="font-semibold">${lastBackupDate.toLocaleString()}</span>`;
+                                statusElement.className = "text-green-700 font-medium";
+                                if (shortcutBtn) shortcutBtn.classList.add("hidden");
+                            }
+                        } else {
+                            statusElement.textContent = "No backup performed yet.";
+                            statusElement.className = "text-slate-700 font-semibold text-sm";
+                            if (shortcutBtn) shortcutBtn.classList.remove("hidden");
                         }
                     }
                 }
@@ -54,31 +93,43 @@ class SettingsBackup {
     }
 
     private handleExportData(): void {
-        const selectedElement = document.querySelector('input[name="export-data"]:checked') as HTMLInputElement;
+        const checkedElements = Array.from(document.querySelectorAll('input[name="export-data"]:checked')) as HTMLInputElement[];
         const exportButton = document.getElementById("export-data-button") as HTMLButtonElement;
 
-        if (!selectedElement) {
-            (window as any).electronAPI.showAlert1("Please select a data type to export.");
+        if (checkedElements.length === 0) {
+            (window as any).electronAPI.showAlert1("Please select at least one data type to export.");
             return;
         }
 
-        const selected = selectedElement.value;
         const originalContent = exportButton.innerHTML;
         exportButton.disabled = true;
         exportButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
 
-        settingsApi.exportData(selected)
-            .then((data: { success: boolean; message?: string; fileSize?: number }) => {
-                if (data.success) {
-                    if (data.message && !data.message.includes('cancelled') && !data.message.includes('No data found')) {
-                        let msg = data.message;
-                        if (data.fileSize) {
-                            msg += ` (${(data.fileSize / 1024).toFixed(2)} KB)`;
-                        }
-                        (window as any).electronAPI.showAlert1(msg);
-                    }
-                } else {
-                    (window as any).electronAPI.showAlert1(`Export failed: ${data.message}`);
+        const promises = checkedElements.map(el => {
+            return settingsApi.exportData(el.value)
+                .then((data: { success: boolean; message?: string; fileSize?: number }) => {
+                    return { name: el.value, success: data.success, message: data.message || '', fileSize: data.fileSize || 0 };
+                })
+                .catch((err: any) => {
+                    return { name: el.value, success: false, message: err.message, fileSize: 0 };
+                });
+        });
+
+        Promise.all(promises)
+            .then(results => {
+                const successExports = results.filter(r => r.success);
+                const failedExports = results.filter(r => !r.success);
+
+                let alertMsg = "";
+                if (successExports.length > 0) {
+                    alertMsg += `Exported: ${successExports.map(s => `${s.name} (${(s.fileSize / 1024).toFixed(2)} KB)`).join(', ')}. `;
+                }
+                if (failedExports.length > 0) {
+                    alertMsg += `Failed: ${failedExports.map(f => `${f.name}: ${f.message}`).join(', ')}.`;
+                }
+
+                if (alertMsg) {
+                    (window as any).electronAPI.showAlert1(alertMsg);
                 }
             })
             .catch((err: any) => {

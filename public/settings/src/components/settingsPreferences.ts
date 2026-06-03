@@ -29,6 +29,21 @@ class SettingsPreferences {
         if (autoBackupCheckbox) {
             autoBackupCheckbox.addEventListener("change", () => this.updateAutoBackupFieldsState());
         }
+
+        // Add clearing behavior for masked values on focus or input
+        const maskFields = ['whatsapp-token', 'cloudinary-api-secret'];
+        maskFields.forEach(id => {
+            const input = document.getElementById(id) as HTMLInputElement;
+            if (input) {
+                const clearIfMasked = () => {
+                    if (input.value === '••••••••••••••••') {
+                        input.value = '';
+                    }
+                };
+                input.addEventListener('focus', clearIfMasked);
+                input.addEventListener('input', clearIfMasked);
+            }
+        });
     }
 
     private updateAutoBackupFieldsState(): void {
@@ -229,18 +244,26 @@ class SettingsPreferences {
                         phoneNumberIdInput.value = wa.phoneNumberId;
                     }
 
+                    const tokenInput = document.getElementById('whatsapp-token') as HTMLInputElement;
+
                     if (wa.phoneNumberId && wa.storedTokenReference) {
                         statusEl.innerHTML = `
                             <i class="fas fa-check-circle text-green-500 text-sm"></i>
                             <span class="text-green-700 font-medium">WhatsApp API Configured</span>
                         `;
                         statusEl.className = 'flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200';
+                        if (tokenInput) {
+                            tokenInput.value = '••••••••••••••••';
+                        }
                     } else {
                         statusEl.innerHTML = `
                             <i class="fas fa-exclamation-circle text-yellow-500 text-sm"></i>
                             <span class="text-yellow-700 font-medium">Not Configured - Enter credentials below</span>
                         `;
                         statusEl.className = 'flex items-center gap-2 p-3 rounded-lg bg-yellow-50 border border-yellow-200';
+                        if (tokenInput) {
+                            tokenInput.value = '';
+                        }
                     }
                 }
             })
@@ -267,6 +290,7 @@ class SettingsPreferences {
                     const cl = data.settings.cloudinary;
                     const cloudNameInput = document.getElementById('cloudinary-cloud-name') as HTMLInputElement;
                     const apiKeyInput = document.getElementById('cloudinary-api-key') as HTMLInputElement;
+                    const secretInput = document.getElementById('cloudinary-api-secret') as HTMLInputElement;
 
                     const cloudName = cl.cloudName || (cl as any).cloud_name || "";
                     const apiKey = cl.apiKey || (cl as any).api_key || "";
@@ -281,12 +305,18 @@ class SettingsPreferences {
                             <span class="text-green-700 font-medium">Cloudinary Configured</span>
                         `;
                         statusEl.className = 'flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200 mb-4';
+                        if (secretInput) {
+                            secretInput.value = '••••••••••••••••';
+                        }
                     } else {
                         statusEl.innerHTML = `
                             <i class="fas fa-exclamation-circle text-yellow-500 text-sm"></i>
                             <span class="text-yellow-700 font-medium">Not Configured - Enter credentials below</span>
                         `;
                         statusEl.className = 'flex items-center gap-2 p-3 rounded-lg bg-yellow-50 border border-yellow-200 mb-4';
+                        if (secretInput) {
+                            secretInput.value = '';
+                        }
                     }
                 }
             })
@@ -323,7 +353,7 @@ class SettingsPreferences {
         const savePhoneId = settingsApi.updateWhatsAppPreferences({ phoneNumberId, enabled: true });
 
         let saveToken = Promise.resolve<{ success: boolean; message?: string }>({ success: true });
-        if (token) {
+        if (token && token !== '••••••••••••••••') {
             saveToken = settingsApi.saveWhatsAppToken(token);
         }
 
@@ -331,8 +361,6 @@ class SettingsPreferences {
             .then(([phoneRes, tokenRes]) => {
                 if (phoneRes.success && tokenRes.success) {
                     (window as any).electronAPI.showAlert1('WhatsApp settings saved successfully!');
-                    const tokenInput = document.getElementById('whatsapp-token') as HTMLInputElement;
-                    if (tokenInput) tokenInput.value = '';
                     this.loadWhatsAppStatus();
                 } else {
                     const errors = [];
@@ -373,8 +401,6 @@ class SettingsPreferences {
             .then((data: { success: boolean; message?: string }) => {
                 if (data.success) {
                     (window as any).electronAPI.showAlert1('Cloudinary settings saved successfully!');
-                    const secretInput = document.getElementById('cloudinary-api-secret') as HTMLInputElement;
-                    if (secretInput) secretInput.value = '';
                     this.loadCloudinaryStatus();
                 } else {
                     (window as any).electronAPI.showAlert1(`Failed to save: ${data.message}`);

@@ -91,8 +91,8 @@
             <div class="flex items-center gap-2 overflow-x-auto">
                 <button id="admin-info-button"
                     class="flex items-center gap-2 px-3.5 py-2 text-sm text-white bg-indigo-600 rounded-lg font-medium shadow-sm border border-indigo-600 transition-all cursor-pointer whitespace-nowrap">
-                    <i class="fas fa-user-shield"></i>
-                    <span>Company Info</span>
+                    <i class="fas fa-cubes"></i>
+                    <span>System & Organization</span>
                 </button>
                 <button id="preferences-button"
                     class="flex items-center gap-2 px-3.5 py-2 text-sm text-slate-500 bg-transparent rounded-lg hover:bg-slate-100 hover:text-slate-800 font-medium border border-transparent transition-all cursor-pointer whitespace-nowrap">
@@ -104,7 +104,7 @@
                     <i class="fas fa-shield-alt"></i>
                     <span>Security</span>
                 </button>
-
+ 
                 <button id="data-control-button"
                     class="flex items-center gap-2 px-3.5 py-2 text-sm text-slate-500 bg-transparent rounded-lg hover:bg-slate-100 hover:text-slate-800 font-medium border border-transparent transition-all cursor-pointer whitespace-nowrap">
                     <i class="fas fa-database"></i>
@@ -114,11 +114,6 @@
                     class="flex items-center gap-2 px-3.5 py-2 text-sm text-slate-500 bg-transparent rounded-lg hover:bg-slate-100 hover:text-slate-800 font-medium border border-transparent transition-all cursor-pointer whitespace-nowrap">
                     <i class="fas fa-link"></i>
                     <span>Integrations</span>
-                </button>
-                <button id="about-button"
-                    class="flex items-center gap-2 px-3.5 py-2 text-sm text-slate-500 bg-transparent rounded-lg hover:bg-slate-100 hover:text-slate-800 font-medium border border-transparent transition-all cursor-pointer whitespace-nowrap">
-                    <i class="fas fa-info-circle"></i>
-                    <span>About</span>
                 </button>
                 <button id="logout-button"
                     class="flex items-center gap-2 px-3.5 py-2 text-sm text-rose-600 bg-transparent rounded-lg hover:bg-rose-50 hover:text-rose-700 font-medium border border-transparent transition-all cursor-pointer whitespace-nowrap">
@@ -230,7 +225,7 @@
                 <!-- Action Buttons -->
                 <div class="flex items-center gap-3">
                     <!-- Secondary visual actions -->
-                    <button type="button" class="hidden sm:flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition cursor-pointer">
+                    <button id="export-company-info-button" type="button" class="hidden sm:flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition cursor-pointer">
                         <i class="fas fa-file-export text-slate-400"></i>
                         <span>Export Details</span>
                     </button>
@@ -347,13 +342,29 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div class="md:col-span-2">
                                 <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Company Name</label>
-                                <input type="text" id="edit-company"
+                                <input type="text" id="edit-company" readonly
+                                    class="w-full px-4 py-3 text-sm bg-slate-100 border border-slate-200 rounded-lg focus:outline-none cursor-not-allowed opacity-60 font-semibold text-slate-500">
+                                <p class="text-[10px] text-slate-400 mt-1">Company name is locked to business registration and cannot be modified.</p>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Address Line 1</label>
+                                <input type="text" id="edit-address-line1"
                                     class="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-150">
                             </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Street Address</label>
-                                <textarea id="edit-address" rows="3"
-                                    class="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-150"></textarea>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Address Line 2</label>
+                                <input type="text" id="edit-address-line2"
+                                    class="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-150">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">City</label>
+                                <input type="text" id="edit-address-city"
+                                    class="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-150">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Pincode</label>
+                                <input type="text" id="edit-address-pincode"
+                                    class="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-150">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-widest">State / Region</label>
@@ -487,6 +498,319 @@
                     </div>
                 </div>
             </div>
+
+            <!-- System Diagnostics Divider & Header -->
+            <hr class="border-slate-200/80 my-10">
+            
+            <div class="pb-6">
+                <h2 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
+                    <i class="fas fa-server text-indigo-600 text-lg"></i>
+                    <span>System Diagnostics & Status</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-1">Monitor server health, resources, logs, database stats, and system update channels</p>
+            </div>
+
+            <!-- Diagnostics Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Application Info Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
+                    <div class="flex items-center gap-3.5 mb-2">
+                        <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500 border border-blue-100/50">
+                            <i class="fas fa-info-circle text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Application Information</h2>
+                            <p class="text-xs text-slate-400 font-medium">Details and metadata about the running software release</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4 pt-2">
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Application Name</span>
+                            <span id="app-name" class="text-sm font-semibold text-slate-800">Shresht Systems Management</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Version</span>
+                            <span id="app-version" class="text-sm font-semibold bg-slate-100 px-2 py-0.5 rounded text-slate-800">1.0.0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Node Version</span>
+                            <span id="node-version" class="font-mono text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded">-</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Platform</span>
+                            <span id="platform" class="text-sm font-semibold text-slate-800 capitalize">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Logs Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
+                    <div class="flex items-center gap-3.5 mb-2">
+                        <div class="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 border border-slate-200/50">
+                            <i class="fas fa-file-alt text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">System Logs</h2>
+                            <p class="text-xs text-slate-400 font-medium">Download system diagnostics and error log files</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4 pt-2">
+                        <p class="text-xs text-slate-500 font-medium leading-relaxed">
+                            Download system logs for troubleshooting and debugging purposes.
+                        </p>
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" id="download-app-logs-button"
+                                class="flex-1 px-5 py-2.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-semibold hover:bg-slate-200 active:scale-[0.98] transition text-xs cursor-pointer flex items-center justify-center gap-2">
+                                <i class="fas fa-download"></i>
+                                App Logs
+                            </button>
+                            <button type="button" id="download-error-logs-button"
+                                class="flex-1 px-5 py-2.5 bg-rose-50 hover:bg-rose-100/70 text-rose-600 border border-rose-200/60 rounded-lg font-semibold active:scale-[0.98] transition text-xs cursor-pointer flex items-center justify-center gap-2">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Error Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Update Check Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
+                    <div class="flex items-center gap-3.5 mb-2">
+                        <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
+                            <i class="fas fa-sync-alt text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Software Updates</h2>
+                            <p class="text-xs text-slate-400 font-medium">Check for and install system updates</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4 pt-2">
+                        <!-- Update Status Display (top) -->
+                        <div id="update-status-container" class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <div class="flex items-center gap-2.5">
+                                <i id="update-status-icon" class="fas fa-info-circle text-purple-500"></i>
+                                <p id="update-status-text" class="text-xs font-semibold text-slate-700">Ready to check for updates</p>
+                            </div>
+                        </div>
+
+                        <!-- Pre-release Option (underneath status box) -->
+                        <div class="flex items-center gap-2.5 p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+                            <input type="checkbox" id="allow-prerelease-checkbox"
+                                class="w-4 h-4 text-purple-600 focus:ring-purple-500/20 border-slate-350 rounded transition">
+                            <label for="allow-prerelease-checkbox" class="text-xs font-semibold text-slate-700 cursor-pointer">
+                                Include pre-release versions (beta/alpha)
+                            </label>
+                        </div>
+                        <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+                            <i class="fas fa-info-circle text-slate-400"></i>
+                            <span>Pre-release versions may contain bugs and are intended for testing purposes.</span>
+                        </p>
+
+                        <!-- Download Progress Bar (hidden by default) -->
+                        <div id="update-progress-container" class="hidden space-y-2">
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div id="update-progress-bar"
+                                    class="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                                    style="width: 0%"></div>
+                            </div>
+                            <p id="update-progress-text" class="text-xs font-semibold text-slate-505 text-center">Downloading...</p>
+                        </div>
+
+                        <!-- Update Info Details (hidden by default) -->
+                        <div id="update-info" class="hidden bg-purple-50/50 p-4 rounded-lg border border-purple-100/50">
+                            <p class="text-xs text-purple-800 font-bold mb-2">Update Details:</p>
+                            <div id="update-details" class="text-xs text-slate-650 space-y-1 font-medium font-mono"></div>
+                        </div>
+
+                        <!-- Action Buttons (bottom of stack) -->
+                        <div class="space-y-2 pt-2">
+                            <button type="button" id="check-updates-button"
+                                class="w-full px-5 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-cloud-download-alt"></i>
+                                Check for Updates
+                            </button>
+                            <button type="button" id="install-update-button"
+                                class="hidden w-full px-5 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 active:scale-[0.98] transition shadow-sm hover:shadow-emerald-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
+                                <i class="fas fa-rocket"></i>
+                                Restart and Install Update
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Statistics Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3.5 mb-2">
+                            <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500 border border-emerald-100/50">
+                                <i class="fas fa-database text-sm"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-800 tracking-tight">Database Statistics</h2>
+                                <p class="text-xs text-slate-400 font-medium">Real-time usage statistics of MongoDB storage</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4 pt-2">
+                            <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Database Size</span>
+                                <span id="db-size" class="text-sm font-semibold text-slate-800">-</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Storage Size</span>
+                                <span id="storage-size" class="text-sm font-semibold text-slate-800">-</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Documents</span>
+                                <span id="total-docs" class="text-sm font-semibold text-slate-800">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-slate-100">
+                        <button type="button" id="refresh-stats-button"
+                            class="w-full px-5 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 active:scale-[0.98] transition shadow-sm hover:shadow-emerald-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh Statistics
+                        </button>
+                        <p class="text-[10px] text-slate-400 text-center mt-2 font-medium">Last calculated: Just now</p>
+                    </div>
+                </div>
+
+                <!-- Collection Counts Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
+                    <div class="flex items-center gap-3.5 mb-2">
+                        <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
+                            <i class="fas fa-table text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Collection Document Counts</h2>
+                            <p class="text-xs text-slate-400 font-medium">Breakdown of the document count stored inside each database collection</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2" id="collection-counts">
+                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
+                            <div class="text-xl font-extrabold text-blue-600" id="count-invoices">-</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Invoices</div>
+                        </div>
+                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
+                            <div class="text-xl font-extrabold text-emerald-600" id="count-quotations">-</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Quotations</div>
+                        </div>
+                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
+                            <div class="text-xl font-extrabold text-purple-600" id="count-purchases">-</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Purchases</div>
+                        </div>
+                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
+                            <div class="text-xl font-extrabold text-orange-650" id="count-waybills">-</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Waybills</div>
+                        </div>
+                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
+                            <div class="text-xl font-extrabold text-rose-600" id="count-stock">-</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Stock Items</div>
+                        </div>
+                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
+                            <div class="text-xl font-extrabold text-amber-600" id="count-services">-</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Services</div>
+                        </div>
+                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
+                            <div class="text-xl font-extrabold text-indigo-600" id="count-employees">-</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Employees</div>
+                        </div>
+                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
+                            <div class="text-xl font-extrabold text-pink-605" id="count-attendence">-</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Attendance</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Resources Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
+                    <div class="flex items-center gap-3.5 mb-2">
+                        <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center text-orange-500 border border-orange-100/50">
+                            <i class="fas fa-server text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">System Resources</h2>
+                            <p class="text-xs text-slate-400 font-medium">Live resource utilization on the host server</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-2">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Memory</span>
+                            <div id="total-memory" class="text-sm font-semibold text-slate-800">-</div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Free Memory</span>
+                            <div id="free-memory" class="text-sm font-semibold text-slate-800 transition-all duration-300">-</div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Architecture</span>
+                            <div id="arch" class="text-sm font-semibold text-slate-800 capitalize">-</div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Uptime</span>
+                            <div id="uptime" class="text-sm font-semibold text-slate-800 transition-all duration-300">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Version Changelog Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
+                    <div class="flex items-center gap-3.5 mb-2">
+                        <div class="w-9 h-9 bg-teal-50 rounded-lg flex items-center justify-center text-teal-500 border border-teal-100/50">
+                            <i class="fas fa-rocket text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">What's New in This Version</h2>
+                            <p class="text-xs text-slate-400 font-medium">Release notes and update logs for the current version</p>
+                        </div>
+                    </div>
+                    <div id="changelog-container" class="space-y-4 pt-2">
+                        <!-- Current version changelog will be populated dynamically -->
+                        <div class="flex items-center justify-center py-8">
+                            <i class="fas fa-spinner fa-spin text-slate-400 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- License & Support Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
+                    <div class="flex items-center gap-3.5 mb-2">
+                        <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-amber-500 border border-amber-100/50">
+                            <i class="fas fa-certificate text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">License & Support</h2>
+                            <p class="text-xs text-slate-400 font-medium">Copyright details and links to documentation and project support channels</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4 pt-2">
+                        <p class="text-xs text-slate-500 font-medium leading-relaxed">
+                            <strong>© 2025 Shresht Systems Management System</strong><br>
+                            All rights reserved. This software is open source.
+                        </p>
+                        <div class="flex flex-wrap gap-6 pt-2">
+                            <a href="javascript:void(0)"
+                                data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System"
+                                class="external-link text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition">
+                                <i class="fab fa-github"></i>
+                                GitHub Repository
+                            </a>
+                            <a href="javascript:void(0)"
+                                data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System/wiki"
+                                class="external-link text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition">
+                                <i class="fas fa-book"></i>
+                                Documentation
+                            </a>
+                            <a href="javascript:void(0)"
+                                data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System/issues"
+                                class="external-link text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition">
+                                <i class="fas fa-bug"></i>
+                                Report Issue
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
 
@@ -503,9 +827,15 @@
                         <p class="text-xs text-slate-400 font-medium">Current status of the system databases backups</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-3 bg-blue-50/50 p-4 rounded-lg border border-blue-100/50">
-                    <i class="fas fa-clock text-blue-500 text-lg"></i>
-                    <p id="backup-status" class="text-slate-700 font-semibold text-sm">No backup performed yet.</p>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-blue-50/50 p-5 rounded-xl border border-blue-100/50">
+                    <div class="flex items-center gap-3.5">
+                        <i class="fas fa-clock text-blue-500 text-lg"></i>
+                        <p id="backup-status" class="text-slate-700 font-semibold text-sm">No backup performed yet.</p>
+                    </div>
+                    <button type="button" id="status-backup-shortcut-button" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition active:scale-[0.98] cursor-pointer flex items-center gap-1.5 shadow-sm shadow-blue-500/10 shrink-0">
+                        <i class="fas fa-play text-[9px]"></i>
+                        <span>Trigger Backup Now</span>
+                    </button>
                 </div>
             </div>
 
@@ -553,27 +883,27 @@
                     </div>
                 </div>
                 <div class="space-y-4">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Select the data you want to export:</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Select the data you want to export (multi-select enabled):</p>
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
                         <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
-                            <input type="radio" name="export-data" value="quotations" checked class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded">
-                            <span class="text-xs font-semibold text-slate-700">Quotation</span>
+                            <input type="checkbox" name="export-data" value="quotations" checked class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded transition cursor-pointer">
+                            <span class="text-xs font-semibold text-slate-700 select-none">Quotation</span>
                         </label>
                         <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
-                            <input type="radio" name="export-data" value="purchases" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded">
-                            <span class="text-xs font-semibold text-slate-700">Purchase Order</span>
+                            <input type="checkbox" name="export-data" value="purchases" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded transition cursor-pointer">
+                            <span class="text-xs font-semibold text-slate-700 select-none">Purchase Order</span>
                         </label>
                         <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
-                            <input type="radio" name="export-data" value="ewaybills" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded">
-                            <span class="text-xs font-semibold text-slate-700">E-Way Bill</span>
+                            <input type="checkbox" name="export-data" value="ewaybills" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded transition cursor-pointer">
+                            <span class="text-xs font-semibold text-slate-700 select-none">E-Way Bill</span>
                         </label>
                         <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
-                            <input type="radio" name="export-data" value="invoices" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded">
-                            <span class="text-xs font-semibold text-slate-700">Invoice</span>
+                            <input type="checkbox" name="export-data" value="invoices" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded transition cursor-pointer">
+                            <span class="text-xs font-semibold text-slate-700 select-none">Invoice</span>
                         </label>
                         <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
-                            <input type="radio" name="export-data" value="stocks" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded">
-                            <span class="text-xs font-semibold text-slate-700">Stock</span>
+                            <input type="checkbox" name="export-data" value="stocks" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded transition cursor-pointer">
+                            <span class="text-xs font-semibold text-slate-700 select-none">Stock</span>
                         </label>
                     </div>
                     <div class="pt-2">
@@ -587,80 +917,101 @@
             </div>
 
             <!-- Restore Options -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
                 <!-- Restore Collection Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center text-orange-500 border border-orange-100/50">
-                            <i class="fas fa-upload text-sm"></i>
+                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="flex items-center gap-3.5 mb-6">
+                            <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center text-orange-500 border border-orange-100/50">
+                                <i class="fas fa-upload text-sm"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-800 tracking-tight">Restore Collection</h2>
+                                <p class="text-xs text-slate-400 font-medium">Import data directly back into specific database collections</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Restore Collection</h2>
-                            <p class="text-xs text-slate-400 font-medium">Import data directly back into specific database collections</p>
+                        <div class="space-y-5 pt-2">
+                            <div class="flex flex-col gap-1.5">
+                                <label for="collection-select" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Choose Collection</label>
+                                <select id="collection-select"
+                                    class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition duration-150 font-medium text-slate-800">
+                                    <option selected>Choose collection</option>
+                                    <option value="quotations">Quotations</option>
+                                    <option value="invoices">Invoices</option>
+                                    <option value="purchases">Purchase Orders</option>
+                                    <option value="ewaybills">E-Way Bills</option>
+                                    <option value="stocks">Stocks</option>
+                                    <option value="services">Services</option>
+                                    <option value="employees">Employees</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Backup File</label>
+                                <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg p-2">
+                                    <label class="cursor-pointer px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-md text-xs font-bold flex items-center gap-2 transition active:scale-[0.98] shrink-0 shadow-sm">
+                                        <i class="fas fa-folder-open text-slate-400"></i>
+                                        <span>Choose File</span>
+                                        <input type="file" id="restore-collection-file" accept=".gz,.zip,.json,.bson" class="hidden">
+                                    </label>
+                                    <span id="restore-collection-file-name" class="text-xs text-slate-500 font-medium italic truncate max-w-[220px]">No file selected</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="space-y-4 pt-2">
-                        <div class="flex flex-col gap-1.5">
-                            <label for="collection-select" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Choose Collection</label>
-                            <select id="collection-select"
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition duration-150 font-medium text-slate-800">
-                                <option selected>Choose collection</option>
-                                <option value="quotations">Quotations</option>
-                                <option value="invoices">Invoices</option>
-                                <option value="purchases">Purchase Orders</option>
-                                <option value="ewaybills">E-Way Bills</option>
-                                <option value="stocks">Stocks</option>
-                                <option value="services">Services</option>
-                                <option value="employees">Employees</option>
-                            </select>
-                        </div>
-                        <div class="flex flex-col gap-1.5">
-                            <label for="restore-collection-file" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Backup File</label>
-                            <input type="file" id="restore-collection-file" accept=".gz,.zip,.json,.bson"
-                                class="w-full px-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 transition duration-150 font-medium text-slate-800">
-                        </div>
-                        <div class="pt-2">
-                            <button type="button" id="restore-collection-button"
-                                class="w-full px-5 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 active:scale-[0.98] transition shadow-sm hover:shadow-orange-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
-                                <i class="fas fa-redo"></i>
-                                Restore Collection
-                            </button>
-                        </div>
+                    <div class="pt-6 border-t border-slate-100">
+                        <button type="button" id="restore-collection-button"
+                            class="w-full px-5 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 active:scale-[0.98] transition shadow-sm hover:shadow-orange-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
+                            <i class="fas fa-redo"></i>
+                            Restore Collection
+                        </button>
                     </div>
                 </div>
 
                 <!-- Restore Database Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center text-red-500 border border-red-100/50">
-                            <i class="fas fa-database text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Restore Database</h2>
-                            <p class="text-xs text-slate-400 font-medium">Completely restore the entire system database from a previous dump</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-2">
-                        <div class="flex flex-col gap-1.5">
-                            <label for="restore-database-file" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Database Backup</label>
-                            <input type="file" id="restore-database-file" accept=".gz,.zip,.json,.bson"
-                                class="w-full px-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 transition duration-150 font-medium text-slate-800">
-                        </div>
-                        <div class="bg-rose-50/50 p-4 rounded-lg border border-rose-100/50">
-                            <div class="flex items-start gap-2.5">
-                                <i class="fas fa-exclamation-triangle text-rose-500 mt-0.5 text-sm"></i>
-                                <p class="text-xs text-rose-700 font-medium leading-relaxed">
-                                    <strong>Warning:</strong> Restoring the database will replace all existing data. Make sure you have a backup before proceeding.
-                                </p>
+                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="flex items-center gap-3.5 mb-6">
+                            <div class="w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center text-red-500 border border-red-100/50">
+                                <i class="fas fa-database text-sm"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-800 tracking-tight">Restore Database</h2>
+                                <p class="text-xs text-slate-400 font-medium">Completely restore the entire system database from a previous dump</p>
                             </div>
                         </div>
-                        <div class="pt-2">
-                            <button type="button" id="restore-database-button"
-                                class="w-full px-5 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 active:scale-[0.98] transition shadow-sm hover:shadow-red-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
-                                <i class="fas fa-exclamation-circle"></i>
-                                Restore Database
-                            </button>
+                        <div class="space-y-5 pt-2">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Database Backup</label>
+                                <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg p-2">
+                                    <label class="cursor-pointer px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-md text-xs font-bold flex items-center gap-2 transition active:scale-[0.98] shrink-0 shadow-sm">
+                                        <i class="fas fa-folder-open text-slate-400"></i>
+                                        <span>Choose File</span>
+                                        <input type="file" id="restore-database-file" accept=".gz,.zip,.json,.bson" class="hidden">
+                                    </label>
+                                    <span id="restore-database-file-name" class="text-xs text-slate-500 font-medium italic truncate max-w-[220px]">No file selected</span>
+                                </div>
+                            </div>
+                            <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl shadow-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 bg-rose-100 border border-rose-200 rounded-lg flex items-center justify-center text-rose-600 shrink-0">
+                                        <i class="fas fa-exclamation-triangle text-sm"></i>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="text-[10px] font-bold text-rose-800 uppercase tracking-widest">Critical Warning</p>
+                                        <p class="text-xs text-rose-600 leading-relaxed font-semibold">
+                                            Restoring the database will replace all existing data. Make sure you have a valid backup before proceeding.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                    <div class="pt-6 border-t border-slate-100">
+                        <button type="button" id="restore-database-button" disabled
+                            class="w-full px-5 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 active:scale-[0.98] transition shadow-sm hover:shadow-red-500/20 text-xs cursor-pointer flex items-center justify-center gap-2 opacity-50 pointer-events-none">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Restore Database
+                        </button>
                     </div>
                 </div>
             </div>
@@ -830,36 +1181,44 @@
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Session Timeout (Minutes)</label>
-                            <input type="number" id="security-session-timeout" min="5" max="1440"
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition duration-150 font-medium text-slate-800"
-                                placeholder="30">
-                            <p class="text-[10px] text-slate-400">Auto-logout after inactivity</p>
+                    <div class="flex flex-wrap items-end gap-6 pt-2">
+                        <div class="flex flex-col gap-1.5 w-40">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Session Timeout</label>
+                            <div class="relative flex items-center">
+                                <input type="number" id="security-session-timeout" min="5" max="1440"
+                                    class="w-full pl-4 pr-12 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition duration-150 font-semibold text-slate-800"
+                                    placeholder="30">
+                                <span class="absolute right-3 text-[10px] font-extrabold text-slate-450 tracking-wider pointer-events-none">MINS</span>
+                            </div>
+                            <p class="text-[10px] text-slate-450 font-medium">Auto-logout inactivity</p>
                         </div>
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Max Login Attempts</label>
+                        
+                        <div class="flex flex-col gap-1.5 w-32">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Max Attempts</label>
                             <input type="number" id="security-max-attempts" min="1" max="10"
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition duration-150 font-medium text-slate-800"
+                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition duration-150 font-semibold text-slate-800"
                                 placeholder="5">
-                            <p class="text-[10px] text-slate-400">Lockout threshold</p>
+                            <p class="text-[10px] text-slate-455 font-medium">Lockout threshold</p>
                         </div>
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lockout Duration (Minutes)</label>
-                            <input type="number" id="security-lockout-duration" min="1" max="60"
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition duration-150 font-medium text-slate-800"
-                                placeholder="15">
-                            <p class="text-[10px] text-slate-400">Cool-off period</p>
+                        
+                        <div class="flex flex-col gap-1.5 w-40">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lockout Duration</label>
+                            <div class="relative flex items-center">
+                                <input type="number" id="security-lockout-duration" min="1" max="60"
+                                    class="w-full pl-4 pr-12 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition duration-150 font-semibold text-slate-800"
+                                    placeholder="15">
+                                <span class="absolute right-3 text-[10px] font-extrabold text-slate-450 tracking-wider pointer-events-none">MINS</span>
+                            </div>
+                            <p class="text-[10px] text-slate-455 font-medium">Cool-off period</p>
                         </div>
-                    </div>
-                    
-                    <div class="flex justify-end pt-4 border-t border-slate-100">
-                        <button type="button" id="save-security-button"
-                            class="px-5 py-2.5 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 active:scale-[0.98] transition shadow-sm hover:shadow-orange-500/20 text-xs cursor-pointer flex items-center gap-2">
-                            <i class="fas fa-save text-xs"></i>
-                            <span>Save Security Settings</span>
-                        </button>
+                        
+                        <div class="flex-1 flex justify-start lg:justify-end pb-3">
+                            <button type="button" id="save-security-button"
+                                class="px-5 py-2.5 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 active:scale-[0.98] transition shadow-sm hover:shadow-orange-500/20 text-xs cursor-pointer flex items-center gap-2 h-[42px]">
+                                <i class="fas fa-save text-xs"></i>
+                                <span>Save Security Settings</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -879,7 +1238,7 @@
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">New Username</label>
                             <input type="text" id="username" name="username" required
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
+                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-650 transition duration-150 font-medium text-slate-800"
                                 placeholder="Enter new username">
                         </div>
                     </div>
@@ -908,21 +1267,59 @@
                     <div class="space-y-4 pt-2">
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Old Password</label>
-                            <input type="password" id="old-password" name="old-password" required
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
-                                placeholder="Enter old password">
+                            <div class="relative">
+                                <input type="password" id="old-password" name="old-password" required
+                                    class="w-full pl-4 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
+                                    placeholder="Enter old password">
+                                <button type="button" class="password-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">New Password</label>
-                            <input type="password" id="new-password" name="new-password" required
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
-                                placeholder="Enter new password">
+                            <div class="relative">
+                                <input type="password" id="new-password" name="new-password" required
+                                    class="w-full pl-4 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
+                                    placeholder="Enter new password">
+                                <button type="button" class="password-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Dynamic Password Strength Indicator -->
+                            <div id="password-requirements" class="space-y-2 mt-2 bg-slate-50/50 border border-slate-200/60 p-3 rounded-lg">
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Password Strength Requirements</p>
+                                <div class="flex flex-col gap-1.5">
+                                    <div id="req-length" class="flex items-center gap-2 text-xs text-slate-400 transition-colors duration-150 font-medium">
+                                        <i class="fas fa-circle text-[6px]"></i>
+                                        <span>Min 8 characters</span>
+                                    </div>
+                                    <div id="req-number" class="flex items-center gap-2 text-xs text-slate-400 transition-colors duration-150 font-medium">
+                                        <i class="fas fa-circle text-[6px]"></i>
+                                        <span>At least 1 number</span>
+                                    </div>
+                                    <div id="req-special" class="flex items-center gap-2 text-xs text-slate-400 transition-colors duration-150 font-medium">
+                                        <i class="fas fa-circle text-[6px]"></i>
+                                        <span>1 special character</span>
+                                    </div>
+                                </div>
+                                <!-- Progress bar -->
+                                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden mt-1">
+                                    <div id="password-strength-bar" class="w-0 h-full bg-slate-350 transition-all duration-300"></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confirm Password</label>
-                            <input type="password" id="confirm-password" name="confirm-password" required
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
-                                placeholder="Confirm new password">
+                            <div class="relative">
+                                <input type="password" id="confirm-password" name="confirm-password" required
+                                    class="w-full pl-4 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
+                                    placeholder="Confirm new password">
+                                <button type="button" class="password-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -935,15 +1332,14 @@
                     </div>
                 </div>
             </div>
-        </section>
-        <!-- WhatsApp/Integrations Section -->
+        </section>        <!-- WhatsApp/Integrations Section -->
         <section id="integrations-section" class="space-y-8 hidden pb-24">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 <!-- WhatsApp API Configuration Card -->
                 <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
                     <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500 border border-emerald-100/50">
+                        <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
                             <i class="fab fa-whatsapp text-sm"></i>
                         </div>
                         <div>
@@ -954,7 +1350,7 @@
                     <div class="space-y-4">
                         <!-- Status Indicator -->
                         <div id="whatsapp-status"
-                            class="flex items-center gap-2 p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-650 text-xs font-semibold">
+                            class="flex items-center gap-2 p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-650 text-xs font-semibold mb-4">
                             <i class="fas fa-circle text-slate-400 text-[10px]"></i>
                             <span>Checking status...</span>
                         </div>
@@ -962,20 +1358,25 @@
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number ID</label>
                             <input type="text" id="whatsapp-phone-number-id"
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition duration-150 font-medium text-slate-800"
+                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
                                 placeholder="Enter your WhatsApp Phone Number ID">
                             <p class="text-[11px] text-slate-500 mt-1">Found in Meta Business Suite → WhatsApp → API Setup</p>
                         </div>
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Access Token</label>
-                            <input type="password" id="whatsapp-token"
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition duration-150 font-medium text-slate-800"
-                                placeholder="Enter your WhatsApp Access Token">
+                            <div class="relative">
+                                <input type="password" id="whatsapp-token"
+                                    class="w-full pl-4 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
+                                    placeholder="Enter your WhatsApp Access Token">
+                                <button type="button" class="password-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                            </div>
                             <p class="text-[11px] text-slate-500 mt-1">Token is stored securely and never displayed again</p>
                         </div>
-                        <div class="pt-2">
+                        <div class="flex justify-end pt-2">
                             <button type="button" id="save-whatsapp-button"
-                                class="w-full px-5 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 active:scale-[0.98] transition shadow-sm hover:shadow-emerald-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
+                                class="px-5 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-2">
                                 <i class="fas fa-save"></i>
                                 Save WhatsApp Settings
                             </button>
@@ -995,13 +1396,15 @@
                         </div>
                     </div>
                     <p class="text-xs text-slate-500 font-medium leading-relaxed">Cloudinary is required for sending PDFs via WhatsApp. WhatsApp needs publicly accessible URLs for document attachments.</p>
+                    
                     <!-- Status Indicator -->
                     <div id="cloudinary-status"
                         class="flex items-center gap-2 p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-650 text-xs font-semibold mb-4">
                         <i class="fas fa-circle text-slate-400 text-[10px]"></i>
                         <span>Checking status...</span>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cloud Name</label>
                             <input type="text" id="cloudinary-cloud-name"
@@ -1014,11 +1417,16 @@
                                 class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
                                 placeholder="API Key">
                         </div>
-                        <div class="flex flex-col gap-1.5">
+                        <div class="flex flex-col gap-1.5 md:col-span-2">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">API Secret</label>
-                            <input type="password" id="cloudinary-api-secret"
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
-                                placeholder="API Secret">
+                            <div class="relative">
+                                <input type="password" id="cloudinary-api-secret"
+                                    class="w-full pl-4 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition duration-150 font-medium text-slate-800"
+                                    placeholder="API Secret">
+                                <button type="button" class="password-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="flex justify-end pt-2">
@@ -1027,306 +1435,6 @@
                             <i class="fas fa-save"></i>
                             Save Cloudinary Settings
                         </button>
-                    </div>
-                </div>
-            </div>
-        </section>        <!-- About/System Info Section -->
-        <section id="about-section" class="space-y-8 hidden pb-24">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-                <!-- Application Info Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500 border border-blue-100/50">
-                            <i class="fas fa-info-circle text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Application Information</h2>
-                            <p class="text-xs text-slate-400 font-medium">Details and metadata about the running software release</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-2">
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Application Name</span>
-                            <span id="app-name" class="text-sm font-semibold text-slate-800">Shresht Systems Management</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Version</span>
-                            <span id="app-version" class="text-sm font-semibold bg-slate-100 px-2 py-0.5 rounded text-slate-800">1.0.0</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Node Version</span>
-                            <span id="node-version" class="font-mono text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded">-</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Platform</span>
-                            <span id="platform" class="text-sm font-semibold text-slate-800 capitalize">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- System Logs Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 border border-slate-200/50">
-                            <i class="fas fa-file-alt text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">System Logs</h2>
-                            <p class="text-xs text-slate-400 font-medium">Download system diagnostics and error log files</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-2">
-                        <p class="text-xs text-slate-500 font-medium leading-relaxed">
-                            Download system logs for troubleshooting and debugging purposes.
-                        </p>
-                        <div class="flex gap-3 pt-2">
-                            <button type="button" id="download-app-logs-button"
-                                class="flex-1 px-5 py-2.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-semibold hover:bg-slate-200 active:scale-[0.98] transition text-xs cursor-pointer flex items-center justify-center gap-2">
-                                <i class="fas fa-download"></i>
-                                App Logs
-                            </button>
-                            <button type="button" id="download-error-logs-button"
-                                class="flex-1 px-5 py-2.5 bg-rose-50 text-rose-700 border border-rose-100 rounded-lg font-semibold hover:bg-rose-100 active:scale-[0.98] transition text-xs cursor-pointer flex items-center justify-center gap-2">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Error Logs
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Update Check Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
-                            <i class="fas fa-sync-alt text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Software Updates</h2>
-                            <p class="text-xs text-slate-400 font-medium">Check for and install system updates</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-2">
-                        <!-- Update Status Display -->
-                        <div id="update-status-container" class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                            <div class="flex items-center gap-2.5">
-                                <i id="update-status-icon" class="fas fa-info-circle text-purple-500"></i>
-                                <p id="update-status-text" class="text-xs font-semibold text-slate-700">Ready to check for updates</p>
-                            </div>
-                        </div>
-
-                        <!-- Download Progress Bar (hidden by default) -->
-                        <div id="update-progress-container" class="hidden space-y-2">
-                            <div class="w-full bg-slate-100 rounded-full h-2">
-                                <div id="update-progress-bar"
-                                    class="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                                    style="width: 0%"></div>
-                            </div>
-                            <p id="update-progress-text" class="text-xs font-semibold text-slate-505 text-center">Downloading...</p>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="space-y-2">
-                            <button type="button" id="check-updates-button"
-                                class="w-full px-5 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <i class="fas fa-cloud-download-alt"></i>
-                                Check for Updates
-                            </button>
-                            <button type="button" id="install-update-button"
-                                class="hidden w-full px-5 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 active:scale-[0.98] transition shadow-sm hover:shadow-emerald-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
-                                <i class="fas fa-rocket"></i>
-                                Restart and Install Update
-                            </button>
-                        </div>
-
-                        <!-- Pre-release Option -->
-                        <div class="flex items-center gap-2.5 p-3.5 bg-slate-50 rounded-lg border border-slate-200">
-                            <input type="checkbox" id="allow-prerelease-checkbox"
-                                class="w-4 h-4 text-purple-600 focus:ring-purple-500/20 border-slate-350 rounded transition">
-                            <label for="allow-prerelease-checkbox" class="text-xs font-semibold text-slate-700 cursor-pointer">
-                                Include pre-release versions (beta/alpha)
-                            </label>
-                        </div>
-                        <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
-                            <i class="fas fa-info-circle text-slate-400"></i>
-                            <span>Pre-release versions may contain bugs and are intended for testing purposes.</span>
-                        </p>
-
-                        <!-- Update Info -->
-                        <div id="update-info" class="hidden bg-purple-50/50 p-4 rounded-lg border border-purple-100/50">
-                            <p class="text-xs text-purple-800 font-bold mb-2">Update Details:</p>
-                            <div id="update-details" class="text-xs text-slate-650 space-y-1 font-medium font-mono"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Database Statistics Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500 border border-emerald-100/50">
-                            <i class="fas fa-database text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Database Statistics</h2>
-                            <p class="text-xs text-slate-400 font-medium">Real-time usage statistics of MongoDB storage</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-2">
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Database Size</span>
-                            <span id="db-size" class="text-sm font-semibold text-slate-800">-</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Storage Size</span>
-                            <span id="storage-size" class="text-sm font-semibold text-slate-800">-</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Documents</span>
-                            <span id="total-docs" class="text-sm font-semibold text-slate-800">-</span>
-                        </div>
-                        <div class="pt-2">
-                            <button type="button" id="refresh-stats-button"
-                                class="w-full px-5 py-3 bg-emerald-650 text-white rounded-lg font-semibold hover:bg-emerald-700 active:scale-[0.98] transition shadow-sm hover:shadow-emerald-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
-                                <i class="fas fa-sync-alt"></i>
-                                Refresh Statistics
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Collection Counts Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
-                            <i class="fas fa-table text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Collection Document Counts</h2>
-                            <p class="text-xs text-slate-400 font-medium">Breakdown of the document count stored inside each database collection</p>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2" id="collection-counts">
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-blue-600" id="count-invoices">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Invoices</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-emerald-600" id="count-quotations">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Quotations</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-purple-600" id="count-purchases">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Purchases</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-orange-650" id="count-waybills">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Waybills</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-rose-600" id="count-stock">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Stock Items</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-amber-600" id="count-services">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Services</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-indigo-600" id="count-employees">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Employees</div>
-                        </div>
-                        <div class="text-center p-4 bg-slate-50 border border-slate-200/50 rounded-xl">
-                            <div class="text-xl font-extrabold text-pink-605" id="count-attendence">-</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Attendance</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- System Resources Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center text-orange-500 border border-orange-100/50">
-                            <i class="fas fa-server text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">System Resources</h2>
-                            <p class="text-xs text-slate-400 font-medium">Live resource utilization on the host server</p>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-2">
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Memory</span>
-                            <div id="total-memory" class="text-sm font-semibold text-slate-800">-</div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Free Memory</span>
-                            <div id="free-memory" class="text-sm font-semibold text-slate-800 transition-all duration-300">-</div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Architecture</span>
-                            <div id="arch" class="text-sm font-semibold text-slate-800 capitalize">-</div>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Uptime</span>
-                            <div id="uptime" class="text-sm font-semibold text-slate-800 transition-all duration-300">-</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Current Version Changelog Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-teal-50 rounded-lg flex items-center justify-center text-teal-500 border border-teal-100/50">
-                            <i class="fas fa-rocket text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">What's New in This Version</h2>
-                            <p class="text-xs text-slate-400 font-medium">Release notes and update logs for the current version</p>
-                        </div>
-                    </div>
-                    <div id="changelog-container" class="space-y-4 pt-2">
-                        <!-- Current version changelog will be populated dynamically -->
-                        <div class="flex items-center justify-center py-8">
-                            <i class="fas fa-spinner fa-spin text-slate-400 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- License & Support Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
-                    <div class="flex items-center gap-3.5 mb-2">
-                        <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-amber-500 border border-amber-100/50">
-                            <i class="fas fa-certificate text-sm"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">License & Support</h2>
-                            <p class="text-xs text-slate-400 font-medium">Copyright details and links to documentation and project support channels</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-2">
-                        <p class="text-xs text-slate-500 font-medium leading-relaxed">
-                            <strong>© 2025 Shresht Systems Management System</strong><br>
-                            All rights reserved. This software is open source.
-                        </p>
-                        <div class="flex flex-wrap gap-6 pt-2">
-                            <a href="javascript:void(0)"
-                                data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System"
-                                class="external-link text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition">
-                                <i class="fab fa-github"></i>
-                                GitHub Repository
-                            </a>
-                            <a href="javascript:void(0)"
-                                data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System/wiki"
-                                class="external-link text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition">
-                                <i class="fas fa-book"></i>
-                                Documentation
-                            </a>
-                            <a href="javascript:void(0)"
-                                data-url="https://github.com/MayuraPatkar/Shresht-Systems_Management-System/issues"
-                                class="external-link text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition">
-                                <i class="fas fa-bug"></i>
-                                Report Issue
-                            </a>
-                        </div>
                     </div>
                 </div>
             </div>

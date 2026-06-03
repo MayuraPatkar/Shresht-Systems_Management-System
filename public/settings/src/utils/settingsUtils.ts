@@ -9,22 +9,20 @@ class SettingsUtils {
             "data-backup-section",
             "preferences-section",
             "security-section",
-            "integrations-section",
-            "about-section"
+            "integrations-section"
         ];
 
         const sectionToButtonMap: Record<string, string> = {
             "admin-info-section": "admin-info-button",
-            "data-control-button": "data-control-button",
+            "data-backup-section": "data-control-button",
             "preferences-section": "preferences-button",
             "security-section": "security-button",
-            "integrations-section": "integrations-button",
-            "about-section": "about-button"
+            "integrations-section": "integrations-button"
         };
 
-        // Cleanup when leaving about section
-        const currentAboutSection = document.getElementById("about-section");
-        if (currentAboutSection && !currentAboutSection.classList.contains('hidden') && sectionId !== "about-section") {
+        // Cleanup when leaving admin-info-section
+        const currentAdminInfoSection = document.getElementById("admin-info-section");
+        if (currentAdminInfoSection && !currentAdminInfoSection.classList.contains('hidden') && sectionId !== "admin-info-section") {
             if (typeof (window as any).settingsSystem !== 'undefined' && typeof (window as any).settingsSystem.cleanup === 'function') {
                 (window as any).settingsSystem.cleanup();
             } else if (typeof (window as any).cleanupSystemModule === 'function') {

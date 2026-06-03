@@ -8,10 +8,11 @@ class SettingsAdmin {
     private originalAdminData: AdminData | null = null;
 
     init(): void {
-        // Company info editing
+        // Company info editing and exporting
         document.getElementById("edit-company-info-button")?.addEventListener("click", () => this.enterEditMode());
         document.getElementById("save-company-info-button")?.addEventListener("click", () => this.saveCompanyInfo());
         document.getElementById("cancel-edit-company-button")?.addEventListener("click", () => this.exitEditMode());
+        document.getElementById("export-company-info-button")?.addEventListener("click", () => this.exportCompanyDetails());
 
         // Credential management
         document.getElementById("change-username-button")?.addEventListener("click", () => this.handleChangeUsername());
@@ -28,6 +29,86 @@ class SettingsAdmin {
             document.getElementById(id)?.addEventListener("keydown", (e) => {
                 if (e.key === "Enter") this.handleChangePassword();
             });
+        });
+
+        // Interactive password toggles
+        document.querySelectorAll(".password-toggle-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const button = e.currentTarget as HTMLButtonElement;
+                const icon = button.querySelector("i");
+                const input = button.previousElementSibling as HTMLInputElement;
+                if (input && icon) {
+                    if (input.type === "password") {
+                        input.type = "text";
+                        icon.classList.remove("fa-eye");
+                        icon.classList.add("fa-eye-slash");
+                    } else {
+                        input.type = "password";
+                        icon.classList.remove("fa-eye-slash");
+                        icon.classList.add("fa-eye");
+                    }
+                }
+            });
+        });
+
+        // Password strength checker logic
+        const newPasswordInput = document.getElementById("new-password") as HTMLInputElement;
+        newPasswordInput?.addEventListener("input", () => {
+            const val = newPasswordInput.value;
+            const reqLength = document.getElementById("req-length");
+            const reqNumber = document.getElementById("req-number");
+            const reqSpecial = document.getElementById("req-special");
+            const strengthBar = document.getElementById("password-strength-bar");
+
+            const isLengthOk = val.length >= 8;
+            const isNumberOk = /\d/.test(val);
+            const isSpecialOk = /[!@#$%^&*(),.?":{}|<>]/.test(val);
+
+            const updateReq = (el: HTMLElement | null, isValid: boolean) => {
+                if (!el) return;
+                const icon = el.querySelector("i");
+                if (isValid) {
+                    el.classList.remove("text-slate-400");
+                    el.classList.add("text-emerald-600");
+                    if (icon) {
+                        icon.classList.remove("fa-circle");
+                        icon.classList.add("fa-check-circle");
+                    }
+                } else {
+                    el.classList.remove("text-emerald-600");
+                    el.classList.add("text-slate-400");
+                    if (icon) {
+                        icon.classList.remove("fa-check-circle");
+                        icon.classList.add("fa-circle");
+                    }
+                }
+            };
+
+            updateReq(reqLength, isLengthOk);
+            updateReq(reqNumber, isNumberOk);
+            updateReq(reqSpecial, isSpecialOk);
+
+            let score = 0;
+            if (isLengthOk) score++;
+            if (isNumberOk) score++;
+            if (isSpecialOk) score++;
+
+            if (strengthBar) {
+                strengthBar.className = "h-full transition-all duration-300";
+                if (score === 0) {
+                    strengthBar.style.width = "0%";
+                    strengthBar.classList.add("bg-slate-300");
+                } else if (score === 1) {
+                    strengthBar.style.width = "33%";
+                    strengthBar.classList.add("bg-rose-500");
+                } else if (score === 2) {
+                    strengthBar.style.width = "66%";
+                    strengthBar.classList.add("bg-amber-500");
+                } else if (score === 3) {
+                    strengthBar.style.width = "100%";
+                    strengthBar.classList.add("bg-emerald-500");
+                }
+            }
         });
 
         // Logout
@@ -113,8 +194,17 @@ class SettingsAdmin {
             const editCompanyInput = document.getElementById("edit-company") as HTMLInputElement;
             if (editCompanyInput) editCompanyInput.value = this.originalAdminData.company_name || '';
 
-            const editAddressInput = document.getElementById("edit-address") as HTMLTextAreaElement;
-            if (editAddressInput) editAddressInput.value = addressStr;
+            const editAddressLine1Input = document.getElementById("edit-address-line1") as HTMLInputElement;
+            if (editAddressLine1Input) editAddressLine1Input.value = (typeof addr === 'object' ? addr.line1 : addressStr) || '';
+
+            const editAddressLine2Input = document.getElementById("edit-address-line2") as HTMLInputElement;
+            if (editAddressLine2Input) editAddressLine2Input.value = (typeof addr === 'object' ? addr.line2 : '') || '';
+
+            const editAddressCityInput = document.getElementById("edit-address-city") as HTMLInputElement;
+            if (editAddressCityInput) editAddressCityInput.value = (typeof addr === 'object' ? addr.city : '') || '';
+
+            const editAddressPincodeInput = document.getElementById("edit-address-pincode") as HTMLInputElement;
+            if (editAddressPincodeInput) editAddressPincodeInput.value = (typeof addr === 'object' ? addr.pincode : '') || '';
 
             const editStateInput = document.getElementById("edit-state") as HTMLInputElement;
             if (editStateInput) editStateInput.value = (typeof addr === 'object' ? addr.state : this.originalAdminData.state) || '';
@@ -173,17 +263,20 @@ class SettingsAdmin {
         saveButton.disabled = true;
         saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
-        const addressInput = (document.getElementById("edit-address") as HTMLTextAreaElement).value.trim();
+        const line1Input = (document.getElementById("edit-address-line1") as HTMLInputElement).value.trim();
+        const line2Input = (document.getElementById("edit-address-line2") as HTMLInputElement).value.trim();
+        const cityInput = (document.getElementById("edit-address-city") as HTMLInputElement).value.trim();
         const stateInput = (document.getElementById("edit-state") as HTMLInputElement).value.trim();
+        const pincodeInput = (document.getElementById("edit-address-pincode") as HTMLInputElement).value.trim();
         
         const updatedData: Partial<AdminData> = {
             company_name: (document.getElementById("edit-company") as HTMLInputElement).value.trim(),
             address: {
-                line1: addressInput,
-                line2: '',
-                city: '',
+                line1: line1Input,
+                line2: line2Input,
+                city: cityInput,
                 state: stateInput,
-                pincode: '',
+                pincode: pincodeInput,
                 country: 'India'
             },
             phone: {
@@ -203,8 +296,8 @@ class SettingsAdmin {
         };
 
         // Validate required fields
-        if (!updatedData.company_name || !addressInput || !updatedData.phone?.ph1 || !updatedData.email) {
-            (window as any).electronAPI.showAlert1("Please fill in all required fields (Company, Address, Phone 1, Email)");
+        if (!updatedData.company_name || !line1Input || !cityInput || !stateInput || !pincodeInput || !updatedData.phone?.ph1 || !updatedData.email) {
+            (window as any).electronAPI.showAlert1("Please fill in all required fields (Company Name, Address Line 1, City, State, Pincode, Phone 1, Email)");
             saveButton.disabled = false;
             saveButton.innerHTML = originalContent;
             return;
@@ -329,6 +422,30 @@ class SettingsAdmin {
                 window.location.href = '/';
             }
         });
+    }
+
+    private exportCompanyDetails(): void {
+        const btn = document.getElementById("export-company-info-button") as HTMLButtonElement;
+        if (!btn) return;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+        settingsApi.exportCompanyInfo()
+            .then((data: any) => {
+                if (data.success) {
+                    (window as any).electronAPI.showAlert1(data.message || "Company details exported successfully!");
+                } else {
+                    (window as any).electronAPI.showAlert1("Failed to export company details: " + (data.message || "Unknown error"));
+                }
+            })
+            .catch((error: any) => {
+                console.error("Error exporting company details:", error);
+                (window as any).electronAPI.showAlert1("Failed to export company details. Please try again.");
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            });
     }
 }
 

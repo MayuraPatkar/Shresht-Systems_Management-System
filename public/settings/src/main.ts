@@ -24,6 +24,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Admin Info section
     document.getElementById("admin-info-button")?.addEventListener("click", () => {
         settingsUtils.toggleSection("admin-info-section");
+        settingsSystem.loadSystemInfo();
+        settingsSystem.loadDatabaseStats();
+        settingsSystem.loadChangelog();
+        settingsSystem.startSystemInfoUpdates();
     });
 
     // Data Backup section
@@ -49,15 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
         settingsUtils.toggleSection("integrations-section");
         settingsPreferences.loadWhatsAppStatus();
         settingsPreferences.loadCloudinaryStatus();
-    });
-
-    // About section
-    document.getElementById("about-button")?.addEventListener("click", () => {
-        settingsUtils.toggleSection("about-section");
-        settingsSystem.loadSystemInfo();
-        settingsSystem.loadDatabaseStats();
-        settingsSystem.loadChangelog();
-        settingsSystem.startSystemInfoUpdates();
     });
 });
 
