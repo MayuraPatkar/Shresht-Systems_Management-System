@@ -71,7 +71,6 @@ interface IApiResponse {
 interface Window {
     _paymentUI: {
         editPayment: (id: string) => void;
-        confirmDelete: (id: string) => Promise<void>;
         viewPayment: (id: string) => void;
         refundPayment?: (id: string) => void;
         printPayment?: (id: string) => void;
