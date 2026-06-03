@@ -54,68 +54,26 @@ class SettingsAdmin {
             });
         });
 
-        // Password strength checker logic
-        const newPasswordInput = document.getElementById("new-password") as HTMLInputElement;
-        newPasswordInput?.addEventListener("input", () => {
-            const val = newPasswordInput.value;
-            const reqLength = document.getElementById("req-length");
-            const reqNumber = document.getElementById("req-number");
-            const reqSpecial = document.getElementById("req-special");
-            const strengthBar = document.getElementById("password-strength-bar");
 
-            const isLengthOk = val.length >= 8;
-            const isNumberOk = /\d/.test(val);
-            const isSpecialOk = /[!@#$%^&*(),.?":{}|<>]/.test(val);
-
-            const updateReq = (el: HTMLElement | null, isValid: boolean) => {
-                if (!el) return;
-                const icon = el.querySelector("i");
-                if (isValid) {
-                    el.classList.remove("text-slate-400");
-                    el.classList.add("text-emerald-600");
-                    if (icon) {
-                        icon.classList.remove("fa-circle");
-                        icon.classList.add("fa-check-circle");
-                    }
-                } else {
-                    el.classList.remove("text-emerald-600");
-                    el.classList.add("text-slate-400");
-                    if (icon) {
-                        icon.classList.remove("fa-check-circle");
-                        icon.classList.add("fa-circle");
-                    }
-                }
-            };
-
-            updateReq(reqLength, isLengthOk);
-            updateReq(reqNumber, isNumberOk);
-            updateReq(reqSpecial, isSpecialOk);
-
-            let score = 0;
-            if (isLengthOk) score++;
-            if (isNumberOk) score++;
-            if (isSpecialOk) score++;
-
-            if (strengthBar) {
-                strengthBar.className = "h-full transition-all duration-300";
-                if (score === 0) {
-                    strengthBar.style.width = "0%";
-                    strengthBar.classList.add("bg-slate-300");
-                } else if (score === 1) {
-                    strengthBar.style.width = "33%";
-                    strengthBar.classList.add("bg-rose-500");
-                } else if (score === 2) {
-                    strengthBar.style.width = "66%";
-                    strengthBar.classList.add("bg-amber-500");
-                } else if (score === 3) {
-                    strengthBar.style.width = "100%";
-                    strengthBar.classList.add("bg-emerald-500");
-                }
-            }
-        });
 
         // Logout
         document.getElementById("logout-button")?.addEventListener("click", () => this.handleLogout());
+
+        // Copy to clipboard actions
+        document.querySelectorAll(".copy-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const targetBtn = e.currentTarget as HTMLButtonElement;
+                this.handleCopyText(targetBtn);
+            });
+        });
+
+        // Prevent mouse wheel scroll from modifying number input values
+        document.addEventListener("wheel", (e) => {
+            const target = e.target as HTMLElement;
+            if (target && target.tagName === "INPUT" && (target as HTMLInputElement).type === "number") {
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
 
     fetchAdminInfo(): void {
@@ -149,31 +107,49 @@ class SettingsAdmin {
         const contact2El = document.getElementById("admin-contact2");
         if (contact2El) contact2El.textContent = data.phone.ph2;
 
-        const emailEl = document.getElementById("admin-email");
-        if (emailEl) emailEl.textContent = data.email;
+        const emailEl = document.getElementById("admin-email") as HTMLAnchorElement;
+        if (emailEl) {
+            emailEl.textContent = data.email || "-";
+            if (data.email) {
+                emailEl.href = `mailto:${data.email}`;
+            } else {
+                emailEl.removeAttribute("href");
+            }
+        }
 
-        const websiteEl = document.getElementById("admin-website");
-        if (websiteEl) websiteEl.textContent = data.website;
+        const websiteEl = document.getElementById("admin-website") as HTMLAnchorElement;
+        if (websiteEl) {
+            websiteEl.textContent = data.website || "-";
+            if (data.website) {
+                let url = data.website.trim();
+                if (!/^https?:\/\//i.test(url)) {
+                    url = `https://${url}`;
+                }
+                websiteEl.href = url;
+            } else {
+                websiteEl.removeAttribute("href");
+            }
+        }
 
         const gstinEl = document.getElementById("admin-gstin");
-        if (gstinEl) gstinEl.textContent = data.gstin;
+        if (gstinEl) gstinEl.textContent = data.gstin || "-";
 
         const bankNameEl = document.getElementById("bank-name");
-        if (bankNameEl) bankNameEl.textContent = data.bank_details.bank_name;
+        if (bankNameEl) bankNameEl.textContent = data.bank_details.bank_name || "-";
 
         const accountHolderElement = document.getElementById("account-holder");
-        if (accountHolderElement && data.bank_details.account_holder_name) {
-            accountHolderElement.textContent = data.bank_details.account_holder_name;
+        if (accountHolderElement) {
+            accountHolderElement.textContent = data.bank_details.account_holder_name || "-";
         }
 
         this.rawAccountNumber = data.bank_details.account_number || "";
         this.renderAccountNumber();
 
         const ifscCodeEl = document.getElementById("ifsc-code");
-        if (ifscCodeEl) ifscCodeEl.textContent = data.bank_details.ifsc_code;
+        if (ifscCodeEl) ifscCodeEl.textContent = data.bank_details.ifsc_code || "-";
 
         const branchNameEl = document.getElementById("branch-name");
-        if (branchNameEl) branchNameEl.textContent = data.bank_details.branch;
+        if (branchNameEl) branchNameEl.textContent = data.bank_details.branch || "-";
     }
 
     private enterEditMode(): void {
@@ -478,6 +454,43 @@ class SettingsAdmin {
                 maskIconEl.className = "fas fa-eye-slash text-xs";
             }
         }
+    }
+
+
+
+    private handleCopyText(btn: HTMLButtonElement): void {
+        const targetSelector = btn.getAttribute("data-clipboard-target");
+        if (!targetSelector) return;
+        
+        let textToCopy = "";
+        
+        if (targetSelector === "#account-number") {
+            textToCopy = this.rawAccountNumber;
+        } else {
+            const targetEl = document.querySelector(targetSelector);
+            if (!targetEl) return;
+            textToCopy = targetEl.textContent?.trim() || "";
+        }
+        
+        if (!textToCopy || textToCopy === "-") {
+            (window as any).electronAPI.showAlert1("Nothing to copy.");
+            return;
+        }
+        
+        navigator.clipboard.writeText(textToCopy)
+            .then(() => {
+                const icon = btn.querySelector("i");
+                if (icon) {
+                    const originalClass = icon.className;
+                    icon.className = "fas fa-check text-emerald-600";
+                    setTimeout(() => {
+                        icon.className = originalClass;
+                    }, 1500);
+                }
+            })
+            .catch(err => {
+                console.error("Failed to copy text:", err);
+            });
     }
 }
 

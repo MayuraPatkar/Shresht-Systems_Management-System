@@ -73,6 +73,13 @@ interface CloudinaryPref {
     configured?: boolean;
 }
 
+interface BrandingPref {
+    logo_path?: string;
+    primary_color?: string;
+    secondary_color?: string;
+    theme?: string;
+}
+
 interface SystemPreferences {
     numbering?: NumberingPref;
     notifications?: NotificationsPref;
@@ -80,6 +87,7 @@ interface SystemPreferences {
     security?: SecurityPref;
     whatsapp?: WhatsAppPref;
     cloudinary?: CloudinaryPref;
+    branding?: BrandingPref;
 }
 
 interface SystemStaticInfo {

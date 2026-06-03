@@ -76,6 +76,16 @@ export interface IDefaults {
 }
 
 /**
+ * Branding sub-document interface
+ */
+export interface IBranding {
+    logo_path?: string;
+    primary_color?: string;
+    secondary_color?: string;
+    theme?: string;
+}
+
+/**
  * System sub-document interface
  */
 export interface ISystem {
@@ -98,6 +108,7 @@ export interface ISettings extends Document {
     cloudinary?: ICloudinary;
     defaults?: IDefaults;
     system?: ISystem;
+    branding?: IBranding;
 
     createdAt: Date;
     updatedAt: Date;
@@ -200,6 +211,19 @@ const defaultsSchema = new Schema<IDefaults>(
 );
 
 /**
+ * Branding sub-schema
+ */
+const brandingSchema = new Schema<IBranding>(
+    {
+        logo_path: { type: String, default: "" },
+        primary_color: { type: String, default: "#2563eb" },
+        secondary_color: { type: String, default: "#10b981" },
+        theme: { type: String, default: "light" },
+    },
+    { _id: false }
+);
+
+/**
  * System sub-schema
  */
 const systemSchema = new Schema<ISystem>(
@@ -224,6 +248,11 @@ const settingsSchema = new Schema<ISettings>(
 
         numbering: {
             type: numberingSchema,
+            default: () => ({}),
+        },
+
+        branding: {
+            type: brandingSchema,
             default: () => ({}),
         },
 
