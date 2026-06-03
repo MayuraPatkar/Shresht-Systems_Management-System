@@ -518,6 +518,7 @@ router.get("/system-info", asyncHandler(async (req: Request, res: Response) => {
                 node_version: process.version, platform: os.platform(), arch: os.arch(),
                 total_memory: (os.totalmem() / (1024 ** 3)).toFixed(2) + ' GB',
                 free_memory: (os.freemem() / (1024 ** 3)).toFixed(2) + ' GB',
+                app_memory: (process.memoryUsage().rss / (1024 ** 2)).toFixed(2) + ' MB',
                 uptime: uptimeFormatted.trim()
             }
         });

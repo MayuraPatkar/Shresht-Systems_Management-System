@@ -98,6 +98,7 @@ interface SystemStaticInfo {
     total_memory?: string;
     arch?: string;
     free_memory?: string;
+    app_memory?: string;
     uptime?: string;
 }
 

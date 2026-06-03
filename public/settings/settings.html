@@ -102,7 +102,7 @@
                 <button id="admin-info-button"
                     class="flex items-center gap-2 px-3.5 py-2 text-sm text-white bg-indigo-600 rounded-lg font-medium shadow-sm border border-indigo-600 transition-all cursor-pointer whitespace-nowrap">
                     <i class="fas fa-cubes"></i>
-                    <span>System & Organization</span>
+                    <span>System</span>
                 </button>
                 <button id="preferences-button"
                     class="flex items-center gap-2 px-3.5 py-2 text-sm text-slate-500 bg-transparent rounded-lg hover:bg-slate-100 hover:text-slate-800 font-medium border border-transparent transition-all cursor-pointer whitespace-nowrap">
@@ -222,7 +222,7 @@
     <main class="ml-[280px] bg-white min-h-screen px-8 py-8 md:px-12 md:py-12 pt-28 md:pt-32 content-section">
 
         <!-- Admin Information Section -->
-        <section id="admin-info-section" class="w-full space-y-8 mb-8 pb-4">
+        <section id="admin-info-section" class="w-full space-y-8 pb-4">
             <!-- Section Header -->
             <div class="flex justify-between items-center pb-6 border-b border-slate-205">
                 <div>
@@ -262,7 +262,7 @@
             <!-- Redesigned Grid Layout -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Business Details (Left side, 2 cols) -->
-                <div class="lg:col-span-2 space-y-6">
+                <div class="lg:col-span-2">
                     <!-- VIEW MODE FOR COMPANY DETAILS -->
                     <div id="company-view-mode" class="space-y-6">
                         <!-- Company Identity Card -->
@@ -278,7 +278,6 @@
                                         <h3 class="text-lg font-bold text-slate-800 tracking-tight" id="admin-company-name">Shresht Systems</h3>
                                     </div>
                                 </div>
-                                <span id="admin-last-updated" class="text-[10px] text-slate-400 font-medium">Last updated: Just now</span>
                             </div>
                         </div>
 
@@ -432,20 +431,17 @@
                 </div>
 
                 <!-- Compact Banking details (Right side, 1 col) -->
-                <div class="lg:col-span-1 space-y-6">
+                <div class="lg:col-span-1 flex flex-col">
                     <!-- VIEW MODE FOR BANK DETAILS -->
-                    <div id="bank-view-mode" class="bg-white rounded-xl border border-slate-200 p-5 space-y-4 shadow-sm">
+                    <div id="bank-view-mode" class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex-1 flex flex-col">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                             <div class="flex items-center gap-2">
                                 <i class="fas fa-university text-purple-600 text-xs"></i>
                                 <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Banking Details</h4>
                             </div>
-                            <span class="inline-flex items-center gap-1 py-0.5 px-2 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/50">
-                                <i class="fas fa-lock text-[8px]"></i> Restricted
-                            </span>
                         </div>
 
-                        <div class="space-y-4 pt-1">
+                        <div class="pt-1 flex-1 flex flex-col justify-between mt-4">
                             <!-- Bank Name -->
                             <div class="flex justify-between items-start gap-4">
                                 <div>
@@ -494,7 +490,7 @@
                     </div>
 
                     <!-- EDIT MODE FOR BANK DETAILS -->
-                    <div id="bank-edit-mode" class="hidden bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                    <div id="bank-edit-mode" class="hidden bg-white rounded-xl border border-slate-200 p-5 flex-1 flex flex-col justify-between">
                         <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
                             <i class="fas fa-pen-to-square text-purple-600 text-xs"></i>
                             <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Edit Payout Details</h4>
@@ -567,24 +563,24 @@
                             <span id="health-db-status" class="text-xs font-semibold text-slate-700">Connected</span>
                         </div>
                     </div>
-                    <!-- Memory Usage Overview -->
+                    <!-- App Memory Usage Overview -->
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 border border-purple-100/30">
                             <i class="fas fa-microchip text-sm"></i>
                         </div>
                         <div>
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">System RAM</span>
-                            <span id="health-ram-status" class="text-xs font-semibold text-slate-700">- / -</span>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">App Memory</span>
+                            <span id="health-ram-status" class="text-xs font-semibold text-slate-700">-</span>
                         </div>
                     </div>
-                    <!-- Update Status -->
+                    <!-- Uptime Status -->
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 border border-purple-100/30">
-                            <i class="fas fa-sync text-sm"></i>
+                            <i class="fas fa-clock text-sm"></i>
                         </div>
                         <div>
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Updates</span>
-                            <span id="health-update-status" class="text-xs font-semibold text-slate-700">Up to Date</span>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Uptime</span>
+                            <span id="health-uptime-status" class="text-xs font-semibold text-slate-700">-</span>
                         </div>
                     </div>
                 </div>
@@ -622,112 +618,39 @@
                                     <span class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Arch</span>
                                     <span id="arch" class="uppercase text-slate-700">-</span>
                                 </div>
-                                <div class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md text-[11px] font-medium text-slate-650">
-                                    <span class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Uptime</span>
-                                    <span id="uptime" class="text-slate-700">-</span>
-                                </div>
                             </div>
                         </div>
 
                         <!-- System Resources Metric Cards -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- CPU Usage Card -->
-                            <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs font-bold text-gray-500 tracking-wider uppercase">CPU Usage</span>
-                                    <span id="cpu-usage-value" class="text-xs font-bold text-slate-700">0%</span>
-                                </div>
-                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                    <div id="cpu-usage-bar" class="bg-purple-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                                <p class="text-[10px] text-slate-400">Avg core utilization load</p>
-                            </div>
-
-                            <!-- Memory Usage Card -->
-                            <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs font-bold text-gray-500 tracking-wider uppercase">RAM Usage</span>
-                                    <span id="ram-usage-value" class="text-xs font-bold text-slate-700">0%</span>
-                                </div>
-                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                    <div id="ram-usage-bar" class="bg-purple-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                                <div class="flex justify-between text-[10px] text-slate-400">
-                                    <span>Free: <span id="free-memory">-</span></span>
-                                    <span>Total: <span id="total-memory">-</span></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Database Statistics Card -->
-                        <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
-                            <div class="flex items-center justify-between">
+                        <!-- System Logs Card -->
+                        <div class="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between space-y-4">
+                            <div class="space-y-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-100/50">
-                                        <i class="fas fa-database text-xs"></i>
+                                    <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600 border border-purple-100/50">
+                                        <i class="fas fa-file-lines text-xs"></i>
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-bold text-slate-800 tracking-tight">Database Statistics</h3>
-                                        <p class="text-[10px] text-slate-400 font-medium">Storage & index metrics for MongoDB</p>
-                                    </div>
-                                </div>
-                                <button type="button" id="refresh-stats-button" class="px-2.5 py-1.5 text-slate-500 hover:text-purple-600 bg-slate-50 rounded-lg border border-slate-200 hover:bg-purple-50 hover:border-purple-200 transition cursor-pointer text-xs flex items-center justify-center gap-1.5 font-semibold">
-                                    <i class="fas fa-sync-alt"></i>
-                                    <span>Sync</span>
-                                </button>
-                            </div>
-
-                            <!-- Storage Progress & Trend Grid -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                                <!-- KPIs -->
-                                <div class="md:col-span-1 flex flex-col justify-center space-y-3.5 border-r border-slate-100 pr-4">
-                                    <div>
-                                        <span class="block text-[10px] font-bold text-gray-500 tracking-wider uppercase">DB Size</span>
-                                        <span id="db-size" class="text-sm font-bold text-slate-800">-</span>
-                                    </div>
-                                    <div>
-                                        <span class="block text-[10px] font-bold text-gray-500 tracking-wider uppercase">Total Docs</span>
-                                        <span id="total-docs" class="text-sm font-bold text-slate-800">-</span>
-                                    </div>
-                                </div>
-
-                                <!-- Storage progress bar -->
-                                <div class="md:col-span-1 flex flex-col justify-center space-y-2 border-r border-slate-100 pr-4">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-[10px] font-bold text-gray-500 tracking-wider uppercase">Storage Ratio</span>
-                                        <span id="storage-ratio-val" class="text-xs font-bold text-slate-700">0%</span>
-                                    </div>
-                                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                        <div id="storage-usage-bar" class="bg-emerald-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
-                                    </div>
-                                    <div class="flex justify-between text-[9px] text-slate-400">
-                                        <span>Data: <span id="storage-size">-</span></span>
-                                    </div>
-                                </div>
-
-                                <!-- SVG Sparkline Trend -->
-                                <div class="md:col-span-1 flex flex-col justify-between items-stretch">
-                                    <span class="text-[10px] font-bold text-gray-500 tracking-wider uppercase mb-1">Doc Growth (7 Days)</span>
-                                    <div class="h-10 w-full flex items-end">
-                                        <svg id="db-sparkline" class="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
-                                            <path d="" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                            <path d="" fill="url(#sparkline-grad)" opacity="0.1" />
-                                            <defs>
-                                                <linearGradient id="sparkline-grad" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="0%" stop-color="#10b981" />
-                                                    <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
-                                                </linearGradient>
-                                            </defs>
-                                        </svg>
-                                    </div>
-                                    <div class="flex justify-between text-[9px] text-slate-400 mt-1">
-                                        <span>7d ago</span>
-                                        <span>Today</span>
+                                        <h3 class="text-sm font-bold text-slate-800 tracking-tight">System Logs</h3>
+                                        <p class="text-[10px] text-slate-400 font-medium">Download logs & troubleshoot</p>
                                     </div>
                                 </div>
                             </div>
-                            <p class="text-[10px] text-slate-400 text-center border-t border-slate-100/50 pt-2 font-medium">Last calculated: <span id="last-calculated-timestamp">Just now</span></p>
+
+                            <div class="space-y-3 pt-1">
+                                <!-- Log Actions -->
+                                <div class="flex gap-2">
+                                    <button type="button" id="download-app-logs-button" class="flex-1 py-2.5 px-3 bg-slate-50 text-slate-650 hover:bg-slate-100 hover:text-slate-800 border border-slate-200 text-xs font-semibold rounded-lg active:scale-[0.98] transition cursor-pointer flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-download text-[10px] text-slate-400"></i>
+                                        <span>App Logs</span>
+                                    </button>
+                                    <button type="button" id="download-error-logs-button" class="flex-1 py-2.5 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100/70 border border-rose-200/60 text-xs font-semibold rounded-lg active:scale-[0.98] transition cursor-pointer flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-triangle-exclamation text-[10px]"></i>
+                                        <span>Error Logs</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
 
                     <!-- Right Column: Software Updates & System Logs -->
@@ -750,7 +673,7 @@
                                     <i id="update-status-icon" class="fas fa-info-circle text-purple-500 text-xs"></i>
                                     <p id="update-status-text" class="text-[11px] font-semibold text-slate-700">Ready to check for updates</p>
                                 </div>
-
+                                
                                 <!-- Current / Latest details -->
                                 <div class="grid grid-cols-2 gap-3 text-xs">
                                     <div class="bg-slate-50 p-2 border border-slate-200/50 rounded-lg">
@@ -763,7 +686,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Beta Toggle (Refactored Custom Checkbox) -->
+                                 <!-- Beta Toggle (Refactored Custom Checkbox) -->
                                 <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-200">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-semibold text-slate-700">Include pre-releases</span>
@@ -802,64 +725,6 @@
                                     <button type="button" id="install-update-button" class="hidden flex-1 py-2 px-3 bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold rounded-lg active:scale-[0.98] transition shadow-sm cursor-pointer flex items-center justify-center gap-1.5">
                                         <i class="fas fa-circle-check text-[10px]"></i>
                                         <span>Install</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- System Logs Section (Enhanced) -->
-                        <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 border border-slate-200/50">
-                                    <i class="fas fa-file-lines text-xs"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-bold text-slate-800 tracking-tight">System Logs</h3>
-                                    <p class="text-[10px] text-slate-400 font-medium">Download logs & view metrics</p>
-                                </div>
-                            </div>
-
-                            <div class="space-y-3 pt-1">
-                                <!-- Log Counts and Details -->
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="p-3 border border-slate-100 bg-slate-50/50 rounded-lg space-y-1">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">App Logs</span>
-                                            <span id="log-count-app-size" class="text-[9px] font-semibold text-slate-500">-</span>
-                                        </div>
-                                        <div id="log-count-app" class="text-base font-bold text-slate-750">-</div>
-                                        <span class="block text-[8px] text-slate-400">Total recorded lines</span>
-                                    </div>
-                                    <div class="p-3 border border-slate-100 bg-rose-50/20 rounded-lg space-y-1">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-[9px] font-bold text-rose-500/80 uppercase tracking-wider">Error Logs</span>
-                                            <span id="log-count-error-size" class="text-[9px] font-semibold text-rose-500">-</span>
-                                        </div>
-                                        <div id="log-count-error" class="text-base font-bold text-rose-700">-</div>
-                                        <span class="block text-[8px] text-rose-450">Total recorded lines</span>
-                                    </div>
-                                </div>
-
-                                <!-- Latest Error Summary -->
-                                <div class="border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
-                                    <div class="bg-slate-100 px-3 py-1.5 border-b border-slate-200 flex justify-between items-center">
-                                        <span class="text-[9px] font-bold text-gray-500 tracking-wider uppercase">Latest Error Summary</span>
-                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                    </div>
-                                    <div class="p-3 max-h-16 overflow-y-auto text-[10px] font-mono text-slate-650 leading-normal break-all" id="log-latest-error-summary">
-                                        No errors recorded
-                                    </div>
-                                </div>
-
-                                <!-- Log Actions -->
-                                <div class="flex gap-2">
-                                    <button type="button" id="download-app-logs-button" class="flex-1 py-2 px-3 bg-slate-50 text-slate-650 hover:bg-slate-100 hover:text-slate-800 border border-slate-200 text-xs font-semibold rounded-lg active:scale-[0.98] transition cursor-pointer flex items-center justify-center gap-1.5">
-                                        <i class="fas fa-download text-[10px] text-slate-400"></i>
-                                        <span>App Logs</span>
-                                    </button>
-                                    <button type="button" id="download-error-logs-button" class="flex-1 py-2 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100/70 border border-rose-200/60 text-xs font-semibold rounded-lg active:scale-[0.98] transition cursor-pointer flex items-center justify-center gap-1.5">
-                                        <i class="fas fa-triangle-exclamation text-[10px]"></i>
-                                        <span>Error Logs</span>
                                     </button>
                                 </div>
                             </div>
@@ -976,11 +841,11 @@
 
 
         <!-- Data Control Section -->
-        <section id="data-backup-section" class="space-y-8 hidden pb-24">
+        <section id="data-backup-section" class="space-y-6 hidden">
             <!-- Backup Status Card -->
-            <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                <div class="flex items-center gap-3.5 mb-2">
-                    <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500 border border-blue-100/50">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                <div class="flex items-center gap-3.5 mb-1">
+                    <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
                         <i class="fas fa-info-circle text-sm"></i>
                     </div>
                     <div>
@@ -988,22 +853,18 @@
                         <p class="text-xs text-slate-400 font-medium">Current status of the system databases backups</p>
                     </div>
                 </div>
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-blue-50/50 p-5 rounded-xl border border-blue-100/50">
-                    <div class="flex items-center gap-3.5">
-                        <i class="fas fa-clock text-blue-500 text-lg"></i>
-                        <p id="backup-status" class="text-slate-700 font-semibold text-sm">No backup performed yet.</p>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-purple-50/30 p-4 rounded-xl border border-purple-100/40">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-clock text-purple-500 text-base"></i>
+                        <p id="backup-status" class="text-slate-700 font-semibold text-xs">No backup performed yet.</p>
                     </div>
-                    <button type="button" id="status-backup-shortcut-button" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition active:scale-[0.98] cursor-pointer flex items-center gap-1.5 shadow-sm shadow-blue-500/10 shrink-0">
-                        <i class="fas fa-play text-[9px]"></i>
-                        <span>Trigger Backup Now</span>
-                    </button>
                 </div>
             </div>
 
             <!-- Manual Backup Card -->
-            <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                <div class="flex items-center gap-3.5 mb-2">
-                    <div class="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-500 border border-indigo-100/50">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                <div class="flex items-center gap-3.5 mb-1">
+                    <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
                         <i class="fas fa-save text-sm"></i>
                     </div>
                     <div>
@@ -1011,21 +872,20 @@
                         <p class="text-xs text-slate-400 font-medium">Create an on-demand compressed backup of the database</p>
                     </div>
                 </div>
-                <div class="space-y-4">
-                    <p class="text-sm text-slate-650 font-medium">The backup file will be generated and saved to the configured backup location on this system.</p>
-                    <div class="flex gap-3 pt-2">
+                <div class="space-y-3.5">
+                    <div class="flex gap-3 pt-1">
                         <button type="button" id="manual-backup-button"
-                            class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 active:scale-[0.98] transition shadow-sm hover:shadow-indigo-500/20 text-xs cursor-pointer flex items-center gap-2">
+                            class="px-4 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-1.5">
                             <i class="fas fa-hdd"></i>
-                            Create Manual Backup
+                            <span>Create Manual Backup</span>
                         </button>
                         <button type="button" id="manual-backup-open-folder"
-                            class="px-5 py-2.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-semibold hover:bg-slate-200 active:scale-[0.98] transition text-xs cursor-pointer flex items-center gap-2">
+                            class="px-4 py-2.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-semibold hover:bg-slate-200 active:scale-[0.98] transition text-xs cursor-pointer flex items-center gap-1.5">
                             <i class="fas fa-folder-open"></i>
-                            Open Backup Folder
+                            <span>Open Backup Folder</span>
                         </button>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-2 flex items-center gap-1.5">
+                    <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1.5 font-medium">
                         <i class="fas fa-info-circle text-slate-400"></i>
                         <span>Note: Installing MongoDB Database Tools enables native mongodump backup. Otherwise backup may fail.</span>
                     </p>
@@ -1033,57 +893,56 @@
             </div>
 
             <!-- Export Options Card -->
-            <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6">
-                <div class="flex items-center gap-3.5 mb-2">
-                    <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500 border border-emerald-100/50">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                <div class="flex items-center gap-3.5 mb-1">
+                    <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
                         <i class="fas fa-download text-sm"></i>
                     </div>
                     <div>
                         <h2 class="text-lg font-bold text-slate-800 tracking-tight">Export Data</h2>
-                        <p class="text-xs text-slate-400 font-medium">Select and export specific collections in CSV or JSON format</p>
+                        <p class="text-xs text-slate-400 font-medium">Select and export specific collections in JSON format</p>
                     </div>
                 </div>
                 <div class="space-y-4">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Select the data you want to export (multi-select enabled):</p>
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                        <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
-                            <input type="checkbox" name="export-data" value="quotations" checked class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded transition cursor-pointer">
+                        <label class="flex items-center gap-2 py-2 px-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
+                            <input type="checkbox" name="export-data" value="quotations" checked class="w-3.5 h-3.5 text-purple-600 focus:ring-purple-500/20 border-slate-350 rounded transition cursor-pointer">
                             <span class="text-xs font-semibold text-slate-700 select-none">Quotation</span>
                         </label>
-                        <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
-                            <input type="checkbox" name="export-data" value="purchases" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded transition cursor-pointer">
+                        <label class="flex items-center gap-2 py-2 px-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
+                            <input type="checkbox" name="export-data" value="purchases" class="w-3.5 h-3.5 text-purple-600 focus:ring-purple-500/20 border-slate-350 rounded transition cursor-pointer">
                             <span class="text-xs font-semibold text-slate-700 select-none">Purchase Order</span>
                         </label>
-                        <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
-                            <input type="checkbox" name="export-data" value="ewaybills" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded transition cursor-pointer">
+                        <label class="flex items-center gap-2 py-2 px-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
+                            <input type="checkbox" name="export-data" value="ewaybills" class="w-3.5 h-3.5 text-purple-600 focus:ring-purple-500/20 border-slate-350 rounded transition cursor-pointer">
                             <span class="text-xs font-semibold text-slate-700 select-none">E-Way Bill</span>
                         </label>
-                        <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
-                            <input type="checkbox" name="export-data" value="invoices" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded transition cursor-pointer">
+                        <label class="flex items-center gap-2 py-2 px-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
+                            <input type="checkbox" name="export-data" value="invoices" class="w-3.5 h-3.5 text-purple-600 focus:ring-purple-500/20 border-slate-350 rounded transition cursor-pointer">
                             <span class="text-xs font-semibold text-slate-700 select-none">Invoice</span>
                         </label>
-                        <label class="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
-                            <input type="checkbox" name="export-data" value="stocks" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500/20 border-slate-350 rounded transition cursor-pointer">
+                        <label class="flex items-center gap-2 py-2 px-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 border border-slate-200 transition">
+                            <input type="checkbox" name="export-data" value="stocks" class="w-3.5 h-3.5 text-purple-600 focus:ring-purple-500/20 border-slate-350 rounded transition cursor-pointer">
                             <span class="text-xs font-semibold text-slate-700 select-none">Stock</span>
                         </label>
                     </div>
-                    <div class="pt-2">
+                    <div class="pt-1">
                         <button type="button" id="export-data-button"
-                            class="w-full px-5 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 active:scale-[0.98] transition shadow-sm hover:shadow-emerald-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
+                            class="w-full px-4 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fas fa-file-export"></i>
-                            Export Selected Data
+                            <span>Export Selected Data</span>
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Restore Options -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                 <!-- Restore Collection Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 flex flex-col justify-between h-full">
+                <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4 flex flex-col justify-between h-full">
                     <div>
-                        <div class="flex items-center gap-3.5 mb-6">
-                            <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center text-orange-500 border border-orange-100/50">
+                        <div class="flex items-center gap-3.5 mb-4">
+                            <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
                                 <i class="fas fa-upload text-sm"></i>
                             </div>
                             <div>
@@ -1091,11 +950,11 @@
                                 <p class="text-xs text-slate-400 font-medium">Import data directly back into specific database collections</p>
                             </div>
                         </div>
-                        <div class="space-y-5 pt-2">
+                        <div class="space-y-4 pt-1">
                             <div class="flex flex-col gap-1.5">
-                                <label for="collection-select" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Choose Collection</label>
+                                <label for="collection-select" class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Choose Collection</label>
                                 <select id="collection-select"
-                                    class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition duration-150 font-medium text-slate-800">
+                                    class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150 font-semibold text-slate-700">
                                     <option selected>Choose collection</option>
                                     <option value="quotations">Quotations</option>
                                     <option value="invoices">Invoices</option>
@@ -1106,11 +965,11 @@
                                     <option value="employees">Employees</option>
                                 </select>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Backup File</label>
-                                <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg p-2">
-                                    <label class="cursor-pointer px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-md text-xs font-bold flex items-center gap-2 transition active:scale-[0.98] shrink-0 shadow-sm">
-                                        <i class="fas fa-folder-open text-slate-400"></i>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Select Backup File</label>
+                                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg p-1.5">
+                                    <label class="cursor-pointer px-3 py-1.5 bg-white hover:bg-slate-100 text-purple-600 border border-slate-200 hover:border-purple-300 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition active:scale-[0.98] shrink-0 shadow-sm">
+                                        <i class="fas fa-folder-open text-purple-500"></i>
                                         <span>Choose File</span>
                                         <input type="file" id="restore-collection-file" accept=".gz,.zip,.json,.bson" class="hidden">
                                     </label>
@@ -1119,20 +978,20 @@
                             </div>
                         </div>
                     </div>
-                    <div class="pt-6 border-t border-slate-100">
+                    <div class="pt-4 border-t border-slate-100">
                         <button type="button" id="restore-collection-button"
-                            class="w-full px-5 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 active:scale-[0.98] transition shadow-sm hover:shadow-orange-500/20 text-xs cursor-pointer flex items-center justify-center gap-2">
+                            class="w-full px-4 py-2.5 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 active:scale-[0.98] transition shadow-sm hover:shadow-orange-500/20 text-xs cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fas fa-redo"></i>
-                            Restore Collection
+                            <span>Restore Collection</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Restore Database Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 flex flex-col justify-between h-full">
+                <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4 flex flex-col justify-between h-full">
                     <div>
-                        <div class="flex items-center gap-3.5 mb-6">
-                            <div class="w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center text-red-500 border border-red-100/50">
+                        <div class="flex items-center gap-3.5 mb-4">
+                            <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
                                 <i class="fas fa-database text-sm"></i>
                             </div>
                             <div>
@@ -1140,25 +999,25 @@
                                 <p class="text-xs text-slate-400 font-medium">Completely restore the entire system database from a previous dump</p>
                             </div>
                         </div>
-                        <div class="space-y-5 pt-2">
-                            <div class="flex flex-col gap-2">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Database Backup</label>
-                                <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg p-2">
-                                    <label class="cursor-pointer px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-md text-xs font-bold flex items-center gap-2 transition active:scale-[0.98] shrink-0 shadow-sm">
-                                        <i class="fas fa-folder-open text-slate-400"></i>
+                        <div class="space-y-4 pt-1">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Select Database Backup</label>
+                                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg p-1.5">
+                                    <label class="cursor-pointer px-3 py-1.5 bg-white hover:bg-slate-100 text-purple-600 border border-slate-200 hover:border-purple-300 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition active:scale-[0.98] shrink-0 shadow-sm">
+                                        <i class="fas fa-folder-open text-purple-500"></i>
                                         <span>Choose File</span>
                                         <input type="file" id="restore-database-file" accept=".gz,.zip,.json,.bson" class="hidden">
                                     </label>
                                     <span id="restore-database-file-name" class="text-xs text-slate-500 font-medium italic truncate max-w-[220px]">No file selected</span>
                                 </div>
                             </div>
-                            <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl shadow-sm">
-                                <div class="flex items-start gap-3">
+                            <div class="bg-rose-50 border border-rose-100 p-3 rounded-lg shadow-sm">
+                                <div class="flex items-start gap-2.5">
                                     <div class="w-8 h-8 bg-rose-100 border border-rose-200 rounded-lg flex items-center justify-center text-rose-600 shrink-0">
-                                        <i class="fas fa-exclamation-triangle text-sm"></i>
+                                        <i class="fas fa-exclamation-triangle text-xs"></i>
                                     </div>
-                                    <div class="space-y-1">
-                                        <p class="text-[10px] font-bold text-rose-800 uppercase tracking-widest">Critical Warning</p>
+                                    <div class="space-y-0.5">
+                                        <p class="text-[9px] font-bold text-rose-800 uppercase tracking-wider">Critical Warning</p>
                                         <p class="text-xs text-rose-600 leading-relaxed font-semibold">
                                             Restoring the database will replace all existing data. Make sure you have a valid backup before proceeding.
                                         </p>
@@ -1167,11 +1026,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="pt-6 border-t border-slate-100">
+                    <div class="pt-4 border-t border-slate-100">
                         <button type="button" id="restore-database-button" disabled
-                            class="w-full px-5 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 active:scale-[0.98] transition shadow-sm hover:shadow-red-500/20 text-xs cursor-pointer flex items-center justify-center gap-2 opacity-50 pointer-events-none">
+                            class="w-full px-4 py-2.5 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 active:scale-[0.98] transition shadow-sm hover:shadow-red-500/20 text-xs cursor-pointer flex items-center justify-center gap-1.5 opacity-50 pointer-events-none">
                             <i class="fas fa-exclamation-circle"></i>
-                            Restore Database
+                            <span>Restore Database</span>
                         </button>
                     </div>
                 </div>
@@ -1179,7 +1038,7 @@
         </section>
 
         <!-- System Preferences Section -->
-        <section id="preferences-section" class="space-y-8 hidden pb-24">
+        <section id="preferences-section" class="space-y-8 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 <!-- Stock Management Card -->
@@ -1314,22 +1173,21 @@
                     </div>
                 </div>
 
-                <!-- Sticky Bottom Save Bar (Left side maps sidebar spacer of 280px) -->
-                <div class="fixed bottom-0 left-[280px] right-0 bg-white/80 backdrop-blur-md border-t border-slate-200 py-4 px-8 md:px-12 flex justify-end z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
                     <button type="button" id="save-preferences-button"
                         class="px-6 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-sm cursor-pointer flex items-center gap-2">
                         <i class="fas fa-save text-xs"></i>
                         <span>Save All Preferences</span>
                     </button>
-                </div>
+          
 
             </div>
         </section>
 
         <!-- Security Settings Section -->
-        <section id="security-section" class="space-y-8 hidden pb-24">
+        <section id="security-section" class="space-y-8 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                 <!-- Session & Login Security Card -->
+ 
+                <!-- Session & Login Security Card -->
                 <div class="bg-white rounded-xl border border-slate-200 p-8 space-y-6 lg:col-span-2">
                     <div class="flex items-center gap-3.5 mb-2">
                         <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
@@ -1446,7 +1304,6 @@
                                     <i class="fas fa-eye text-sm"></i>
                                 </button>
                             </div>
-                            <p class="text-[10px] text-slate-450 mt-1 font-medium">Password must be at least 8 characters long and contain at least 1 number and 1 special character.</p>
                         </div>
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confirm Password</label>
@@ -1472,7 +1329,7 @@
             </div>
         </section>
         <!-- WhatsApp/Integrations Section -->
-        <section id="integrations-section" class="space-y-8 hidden pb-24">
+        <section id="integrations-section" class="space-y-8 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 <!-- WhatsApp API Configuration Card -->
@@ -1533,9 +1390,7 @@
                             <h2 class="text-lg font-bold text-slate-800 tracking-tight">Cloudinary (PDF Storage)</h2>
                             <p class="text-xs text-slate-400 font-medium">Publicly accessible cloud storage required for WhatsApp document attachments</p>
                         </div>
-                    </div>
-                    <p class="text-xs text-slate-500 font-medium leading-relaxed">Cloudinary is required for sending PDFs via WhatsApp. WhatsApp needs publicly accessible URLs for document attachments.</p>
-                    
+                    </div>                    
                     <!-- Status Indicator -->
                     <div id="cloudinary-status"
                         class="flex items-center gap-2 p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-650 text-xs font-semibold mb-4">

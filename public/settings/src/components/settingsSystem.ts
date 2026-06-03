@@ -7,11 +7,8 @@ declare var settingsUtils: any;
 
 class SettingsSystem {
     private systemInfoInterval: any = null;
-    private logsStatsInterval: any = null;
-    private cpuInterval: any = null;
 
     init(): void {
-        document.getElementById("refresh-stats-button")?.addEventListener("click", () => this.refreshDatabaseStats());
 
         // Initialize auto-update functionality
         this.initAutoUpdate();
@@ -22,15 +19,8 @@ class SettingsSystem {
         // Start real-time system info updates
         this.startSystemInfoUpdates();
 
-        // Start CPU Simulation
-        this.startCpuSimulation();
-
         // Load database stats initially
         this.loadDatabaseStats();
-
-        // Start log stats updates
-        this.loadLogsStats();
-        this.startLogsStatsUpdates();
 
         // Set up external links
         this.setupExternalLinks();
@@ -41,11 +31,6 @@ class SettingsSystem {
 
     cleanup(): void {
         this.stopSystemInfoUpdates();
-        this.stopLogsStatsUpdates();
-        if (this.cpuInterval) {
-            clearInterval(this.cpuInterval);
-            this.cpuInterval = null;
-        }
     }
 
     loadSystemInfo(): void {
@@ -99,28 +84,11 @@ class SettingsSystem {
                     const uptimeEl = document.getElementById("uptime");
                     if (uptimeEl) uptimeEl.textContent = s.uptime || '-';
 
-                    // Update memory progress bar and stats
-                    const freeMemStr = s.free_memory || '';
-                    const totalMemStr = s.total_memory || '';
-                    
-                    const free = parseFloat(freeMemStr);
-                    const total = parseFloat(totalMemStr);
-                    
-                    if (!isNaN(free) && !isNaN(total) && total > 0) {
-                        const used = total - free;
-                        const usedPercent = Math.max(0, Math.min(100, Math.round((used / total) * 100)));
-                        
-                        const ramUsageValEl = document.getElementById("ram-usage-value");
-                        if (ramUsageValEl) ramUsageValEl.textContent = `${usedPercent}%`;
-                        
-                        const ramUsageBarEl = document.getElementById("ram-usage-bar");
-                        if (ramUsageBarEl) ramUsageBarEl.style.width = `${usedPercent}%`;
-                        
-                        const healthRamStatusEl = document.getElementById("health-ram-status");
-                        if (healthRamStatusEl) {
-                            healthRamStatusEl.textContent = `${usedPercent}% Used`;
-                        }
-                    }
+                    const healthUptimeStatusEl = document.getElementById("health-uptime-status");
+                    if (healthUptimeStatusEl) healthUptimeStatusEl.textContent = s.uptime || '-';
+
+                    const healthRamStatusEl = document.getElementById("health-ram-status");
+                    if (healthRamStatusEl) healthRamStatusEl.textContent = s.app_memory || '-';
                 }
             })
             .catch((err: any) => {
@@ -144,71 +112,7 @@ class SettingsSystem {
         }
     }
 
-    private startCpuSimulation(): void {
-        if (this.cpuInterval) {
-            clearInterval(this.cpuInterval);
-        }
 
-        const cpuValEl = document.getElementById("cpu-usage-value");
-        const cpuBarEl = document.getElementById("cpu-usage-bar");
-
-        let currentCpu = 8;
-        this.cpuInterval = setInterval(() => {
-            // Fluctuate CPU slightly
-            const change = (Math.random() - 0.5) * 6; // -3% to +3%
-            currentCpu = Math.max(2, Math.min(95, Math.round(currentCpu + change)));
-            
-            // 8% chance of a mock load spike
-            if (Math.random() < 0.08) {
-                currentCpu = Math.min(88, currentCpu + Math.floor(Math.random() * 25) + 12);
-            }
-
-            if (cpuValEl) cpuValEl.textContent = `${currentCpu}%`;
-            if (cpuBarEl) cpuBarEl.style.width = `${currentCpu}%`;
-        }, 2000);
-    }
-
-    async loadLogsStats(): Promise<void> {
-        try {
-            const data = await settingsApi.getLogsStats();
-            if (data.success && data.stats) {
-                const s = data.stats;
-                
-                const logAppEl = document.getElementById('log-count-app');
-                if (logAppEl) logAppEl.textContent = s.app.lines.toLocaleString();
-                
-                const logAppSizeEl = document.getElementById('log-count-app-size');
-                if (logAppSizeEl) logAppSizeEl.textContent = s.app.size;
-                
-                const logErrorEl = document.getElementById('log-count-error');
-                if (logErrorEl) logErrorEl.textContent = s.error.lines.toLocaleString();
-                
-                const logErrorSizeEl = document.getElementById('log-count-error-size');
-                if (logErrorSizeEl) logErrorSizeEl.textContent = s.error.size;
-                
-                const latestErrorEl = document.getElementById('log-latest-error-summary');
-                if (latestErrorEl) {
-                    latestErrorEl.textContent = s.error.latest || 'No errors recorded';
-                }
-            }
-        } catch (err) {
-            console.error('Failed to load logs stats:', err);
-        }
-    }
-
-    startLogsStatsUpdates(): void {
-        if (this.logsStatsInterval) {
-            clearInterval(this.logsStatsInterval);
-        }
-        this.logsStatsInterval = setInterval(() => this.loadLogsStats(), 10000);
-    }
-
-    stopLogsStatsUpdates(): void {
-        if (this.logsStatsInterval) {
-            clearInterval(this.logsStatsInterval);
-            this.logsStatsInterval = null;
-        }
-    }
 
     async loadChangelog(): Promise<void> {
         const fallbackContainer = document.getElementById('changelog-container');
@@ -271,41 +175,10 @@ class SettingsSystem {
 
     loadDatabaseStats(): void {
         settingsApi.getDatabaseStats()
-            .then((data: { success: boolean; stats: DatabaseStats }) => {
-                if (data.success && data.stats) {
-                    const s = data.stats;
-                    
-                    const dbSizeEl = document.getElementById("db-size");
-                    if (dbSizeEl) dbSizeEl.textContent = s.database_size_mb + ' MB';
-                    
-                    const storageSizeEl = document.getElementById("storage-size");
-                    if (storageSizeEl) storageSizeEl.textContent = s.storage_size_mb + ' MB';
-                    
-                    const totalDocsEl = document.getElementById("total-docs");
-                    if (totalDocsEl) totalDocsEl.textContent = s.total_documents.toLocaleString();
-
-                    // Calculate Database storage ratio
-                    const dbSize = parseFloat(s.database_size_mb.toString()) || 0;
-                    const storageSize = parseFloat(s.storage_size_mb.toString()) || 0;
-                    const ratio = storageSize > 0 ? Math.max(0, Math.min(100, Math.round((dbSize / storageSize) * 100))) : 0;
-
-                    const ratioValEl = document.getElementById("storage-ratio-val");
-                    if (ratioValEl) ratioValEl.textContent = `${ratio}%`;
-
-                    const usageBarEl = document.getElementById("storage-usage-bar");
-                    if (usageBarEl) usageBarEl.style.width = `${ratio}%`;
-
-                    // Trigger mini trend sparkline rendering
-                    this.drawSparkline(s.total_documents || 0);
-
-                    // Update health status
-                    const healthDbStatus = document.getElementById("health-db-status");
-                    if (healthDbStatus) healthDbStatus.textContent = "Connected";
-
-                    const lastCalculatedEl = document.getElementById("last-calculated-timestamp");
-                    if (lastCalculatedEl) {
-                        lastCalculatedEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    }
+            .then((data: { success: boolean }) => {
+                const healthDbStatus = document.getElementById("health-db-status");
+                if (healthDbStatus) {
+                    healthDbStatus.textContent = data.success ? "Connected" : "Error";
                 }
             })
             .catch((err: any) => {
@@ -313,61 +186,6 @@ class SettingsSystem {
                 const healthDbStatus = document.getElementById("health-db-status");
                 if (healthDbStatus) healthDbStatus.textContent = "Error";
             });
-    }
-
-    private refreshDatabaseStats(): void {
-        this.loadDatabaseStats();
-        this.loadLogsStats();
-        (window as any).electronAPI.showAlert1("Database Statistics Synchronized!");
-    }
-
-    private drawSparkline(currentDocs: number): void {
-        const sparklinePath = document.querySelector("#db-sparkline path:first-of-type") as SVGPathElement;
-        const sparklineFill = document.querySelector("#db-sparkline path:nth-of-type(2)") as SVGPathElement;
-        if (!sparklinePath || !sparklineFill) return;
-
-        // Generate 7 values representing historical mock growth
-        const pointsCount = 7;
-        const values: number[] = [];
-        let val = currentDocs;
-        for (let i = 0; i < pointsCount; i++) {
-            values.unshift(val);
-            // decrement logically
-            val = Math.max(0, val - (Math.floor(Math.random() * 8) + 1));
-        }
-
-        const min = Math.min(...values);
-        const max = Math.max(...values);
-        const range = max - min || 1;
-
-        // Map dimensions to coords (svg viewBox 100 x 30)
-        const width = 100;
-        const height = 26; // 4px vertical padding
-        const padding = 2;
-
-        const coords = values.map((v, i) => {
-            const x = (i / (pointsCount - 1)) * width;
-            const y = height - ((v - min) / range) * height + padding;
-            return { x, y };
-        });
-
-        // SVG Cubic Bezier Path creation
-        let d = `M ${coords[0].x} ${coords[0].y}`;
-        for (let i = 1; i < coords.length; i++) {
-            const prev = coords[i - 1];
-            const curr = coords[i];
-            const cp1x = prev.x + (curr.x - prev.x) / 3;
-            const cp1y = prev.y;
-            const cp2x = prev.x + (2 * (curr.x - prev.x)) / 3;
-            const cp2y = curr.y;
-            d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x} ${curr.y}`;
-        }
-
-        sparklinePath.setAttribute("d", d);
-
-        // Render filled gradient section beneath sparkline path
-        const fillD = `${d} L 100 30 L 0 30 Z`;
-        sparklineFill.setAttribute("d", fillD);
     }
 
     private updateStatus(message: string, type = 'info'): void {

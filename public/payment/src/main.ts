@@ -78,7 +78,6 @@ interface IApiResponse {
 interface Window {
     _paymentUI: {
         editPayment: (id: string) => void;
-        confirmDelete: (id: string) => Promise<void>;
         viewPayment: (id: string) => void;
         refundPayment?: (id: string) => void;
         printPayment?: (id: string) => void;
@@ -575,10 +574,6 @@ interface Window {
         return res.json();
     }
 
-    async function deletePaymentById(id: string): Promise<IApiResponse> {
-        const res = await fetch(`/payment/${id}`, { method: 'DELETE' });
-        return res.json();
-    }
 
     async function fetchParties(type: 'Customer' | 'Supplier'): Promise<{id: string, name: string}[]> {
         try {
@@ -1181,6 +1176,24 @@ interface Window {
         $partyIdHidden.value = '';
         if (validator) validator.clearAllErrors();
         renderPartyProfileCard();
+
+        const searchContainer = document.getElementById('party-search-container');
+        if (searchContainer) {
+            if (payment && (payment.reference_type === 'Invoice' || payment.reference_type === 'Purchase')) {
+                searchContainer.style.display = 'none';
+            } else {
+                searchContainer.style.display = 'block';
+            }
+        }
+
+        const refundContainer = document.getElementById('refund-checkbox-container');
+        if (refundContainer) {
+            if (allPayments.length === 0) {
+                refundContainer.style.display = 'none';
+            } else {
+                refundContainer.style.display = 'flex';
+            }
+        }
 
         if (payment) {
             $modalTitle.textContent = 'Edit Payment';
@@ -1929,26 +1942,7 @@ interface Window {
         .addEventListener('click', () => {
             if (selectedDetailsPayment) openRefundModal(selectedDetailsPayment);
         });
-    (document.getElementById('details-delete-btn') as HTMLButtonElement)
-        .addEventListener('click', async () => {
-            if (!selectedDetailsPayment) return;
-            const paymentId = selectedDetailsPayment._id;
-            const confirmed: boolean = confirm('Are you sure you want to delete this payment?');
-            if (!confirmed) return;
-            try {
-                const result: IApiResponse = await deletePaymentById(paymentId);
-                if (result.success) {
-                    closeDetailsModal();
-                    showToast('Payment deleted');
-                    fetchPayments();
-                } else {
-                    showToast(result.message || 'Delete failed', true);
-                }
-            } catch (err) {
-                console.error('Delete error:', err);
-                showToast('Error deleting payment', true);
-            }
-        });
+
 
     // Direction changes: clear party field and reset profile card
     document.querySelectorAll('input[name="direction"]').forEach(radio => {
@@ -2413,22 +2407,7 @@ interface Window {
             const payment = allPayments.find((p: IPaymentRecord) => p._id === id);
             if (payment) openModal(payment);
         },
-        confirmDelete: async function (id: string): Promise<void> {
-            const confirmed: boolean = confirm('Are you sure you want to delete this payment?');
-            if (!confirmed) return;
-            try {
-                const result: IApiResponse = await deletePaymentById(id);
-                if (result.success) {
-                    showToast('Payment deleted');
-                    fetchPayments();
-                } else {
-                    showToast(result.message || 'Delete failed', true);
-                }
-            } catch (err) {
-                console.error('Delete error:', err);
-                showToast('Error deleting payment', true);
-            }
-        },
+
         refundPayment: function (id: string): void {
             const payment = allPayments.find((p: IPaymentRecord) => p._id === id);
             if (payment) openRefundModal(payment);
@@ -2560,6 +2539,13 @@ interface Window {
                     fetchPartyDetails(partyType as any, partyName);
                 } else if (partyType && partyId) {
                     fetchPartyDetailsById(partyType, partyId);
+                }
+
+                if (refType === 'Invoice' || refType === 'Purchase') {
+                    const searchContainer = document.getElementById('party-search-container');
+                    if (searchContainer) {
+                        searchContainer.style.display = 'none';
+                    }
                 }
             }, 100);
         }
