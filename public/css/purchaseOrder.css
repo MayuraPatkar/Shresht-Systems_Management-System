@@ -143,7 +143,7 @@ main {
 }
 
 /* Header Alignment and Column Styles */
-#new .item-details-header-row,
+#new .items-header.item-details-header-row,
 #new .item-details-row {
     display: grid !important;
     grid-template-columns: 40px 2.2fr 1.1fr 1.2fr 1.2fr 1.2fr 1.1fr 40px !important;
@@ -151,7 +151,7 @@ main {
     align-items: center !important;
 }
 
-#new .item-pricing-header-row,
+#new .items-header.item-pricing-header-row,
 #new .item-pricing-row {
     display: grid !important;
     grid-template-columns: 40px 3.5fr 1fr 0.8fr 1.2fr 1fr !important;
