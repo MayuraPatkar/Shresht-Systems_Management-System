@@ -1119,6 +1119,14 @@ if (newSection) newSection.style.display = "block";
         const roundOff = Math.round(totalVal) - totalVal;
         const roundedTotal = totalVal + roundOff;
 
+        const totalDisplay = document.getElementById("payment-info-total-amount");
+        if (totalDisplay) {
+            totalDisplay.textContent = '₹' + roundedTotal.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
         const paymentAmountStr = (document.getElementById("payment-amount") as HTMLInputElement)?.value;
         const paymentModeStr = (document.getElementById("payment-mode") as HTMLSelectElement)?.value;
         const paymentDateStr = (document.getElementById("payment-date") as HTMLInputElement)?.value;
