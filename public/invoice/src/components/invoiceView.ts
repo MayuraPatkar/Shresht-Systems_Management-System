@@ -1090,6 +1090,157 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
             }
         });
     }
+
+    updateInvoiceStatusTracker(invoice);
+}
+
+function updateInvoiceStatusTracker(invoice: Invoice) {
+    const trackerEl = document.getElementById('invoice-status-tracker');
+    if (!trackerEl) return;
+
+    const status = getInvoiceStatus(invoice);
+    
+    let step1State = 'completed';
+    let step2State = 'pending';
+    let step3State = 'pending';
+    let step4State = 'pending';
+
+    let step3Label = 'Payment';
+    let step3Subtitle = 'Awaiting payment';
+    let step3Icon = 'fa-wallet';
+    let step3ColorClass = 'blue';
+
+    let step4Label = 'Fully Settled';
+    let step4Subtitle = 'Invoice cleared';
+    let step4Icon = 'fa-check-double';
+    let step4ColorClass = 'emerald';
+
+    let progressWidth = '0%';
+
+    if (status === InvoiceStatus.DRAFT) {
+        step1State = 'active';
+        progressWidth = '0%';
+    } else if (status === InvoiceStatus.SENT) {
+        step1State = 'completed';
+        step2State = 'active';
+        progressWidth = '33.33%';
+    } else if (status === InvoiceStatus.OVERDUE) {
+        step1State = 'completed';
+        step2State = 'completed';
+        step3State = 'warning';
+        step3Label = 'Overdue';
+        step3Subtitle = 'Payment delayed';
+        step3Icon = 'fa-exclamation-triangle';
+        step3ColorClass = 'red';
+        progressWidth = '66.66%';
+    } else if (status === InvoiceStatus.PARTIALLY_PAID) {
+        step1State = 'completed';
+        step2State = 'completed';
+        step3State = 'active';
+        step3Label = 'Partially Paid';
+        const totalAmt = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
+        const percent = totalAmt ? Math.round(((invoice.total_paid_amount || 0) / totalAmt) * 100) : 0;
+        step3Subtitle = `${percent}% paid`;
+        step3Icon = 'fa-hourglass-half';
+        step3ColorClass = 'amber';
+        progressWidth = '66.66%';
+    } else if (status === InvoiceStatus.PAID) {
+        step1State = 'completed';
+        step2State = 'completed';
+        step3State = 'completed';
+        step4State = 'completed';
+        step3Label = 'Paid';
+        step3Subtitle = 'Fully paid';
+        step3Icon = 'fa-check';
+        progressWidth = '100%';
+    } else if (status === InvoiceStatus.CANCELLED) {
+        step1State = 'completed';
+        step2State = 'completed';
+        step4State = 'failed';
+        step4Label = 'Cancelled';
+        step4Subtitle = 'Invoice voided';
+        step4Icon = 'fa-ban';
+        step4ColorClass = 'red';
+        progressWidth = '100%';
+    } else if (status === InvoiceStatus.REFUNDED) {
+        step1State = 'completed';
+        step2State = 'completed';
+        step3State = 'completed';
+        step4State = 'warning';
+        step4Label = 'Refunded';
+        step4Subtitle = 'Amount returned';
+        step4Icon = 'fa-undo';
+        step4ColorClass = 'purple';
+        progressWidth = '100%';
+    }
+
+    const renderStepCircle = (state: string, icon: string, color: string, label: string, subtitle: string) => {
+        let circleClass = '';
+        let labelClass = 'text-gray-800';
+        let iconMarkup = `<i class="fas ${icon} text-sm"></i>`;
+
+        if (state === 'completed') {
+            circleClass = 'bg-emerald-500 text-white ring-4 ring-emerald-100';
+            iconMarkup = `<i class="fas fa-check text-sm"></i>`;
+        } else if (state === 'active') {
+            if (color === 'amber') {
+                circleClass = 'bg-amber-500 text-white ring-4 ring-amber-100';
+                labelClass = 'text-amber-600 font-bold';
+            } else {
+                circleClass = 'bg-blue-600 text-white ring-4 ring-blue-100';
+                labelClass = 'text-blue-600 font-bold';
+            }
+        } else if (state === 'warning') {
+            if (color === 'red') {
+                circleClass = 'bg-red-500 text-white ring-4 ring-red-100';
+                labelClass = 'text-red-600 font-bold';
+            } else if (color === 'purple') {
+                circleClass = 'bg-purple-500 text-white ring-4 ring-purple-100';
+                labelClass = 'text-purple-600 font-bold';
+            } else {
+                circleClass = 'bg-amber-500 text-white ring-4 ring-amber-100';
+                labelClass = 'text-amber-600 font-bold';
+            }
+        } else if (state === 'failed') {
+            circleClass = 'bg-red-500 text-white ring-4 ring-red-100';
+            labelClass = 'text-red-600 font-bold';
+        } else {
+            circleClass = 'bg-gray-100 text-gray-400 border border-gray-200';
+            labelClass = 'text-gray-400';
+        }
+
+        return `
+            <div class="flex flex-col items-center z-10 flex-1 relative">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${circleClass}">
+                    ${iconMarkup}
+                </div>
+                <span class="text-xs font-bold mt-2 ${labelClass}">${label}</span>
+                <span class="text-[10px] text-gray-500 mt-0.5">${subtitle}</span>
+            </div>
+        `;
+    };
+
+    trackerEl.innerHTML = `
+        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+            <i class="fas fa-route text-blue-600 text-xl"></i>
+            <h3 class="text-lg font-bold text-gray-800">Status Tracker</h3>
+        </div>
+        <div class="relative w-full max-w-4xl mx-auto py-6">
+            <!-- Background progress line -->
+            <div class="absolute top-[36px] left-[20px] right-[20px] h-1 bg-gray-100 -translate-y-1/2 z-0 rounded-full">
+                <div class="h-full bg-gradient-to-r from-emerald-500 to-blue-600 transition-all duration-500 rounded-full" style="width: ${progressWidth}"></div>
+            </div>
+            
+            <!-- Steps Container -->
+            <div class="relative flex justify-between items-center z-10 w-full">
+                ${renderStepCircle(step1State, 'fa-file-signature', 'blue', 'Draft', 'Created')}
+                ${renderStepCircle(step2State, 'fa-paper-plane', 'blue', 'Sent', 'Shared with client')}
+                ${renderStepCircle(step3State, step3Icon, step3ColorClass, step3Label, step3Subtitle)}
+                ${renderStepCircle(step4State, step4Icon, step4ColorClass, step4Label, step4Subtitle)}
+            </div>
+        </div>
+    `;
+    trackerEl.classList.remove('hidden');
 }
 
 async function viewInvoice(invoiceId: string, userRole?: string | null) {

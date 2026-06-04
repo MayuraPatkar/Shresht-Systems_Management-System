@@ -655,6 +655,10 @@
             totalSteps: typeof totalSteps !== 'undefined' ? totalSteps : undefined,
             additionalSetup: () => {
                 sessionStorage.setItem('update-invoice', 'original');
+                const searchContainer = document.getElementById("buyer-search-container");
+                if (searchContainer) {
+                    searchContainer.style.display = "";
+                }
             }
         });
 

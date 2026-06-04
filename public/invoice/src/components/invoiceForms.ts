@@ -626,6 +626,11 @@ async function loadInvoiceFromQuotation(quotationId: string): Promise<void> {
         if (buyerCustomerIdEl) buyerCustomerIdEl.value = quotation.customer_id || '';
         renderBuyerProfileCard();
 
+        const searchContainer = document.getElementById("buyer-search-container");
+        if (searchContainer) {
+            searchContainer.style.display = "none";
+        }
+
         const itemsTableBody = document.querySelector("#items-table tbody") as HTMLTableSectionElement;
         const itemsContainer = document.getElementById("items-container") as HTMLElement;
         const nonItemsTableBody = document.querySelector("#non-items-table tbody") as HTMLTableSectionElement;
@@ -929,6 +934,14 @@ const openInvoice = async function (id: string) {
         if (buyerGstinInput) buyerGstinInput.value = invoice.customer_snapshot?.gstin || invoice.customer_GSTIN || '';
 
         renderBuyerProfileCard();
+        const searchContainer = document.getElementById("buyer-search-container");
+        if (searchContainer) {
+            if (invoice.quotation_id) {
+                searchContainer.style.display = "none";
+            } else {
+                searchContainer.style.display = "";
+            }
+        }
         const consigneeNameInput = document.getElementById('consignee-name') as HTMLInputElement;
         if (consigneeNameInput) consigneeNameInput.value = invoice.consignee?.name || invoice.consignee_name || '';
         const conLine1Input = document.getElementById('consignee-address-line1') as HTMLInputElement | null;

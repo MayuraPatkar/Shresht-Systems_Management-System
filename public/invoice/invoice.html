@@ -294,7 +294,7 @@
                             <h2 class="text-2xl font-semibold text-gray-800">Recipient Details (Sold/Bill to)</h2>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2 relative">
+                            <div class="md:col-span-2 relative" id="buyer-search-container">
                                 <label for="buyer-name" class="block text-sm font-medium text-gray-700 mb-2">
                                     <i class="fas fa-search text-gray-500 mr-1"></i>Search Recipient <span
                                         class="text-red-500">*</span>
@@ -672,6 +672,9 @@
         <!-- View Invoice -->
         <div id="view">
             <div id="project-details-view" class="w-full max-w-6xl mx-auto px-4 space-y-6">
+                <!-- Status Tracker Card -->
+                <div id="invoice-status-tracker" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in hidden">
+                </div>
 
 
 
