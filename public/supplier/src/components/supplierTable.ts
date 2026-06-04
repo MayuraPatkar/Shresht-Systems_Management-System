@@ -81,9 +81,9 @@ class SupplierTable {
         }
         
         if (window.showDeletedItems) {
-            card.className = 'supplier-card-premium p-5 flex flex-col justify-between group border border-rose-100 bg-rose-50/10 cursor-default';
+            card.className = 'supplier-card-premium p-5 flex flex-col justify-between group border border-rose-100 bg-rose-50/10 cursor-default h-full';
         } else {
-            card.className = 'supplier-card-premium p-5 flex flex-col justify-between group';
+            card.className = 'supplier-card-premium p-5 flex flex-col justify-between group h-full';
         }
 
         const supplierName = supplier.supplier_name || '-';

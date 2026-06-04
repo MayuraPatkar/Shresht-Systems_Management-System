@@ -58,7 +58,7 @@
     // Action Buttons
     const $detailsEditBtn = document.getElementById('details-edit-btn') as HTMLButtonElement;
     const $detailsRefundBtn = document.getElementById('details-refund-btn') as HTMLButtonElement;
-    const $detailsDeleteBtn = document.getElementById('details-delete-btn') as HTMLButtonElement;
+    const $detailsDeleteBtn = document.getElementById('details-delete-btn') as HTMLButtonElement | null;
     const $detailsPdfBtn = document.getElementById('details-pdf-btn') as HTMLButtonElement;
 
 
@@ -804,7 +804,7 @@
         }
     });
 
-    $detailsDeleteBtn.addEventListener('click', () => {
+    $detailsDeleteBtn?.addEventListener('click', () => {
         if (!currentPayment) return;
         const confirmedMsg = 'Are you sure you want to delete this payment transaction?';
         const showConfirm = (window as any).showConfirm;
@@ -889,7 +889,7 @@
         }
         if (isCtrlPressed && e.key === 'Delete' && !isTypingContext()) {
             e.preventDefault();
-            $detailsDeleteBtn.click();
+            $detailsDeleteBtn?.click();
             return;
         }
         if (isCtrlPressed && keyLower === 'h' && !isTypingContext()) {

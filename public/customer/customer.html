@@ -380,7 +380,7 @@
         </div>
 
         <!-- Customer List Container -->
-        <div id="customer-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in min-h-[calc(100vh-320px)] items-start">
+        <div id="customer-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in min-h-[calc(100vh-320px)]">
             <!-- Loading State -->
             <div class="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
                 <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
@@ -402,7 +402,8 @@
             <div class="bg-white modal-card-premium w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                 <div
                     class="px-8 py-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
-                    <h2 id="modal-title" class="text-xl font-bold text-slate-800">Add New Customer</h2>
+                    <div class="w-8 h-8"></div>
+                    <h2 id="modal-title" class="text-xl font-bold text-slate-800 text-center flex-grow">Add New Customer</h2>
                     <button id="close-modal"
                         class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200">
                         <i class="fas fa-times text-lg"></i>

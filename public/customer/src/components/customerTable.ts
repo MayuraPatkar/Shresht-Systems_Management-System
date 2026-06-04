@@ -89,11 +89,11 @@ class CustomerTable {
         }
 
         if ((window as any).showDeletedItems) {
-            card.className = 'customer-card-premium p-5 flex flex-col justify-between group border border-rose-100 bg-rose-50/10 cursor-default';
+            card.className = 'customer-card-premium p-5 flex flex-col justify-between group border border-rose-100 bg-rose-50/10 cursor-default h-full';
         } else if (customer.is_archived) {
-            card.className = 'customer-card-premium archived p-5 flex flex-col justify-between group';
+            card.className = 'customer-card-premium archived p-5 flex flex-col justify-between group h-full';
         } else {
-            card.className = 'customer-card-premium p-5 flex flex-col justify-between group';
+            card.className = 'customer-card-premium p-5 flex flex-col justify-between group h-full';
         }
 
         const fullName = this.getCustomerDisplayName(customer);

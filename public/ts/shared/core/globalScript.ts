@@ -52,8 +52,12 @@ function updateModuleBackTarget() {
 
   const previous = readModuleNavigationState(SSMS_MODULE_NAV_CURRENT_KEY);
   const backInProgress = sessionStorage.getItem(SSMS_MODULE_NAV_BACK_FLAG_KEY) === 'true';
+  const sidebarNavigation = sessionStorage.getItem('ssms.sidebarNavigation') === 'true';
 
-  if (backInProgress) {
+  if (sidebarNavigation) {
+    sessionStorage.removeItem('ssms.sidebarNavigation');
+    sessionStorage.removeItem(SSMS_MODULE_NAV_BACK_KEY);
+  } else if (backInProgress) {
     sessionStorage.removeItem(SSMS_MODULE_NAV_BACK_FLAG_KEY);
     sessionStorage.removeItem(SSMS_MODULE_NAV_BACK_KEY);
   } else if (previous && previous.id && previous.id !== current.id && previous.url && previous.url !== current.url) {
@@ -267,8 +271,17 @@ function scheduleHsnDuplicateValidation(trigger, delay = 0) {
 
 // Sidebar Active State Management
 document.addEventListener('DOMContentLoaded', () => {
+  // Check sidebar navigation before updating back target
   updateModuleBackTarget();
   renderModuleBackButton();
+
+  // Intercept click on any sidebar links
+  document.getElementById('sidebar-nav')?.addEventListener('click', (e) => {
+    const link = (e.target as Element).closest('a');
+    if (link) {
+      sessionStorage.setItem('ssms.sidebarNavigation', 'true');
+    }
+  });
 
   document.addEventListener('input', event => {
     if (isHsnRelatedInput(event.target)) {

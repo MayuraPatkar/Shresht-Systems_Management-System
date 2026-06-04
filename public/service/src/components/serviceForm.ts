@@ -78,6 +78,11 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         // Pre-select invoice if provided
         if (invoiceId) {
             selectInvoice(invoiceId);
+            const clearInvBtn = document.getElementById('clear-invoice-btn');
+            if (clearInvBtn) clearInvBtn.style.display = 'none';
+        } else {
+            const clearInvBtn = document.getElementById('clear-invoice-btn');
+            if (clearInvBtn) clearInvBtn.style.display = '';
         }
 
         // Generate service ID
@@ -123,6 +128,8 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
 
             // Show selected invoice info
             selectInvoice(service.invoice_id);
+            const clearInvBtn = document.getElementById('clear-invoice-btn');
+            if (clearInvBtn) clearInvBtn.style.display = 'none';
 
             // Populate items
             if (service.items && service.items.length > 0) {
@@ -167,6 +174,8 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
 
         document.getElementById('selected-invoice-info')?.classList.add('hidden');
         document.getElementById('invoice-selection-wrapper')?.classList.remove('hidden');
+        const clearInvBtn = document.getElementById('clear-invoice-btn');
+        if (clearInvBtn) clearInvBtn.style.display = '';
 
         const invSearch = document.getElementById('invoice-search') as HTMLInputElement;
         if (invSearch) invSearch.value = '';
