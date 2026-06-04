@@ -802,6 +802,10 @@ async function renderQuotationView(quotation, viewType) {
             newRejectBtn.disabled = true;
             newRejectBtn.classList.add('opacity-60', 'cursor-not-allowed');
             newRejectBtn.innerHTML = '<i class="fas fa-check-circle"></i> Already Rejected';
+        } else if (quotation.quotation_status === 'Converted') {
+            newRejectBtn.disabled = true;
+            newRejectBtn.classList.add('opacity-60', 'cursor-not-allowed');
+            newRejectBtn.innerHTML = '<i class="fas fa-check-circle"></i> Already Converted';
         }
         newRejectBtn.addEventListener('click', async () => {
             const confirmMsg = `Are you sure you want to mark Quotation "${quotation.quotation_id}" as Rejected?`;
