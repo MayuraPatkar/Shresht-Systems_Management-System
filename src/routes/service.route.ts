@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
+import path from 'path';
 import { InvoiceModel, ServiceModel, ItemModel, StockMovementModel, PaymentModel } from '../models';
 import moment from 'moment';
 import logger from '../utils/logger';
@@ -314,11 +315,16 @@ router.post('/save-service', async (req: Request, res: Response) => {
             terms_and_conditions
         } = req.body;
 
+        const invoice = await InvoiceModel.findOne({ invoice_id }) as any;
+        if (!invoice) {
+            return res.status(404).json({ error: "Invoice not found" });
+        }
+
         const newServiceId = await generateNextId('service');
 
         const savedService = await ServiceModel.create({
             service_id: newServiceId,
-            invoice_id,
+            invoice_id: invoice._id,
             fee_amount,
             service_date,
             service_stage,
@@ -361,10 +367,6 @@ router.post('/save-service', async (req: Request, res: Response) => {
         }
 
         // Update service_stage in the invoice
-        const invoice = await InvoiceModel.findOne({ invoice_id }) as any;
-        if (!invoice) {
-            return res.status(404).json({ error: "Invoice not found" });
-        }
         if (typeof service_stage !== "undefined") {
             const existingStage = Number(invoice.service_stage || 0);
             const incomingStage = Number(service_stage || 0);
@@ -470,7 +472,16 @@ router.put('/update-service', async (req: Request, res: Response) => {
             }
         }
 
-        existingService.invoice_id = invoice_id || existingService.invoice_id;
+        let dbInvoiceId = existingService.invoice_id;
+        if (invoice_id) {
+            const invoice = await InvoiceModel.findOne({ invoice_id }) as any;
+            if (!invoice) {
+                return res.status(404).json({ error: "Invoice not found" });
+            }
+            dbInvoiceId = invoice._id;
+        }
+
+        existingService.invoice_id = dbInvoiceId;
         existingService.fee_amount = fee_amount !== undefined ? fee_amount : existingService.fee_amount;
         existingService.service_date = service_date || existingService.service_date;
         existingService.service_stage = service_stage !== undefined ? service_stage : existingService.service_stage;
@@ -526,11 +537,17 @@ router.get('/search/:query', async (req: Request, res: Response) => {
         } as any) as any[];
 
         const filteredProjects = projects.filter(project => {
-            if (!project.createdAt && !project.invoice_date) return false;
             if (!project.service_after_months) return false;
 
-            const createdDate = moment(project.invoice_date || project.createdAt);
-            const targetDate = createdDate.clone().add(project.service_after_months, 'months');
+            let targetDate: moment.Moment;
+            if (project.next_service_date) {
+                targetDate = moment(project.next_service_date);
+            } else {
+                if (!project.invoice_date && !project.createdAt) return false;
+                const createdDate = moment(project.invoice_date || project.createdAt);
+                targetDate = createdDate.clone().add(project.service_after_months, 'months');
+            }
+
             return currentDate.isSameOrAfter(targetDate, 'day');
         });
 
@@ -583,15 +600,75 @@ router.get('/recent-services', async (req: Request, res: Response) => {
     }
 });
 
-// Get individual service by service_id
+// Serve service_details.html directly (bypassing the /:serviceId catch-all below)
+router.get('/details', (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../../public/service/service_details.html'));
+});
+
+// Get individual service by service_id (also accepts invoice string id as fallback)
 router.get('/:serviceId', async (req: Request, res: Response) => {
     try {
         const { serviceId } = req.params;
-        const serviceRecord = await ServiceModel.findOne({ service_id: serviceId }).lean() as any;
+        let serviceRecord = await ServiceModel.findOne({ service_id: serviceId }).lean() as any;
+        let invoice: any = null;
+
+        if (serviceRecord) {
+            // Found by service_id — look up the linked invoice
+            // invoice_id may be stored as a string or ObjectId depending on how it was saved
+            invoice = await InvoiceModel.findOne({ invoice_id: serviceRecord.invoice_id }).lean();
+            if (!invoice) {
+                try {
+                    invoice = await InvoiceModel.findById(serviceRecord.invoice_id).lean();
+                } catch { /* not a valid ObjectId, ignore */ }
+            }
+        } else {
+            // Fallback: treat param as an invoice string id (e.g. "INV2600003")
+            // First look up the Invoice document to get its _id
+            invoice = await InvoiceModel.findOne({ invoice_id: serviceId }).lean() as any;
+            if (invoice) {
+                // Try finding service by the Invoice's ObjectId _id
+                serviceRecord = await ServiceModel.findOne({ invoice_id: invoice._id })
+                    .sort({ createdAt: -1 })
+                    .lean() as any;
+
+                // Also try matching where invoice_id was stored as the string (via as any)
+                if (!serviceRecord) {
+                    serviceRecord = await ServiceModel.collection.findOne(
+                        { invoice_id: serviceId },
+                        { sort: { createdAt: -1 } }
+                    ) as any;
+                }
+            }
+        }
+
+        if (!serviceRecord && invoice) {
+            // Virtual empty service representing the scheduled / due service
+            serviceRecord = {
+                service_id: '-',
+                invoice_id: invoice.invoice_id,
+                fee_amount: 0,
+                service_date: null,
+                service_stage: invoice.service_stage || 0,
+                items: [],
+                non_items: [],
+                total_tax: 0,
+                total_amount_no_tax: 0,
+                total_amount_with_tax: 0,
+                total_paid_amount: 0,
+                payments: [],
+                notes: '',
+                declaration: '',
+                terms_and_conditions: '',
+                next_service_month: invoice.service_after_months || 0,
+                next_service_date: invoice.next_service_date || null,
+                service_status: invoice.service_status || 'Scheduled'
+            };
+        }
+
         if (!serviceRecord) {
             return res.status(404).json({ error: 'Service not found' });
         }
-        const invoice = await InvoiceModel.findOne({ invoice_id: serviceRecord.invoice_id }).lean();
+
         res.status(200).json({
             message: 'Service retrieved successfully',
             service: { ...serviceRecord, invoice_details: invoice || null }

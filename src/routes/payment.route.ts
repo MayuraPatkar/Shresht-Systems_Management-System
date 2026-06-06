@@ -101,11 +101,11 @@ async function resolveReferenceLink(reference_type: string | undefined, referenc
         } else if (reference_type === 'Service') {
             const sv = Types.ObjectId.isValid(str)
                 ? await ServiceModel.findById(str).lean()
-                : await ServiceModel.findOne({ $or: [{ service_no: str }] }).lean();
+                : await ServiceModel.findOne({ $or: [{ service_no: str }, { service_id: str }] }).lean();
             if (sv) {
                 return {
                     type: reference_type as ReferenceType,
-                    id: sv.service_no || str,
+                    id: sv.service_no || sv.service_id || str,
                     ref: new Types.ObjectId(sv._id)
                 };
             }

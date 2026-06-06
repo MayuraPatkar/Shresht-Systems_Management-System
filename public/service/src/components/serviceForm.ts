@@ -7,8 +7,6 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
 (function () {
     // Shared Globals/Helpers
     const serviceApi = (window as any).serviceApi;
-    const updateURL = (window as any).updateURL;
-    const navigateTo = (window as any).navigateTo;
     const escapeHtml = (window as any).escapeHtml || function (str: string | undefined): string {
         if (!str) return '';
         const div = document.createElement('div');
@@ -64,7 +62,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             iconEl.innerHTML = '<i class="fas fa-plus text-white text-xl"></i>';
         }
 
-        showSection('section-form');
+        (window as any).toggleSection(true);
 
         // Focus first input
         const formSection = document.getElementById('section-form');
@@ -73,7 +71,9 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             if (firstInput) setTimeout(() => firstInput.focus(), 50);
         }
 
-        updateURL({ new: 'true', invoice: invoiceId });
+        if (typeof (window as any).updateURL === 'function') {
+            (window as any).updateURL({ new: 'true', invoice: invoiceId });
+        }
 
         // Pre-select invoice if provided
         if (invoiceId) {
@@ -87,12 +87,19 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
 
         // Generate service ID
         generateServiceId();
+
+        updateFormHeaderForStep(1);
     }
 
     async function editService(serviceId: string) {
         try {
             const ServiceState = (window as any).ServiceState;
             const service = await serviceApi.fetchServiceDetails(serviceId);
+
+            if (!service || service.service_id === '-' || !service.service_id) {
+                showNewForm(service?.invoice_id || serviceId);
+                return;
+            }
 
             resetForm();
             ServiceState.isEditing = true;
@@ -111,7 +118,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             }
 
             // Populate form
-            const sIdInput = document.getElementById('form-service-id') as HTMLInputElement;
+            const sIdInput = document.getElementById('service-id') as HTMLInputElement;
             if (sIdInput) sIdInput.value = service.service_id;
 
             const invIdInput = document.getElementById('form-invoice-id') as HTMLInputElement;
@@ -142,7 +149,8 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             }
 
             updateLiveTotals();
-            showSection('section-form');
+            (window as any).toggleSection(true);
+            updateFormHeaderForStep(1);
 
         } catch (error) {
             console.error('Error loading service for edit:', error);
@@ -160,7 +168,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             if (el) el.value = val;
         };
 
-        setValue('form-service-id', '');
+        setValue('service-id', '');
         setValue('form-invoice-id', '');
         setValue('form-service-stage', '');
         setValue('form-is-editing', 'false');
@@ -169,8 +177,14 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         const itemsContainer = document.getElementById('items-container');
         if (itemsContainer) itemsContainer.innerHTML = '';
 
-        const chargesContainer = document.getElementById('charges-container');
+        const chargesContainer = document.getElementById('non-items-container') || document.getElementById('charges-container');
         if (chargesContainer) chargesContainer.innerHTML = '';
+
+        const itemsTableBody = document.querySelector('#items-table tbody');
+        if (itemsTableBody) itemsTableBody.innerHTML = '';
+
+        const nonItemsTableBody = document.querySelector('#non-items-table tbody');
+        if (nonItemsTableBody) nonItemsTableBody.innerHTML = '';
 
         document.getElementById('selected-invoice-info')?.classList.add('hidden');
         document.getElementById('invoice-selection-wrapper')?.classList.remove('hidden');
@@ -181,15 +195,16 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         if (invSearch) invSearch.value = '';
 
         // Reset to step 1
-        ServiceState.currentFormStep = 1;
-        updateFormStep();
+        if (typeof (window as any).changeStep === 'function') {
+            (window as any).changeStep(1);
+        }
         updateLiveTotals();
     }
 
     async function generateServiceId() {
         try {
             const serviceId = await serviceApi.generateServiceId();
-            const sIdInput = document.getElementById('form-service-id') as HTMLInputElement;
+            const sIdInput = document.getElementById('service-id') as HTMLInputElement;
             if (sIdInput) sIdInput.value = serviceId;
         } catch (error) {
             console.error('Error generating service ID:', error);
@@ -307,32 +322,86 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
     // ============================================================================
     // ITEMS MANAGEMENT
     // ============================================================================
+    const updateItemNumbers = (window as any).updateItemNumbers;
+    const updateNonItemNumbers = (window as any).updateNonItemNumbers;
+
+    // ============================================================================
+    // ITEMS MANAGEMENT
+    // ============================================================================
     function addItemRow(data: any = {}) {
         itemCounter++;
         const container = document.getElementById('items-container');
+        const tableBody = document.querySelector('#items-table tbody') as HTMLTableSectionElement | null;
         if (!container) return;
 
-        const row = document.createElement('div');
-        row.className = 'item-row';
-        row.dataset.itemId = String(itemCounter);
+        const itemNumber = container.children.length + 1;
 
-        row.innerHTML = `
-            <div style="position: relative; flex: 1; z-index: 10;">
-                <input type="text" placeholder="Description" class="item-desc" value="${escapeHtml(data.description || '')}" style="width: 100%;">
-                <ul class="suggestions" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 9999; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 200px; overflow-y: auto; margin-top: 4px; list-style: none; padding: 0;"></ul>
+        // Create card element
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.setAttribute('draggable', 'true');
+        card.dataset.itemId = String(itemCounter);
+
+        card.innerHTML = `
+            <div class="drag-handle" title="Drag to reorder">
+                <i class="fas fa-grip-vertical"></i>
             </div>
-            <input type="text" placeholder="HSN" class="item-hsn" value="${escapeHtml(data.HSN_SAC || '')}">
-            <input type="number" placeholder="Qty" class="item-qty" value="${data.quantity || ''}" min="0.000001" step="any">
-            <input type="number" placeholder="Price" class="item-price" value="${data.unit_price || ''}" min="0">
-            <input type="number" placeholder="Tax%" class="item-tax" value="${data.rate || ''}" min="0" max="100">
-            <button type="button" class="text-red-500 hover:text-red-700 remove-item-btn" title="Remove">
-                <i class="fas fa-trash"></i>
-            </button>
+            <div class="item-number">${itemNumber}</div>
+            
+            <div class="item-field description">
+                <div style="position: relative;">
+                    <input type="text" placeholder="Description" class="item-desc" value="${escapeHtml(data.description || '')}" required>
+                    <ul class="suggestions" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 9999; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 200px; overflow-y: auto; margin-top: 4px; list-style: none; padding: 0;"></ul>
+                </div>
+            </div>
+            
+            <div class="item-field hsn">
+                <input type="text" placeholder="HSN/SAC" class="item-hsn" value="${escapeHtml(data.HSN_SAC || '')}" required>
+            </div>
+            
+            <div class="item-field qty">
+                <input type="number" placeholder="Qty" class="item-qty" value="${data.quantity || ''}" min="0.000001" step="any" required>
+            </div>
+            
+            <div class="item-field rate">
+                <input type="number" placeholder="Unit Price" class="item-price" value="${data.unit_price || ''}" min="0" required>
+            </div>
+            
+            <div class="item-field rate">
+                <input type="number" placeholder="Rate%" class="item-tax" value="${data.rate || ''}" min="0" max="100">
+            </div>
+            
+            <div class="item-actions">
+                <button type="button" class="remove-item-btn" title="Remove Item">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
         `;
 
-        container.appendChild(row);
+        container.appendChild(card);
 
-        const qtyInput = row.querySelector('.item-qty') as HTMLInputElement;
+        // Also add to hidden table for backward compatibility/reorder sync
+        let row: HTMLTableRowElement | null = null;
+        if (tableBody) {
+            row = document.createElement("tr");
+            row.innerHTML = `
+                <td><div class="item-number">${itemNumber}</div></td>
+                <td><input type="text" value="${data.description || ''}" required></td>
+                <td><input type="text" value="${data.HSN_SAC || ''}" required></td>
+                <td><input type="number" value="${data.quantity || ''}" step="any" min="0.000001" required></td>
+                <td><input type="number" value="${data.unit_price || ''}" required></td>
+                <td><input type="number" value="${data.rate || ''}" required></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
+            `;
+            tableBody.appendChild(row);
+        }
+
+        // Initialize drag and drop reordering
+        if ((window as any).itemReorder && typeof (window as any).itemReorder.makeDraggable === 'function') {
+            (window as any).itemReorder.makeDraggable(card);
+        }
+
+        const qtyInput = card.querySelector('.item-qty') as HTMLInputElement;
         if (qtyInput) {
             qtyInput.setAttribute('step', 'any');
             qtyInput.addEventListener('keypress', function (event) {
@@ -350,8 +419,8 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         }
 
         // Setup autocomplete for description field
-        const descInput = row.querySelector('.item-desc') as HTMLInputElement;
-        const suggestionsList = row.querySelector('.suggestions') as HTMLElement;
+        const descInput = card.querySelector('.item-desc') as HTMLInputElement;
+        const suggestionsList = card.querySelector('.suggestions') as HTMLElement;
         let selectedIndex = -1;
 
         if (descInput && suggestionsList) {
@@ -381,13 +450,15 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
                 suggestionsList.style.width = inputRect.width + 'px';
                 suggestionsList.style.display = 'block';
 
-                filtered.slice(0, 10).forEach((item: string, index: number) => {
+                filtered.slice(0, 10).forEach((item: string) => {
                     const li = document.createElement('li');
                     li.textContent = item;
                     li.addEventListener('click', async () => {
                         descInput.value = item;
                         suggestionsList.style.display = 'none';
-                        await fillStockItemData(item, row);
+                        await fillStockItemData(item, card);
+                        // Sync card input to table row manually on click
+                        descInput.dispatchEvent(new Event('input', { bubbles: true }));
                         updateLiveTotals();
                     });
                     suggestionsList.appendChild(li);
@@ -412,7 +483,8 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
                     const selectedItem = items[selectedIndex].textContent || '';
                     descInput.value = selectedItem;
                     suggestionsList.style.display = 'none';
-                    await fillStockItemData(selectedItem, row);
+                    await fillStockItemData(selectedItem, card);
+                    descInput.dispatchEvent(new Event('input', { bubbles: true }));
                     updateLiveTotals();
                     selectedIndex = -1;
                 } else if (event.key === 'Escape') {
@@ -429,13 +501,30 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             });
         }
 
+        // Sync inputs from card to table
+        const cardInputs = card.querySelectorAll("input");
+        cardInputs.forEach((input, index) => {
+            input.addEventListener("input", () => {
+                if (row) {
+                    const rowInputs = row.querySelectorAll("input");
+                    if (rowInputs[index]) {
+                        rowInputs[index].value = input.value;
+                    }
+                }
+            });
+        });
+
         // Event listeners for live totals
-        row.querySelectorAll('input').forEach(input => {
+        card.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', updateLiveTotals);
         });
 
-        row.querySelector('.remove-item-btn')?.addEventListener('click', () => {
-            row.remove();
+        card.querySelector('.remove-item-btn')?.addEventListener('click', () => {
+            card.remove();
+            if (row) row.remove();
+            if (typeof updateItemNumbers === 'function') {
+                updateItemNumbers();
+            }
             updateLiveTotals();
         });
 
@@ -453,15 +542,15 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
     }
 
     // Fetch and fill stock item data
-    async function fillStockItemData(itemName: string, row: HTMLDivElement) {
+    async function fillStockItemData(itemName: string, card: HTMLDivElement) {
         try {
             const response = await fetch(`/stock/get-stock-item?item=${encodeURIComponent(itemName)}`);
             if (response.ok) {
                 const stockData = await response.json();
                 if (stockData) {
-                    const hsnInput = row.querySelector('.item-hsn') as HTMLInputElement;
-                    const priceInput = row.querySelector('.item-price') as HTMLInputElement;
-                    const taxInput = row.querySelector('.item-tax') as HTMLInputElement;
+                    const hsnInput = card.querySelector('.item-hsn') as HTMLInputElement;
+                    const priceInput = card.querySelector('.item-price') as HTMLInputElement;
+                    const taxInput = card.querySelector('.item-tax') as HTMLInputElement;
 
                     if (hsnInput) hsnInput.value = stockData.HSN_SAC || '';
                     if (priceInput) priceInput.value = stockData.unit_price || '';
@@ -474,30 +563,83 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
     }
 
     function addChargeRow(data: any = {}) {
-        const container = document.getElementById('charges-container');
+        const container = document.getElementById('non-items-container') || document.getElementById('charges-container');
+        const tableBody = document.querySelector('#non-items-table tbody') as HTMLTableSectionElement | null;
         if (!container) return;
 
-        const row = document.createElement('div');
-        row.className = 'item-row';
-        row.style.gridTemplateColumns = '1fr 100px 80px 40px';
+        const itemNumber = container.children.length + 1;
 
-        row.innerHTML = `
-            <input type="text" placeholder="Description" class="charge-desc" value="${escapeHtml(data.description || '')}">
-            <input type="number" placeholder="Amount" class="charge-amount" value="${data.price || ''}" min="0">
-            <input type="number" placeholder="Tax%" class="charge-tax" value="${data.rate || ''}" min="0" max="100">
-            <button type="button" class="text-red-500 hover:text-red-700 remove-charge-btn" title="Remove">
-                <i class="fas fa-trash"></i>
-            </button>
+        // Create card element
+        const card = document.createElement('div');
+        card.className = 'non-item-card';
+        card.setAttribute('draggable', 'true');
+
+        card.innerHTML = `
+            <div class="drag-handle" title="Drag to reorder">
+                <i class="fas fa-grip-vertical"></i>
+            </div>
+            <div class="item-number">${itemNumber}</div>
+            
+            <div class="non-item-field description">
+                <input type="text" placeholder="Description" class="charge-desc" value="${escapeHtml(data.description || '')}" required>
+            </div>
+            <div class="non-item-field price">
+                <input type="number" placeholder="Amount" class="charge-amount" value="${data.price || ''}" min="0" required>
+            </div>
+            <div class="non-item-field rate">
+                <input type="number" placeholder="Tax%" class="charge-tax" value="${data.rate || ''}" min="0" max="100">
+            </div>
+            <div class="item-actions">
+                <button type="button" class="remove-item-btn" title="Remove Item">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
         `;
 
-        container.appendChild(row);
+        container.appendChild(card);
 
-        row.querySelectorAll('input').forEach(input => {
+        // Also add to hidden table for backward compatibility
+        let row: HTMLTableRowElement | null = null;
+        if (tableBody) {
+            row = document.createElement("tr");
+            row.innerHTML = `
+                <td><div class="item-number">${itemNumber}</div></td>
+                <td><input type="text" value="${data.description || ''}" required></td>
+                <td><input type="number" value="${data.price || ''}" required></td>
+                <td><input type="number" value="${data.rate || ''}" required></td>
+                <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
+            `;
+            tableBody.appendChild(row);
+        }
+
+        // Initialize drag and drop reordering
+        if ((window as any).itemReorder && typeof (window as any).itemReorder.makeDraggable === 'function') {
+            (window as any).itemReorder.makeDraggable(card);
+        }
+
+        // Sync inputs from card to table
+        const cardInputs = card.querySelectorAll("input");
+        cardInputs.forEach((input, index) => {
+            input.addEventListener("input", () => {
+                if (row) {
+                    const rowInputs = row.querySelectorAll("input");
+                    if (rowInputs[index]) {
+                        rowInputs[index].value = input.value;
+                    }
+                }
+            });
+        });
+
+        card.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', updateLiveTotals);
         });
 
-        row.querySelector('.remove-charge-btn')?.addEventListener('click', () => {
-            row.remove();
+        card.querySelector('.remove-item-btn')?.addEventListener('click', () => {
+            card.remove();
+            if (row) row.remove();
+            if (typeof updateNonItemNumbers === 'function') {
+                updateNonItemNumbers();
+            }
             updateLiveTotals();
         });
     }
@@ -509,7 +651,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         let subtotal = 0;
         let tax = 0;
 
-        document.querySelectorAll('#items-container .item-row').forEach(row => {
+        document.querySelectorAll('#items-container .item-card, #items-container .item-row').forEach(row => {
             const qty = parseFloat((row.querySelector('.item-qty') as HTMLInputElement)?.value) || 0;
             const price = parseFloat((row.querySelector('.item-price') as HTMLInputElement)?.value) || 0;
             const rate = parseFloat((row.querySelector('.item-tax') as HTMLInputElement)?.value) || 0;
@@ -519,7 +661,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             tax += lineTotal * (rate / 100);
         });
 
-        document.querySelectorAll('#charges-container .item-row').forEach(row => {
+        document.querySelectorAll('#non-items-container .non-item-card, #charges-container .item-row').forEach(row => {
             const amount = parseFloat((row.querySelector('.charge-amount') as HTMLInputElement)?.value) || 0;
             const rate = parseFloat((row.querySelector('.charge-tax') as HTMLInputElement)?.value) || 0;
 
@@ -539,7 +681,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
 
     function collectFormData(): Service {
         const items: ServiceItem[] = [];
-        document.querySelectorAll('#items-container .item-row').forEach(row => {
+        document.querySelectorAll('#items-container .item-card, #items-container .item-row').forEach(row => {
             const desc = (row.querySelector('.item-desc') as HTMLInputElement)?.value?.trim();
             if (!desc) return;
 
@@ -553,7 +695,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         });
 
         const nonItems: ServiceNonItem[] = [];
-        document.querySelectorAll('#charges-container .item-row').forEach(row => {
+        document.querySelectorAll('#non-items-container .non-item-card, #charges-container .item-row').forEach(row => {
             const desc = (row.querySelector('.charge-desc') as HTMLInputElement)?.value?.trim();
             if (!desc) return;
 
@@ -577,7 +719,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             tax += item.price * (item.rate / 100);
         });
 
-        const sIdInput = document.getElementById('form-service-id') as HTMLInputElement;
+        const sIdInput = document.getElementById('service-id') as HTMLInputElement;
         const invIdInput = document.getElementById('form-invoice-id') as HTMLInputElement;
         const dateInput = document.getElementById('service-date') as HTMLInputElement;
         const stageInput = document.getElementById('form-service-stage') as HTMLInputElement;
@@ -603,68 +745,89 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
     // ============================================================================
     // FORM STEP NAVIGATION
     // ============================================================================
-    function updateFormStep() {
-        const ServiceState = (window as any).ServiceState;
-        const step = ServiceState.currentFormStep;
-
-        document.querySelectorAll('.form-step').forEach((el, i) => {
-            el.classList.toggle('active', i + 1 === step);
-        });
-
-        const stepIndicator = document.getElementById('form-step-indicator');
-        if (stepIndicator) stepIndicator.textContent = `Step ${step} of 2`;
-
-        const prevBtn = document.getElementById('form-prev-btn') as HTMLButtonElement;
-        if (prevBtn) prevBtn.disabled = step === 1;
-
-        // Toggle buttons
-        document.getElementById('form-next-btn')?.classList.toggle('hidden', step === 2);
-        document.getElementById('form-save-btn')?.classList.toggle('hidden', step === 1);
-        document.getElementById('form-print-btn')?.classList.toggle('hidden', step === 1);
-        document.getElementById('form-pdf-btn')?.classList.toggle('hidden', step === 1);
-    }
-
-    async function nextFormStep() {
-        const ServiceState = (window as any).ServiceState;
-        if (ServiceState.currentFormStep === 1) {
-            // Validate
+    async function validateCurrentStep(): Promise<boolean> {
+        const currentStep = (window as any).currentStep || 1;
+        if (currentStep === 1) {
             const invIdInput = document.getElementById('form-invoice-id') as HTMLInputElement;
             if (!invIdInput?.value) {
                 showToast('Please select an invoice', 'error');
-                return;
+                return false;
             }
 
             const dateInput = document.getElementById('service-date') as HTMLInputElement;
             if (!dateInput?.value) {
                 showToast('Please select a service date', 'error');
-                return;
+                return false;
             }
-
+        } else if (currentStep === 2) {
             // Validate items
-            const items = document.querySelectorAll('#items-container .item-row');
-            let isValid = true;
+            const items = document.querySelectorAll('#items-container .item-card, #items-container .item-row');
             for (const [index, row] of Array.from(items).entries()) {
                 const price = row.querySelector('.item-price') as HTMLInputElement;
                 if (price && (!price.value || parseFloat(price.value) <= 0)) {
                     showToast(`Item #${index + 1}: Unit Price must be greater than 0`, 'error');
-                    isValid = false;
-                    break; // Stop at first error
+                    return false;
                 }
             }
-            if (!isValid) return;
-
-            // Generate preview
-            await generatePreview();
         }
-
-        ServiceState.currentFormStep = Math.min(2, ServiceState.currentFormStep + 1);
-        updateFormStep();
+        return true;
     }
+    (window as any).validateCurrentStep = validateCurrentStep;
 
-    function prevFormStep() {
-        const ServiceState = (window as any).ServiceState;
-        ServiceState.currentFormStep = Math.max(1, ServiceState.currentFormStep - 1);
-        updateFormStep();
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // Observe active class mutations on all steps to update form title & subtitle
+        const steps = ['step-1', 'step-2', 'step-3', 'step-4'];
+        steps.forEach((stepId, index) => {
+            const stepEl = document.getElementById(stepId);
+            if (stepEl) {
+                const observer = new MutationObserver(() => {
+                    if (stepEl.classList.contains('active')) {
+                        updateFormHeaderForStep(index + 1);
+                    }
+                });
+                observer.observe(stepEl, { attributes: true, attributeFilter: ['class'] });
+            }
+        });
+    });
+
+    function updateFormHeaderForStep(step: number) {
+        const isEditing = (document.getElementById('form-is-editing') as HTMLInputElement)?.value === 'true';
+        const serviceId = (document.getElementById('service-id') as HTMLInputElement)?.value || '';
+
+        const titleEl = document.getElementById('form-title');
+        const subtitleEl = document.getElementById('form-subtitle');
+
+        if (!titleEl || !subtitleEl) return;
+
+        const baseTitle = isEditing ? 'Edit Service' : 'New Service';
+
+        switch (step) {
+            case 1:
+                titleEl.textContent = `${baseTitle} - Details`;
+                subtitleEl.textContent = isEditing
+                    ? `Configure invoice and selection details for ${serviceId}`
+                    : 'Choose invoice and configure basic service details';
+                break;
+            case 2:
+                titleEl.textContent = `${baseTitle} - Service Items`;
+                subtitleEl.textContent = isEditing
+                    ? `Add or modify parts used for ${serviceId}`
+                    : 'Add parts and items used during service';
+                break;
+            case 3:
+                titleEl.textContent = `${baseTitle} - Other Charges`;
+                subtitleEl.textContent = isEditing
+                    ? `Manage additional labor and transport fees for ${serviceId}`
+                    : 'Manage additional labor, transport, or extra charges';
+                break;
+            case 4:
+                titleEl.textContent = `${baseTitle} - Document Preview`;
+                subtitleEl.textContent = isEditing
+                    ? `Verify updates for ${serviceId} before saving`
+                    : 'Verify and save the service document';
+                break;
+        }
     }
 
     async function generatePreview() {
@@ -674,12 +837,6 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         data.invoice_details = invoice;
 
         try {
-            // Read generated HTML from the print engine attached to view
-            const printService = (window as any).printService;
-            // Since we need HTML for preview without triggering print, we call serviceView's internal generateDocumentHTML if exposed, 
-            // but we can just use the printService wrapper or generate preview directly using DocumentBuilder.
-            // Let's replicate generateDocumentHTML here or fetch it if exposed.
-            // In serviceView, we did not expose generateDocumentHTML but we can generate it using the global builders.
             const html = await generatePreviewHTML(data);
             const previewEl = document.getElementById('preview-content');
             if (previewEl) previewEl.innerHTML = html;
@@ -761,7 +918,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
     // SAVE SERVICE
     // ============================================================================
     async function saveService() {
-        const btn = document.getElementById('form-save-btn') as HTMLButtonElement;
+        const btn = document.getElementById('save-btn') as HTMLButtonElement;
         if (!btn || btn.disabled) return;
 
         btn.disabled = true;
@@ -787,7 +944,8 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             const loadAllData = (window as any).loadAllData;
             if (loadAllData) await loadAllData();
 
-            navigateTo('view', data.service_id);
+            // Redirect to standalone details page
+            window.location.href = `/service/details?id=${data.service_id}`;
 
         } catch (error: any) {
             console.error('Error saving service:', error);
@@ -797,6 +955,29 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         }
     }
 
+    async function printService(serviceId: string, action = 'print') {
+        try {
+            const service = await serviceApi.fetchServiceDetails(serviceId);
+            let html = await generatePreviewHTML(service);
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            tempDiv.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+            html = tempDiv.innerHTML;
+
+            const electronAPI = (window as any).electronAPI;
+            if (electronAPI && electronAPI.handlePrintEvent) {
+                electronAPI.handlePrintEvent(html, action, `Service-${serviceId}`);
+            } else {
+                showToast('Print API not available', 'error');
+            }
+        } catch (error) {
+            console.error('Error printing:', error);
+            showToast('Failed to print', 'error');
+        }
+    }
+    (window as any).printService = printService;
+
     // Expose functions globally
     (window as any).showNewForm = showNewForm;
     (window as any).editService = editService;
@@ -805,7 +986,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
     (window as any).initInvoiceSearch = initInvoiceSearch;
     (window as any).addItemRow = addItemRow;
     (window as any).addChargeRow = addChargeRow;
-    (window as any).nextFormStep = nextFormStep;
-    (window as any).prevFormStep = prevFormStep;
+
+    (window as any).generatePreview = generatePreview;
     (window as any).saveService = saveService;
 })();

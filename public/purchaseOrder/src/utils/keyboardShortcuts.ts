@@ -25,7 +25,8 @@
                 { label: 'Delete Item', keys: ['Ctrl', 'Delete'] },
                 { label: 'Go Home', keys: ['Ctrl', 'H'] },
                 { label: 'Focus Search', keys: ['Ctrl', 'F'] },
-                { label: 'View Archived', keys: ['Ctrl', 'Shift', 'A'] }
+                { label: 'View Archived', keys: ['Ctrl', 'Shift', 'A'] },
+                { label: 'Toggle Trash View', keys: ['Ctrl', 'Shift', 'T'] }
             ]
         }
     ];
@@ -333,6 +334,16 @@
         const isCtrl = isMac ? event.metaKey : event.ctrlKey;
         const isShift = event.shiftKey;
         const key = event.key.toLowerCase();
+
+        if (isCtrl && isShift && key === 't') {
+            const trashBtn = document.getElementById('showDeletedBtn');
+            if (trashBtn && window.getComputedStyle(trashBtn).display !== 'none') {
+                event.preventDefault();
+                event.stopPropagation();
+                trashBtn.click();
+            }
+            return;
+        }
 
         // Check for '?' key to show shortcuts (only if not typing in an input)
         if (key === '?' && !isTypingContext() && !isCtrl) {

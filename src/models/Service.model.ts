@@ -72,6 +72,7 @@ export interface IService extends Document {
     schema_version: number;
 
     service_no: string;
+    service_id: string;
     invoice_id: Types.ObjectId;
 
     service_after_months?: number;
@@ -189,6 +190,14 @@ const serviceSchema = new Schema<IService>(
             index: true,
         },
 
+        service_id: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            index: true,
+        },
+
         invoice_id: {
             type: Schema.Types.ObjectId,
             ref: "Invoice",
@@ -273,6 +282,17 @@ const serviceSchema = new Schema<IService>(
         toObject: { virtuals: true },
     }
 );
+
+/**
+ * Pre-validate hook to sync service_id and service_no
+ */
+serviceSchema.pre("validate", function () {
+    if (this.service_id && !this.service_no) {
+        this.service_no = this.service_id;
+    } else if (this.service_no && !this.service_id) {
+        this.service_id = this.service_no;
+    }
+});
 
 /**
  * Indexes

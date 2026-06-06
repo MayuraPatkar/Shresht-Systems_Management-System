@@ -23,7 +23,8 @@ const QUOTATION_SHORTCUT_GROUPS = [
             { label: 'Go Home', keys: ['Ctrl', 'H'] },
             { label: 'Focus Search', keys: ['Ctrl', 'F'] },
             { label: 'Refresh List', keys: ['Ctrl', 'R'] },
-            { label: 'View Archived Quotations', keys: ['Ctrl', 'Shift', 'A'] }
+            { label: 'View Archived Quotations', keys: ['Ctrl', 'Shift', 'A'] },
+            { label: 'Toggle Trash View', keys: ['Ctrl', 'Shift', 'T'] }
         ]
     }
 ];
@@ -249,7 +250,18 @@ function isTypingContext(): boolean {
 function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
     const keyLower = event.key.toLowerCase();
     const isModifierPressed = event.ctrlKey || event.metaKey;
+    const isShiftPressed = event.shiftKey;
     const homeButton = document.getElementById('home-btn');
+
+    if (isModifierPressed && isShiftPressed && keyLower === 't') {
+        const trashBtn = document.getElementById('showDeletedBtn');
+        if (trashBtn && window.getComputedStyle(trashBtn).display !== 'none') {
+            event.preventDefault();
+            event.stopPropagation();
+            trashBtn.click();
+        }
+        return;
+    }
 
     if (isModifierPressed && event.shiftKey && keyLower === 'a') {
         const archivedBtn = document.getElementById('archived-quotations-btn') as HTMLButtonElement | null;

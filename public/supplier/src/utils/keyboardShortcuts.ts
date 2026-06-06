@@ -37,7 +37,8 @@
                 { label: 'New Supplier', keys: ['Ctrl', 'N'] },
                 { label: 'Save Supplier', keys: ['Ctrl', 'S'] },
                 { label: 'Refresh Suppliers', keys: ['Ctrl', 'R'] },
-                { label: 'View Archived Suppliers', keys: ['Ctrl', 'Shift', 'A'] }
+                { label: 'View Archived Suppliers', keys: ['Ctrl', 'Shift', 'A'] },
+                { label: 'Toggle Trash View', keys: ['Ctrl', 'Shift', 'T'] }
             ]
         }
     ];
@@ -289,6 +290,17 @@
                 event.stopPropagation();
                 return;
             }
+        }
+
+        // Toggle Trash View (Ctrl + Shift + T)
+        if (isCtrlPressed && isShiftPressed && keyLower === 't') {
+            const trashBtn = document.getElementById('showDeletedBtn');
+            if (trashBtn && window.getComputedStyle(trashBtn).display !== 'none') {
+                event.preventDefault();
+                event.stopPropagation();
+                trashBtn.click();
+            }
+            return;
         }
 
         // 1. Toggling shortcuts modal using '?' (only when not typing)

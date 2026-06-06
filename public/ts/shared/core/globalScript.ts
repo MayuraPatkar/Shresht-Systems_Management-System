@@ -753,7 +753,8 @@ function updateNavigation() {
   const isInvoice = window.location.pathname.toLowerCase().includes('/invoice') || 
                     window.location.pathname.toLowerCase().includes('/purchase') ||
                     window.location.pathname.toLowerCase().includes('/payment');
-  const isQuotation = window.location.pathname.toLowerCase().includes('/quotation');
+  const isQuotation = window.location.pathname.toLowerCase().includes('/quotation') ||
+                      window.location.pathname.toLowerCase().includes('/service');
 
   if (prevBtn) prevBtn.disabled = currentStep === 1;
 
@@ -842,6 +843,7 @@ fetchData(); // Load data at startup
 // Function to add a new item row to the table
 // Function to add a new item row to the table
 function addItem(insertAtIndex) {
+  if (window.location.pathname.toLowerCase().includes('/service')) return;
   const container = document.getElementById("items-container");
   const tableBody = document.querySelector("#items-table tbody");
 
@@ -1017,6 +1019,7 @@ function addItem(insertAtIndex) {
 }
 
 function addNonItem(insertAtIndex) {
+  if (window.location.pathname.toLowerCase().includes('/service')) return;
   const container = document.getElementById("non-items-container");
   const tableBody = document.querySelector("#non-items-table tbody");
   const itemNumber = tableBody.children.length + 1;

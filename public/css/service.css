@@ -51,10 +51,6 @@ main {
     }
 }
 
-/* Hide non-active sections */
-#new {
-    display: none;
-}
 
 /* Step visibility */
 .steps {

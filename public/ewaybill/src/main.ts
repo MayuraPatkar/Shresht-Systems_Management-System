@@ -71,7 +71,8 @@
                 { label: 'Add Item', keys: ['Ctrl', 'I'] },
                 { label: 'Delete Item', keys: ['Ctrl', 'Delete'] },
                 { label: 'Go Home', keys: ['Ctrl', 'H'] },
-                { label: 'Focus Search', keys: ['Ctrl', 'F'] }
+                { label: 'Focus Search', keys: ['Ctrl', 'F'] },
+                { label: 'Toggle Trash View', keys: ['Ctrl', 'Shift', 'T'] }
             ]
         }
     ];
@@ -616,7 +617,18 @@
     function handleEWayBillKeyboardShortcuts(event: KeyboardEvent) {
         const keyLower = event.key.toLowerCase();
         const isModifierPressed = event.ctrlKey || event.metaKey;
+        const isShiftPressed = event.shiftKey;
         const homeButton = document.getElementById('home-btn') as HTMLButtonElement | null;
+
+        if (isModifierPressed && isShiftPressed && keyLower === 't') {
+            const trashBtn = document.getElementById('showDeletedBtn');
+            if (trashBtn && window.getComputedStyle(trashBtn).display !== 'none') {
+                event.preventDefault();
+                event.stopPropagation();
+                trashBtn.click();
+            }
+            return;
+        }
 
         if (!shortcutsModalRef) {
             shortcutsModalRef = document.getElementById('shortcuts-modal');

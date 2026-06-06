@@ -475,3 +475,9 @@ body:not(:has(#non-items-container .non-item-card)) .non-items-header {
     display: none !important;
 }
 
+/* Hide items header when container has no items */
+.steps:not(:has(#items-container .item-card)) .items-header,
+body:not(:has(#items-container .item-card)) .items-header {
+    display: none !important;
+}
+

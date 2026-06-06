@@ -69,7 +69,9 @@ async function getPrefixAndDateParams(moduleKey: string): Promise<{
     if (isYearly) {
         const fyStart = getFYStartYear(now);
         counterKey = `${mk}-FY${fyStart}`;
-        datePart = String(fyStart).slice(-2); // YY of financial year
+        const currentYearYY = String(fyStart).slice(-2);
+        const nextYearYY = String(fyStart + 1).slice(-2);
+        datePart = `${currentYearYY}${nextYearYY}`; // YY of current FY and next FY, e.g. "2627"
     }
 
     return { prefix, datePart, counterKey, isYearly };
@@ -89,7 +91,7 @@ export async function previewNextId(moduleKey: string): Promise<string> {
     
     if (isYearly) {
         nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq + 1 : 1;
-        paddedSeq = String(nextSeq).padStart(5, "0");
+        paddedSeq = String(nextSeq);
     } else {
         nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 0;
         paddedSeq = String(nextSeq).padStart(2, "0");
@@ -117,7 +119,7 @@ export async function generateNextId(moduleKey: string): Promise<string> {
     
     if (isYearly) {
         nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq : 1;
-        paddedSeq = String(nextSeq).padStart(5, "0");
+        paddedSeq = String(nextSeq);
     } else {
         nextSeq = docDay && typeof docDay.seq === "number" ? docDay.seq - 1 : 0;
         if (nextSeq < 0) nextSeq = 0;
@@ -140,7 +142,7 @@ export async function syncCounterIfNeeded(moduleKey: string, customId: string): 
     const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     
     if (isYearly) {
-        const pattern = new RegExp(`^${escapedPrefix}(\\d{2})(\\d{5,})$`);
+        const pattern = new RegExp(`^${escapedPrefix}(\\d{4})(\\d+)$`);
         const match = customId.match(pattern);
         if (!match) return;
 

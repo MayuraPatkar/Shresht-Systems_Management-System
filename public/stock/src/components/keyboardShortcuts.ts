@@ -23,7 +23,8 @@
                 { label: 'Save Form', keys: ['Ctrl', 'S'] },
                 { label: 'Print Stock Report', keys: ['Ctrl', 'P'] },
                 { label: 'Refresh Stock Data', keys: ['Ctrl', 'R'] },
-                { label: 'Show Help Modal', keys: ['?'] }
+                { label: 'Show Help Modal', keys: ['?'] },
+                { label: 'Toggle Trash View', keys: ['Ctrl', 'Shift', 'T'] }
             ]
         }
     ];
@@ -204,6 +205,17 @@
     document.addEventListener('keydown', (e: KeyboardEvent) => {
         // Don't trigger shortcuts when typing in input fields (except for Escape and Ctrl combinations)
         const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes((document.activeElement as HTMLElement)?.tagName);
+
+        // Ctrl+Shift+T to toggle trash view
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 't') {
+            const trashBtn = document.getElementById('showDeletedBtn');
+            if (trashBtn && window.getComputedStyle(trashBtn).display !== 'none') {
+                e.preventDefault();
+                e.stopPropagation();
+                trashBtn.click();
+            }
+            return;
+        }
 
         // Ctrl+F or Cmd+F to focus search input
         if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
