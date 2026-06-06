@@ -24,16 +24,7 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Purchases</h1>
             </div>
-            <div id="search-filter-container" class="flex items-center gap-4 flex-1 max-w-xl mx-8">
-                <div class="relative flex-1">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search by name, phone or email... (Ctrl+F)"
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                </div>
-                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
-                    <i class="fas fa-filter"></i>
-                </button>
-            </div>
+
             <div class="flex items-center gap-3">
                 <button id="new-purchase"
                     class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
@@ -188,9 +179,81 @@
 
         <!-- Home View - Purchase Bills List -->
         <div id="home">
-            <div class="records grid grid-cols-1 gap-4">
-                <!-- content will be loaded dynamically -->
-            </div>
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
+                <!-- Table Controls/Tabs Header -->
+                <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50">
+                    <div class="flex items-center gap-1">
+                        <!-- Status Tabs -->
+                        <div class="flex border-b border-slate-200" id="status-tabs-container">
+                            <button class="list-tab filter-tab active" data-status="all">
+                                <i class="fas fa-list mr-1"></i>All
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Paid">
+                                <i class="fas fa-check-circle mr-1"></i>Paid
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Partial">
+                                <i class="fas fa-adjust mr-1"></i>Partially Paid
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Unpaid">
+                                <i class="fas fa-times-circle mr-1"></i>Unpaid
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Search & Filter wrapper next to status filter -->
+                    <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">
+                        <div class="relative flex-1">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="search-input" placeholder="Search by name, phone or email... (Ctrl+F)"
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
+                        </div>
+                        <button id="filter-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer">
+                            <i class="fas fa-filter text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Filters Info Bar -->
+                <div id="active-filters-info-bar" class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 hidden text-xs transition-all duration-200">
+                    <div class="flex flex-wrap items-center gap-1.5" id="active-filters-badges">
+                        <span class="font-bold text-slate-500 mr-1 flex items-center gap-1">
+                            <i class="fas fa-filter text-[10px]"></i> Active Filters:
+                        </span>
+                    </div>
+                    <button id="clear-all-filters-shortcut" class="text-blue-600 hover:text-blue-800 font-bold hover:underline flex items-center gap-1 cursor-pointer transition-all duration-150">
+                        <i class="fas fa-times-circle"></i> Clear All
+                    </button>
+                </div>
+
+                <!-- Desktop Table View -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full text-sm border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr id="table-header-row" class="text-slate-700 border-b border-slate-200">
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase Invoice ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Supplier Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Payment Status</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="records text-xs" id="purchase-tbody">
+                            <tr>
+                                <td colspan="7" class="px-4 py-12 text-center text-slate-400">
+                                    <i class="fas fa-spinner fa-spin text-3xl mb-2 text-blue-500"></i>
+                                    <p>Loading purchases...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile stacked layout (displayed only on mobile) -->
+                <div id="purchase-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50">
+                    <!-- Cards will be populated dynamically by JavaScript -->
+                </div>
+            </section>
         </div>
 
         <!-- New/Edit Purchase Form -->

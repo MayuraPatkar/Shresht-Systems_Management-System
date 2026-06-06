@@ -35,6 +35,7 @@
     let currentFilters = {
         dateFilter: 'all',
         sortBy: 'date-desc',
+        status: 'all',
         customStartDate: null as string | null,
         customEndDate: null as string | null
     };
@@ -879,9 +880,124 @@
     }
     (window as any).loadRecentWayBills = loadRecentWayBills;
 
+    const formatAddress = (address: any): string => {
+        if (!address) return '-';
+        if (typeof address === 'string') {
+            const trimmed = address.trim();
+            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                try {
+                    address = JSON.parse(trimmed);
+                } catch (e) {
+                }
+            }
+        }
+        if (typeof address === 'object' && address !== null) {
+            const parts = [
+                address.line1,
+                address.line2,
+                address.city,
+                address.state && address.pincode ? `${address.state} - ${address.pincode}` : (address.state || address.pincode)
+            ];
+            return parts.filter(Boolean).map(p => String(p).trim()).join(', ');
+        }
+        return String(address || '-');
+    };
+
+    function updateWayBillTabCounts() {
+        const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+        if (!statusTabs.length) return;
+
+        const counts: Record<string, number> = {
+            all: allWayBills.length,
+            Draft: 0,
+            Generated: 0,
+            Cancelled: 0,
+            Expired: 0
+        };
+
+        allWayBills.forEach(wb => {
+            const status = wb.ewaybill_status || 'Draft';
+            if (status in counts) {
+                counts[status]++;
+            }
+        });
+
+        statusTabs.forEach(tab => {
+            const status = (tab as HTMLElement).dataset.status || 'all';
+            const count = counts[status] || 0;
+            
+            let badge = tab.querySelector('.tab-count-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                tab.appendChild(badge);
+            }
+            badge.className = tab.classList.contains('active')
+                ? 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-600 transition-colors duration-150'
+                : 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500 transition-colors duration-150';
+            badge.textContent = count.toString();
+        });
+    }
+
+    function updateWayBillTableHeader(isTrash: boolean) {
+        const headerRow = document.getElementById('table-header-row');
+        if (!headerRow) return;
+
+        if (isTrash) {
+            headerRow.innerHTML = `
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">E-Way Bill No</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Invoice ID</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Deleted Date</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total Value</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Actions</th>
+            `;
+        } else {
+            const sortBy = currentFilters.sortBy || 'date-desc';
+            
+            const dateIcon = sortBy === 'date-desc' ? '<i class="fas fa-chevron-down ml-1.5 text-blue-600"></i>' :
+                             sortBy === 'date-asc' ? '<i class="fas fa-chevron-up ml-1.5 text-blue-600"></i>' :
+                             '<i class="fas fa-sort ml-1.5 opacity-30 group-hover:opacity-60 transition-opacity"></i>';
+
+            headerRow.innerHTML = `
+                <th id="th-date" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-slate-100 hover:text-blue-600 select-none transition-all duration-150 group">
+                    <span class="flex items-center">Date ${dateIcon}</span>
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">E-Way Bill No</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Invoice ID</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Transport Mode</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total Value</th>
+            `;
+            
+            // Attach event listeners
+            const thDate = document.getElementById('th-date');
+            if (thDate) {
+                thDate.onclick = () => {
+                    const nextSort = sortBy === 'date-desc' ? 'date-asc' : 'date-desc';
+                    currentFilters.sortBy = nextSort;
+                    const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement | null;
+                    if (sortFilter) {
+                        sortFilter.value = nextSort;
+                    }
+                    applyWayBillFilters();
+                };
+            }
+        }
+    }
+
     // Apply filters to waybills
     function applyWayBillFilters() {
-        const filtered = applyFilters(allWayBills, {
+        updateWayBillTabCounts();
+
+        let source = [...allWayBills];
+        if (currentFilters.status && currentFilters.status !== 'all') {
+            source = source.filter(wb => (wb.ewaybill_status || 'Draft') === currentFilters.status);
+        }
+
+        const filtered = applyFilters(source, {
             dateFilter: currentFilters.dateFilter,
             sortBy: currentFilters.sortBy,
             dateField: 'createdAt',
@@ -889,6 +1005,19 @@
             customStartDate: currentFilters.customStartDate,
             customEndDate: currentFilters.customEndDate
         });
+
+        // Highlight filter button if any filters are applied
+        const isFilterActive = currentFilters.dateFilter !== 'all' ||
+                               currentFilters.sortBy !== 'date-desc';
+        const filterBtn = document.getElementById('filter-btn');
+        if (filterBtn) {
+            if (isFilterActive) {
+                filterBtn.className = "bg-blue-50 text-blue-600 border border-blue-300 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer shadow-sm";
+            } else {
+                filterBtn.className = "bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer";
+            }
+        }
+
         currentFilteredEWayBills = filtered;
         renderWayBills(filtered);
     }
@@ -957,105 +1086,187 @@
                 currentFilters = {
                     dateFilter: 'all',
                     sortBy: 'date-desc',
+                    status: 'all',
                     customStartDate: null,
                     customEndDate: null
                 };
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
+                
+                // Reset status tabs
+                const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                statusTabs.forEach(t => {
+                    if ((t as HTMLElement).dataset.status === 'all') {
+                        t.classList.add('active');
+                    } else {
+                        t.classList.remove('active');
+                    }
+                });
+
                 applyWayBillFilters();
                 if (filterPopover) filterPopover.classList.add('hidden');
             });
         }
+
+        // Status Tabs click events
+        const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+        statusTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                statusTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentFilters.status = (tab as HTMLElement).dataset.status || 'all';
+                applyWayBillFilters();
+            });
+        });
     }
 
     // Render way bills in the list
     function renderWayBills(wayBills: EWayBill[]) {
-        if (!wayBillsListDiv) return;
-        wayBillsListDiv.innerHTML = "";
-
         const isTrash = !!(window as any).showDeletedItems;
         const isArchivedView = !isTrash && (window as any).statusFilter === 'archived';
 
-        if (!wayBills || wayBills.length === 0) {
-            const wbSearchInput = document.getElementById('search-input') as HTMLInputElement | null;
-            const hasSearch = wbSearchInput && wbSearchInput.value.trim() !== '';
+        const tbody = document.getElementById("ewaybill-tbody");
+        const mobileContainer = document.getElementById("ewaybill-cards-mobile");
+        if (!tbody) return;
 
+        tbody.innerHTML = "";
+        if (mobileContainer) mobileContainer.innerHTML = "";
+
+        // Always update the table header
+        updateWayBillTableHeader(isTrash);
+
+        if (!wayBills || wayBills.length === 0) {
+            let emptyHtml = "";
             if (isTrash) {
-                wayBillsListDiv.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                emptyHtml = `
+                    <div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none">
                         <div class="text-rose-500 text-5xl mb-4">
                             <i class="fas fa-trash-alt"></i>
                         </div>
                         <h2 class="text-2xl font-bold text-gray-800 mb-2">Trash is Empty</h2>
-                        <p class="text-gray-600">No soft-deleted e-way bills found</p>
+                        <p class="text-gray-500 text-xs">No soft-deleted e-way bills found</p>
                     </div>
                 `;
             } else if (isArchivedView) {
-                wayBillsListDiv.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
+                emptyHtml = `
+                    <div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none">
                         <div class="text-amber-500 text-5xl mb-4">
                             <i class="fas fa-archive"></i>
                         </div>
                         <h2 class="text-2xl font-bold text-gray-800 mb-2">No Archived E-Way Bills</h2>
-                        <p class="text-gray-600">E-way bills you archive will show up here</p>
-                    </div>
-                `;
-            } else if (hasSearch) {
-                wayBillsListDiv.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-                        <div class="text-yellow-500 text-5xl mb-4">
-                            <i class="fas fa-search"></i>
-                        </div>
-                        <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-                        <p class="text-gray-500">No e-way bills match your search</p>
+                        <p class="text-gray-500 text-xs">E-way bills you archive will show up here</p>
                     </div>
                 `;
             } else {
-                wayBillsListDiv.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-                        <div class="text-blue-500 text-5xl mb-4">
-                            <i class="fas fa-route"></i>
+                const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+                const hasSearch = searchInput && searchInput.value.trim() !== '';
+                if (hasSearch) {
+                    emptyHtml = `
+                        <div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none">
+                            <div class="text-yellow-500 text-5xl mb-4">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">No Results Found</h2>
+                            <p class="text-gray-500 text-xs">No e-way bills match your search</p>
                         </div>
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No E-Way Bills Found</h2>
-                        <p class="text-gray-600">Start creating e-way bills for your deliveries</p>
+                    `;
+                } else {
+                    emptyHtml = `
+                        <div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none">
+                            <div class="text-blue-500 text-5xl mb-4">
+                                <i class="fas fa-route"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">No E-Way Bills Found</h2>
+                            <p class="text-gray-500 text-xs">Start creating e-way bills for your deliveries</p>
+                        </div>
+                    `;
+                }
+            }
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="px-4 py-10 bg-white text-slate-400">
+                        ${emptyHtml}
+                    </td>
+                </tr>
+            `;
+
+            if (mobileContainer) {
+                mobileContainer.innerHTML = `
+                    <div class="text-center py-10 bg-white rounded-xl border border-slate-200 p-6">
+                        <i class="fas fa-route text-3xl text-blue-500 mb-2"></i>
+                        <p class="text-sm font-bold text-slate-700">No E-Way Bills Found</p>
                     </div>
                 `;
             }
+
             return;
         }
+
         wayBills.forEach(wayBill => {
-            const wayBillDiv = createWayBillCard(wayBill);
-            wayBillsListDiv.appendChild(wayBillDiv);
+            const row = createWayBillRow(wayBill, isTrash);
+            tbody.appendChild(row);
         });
+
+        // Mobile list rendering
+        if (mobileContainer) {
+            mobileContainer.innerHTML = wayBills.map(wayBill => {
+                type StatusType = 'Draft' | 'Generated' | 'Cancelled' | 'Expired';
+                const statusClassMap: Record<StatusType, string> = {
+                    'Draft': 'bg-yellow-100 text-yellow-800',
+                    'Generated': 'bg-green-100 text-green-800',
+                    'Cancelled': 'bg-red-100 text-red-800',
+                    'Expired': 'bg-gray-100 text-gray-800'
+                };
+                const statusBadgeClass = statusClassMap[wayBill.ewaybill_status as StatusType] || 'bg-gray-100 text-gray-800';
+
+                const displayId = wayBill.ewaybill_no || wayBill._id || '-';
+                const dateToFormat = wayBill.ewaybill_generated_at || wayBill.createdAt;
+                const formattedDate = dateToFormat ? (typeof (window as any).formatDateDisplay === 'function' ? (window as any).formatDateDisplay(dateToFormat) : '-') : '-';
+                
+                const toAddressStr = formatAddress(wayBill.to_address);
+                const toAddressShort = toAddressStr.substring(0, 50);
+                const total = wayBill.total_invoice_value || 0;
+
+                return `
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative cursor-pointer" onclick="viewWayBill('${wayBill._id}')">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-slate-800">${displayId}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass}">${wayBill.ewaybill_status || 'Draft'}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mb-2 truncate">${toAddressShort}</p>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                            <span class="text-slate-400">${formattedDate}</span>
+                            <span class="font-bold text-slate-900">₹${formatIndian(total, 2)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
     }
 
-    // Create a way bill card element
-    function createWayBillCard(wayBill: EWayBill): HTMLElement {
-        const wayBillDiv = document.createElement("div");
-        
-        const isTrash = !!(window as any).showDeletedItems;
+    // Create a way bill row element
+    function createWayBillRow(wayBill: EWayBill, isTrash: boolean): HTMLTableRowElement {
+        const row = document.createElement("tr");
         const isArchived = !isTrash && wayBill.is_archived;
-        
-        let cardBgClass = "bg-white border-gray-200 hover:border-blue-400";
-        let borderAccentClass = "bg-gradient-to-b from-blue-500 to-cyan-600";
-        if (isTrash) {
-            cardBgClass = "bg-rose-50/50 border-rose-200 hover:border-rose-300";
-            borderAccentClass = "bg-rose-500";
-        } else if (isArchived) {
-            cardBgClass = "bg-amber-50/30 border-amber-200 hover:border-amber-300";
-            borderAccentClass = "bg-amber-500";
-        }
-        
-        wayBillDiv.className = `group rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border overflow-hidden fade-in ${cardBgClass}`;
 
-        // Format the date for display using unified function (DD/MM/YYYY)
+        row.className = "border-b border-slate-100 hover:bg-slate-50 transition-all duration-150 group cursor-pointer text-xs";
+        if (isTrash) {
+            row.classList.add("bg-rose-50/10");
+        } else if (isArchived) {
+            row.classList.add("opacity-80");
+        }
+
         const dateToFormat = wayBill.ewaybill_generated_at || wayBill.createdAt;
         const formattedDate = dateToFormat ? (typeof (window as any).formatDateDisplay === 'function' ? (window as any).formatDateDisplay(dateToFormat) : '-') : '-';
 
-        // Get transport details from nested object
         const transport: TransportDetails = wayBill.transport || { mode: '' };
         const displayId = wayBill.ewaybill_no || wayBill._id || '-';
-        
+        const invoiceId = typeof wayBill.invoice_id === 'object' && wayBill.invoice_id ? (wayBill.invoice_id.invoice_id || wayBill.invoice_id.invoice_no || '-') : (wayBill.invoice_id || '-');
+        const toAddressStr = formatAddress(wayBill.to_address);
+        const toAddressShort = toAddressStr.substring(0, 50);
+        const transMode = transport.mode || '-';
+
         type StatusType = 'Draft' | 'Generated' | 'Cancelled' | 'Expired';
         const statusClassMap: Record<StatusType, string> = {
             'Draft': 'bg-yellow-100 text-yellow-800',
@@ -1065,133 +1276,68 @@
         };
         const statusBadgeClass = statusClassMap[wayBill.ewaybill_status as StatusType] || 'bg-gray-100 text-gray-800';
 
-        // Helper function to format address JSON or objects nicely
-        const formatAddress = (address: any): string => {
-            if (!address) return '-';
-            
-            // If it's a string, try to parse it if it looks like a JSON object
-            if (typeof address === 'string') {
-                const trimmed = address.trim();
-                if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-                    try {
-                        address = JSON.parse(trimmed);
-                    } catch (e) {
-                        // Keep as string if parsing fails
-                    }
-                }
-            }
-            
-            if (typeof address === 'object' && address !== null) {
-                const parts = [
-                    address.line1,
-                    address.line2,
-                    address.city,
-                    address.state && address.pincode ? `${address.state} - ${address.pincode}` : (address.state || address.pincode)
-                ];
-                return parts.filter(Boolean).map(p => String(p).trim()).join(', ');
-            }
-            
-            return String(address || '-');
-        };
+        const total = wayBill.total_invoice_value || 0;
 
-        // Truncate addresses for display
-        const fromAddressStr = formatAddress(wayBill.from_address);
-        const toAddressStr = formatAddress(wayBill.to_address);
-        const fromAddressShort = fromAddressStr.substring(0, 50);
-        const toAddressShort = toAddressStr.substring(0, 50);
+        if (isTrash) {
+            const deletedAt = wayBill.deletion?.deleted_at
+                ? (typeof (window as any).formatDateDisplay === 'function' ? (window as any).formatDateDisplay(wayBill.deletion.deleted_at) : wayBill.deletion.deleted_at)
+                : '-';
 
-        wayBillDiv.innerHTML = `
-            <!-- Left Border Accent -->
-            <div class="flex">
-                <div class="w-1.5 ${borderAccentClass} rounded-l-lg"></div>
-                <div class="relative p-5 flex-1">
-                <!-- Top Row: Header with Title & Actions -->
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-200">
-                            <i class="fas fa-route text-lg text-white"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-900 truncate" title="E-Way Bill">${displayId !== '-' ? displayId : 'E-Way Bill'}</h3>
-                            <span class="inline-block px-2 py-0.5 text-xs font-medium rounded ${statusBadgeClass}">${wayBill.ewaybill_status || 'Draft'}</span>
-                        </div>
+            row.innerHTML = `
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formattedDate}</td>
+                <td class="px-4 py-3 text-slate-600 font-bold whitespace-nowrap text-xs">${displayId}</td>
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${invoiceId}</td>
+                <td class="px-4 py-3 text-slate-700 text-xs max-w-[180px] truncate" title="${toAddressShort}">${toAddressShort}</td>
+                <td class="px-4 py-3 text-red-500 font-medium whitespace-nowrap text-xs">
+                    <i class="fas fa-trash mr-1 text-[10px]"></i> ${deletedAt}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass}">${wayBill.ewaybill_status || 'Draft'}</span>
+                </td>
+                <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-slate-900">
+                    ₹${formatIndian(total, 2)}
+                </td>
+                <td class="px-4 py-2 text-right whitespace-nowrap">
+                    <div class="flex items-center justify-end gap-1.5">
+                        <button class="action-btn restore-card-btn px-2.5 py-1 bg-green-50 text-green-700 rounded-md hover:bg-green-100 border border-green-200 hover:border-green-400 font-semibold text-xs flex items-center gap-1" title="Restore">
+                            <i class="fas fa-trash-restore text-[10px]"></i> Restore
+                        </button>
+                        <button class="action-btn hard-delete-card-btn px-2.5 py-1 bg-red-50 text-red-700 rounded-md hover:bg-red-100 border border-red-200 hover:border-red-400 font-semibold text-xs flex items-center gap-1" title="Permanently Delete">
+                            <i class="fas fa-trash-alt text-[10px]"></i> Delete
+                        </button>
                     </div>
-                    
-                    <!-- Actions -->
-                    <div class="flex items-center gap-2">
-                        ${isTrash || isArchived ? `
-                            <button class="action-btn restore-card-btn px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-emerald-300 active:scale-95 cursor-pointer" title="Restore">
-                                <i class="fas ${isTrash ? 'fa-trash-restore' : 'fa-box-open'}"></i> Restore
-                            </button>
-                            <button class="action-btn hard-delete-card-btn px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg flex items-center gap-1.5 transition-all text-xs font-semibold tracking-wider hover:border-rose-300 active:scale-95 cursor-pointer" title="Delete Forever">
-                                <i class="fas fa-trash-alt"></i> Delete Forever
-                            </button>
-                        ` : `
-                            <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        `}
-                    </div>
-                </div>
-                
-                <!-- Date & Transport Row -->
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="text-xs text-gray-500">
-                        <i class="fas fa-calendar-alt mr-1"></i>${formattedDate}
+                </td>
+            `;
+        } else {
+            row.innerHTML = `
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formattedDate}</td>
+                <td class="px-4 py-3 text-slate-850 font-bold whitespace-nowrap text-xs">
+                    <span class="cursor-pointer hover:text-blue-600 copy-text transition-colors" title="Click to copy ID">
+                        ${displayId}
+                        <i class="fas fa-copy text-[10px] ml-1 opacity-50"></i>
                     </span>
-                    ${transport.vehicle_number ? `
-                    <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                    <span class="text-xs text-gray-500">
-                        <i class="fas fa-truck mr-1"></i>${transport.vehicle_number}
-                    </span>
-                    ` : ''}
-                    ${wayBill.total_invoice_value ? `
-                    <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                    <span class="text-sm font-bold text-green-600">₹ ${typeof formatIndian === 'function' ? formatIndian(wayBill.total_invoice_value, 2) : wayBill.total_invoice_value}</span>
-                    ` : ''}
-                </div>
-                
-                <!-- Bottom Row: From/To Addresses -->
-                <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-warehouse text-green-600 text-xs"></i>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider">From</p>
-                            <p class="text-sm font-medium text-gray-800 truncate" title="${fromAddressStr}">${fromAddressShort}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex-shrink-0 mx-2">
-                        <i class="fas fa-arrow-right text-gray-400"></i>
-                    </div>
-                    
-                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-map-marker-alt text-orange-600 text-xs"></i>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider">To</p>
-                            <p class="text-sm font-medium text-gray-800 truncate" title="${toAddressStr}">${toAddressShort}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </div>
-        `;
+                </td>
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${invoiceId}</td>
+                <td class="px-4 py-3 text-xs max-w-[180px] truncate" title="${toAddressShort}">${toAddressShort}</td>
+                <td class="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">${transMode}</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass}">${wayBill.ewaybill_status || 'Draft'}</span>
+                </td>
+                <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-slate-900">
+                    ₹${formatIndian(total, 2)}
+                </td>
+            `;
+        }
 
-        // Use MongoDB _id for all operations
+        const copyElement = row.querySelector('.copy-text') as HTMLElement;
+        const restoreCardBtn = row.querySelector('.restore-card-btn') as HTMLElement;
+        const hardDeleteCardBtn = row.querySelector('.hard-delete-card-btn') as HTMLElement;
+
         const wayBillMongoId = wayBill._id || '';
 
-        if (isTrash || isArchived) {
-            const restoreBtn = wayBillDiv.querySelector('.restore-card-btn') as HTMLButtonElement;
-            const hardDeleteBtn = wayBillDiv.querySelector('.hard-delete-card-btn') as HTMLButtonElement;
-
-            restoreBtn.addEventListener('click', async () => {
+        if (restoreCardBtn) {
+            restoreCardBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
                 try {
                     if (isTrash) {
                         await (window as any).ewaybillApi.restoreEWayBillFromTrash(wayBillMongoId);
@@ -1203,8 +1349,11 @@
                     console.error('Restore failed:', err);
                 }
             });
+        }
 
-            hardDeleteBtn.addEventListener('click', () => {
+        if (hardDeleteCardBtn) {
+            hardDeleteCardBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const message = 'Are you sure you want to permanently delete this e-way bill? This action cannot be undone.';
                 if (electronAPI?.showAlert2) {
                     electronAPI.showAlert2(message);
@@ -1218,38 +1367,31 @@
                             }
                         }
                     });
-                } else {
-                    if (confirm(message)) {
-                        (async () => {
-                            try {
-                                await (window as any).ewaybillApi.hardDeleteEWayBill(wayBillMongoId);
-                                loadRecentWayBills();
-                            } catch (err) {
-                                console.error('Hard delete failed:', err);
-                            }
-                        })();
-                    }
-                }
-            });
-        } else {
-            const viewBtn = wayBillDiv.querySelector('.view-btn') as HTMLButtonElement;
-            const editBtn = wayBillDiv.querySelector('.edit-btn') as HTMLButtonElement;
-
-            viewBtn.addEventListener('click', () => {
-                if (typeof (window as any).viewWayBill === 'function') {
-                    (window as any).viewWayBill(wayBillMongoId);
-                }
-            });
-
-            editBtn.addEventListener('click', () => {
-                sessionStorage.setItem('currentTab-status', 'update');
-                if (typeof (window as any).openWayBill === 'function') {
-                    (window as any).openWayBill(wayBillMongoId);
                 }
             });
         }
 
-        return wayBillDiv;
+        if (copyElement) {
+            copyElement.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                try {
+                    await navigator.clipboard.writeText(displayId);
+                    if (typeof (window as any).showToast === 'function') {
+                        (window as any).showToast('ID Copied to Clipboard!');
+                    }
+                } catch (err) {
+                    console.error('Copy failed', err);
+                }
+            });
+        }
+
+        row.addEventListener('click', () => {
+            if (!isTrash && typeof (window as any).viewWayBill === 'function') {
+                (window as any).viewWayBill(wayBillMongoId);
+            }
+        });
+
+        return row;
     }
 
     // Delete an e-way bill
@@ -1331,12 +1473,8 @@
             return;
         }
 
-        await searchDocuments('eWayBill', query, wayBillsListDiv, createWayBillCard,
-            `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-                <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
-                <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-                <p class="text-gray-500">No e-way bills match your search</p>
-            </div>`);
+        await searchDocuments('eWayBill', query, wayBillsListDiv, createWayBillRow,
+            `No e-way bills match your search`);
     }
 
     // Auto-open new form or view based on URL parameters

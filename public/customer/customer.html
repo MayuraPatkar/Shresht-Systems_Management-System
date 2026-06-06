@@ -199,6 +199,34 @@
             border-color: #94a3b8;
             filter: none;
         }
+
+        /* Status Filter Tabs Styling */
+        .filter-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #64748b; /* slate-500 */
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            border-bottom: 2px solid transparent;
+            gap: 0.25rem;
+            outline: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .filter-tab:hover:not(.active) {
+            color: #334155; /* slate-700 */
+            background: #f8fafc; /* slate-50 */
+        }
+
+        .filter-tab.active {
+            color: #2563eb; /* blue-600 */
+            background: #eff6ff; /* blue-50 */
+            border-bottom-color: #2563eb;
+        }
     </style>
 </head>
 
@@ -210,17 +238,6 @@
             <div class="flex items-center gap-3">
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Customer Management</h1>
-            </div>
-            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
-                <div class="relative flex-1">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="customer-search" placeholder="Search by name, phone or email... (Ctrl+F)"
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
-                    title="Open Filters (Ctrl+Shift+F)">
-                    <i class="fas fa-filter"></i>
-                </button>
             </div>
             <div class="flex items-center gap-2">
                 <button id="add-customer-btn"
@@ -379,20 +396,77 @@
             </div>
         </div>
 
-        <!-- Customer List Container -->
-        <div id="customer-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in min-h-[calc(100vh-320px)]">
-            <!-- Loading State -->
-            <div class="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
-                <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
-                <p class="text-xl">Loading customers...</p>
+        <!-- Customer Table Container -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden fade-in min-h-[calc(100vh-320px)]">
+            <!-- Table Controls/Tabs Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center justify-between md:justify-start gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+                    <div class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl">
+                        <button class="list-tab filter-tab active" data-status="">
+                            All
+                        </button>
+                        <button class="list-tab filter-tab" data-status="active">
+                            <i class="fas fa-check-circle mr-1"></i>Active
+                        </button>
+                        <button class="list-tab filter-tab" data-status="inactive">
+                            <i class="fas fa-times-circle mr-1"></i>Inactive
+                        </button>
+                        <button class="list-tab filter-tab" data-status="archived">
+                            <i class="fas fa-archive mr-1"></i>Archived
+                        </button>
+                    </div>
+                </div>
+                <!-- Search & Filter wrapper next to status filter -->
+                <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="customer-search" placeholder="Search by name, phone or email... (Ctrl+F)"
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
+                    </div>
+                    <button id="filter-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer" title="Open Filters (Ctrl+Shift+F)">
+                        <i class="fas fa-filter text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Desktop Table View -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr id="table-header-row" class="text-slate-700 border-b border-slate-200">
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer ID</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Name</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Contact Info</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Location</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Type</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="records text-xs" id="customer-list">
+                        <!-- Loading State -->
+                        <tr>
+                            <td colspan="7" class="px-4 py-20 text-center text-gray-500">
+                                <i class="fas fa-spinner fa-spin text-4xl mb-4 text-blue-600"></i>
+                                <p class="text-xl">Loading customers...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile stacked layout (displayed only on mobile) -->
+            <div id="customer-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50">
+                <!-- Cards will be populated dynamically by JavaScript -->
             </div>
         </div>
 
         <!-- Empty State (Hidden) -->
-        <div id="empty-state" class="hidden flex flex-col items-center justify-center min-h-[50vh] text-gray-500 fade-in">
-            <i class="fas fa-users text-6xl mb-4"></i>
-            <p class="text-2xl font-bold">No Customers Found</p>
-            <p class="mt-2">Try adjusting your search or filters</p>
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center min-h-[50vh] text-gray-500 fade-in select-none">
+            <div class="text-purple-500 text-6xl mb-4">
+                <i class="fas fa-users"></i>
+            </div>
+            <p class="text-2xl font-bold text-gray-800">No Customers Found</p>
+            <p class="mt-2 text-gray-650">Try adjusting your search or filters</p>
         </div>
     </main>
 

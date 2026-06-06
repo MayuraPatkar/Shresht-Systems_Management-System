@@ -539,7 +539,56 @@
         }
     }
 
+    function updateTabCounts() {
+        const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+        if (!statusTabs.length) return;
+
+        const counts: Record<string, number> = {
+            all: allInvoices.length,
+            DRAFT: 0,
+            SENT: 0,
+            PAID: 0,
+            'PARTIALLY PAID': 0,
+            OVERDUE: 0,
+            CANCELLED: 0,
+            REFUNDED: 0
+        };
+
+        allInvoices.forEach(inv => {
+            const status = getInvoiceStatus(inv);
+            if (status in counts) {
+                counts[status]++;
+            }
+        });
+
+        statusTabs.forEach(tab => {
+            const status = (tab as HTMLElement).dataset.status || 'all';
+            const count = counts[status] || 0;
+            
+            let badge = tab.querySelector('.tab-count-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                tab.appendChild(badge);
+            }
+            badge.className = tab.classList.contains('active')
+                ? 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-600 transition-colors duration-150'
+                : 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500 transition-colors duration-150';
+            badge.textContent = count.toString();
+        });
+    }
+
+    (window as any).triggerHeaderSort = (nextSort: string) => {
+        currentFilters.sortBy = nextSort;
+        const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement | null;
+        if (sortFilter) {
+            sortFilter.value = nextSort;
+        }
+        applyInvoiceFilters();
+    };
+
     function applyInvoiceFilters() {
+        updateTabCounts();
+
         let filtered = applyFilters(allInvoices, {
             paymentStatus: currentFilters.paymentStatus,
             dateFilter: currentFilters.dateFilter,
@@ -553,6 +602,20 @@
         if (currentFilters.status !== 'all') {
             filtered = filtered.filter((inv: Invoice) => getInvoiceStatus(inv) === currentFilters.status);
         }
+
+        // Highlight filter button if any filters are applied
+        const isFilterActive = currentFilters.paymentStatus !== 'all' ||
+                               currentFilters.dateFilter !== 'all' ||
+                               currentFilters.sortBy !== 'date-desc';
+        const filterBtn = document.getElementById('filter-btn');
+        if (filterBtn) {
+            if (isFilterActive) {
+                filterBtn.className = "bg-blue-50 text-blue-600 border border-blue-300 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer shadow-sm";
+            } else {
+                filterBtn.className = "bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer";
+            }
+        }
+
         currentFilteredInvoices = filtered;
         renderInvoices(filtered);
     }
@@ -566,6 +629,7 @@
         const clearFiltersBtn = document.getElementById('clear-filters-btn');
         const applyFiltersBtn = document.getElementById('apply-filters-btn');
         const statusFilterTop = document.getElementById('status-filter-top') as HTMLSelectElement | null;
+        
         if (filterBtn && filterPopover) {
             filterBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -626,10 +690,32 @@
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
                 if (statusFilterTop) statusFilterTop.value = 'all';
+                
+                // Reset status tabs
+                const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                statusTabs.forEach(t => {
+                    if ((t as HTMLElement).dataset.status === 'all') {
+                        t.classList.add('active');
+                    } else {
+                        t.classList.remove('active');
+                    }
+                });
+
                 applyInvoiceFilters();
                 if (filterPopover) filterPopover.classList.add('hidden');
             });
         }
+
+        // Status Tabs click events
+        const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+        statusTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                statusTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentFilters.status = (tab as HTMLElement).dataset.status || 'all';
+                applyInvoiceFilters();
+            });
+        });
     }
 
     function renderInvoices(invoices: Invoice[]) {

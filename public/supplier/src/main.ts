@@ -38,6 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = typeFilter?.value || '';
             const status = statusFilter?.value || '';
 
+            // Update active state of filter tabs
+            const statusTabs = document.querySelectorAll('.filter-tab');
+            statusTabs.forEach(tab => {
+                if (tab.getAttribute('data-status') === status) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
             const suppliers = await supplierApi.fetchSuppliers(search, type, status, !!window.showDeletedItems);
             (window as any).currentSuppliers = suppliers || [];
             supplierTable.render(suppliers);
@@ -154,6 +164,20 @@ document.addEventListener('DOMContentLoaded', () => {
             (window as any).fetchSuppliers();
         };
     }
+
+    // Register status filter tab click handlers
+    const statusTabs = document.querySelectorAll('.filter-tab');
+    statusTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            statusTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const status = tab.getAttribute('data-status') || '';
+            if (statusFilter) {
+                statusFilter.value = status;
+            }
+            (window as any).fetchSuppliers();
+        });
+    });
 
     if (resetBtn) {
         resetBtn.onclick = () => {

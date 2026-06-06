@@ -242,6 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function enterTrashMode() {
     isTrashMode = true;
+    (window as any).isTrashMode = true;
     isArchiveMode = false;
     updateArchivedButtonVisuals();
 
@@ -249,21 +250,25 @@ function enterTrashMode() {
         (window as any).updateHeaderVisibility();
     }
 
+    (window as any).quotationTable?.updateTableHeader(true);
     loadTrashQuotations();
 }
 
 function exitTrashMode() {
     isTrashMode = false;
+    (window as any).isTrashMode = false;
 
     if (typeof (window as any).updateHeaderVisibility === 'function') {
         (window as any).updateHeaderVisibility();
     }
 
+    (window as any).quotationTable?.updateTableHeader(false);
     loadRecentQuotations();
 }
 
 
 async function loadTrashQuotations() {
+    const mobileContainer = document.getElementById("quotation-cards-mobile") as HTMLElement;
     try {
         const response = await fetch('/quotation/trash');
         if (!response.ok) throw new Error('Failed to fetch trashed quotations');
@@ -274,17 +279,31 @@ async function loadTrashQuotations() {
 
         if (!quotationListDiv) return;
         quotationListDiv.innerHTML = '';
+        if (mobileContainer) mobileContainer.innerHTML = '';
+
+        (window as any).quotationTable?.updateTableHeader(true);
 
         if (trashed.length === 0) {
             quotationListDiv.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
-                    <div class="text-rose-500 text-5xl mb-4">
-                        <i class="fas fa-trash-alt"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Trash is Empty</h2>
-                    <p class="text-gray-600">No deleted quotations found</p>
-                </div>
+                <tr>
+                    <td colspan="8" class="px-6 py-10 bg-white">
+                        <div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none">
+                            <div class="text-rose-500 text-6xl mb-4">
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">Trash is Empty</h2>
+                            <p class="text-gray-500 text-xs">No deleted quotations found</p>
+                        </div>
+                    </td>
+                </tr>
             `;
+            if (mobileContainer) {
+                mobileContainer.innerHTML = `
+                    <div class="text-center py-10 bg-white rounded-xl border border-slate-200 p-6">
+                        <i class="fas fa-trash-alt text-3xl text-rose-500 mb-2"></i>
+                        <p class="text-sm font-bold text-slate-700">Trash is Empty</p>
+                    </div>`;
+            }
             return;
         }
 
@@ -292,19 +311,61 @@ async function loadTrashQuotations() {
             const card = (window as any).quotationTable?.createTrashCard(quotation);
             if (card) quotationListDiv.appendChild(card);
         });
+
+        if (mobileContainer) {
+            mobileContainer.innerHTML = trashed.map((q: any) => {
+                const formattedDate = q.quotation_date ? formatDateIndian(q.quotation_date) : '-';
+                const quotationId = q.quotation_no || q.quotation_id || 'N/A';
+                const customerName = q.customer_snapshot?.name || q.customer_name || '-';
+                const totalAmountTax = q.totals?.grand_total || q.total_amount_tax || 0;
+                const status = q.quotation_status || 'Draft';
+                const deletedAt = q.deletion?.deleted_at
+                    ? formatDateIndian(q.deletion.deleted_at)
+                    : (q.deleted_at ? formatDateIndian(q.deleted_at) : '-');
+
+                return `
+                <div class="bg-white rounded-xl p-4 border border-red-200 shadow-sm flex flex-col gap-2.5 opacity-90">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-450 uppercase tracking-wider">${formattedDate}</span>
+                        <span class="text-xs text-red-500 font-medium"><i class="fas fa-trash mr-1"></i>Deleted on ${deletedAt}</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-0.5">
+                        <div>
+                            <p class="text-sm font-bold text-slate-800 truncate max-w-[180px]">${q.project_name || '-'}</p>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">${customerName}</p>
+                        </div>
+                        <p class="text-sm font-extrabold text-red-500">₹${formatIndian(totalAmountTax, 2)}</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-lg p-2 flex items-center justify-between text-xs text-slate-600 border border-slate-100">
+                        <span class="font-bold text-slate-400">${quotationId}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
     } catch (error) {
         console.error('Error loading trash:', error);
         trashedQuotationsCount = 0;
         if (quotationListDiv) {
             quotationListDiv.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-16 fade-in select-none">
-                    <div class="bg-red-100 rounded-full p-8 mb-4">
-                        <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
-                    </div>
-                    <h2 class="text-2xl font-semibold text-gray-700 mb-2">Failed to Load Trash</h2>
-                    <p class="text-gray-500">Please try again</p>
-                </div>
+                <tr>
+                    <td colspan="8" class="px-6 py-16 text-center text-slate-450 bg-white">
+                        <div class="flex flex-col items-center justify-center py-16 fade-in select-none">
+                            <div class="bg-red-100 rounded-full p-8 mb-4">
+                                <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
+                            </div>
+                            <h2 class="text-2xl font-semibold text-gray-700 mb-2">Failed to Load Trash</h2>
+                            <p class="text-gray-500">Please try again</p>
+                        </div>
+                    </td>
+                </tr>
             `;
+        }
+        if (mobileContainer) {
+            mobileContainer.innerHTML = `
+                <div class="text-center py-10 bg-white rounded-xl border border-red-200 p-6 text-red-500 font-medium">
+                    <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+                    <p class="text-sm">Failed to Load Trash</p>
+                </div>`;
         }
     }
 }
@@ -498,6 +559,11 @@ function showNewQuotationForm() {
 // Handle search functionality
 async function handleSearch() {
     const query = (document.getElementById('search-input') as HTMLInputElement).value.trim();
+    
+    if (typeof (window as any).updateActiveFiltersBar === 'function') {
+        (window as any).updateActiveFiltersBar();
+    }
+
     if (!query) {
         await loadRecentQuotations();
         return;
@@ -516,11 +582,15 @@ async function handleSearch() {
     
     if (cardRenderer) {
         await searchDocuments('quotation', query, quotationListDiv, cardRenderer,
-            `<div class="flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
-                <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
-                <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-                <p class="text-gray-500">No quotations match your search</p>
+            `<div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none">
+                <div class="text-yellow-500 text-6xl mb-4"><i class="fas fa-search"></i></div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">No Results Found</h2>
+                <p class="text-gray-500 text-xs">No quotations match your search</p>
             </div>`);
+    }
+
+    if (typeof (window as any).updateActiveFiltersBar === 'function') {
+        (window as any).updateActiveFiltersBar();
     }
 }
 

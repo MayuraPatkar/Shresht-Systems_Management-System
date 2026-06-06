@@ -20,9 +20,77 @@ class QuotationTable {
         return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${styles[safeStatus] || styles.Draft}">${safeStatus}</span>`;
     }
 
+    // Update the table header dynamically
+    updateTableHeader(isTrash: boolean) {
+        const headerRow = document.getElementById('table-header-row');
+        if (!headerRow) return;
+
+        if (isTrash) {
+            headerRow.innerHTML = `
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">ID</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Project</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Deleted Date</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Actions</th>
+            `;
+        } else {
+            const sortBy = (window as any).currentFilters?.sortBy || 'date-desc';
+            
+            const dateIcon = sortBy === 'date-desc' ? '<i class="fas fa-chevron-down ml-1.5 text-purple-600"></i>' :
+                             sortBy === 'date-asc' ? '<i class="fas fa-chevron-up ml-1.5 text-purple-600"></i>' :
+                             '<i class="fas fa-sort ml-1.5 opacity-30 group-hover:opacity-60 transition-opacity"></i>';
+            
+            const nameIcon = sortBy === 'name-asc' ? '<i class="fas fa-sort-alpha-down ml-1.5 text-purple-600"></i>' :
+                             '<i class="fas fa-sort ml-1.5 opacity-30 group-hover:opacity-60 transition-opacity"></i>';
+            
+            const amountIcon = sortBy === 'amount-desc' ? '<i class="fas fa-chevron-down mr-1.5 text-purple-600"></i>' :
+                               sortBy === 'amount-asc' ? '<i class="fas fa-chevron-up mr-1.5 text-purple-600"></i>' :
+                               '<i class="fas fa-sort mr-1.5 opacity-30 group-hover:opacity-60 transition-opacity"></i>';
+
+            headerRow.innerHTML = `
+                <th id="th-date" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-slate-100 hover:text-purple-600 select-none transition-all duration-150 group">
+                    <span class="flex items-center">Date ${dateIcon}</span>
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Quotation ID</th>
+                <th id="th-name" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-slate-100 hover:text-purple-600 select-none transition-all duration-150 group">
+                    <span class="flex items-center">Project Name ${nameIcon}</span>
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Valid Till</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                <th id="th-total" class="px-4 py-3 text-right text-xs font-semibold tracking-wider cursor-pointer hover:bg-slate-100 hover:text-purple-600 select-none transition-all duration-150 group">
+                    <span class="flex items-center justify-end">${amountIcon} Total</span>
+                </th>
+            `;
+            
+            // Attach event listeners
+            document.getElementById('th-date')?.addEventListener('click', () => {
+                const nextSort = sortBy === 'date-desc' ? 'date-asc' : 'date-desc';
+                if (typeof (window as any).triggerHeaderSort === 'function') {
+                    (window as any).triggerHeaderSort(nextSort);
+                }
+            });
+            document.getElementById('th-name')?.addEventListener('click', () => {
+                if (typeof (window as any).triggerHeaderSort === 'function') {
+                    (window as any).triggerHeaderSort('name-asc');
+                }
+            });
+            document.getElementById('th-total')?.addEventListener('click', () => {
+                const nextSort = sortBy === 'amount-desc' ? 'amount-asc' : 'amount-desc';
+                if (typeof (window as any).triggerHeaderSort === 'function') {
+                    (window as any).triggerHeaderSort(nextSort);
+                }
+            });
+        }
+    }
+
     // Render quotations in the list
     renderQuotations(quotations: any[]) {
         const quotationListDiv = document.querySelector(".records") as HTMLElement;
+        const mobileContainer = document.getElementById("quotation-cards-mobile") as HTMLElement;
         if (!quotationListDiv) return;
 
         // Update stats summary
@@ -76,191 +144,145 @@ class QuotationTable {
         }
 
         quotationListDiv.innerHTML = "";
+        if (mobileContainer) mobileContainer.innerHTML = "";
+
         if (!quotations || quotations.length === 0) {
             const isArchivedView = typeof isArchiveMode !== 'undefined' && isArchiveMode;
-            quotationListDiv.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12 fade-in select-none" style="min-height: calc(100vh - 11rem);">
-                    <div class="${isArchivedView ? 'text-amber-500' : 'text-purple-500'} text-5xl mb-4">
+            const emptyHtml = `
+                <div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none">
+                    <div class="${isArchivedView ? 'text-amber-500' : 'text-purple-500'} text-6xl mb-4">
                         <i class="fas ${isArchivedView ? 'fa-archive' : 'fa-file-invoice'}"></i>
                     </div>
                     <h2 class="text-2xl font-bold text-gray-800 mb-2">${isArchivedView ? 'No Archived Quotations' : 'No Quotations Found'}</h2>
-                    <p class="text-gray-600">${isArchivedView ? 'Quotations you archive will show up here' : 'Start creating professional quotations for your clients'}</p>
+                    <p class="text-gray-500 text-xs">${isArchivedView ? 'Quotations you archive will show up here' : 'Start creating professional quotations for your clients'}</p>
                 </div>
             `;
+            
+            quotationListDiv.innerHTML = `
+                <tr>
+                    <td colspan="8" class="px-4 py-10 bg-white text-slate-400">
+                        ${emptyHtml}
+                    </td>
+                </tr>
+            `;
+
+            if (mobileContainer) {
+                mobileContainer.innerHTML = `
+                    <div class="text-center py-10 bg-white rounded-xl border border-slate-200 p-6">
+                        <i class="fas ${isArchivedView ? 'fa-archive' : 'fa-file-invoice'} text-3xl ${isArchivedView ? 'text-amber-500' : 'text-purple-500'} mb-2"></i>
+                        <p class="text-sm font-bold text-slate-700">${isArchivedView ? 'No Archived Quotations' : 'No Quotations Found'}</p>
+                    </div>
+                `;
+            }
             return;
         }
+
+        // Set active view header
+        this.updateTableHeader(false);
+
         quotations.forEach((quotation: any) => {
-            const quotationCard = this.createQuotationCard(quotation);
-            quotationListDiv.appendChild(quotationCard);
+            const quotationRow = this.createQuotationCard(quotation);
+            quotationListDiv.appendChild(quotationRow);
         });
+
+        // Mobile list rendering
+        if (mobileContainer) {
+            mobileContainer.innerHTML = quotations.map((q: any) => {
+                const formattedDate = q.quotation_date ? formatDateIndian(q.quotation_date) : '-';
+                const quotationId = q.quotation_no || q.quotation_id || 'N/A';
+                const customerName = q.customer_snapshot?.name || q.customer_name || '-';
+                const totalAmountTax = q.totals?.grand_total || q.total_amount_tax || 0;
+                const status = q.quotation_status || 'Draft';
+                const validTill = q.valid_till ? formatDateIndian(q.valid_till) : '-';
+                const isArchived = !!q.is_archived;
+                const statusBadge = isArchived ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border bg-slate-100 text-slate-600 border-slate-200">ARCHIVED</span>' : this.getStatusBadge(status);
+
+                return `
+                <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col gap-2.5 active:bg-slate-50" onclick="viewQuotation('${quotationId}', 1)">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-450 uppercase tracking-wider">${formattedDate}</span>
+                        ${statusBadge}
+                    </div>
+                    <div class="flex items-center justify-between mt-0.5">
+                        <div>
+                            <p class="text-sm font-bold text-slate-800 truncate max-w-[180px]">${q.project_name || '-'}</p>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">${customerName}</p>
+                        </div>
+                        <p class="text-sm font-extrabold text-purple-600">₹${formatIndian(totalAmountTax, 2)}</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-lg p-2 flex items-center justify-between text-xs text-slate-600 border border-slate-100">
+                        <span>Valid: <span class="font-bold text-slate-800">${validTill}</span></span>
+                        <span class="font-bold text-slate-400">${quotationId}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
     }
 
-    // Create a quotation card element
+    // Create a quotation row element
     createQuotationCard(quotation: any): HTMLElement {
-        const quotationCard = document.createElement("div");
-    const isArchived = !!quotation.is_archived;
-    quotationCard.className = isArchived
-        ? "group bg-slate-50/90 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-slate-300 overflow-hidden fade-in opacity-80 hover:opacity-100"
-        : "group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-400 overflow-hidden fade-in";
+        const quotationCard = document.createElement("tr");
+        const isArchived = !!quotation.is_archived;
+        quotationCard.className = "border-b border-slate-100 hover:bg-slate-50 transition-all duration-150 group cursor-pointer text-xs";
 
-    // Format the date for display
-    const formattedDate = quotation.quotation_date ? formatDateIndian(quotation.quotation_date) : '-';
-    
-    // Map fields from backend structure
-    const quotationId = quotation.quotation_no || quotation.quotation_id || 'N/A';
-    const customerName = quotation.customer_snapshot?.name || quotation.customer_name || '-';
-    const customerAddress = (() => {
-        const b = quotation.customer_snapshot?.billing_address;
-        if (!b) return quotation.customer_address || '-';
-        if (typeof b === 'string') return b;
-        const parts = [b.line1, b.line2, b.city, b.state, b.pincode, b.country].filter(p => p && typeof p === 'string' && p.trim() !== '');
-        return parts.length > 0 ? parts.join(', ') : (quotation.customer_address || '-');
-    })();
-    const totalAmountTax = quotation.totals?.grand_total || quotation.total_amount_tax || 0;
-    const status = quotation.quotation_status || 'Draft';
-    const validTill = quotation.valid_till ? formatDateIndian(quotation.valid_till) : '-';
-    const isConverted = status === 'Converted' || !!quotation.converted_invoice_id;
+        // Format the date for display
+        const formattedDate = quotation.quotation_date ? formatDateIndian(quotation.quotation_date) : '-';
+        
+        // Map fields from backend structure
+        const quotationId = quotation.quotation_no || quotation.quotation_id || 'N/A';
+        const customerName = quotation.customer_snapshot?.name || quotation.customer_name || '-';
+        const customerAddress = (() => {
+            const b = quotation.customer_snapshot?.billing_address;
+            if (!b) return quotation.customer_address || '-';
+            if (typeof b === 'string') return b;
+            const parts = [b.line1, b.line2, b.city, b.state, b.pincode, b.country].filter(p => p && typeof p === 'string' && p.trim() !== '');
+            return parts.length > 0 ? parts.join(', ') : (quotation.customer_address || '-');
+        })();
+        const totalAmountTax = quotation.totals?.grand_total || quotation.total_amount_tax || 0;
+        const status = quotation.quotation_status || 'Draft';
+        const validTill = quotation.valid_till ? formatDateIndian(quotation.valid_till) : '-';
+        const isConverted = status === 'Converted' || !!quotation.converted_invoice_id;
 
-    quotationCard.innerHTML = `
-        <!-- Left Border Accent -->
-        <div class="flex">
-            <div class="w-1.5 bg-gradient-to-b ${isArchived ? 'from-slate-400 to-slate-600' : 'from-purple-500 to-indigo-600'} rounded-l-lg"></div>
-            <div class="relative p-5 flex-1">
-            <!-- Top Row: Header with Title & Actions -->
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br ${isArchived ? 'from-slate-400 to-slate-600 shadow-slate-200' : 'from-purple-500 to-indigo-600 shadow-purple-200'} flex items-center justify-center shadow-lg">
-                        <i class="fas fa-file-invoice text-lg text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900 truncate" title="${quotation.project_name}">${quotation.project_name}</h3>
-                    </div>
-                </div>
-                
-                <!-- Actions -->
-                <div class="flex items-center gap-2">
-                    ${isArchived ? `
-                    <button class="action-btn restore-archive-btn px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-all border border-emerald-200 hover:border-emerald-400" title="Restore from Archive">
-                        <i class="fas fa-box-open mr-1"></i> Restore
-                    </button>
-                    ` : `
-                    <button class="action-btn view-btn px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all border border-blue-200 hover:border-blue-400" title="View">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="action-btn duplicate-btn px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all border border-indigo-200 hover:border-indigo-400" title="Clone Quotation">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                    <button class="action-btn edit-btn px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all border border-purple-200 hover:border-purple-400" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="action-btn convert-invoice-btn px-4 py-2 ${isConverted ? 'bg-green-100 text-green-700 border border-green-300 cursor-not-allowed opacity-75' : status !== 'Approved' ? 'bg-gray-100 text-gray-500 border border-gray-300 cursor-not-allowed opacity-75' : 'bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-all border border-green-200 hover:border-green-400'} rounded-lg" title="${isConverted ? 'Already converted to invoice' : status !== 'Approved' ? 'Only approved quotations can be converted' : 'Convert to Invoice'}">
-                        <i class="fas ${isConverted ? 'fa-check-circle' : 'fa-file-invoice-dollar'}"></i>
-                    </button>
-                    `}
-                </div>
-            </div>
-            
-            <!-- ID & Date Row -->
-            <div class="flex items-center gap-2 mb-3">
-                <span class="text-sm font-bold text-gray-800 cursor-pointer hover:text-purple-600 copy-text transition-colors" title="Click to copy ID">
+        quotationCard.innerHTML = `
+            <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formattedDate}</td>
+            <td class="px-4 py-3 text-slate-850 font-bold whitespace-nowrap text-xs">
+                <span class="cursor-pointer hover:text-purple-600 copy-text transition-colors" title="Click to copy ID">
                     ${quotationId}
-                    <i class="fas fa-copy text-xs ml-1 opacity-50"></i>
+                    <i class="fas fa-copy text-[10px] ml-1 opacity-50"></i>
                 </span>
-                <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                <span class="text-xs text-gray-500">
-                    <i class="fas fa-calendar-alt mr-1"></i>${formattedDate}
-                </span>
+            </td>
+            <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[150px] truncate" title="${quotation.project_name || '-'}">
+                ${quotation.project_name || '-'}
+            </td>
+            <td class="px-4 py-3 text-xs max-w-[180px] truncate">
+                <div class="font-medium text-slate-800" title="${customerName}">${customerName}</div>
+                <div class="text-[10px] text-slate-400 truncate" title="${customerAddress}">${customerAddress}</div>
+            </td>
+            <td class="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">${validTill}</td>
+            <td class="px-4 py-3 whitespace-nowrap">
                 ${isArchived ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-slate-100 text-slate-600 border-slate-200">ARCHIVED</span>' : this.getStatusBadge(status)}
-                <span class="text-xs text-gray-500">
-                    <i class="fas fa-hourglass-half mr-1"></i>${validTill}
-                </span>
-            </div>
-            
-            <!-- Bottom Row: Customer & Amount -->
-            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-user text-blue-600 text-xs"></i>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-gray-800 truncate" title="${customerName}">${customerName}</p>
-                        <p class="text-xs text-gray-500 truncate" title="${customerAddress}">${customerAddress}</p>
-                    </div>
-                </div>
-                
-                <div class="flex-shrink-0 ml-4 text-right">
-                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Total</p>
-                    <p class="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">₹${formatIndian(totalAmountTax, 2)}</p>
-                </div>
-            </div>
-        </div>
-        </div>
-    `;
+            </td>
+            <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-slate-900">
+                ₹${formatIndian(totalAmountTax, 2)}
+            </td>
+        `;
 
-    const copyElement = quotationCard.querySelector('.copy-text') as HTMLElement;
-    const viewBtn = quotationCard.querySelector('.view-btn') as HTMLElement;
-    const duplicateBtn = quotationCard.querySelector('.duplicate-btn') as HTMLElement;
-    const editBtn = quotationCard.querySelector('.edit-btn') as HTMLElement;
-    const archiveBtn = quotationCard.querySelector('.archive-btn') as HTMLElement;
-    const restoreArchiveBtn = quotationCard.querySelector('.restore-archive-btn') as HTMLElement;
-    const convertInvoiceBtn = quotationCard.querySelector('.convert-invoice-btn') as HTMLElement;
+        const copyElement = quotationCard.querySelector('.copy-text') as HTMLElement;
 
-    // Copy ID functionality
-    copyElement?.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(quotationId);
-            showToast('ID Copied to Clipboard!');
-        } catch (err) {
-            console.error('Copy failed', err);
-        }
-    });
-
-    // Action button handlers - view with default type (1 = Without Tax)
-    viewBtn?.addEventListener('click', () => {
-        viewQuotation(quotationId, 1);
-    });
-
-    duplicateBtn?.addEventListener('click', () => {
-        sessionStorage.setItem('currentTab-status', 'clone');
-        cloneQuotation(quotationId);
-    });
-
-        editBtn?.addEventListener('click', () => {
-            sessionStorage.setItem('currentTab-status', 'update');
-            openQuotation(quotationId);
+        // Copy ID functionality
+        copyElement?.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            try {
+                await navigator.clipboard.writeText(quotationId);
+                showToast('ID Copied to Clipboard!');
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
         });
 
-        restoreArchiveBtn?.addEventListener('click', () => {
-            this.confirmAction(`Are you sure you want to restore quotation "${quotationId}"?`, async () => {
-                try {
-                    await (window as any).restoreQuotationFromArchive(quotationId);
-                } catch (error) {
-                    (window as any).electronAPI?.showAlert1('Failed to restore quotation.');
-                }
-            });
-        });
-
-        convertInvoiceBtn?.addEventListener('click', () => {
-            if (isConverted) {
-                if ((window as any).electronAPI?.showAlert1) {
-                    (window as any).electronAPI.showAlert1('This quotation has already been converted to an invoice.');
-                } else {
-                    alert('This quotation has already been converted to an invoice.');
-                }
-                return;
-            }
-            if (status !== 'Approved') {
-                if ((window as any).electronAPI?.showAlert1) {
-                    (window as any).electronAPI.showAlert1('Only approved quotations can be converted to invoices.');
-                } else {
-                    alert('Only approved quotations can be converted to invoices.');
-                }
-                return;
-            }
-            // quotationId is already the display ID (quotation_no e.g. "QUO-001") which the backend route accepts
-            sessionStorage.setItem('quotation-to-invoice-id', quotationId);
-            sessionStorage.setItem('currentTab-status', 'new');
-            window.location.href = '../invoice/invoice.html';
+        // Row click opens the details view
+        quotationCard.addEventListener('click', () => {
+            viewQuotation(quotationId, 1);
         });
 
         return quotationCard;
@@ -287,10 +309,10 @@ class QuotationTable {
         });
     }
 
-    // Create a card for a TRASHED quotation (with Restore + Permanent Delete)
+    // Create a row for a TRASHED quotation (with Restore + Permanent Delete)
     createTrashCard(quotation: any): HTMLElement {
-        const card = document.createElement('div');
-        card.className = 'group bg-white rounded-lg shadow-md border border-red-200 overflow-hidden fade-in opacity-80 hover:opacity-100 transition-all duration-300';
+        const card = document.createElement('tr');
+        card.className = 'border-b border-slate-100 hover:bg-slate-50 transition-all duration-150 group cursor-pointer text-xs';
 
         const formattedDate = quotation.quotation_date ? formatDateIndian(quotation.quotation_date) : '-';
         const quotationId = quotation.quotation_no || quotation.quotation_id || 'N/A';
@@ -302,58 +324,36 @@ class QuotationTable {
             : (quotation.deleted_at ? formatDateIndian(quotation.deleted_at) : '-');
 
         card.innerHTML = `
-            <div class="flex">
-                <div class="w-1.5 bg-gradient-to-b from-red-400 to-red-600 rounded-l-lg"></div>
-                <div class="relative p-5 flex-1">
-                    <!-- Top Row -->
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg shadow-red-200">
-                                <i class="fas fa-file-invoice text-lg text-white"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-900 truncate" title="${quotation.project_name}">${quotation.project_name}</h3>
-                                <span class="text-xs text-red-500 font-medium"><i class="fas fa-trash mr-1"></i>Deleted on ${deletedAt}</span>
-                            </div>
-                        </div>
-                        <!-- Actions -->
-                        <div class="flex items-center gap-2">
-                            <button class="trash-action-restore px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 border border-green-200 hover:border-green-400 font-medium text-sm flex items-center gap-1.5" title="Restore">
-                                <i class="fas fa-trash-restore"></i> Restore
-                            </button>
-                            <button class="trash-action-delete-permanent px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 border border-red-200 hover:border-red-400 font-medium text-sm flex items-center gap-1.5" title="Permanently Delete">
-                                <i class="fas fa-times-circle"></i> Delete
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Info Row -->
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="text-sm font-bold text-gray-600">${quotationId}</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                        <span class="text-xs text-gray-500"><i class="fas fa-calendar-alt mr-1"></i>${formattedDate}</span>
-                        ${this.getStatusBadge(status)}
-                    </div>
-                    <!-- Bottom Row -->
-                    <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                                <i class="fas fa-user text-red-500 text-xs"></i>
-                            </div>
-                            <p class="text-sm font-medium text-gray-700 truncate">${customerName}</p>
-                        </div>
-                        <div class="flex-shrink-0 ml-4 text-right">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Total</p>
-                            <p class="text-xl font-bold text-red-500">₹${formatIndian(totalAmountTax, 2)}</p>
-                        </div>
-                    </div>
+            <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formattedDate}</td>
+            <td class="px-4 py-3 text-slate-600 font-bold whitespace-nowrap text-xs">${quotationId}</td>
+            <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[150px] truncate" title="${quotation.project_name || '-'}">
+                ${quotation.project_name || '-'}
+            </td>
+            <td class="px-4 py-3 text-slate-700 text-xs max-w-[180px] truncate" title="${customerName}">${customerName}</td>
+            <td class="px-4 py-3 text-red-500 font-medium whitespace-nowrap text-xs">
+                <i class="fas fa-trash mr-1 text-[10px]"></i> ${deletedAt}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">${this.getStatusBadge(status)}</td>
+            <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-red-500">
+                ₹${formatIndian(totalAmountTax, 2)}
+            </td>
+            <td class="px-4 py-2 text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-1.5">
+                    <button class="trash-action-restore px-2.5 py-1 bg-green-50 text-green-700 rounded-md hover:bg-green-100 border border-green-200 hover:border-green-400 font-semibold text-xs flex items-center gap-1" title="Restore">
+                        <i class="fas fa-trash-restore text-[10px]"></i> Restore
+                    </button>
+                    <button class="trash-action-delete-permanent px-2.5 py-1 bg-red-50 text-red-700 rounded-md hover:bg-red-100 border border-red-200 hover:border-red-400 font-semibold text-xs flex items-center gap-1" title="Permanently Delete">
+                        <i class="fas fa-times-circle text-[10px]"></i> Delete
+                    </button>
                 </div>
-            </div>
+            </td>
         `;
 
         const restoreBtn = card.querySelector('.trash-action-restore') as HTMLButtonElement;
         const deletePermanentBtn = card.querySelector('.trash-action-delete-permanent') as HTMLButtonElement;
 
-        restoreBtn?.addEventListener('click', async () => {
+        restoreBtn?.addEventListener('click', async (e) => {
+            e.stopPropagation();
             try {
                 const res = await fetch(`/quotation/${quotationId}/restore`, { method: 'POST' });
                 if (!res.ok) throw new Error('Failed to restore');
@@ -365,7 +365,8 @@ class QuotationTable {
             }
         });
 
-        deletePermanentBtn?.addEventListener('click', () => {
+        deletePermanentBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
             if (!(window as any).electronAPI) return;
             (window as any).electronAPI.showAlert2(`Permanently delete ${quotationId}? This cannot be undone.`);
             (window as any).electronAPI.receiveAlertResponse(async (response: string) => {
@@ -388,4 +389,3 @@ class QuotationTable {
 
 // Export instance globally
 (window as any).quotationTable = new QuotationTable();
-

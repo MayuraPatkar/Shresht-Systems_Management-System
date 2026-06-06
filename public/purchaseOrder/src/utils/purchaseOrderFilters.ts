@@ -13,7 +13,7 @@
         const filtered = (window as any).applyFilters((window as any).allPurchaseOrders || [], {
             dateFilter: currentFilters.dateFilter,
             sortBy: currentFilters.sortBy,
-            dateField: 'createdAt',
+            dateField: 'purchase_date',
             amountField: 'totals.grand_total',
             nameField: 'supplier_snapshot.name',
             customStartDate: currentFilters.customStartDate,
@@ -22,6 +22,17 @@
         
         // Save current filtered items globally so bulk actions can target them
         (window as any).currentFilteredPurchaseOrders = filtered;
+
+        // Highlight filter button if any filters are applied
+        const isFilterActive = currentFilters.dateFilter !== 'all' || currentFilters.sortBy !== 'date-desc';
+        const filterBtn = document.getElementById('filter-btn');
+        if (filterBtn) {
+            if (isFilterActive) {
+                filterBtn.className = "bg-blue-50 text-blue-600 border border-blue-300 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer shadow-sm";
+            } else {
+                filterBtn.className = "bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer";
+            }
+        }
         
         if ((window as any).purchaseOrderTable) {
             (window as any).purchaseOrderTable.renderPurchaseOrders(filtered);
@@ -101,6 +112,7 @@
         }
     }
     
+    (window as any).currentFilters = currentFilters;
     (window as any).allPurchaseOrders = allPurchaseOrders;
     (window as any).applyPurchaseOrderFilters = applyPurchaseOrderFilters;
     (window as any).initPurchaseOrderFilters = initPurchaseOrderFilters;

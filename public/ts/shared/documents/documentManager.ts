@@ -73,7 +73,11 @@ async function searchDocuments(endpoint, query, resultsContainer, cardCreator, n
         }
         
         if (resultsContainer.innerHTML === "") {
-            resultsContainer.innerHTML = `<h1>${noResultsMessage}</h1>`;
+            if (resultsContainer.tagName === "TBODY") {
+                resultsContainer.innerHTML = `<tr><td colspan="100" style="text-align:center;vertical-align:middle;padding:4rem 1rem;background:#fff;"><div style="display:inline-flex;flex-direction:column;align-items:center;justify-content:center;">${noResultsMessage}</div></td></tr>`;
+            } else {
+                resultsContainer.innerHTML = `<h1>${noResultsMessage}</h1>`;
+            }
         }
     } catch (error) {
         console.error(`Error searching ${endpoint}:`, error);

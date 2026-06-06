@@ -992,6 +992,28 @@ async function renderQuotationView(quotation, viewType) {
         });
     }
 
+    const editBtnView = document.getElementById('editQuotationBtnView') as HTMLButtonElement;
+    if (editBtnView) {
+        const newEditBtn = editBtnView.cloneNode(true) as HTMLButtonElement;
+        editBtnView.parentNode?.replaceChild(newEditBtn, editBtnView);
+        newEditBtn.addEventListener('click', () => {
+            const quotationId = quotation.quotation_id || quotation.quotation_no;
+            sessionStorage.setItem('currentTab-status', 'update');
+            openQuotation(quotationId);
+        });
+    }
+
+    const duplicateBtnView = document.getElementById('duplicateQuotationBtnView') as HTMLButtonElement;
+    if (duplicateBtnView) {
+        const newDuplicateBtn = duplicateBtnView.cloneNode(true) as HTMLButtonElement;
+        duplicateBtnView.parentNode?.replaceChild(newDuplicateBtn, duplicateBtnView);
+        newDuplicateBtn.addEventListener('click', () => {
+            const quotationId = quotation.quotation_id || quotation.quotation_no;
+            sessionStorage.setItem('currentTab-status', 'clone');
+            cloneQuotation(quotationId);
+        });
+    }
+
     updateQuotationStatusTracker(quotation);
 }
 
