@@ -64,6 +64,97 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function updateActiveFiltersBar() {
+        const infoBar = document.getElementById('active-filters-info-bar');
+        const badgesContainer = document.getElementById('active-filters-badges');
+        if (!infoBar || !badgesContainer) return;
+
+        // Preserve only the header label span
+        const label = badgesContainer.querySelector('span');
+        badgesContainer.innerHTML = '';
+        if (label) badgesContainer.appendChild(label);
+
+        const activeBadges: { label: string, clearFn: () => void }[] = [];
+
+        // Search Query
+        const query = searchInput ? searchInput.value.trim() : '';
+        if (query) {
+            activeBadges.push({
+                label: `Search: "${query}"`,
+                clearFn: () => {
+                    if (searchInput) {
+                        searchInput.value = '';
+                        (window as any).fetchCustomers();
+                    }
+                }
+            });
+        }
+
+        // Customer Type
+        const typeValue = typeFilter ? typeFilter.value : '';
+        if (typeValue) {
+            activeBadges.push({
+                label: `Type: ${typeValue}`,
+                clearFn: () => {
+                    if (typeFilter) {
+                        typeFilter.value = '';
+                        (window as any).fetchCustomers();
+                    }
+                }
+            });
+        }
+
+        // Status
+        const statusValue = statusFilter ? statusFilter.value : '';
+        if (statusValue) {
+            const statusLabels: Record<string, string> = {
+                active: 'Active',
+                inactive: 'Inactive',
+                archived: 'Archived'
+            };
+            activeBadges.push({
+                label: `Status: ${statusLabels[statusValue] || statusValue}`,
+                clearFn: () => {
+                    if (statusFilter) {
+                        statusFilter.value = '';
+                        (window as any).fetchCustomers();
+                    }
+                }
+            });
+        }
+
+        // Style the filter button (highlight if filters are applied)
+        const hasActiveFilters = !!typeValue || !!statusValue;
+        if (filterBtn) {
+            if (hasActiveFilters) {
+                filterBtn.className = 'bg-blue-600 text-white border border-blue-600 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 active:scale-95 cursor-pointer shadow-md shadow-blue-100';
+            } else {
+                filterBtn.className = 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer';
+            }
+        }
+
+        if (activeBadges.length > 0) {
+            infoBar.classList.remove('hidden');
+            activeBadges.forEach(badgeData => {
+                const badge = document.createElement('span');
+                badge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 shadow-sm transition-all duration-150';
+                badge.innerHTML = `
+                    <span>${badgeData.label}</span>
+                    <button class="text-blue-400 hover:text-blue-700 ml-0.5 focus:outline-none cursor-pointer text-[10px]" title="Remove filter">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                badge.querySelector('button')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    badgeData.clearFn();
+                });
+                badgesContainer.appendChild(badge);
+            });
+        } else {
+            infoBar.classList.add('hidden');
+        }
+    }
+
     // Fetch and render function exposed to window for forms to call
     (window as any).fetchCustomers = async () => {
         try {
@@ -87,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateArchivedCount();
             updateArchivedButtonVisuals();
             updateBulkButtonLabels();
+            updateActiveFiltersBar();
         } catch (error) {
             showAlert('Failed to load customers');
         }
@@ -191,8 +283,19 @@ document.addEventListener('DOMContentLoaded', () => {
         filterBtn.onclick = (e) => {
             e.stopPropagation();
             const rect = filterBtn.getBoundingClientRect();
-            filterPopover.style.top = `${rect.bottom + 10}px`;
-            filterPopover.style.left = `${rect.right - filterPopover.offsetWidth}px`;
+            const popoverWidth = 320; // w-80 is 320px
+            
+            filterPopover.style.top = `${rect.bottom + 8}px`;
+            
+            let leftPos = rect.right - popoverWidth;
+            if (leftPos + popoverWidth > window.innerWidth - 16) {
+                leftPos = window.innerWidth - popoverWidth - 16;
+            }
+            if (leftPos < 16) {
+                leftPos = 16;
+            }
+            
+            filterPopover.style.left = `${leftPos}px`;
             filterPopover.classList.toggle('hidden');
         };
     }
@@ -202,6 +305,16 @@ document.addEventListener('DOMContentLoaded', () => {
         applyFiltersBtn.onclick = () => {
             (window as any).fetchCustomers();
             filterPopover?.classList.add('hidden');
+        };
+    }
+
+    const clearAllShortcut = document.getElementById('clear-all-filters-shortcut') as HTMLButtonElement;
+    if (clearAllShortcut) {
+        clearAllShortcut.onclick = () => {
+            if (searchInput) searchInput.value = '';
+            if (typeFilter) typeFilter.value = '';
+            if (statusFilter) statusFilter.value = '';
+            (window as any).fetchCustomers();
         };
     }
 

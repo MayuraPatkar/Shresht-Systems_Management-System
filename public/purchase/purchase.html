@@ -13,6 +13,35 @@
     <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
     <link rel="stylesheet" href="../css/purchaseOrder.css">
     <title>Purchases</title>
+    <style>
+        /* Status Filter Tabs Styling */
+        .filter-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #64748b; /* slate-500 */
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            border-bottom: 2px solid transparent;
+            gap: 0.25rem;
+            outline: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .filter-tab:hover:not(.active) {
+            color: #334155; /* slate-700 */
+            background: #f8fafc; /* slate-50 */
+        }
+
+        .filter-tab.active {
+            color: #2563eb; /* blue-600 */
+            background: #eff6ff; /* blue-50 */
+            border-bottom-color: #2563eb;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 no-select">

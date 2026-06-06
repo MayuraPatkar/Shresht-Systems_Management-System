@@ -618,6 +618,132 @@
 
         currentFilteredInvoices = filtered;
         renderInvoices(filtered);
+        updateActiveFiltersBar();
+    }
+
+    function updateActiveFiltersBar() {
+        const infoBar = document.getElementById('active-filters-info-bar');
+        const badgesContainer = document.getElementById('active-filters-badges');
+        if (!infoBar || !badgesContainer) return;
+
+        // Preserve only the header label span
+        const label = badgesContainer.querySelector('span');
+        badgesContainer.innerHTML = '';
+        if (label) badgesContainer.appendChild(label);
+
+        const activeBadges: { label: string, clearFn: () => void }[] = [];
+
+        // Search Query
+        const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+        const query = searchInput ? searchInput.value.trim() : '';
+        if (query) {
+            activeBadges.push({
+                label: `Search: "${query}"`,
+                clearFn: () => {
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchInput.dispatchEvent(new Event('input'));
+                    }
+                }
+            });
+        }
+
+        // Status Filter
+        if (currentFilters.status !== 'all') {
+            const statusLabels: Record<string, string> = {
+                DRAFT: 'Draft',
+                SENT: 'Sent',
+                OVERDUE: 'Overdue',
+                PARTIALLY_PAID: 'Partially Paid',
+                PAID: 'Paid'
+            };
+            activeBadges.push({
+                label: `Status: ${statusLabels[currentFilters.status] || currentFilters.status}`,
+                clearFn: () => {
+                    currentFilters.status = 'all';
+                    const statusFilterTop = document.getElementById('status-filter-top') as HTMLSelectElement | null;
+                    if (statusFilterTop) statusFilterTop.value = 'all';
+                    
+                    const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                    statusTabs.forEach(t => {
+                        if (t.getAttribute('data-status') === 'all') {
+                            t.classList.add('active');
+                        } else {
+                            t.classList.remove('active');
+                        }
+                    });
+                    
+                    applyInvoiceFilters();
+                }
+            });
+        }
+
+        // Date Filter
+        if (currentFilters.dateFilter !== 'all') {
+            let dateLabel = currentFilters.dateFilter;
+            if (currentFilters.dateFilter === 'custom' && currentFilters.customStartDate && currentFilters.customEndDate) {
+                dateLabel = `${currentFilters.customStartDate} to ${currentFilters.customEndDate}`;
+            } else {
+                const dateLabels: Record<string, string> = {
+                    today: 'Today',
+                    week: 'This Week',
+                    month: 'This Month'
+                };
+                dateLabel = dateLabels[currentFilters.dateFilter] || currentFilters.dateFilter;
+            }
+            activeBadges.push({
+                label: `Date: ${dateLabel}`,
+                clearFn: () => {
+                    currentFilters.dateFilter = 'all';
+                    currentFilters.customStartDate = null;
+                    currentFilters.customEndDate = null;
+                    const dateSelect = document.getElementById('date-filter') as HTMLSelectElement | null;
+                    if (dateSelect) dateSelect.value = 'all';
+                    applyInvoiceFilters();
+                }
+            });
+        }
+
+        // Sort Filter
+        if (currentFilters.sortBy !== 'date-desc') {
+            const sortLabels: Record<string, string> = {
+                'date-asc': 'Oldest First',
+                'amount-desc': 'Amount: High-Low',
+                'amount-asc': 'Amount: Low-High',
+                'status-asc': 'Status A-Z',
+                'status-desc': 'Status Z-A'
+            };
+            activeBadges.push({
+                label: `Sort: ${sortLabels[currentFilters.sortBy] || currentFilters.sortBy}`,
+                clearFn: () => {
+                    currentFilters.sortBy = 'date-desc';
+                    const sortSelect = document.getElementById('sort-filter') as HTMLSelectElement | null;
+                    if (sortSelect) sortSelect.value = 'date-desc';
+                    applyInvoiceFilters();
+                }
+            });
+        }
+
+        if (activeBadges.length > 0) {
+            infoBar.classList.remove('hidden');
+            activeBadges.forEach(badgeData => {
+                const badge = document.createElement('span');
+                badge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 shadow-sm transition-all duration-150';
+                badge.innerHTML = `
+                    <span>${badgeData.label}</span>
+                    <button class="text-blue-400 hover:text-blue-700 ml-0.5 focus:outline-none cursor-pointer text-[10px]" title="Remove filter">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                badge.querySelector('button')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    badgeData.clearFn();
+                });
+                badgesContainer.appendChild(badge);
+            });
+        } else {
+            infoBar.classList.add('hidden');
+        }
     }
 
     function initInvoiceFilters() {
@@ -634,8 +760,19 @@
             filterBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const rect = filterBtn.getBoundingClientRect();
+                const popoverWidth = 280; // width is 280px
+                
                 filterPopover.style.top = `${rect.bottom + 8}px`;
-                filterPopover.style.left = `${rect.left}px`;
+                
+                let leftPos = rect.right - popoverWidth;
+                if (leftPos + popoverWidth > window.innerWidth - 16) {
+                    leftPos = window.innerWidth - popoverWidth - 16;
+                }
+                if (leftPos < 16) {
+                    leftPos = 16;
+                }
+                
+                filterPopover.style.left = `${leftPos}px`;
                 filterPopover.classList.toggle('hidden');
             });
 
@@ -716,6 +853,50 @@
                 applyInvoiceFilters();
             });
         });
+
+        // Clear All active filters info bar shortcut
+        const clearAllShortcut = document.getElementById('clear-all-filters-shortcut') as HTMLButtonElement | null;
+        if (clearAllShortcut) {
+            clearAllShortcut.addEventListener('click', () => {
+                currentFilters = {
+                    status: 'all',
+                    paymentStatus: 'all',
+                    dateFilter: 'all',
+                    sortBy: 'date-desc',
+                    customStartDate: null,
+                    customEndDate: null
+                };
+                const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+                if (paymentFilter) paymentFilter.value = 'all';
+                if (dateFilter) dateFilter.value = 'all';
+                if (sortFilter) sortFilter.value = 'date-desc';
+                if (statusFilterTop) statusFilterTop.value = 'all';
+                
+                // Reset status tabs
+                const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                statusTabs.forEach(t => {
+                    if ((t as HTMLElement).dataset.status === 'all') {
+                        t.classList.add('active');
+                    } else {
+                        t.classList.remove('active');
+                    }
+                });
+
+                applyInvoiceFilters();
+            });
+        }
+
+        // Hook search input change to update badges
+        const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                updateActiveFiltersBar();
+            });
+        }
     }
 
     function renderInvoices(invoices: Invoice[]) {

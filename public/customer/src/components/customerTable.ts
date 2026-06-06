@@ -20,18 +20,20 @@ class CustomerTable {
 
         container.innerHTML = '';
         if (mobileContainer) mobileContainer.innerHTML = '';
-        
+
+        const tableWrapper = container.closest('.bg-white');
+        if (tableWrapper) tableWrapper.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+
+        const isTrash = !!(window as any).showDeletedItems;
+        const isArchived = (document.getElementById('status-filter') as HTMLSelectElement)?.value === 'archived';
+
         if (customers.length === 0) {
-            // Hide the table wrapper, show empty state
-            const tableWrapper = container.closest('.bg-white');
-            if (tableWrapper) tableWrapper.classList.add('hidden');
-            emptyState.classList.remove('hidden');
-            
-            const isArchived = (document.getElementById('status-filter') as HTMLSelectElement)?.value === 'archived';
-            const isTrash = (window as any).showDeletedItems;
-            
+            this.updateTableHeader(isTrash);
+
+            let emptyContentHtml = '';
             if (isTrash) {
-                emptyState.innerHTML = `
+                emptyContentHtml = `
                     <div class="inline-block max-w-md mx-auto text-center py-12 fade-in select-none">
                         <div class="text-rose-500 text-5xl mb-4">
                             <i class="fas fa-trash-alt"></i>
@@ -41,7 +43,7 @@ class CustomerTable {
                     </div>
                 `;
             } else if (isArchived) {
-                emptyState.innerHTML = `
+                emptyContentHtml = `
                     <div class="inline-block max-w-md mx-auto text-center py-12 fade-in select-none">
                         <div class="text-amber-500 text-5xl mb-4">
                             <i class="fas fa-archive"></i>
@@ -51,7 +53,7 @@ class CustomerTable {
                     </div>
                 `;
             } else {
-                emptyState.innerHTML = `
+                emptyContentHtml = `
                     <div class="inline-block max-w-md mx-auto text-center py-12 fade-in select-none">
                         <div class="text-purple-500 text-5xl mb-4">
                             <i class="fas fa-users"></i>
@@ -62,16 +64,41 @@ class CustomerTable {
                 `;
             }
 
+            container.innerHTML = `
+                <tr>
+                    <td colspan="${isTrash ? 7 : 6}" class="px-4 py-12 bg-white text-center">
+                        ${emptyContentHtml}
+                    </td>
+                </tr>
+            `;
+
+            if (mobileContainer) {
+                let mobileIcon = 'fa-users';
+                let mobileColor = 'text-purple-500';
+                let mobileTitle = 'No Customers Found';
+                if (isTrash) {
+                    mobileIcon = 'fa-trash-alt';
+                    mobileColor = 'text-rose-500';
+                    mobileTitle = 'Trash is Empty';
+                } else if (isArchived) {
+                    mobileIcon = 'fa-archive';
+                    mobileColor = 'text-amber-500';
+                    mobileTitle = 'No Archived Customers';
+                }
+                mobileContainer.innerHTML = `
+                    <div class="text-center py-10 bg-white rounded-xl border border-slate-200 p-6">
+                        <i class="fas ${mobileIcon} text-3xl ${mobileColor} mb-2"></i>
+                        <p class="text-sm font-bold text-slate-700">${mobileTitle}</p>
+                    </div>
+                `;
+            }
+
             this.updateStats([]);
             return;
         }
 
-        const tableWrapper = container.closest('.bg-white');
-        if (tableWrapper) tableWrapper.classList.remove('hidden');
-        emptyState.classList.add('hidden');
-
         // Dynamically update headers to fit state
-        this.updateTableHeader(!!(window as any).showDeletedItems);
+        this.updateTableHeader(isTrash);
 
         customers.forEach(customer => {
             const row = this.createCustomerRow(customer);

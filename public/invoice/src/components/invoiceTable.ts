@@ -64,7 +64,6 @@
                         <span class="flex items-center">Project Name ${nameIcon}</span>
                     </th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Due Date</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                     <th id="th-total" class="px-4 py-3 text-right text-xs font-semibold tracking-wider cursor-pointer hover:bg-slate-100 hover:text-blue-600 select-none transition-all duration-150 group">
                         <span class="flex items-center justify-end">${amountIcon} Total</span>
@@ -176,7 +175,7 @@
 
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="px-4 py-10 bg-white text-slate-400">
+                        <td colspan="${isTrash ? 8 : 6}" class="px-4 py-10 bg-white text-slate-400">
                             ${emptyHtml}
                         </td>
                     </tr>
@@ -271,7 +270,6 @@
             const total = this.getEffectiveTotal(invoice);
             const dateToFormat = invoice.invoice_date || invoice.createdAt;
             const formattedDate = dateToFormat ? ((window as any).formatDateDisplay ? (window as any).formatDateDisplay(dateToFormat) : '-') : '-';
-            const poNumber = invoice.po_number || '-';
 
             if (isTrash) {
                 const deletedAt = invoice.deletion?.deleted_at
@@ -323,7 +321,6 @@
                         <div class="font-medium text-slate-800 truncate" title="${invoice.customer_name || ''}">${invoice.customer_name || ''}</div>
                         <div class="text-[10px] text-slate-400 truncate" title="${invoice.customer_address || ''}">${invoice.customer_address || ''}</div>
                     </td>
-                    <td class="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">${poNumber}</td>
                     <td class="px-4 py-3 whitespace-nowrap">
                         <span class="px-2 py-0.5 rounded-md text-xs font-semibold ${statusClass}">
                             ${statusLabel}
