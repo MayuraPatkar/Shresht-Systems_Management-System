@@ -399,6 +399,9 @@ router.get("/trash", async (_req: Request, res: Response) => {
     }
 });
 
+// Let the view router handle /quotation/details — must be BEFORE /:quotationId wildcard
+router.get('/details', (_req: Request, _res: Response, next: Function) => next('router'));
+
 router.get("/:quotationId", async (req: Request, res: Response) => {
     try {
         const { quotationId } = req.params;

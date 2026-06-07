@@ -236,7 +236,7 @@ class QuotationTable {
                 const statusBadge = isArchived ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border bg-slate-100 text-slate-600 border-slate-200">ARCHIVED</span>' : this.getStatusBadge(status);
 
                 return `
-                <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col gap-2.5 active:bg-slate-50" onclick="viewQuotation('${quotationId}', 1)">
+                <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col gap-2.5 active:bg-slate-50 cursor-pointer" onclick="window.location.href='/quotation/details?id=' + encodeURIComponent('${quotationId}')">
                     <div class="flex items-center justify-between">
                         <span class="text-[10px] font-bold text-slate-450 uppercase tracking-wider">${formattedDate}</span>
                         ${statusBadge}
@@ -318,9 +318,9 @@ class QuotationTable {
             }
         });
 
-        // Row click opens the details view
+        // Row click opens the standalone details page
         quotationCard.addEventListener('click', () => {
-            viewQuotation(quotationId, 1);
+            window.location.href = '/quotation/details?id=' + encodeURIComponent(quotationId);
         });
 
         return quotationCard;

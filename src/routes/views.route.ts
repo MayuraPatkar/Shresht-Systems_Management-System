@@ -13,6 +13,7 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/supplier/details', file: 'supplier/supplier_details.html' },
     { route: '/invoice', file: 'invoice/invoice.html' },
     { route: '/quotation', file: 'quotation/quotation.html' },
+    { route: '/quotation/details', file: 'quotation/quotation_details.html' },
     { route: '/ewaybill', file: 'ewaybill/eWayBill.html' },
     { route: '/purchaseorder', file: 'purchaseOrder/purchaseOrder.html' },
     { route: '/purchase', file: 'purchase/purchase.html' },

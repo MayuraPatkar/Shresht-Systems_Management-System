@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotation Details</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../css/shared/documentStyles.css">
+    <link rel="stylesheet" href="../css/shared/quotationStyles.css">
+    <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
+    <link rel="stylesheet" href="../css/quotation.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        main {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px !important;
+            height: 8px !important;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+            border-radius: 4px !important;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2563eb !important;
+            border-radius: 4px !important;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8 !important;
+        }
+
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        input,
+        textarea,
+        select,
+        [contenteditable="true"] {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        /* Loading State */
+        #details-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            gap: 16px;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error State */
+        #details-error {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            gap: 12px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Fixed Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800" id="header-quotation-title">Quotation Details</h1>
+                    <p class="text-xs text-gray-500 font-medium" id="header-quotation-subtitle">Loading...</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- Action buttons -->
+                <button type="button" id="editQuotationBtnView"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-purple-300 bg-white px-4 py-2 text-sm font-semibold text-purple-700 transition-all hover:border-purple-500 hover:bg-purple-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-200 cursor-pointer"
+                    style="display: none;">
+                    <i class="fas fa-edit"></i>
+                    Edit Quotation
+                </button>
+                <button type="button" id="duplicateQuotationBtnView"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition-all hover:border-indigo-500 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer"
+                    style="display: none;">
+                    <i class="fas fa-copy"></i>
+                    Duplicate
+                </button>
+                <button id="home-btn"
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium"
+                    title="Back to Quotations">
+                    <i class="fas fa-arrow-left"></i>
+                    Back
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0 no-select">
+        <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+            <div class="flex flex-col gap-2">
+                <a href="/dashboard" id="dashboard"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-th-large w-8 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
+                </a>
+                <a href="/quotation"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-file-alt w-8 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
+                </a>
+                <a href="/purchaseorder"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
+                    <span>Purchase Order</span>
+                </a>
+                <a href="/invoice"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                    <span>Invoice</span>
+                </a>
+                <a href="/ewaybill"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-route w-8 text-center"></i>
+                    <span>E-Way Bill</span>
+                </a>
+                <a href="/service"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-wrench w-8 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="/purchase"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="/payment"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
+                </a>
+                <a href="/stock"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-box w-8 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="/comms"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-comments w-8 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="/reports"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-chart-bar w-8 text-center"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="/calculations"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-calculator w-8 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="/settings"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-cog w-8 text-center"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 h-full overflow-y-auto p-6">
+
+            <!-- Loading State -->
+            <div id="details-loading">
+                <div class="loading-spinner"></div>
+                <p class="text-gray-500 font-medium text-sm">Loading quotation details...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="details-error">
+                <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 text-2xl mb-2">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h2 class="text-lg font-bold text-gray-800">Quotation Not Found</h2>
+                <p class="text-sm text-gray-500">The requested quotation could not be loaded.</p>
+                <a href="/quotation" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">
+                    Back to Quotations
+                </a>
+            </div>
+
+            <!-- View Quotation (hidden initially, shown after load) -->
+            <!-- These are dummy sections required by viewQuotation() to detect routing context -->
+            <div id="home" style="display:none;"></div>
+            <div id="new" style="display:none;"></div>
+            <div id="view-preview" style="display:none;"></div>
+            <div id="showDeletedBtn" style="display:none;"></div>
+
+            <div id="view" class="select-none" style="display:none;">
+                <div id="project-details-view" class="max-w-6xl mx-auto space-y-6">
+                    <!-- Status Tracker Card -->
+                    <div id="quotation-status-tracker" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in hidden">
+                    </div>
+
+                    <!-- Project Details Card -->
+                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-project-diagram text-green-600 text-xl"></i>
+                                <h2 class="text-xl font-semibold text-gray-800">Project Details</h2>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Project Name</span>
+                                <span class="text-gray-900 font-semibold" id="view-project-name">-</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <span class="block text-sm font-medium text-gray-600 mb-1">Quotation ID</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-gray-900 font-semibold" id="view-project-id">-</span>
+                                        <span class="text-xs text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded font-normal"
+                                            title="Generated automatically">System ID</span>
+                                    </div>
+                                </div>
+                                <button type="button" id="copy-quotation-id-btn"
+                                    class="text-gray-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                                    title="Copy Quotation ID">
+                                    <i class="far fa-copy text-lg"></i>
+                                </button>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Date</span>
+                                <span class="text-gray-900 font-semibold" id="view-quotation-date">-</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Status</span>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                                    id="view-quotation-status">-</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Valid Till</span>
+                                <span class="text-gray-900 font-semibold" id="view-valid-till">-</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Recipient Details Card -->
+                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                            <i class="fas fa-user-tag text-purple-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Recipient Details</h2>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Name</span>
+                                <span class="text-gray-900 font-semibold" id="view-buyer-name">-</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Address</span>
+                                <span class="text-gray-900 font-semibold whitespace-pre-line"
+                                    id="view-buyer-address">-</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Phone</span>
+                                <span class="text-gray-900 font-semibold" id="view-buyer-phone">-</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Email</span>
+                                <span class="text-gray-900 font-semibold" id="view-buyer-email">-</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <span class="block text-sm font-medium text-gray-600 mb-1">GSTIN</span>
+                                <span class="text-gray-900 font-semibold" id="view-buyer-gstin">-</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Item List Card -->
+                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                            <i class="fas fa-list-ul text-green-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Item Details</h2>
+                        </div>
+                        <div class="overflow-x-auto" id="view-items-table-container">
+                            <table id="view-items-table" class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50/40 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">S. No</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Description</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">HSN/SAC</th>
+                                        <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Qty</th>
+                                        <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Unit Price</th>
+                                        <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Items will be dynamically filled -->
+                                </tbody>
+                                <tfoot class="bg-gray-50/30 border-t-2 border-gray-200 font-semibold text-gray-900">
+                                    <!-- Totals will be dynamically filled -->
+                                </tfoot>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Other Charges Card -->
+                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                            <i class="fas fa-plus-circle text-indigo-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Other Charges</h2>
+                        </div>
+                        <div id="no-other-charges-msg"
+                            class="hidden text-center py-6 text-gray-500 font-medium bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                            No extra charges
+                        </div>
+                        <div id="other-charges-content">
+                            <div class="overflow-x-auto mb-4" id="view-non-items-table-container">
+                                <table id="view-non-items-table" class="w-full text-left border-collapse">
+                                    <thead class="bg-gray-50/40 border-b border-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">S. No</th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Description</th>
+                                            <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Price</th>
+                                            <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Rate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Charges will be dynamically filled -->
+                                    </tbody>
+                                    <tfoot class="bg-gray-50/30 border-t-2 border-gray-200 font-semibold text-gray-900">
+                                        <!-- Totals will be dynamically filled -->
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Specifications Card -->
+                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                            <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Specifications</h2>
+                        </div>
+                        <div class="overflow-x-auto" id="view-specifications-table-container">
+                            <table id="view-specifications-table" class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50/40 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">S. No</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Description</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase border-b border-gray-100">Specifications</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Specifications will be dynamically filled -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Quotation Summary Card -->
+                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                        <div class="flex items-center gap-3 mb-5 pb-3 border-b border-gray-200">
+                            <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Quotation Summary</h2>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
+                                <span class="block text-sm font-medium text-gray-500 mb-2">Subtotal</span>
+                                <span class="text-gray-900 font-bold text-2xl" id="view-subtotal">₹ 0.00</span>
+                            </div>
+                            <div class="bg-gray-50 p-5 rounded-lg border border-gray-100 flex flex-col justify-between">
+                                <span class="block text-sm font-medium text-gray-500 mb-2">Total Tax</span>
+                                <span class="text-gray-900 font-bold text-2xl" id="view-tax">₹ 0.00</span>
+                            </div>
+                            <div class="bg-blue-600 p-5 rounded-lg border border-blue-700 text-white shadow-md flex flex-col justify-between transform hover:scale-[1.01] transition-transform duration-200">
+                                <span class="block text-sm font-medium text-blue-100 mb-2">Grand Total</span>
+                                <span class="font-extrabold text-3xl tracking-tight" id="view-grand-total">₹ 0.00</span>
+                            </div>
+                        </div>
+                        <!-- Tax breakdown (hidden in compact mode) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <span class="block text-xs font-medium text-gray-500 mb-1">CGST</span>
+                                <span class="text-gray-900 font-semibold" id="view-cgst">₹ 0.00</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <span class="block text-xs font-medium text-gray-500 mb-1">SGST</span>
+                                <span class="text-gray-900 font-semibold" id="view-sgst">₹ 0.00</span>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <span class="block text-xs font-medium text-gray-500 mb-1">Round Off</span>
+                                <span class="text-gray-900 font-semibold" id="view-round-off">₹ 0.00</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Document Preview Card -->
+                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-eye text-purple-600 text-xl"></i>
+                                <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <!-- Animated View Type Switcher - Segmented Control -->
+                                <div class="bg-slate-100 rounded-lg p-1 shadow-inner border border-slate-200/60">
+                                    <div id="view-type-tabs" class="relative flex items-center h-8 w-[320px]">
+                                        <div id="segmented-pill" class="absolute h-full bg-white rounded-md shadow transition-transform duration-300 ease-out z-0" style="width: 33.333%; left: 0; transform: translateX(0%);"></div>
+                                        <button type="button" data-view-type="1"
+                                            class="view-type-tab relative z-10 flex-1 text-[13px] font-semibold transition-colors duration-300 text-slate-800 h-full flex items-center justify-center active">
+                                            Without Tax
+                                        </button>
+                                        <button type="button" data-view-type="2"
+                                            class="view-type-tab relative z-10 flex-1 text-[13px] font-semibold transition-colors duration-300 text-slate-500 hover:text-slate-700 h-full flex items-center justify-center">
+                                            With Tax
+                                        </button>
+                                        <button type="button" data-view-type="3"
+                                            class="view-type-tab relative z-10 flex-1 text-[13px] font-semibold transition-colors duration-300 text-slate-500 hover:text-slate-700 h-full flex items-center justify-center">
+                                            Compact
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="h-6 w-[1px] bg-gray-200 mx-1"></div>
+
+                                <button type="button" id="printProject"
+                                    class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium cursor-pointer transition-colors">
+                                    <i class="fas fa-print"></i>
+                                    Print
+                                </button>
+                                <button type="button" id="saveProjectPDF"
+                                    class="bg-red-600 text-white px-4 h-10 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium cursor-pointer transition-colors">
+                                    <i class="fas fa-file-pdf"></i>
+                                    Save as PDF
+                                </button>
+                            </div>
+                        </div>
+                        <div id="view-preview-content" class="mb-6">
+                            <!-- Preview will be dynamically generated -->
+                        </div>
+                    </section>
+
+                    <!-- Convert to Invoice Section -->
+                    <section id="convert-to-invoice-section" class="bg-blue-50 rounded-lg p-6 border-2 border-blue-200 fade-in hidden">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div class="flex items-center gap-4">
+                                <div id="convert-icon-wrap" class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                                    <i class="fas fa-file-invoice-dollar text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 id="convert-title" class="text-lg font-bold text-blue-900">Convert to Invoice</h3>
+                                    <p id="convert-desc" class="text-sm text-blue-700 mt-0.5">Create a new invoice pre-filled with this quotation's data.</p>
+                                </div>
+                            </div>
+                            <button type="button" id="convertToInvoiceBtn"
+                                class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-semibold transition-all shadow-md hover:shadow-lg cursor-pointer whitespace-nowrap">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                Convert to Invoice
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Danger Zone Section -->
+                    <section id="danger-zone-section" class="bg-red-50 rounded-lg p-6 border-2 border-red-200 fade-in hidden">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-red-200">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                            <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
+                        </div>
+                        <div class="space-y-0">
+                            <p class="mb-4 text-sm font-medium text-red-700">
+                                These actions are destructive. Please proceed with caution.
+                            </p>
+
+                            <div class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-slate-900">Eject / Reject Quotation</p>
+                                    <p class="mt-1 text-sm text-slate-600">Flag this quotation as rejected by the client.</p>
+                                </div>
+                                <div class="sm:justify-self-end">
+                                    <button type="button" id="ejectQuotationBtn"
+                                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:border-slate-700 hover:bg-slate-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-slate-300 cursor-pointer">
+                                        <i class="fas fa-times-circle"></i>
+                                        Reject Quotation
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-slate-900">Archive Quotation</p>
+                                    <p class="mt-1 text-sm text-slate-600">Move this record out of the active workflow while keeping it recoverable.</p>
+                                </div>
+                                <div class="sm:justify-self-end">
+                                    <button type="button" id="archiveQuotationBtn"
+                                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 transition-all hover:border-orange-500 hover:bg-orange-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-200 cursor-pointer">
+                                        <i class="fas fa-archive"></i>
+                                        Archive Quotation
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-slate-900">Delete Permanently</p>
+                                    <p class="mt-1 text-sm text-slate-600">Irreversibly remove this quotation from the system.</p>
+                                </div>
+                                <div class="sm:justify-self-end">
+                                    <button type="button" id="deleteQuotationBtn"
+                                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 transition-all hover:border-red-500 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-200 cursor-pointer">
+                                        <i class="fas fa-trash-alt"></i>
+                                        Delete Quotation
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Shared utilities -->
+    <script src="../../dist/public/ts/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/shared/filters/filterUtils.js"></script>
+    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/shared/documents/documentManager.js"></script>
+    <script src="../../dist/public/ts/shared/documents/sectionRenderers.js"></script>
+    <script src="../../dist/public/ts/shared/documents/documentBuilder.js"></script>
+    <script src="../../dist/public/ts/shared/documents/itemReorder.js"></script>
+
+    <!-- Shared scripts -->
+    <script src="../../dist/public/ts/shared/config/companyConfig.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+
+    <!-- Quotation module scripts (compiled from TypeScript) -->
+    <script src="../../dist/public/quotation/src/services/quotationApi.js"></script>
+    <script src="../../dist/public/quotation/src/components/quotationView.js"></script>
+
+    <!-- Quotation Details Page Bootstrap -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const quotationId = urlParams.get('id');
+
+            if (!quotationId) {
+                window.location.href = '/quotation';
+                return;
+            }
+
+            // Home / Back button
+            const homeBtn = document.getElementById('home-btn');
+            if (homeBtn) {
+                homeBtn.addEventListener('click', () => {
+                    window.location.href = '/quotation';
+                });
+            }
+
+            // Edit button handler (will be wired up by quotationView after load)
+            // We expose a stub openQuotation so quotationView.ts doesn't error
+            window.openQuotation = function(id) {
+                sessionStorage.setItem('open-quotation-id', id);
+                sessionStorage.setItem('currentTab-status', 'update');
+                window.location.href = '/quotation';
+            };
+
+            window.cloneQuotation = function(id) {
+                sessionStorage.setItem('open-quotation-id', id);
+                sessionStorage.setItem('currentTab-status', 'clone');
+                window.location.href = '/quotation';
+            };
+
+            window.archiveQuotation = async function(id) {
+                return window.quotationApi.archiveQuotation(id);
+            };
+
+            window.restoreQuotationFromArchive = async function(id) {
+                return window.quotationApi.restoreQuotationFromArchive(id);
+            };
+
+            // Override deleteDocument for standalone page
+            window.deleteDocument = function(type, id, label, callback) {
+                fetch(`/${type}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Delete failed');
+                        if (typeof callback === 'function') callback();
+                        else window.location.href = '/quotation';
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        if (window.electronAPI?.showAlert1) {
+                            window.electronAPI.showAlert1(`Failed to delete ${label}.`);
+                        }
+                    });
+            };
+
+            try {
+                // viewQuotation is exposed by quotationView.js
+                if (typeof window.viewQuotation !== 'function') {
+                    throw new Error('viewQuotation not loaded');
+                }
+
+                await window.viewQuotation(quotationId, 1);
+
+                // Show the view, hide loading
+                document.getElementById('details-loading').style.display = 'none';
+                document.getElementById('view').style.display = 'block';
+
+                // Update header title with quotation info
+                const qIdEl = document.getElementById('view-project-id');
+                const projectNameEl = document.getElementById('view-project-name');
+                if (qIdEl && qIdEl.textContent && qIdEl.textContent !== '-') {
+                    document.getElementById('header-quotation-title').textContent = 'Quotation Details';
+                    document.getElementById('header-quotation-subtitle').textContent = qIdEl.textContent;
+                    document.title = `Quotation ${qIdEl.textContent} - Details`;
+                }
+
+                // Show header action buttons
+                const editBtn = document.getElementById('editQuotationBtnView');
+                const duplicateBtn = document.getElementById('duplicateQuotationBtnView');
+                if (editBtn) editBtn.style.display = 'flex';
+                if (duplicateBtn) duplicateBtn.style.display = 'flex';
+
+            } catch (err) {
+                console.error('Failed to load quotation details:', err);
+                document.getElementById('details-loading').style.display = 'none';
+                document.getElementById('details-error').style.display = 'flex';
+            }
+        });
+    </script>
+
+</body>
+
+</html>
