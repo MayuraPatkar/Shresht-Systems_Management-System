@@ -412,6 +412,8 @@ async function openQuotation(idToOpen) {
 
     document.getElementById('home').style.display = 'none';
     document.getElementById('new').style.display = 'block';
+    const viewSection = document.getElementById('view');
+    if (viewSection) viewSection.style.display = 'none';
     document.getElementById('new-quotation').style.display = 'none';
     const refreshBtnEdit = document.getElementById('refresh-btn');
     if (refreshBtnEdit) refreshBtnEdit.style.display = 'none';
@@ -756,6 +758,8 @@ async function cloneQuotation(sourceQuotationId) {
         // Show the form (similar to showNewQuotationForm)
         document.getElementById('home').style.display = 'none';
         document.getElementById('new').style.display = 'block';
+        const viewSection = document.getElementById('view');
+        if (viewSection) viewSection.style.display = 'none';
         document.getElementById('new-quotation').style.display = 'none';
         const refreshBtnClone = document.getElementById('refresh-btn');
         if (refreshBtnClone) refreshBtnClone.style.display = 'none';

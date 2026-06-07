@@ -843,11 +843,13 @@ const openInvoice = async function (id: string) {
 
         const homeEl = document.getElementById('home');
         const newEl = document.getElementById('new');
+        const viewEl = document.getElementById('view');
         const newInvoiceEl = document.getElementById('new-invoice');
         const viewPreviewEl = document.getElementById('view-preview');
 
         if (homeEl) homeEl.style.display = 'none';
         if (newEl) newEl.style.display = 'block';
+        if (viewEl) viewEl.style.display = 'none';
         if (newInvoiceEl) newInvoiceEl.style.display = 'none';
         if (viewPreviewEl) viewPreviewEl.style.display = 'flex';
 
@@ -936,7 +938,8 @@ const openInvoice = async function (id: string) {
         renderBuyerProfileCard();
         const searchContainer = document.getElementById("buyer-search-container");
         if (searchContainer) {
-            if (invoice.quotation_id) {
+            const isClone = sessionStorage.getItem('currentTab-status') === 'clone';
+            if (invoice.quotation_id && !isClone) {
                 searchContainer.style.display = "none";
             } else {
                 searchContainer.style.display = "";
@@ -1302,6 +1305,20 @@ const getId = async function () {
         if ((window as any).electronAPI?.showAlert1) {
             (window as any).electronAPI.showAlert1("Failed to fetch invoice id. Please try again later.");
         }
+    }
+};
+
+const cloneInvoice = async function (id: string) {
+    try {
+        sessionStorage.setItem('currentTab-status', 'clone');
+        await openInvoice(id);
+        await getId();
+        const printBtn = document.getElementById('print-btn');
+        const savePdfBtn = document.getElementById('save-pdf-btn');
+        if (printBtn) printBtn.style.display = 'none';
+        if (savePdfBtn) savePdfBtn.style.display = 'none';
+    } catch (error) {
+        console.error("Error cloning invoice:", error);
     }
 };
 
@@ -1896,6 +1913,7 @@ const collectFormData = function () {
 (window as any).validateCurrentStep = validateCurrentStep;
 (window as any).beforeStepAdvance = beforeStepAdvance;
 (window as any).openInvoice = openInvoice;
+(window as any).cloneInvoice = cloneInvoice;
 (window as any).calculateInvoice = calculateInvoice;
 (window as any).generatePreview = generatePreview;
 (window as any).getId = getId;

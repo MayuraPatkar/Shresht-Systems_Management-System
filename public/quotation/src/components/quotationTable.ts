@@ -148,19 +148,45 @@ class QuotationTable {
 
         if (!quotations || quotations.length === 0) {
             const isArchivedView = typeof isArchiveMode !== 'undefined' && isArchiveMode;
-            const emptyHtml = `
-                <div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none">
-                    <div class="${isArchivedView ? 'text-amber-500' : 'text-purple-500'} text-6xl mb-4">
-                        <i class="fas ${isArchivedView ? 'fa-archive' : 'fa-file-invoice'}"></i>
+            const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+            const hasSearch = searchInput && searchInput.value.trim() !== '';
+
+            let emptyHtml = "";
+            if (isArchivedView) {
+                emptyHtml = `
+                    <div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                        <div class="text-amber-500 text-6xl mb-4">
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No Archived Quotations</h2>
+                        <p class="text-gray-500 text-xs">Quotations you archive will show up here</p>
                     </div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">${isArchivedView ? 'No Archived Quotations' : 'No Quotations Found'}</h2>
-                    <p class="text-gray-500 text-xs">${isArchivedView ? 'Quotations you archive will show up here' : 'Start creating professional quotations for your clients'}</p>
-                </div>
-            `;
+                `;
+            } else if (hasSearch) {
+                emptyHtml = `
+                    <div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                        <div class="text-yellow-500 text-6xl mb-4">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No Results Found</h2>
+                        <p class="text-gray-500 text-xs">No quotations match your search</p>
+                    </div>
+                `;
+            } else {
+                emptyHtml = `
+                    <div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                        <div class="text-purple-500 text-6xl mb-4">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">No Quotations Found</h2>
+                        <p class="text-gray-500 text-xs">Start creating professional quotations for your clients</p>
+                    </div>
+                `;
+            }
             
             quotationListDiv.innerHTML = `
                 <tr>
-                    <td colspan="8" class="px-4 py-10 bg-white text-slate-400">
+                    <td colspan="100" class="px-4 py-10 bg-white text-slate-400 text-center">
                         ${emptyHtml}
                     </td>
                 </tr>

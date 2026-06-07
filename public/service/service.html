@@ -221,17 +221,6 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Service</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
-                <div class="relative flex-1">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search services... (Ctrl+F)" autocomplete="off"
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-                </div>
-                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
-                    title="Open Filters (Ctrl+Shift+F)">
-                    <i class="fas fa-filter"></i>
-                </button>
-            </div>
             <div class="flex items-center gap-2">
                 <button id="home-btn"
                     class="hidden bg-gray-600 text-white px-4 py-2.5 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium h-10"
@@ -408,7 +397,7 @@
 
             <!-- Tabs Selection & List Panel -->
             <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
-                <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
+                <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50">
                     <div class="flex items-center gap-1">
                         <!-- Navigation tabs -->
                         <div class="flex border-b border-slate-200">
@@ -422,6 +411,17 @@
                                 <i class="fas fa-check mr-1"></i>Completed
                             </button>
                         </div>
+                    </div>
+                    <!-- Search & Filter wrapper next to navigation tabs -->
+                    <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">
+                        <div class="relative flex-1">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="search-input" placeholder="Search services... (Ctrl+F)" autocomplete="off"
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
+                        </div>
+                        <button id="filter-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer" title="Open Filters (Ctrl+Shift+F)">
+                            <i class="fas fa-filter text-sm"></i>
+                        </button>
                     </div>
                 </div>
 

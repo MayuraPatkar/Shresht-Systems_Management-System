@@ -468,12 +468,24 @@
         }
 
         try {
-            if ((window as any).searchDocuments) {
-                // Querying 'purchase' instead of 'purchaseOrder'
-                const results = await (window as any).searchDocuments('purchase', query, ['purchase_id', 'supplier_name', 'supplier_phone']);
+            const status = (window as any).statusFilter || '';
+            const deleted = !!(window as any).showDeletedItems;
+            let url = `/purchase/search/${encodeURIComponent(query)}?`;
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+            if (deleted) url += `deleted=true&`;
+
+            const response = await fetch(url);
+            if (!response.ok) {
                 if ((window as any).purchaseTable) {
-                    (window as any).purchaseTable.renderPurchases(results);
+                    (window as any).purchaseTable.renderPurchases([]);
                 }
+                return;
+            }
+
+            const data = await response.json();
+            const results = data.purchase || data.purchases || [];
+            if ((window as any).purchaseTable) {
+                (window as any).purchaseTable.renderPurchases(results);
             }
         } catch (error) {
             console.error("Search failed:", error);

@@ -109,6 +109,8 @@
             const showDeletedBtn = document.getElementById('showDeletedBtn');
             const viewPreviewBtn = document.getElementById('view-preview');
             const viewPaymentBtn = document.getElementById('view-payment-btn');
+            const editBtn = document.getElementById('editInvoiceBtnView');
+            const duplicateBtn = document.getElementById('duplicateInvoiceBtnView');
             const newInvoiceBtn = document.getElementById('new-invoice');
             const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
             const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
@@ -121,6 +123,8 @@
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
                 if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
                 if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
+                if (editBtn) editBtn.style.display = 'none';
+                if (duplicateBtn) duplicateBtn.style.display = 'none';
                 if (newInvoiceBtn) newInvoiceBtn.style.display = 'none';
                 if (homeBtn) homeBtn.style.display = 'flex';
                 if (bulkRestoreBtn) {
@@ -139,6 +143,8 @@
                 if (showDeletedBtn) showDeletedBtn.style.display = 'none';
                 if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
                 if (viewPaymentBtn) viewPaymentBtn.style.display = 'flex';
+                if (editBtn) editBtn.style.display = 'flex';
+                if (duplicateBtn) duplicateBtn.style.display = 'flex';
                 if (newInvoiceBtn) newInvoiceBtn.style.display = 'flex';
                 if (homeBtn) homeBtn.style.display = 'flex';
                 if (bulkRestoreBtn) {
@@ -157,6 +163,8 @@
                 if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
                 if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
                 if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
+                if (editBtn) editBtn.style.display = 'none';
+                if (duplicateBtn) duplicateBtn.style.display = 'none';
 
                 // Contextual elements based on Trash mode
                 const isTrashOpen = !!(window as any).showDeletedItems;
@@ -1002,11 +1010,8 @@
 
             const response = await fetch(url);
             if (!response.ok) {
-                invoicesListDiv.innerHTML = `<div class="flex flex-col items-center justify-center py-12 fade-in" style="min-height: calc(100vh - 11rem);">
-                    <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-search"></i></div>
-                    <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Results Found</h2>
-                    <p class="text-gray-500">No invoices match your search</p>
-                </div>`;
+                allInvoices = [];
+                applyInvoiceFilters();
                 return;
             }
 

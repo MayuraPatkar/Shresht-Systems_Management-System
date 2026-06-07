@@ -1091,6 +1091,28 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
         });
     }
 
+    const editBtnView = document.getElementById('editInvoiceBtnView') as HTMLButtonElement;
+    if (editBtnView) {
+        const newEditBtn = editBtnView.cloneNode(true) as HTMLButtonElement;
+        editBtnView.parentNode?.replaceChild(newEditBtn, editBtnView);
+        newEditBtn.addEventListener('click', () => {
+            const invoiceId = invoice.invoice_id || invoice.invoice_no;
+            sessionStorage.setItem('currentTab-status', 'update');
+            (window as any).openInvoice(invoiceId);
+        });
+    }
+
+    const duplicateBtnView = document.getElementById('duplicateInvoiceBtnView') as HTMLButtonElement;
+    if (duplicateBtnView) {
+        const newDuplicateBtn = duplicateBtnView.cloneNode(true) as HTMLButtonElement;
+        duplicateBtnView.parentNode?.replaceChild(newDuplicateBtn, duplicateBtnView);
+        newDuplicateBtn.addEventListener('click', () => {
+            const invoiceId = invoice.invoice_id || invoice.invoice_no;
+            sessionStorage.setItem('currentTab-status', 'clone');
+            (window as any).cloneInvoice(invoiceId);
+        });
+    }
+
     updateInvoiceStatusTracker(invoice);
 }
 

@@ -56,7 +56,17 @@ async function searchDocuments(endpoint, query, resultsContainer, cardCreator, n
     try {
         const response = await fetch(`/${endpoint}/search/${query}`);
         if (!response.ok) {
-            resultsContainer.innerHTML = `<h1>${noResultsMessage}</h1>`;
+            if (resultsContainer.tagName === "TBODY") {
+                const messageHtml = noResultsMessage.trim().startsWith('<') 
+                    ? noResultsMessage 
+                    : `<div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">No Results Found</h2>
+                            <p class="text-gray-500 text-xs">${noResultsMessage}</p>
+                       </div>`;
+                resultsContainer.innerHTML = `<tr><td colspan="100" class="px-4 py-12 bg-white text-slate-400 text-center">${messageHtml}</td></tr>`;
+            } else {
+                resultsContainer.innerHTML = `<h1>${noResultsMessage}</h1>`;
+            }
             return;
         }
 
@@ -74,7 +84,13 @@ async function searchDocuments(endpoint, query, resultsContainer, cardCreator, n
         
         if (resultsContainer.innerHTML === "") {
             if (resultsContainer.tagName === "TBODY") {
-                resultsContainer.innerHTML = `<tr><td colspan="100" style="text-align:center;vertical-align:middle;padding:4rem 1rem;background:#fff;"><div style="display:inline-flex;flex-direction:column;align-items:center;justify-content:center;">${noResultsMessage}</div></td></tr>`;
+                const messageHtml = noResultsMessage.trim().startsWith('<') 
+                    ? noResultsMessage 
+                    : `<div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">No Results Found</h2>
+                            <p class="text-gray-500 text-xs">${noResultsMessage}</p>
+                       </div>`;
+                resultsContainer.innerHTML = `<tr><td colspan="100" class="px-4 py-12 bg-white text-slate-400 text-center">${messageHtml}</td></tr>`;
             } else {
                 resultsContainer.innerHTML = `<h1>${noResultsMessage}</h1>`;
             }

@@ -727,9 +727,17 @@
             const popover = document.getElementById('filter-popover');
             if (!popover) return;
             const rect = e.target.closest('button').getBoundingClientRect();
-            popover.style.top = `${rect.bottom + 8}px`;
-            popover.style.left = `${Math.max(16, rect.right - popover.offsetWidth)}px`;
             popover.classList.toggle('hidden');
+            
+            if (!popover.classList.contains('hidden')) {
+                popover.style.top = `${rect.bottom + 8}px`;
+                const popoverWidth = 280;
+                let leftPos = rect.right - popoverWidth;
+                if (leftPos < 16) {
+                    leftPos = 16;
+                }
+                popover.style.left = `${leftPos}px`;
+            }
         });
 
         document.getElementById('apply-filters-btn')?.addEventListener('click', () => {

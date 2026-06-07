@@ -52,6 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const deleteAllBtn = document.getElementById('trash-delete-all-btn');
         const newQuotationBtn = document.getElementById('new-quotation');
         const viewPreviewBtn = document.getElementById('view-preview');
+        const editBtn = document.getElementById('editQuotationBtnView');
+        const duplicateBtn = document.getElementById('duplicateQuotationBtnView');
 
         if (isFormActive) {
             // Creation/edit/clone mode: hide search, filter, refresh, trash, restore-all, delete-all, new-quotation. Show home and view-preview.
@@ -65,6 +67,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (newQuotationBtn) newQuotationBtn.style.display = 'none';
             if (viewPreviewBtn) viewPreviewBtn.style.display = 'flex';
             if (homeBtn) homeBtn.style.display = 'flex';
+            if (editBtn) editBtn.style.display = 'none';
+            if (duplicateBtn) duplicateBtn.style.display = 'none';
         } else if (isViewActive) {
             // View mode: hide search, filter, refresh, trash, restore-all, delete-all, view-preview. Show home, new-quotation.
             if (searchWrapper) searchWrapper.style.display = 'none';
@@ -77,12 +81,16 @@ document.addEventListener("DOMContentLoaded", () => {
             if (newQuotationBtn) newQuotationBtn.style.display = 'flex';
             if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
             if (homeBtn) homeBtn.style.display = 'flex';
+            if (editBtn) editBtn.style.display = 'flex';
+            if (duplicateBtn) duplicateBtn.style.display = 'flex';
         } else {
             // Home/List/Trash mode
             if (searchWrapper) searchWrapper.style.display = 'flex';
             if (refreshBtn) refreshBtn.style.display = 'flex';
             if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
             if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+            if (editBtn) editBtn.style.display = 'none';
+            if (duplicateBtn) duplicateBtn.style.display = 'none';
 
             if (isTrashMode) {
                 if (newQuotationBtn) newQuotationBtn.style.display = 'none';
@@ -287,7 +295,7 @@ async function loadTrashQuotations() {
             quotationListDiv.innerHTML = `
                 <tr>
                     <td colspan="8" class="px-6 py-10 bg-white">
-                        <div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none">
+                        <div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none mx-auto">
                             <div class="text-rose-500 text-6xl mb-4">
                                 <i class="fas fa-trash-alt"></i>
                             </div>
@@ -582,7 +590,7 @@ async function handleSearch() {
     
     if (cardRenderer) {
         await searchDocuments('quotation', query, quotationListDiv, cardRenderer,
-            `<div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none">
+            `<div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none mx-auto" style="min-height: 300px;">
                 <div class="text-yellow-500 text-6xl mb-4"><i class="fas fa-search"></i></div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">No Results Found</h2>
                 <p class="text-gray-500 text-xs">No quotations match your search</p>

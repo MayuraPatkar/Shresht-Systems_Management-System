@@ -1480,9 +1480,14 @@ interface Window {
         const isHidden = $filterPopover.classList.contains('hidden');
         if (isHidden) {
             const rect = $filterBtn.getBoundingClientRect();
-            $filterPopover.style.top = `${rect.bottom + 8}px`;
-            $filterPopover.style.left = `${Math.max(16, rect.right - $filterPopover.offsetWidth)}px`;
             $filterPopover.classList.remove('hidden');
+            $filterPopover.style.top = `${rect.bottom + 8}px`;
+            const popoverWidth = 320;
+            let leftPos = rect.right - popoverWidth;
+            if (leftPos < 16) {
+                leftPos = 16;
+            }
+            $filterPopover.style.left = `${leftPos}px`;
         } else {
             $filterPopover.classList.add('hidden');
         }
