@@ -90,6 +90,7 @@ interface Window {
     // ── State ───────────────────────────────
     let allPayments: IPaymentRecord[] = [];
     let filteredPayments: IPaymentRecord[] = [];
+    let paginationManager: any = null;
     let currentFilter: string = 'all';
     let editingId: string | null = null;
     let refundedPaymentId: string | null = null;
@@ -1025,11 +1026,22 @@ interface Window {
             });
         }
 
+        if (!paginationManager) {
+            paginationManager = new (window as any).TablePaginationManager(
+                'payment-tbody',
+                (paginatedData: any[]) => renderPage(paginatedData, showBalance),
+                25
+            );
+        }
+        paginationManager.setData(filteredPayments);
+    }
+
+    function renderPage(paginatedPayments: IPaymentRecord[], showBalance: boolean): void {
         // Empty state check
-        if (filteredPayments.length === 0) {
+        if (paginatedPayments.length === 0) {
             const emptyStateHTML = `
                 <tr>
-                    <td colspan="8" class="px-6 py-16 text-center text-slate-450 bg-white">
+                    <td colspan="8" class="px-6 py-16 text-center text-slate-455 bg-white">
                         <div class="max-w-md mx-auto flex flex-col items-center">
                             <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-4 border border-dashed border-slate-300">
                                 <i class="fas fa-inbox text-2xl"></i>
@@ -1057,7 +1069,7 @@ interface Window {
         }
 
         // Desktop table render
-        $tbody.innerHTML = filteredPayments.map((p: IPaymentRecord) => {
+        $tbody.innerHTML = paginatedPayments.map((p: IPaymentRecord) => {
             const typeBadge = getTransactionTypeBadge(p);
             const statusBadge = getStatusBadge(p.status);
             const modeClass = modeBadgeClass(p.mode);
@@ -1070,8 +1082,6 @@ interface Window {
             const balanceCell = showBalance 
                 ? `<td class="px-4 py-3 text-right font-medium text-slate-850 running-balance-col">${formatCurrency((p as any).running_balance)}</td>`
                 : '';
-
-            const canRefund = !p.is_refund && !p.is_already_refunded;
 
             return `
             <tr class="payment-row border-b border-slate-100 hover:bg-slate-50 transition-all duration-150 group cursor-pointer" data-payment-id="${escapeHtml(p._id)}" tabindex="0">
@@ -1096,7 +1106,7 @@ interface Window {
 
         // Mobile cards render
         if ($paymentCardsMobile) {
-            $paymentCardsMobile.innerHTML = filteredPayments.map((p: IPaymentRecord) => {
+            $paymentCardsMobile.innerHTML = paginatedPayments.map((p: IPaymentRecord) => {
                 const type = getTransactionTypeLabel(p);
                 const isReceived = p.direction === 'IN';
                 const amountPrefix = isReceived ? '+ ' : '- ';

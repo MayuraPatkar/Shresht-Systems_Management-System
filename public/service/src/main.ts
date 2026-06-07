@@ -26,6 +26,7 @@
 
     let stockItems: string[] = [];
     (window as any).stockItems = stockItems;
+    let paginationManager: any = null;
 
     // Globals/Helpers
     const serviceApi = (window as any).serviceApi;
@@ -269,7 +270,20 @@
             `;
         }
 
-        if (services.length === 0) {
+        if (!paginationManager) {
+            paginationManager = new (window as any).TablePaginationManager(
+                'service-tbody',
+                (paginatedData: any[]) => renderPage(paginatedData),
+                25
+            );
+        }
+        paginationManager.setData(services);
+    }
+
+    function renderPage(paginatedServices: Service[]) {
+        if (!$tbody) return;
+
+        if (paginatedServices.length === 0) {
             $tbody.innerHTML = `
                 <tr>
                     <td colspan="9" class="px-4 py-12 text-center text-slate-400 bg-white">
@@ -288,14 +302,14 @@
         }
 
         if (ServiceState.currentTab === 'completed') {
-            $tbody.innerHTML = services.map(s => renderCompletedRow(s)).join('');
+            $tbody.innerHTML = paginatedServices.map(s => renderCompletedRow(s)).join('');
             if ($mobileCards) {
-                $mobileCards.innerHTML = services.map(s => renderCompletedMobileCard(s)).join('');
+                $mobileCards.innerHTML = paginatedServices.map(s => renderCompletedMobileCard(s)).join('');
             }
         } else {
-            $tbody.innerHTML = services.map(s => renderPendingRow(s)).join('');
+            $tbody.innerHTML = paginatedServices.map(s => renderPendingRow(s)).join('');
             if ($mobileCards) {
-                $mobileCards.innerHTML = services.map(s => renderPendingMobileCard(s)).join('');
+                $mobileCards.innerHTML = paginatedServices.map(s => renderPendingMobileCard(s)).join('');
             }
         }
 

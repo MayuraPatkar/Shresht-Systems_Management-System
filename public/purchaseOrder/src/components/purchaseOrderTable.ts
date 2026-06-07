@@ -4,6 +4,7 @@
         tbody: HTMLElement | null;
         mobileContainer: HTMLElement | null;
         container: HTMLElement | null;
+        private paginationManager: any = null;
 
         constructor() {
             this.tbody = document.getElementById('purchase-order-tbody');
@@ -63,6 +64,17 @@
         }
 
         renderPurchaseOrders(purchaseOrders: any[]) {
+            if (!this.paginationManager) {
+                this.paginationManager = new (window as any).TablePaginationManager(
+                    'purchase-order-tbody',
+                    (paginatedData: any[]) => this.renderPage(paginatedData),
+                    25
+                );
+            }
+            this.paginationManager.setData(purchaseOrders);
+        }
+
+        renderPage(purchaseOrders: any[]) {
             const isTrash = !!(window as any).showDeletedItems;
             const isArchivedView = !isTrash && (window as any).statusFilter === 'archived';
 

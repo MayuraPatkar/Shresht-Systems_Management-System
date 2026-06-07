@@ -181,5 +181,147 @@ if (typeof window !== 'undefined') {
   // Other utilities
   window.copyToClipboard = copyToClipboard;
   window.debounce = debounce;
+
+  // Client-side table pagination manager
+  class TablePaginationManager {
+    constructor(tableOrContainer, renderCallback, defaultPageSize = 25) {
+      const target = typeof tableOrContainer === 'string' ? document.getElementById(tableOrContainer) : tableOrContainer;
+      if (!target) {
+        throw new Error(`Target container/table not found for pagination.`);
+      }
+      this.container = target.closest('.rounded-xl') || target.closest('.bg-white') || target.parentElement || target;
+      this.renderCallback = renderCallback;
+      this.pageSize = defaultPageSize;
+      this.currentPage = 1;
+      this.data = [];
+      this.paginationId = `pagination-controls-${Math.random().toString(36).substring(2, 9)}`;
+      this.controlsContainer = null;
+    }
+
+    setData(newData) {
+      this.data = newData || [];
+      const maxPage = Math.max(1, Math.ceil(this.data.length / this.pageSize));
+      if (this.currentPage > maxPage) {
+        this.currentPage = 1;
+      }
+      this.render();
+    }
+
+    setPage(page) {
+      const maxPage = Math.max(1, Math.ceil(this.data.length / this.pageSize));
+      if (page >= 1 && page <= maxPage) {
+        this.currentPage = page;
+        this.render();
+      }
+    }
+
+    setPageSize(size) {
+      this.pageSize = size;
+      this.currentPage = 1;
+      this.render();
+    }
+
+    getCurrentPageData() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
+      return this.data.slice(start, end);
+    }
+
+    render() {
+      const pageData = this.getCurrentPageData();
+      this.renderCallback(pageData);
+      this.renderUI();
+    }
+
+    renderUI() {
+      const totalEntries = this.data.length;
+      const maxPage = Math.max(1, Math.ceil(totalEntries / this.pageSize));
+      
+      if (totalEntries === 0) {
+        if (this.controlsContainer) {
+          this.controlsContainer.classList.add('hidden');
+        }
+        return;
+      }
+
+      if (!this.controlsContainer) {
+        this.controlsContainer = document.createElement('div');
+        this.controlsContainer.id = this.paginationId;
+        this.controlsContainer.className = 'px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between bg-white text-xs gap-4 select-none shrink-0';
+        this.container.appendChild(this.controlsContainer);
+      } else {
+        this.controlsContainer.classList.remove('hidden');
+      }
+
+      const startEntry = (this.currentPage - 1) * this.pageSize + 1;
+      const endEntry = Math.min(totalEntries, this.currentPage * this.pageSize);
+
+      let pagesHtml = '';
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(maxPage, startPage + maxVisiblePages - 1);
+      
+      if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const activeClass = i === this.currentPage 
+          ? 'bg-blue-600 text-white border-blue-600 font-bold' 
+          : 'text-slate-650 hover:bg-slate-50 border-slate-200';
+        pagesHtml += `<button class="page-num-btn w-8 h-8 border rounded-lg flex items-center justify-center transition-colors cursor-pointer font-semibold ${activeClass}" data-page="${i}">${i}</button>`;
+      }
+
+      this.controlsContainer.innerHTML = `
+        <div class="flex items-center gap-4 text-slate-500 font-medium">
+            <span>Showing <strong class="text-slate-700">${startEntry}-${endEntry}</strong> of <strong class="text-slate-700">${totalEntries}</strong> entries</span>
+            <div class="flex items-center gap-1.5">
+                <span>Show</span>
+                <select class="pagination-limit-select border border-slate-200 rounded px-1.5 py-1 bg-slate-50 text-slate-700 font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                    <option value="10" ${this.pageSize === 10 ? 'selected' : ''}>10</option>
+                    <option value="25" ${this.pageSize === 25 ? 'selected' : ''}>25</option>
+                    <option value="50" ${this.pageSize === 50 ? 'selected' : ''}>50</option>
+                    <option value="100" ${this.pageSize === 100 ? 'selected' : ''}>100</option>
+                </select>
+                <span>entries</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+            <button class="prev-page-btn px-2.5 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:hover:bg-transparent font-semibold transition-colors cursor-pointer" ${this.currentPage === 1 ? 'disabled' : ''}>
+                <i class="fas fa-chevron-left mr-1 text-[10px]"></i> Previous
+            </button>
+            <div class="flex items-center gap-1">
+                ${pagesHtml}
+            </div>
+            <button class="next-page-btn px-2.5 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:hover:bg-transparent font-semibold transition-colors cursor-pointer" ${this.currentPage === maxPage ? 'disabled' : ''}>
+                Next <i class="fas fa-chevron-right ml-1 text-[10px]"></i>
+            </button>
+        </div>
+      `;
+
+      this.controlsContainer.querySelector('.prev-page-btn')?.addEventListener('click', () => {
+        this.setPage(this.currentPage - 1);
+      });
+
+      this.controlsContainer.querySelector('.next-page-btn')?.addEventListener('click', () => {
+        this.setPage(this.currentPage + 1);
+      });
+
+      this.controlsContainer.querySelectorAll('.page-num-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const page = parseInt(e.currentTarget.getAttribute('data-page') || '1');
+          this.setPage(page);
+        });
+      });
+
+      this.controlsContainer.querySelector('.pagination-limit-select')?.addEventListener('change', (e) => {
+        const limit = parseInt(e.target.value);
+        this.setPageSize(limit);
+      });
+    }
+  }
+
+  window.TablePaginationManager = TablePaginationManager;
 }
 })();
+

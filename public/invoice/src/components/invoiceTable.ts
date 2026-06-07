@@ -24,6 +24,7 @@
     };
 
     class InvoiceTable {
+        private paginationManager: any = null;
         constructor() {}
 
         updateTableHeader(isTrash: boolean) {
@@ -112,6 +113,19 @@
         }
 
         render(invoices: Invoice[]) {
+            this.updateStats(invoices);
+
+            if (!this.paginationManager) {
+                this.paginationManager = new (window as any).TablePaginationManager(
+                    'invoice-tbody',
+                    (paginatedData: any[]) => this.renderPage(paginatedData),
+                    25
+                );
+            }
+            this.paginationManager.setData(invoices);
+        }
+
+        renderPage(invoices: Invoice[]) {
             const isTrash = !!(window as any).showDeletedItems;
             const isArchivedView = !isTrash && (window as any).statusFilter === 'archived';
 
@@ -190,7 +204,6 @@
                     `;
                 }
 
-                this.updateStats([]);
                 return;
             }
 
@@ -237,8 +250,6 @@
                     `;
                 }).join('');
             }
-
-            this.updateStats(invoices);
         }
 
         createInvoiceRow(invoice: Invoice, isTrash: boolean): HTMLTableRowElement {

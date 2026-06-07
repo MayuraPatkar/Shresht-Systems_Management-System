@@ -6,6 +6,7 @@
 class CustomerTable {
     private containerId: string;
     private emptyId: string;
+    private paginationManager: any = null;
 
     constructor(containerId: string, emptyId: string) {
         this.containerId = containerId;
@@ -13,6 +14,19 @@ class CustomerTable {
     }
 
     render(customers: any[]) {
+        this.updateStats(customers);
+
+        if (!this.paginationManager) {
+            this.paginationManager = new (window as any).TablePaginationManager(
+                this.containerId,
+                (paginatedData: any[]) => this.renderPage(paginatedData),
+                25
+            );
+        }
+        this.paginationManager.setData(customers);
+    }
+
+    renderPage(customers: any[]) {
         const container = document.getElementById(this.containerId);
         const emptyState = document.getElementById(this.emptyId);
         const mobileContainer = document.getElementById('customer-cards-mobile');
@@ -93,7 +107,6 @@ class CustomerTable {
                 `;
             }
 
-            this.updateStats([]);
             return;
         }
 
@@ -137,8 +150,6 @@ class CustomerTable {
                 </div>`;
             }).join('');
         }
-
-        this.updateStats(customers);
     }
 
     private updateTableHeader(isTrash: boolean) {

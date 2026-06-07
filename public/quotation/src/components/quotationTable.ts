@@ -5,6 +5,7 @@
  */
 
 class QuotationTable {
+    private paginationManager: any = null;
     constructor() {}
 
     getStatusBadge(status: string): string {
@@ -89,10 +90,6 @@ class QuotationTable {
 
     // Render quotations in the list
     renderQuotations(quotations: any[]) {
-        const quotationListDiv = document.querySelector(".records") as HTMLElement;
-        const mobileContainer = document.getElementById("quotation-cards-mobile") as HTMLElement;
-        if (!quotationListDiv) return;
-
         // Update stats summary
         const totalCountEl = document.getElementById('total-quotations-count');
         const draftCountEl = document.getElementById('draft-quotations-count');
@@ -142,6 +139,21 @@ class QuotationTable {
             b2bCountEl.textContent = b2b.toString();
             b2cCountEl.textContent = b2c.toString();
         }
+
+        if (!this.paginationManager) {
+            this.paginationManager = new (window as any).TablePaginationManager(
+                'quotation-tbody',
+                (paginatedData: any[]) => this.renderPage(paginatedData),
+                25
+            );
+        }
+        this.paginationManager.setData(quotations);
+    }
+
+    renderPage(quotations: any[]) {
+        const quotationListDiv = document.querySelector(".records") as HTMLElement;
+        const mobileContainer = document.getElementById("quotation-cards-mobile") as HTMLElement;
+        if (!quotationListDiv) return;
 
         quotationListDiv.innerHTML = "";
         if (mobileContainer) mobileContainer.innerHTML = "";
