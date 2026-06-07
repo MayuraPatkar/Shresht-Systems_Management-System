@@ -135,21 +135,34 @@
                 <!-- Action buttons -->
                 <button type="button" id="editQuotationBtnView"
                     class="inline-flex items-center justify-center gap-2 rounded-lg border border-purple-300 bg-white px-4 py-2 text-sm font-semibold text-purple-700 transition-all hover:border-purple-500 hover:bg-purple-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-200 cursor-pointer"
-                    style="display: none;">
+                    style="display: none;"
+                    title="Edit Quotation (Ctrl+E)">
                     <i class="fas fa-edit"></i>
                     Edit Quotation
                 </button>
                 <button type="button" id="duplicateQuotationBtnView"
                     class="inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition-all hover:border-indigo-500 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer"
-                    style="display: none;">
+                    style="display: none;"
+                    title="Duplicate (Ctrl+D)">
                     <i class="fas fa-copy"></i>
                     Duplicate
                 </button>
+                <button type="button" id="refreshQuotationBtnView"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:border-gray-500 hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-200 cursor-pointer shadow-sm"
+                    title="Refresh Details (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh
+                </button>
                 <button id="home-btn"
                     class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium"
-                    title="Back to Quotations">
+                    title="Back to Quotations (Esc)">
                     <i class="fas fa-arrow-left"></i>
                     Back
+                </button>
+                <button id="shortcuts-btn"
+                    class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-keyboard"></i>
                 </button>
             </div>
         </div>
@@ -612,6 +625,7 @@
     <!-- Quotation module scripts (compiled from TypeScript) -->
     <script src="../../dist/public/quotation/src/services/quotationApi.js"></script>
     <script src="../../dist/public/quotation/src/components/quotationView.js"></script>
+    <script src="../../dist/public/quotation/src/utils/keyboardShortcuts.js"></script>
 
     <!-- Quotation Details Page Bootstrap -->
     <script>
@@ -632,18 +646,38 @@
                 });
             }
 
+            // Refresh button handler
+            const refreshBtn = document.getElementById('refreshQuotationBtnView');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', async () => {
+                    document.getElementById('view').style.display = 'none';
+                    document.getElementById('details-loading').style.display = 'flex';
+                    try {
+                        const viewTypeTab = document.querySelector('.view-type-tab.active');
+                        const viewType = viewTypeTab ? parseInt(viewTypeTab.getAttribute('data-view-type') || '1') : 1;
+                        await window.viewQuotation(quotationId, viewType);
+                        document.getElementById('details-loading').style.display = 'none';
+                        document.getElementById('view').style.display = 'block';
+                    } catch (err) {
+                        console.error('Failed to refresh quotation details:', err);
+                        document.getElementById('details-loading').style.display = 'none';
+                        document.getElementById('details-error').style.display = 'flex';
+                    }
+                });
+            }
+
             // Edit button handler (will be wired up by quotationView after load)
             // We expose a stub openQuotation so quotationView.ts doesn't error
             window.openQuotation = function(id) {
                 sessionStorage.setItem('open-quotation-id', id);
                 sessionStorage.setItem('currentTab-status', 'update');
-                window.location.href = '/quotation';
+                window.location.href = `/quotation/form?id=${encodeURIComponent(id)}&action=edit`;
             };
 
             window.cloneQuotation = function(id) {
                 sessionStorage.setItem('open-quotation-id', id);
                 sessionStorage.setItem('currentTab-status', 'clone');
-                window.location.href = '/quotation';
+                window.location.href = `/quotation/form?id=${encodeURIComponent(id)}&action=clone`;
             };
 
             window.archiveQuotation = async function(id) {

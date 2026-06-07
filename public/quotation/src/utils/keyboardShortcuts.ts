@@ -1,19 +1,30 @@
 // @ts-nocheck
 
-const QUOTATION_SHORTCUT_GROUPS = [
+const isMac = navigator.userAgent.toLowerCase().includes('mac');
+const isDetailsPage = typeof window !== 'undefined' && (window.location.pathname.includes('/details') || !!document.getElementById('header-quotation-title'));
+
+const SHORTCUT_GROUPS = [
     {
         title: 'Navigation',
         icon: 'fas fa-arrows-alt text-blue-600',
-        items: [
+        items: isDetailsPage ? [
+            { label: 'Back to List', keys: ['Esc'] }
+        ] : [
             { label: 'Next Step', keys: ['Enter'] },
             { label: 'Previous Step', keys: ['Alt', 'Backspace'] },
             { label: 'Exit/Cancel', keys: ['Esc'] }
         ]
     },
     {
-        title: 'Actions',
+        title: isDetailsPage ? 'Quotation Actions' : 'Actions',
         icon: 'fas fa-bolt text-yellow-600',
-        items: [
+        items: isDetailsPage ? [
+            { label: 'Edit Quotation', keys: ['Ctrl', 'E'] },
+            { label: 'Duplicate', keys: ['Ctrl', 'D'] },
+            { label: 'Refresh Details', keys: ['Ctrl', 'R'] },
+            { label: 'Print', keys: ['Ctrl', 'P'] },
+            { label: 'Save as PDF', keys: ['Ctrl', 'Shift', 'P'] }
+        ] : [
             { label: 'New Quotation', keys: ['Ctrl', 'N'] },
             { label: 'Save Quotation', keys: ['Ctrl', 'S'] },
             { label: 'View Preview', keys: ['Ctrl', 'P'] },
@@ -29,24 +40,68 @@ const QUOTATION_SHORTCUT_GROUPS = [
     }
 ];
 
+if (isDetailsPage) {
+    SHORTCUT_GROUPS.push({
+        title: 'View Modes',
+        icon: 'fas fa-eye text-emerald-600',
+        items: [
+            { label: 'Without Tax Mode', keys: ['Alt', '1'] },
+            { label: 'With Tax Mode', keys: ['Alt', '2'] },
+            { label: 'Compact Mode', keys: ['Alt', '3'] }
+        ]
+    });
+}
+
 let shortcutsModalRef: HTMLElement | null = null;
-const isMac = navigator.userAgent.toLowerCase().includes('mac');
+
+function injectShortcutsModalHTML() {
+    if (document.getElementById('shortcuts-modal')) return;
+
+    const modalDiv = document.createElement('div');
+    modalDiv.id = 'shortcuts-modal';
+    modalDiv.className = 'fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[999] flex items-center justify-center hidden opacity-0 transition-opacity duration-200';
+    modalDiv.setAttribute('role', 'dialog');
+    modalDiv.setAttribute('aria-modal', 'true');
+    modalDiv.setAttribute('aria-label', 'Keyboard Shortcuts');
+
+    modalDiv.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto shortcuts-panel" style="animation: premiumModalShow 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fas fa-keyboard text-lg"></i>
+                    </div>
+                    <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Keyboard Shortcuts Help</h2>
+                </div>
+                <button id="close-shortcuts" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200" aria-label="Close shortcuts help modal">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            <div id="shortcuts-content" class="p-6 space-y-5"></div>
+        </div>
+    `;
+    document.body.appendChild(modalDiv);
+}
 
 function initShortcutsModal() {
+    injectShortcutsModalHTML();
+
     shortcutsModalRef = document.getElementById('shortcuts-modal');
     const shortcutsBtn = document.getElementById('shortcuts-btn');
     const closeBtn = document.getElementById('close-shortcuts');
     const contentContainer = document.getElementById('shortcuts-content');
 
-    if (!shortcutsModalRef || !shortcutsBtn || !closeBtn || !contentContainer) {
+    if (!shortcutsModalRef || !closeBtn || !contentContainer) {
         return;
     }
 
-    contentContainer.innerHTML = QUOTATION_SHORTCUT_GROUPS.map(renderShortcutSection).join('');
+    contentContainer.innerHTML = SHORTCUT_GROUPS.map(renderShortcutSection).join('');
 
-    shortcutsBtn.addEventListener('click', () => {
-        showShortcutsModal();
-    });
+    if (shortcutsBtn) {
+        shortcutsBtn.addEventListener('click', () => {
+            showShortcutsModal();
+        });
+    }
 
     closeBtn.addEventListener('click', () => {
         hideShortcutsModal();
@@ -61,7 +116,7 @@ function initShortcutsModal() {
 
 function renderShortcutSection(section: any) {
     return `
-        <div class="shortcuts-section">
+        <div class="shortcuts-section mb-6 last:mb-0">
             <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
                 <i class="${section.icon}"></i>
                 ${section.title}
@@ -75,7 +130,7 @@ function renderShortcutSection(section: any) {
 
 function renderShortcutRow(item: any) {
     return `
-        <div class="shortcut-row">
+        <div class="shortcut-row flex justify-between items-center py-2 px-1 border-b border-slate-100 hover:bg-slate-50 rounded transition-colors duration-150">
             <span class="text-xs font-semibold text-slate-600">${item.label}</span>
             ${renderShortcutKeys(item.keys)}
         </div>
@@ -85,10 +140,10 @@ function renderShortcutRow(item: any) {
 function renderShortcutKeys(keys: string[]) {
     const keyCaps = keys.map((key, index) => {
         const displayKey = key === 'Ctrl' && isMac ? 'Cmd' : key;
-        const separator = index > 0 ? '<span>+</span>' : '';
-        return `${separator}<kbd>${displayKey}</kbd>`;
+        const separator = index > 0 ? '<span class="text-slate-400 font-bold mx-1">+</span>' : '';
+        return `${separator}<kbd class="bg-white border border-slate-200 border-b-2 rounded px-1.5 py-0.5 font-sans text-[11px] font-semibold text-slate-800 shadow-sm">${displayKey}</kbd>`;
     }).join('');
-    return `<div class="shortcut-keys">${keyCaps}</div>`;
+    return `<div class="shortcut-keys flex items-center">${keyCaps}</div>`;
 }
 
 function showShortcutsModal() {
@@ -142,7 +197,6 @@ async function runOnPreviewStep(callback: () => void) {
         return;
     }
 
-    // If already on preview step, just generate preview and run callback
     if (isPreviewStepActive()) {
         if (typeof generatePreview === 'function') {
             await generatePreview();
@@ -151,31 +205,23 @@ async function runOnPreviewStep(callback: () => void) {
         return;
     }
 
-    // Navigate step-by-step using the Next button to trigger validation at each step
     const navigateToPreview = async () => {
         const nextBtn = document.getElementById('next-btn') as HTMLButtonElement;
         if (!nextBtn) {
             return;
         }
 
-        // Store current step to detect if navigation was blocked by validation
         const stepBefore = typeof currentStep !== 'undefined' ? currentStep : 0;
-
-        // Click next button (this triggers validation)
         nextBtn.click();
 
-        // Wait a bit for validation and step change to process
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Check if step actually changed (validation passed)
         const stepAfter = typeof currentStep !== 'undefined' ? currentStep : 0;
 
         if (stepAfter === stepBefore) {
-            // Step didn't change - validation failed, stop navigation
             return;
         }
 
-        // If we reached the preview step, generate preview and run callback
         if (isPreviewStepActive()) {
             if (typeof generatePreview === 'function') {
                 await generatePreview();
@@ -184,7 +230,6 @@ async function runOnPreviewStep(callback: () => void) {
             return;
         }
 
-        // Continue navigating to next steps
         await navigateToPreview();
     };
 
@@ -225,7 +270,6 @@ function triggerAddEntry(): boolean {
 
 function triggerPrintAction(): boolean {
     const formPrintBtn = document.getElementById('print-btn') as HTMLButtonElement;
-    // Only trigger print if button exists, form is active, AND button is visible
     if (formPrintBtn && isFormActive() && window.getComputedStyle(formPrintBtn).display !== 'none') {
         runOnPreviewStep(() => formPrintBtn.click());
         return true;
@@ -251,6 +295,107 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
     const keyLower = event.key.toLowerCase();
     const isModifierPressed = event.ctrlKey || event.metaKey;
     const isShiftPressed = event.shiftKey;
+    const isAltPressed = event.altKey;
+
+    if (isDetailsPage) {
+        if (isModifierPressed && !isAltPressed) {
+            switch (keyLower) {
+                case 'e': {
+                    const editBtn = document.getElementById('editQuotationBtnView');
+                    if (editBtn && window.getComputedStyle(editBtn).display !== 'none') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        editBtn.click();
+                    }
+                    break;
+                }
+                case 'd': {
+                    const duplicateBtn = document.getElementById('duplicateQuotationBtnView');
+                    if (duplicateBtn && window.getComputedStyle(duplicateBtn).display !== 'none') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        duplicateBtn.click();
+                    }
+                    break;
+                }
+                case 'r': {
+                    const refreshBtn = document.getElementById('refreshQuotationBtnView');
+                    if (refreshBtn) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        refreshBtn.click();
+                    }
+                    break;
+                }
+                case 'p': {
+                    if (isShiftPressed) {
+                        const pdfBtn = document.getElementById('saveProjectPDF');
+                        if (pdfBtn) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            pdfBtn.click();
+                        }
+                    } else {
+                        const printBtn = document.getElementById('printProject');
+                        if (printBtn) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            printBtn.click();
+                        }
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+            return;
+        }
+
+        if (isAltPressed) {
+            if (keyLower === '1' || keyLower === '2' || keyLower === '3') {
+                const tab = document.querySelector(`.view-type-tab[data-view-type="${keyLower}"]`) as HTMLElement;
+                if (tab) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    tab.click();
+                }
+            }
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            if (shortcutsModalRef && !shortcutsModalRef.classList.contains('hidden')) {
+                event.preventDefault();
+                event.stopPropagation();
+                hideShortcutsModal();
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            const homeBtn = document.getElementById('home-btn');
+            if (homeBtn) {
+                homeBtn.click();
+            } else {
+                window.location.href = '/quotation';
+            }
+            return;
+        }
+
+        if (event.key === '?' && !isTypingContext()) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (shortcutsModalRef && !shortcutsModalRef.classList.contains('hidden')) {
+                hideShortcutsModal();
+            } else {
+                showShortcutsModal();
+            }
+            return;
+        }
+
+        return;
+    }
+
+    // List Page / Form Page Shortcuts
     const homeButton = document.getElementById('home-btn');
 
     if (isModifierPressed && isShiftPressed && keyLower === 't') {
@@ -277,7 +422,7 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
         shortcutsModalRef = document.getElementById('shortcuts-modal');
     }
 
-    if (!event.altKey && isModifierPressed) {
+    if (!isAltPressed && isModifierPressed) {
         switch (keyLower) {
             case 'n': {
                 const newBtn = document.getElementById('new-quotation') as HTMLButtonElement;
@@ -291,8 +436,6 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
             case 's': {
                 const saveBtn = document.getElementById('save-btn') as HTMLButtonElement;
                 if (saveBtn && isFormActive()) {
-                    // For new documents, only allow save on preview step
-                    // For existing documents, allow save from any step
                     if (isExistingDocument() || isPreviewStepActive()) {
                         event.preventDefault();
                         event.stopPropagation();
@@ -361,7 +504,7 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
         return;
     }
 
-    if (event.altKey) {
+    if (isAltPressed) {
         return;
     }
 
@@ -373,12 +516,10 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
             return;
         }
 
-        // If unsaved changes modal is open, let it handle Escape
         if (typeof (window as any).isUnsavedChangesModalOpen === 'function' && (window as any).isUnsavedChangesModalOpen()) {
-            return; // Handled by unsavedChanges.ts capture-phase listener
+            return;
         }
 
-        // If form is active and dirty, show unsaved changes modal instead of navigating
         if (isFormActive()) {
             const guardNavigation = (window as any).guardQuotationNavigation;
             if (typeof guardNavigation === 'function' && guardNavigation('/quotation')) {
@@ -406,7 +547,6 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
         return;
     }
 
-    // Handle Alt + Backspace previous step shortcut (works even inside typing context)
     if (event.altKey && event.key === 'Backspace' && isFormActive()) {
         const prevBtn = document.getElementById('prev-btn') as HTMLButtonElement;
         if (prevBtn && !prevBtn.disabled) {
@@ -448,3 +588,15 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
         }
     }
 }
+
+// Auto-initialize if loaded on details page or if main.js is not loaded
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        const isDetails = window.location.pathname.includes('/details') || !!document.getElementById('header-quotation-title');
+        if (isDetails) {
+            initShortcutsModal();
+            document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
+        }
+    });
+}
+

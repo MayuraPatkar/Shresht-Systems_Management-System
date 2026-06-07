@@ -948,11 +948,9 @@ async function renderQuotationView(quotation, viewType) {
                 });
             } else {
                 if (confirm(`Are you sure you want to delete Quotation "${quotation.quotation_id}"?`)) {
-                    if (typeof (window as any).deleteDocument === 'function') {
                         (window as any).deleteDocument('quotation', quotation.quotation_id, 'Quotation', () => {
-                            window.location.href = '/quotation/quotation.html';
+                            window.location.href = '/quotation';
                         });
-                    }
                 }
             }
         });

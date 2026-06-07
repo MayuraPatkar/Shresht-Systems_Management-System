@@ -98,7 +98,7 @@ class DashboardUI {
                         title: `Quotation #${q.quotation_id || 'N/A'}`,
                         description: q.project_name || 'No project name',
                         time: q.updatedAt || q.createdAt || q.quotation_date || new Date(),
-                        link: `../quotation/quotation.html?view=${encodeURIComponent(q.quotation_id || '')}`
+                        link: `/quotation/details?id=${encodeURIComponent(q.quotation_id || '')}`
                     });
                 });
 

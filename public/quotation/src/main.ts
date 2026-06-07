@@ -123,7 +123,10 @@ document.addEventListener("DOMContentLoaded", () => {
         updateHeaderVisibility();
     }
 
-    document.getElementById('new-quotation')!.addEventListener('click', showNewQuotationForm);
+    document.getElementById('new-quotation')!.addEventListener('click', () => {
+        sessionStorage.setItem('currentTab-status', 'new');
+        window.location.href = '/quotation/form';
+    });
 
     // ====== Refresh Button (universal — refreshes trash or normal depending on mode) ======
     const refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;

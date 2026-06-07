@@ -1957,10 +1957,12 @@ document.getElementById("save-btn").addEventListener("click", async () => {
             (window as any).markQuotationFormClean();
         }
         window.electronAPI.showAlert1("Quotation saved successfully!");
-        // Redirect to Home after saving a new quotation to prevent ID changes
+        // Redirect to Home after saving a new quotation/clone, or to details page if editing
+        sessionStorage.removeItem('currentTab-status');
         if (wasNewQuotation) {
-            sessionStorage.removeItem('currentTab-status');
-            window.location = '/quotation';
+            window.location.href = '/quotation';
+        } else {
+            window.location.href = `/quotation/details?id=${encodeURIComponent(quotationData.quotation_id)}`;
         }
     }
 });
