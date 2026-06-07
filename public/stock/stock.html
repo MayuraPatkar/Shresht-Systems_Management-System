@@ -20,7 +20,7 @@
 
         .sidebar {
             width: 280px;
-            height: 100vh;
+            height: 100%;
             overflow-y: auto;
             /* Enable sidebar scroll */
             overflow-x: hidden;
@@ -28,7 +28,7 @@
 
         /* Main content scrolling */
         main {
-            height: 100vh;
+            height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -107,7 +107,7 @@
 
         /* Full height table container */
         .table-container {
-            height: calc(100vh - 168px);
+            height: 100%;
             min-height: 400px;
         }
 
@@ -270,8 +270,10 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
-    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0 no-select">
         <!-- Navigation Links -->
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
@@ -354,8 +356,10 @@
         </nav>
     </aside>
 
-    <!-- Fixed Action Bar -->
-    <div class="fixed top-24 left-[280px] right-0 bg-white z-20 px-8 py-4 shadow-md" style="height: 72px;">
+        <!-- Right Panel Content Area -->
+        <div class="flex-1 h-full flex flex-col overflow-hidden">
+            <!-- Fixed Action Bar -->
+            <div class="bg-white px-8 py-4 shadow-md flex-shrink-0" style="height: 72px;">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <button id="refreshBtn"
@@ -432,8 +436,8 @@
         </div>
     </div>
 
-    <!-- Main Content -->
-    <main class="ml-[280px]" style="padding-top: 168px;">
+            <!-- Main Content -->
+            <main class="flex-1 h-full overflow-hidden">
         <!-- Stock Table -->
         <div class="bg-white border border-gray-200 overflow-auto table-container">
             <table class="w-full text-left table-fixed" id="stock-table">
@@ -480,7 +484,9 @@
                 </tbody>
             </table>
         </div>
-    </main>
+            </main>
+        </div>
+    </div>
 
     <!-- Add New Stock Item Modal -->
     <div id="newStockModal" class="fixed inset-0 z-50 hidden">

@@ -18,13 +18,13 @@
 
         .sidebar {
             width: 280px;
-            height: 100vh;
+            height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
         }
 
         main {
-            height: 100vh;
+            height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -285,9 +285,11 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
-    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select"
-        style="width: 280px;">
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 no-select flex-shrink-0"
+            style="width: 280px;">
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
                 <a href="/dashboard" id="dashboard"
@@ -369,8 +371,8 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
-    <main class="ml-[280px] pt-24 mt-6 p-8">
+        <!-- Main Content -->
+        <main class="flex-1 h-full overflow-y-auto p-8">
 
         <!-- Stats Summary (Optional/Placeholder for future) -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
@@ -481,6 +483,7 @@
             <p class="mt-2 text-gray-650">Try adjusting your search or filters</p>
         </div>
     </main>
+    </div>
 
     <!-- Add/Edit Customer Modal -->
     <div id="customer-modal" class="fixed inset-0 z-50 hidden">

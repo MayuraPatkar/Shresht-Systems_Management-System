@@ -19,7 +19,7 @@
 
         .sidebar {
             width: 280px;
-            height: 100vh;
+            height: 100%;
             overflow-y: auto;
             /* Enable sidebar scroll */
             overflow-x: hidden;
@@ -27,7 +27,7 @@
 
         /* Main content scrolling */
         main {
-            height: 100vh;
+            height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -86,8 +86,10 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
-    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24">
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0">
         <!-- Navigation Links -->
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
@@ -170,8 +172,8 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
-    <main class="ml-[280px] pt-24 mt-6 p-8 content-section">
+        <!-- Main Content -->
+        <main class="flex-1 h-full overflow-y-auto p-8 content-section">
 
         <!-- Quick Info Banner -->
         <div class="rounded-lg shadow-lg p-4 mb-6 fade-in"
@@ -350,6 +352,7 @@
         </div>
 
     </main>
+    </div>
 
     <!-- Scripts -->
     <!-- Shared utilities -->
